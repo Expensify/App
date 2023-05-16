@@ -28,7 +28,7 @@ class CollapsibleSection extends React.Component {
      * Expands/collapses the section
      */
     toggleSection() {
-        this.setState(prevState => ({
+        this.setState((prevState) => ({
             isExpanded: !prevState.isExpanded,
         }));
     }
@@ -38,18 +38,17 @@ class CollapsibleSection extends React.Component {
 
         return (
             <View style={styles.mt4}>
-                <TouchableOpacity onPress={this.toggleSection} style={[styles.pb4, styles.flexRow]}>
-                    <Text style={[styles.flex1, styles.textStrong]}>
-                        {this.props.title}
-                    </Text>
+                <TouchableOpacity
+                    onPress={this.toggleSection}
+                    style={[styles.pb4, styles.flexRow]}
+                >
+                    <Text style={[styles.flex1, styles.textStrong]}>{this.props.title}</Text>
                     <Icon src={src} />
                 </TouchableOpacity>
                 <View style={styles.collapsibleSectionBorder} />
 
                 <Collapsible isOpened={this.state.isExpanded}>
-                    <View>
-                        {this.props.children}
-                    </View>
+                    <View>{this.props.children}</View>
                 </Collapsible>
             </View>
         );

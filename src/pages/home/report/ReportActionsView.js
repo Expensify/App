@@ -21,6 +21,8 @@ import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
+import * as ReactionList from './ReactionList/ReactionList';
+import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 
 const propTypes = {
@@ -163,10 +165,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (
-            lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum')
-            || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum')
-        ) {
+        if (lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum') || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum')) {
             return true;
         }
 
@@ -195,9 +194,7 @@ class ReportActionsView extends React.Component {
         const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
         if (didReportBecomeVisible) {
             this.setState({
-                newMarkerReportActionID: ReportUtils.isUnread(this.props.report)
-                    ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)
-                    : '',
+                newMarkerReportActionID: ReportUtils.isUnread(this.props.report) ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions) : '',
             });
             this.openReportIfNecessary();
         }
@@ -220,8 +217,7 @@ class ReportActionsView extends React.Component {
 
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
         // changes it will be because we marked the entire report as read.
-        const didManuallyMarkReportAsUnread = (prevProps.report.lastReadTime !== this.props.report.lastReadTime)
-            && ReportUtils.isUnread(this.props.report);
+        const didManuallyMarkReportAsUnread = prevProps.report.lastReadTime !== this.props.report.lastReadTime && ReportUtils.isUnread(this.props.report);
         if (didManuallyMarkReportAsUnread) {
             this.setState({newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions)});
         }
@@ -230,8 +226,7 @@ class ReportActionsView extends React.Component {
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
-        const didCreateReportSuccessfully = !this.props.report.pendingFields
-            || (!this.props.report.pendingFields.addWorkspaceRoom && !this.props.report.pendingFields.createChat);
+        const didCreateReportSuccessfully = !this.props.report.pendingFields || (!this.props.report.pendingFields.addWorkspaceRoom && !this.props.report.pendingFields.createChat);
         if (!this.didSubscribeToReportTypingEvents && didCreateReportSuccessfully) {
             Report.subscribeToReportTypingEvents(this.props.report.reportID);
             this.didSubscribeToReportTypingEvents = true;
@@ -356,6 +351,7 @@ class ReportActionsView extends React.Component {
                     loadMoreChats={this.loadMoreChats}
                     newMarkerReportActionID={this.state.newMarkerReportActionID}
                 />
+                <PopoverReactionList ref={ReactionList.reactionListRef} />
                 <CopySelectionHelper />
             </>
         );
@@ -365,9 +361,4 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-export default compose(
-    Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
-    withWindowDimensions,
-    withLocalize,
-    withNetwork(),
-)(ReportActionsView);
+export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withLocalize, withNetwork())(ReportActionsView);

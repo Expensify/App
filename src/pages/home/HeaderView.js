@@ -22,28 +22,25 @@ import CONST from '../../CONST';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
-import variables from '../../styles/variables';
 import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
+import ThreeDotsMenu from '../../components/ThreeDotsMenu';
+import * as Task from '../../libs/actions/Task';
+import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: PropTypes.func.isRequired,
 
-    /* Onyx Props */
-
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
-
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** Onyx Props */
+    parentReport: reportPropTypes,
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
@@ -51,17 +48,23 @@ const propTypes = {
         guideCalendarLink: PropTypes.string,
     }),
 
+    /** The report actions from the parent report */
+    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     personalDetails: {},
-    policies: {},
+    parentReportActions: {},
     report: null,
     account: {
         guideCalendarLink: null,
     },
+    parentReport: {},
 };
 
 const HeaderView = (props) => {
@@ -69,24 +72,59 @@ const HeaderView = (props) => {
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
+    const isThread = ReportUtils.isThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const title = ReportUtils.getReportName(props.report, props.policies);
-
-    const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
+    const isTaskReport = ReportUtils.isTaskReport(props.report);
+    const reportHeaderData = (isTaskReport || !isThread) && !_.isEmpty(props.parentReport) ? props.parentReport : props.report;
+    const title = ReportUtils.getReportName(reportHeaderData);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, props.parentReport);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
-    const isAutomatedExpensifyAccount = (participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants));
+    const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
-    const shouldShowCallButton = (isConcierge && guideCalendarLink) || !isAutomatedExpensifyAccount;
+    const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
+    const threeDotMenuItems = [];
+    if (isTaskReport) {
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Checkmark,
+                text: props.translate('newTaskPage.markAsDone'),
+                onSelected: () => Task.completeTask(props.report.reportID, props.report.parentReportID, title),
+            });
+        }
+
+        // Task is marked as completed
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Checkmark,
+                text: props.translate('newTaskPage.markAsIncomplete'),
+                onSelected: () => Task.reopenTask(props.report.reportID, props.report.parentReportID, title),
+            });
+        }
+
+        // Task is not closed
+        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED) {
+            threeDotMenuItems.push({
+                icon: Expensicons.Trashcan,
+                text: props.translate('common.cancel'),
+                onSelected: () => Task.cancelTask(props.report.reportID, props.report.parentReportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+            });
+        }
+    }
+    const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
+
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
-    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report) && !isTaskReport;
+    const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
-        <View style={[styles.appContentHeader]} nativeID="drag-area">
+        <View
+            style={[styles.appContentHeader, isTaskReport && {backgroundColor: themeColors.highlightBG, borderBottomWidth: 0}]}
+            nativeID="drag-area"
+        >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
                     <Pressable
@@ -94,23 +132,20 @@ const HeaderView = (props) => {
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                     >
-                        <Tooltip text={props.translate('common.back')} shiftVertical={4}>
+                        <Tooltip
+                            text={props.translate('common.back')}
+                            shiftVertical={4}
+                        >
                             <Icon src={Expensicons.BackArrow} />
                         </Tooltip>
                     </Pressable>
                 )}
                 {Boolean(props.report && title) && (
-                    <View
-                        style={[
-                            styles.flex1,
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.justifyContentBetween,
-                        ]}
-                    >
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Pressable
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                            disabled={isTaskReport}
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -132,16 +167,11 @@ const HeaderView = (props) => {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat) && (
+                                {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
                                     <Text
-                                        style={[
-                                            styles.sidebarLinkText,
-                                            styles.optionAlternateText,
-                                            styles.textLabelSupporting,
-                                            styles.pre,
-                                        ]}
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
                                         numberOfLines={1}
                                     >
                                         {subtitle}
@@ -153,22 +183,34 @@ const HeaderView = (props) => {
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={colors.red}
-                                        height={variables.iconSizeSmall}
-                                        width={variables.iconSizeSmall}
                                     />
                                 </View>
                             )}
                         </Pressable>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                            {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} guideCalendarLink={guideCalendarLink} />}
+                            {shouldShowCallButton && (
+                                <VideoChatButtonAndMenu
+                                    isConcierge={isConcierge}
+                                    guideCalendarLink={guideCalendarLink}
+                                />
+                            )}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
                                     onPress={() => Report.togglePinnedState(props.report)}
                                     style={[styles.touchableButtonImage]}
                                 >
-                                    <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                                    <Icon
+                                        src={Expensicons.Pin}
+                                        fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
+                                    />
                                 </Pressable>
                             </Tooltip>
+                            {shouldShowThreeDotsButton && (
+                                <ThreeDotsMenu
+                                    anchorPosition={styles.threeDotsPopoverOffset}
+                                    menuItems={threeDotMenuItems}
+                                />
+                            )}
                         </View>
                     </View>
                 )}
@@ -186,7 +228,18 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+            selector: (account) =>
+                account && {
+                    guideCalendarLink: account.guideCalendarLink,
+                    primaryLogin: account.primaryLogin,
+                },
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            canEvict: false,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },
     }),
 )(HeaderView);

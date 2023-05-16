@@ -13,7 +13,7 @@ const defaultProps = {
     forwardedRef: () => {},
 };
 
-const RNTextInput = props => (
+const RNTextInput = (props) => (
     <TextInput
         allowFontScaling={false}
         ref={(ref) => {
@@ -32,6 +32,9 @@ RNTextInput.defaultProps = defaultProps;
 RNTextInput.displayName = 'RNTextInput';
 
 export default React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <RNTextInput {...props} forwardedRef={ref} />
+    <RNTextInput
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

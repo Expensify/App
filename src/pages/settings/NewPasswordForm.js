@@ -1,10 +1,8 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Text from '../../components/Text';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import TextInput from '../../components/TextInput';
@@ -23,74 +21,49 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class NewPasswordForm extends React.Component {
-    constructor(props) {
-        super(props);
+const NewPasswordForm = (props) => {
+    const [passwordHintError, setPasswordHintError] = useState(false);
 
-        this.state = {
-            passwordHintError: false,
-        };
-    }
+    const isValidPassword = () => props.password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
 
-    componentDidUpdate(prevProps) {
-        const passwordChanged = (this.props.password !== prevProps.password);
-        if (passwordChanged) {
-            this.props.updateIsFormValid(this.isValidForm());
-        }
-    }
-
-    onBlurNewPassword() {
-        if (this.state.passwordHintError) {
+    const onBlurNewPassword = () => {
+        if (passwordHintError) {
             return;
         }
-        if (this.props.password && !this.isValidPassword()) {
-            this.setState({passwordHintError: true});
+        if (props.password && !isValidPassword()) {
+            setPasswordHintError(true);
         }
-    }
-
-    isValidPassword() {
-        return this.props.password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
-    }
+    };
 
     /**
      * checks if the password invalid
      * @returns {Boolean}
-    */
-    isInvalidPassword() {
-        return this.state.passwordHintError && this.props.password && !this.isValidPassword();
-    }
+     */
+    const isInvalidPassword = () => passwordHintError && props.password && !isValidPassword();
 
-    isValidForm() {
-        return this.isValidPassword();
-    }
+    useEffect(() => {
+        props.updateIsFormValid(isValidPassword());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.password]);
 
-    render() {
-        return (
-            <View style={styles.mb6}>
-                <TextInput
-                    autoFocus
-                    label={`${this.props.translate('setPasswordPage.enterPassword')}`}
-                    secureTextEntry
-                    autoComplete={ComponentUtils.NEW_PASSWORD_AUTOCOMPLETE_TYPE}
-                    textContentType="newPassword"
-                    value={this.props.password}
-                    onChangeText={password => this.props.updatePassword(password)}
-                    onBlur={() => this.onBlurNewPassword()}
-                />
-                <Text
-                    style={[
-                        styles.formHelp,
-                        styles.mt1,
-                        this.isInvalidPassword() && styles.formError,
-                    ]}
-                >
-                    {this.props.translate('setPasswordPage.newPasswordPrompt')}
-                </Text>
-            </View>
-        );
-    }
-}
+    return (
+        <View style={styles.mb6}>
+            <TextInput
+                autoFocus
+                label={`${props.translate('setPasswordPage.enterPassword')}`}
+                secureTextEntry
+                autoComplete={ComponentUtils.NEW_PASSWORD_AUTOCOMPLETE_TYPE}
+                textContentType="newPassword"
+                value={props.password}
+                onChangeText={(password) => props.updatePassword(password)}
+                onBlur={onBlurNewPassword}
+            />
+            <Text style={[styles.formHelp, styles.mt1, isInvalidPassword() && styles.formError]}>{props.translate('setPasswordPage.newPasswordPrompt')}</Text>
+        </View>
+    );
+};
 
 NewPasswordForm.propTypes = propTypes;
+NewPasswordForm.displayName = 'NewPasswordForm';
 
 export default withLocalize(NewPasswordForm);

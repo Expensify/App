@@ -38,7 +38,7 @@ const defaultProps = {
     betas: [],
 };
 
-const AddPaymentMethodMenu = props => (
+const AddPaymentMethodMenu = (props) => (
     <PopoverMenu
         isVisible={props.isVisible}
         onClose={props.onClose}
@@ -52,18 +52,24 @@ const AddPaymentMethodMenu = props => (
                     props.onItemSelected(CONST.PAYMENT_METHODS.BANK_ACCOUNT);
                 },
             },
-            ...(Permissions.canUseWallet(props.betas) ? [{
-                text: props.translate('common.debitCard'),
-                icon: Expensicons.CreditCard,
-                onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
-            },
-            ] : []),
-            ...(props.shouldShowPaypal && !props.payPalMeData.description ? [{
-                text: props.translate('common.payPalMe'),
-                icon: Expensicons.PayPal,
-                onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.PAYPAL),
-            },
-            ] : []),
+            ...(Permissions.canUseWallet(props.betas)
+                ? [
+                      {
+                          text: props.translate('common.debitCard'),
+                          icon: Expensicons.CreditCard,
+                          onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.DEBIT_CARD),
+                      },
+                  ]
+                : []),
+            ...(props.shouldShowPaypal && !props.payPalMeData.description
+                ? [
+                      {
+                          text: props.translate('common.payPalMe'),
+                          icon: Expensicons.PayPal,
+                          onSelected: () => props.onItemSelected(CONST.PAYMENT_METHODS.PAYPAL),
+                      },
+                  ]
+                : []),
         ]}
     />
 );

@@ -88,7 +88,12 @@ class DatePicker extends React.Component {
 DatePicker.propTypes = datePickerPropTypes;
 DatePicker.defaultProps = defaultProps;
 
-export default withWindowDimensions(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
-)));
+export default withWindowDimensions(
+    React.forwardRef((props, ref) => (
+        <DatePicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

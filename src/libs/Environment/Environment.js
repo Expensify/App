@@ -43,8 +43,7 @@ function isInternalTestBuild() {
  */
 function getEnvironmentURL() {
     return new Promise((resolve) => {
-        getEnvironment()
-            .then(environment => resolve(ENVIRONMENT_URLS[environment]));
+        getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment]));
     });
 }
 
@@ -54,14 +53,7 @@ function getEnvironmentURL() {
  * @returns {Promise<string>}
  */
 function getOldDotEnvironmentURL() {
-    return getEnvironment()
-        .then(environment => OLDDOT_ENVIRONMENT_URLS[environment]);
+    return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-export {
-    getEnvironment,
-    isInternalTestBuild,
-    isDevelopment,
-    getEnvironmentURL,
-    getOldDotEnvironmentURL,
-};
+export {getEnvironment, isInternalTestBuild, isDevelopment, getEnvironmentURL, getOldDotEnvironmentURL};

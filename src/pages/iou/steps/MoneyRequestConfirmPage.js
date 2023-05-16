@@ -15,7 +15,7 @@ const propTypes = {
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
     /** IOU amount */
-    iouAmount: PropTypes.string.isRequired,
+    iouAmount: PropTypes.number.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(optionPropTypes).isRequired,
@@ -35,7 +35,7 @@ const defaultProps = {
     canModifyParticipants: false,
 };
 
-const MoneyRequestConfirmPage = props => (
+const MoneyRequestConfirmPage = (props) => (
     <MoneyRequestConfirmationList
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}

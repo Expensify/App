@@ -40,52 +40,31 @@ describe('incrementPatch', () => {
     });
 
     it('should increment major', () => {
-        expect(
-            versionUpdater.incrementPatch(
-                2,
-                versionUpdater.MAX_INCREMENTS,
-                versionUpdater.MAX_INCREMENTS,
-            ),
-        ).toStrictEqual('3.0.0-0');
+        expect(versionUpdater.incrementPatch(2, versionUpdater.MAX_INCREMENTS, versionUpdater.MAX_INCREMENTS)).toStrictEqual('3.0.0-0');
     });
 });
 
 describe('incrementVersion', () => {
     it('should increment MAJOR', () => {
-        expect(
-            versionUpdater.incrementVersion(
-                VERSION, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR,
-            ),
-        ).toStrictEqual('3.0.0-0');
+        expect(versionUpdater.incrementVersion(VERSION, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)).toStrictEqual('3.0.0-0');
     });
 
     it('should increment MAJOR even above max level', () => {
-        expect(
-            versionUpdater.incrementVersion(
-                `${versionUpdater.MAX_INCREMENTS}.5.1-80`, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR,
-            ),
-        ).toStrictEqual(`${versionUpdater.MAX_INCREMENTS + 1}.0.0-0`);
+        expect(versionUpdater.incrementVersion(`${versionUpdater.MAX_INCREMENTS}.5.1-80`, versionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)).toStrictEqual(
+            `${versionUpdater.MAX_INCREMENTS + 1}.0.0-0`,
+        );
     });
 
     it('should increment BUILD number', () => {
-        expect(versionUpdater.incrementVersion(
-            VERSION, versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD,
-        )).toStrictEqual('2.3.9-81');
+        expect(versionUpdater.incrementVersion(VERSION, versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD)).toStrictEqual('2.3.9-81');
     });
 
     it('should add BUILD number if there is no BUILD number', () => {
-        expect(
-            versionUpdater.incrementVersion(VERSION.split('-')[0], versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD),
-        ).toStrictEqual('2.3.9-1');
+        expect(versionUpdater.incrementVersion(VERSION.split('-')[0], versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD)).toStrictEqual('2.3.9-1');
     });
 
     it('should increment patch if MINOR is above max level', () => {
-        expect(
-            versionUpdater.incrementVersion(
-                `2.3.9-${versionUpdater.MAX_INCREMENTS}`,
-                versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD,
-            ),
-        ).toStrictEqual('2.3.10-0');
+        expect(versionUpdater.incrementVersion(`2.3.9-${versionUpdater.MAX_INCREMENTS}`, versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD)).toStrictEqual('2.3.10-0');
     });
 
     it('should increment the MAJOR', () => {

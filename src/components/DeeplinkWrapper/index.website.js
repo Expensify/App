@@ -15,7 +15,6 @@ const propTypes = {
 
     /** Session info for the currently logged-in user. */
     session: PropTypes.shape({
-
         /** Currently logged-in user email */
         email: PropTypes.string,
 
@@ -36,8 +35,8 @@ class DeeplinkWrapper extends PureComponent {
         super(props);
 
         this.state = {
-            appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
-                ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
+            appInstallationCheckStatus:
+                this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
         };
         this.focused = true;
     }
@@ -59,16 +58,18 @@ class DeeplinkWrapper extends PureComponent {
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
             return;
         }
-        Authentication.getShortLivedAuthToken().then((shortLivedAuthToken) => {
-            params.set('email', this.props.session.email);
-            params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
-            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
-            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
-        }).catch(() => {
-            // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
-            // If not, we only need to make sure that the state will be updated.
-            this.updateAppInstallationCheckStatus();
-        });
+        Authentication.getShortLivedAuthToken()
+            .then((shortLivedAuthToken) => {
+                params.set('email', this.props.session.email);
+                params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
+                const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
+                this.openRouteInDesktopApp(expensifyDeeplinkUrl);
+            })
+            .catch(() => {
+                // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
+                // If not, we only need to make sure that the state will be updated.
+                this.updateAppInstallationCheckStatus();
+            });
     }
 
     updateAppInstallationCheckStatus() {
@@ -110,12 +111,7 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     isMacOSWeb() {
-        return !Browser.isMobile() && (
-            typeof navigator === 'object'
-            && typeof navigator.userAgent === 'string'
-            && /Mac/i.test(navigator.userAgent)
-            && !/Electron/i.test(navigator.userAgent)
-        );
+        return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
     }
 
     render() {

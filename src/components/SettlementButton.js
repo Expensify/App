@@ -87,7 +87,7 @@ class SettlementButton extends React.Component {
                 isDisabled={this.props.network.isOffline}
                 chatReportID={this.props.chatReportID}
             >
-                {triggerKYCFlow => (
+                {(triggerKYCFlow) => (
                     <ButtonWithMenu
                         isDisabled={this.props.isDisabled}
                         isLoading={this.props.isLoading}

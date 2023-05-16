@@ -69,17 +69,14 @@ class EnablePaymentsPage extends React.Component {
                     }
 
                     if (this.props.userWallet.shouldShowWalletActivationSuccess) {
-                        return (
-                            <ActivateStep userWallet={this.props.userWallet} />
-                        );
+                        return <ActivateStep userWallet={this.props.userWallet} />;
                     }
 
                     const currentStep = this.props.userWallet.currentStep || CONST.WALLET.STEP.ADDITIONAL_DETAILS;
 
                     return (
                         <>
-                            {(currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS || currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA)
-                                && <AdditionalDetailsStep />}
+                            {(currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS || currentStep === CONST.WALLET.STEP.ADDITIONAL_DETAILS_KBA) && <AdditionalDetailsStep />}
                             {currentStep === CONST.WALLET.STEP.ONFIDO && <OnfidoStep />}
                             {currentStep === CONST.WALLET.STEP.TERMS && <TermsStep />}
                             {currentStep === CONST.WALLET.STEP.ACTIVATE && <ActivateStep userWallet={this.props.userWallet} />}

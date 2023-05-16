@@ -179,9 +179,7 @@ class RequestorStep extends React.Component {
                         defaultValue={this.props.getDefaultStateForField('isControllingOfficer', false)}
                         LabelComponent={() => (
                             <View style={[styles.flex1, styles.pr1]}>
-                                <Text>
-                                    {this.props.translate('requestorStep.isControllingOfficer')}
-                                </Text>
+                                <Text>{this.props.translate('requestorStep.isControllingOfficer')}</Text>
                             </View>
                         )}
                         style={[styles.mt4]}

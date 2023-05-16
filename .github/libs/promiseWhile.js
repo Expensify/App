@@ -11,9 +11,7 @@ function promiseWhile(condition, action) {
             if (!condition()) {
                 resolve();
             } else {
-                Promise.resolve(action())
-                    .then(loop)
-                    .catch(reject);
+                Promise.resolve(action()).then(loop).catch(reject);
             }
         };
         loop();

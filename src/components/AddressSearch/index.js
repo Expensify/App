@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -94,10 +94,14 @@ const defaultProps = {
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const containerRef = useRef();
-    const query = {language: props.preferredLocale, types: 'address'};
-    if (props.isLimitedToUSA) {
-        query.components = 'country:us';
-    }
+    const query = useMemo(
+        () => ({
+            language: props.preferredLocale,
+            types: 'address',
+            components: props.isLimitedToUSA ? 'country:us' : undefined,
+        }),
+        [props.preferredLocale, props.isLimitedToUSA],
+    );
 
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
@@ -130,18 +134,13 @@ const AddressSearch = (props) => {
 
         // The state's iso code (short_name) is needed for the StatePicker component but we also
         // need the state's full name (long_name) when we render the state in a TextInput.
-        const {
-            administrative_area_level_1: longStateName,
-        } = GooglePlacesUtils.getAddressComponents(addressComponents, {
+        const {administrative_area_level_1: longStateName} = GooglePlacesUtils.getAddressComponents(addressComponents, {
             administrative_area_level_1: 'long_name',
         });
 
         // Make sure that the order of keys remains such that the country is always set above the state.
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
-        const {
-            state: stateAutoCompleteFallback = '',
-            city: cityAutocompleteFallback = '',
-        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+        const {state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
@@ -187,7 +186,6 @@ const AddressSearch = (props) => {
     };
 
     return (
-
         /*
          * The GooglePlacesAutocomplete component uses a VirtualizedList internally,
          * and VirtualizedLists cannot be directly nested within other VirtualizedLists of the same orientation.
@@ -198,13 +196,15 @@ const AddressSearch = (props) => {
             horizontal
             contentContainerStyle={styles.flex1}
             scrollEnabled={false}
-
             // keyboardShouldPersistTaps="always" is required for Android native,
             // otherwise tapping on a result doesn't do anything. More information
             // here: https://github.com/FaridSafi/react-native-google-places-autocomplete#use-inside-a-scrollview-or-flatlist
             keyboardShouldPersistTaps="always"
         >
-            <View style={styles.w100} ref={containerRef}>
+            <View
+                style={styles.w100}
+                ref={containerRef}
+            >
                 <GooglePlacesAutocomplete
                     disableScroll
                     fetchDetails
@@ -265,17 +265,8 @@ const AddressSearch = (props) => {
                     }}
                     styles={{
                         textInputContainer: [styles.flexColumn],
-                        listView: [
-                            StyleUtils.getGoogleListViewStyle(displayListViewBorder),
-                            styles.overflowAuto,
-                            styles.borderLeft,
-                            styles.borderRight,
-                        ],
-                        row: [
-                            styles.pv4,
-                            styles.ph3,
-                            styles.overflowAuto,
-                        ],
+                        listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight],
+                        row: [styles.pv4, styles.ph3, styles.overflowAuto],
                         description: [styles.googleSearchText],
                         separator: [styles.googleSearchSeparator],
                     }}
@@ -298,7 +289,12 @@ AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
 AddressSearch.displayName = 'AddressSearch';
 
-export default withLocalize(React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <AddressSearch {...props} innerRef={ref} />
-)));
+export default withLocalize(
+    React.forwardRef((props, ref) => (
+        <AddressSearch
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

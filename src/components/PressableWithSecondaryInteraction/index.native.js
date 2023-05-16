@@ -29,7 +29,7 @@ const PressableWithSecondaryInteraction = (props) => {
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(_.omit(props, 'onLongPress'))}
+            {..._.omit(props, 'onLongPress')}
         >
             {props.children}
         </Node>
@@ -41,6 +41,9 @@ PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteracti
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />
+    <PressableWithSecondaryInteraction
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

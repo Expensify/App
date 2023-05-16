@@ -57,7 +57,14 @@ const defaultProps = {
 
 class ReportDetailsPage extends Component {
     getMenuItems() {
-        const menuItems = [];
+        const menuItems = [
+            {
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
+                translationKey: 'common.shareCode',
+                icon: Expensicons.QrCode,
+                action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(this.props.report.reportID)),
+            },
+        ];
 
         if (ReportUtils.isArchivedRoom(this.props.report)) {
             return [];
@@ -69,7 +76,9 @@ class ReportDetailsPage extends Component {
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
                 subtitle: lodashGet(this.props.report, 'participants', []).length,
-                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
+                action: () => {
+                    Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID));
+                },
             });
         }
 
@@ -78,7 +87,9 @@ class ReportDetailsPage extends Component {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
-                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)); },
+                action: () => {
+                    Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID));
+                },
             });
         }
 
@@ -98,7 +109,7 @@ class ReportDetailsPage extends Component {
     render() {
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
-        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
+        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -116,18 +127,14 @@ class ReportDetailsPage extends Component {
                     />
                     <ScrollView style={[styles.flex1]}>
                         <View style={[styles.m5]}>
-                            <View
-                                style={styles.reportDetailsTitleContainer}
-                            >
+                            <View style={styles.reportDetailsTitleContainer}>
                                 <View style={styles.mb4}>
-                                    <RoomHeaderAvatars
-                                        icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)}
-                                    />
+                                    <RoomHeaderAvatars icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)} />
                                 </View>
                                 <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                     <View style={[styles.alignSelfCenter, styles.w100]}>
                                         <DisplayNames
-                                            fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
+                                            fullTitle={ReportUtils.getReportName(this.props.report)}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
@@ -136,13 +143,7 @@ class ReportDetailsPage extends Component {
                                         />
                                     </View>
                                     <Text
-                                        style={[
-                                            styles.sidebarLinkText,
-                                            styles.optionAlternateText,
-                                            styles.textLabelSupporting,
-                                            styles.mb2,
-                                            styles.pre,
-                                        ]}
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
                                         numberOfLines={1}
                                     >
                                         {chatRoomSubtitle}
@@ -151,12 +152,8 @@ class ReportDetailsPage extends Component {
                             </View>
                         </View>
                         {_.map(menuItems, (item) => {
-                            const brickRoadIndicator = (
-                                ReportUtils.hasReportNameError(this.props.report)
-                                && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
-                            )
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : '';
+                            const brickRoadIndicator =
+                                ReportUtils.hasReportNameError(this.props.report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
                             return (
                                 <MenuItem
                                     key={item.key}
