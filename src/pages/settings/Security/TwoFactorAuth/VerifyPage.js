@@ -23,10 +23,10 @@ import expensifyLogo from '../../../../../assets/images/expensify-logo-round-dar
 const propTypes = {
     ...withLocalizePropTypes,
     account: PropTypes.shape({
-        /** Whether this account has 2-FA enabled or not */
+        /** Whether this account has 2FA enabled or not */
         requiresTwoFactorAuth: PropTypes.bool,
 
-        /** Secret key to enable 2-FA within the authenticator app */
+        /** Secret key to enable 2FA within the authenticator app */
         twoFactorAuthSecretKey: PropTypes.string,
 
         /** User primary login to attach to the authenticator QRCode */

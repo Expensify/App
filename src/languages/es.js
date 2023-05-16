@@ -24,7 +24,7 @@ export default {
         zoom: 'Zoom',
         password: 'Contraseña',
         magicCode: 'Código mágico',
-        twoFactorCode: 'Autenticación de 2 factores',
+        twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
@@ -524,7 +524,7 @@ export default {
     twoFactorAuthForm: {
         error: {
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
-            incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor, inténtalo de nuevo',
+            incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo',
         },
     },
     passwordConfirmationScreen: {
@@ -675,7 +675,7 @@ export default {
         error: {
             incorrectPassword: 'Contraseña incorrecta. Por favor, inténtalo de nuevo.',
             incorrectLoginOrPassword: 'Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo',
-            incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor, inténtalo de nuevo',
+            incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor, conéctate usando tu email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor, inténtalo de nuevo o restablece la contraseña',
             unableToResetPassword:

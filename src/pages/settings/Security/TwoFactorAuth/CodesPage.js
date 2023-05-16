@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ActivityIndicator, View} from 'react-native';
 import _ from 'underscore';
@@ -20,6 +20,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import Clipboard from '../../../../libs/Clipboard';
 import themeColors from '../../../../styles/themes/default';
 import localFileDownload from '../../../../libs/localFileDownload';
+import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -40,6 +41,14 @@ const defaultProps = {
 
 function CodesPage(props) {
     const [isNextButtonDisabled, setIsNextButtonDisabled] = useState(true);
+
+    // Here, this eslint rule will make the unmount effect unreadable, possibly confusing with mount
+    // eslint-disable-next-line arrow-body-style
+    useEffect(() => {
+        return () => {
+            TwoFactorAuthActions.clearTwoFactorAuthData();
+        };
+    }, []);
 
     return (
         <ScreenWrapper>

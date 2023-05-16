@@ -22,7 +22,7 @@ const propTypes = {
 
     /** Holds information about the users account that is logging in */
     account: PropTypes.shape({
-        /** Whether this account has 2-FA enabled or not */
+        /** Whether this account has 2FA enabled or not */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
 };
@@ -35,7 +35,7 @@ function SecuritySettingsPage(props) {
     const menuItems = [
         {
             translationKey: 'twoFactorAuth.headerTitle',
-            icon: Expensicons.Lock,
+            icon: Expensicons.Shield,
             action: () => {
                 if (props.account.requiresTwoFactorAuth) {
                     Navigation.navigate(ROUTES.SETTINGS_2FA_IS_ENABLED);
