@@ -24,6 +24,9 @@ const propTypes = {
     /** Should the confirmation button be disabled? */
     isDisabled: PropTypes.bool,
 
+    /** Additional styles to add to the component */
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     /** Menu options to display */
     /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}] */
     options: PropTypes.arrayOf(
@@ -42,6 +45,7 @@ const defaultProps = {
     isLoading: false,
     isDisabled: false,
     menuHeaderText: '',
+    style: [],
 };
 
 const ButtonWithDropdownMenu = (props) => {
@@ -66,7 +70,7 @@ const ButtonWithDropdownMenu = (props) => {
     return (
         <View>
             {props.options.length > 1 ? (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, props.style]}>
                     <Button
                         success
                         onPress={(event) => props.onPress(event, selectedItem.value)}

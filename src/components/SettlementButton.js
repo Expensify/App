@@ -46,6 +46,9 @@ const propTypes = {
     /** The policyID of the report we are paying */
     policyID: PropTypes.string.isRequired,
 
+    /** Additional styles to add to the component */
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -56,6 +59,7 @@ const defaultProps = {
     betas: [],
     shouldShowPaymentOptions: false,
     nvp_lastPaymentMethod: {},
+    style: [],
 };
 
 class SettlementButton extends React.Component {
@@ -123,6 +127,7 @@ class SettlementButton extends React.Component {
                             this.props.onPress(iouPaymentType);
                         }}
                         options={this.getButtonOptionsFromProps()}
+                        style={this.props.style}
                     />
                 )}
             </KYCWall>
