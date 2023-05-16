@@ -45,7 +45,8 @@ function process() {
         })
         .catch((error) => {
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
-            if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
+            // Duplicate records don't need to be retried as they just mean the record already exists on the server
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
                 PersistedRequests.remove(requestToProcess);
                 RequestThrottle.clear();
                 return process();

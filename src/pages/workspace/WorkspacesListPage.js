@@ -204,6 +204,7 @@ class WorkspacesListPage extends Component {
                 backgroundColor={themeColors.workspaceSettingsPageBackgroundColor}
                 footer={
                     <Button
+                        accessibilityLabel={this.props.translate('workspace.new.newWorkspace')}
                         success
                         text={this.props.translate('workspace.new.newWorkspace')}
                         onPress={() => Policy.createWorkspace()}

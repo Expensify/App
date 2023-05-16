@@ -1023,6 +1023,10 @@ const styles = {
         lineHeight: 16,
     },
 
+    lh140Percent: {
+        lineHeight: '140%',
+    },
+
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
@@ -1689,10 +1693,8 @@ const styles = {
 
     taskSelectorLink: {
         alignSelf: 'center',
-        height: 42,
         width: '100%',
         padding: 6,
-        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -1783,20 +1785,14 @@ const styles = {
 
     secondAvatarSubscript: {
         position: 'absolute',
-        right: -4,
-        bottom: -2,
-        borderWidth: 2,
-        borderRadius: 18,
-        borderColor: 'transparent',
+        right: -6,
+        bottom: -6,
     },
 
     secondAvatarSubscriptCompact: {
         position: 'absolute',
         bottom: -1,
         right: -1,
-        borderWidth: 1,
-        borderRadius: 18,
-        borderColor: 'transparent',
     },
 
     leftSideLargeAvatar: {
@@ -1986,6 +1982,11 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.modalBackdrop,
     },
+
+    centeredModalStyles: (isSmallScreenWidth, isFullScreenWhenSmall) => ({
+        borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
+        marginHorizontal: isSmallScreenWidth ? 0 : 20,
+    }),
 
     imageModalImageCenterContainer: {
         alignItems: 'center',
@@ -2211,6 +2212,13 @@ const styles = {
         opacity: 0.5,
     },
 
+    threadDividerLine: {
+        height: 1,
+        backgroundColor: themeColors.border,
+        flexGrow: 1,
+        marginHorizontal: 20,
+    },
+
     unreadIndicatorText: {
         color: themeColors.unreadIndicator,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -2343,6 +2351,10 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
+    magicCodeInputTransparent: {
+        color: 'transparent',
+    },
+
     iouAmountText: {
         ...headlineFont,
         fontSize: variables.iouAmountTextSize,
@@ -2373,6 +2385,11 @@ const styles = {
         width: '100%',
         paddingHorizontal: 20,
         paddingVertical: 12,
+    },
+
+    requestPreviewBox: {
+        marginTop: 8,
+        maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
@@ -3217,9 +3234,26 @@ const styles = {
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
+
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    shareCodePage: {
+        paddingHorizontal: 38.5,
+    },
+
+    shareCodeContainer: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: variables.qrShareHorizontalPadding,
+        paddingVertical: 20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderColor: themeColors.borderFocus,
+        borderWidth: 2,
+        backgroundColor: themeColors.highlightBG,
     },
 
     illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [flex.flex1, flex.flexColumn, spacing.pt5, safeAreaPaddingBottomStyle],
