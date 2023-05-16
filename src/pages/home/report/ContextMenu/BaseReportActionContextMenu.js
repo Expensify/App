@@ -51,7 +51,15 @@ class BaseReportActionContextMenu extends React.Component {
 
     render() {
         const shouldShowFilter = (contextAction) =>
-            contextAction.shouldShow(this.props.type, this.props.reportAction, this.props.isArchivedRoom, this.props.betas, this.props.anchor, this.props.isChronosReport);
+            contextAction.shouldShow(
+                this.props.type,
+                this.props.reportAction,
+                this.props.isArchivedRoom,
+                this.props.betas,
+                this.props.anchor,
+                this.props.isChronosReport,
+                this.props.reportID,
+            );
 
         return (
             (this.props.isVisible || this.state.shouldKeepOpen) && (
@@ -82,7 +90,7 @@ class BaseReportActionContextMenu extends React.Component {
                         return (
                             <ContextMenuItem
                                 icon={contextAction.icon}
-                                text={this.props.translate(contextAction.textTranslateKey)}
+                                text={this.props.translate(contextAction.textTranslateKey, {action: this.props.reportAction})}
                                 successIcon={contextAction.successIcon}
                                 successText={contextAction.successTextTranslateKey ? this.props.translate(contextAction.successTextTranslateKey) : undefined}
                                 isMini={this.props.isMini}

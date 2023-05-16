@@ -219,8 +219,8 @@ class Composer extends React.Component {
 
     /**
      *  Adds the cursor position to the selection change event.
-     *  
-     * @param {Event} event 
+     *
+     * @param {Event} event
      */
     addCursorPositionToSelectionChange(event) {
         if (this.props.shouldCalculateCaretPosition) {

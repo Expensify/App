@@ -8,6 +8,8 @@ import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasur
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import CONST from '../../../../CONST';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
+import * as IOU from '../../../../libs/actions/IOU';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -125,6 +127,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Function} [onHide] - Run a callback when Menu is hidden
      * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
+     * @param {String} childReportID - ReportAction childReportID
      */
     showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow = () => {}, onHide = () => {}, isArchivedRoom, isChronosReport) {
         const nativeEvent = event.nativeEvent || {};
@@ -248,7 +251,12 @@ class PopoverReportActionContextMenu extends React.Component {
 
     confirmDeleteAndHideModal() {
         this.callbackWhenDeleteModalHide = () => (this.onComfirmDeleteModal = this.runAndResetCallback(this.onComfirmDeleteModal));
-        Report.deleteReportComment(this.state.reportID, this.state.reportAction);
+
+        if (ReportActionsUtils.isMoneyRequestAction(this.state.reportAction)) {
+            IOU.deleteMoneyRequest(this.state.reportID, this.state.reportAction.originalMessage.IOUReportID, this.state.reportAction, true);
+        } else {
+            Report.deleteReportComment(this.state.reportID, this.state.reportAction);
+        }
         this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 
@@ -256,7 +264,6 @@ class PopoverReportActionContextMenu extends React.Component {
         this.callbackWhenDeleteModalHide = () => (this.onCancelDeleteModal = this.runAndResetCallback(this.onCancelDeleteModal));
         this.setState({
             reportID: '0',
-            reportAction: {},
             isDeleteCommentConfirmModalVisible: false,
             shouldSetModalVisibilityForDeleteConfirmation: true,
             isArchivedRoom: false,
@@ -312,13 +319,13 @@ class PopoverReportActionContextMenu extends React.Component {
                     />
                 </PopoverWithMeasuredContent>
                 <ConfirmModal
-                    title={this.props.translate('reportActionContextMenu.deleteComment')}
+                    title={this.props.translate('reportActionContextMenu.deleteAction', {action: this.state.reportAction})}
                     isVisible={this.state.isDeleteCommentConfirmModalVisible}
                     shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfirmation}
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={this.hideDeleteModal}
                     onModalHide={this.callbackWhenDeleteModalHide}
-                    prompt={this.props.translate('reportActionContextMenu.deleteConfirmation')}
+                    prompt={this.props.translate('reportActionContextMenu.deleteConfirmation', {action: this.state.reportAction})}
                     confirmText={this.props.translate('common.delete')}
                     cancelText={this.props.translate('common.cancel')}
                     danger
