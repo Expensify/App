@@ -295,6 +295,13 @@ export default {
             `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
     },
+    reportSettings: {
+        writeCapability: {
+            label: 'Quién puede postear',
+            all: 'Todos los miembros',
+            admins: 'Solo administradores',
+        },
+    },
     sidebarScreen: {
         fabAction: 'Nuevo chat',
         newChat: 'Nuevo chat',
