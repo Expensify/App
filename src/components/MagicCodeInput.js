@@ -108,9 +108,13 @@ function MagicCodeInput(props) {
         },
     }));
 
+    /**
+     * Check if current magic code is ready for submit
+     * @returns {boolean}
+     */
     const isReadyToSubmit = () => {
         const numbers = decomposeString(props.value);
-        return (props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length === CONST.MAGIC_CODE_LENGTH) && !props.network.isOffline;
+        return props.shouldSubmitOnComplete && _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length === CONST.MAGIC_CODE_LENGTH && !props.network.isOffline;
     };
 
     useOnNetworkReconnect(() => {
