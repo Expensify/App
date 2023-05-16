@@ -4,13 +4,17 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
+import EnvironmentBadge from './EnvironmentBadge';
 
 const propTypes = {
     /** Title of the Header */
-    title: PropTypes.string.isRequired,
+    title: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 
     /** Subtitle of the header */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+
+    /** Should we show the environment badge (dev/stg)?  */
+    shouldShowEnvironmentBadge: PropTypes.bool,
 
     /** Additional text styles */
     // eslint-disable-next-line react/forbid-prop-types
@@ -18,18 +22,24 @@ const propTypes = {
 };
 
 const defaultProps = {
+    title: '',
     subtitle: '',
     textStyles: [],
+    shouldShowEnvironmentBadge: false,
 };
 const Header = (props) => (
     <View style={[styles.flex1, styles.flexRow]}>
         <View style={styles.mw100}>
-            <Text
-                numberOfLines={2}
-                style={[styles.headerText, styles.textLarge, ...props.textStyles]}
-            >
-                {props.title}
-            </Text>
+            {_.isString(props.title)
+                ? Boolean(props.title) && (
+                    <Text
+                    numberOfLines={2}
+                    style={[styles.headerText, styles.textLarge, ...props.textStyles]}
+                >
+                    {props.title}
+                </Text>
+                  )
+                : props.title}
             {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
             {_.isString(props.subtitle)
                 ? Boolean(props.subtitle) && (
@@ -42,6 +52,7 @@ const Header = (props) => (
                   )
                 : props.subtitle}
         </View>
+        {props.shouldShowEnvironmentBadge && <EnvironmentBadge />}
     </View>
 );
 

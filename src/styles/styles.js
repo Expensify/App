@@ -3245,6 +3245,17 @@ const styles = {
         borderWidth: 2,
         backgroundColor: themeColors.highlightBG,
     },
+
+    headerEnvBadge: {
+        marginLeft: 2,
+        marginBottom: 2,
+        height: 12,
+        paddingLeft: 4,
+        paddingRight: 4,
+    },
+    headerEnvBadgeText: {
+        fontSize: 7,
+    },
 };
 
 export default styles;

@@ -369,13 +369,6 @@ function getSignInWordmarkWidthStyle(environment, isSmallScreenWidth) {
     return isSmallScreenWidth ? {width: variables.signInLogoWidthPill} : {width: variables.signInLogoWidthLargeScreenPill};
 }
 
-function getLHNWordmarkWidthStyle(environment) {
-    if (environment === CONST.ENVIRONMENT.PRODUCTION) {
-        return {width: variables.lhnLogoWidth};
-    }
-    return {width: variables.lhnLogoWidthPill};
-}
-
 /**
  * Converts a color in hexadecimal notation into RGB notation.
  *
@@ -1170,7 +1163,6 @@ export {
     getDirectionStyle,
     getFontSizeStyle,
     getSignInWordmarkWidthStyle,
-    getLHNWordmarkWidthStyle,
     getGoogleListViewStyle,
     getMentionStyle,
     getMentionTextColor,

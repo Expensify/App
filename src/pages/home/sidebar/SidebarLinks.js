@@ -30,10 +30,11 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import ExpensifyWordmark from '../../../components/ExpensifyWordmark';
+import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 import variables from '../../../styles/variables';
+import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -151,12 +152,17 @@ class SidebarLinks extends React.Component {
                     style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                     nativeID="drag-area"
                 >
-                    <View style={[styles.flex1, styles.flexRow]}>
-                        <ExpensifyWordmark
-                            color={defaultTheme.textLight}
-                            containerStyles={[StyleUtils.getLHNWordmarkWidthStyle(this.props.environment, this.props.isSmallScreenWidth), StyleUtils.getHeight(variables.lhnLogoHeight)]}
-                        />
-                    </View>
+                    <Header
+                        title={
+                            <LogoComponent
+                                fill={defaultTheme.textLight}
+                                width={variables.lhnLogoWidth}
+                                height={variables.lhnLogoHeight}
+                            />
+                        }
+                        accessibilityRole="text"
+                        shouldShowEnvironmentBadge
+                    />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
