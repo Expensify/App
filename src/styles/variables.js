@@ -126,6 +126,8 @@ export default {
     signInLogoWidth: 120,
     signInLogoWidthLargeScreen: 144,
     signInLogoWidthPill: 132,
+    lhnLogoWidth: 108,
+    lhnLogoHeight: 28,
     signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,
