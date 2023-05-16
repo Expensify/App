@@ -22,7 +22,7 @@ import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActio
 import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import LoadingAnimation from '../../../../assets/animations/Loading.json';
+import LoadingAnimation from '../../../../assets/animations/LoadingCoin.json';
 
 const propTypes = {
     ...withLocalizePropTypes,
