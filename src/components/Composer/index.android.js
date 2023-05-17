@@ -37,12 +37,11 @@ const propTypes = {
     setIsFullComposerAvailable: PropTypes.func,
 
     /** Whether the composer is full size */
-    isComposerFullSize: PropTypes.bool.isRequired,
+    isComposerFullSize: PropTypes.bool,
 
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
-
 };
 
 const defaultProps = {
@@ -57,6 +56,7 @@ const defaultProps = {
     },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
+    isComposerFullSize: false,
     style: null,
 };
 
@@ -95,9 +95,9 @@ class Composer extends React.Component {
             <RNTextInput
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
-                ref={el => this.textInput = el}
+                ref={(el) => (this.textInput = el)}
                 maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
-                onContentSizeChange={e => ComposerUtils.updateNumberOfLines(this.props, e)}
+                onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
                 style={this.state.propStyles}
@@ -113,6 +113,9 @@ Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Composer {...props} forwardedRef={ref} />
+    <Composer
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

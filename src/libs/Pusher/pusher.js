@@ -1,9 +1,23 @@
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import ONYXKEYS from '../../ONYXKEYS';
 import Pusher from './library';
 import TYPE from './EventType';
 import Log from '../Log';
 
+let shouldForceOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldForceOffline = Boolean(network.shouldForceOffline);
+    },
+});
+
 let socket;
+let pusherSocketID = '';
 const socketEventCallbacks = [];
 let customAuthorizer;
 
@@ -14,7 +28,7 @@ let customAuthorizer;
  * @param {*} data
  */
 function callSocketEventCallbacks(eventName, data) {
-    _.each(socketEventCallbacks, cb => cb(eventName, data));
+    _.each(socketEventCallbacks, (cb) => cb(eventName, data));
 }
 
 /**
@@ -68,6 +82,7 @@ function init(args, params) {
         });
 
         socket.connection.bind('connected', () => {
+            pusherSocketID = socket.connection.socket_id;
             callSocketEventCallbacks('connected');
             resolve();
         });
@@ -112,6 +127,11 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
 
     const chunkedDataEvents = {};
     const callback = (eventData) => {
+        if (shouldForceOffline) {
+            Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
+            return;
+        }
+
         let data;
         try {
             data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
@@ -174,12 +194,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
  *
  * @public
  */
-function subscribe(
-    channelName,
-    eventName,
-    eventCallback = () => {},
-    onResubscribe = () => {},
-) {
+function subscribe(channelName, eventName, eventCallback = () => {}, onResubscribe = () => {}) {
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
@@ -337,6 +352,7 @@ function disconnect() {
 
     socket.disconnect();
     socket = null;
+    pusherSocketID = '';
 }
 
 /**
@@ -351,6 +367,13 @@ function reconnect() {
     Log.info('[Pusher] Reconnecting to Pusher');
     socket.disconnect();
     socket.connect();
+}
+
+/**
+ * @returns {String}
+ */
+function getPusherSocketID() {
+    return pusherSocketID;
 }
 
 if (window) {
@@ -375,4 +398,5 @@ export {
     registerSocketEventCallback,
     registerCustomAuthorizer,
     TYPE,
+    getPusherSocketID,
 };

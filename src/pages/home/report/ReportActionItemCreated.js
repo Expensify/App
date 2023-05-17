@@ -1,5 +1,5 @@
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {Pressable, View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -12,6 +12,11 @@ import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
+import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import compose from '../../../libs/compose';
+import withLocalize from '../../../components/withLocalize';
 
 const propTypes = {
     /** The id of the report */
@@ -23,44 +28,46 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
+    ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     report: {},
     personalDetails: {},
-    policies: {},
 };
 
 const ReportActionItemCreated = (props) => {
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+
+    if (ReportUtils.isMoneyRequestReport(props.report.reportID) || ReportUtils.isTaskReport(props.report)) {
+        return null;
+    }
+
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
-            errorRowStyles={styles.addWorkspaceRoomErrorRow}
+            errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
-            <View
-                accessibilityLabel="Chat welcome message"
-                style={[
-                    styles.chatContent,
-                    styles.pb8,
-                    styles.p5,
-                ]}
-            >
-                <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
-                    <Pressable onPress={() => ReportUtils.navigateToDetailsPage(props.report)}>
-                        <RoomHeaderAvatars
-                            icons={icons}
-                            shouldShowLargeAvatars={isPolicyExpenseChat}
-                        />
+            <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+                <Image
+                    pointerEvents="none"
+                    source={EmptyStateBackgroundImage}
+                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
+                />
+                <View
+                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
+                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
+                >
+                    <Pressable
+                        onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                        style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
+                    >
+                        <RoomHeaderAvatars icons={icons} />
                     </Pressable>
-                    <ReportWelcomeText report={props.report} />
+                    <View style={[styles.ph5]}>
+                        <ReportWelcomeText report={props.report} />
+                    </View>
                 </View>
             </View>
         </OfflineWithFeedback>
@@ -71,14 +78,15 @@ ReportActionItemCreated.defaultProps = defaultProps;
 ReportActionItemCreated.propTypes = propTypes;
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
-export default withOnyx({
-    report: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(ReportActionItemCreated);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        report: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+    }),
+)(ReportActionItemCreated);

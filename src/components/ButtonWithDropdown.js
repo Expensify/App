@@ -31,7 +31,7 @@ const defaultProps = {
     isLoading: false,
 };
 
-const ButtonWithDropdown = props => (
+const ButtonWithDropdown = (props) => (
     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
         <Button
             success
@@ -40,19 +40,22 @@ const ButtonWithDropdown = props => (
             isDisabled={props.isDisabled}
             isLoading={props.isLoading}
             shouldRemoveRightBorderRadius
-            style={[styles.flex1]}
+            style={[styles.flex1, styles.pr0]}
             pressOnEnter
         />
+        <View style={styles.buttonDivider} />
         <Button
             success
             isDisabled={props.isDisabled}
-            style={[styles.buttonDropdown]}
+            style={[styles.pl0]}
             onPress={props.onDropdownPress}
             shouldRemoveLeftBorderRadius
-            ContentComponent={() => (
-                <Icon src={Expensicons.DownArrow} fill={themeColors.textReversed} />
-            )}
-        />
+        >
+            <Icon
+                src={Expensicons.DownArrow}
+                fill={themeColors.textLight}
+            />
+        </Button>
     </View>
 );
 

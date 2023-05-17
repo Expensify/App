@@ -1,6 +1,7 @@
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import '../assets/css/fonts.css';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import './fonts.css';
 import ComposeProviders from '../src/components/ComposeProviders';
 import HTMLEngineProvider from '../src/components/HTMLEngineProvider';
 import OnyxProvider from '../src/components/OnyxProvider';
@@ -12,14 +13,8 @@ Onyx.init({
 });
 
 const decorators = [
-    Story => (
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                LocaleContextProvider,
-                HTMLEngineProvider,
-            ]}
-        >
+    (Story) => (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider]}>
             <Story />
         </ComposeProviders>
     ),
@@ -33,7 +28,4 @@ const parameters = {
     },
 };
 
-export {
-    decorators,
-    parameters,
-};
+export {decorators, parameters};

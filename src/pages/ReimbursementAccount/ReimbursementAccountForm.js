@@ -2,13 +2,10 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import FormScrollView from '../../components/FormScrollView';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -16,7 +13,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 
 const propTypes = {
     /** Data for the bank account actively being set up */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
     /** Called when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
@@ -26,11 +23,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    reimbursementAccount: {
-        isLoading: false,
-        errors: {},
-        errorFields: {},
-    },
     buttonText: '',
     hideSubmitButton: false,
 };
@@ -50,13 +42,9 @@ class ReimbursementAccountForm extends React.Component {
         }
 
         return (
-            <FormScrollView
-                ref={el => this.form = el}
-            >
+            <FormScrollView ref={(el) => (this.form = el)}>
                 {/* Form elements */}
-                <View style={viewStyles}>
-                    {this.props.children}
-                </View>
+                <View style={viewStyles}>{this.props.children}</View>
                 {!this.props.hideSubmitButton && (
                     <FormAlertWithSubmitButton
                         isAlertVisible={isErrorVisible}
@@ -77,11 +65,4 @@ class ReimbursementAccountForm extends React.Component {
 
 ReimbursementAccountForm.propTypes = propTypes;
 ReimbursementAccountForm.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-    }),
-)(ReimbursementAccountForm);
+export default withLocalize(ReimbursementAccountForm);

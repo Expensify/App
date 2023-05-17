@@ -3,7 +3,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import PopoverMenu from '../components/PopoverMenu';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
-import colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -15,7 +15,6 @@ const story = {
     component: PopoverMenu,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 const Template = (args) => {
     const [isVisible, setIsVisible] = React.useState(false);
     const toggleVisibility = () => setIsVisible(!isVisible);
@@ -25,7 +24,7 @@ const Template = (args) => {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args.menuItem}
                 onPress={toggleVisibility}
-                wrapperStyle={isVisible ? [{backgroundColor: colors.gray2}] : []}
+                wrapperStyle={isVisible ? [{backgroundColor: themeColors.border}] : []}
             />
             <SafeAreaProvider>
                 <PopoverMenu
@@ -74,6 +73,4 @@ Default.args = {
 };
 
 export default story;
-export {
-    Default,
-};
+export {Default};

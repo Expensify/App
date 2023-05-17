@@ -27,7 +27,10 @@ function setBankAccountFormValidationErrors(errorFields) {
  */
 function resetReimbursementAccount() {
     setBankAccountFormValidationErrors({});
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        errors: null,
+        pendingAction: null,
+    });
 }
 
 /**
@@ -44,9 +47,4 @@ function showBankAccountFormValidationError(error) {
     });
 }
 
-export {
-    setBankAccountFormValidationErrors,
-    setPersonalBankAccountFormValidationErrorFields,
-    showBankAccountFormValidationError,
-    resetReimbursementAccount,
-};
+export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, showBankAccountFormValidationError, resetReimbursementAccount};

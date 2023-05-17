@@ -1,64 +1,71 @@
-import React, {Component} from 'react';
+/* eslint-disable react/no-unused-state */
+import React, {forwardRef, createContext} from 'react';
 import PropTypes from 'prop-types';
 import {Keyboard} from 'react-native';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
-const withKeyboardStatePropTypes = {
-    /** Returns whether keyboard is open */
-    isShown: PropTypes.bool.isRequired,
+const KeyboardStateContext = createContext(null);
+const keyboardStatePropTypes = {
+    /** Whether or not the keyboard is open */
+    isKeyboardShown: PropTypes.bool.isRequired,
 };
 
-export default function withKeyboardState(WrappedComponent) {
-    const WithKeyboardState = class extends Component {
-        constructor(props) {
-            super(props);
-            this.state = {
-                isShown: false,
-            };
-        }
+const keyboardStateProviderPropTypes = {
+    /* Actual content wrapped by this component */
+    children: PropTypes.node.isRequired,
+};
 
-        componentDidMount() {
-            this.keyboardDidShowListener = Keyboard.addListener(
-                'keyboardDidShow',
-                () => {
-                    this.setState({isShown: true});
-                },
-            );
-            this.keyboardDidHideListener = Keyboard.addListener(
-                'keyboardDidHide',
-                () => {
-                    this.setState({isShown: false});
-                },
-            );
-        }
+class KeyboardStateProvider extends React.Component {
+    constructor(props) {
+        super(props);
 
-        componentWillUnmount() {
-            this.keyboardDidShowListener.remove();
-            this.keyboardDidHideListener.remove();
-        }
+        this.state = {
+            isKeyboardShown: false,
+        };
+    }
 
-        render() {
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            return <WrappedComponent {...this.props} isShown={this.state.isShown} />;
-        }
-    };
+    componentDidMount() {
+        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            this.setState({isKeyboardShown: true});
+        });
+        this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            this.setState({isKeyboardShown: false});
+        });
+    }
 
-    WithKeyboardState.displayName = `WithKeyboardState(${getComponentDisplayName(WrappedComponent)})`;
-    WithKeyboardState.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
-    };
-    WithKeyboardState.defaultProps = {
-        forwardedRef: undefined,
-    };
-    return React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithKeyboardState {...props} forwardedRef={ref} />
-    ));
+    componentWillUnmount() {
+        this.keyboardDidShowListener.remove();
+        this.keyboardDidHideListener.remove();
+    }
+
+    render() {
+        return <KeyboardStateContext.Provider value={this.state}>{this.props.children}</KeyboardStateContext.Provider>;
+    }
 }
 
-export {
-    withKeyboardStatePropTypes,
-};
+KeyboardStateProvider.propTypes = keyboardStateProviderPropTypes;
+
+/**
+ * @param {React.Component} WrappedComponent
+ * @returns {React.Component}
+ */
+export default function withKeyboardState(WrappedComponent) {
+    const WithKeyboardState = forwardRef((props, ref) => (
+        <KeyboardStateContext.Consumer>
+            {(keyboardStateProps) => (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...keyboardStateProps}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                />
+            )}
+        </KeyboardStateContext.Consumer>
+    ));
+
+    WithKeyboardState.displayName = `withKeyboardState(${getComponentDisplayName(WrappedComponent)})`;
+    return WithKeyboardState;
+}
+
+export {KeyboardStateProvider, keyboardStatePropTypes};

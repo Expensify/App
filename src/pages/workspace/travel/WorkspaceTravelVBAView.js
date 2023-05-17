@@ -8,15 +8,16 @@ import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
 import * as Link from '../../../libs/actions/Link';
 import * as Report from '../../../libs/actions/Report';
+import CONST from '../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceTravelVBAView = props => (
+const WorkspaceTravelVBAView = (props) => (
     <Section
         title={props.translate('workspace.travel.packYourBags')}
-        icon={Illustrations.RocketOrange}
+        icon={Illustrations.Luggage}
         menuItems={[
             {
                 title: props.translate('workspace.common.issueAndManageCards'),
@@ -24,6 +25,8 @@ const WorkspaceTravelVBAView = props => (
                 icon: Expensicons.ExpensifyCard,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                wrapperStyle: [styles.cardMenuItem],
+                link: () => Link.buildOldDotURL('domain_companycards'),
             },
             {
                 title: props.translate('workspace.travel.bookTravelWithConcierge'),
@@ -32,17 +35,20 @@ const WorkspaceTravelVBAView = props => (
                 },
                 icon: Expensicons.Concierge,
                 shouldShowRightIcon: true,
+                wrapperStyle: [styles.cardMenuItem],
             },
             {
                 title: props.translate('requestorStep.learnMore'),
-                onPress: () => Link.openExternalLink('https://community.expensify.com/discussion/7066/introducing-concierge-travel'),
+                onPress: () => Link.openExternalLink(CONST.CONCIERGE_TRAVEL_URL),
                 icon: Expensicons.Info,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
+                wrapperStyle: [styles.cardMenuItem],
+                link: CONST.CONCIERGE_TRAVEL_URL,
             },
         ]}
     >
-        <View style={[styles.mv4]}>
+        <View style={[styles.mv3]}>
             <Text>{props.translate('workspace.travel.VBACopy')}</Text>
         </View>
     </Section>

@@ -20,4 +20,7 @@ export default {
     dInline: {
         display: 'inline',
     },
+    dBlock: {
+        display: 'block',
+    },
 };

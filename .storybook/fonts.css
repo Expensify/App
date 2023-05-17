@@ -1,0 +1,50 @@
+@font-face {
+    font-family: ExpensifyNeue-Regular;
+    font-weight: 400;
+    font-style: normal;
+    src: url('../assets/fonts/web/ExpensifyNeue-Regular.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyNeue-Regular.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyNeue-Regular;
+    font-weight: 700;
+    font-style: normal;
+    src: url('../assets/fonts/web/ExpensifyNeue-Bold.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyNeue-Bold.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyNeue-Regular;
+    font-weight: 400;
+    font-style: italic;
+    src: url('../assets/fonts/web/ExpensifyNeue-Italic.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyNeue-Italic.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyNeue-Regular;
+    font-weight: 700;
+    font-style: italic;
+    src: url('../assets/fonts/web/ExpensifyNeue-BoldItalic.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyNeue-BoldItalic.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyMono-Regular;
+    font-weight: 400;
+    font-style: normal;
+    src: url('../assets/fonts/web/ExpensifyMono-Regular.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyMono-Regular.woff') format('woff');
+}
+
+@font-face {
+    font-family: ExpensifyMono-Bold;
+    font-weight: 700;
+    font-style: normal;
+    src: url('../assets/fonts/web/ExpensifyMono-Bold.woff2') format('woff2'),  url('../assets/fonts/web/ExpensifyMono-Bold.woff') format('woff');
+}
+
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+strong {
+    font-weight: 600;
+}

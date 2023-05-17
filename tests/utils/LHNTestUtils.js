@@ -5,8 +5,7 @@ import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
-
-const TEST_MAX_SEQUENCE_NUMBER = 10;
+import DateUtils from '../../src/libs/DateUtils';
 
 const fakePersonalDetails = {
     'email1@test.com': {
@@ -66,20 +65,50 @@ const fakePersonalDetails = {
 };
 
 let lastFakeReportID = 0;
+let lastFakeReportActionID = 0;
 
 /**
  * @param {String[]} participants
  * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @param {boolean} isUnread
  * @returns {Object}
  */
-function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0) {
+function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
+    const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
+        type: CONST.REPORT.TYPE.CHAT,
         reportID: `${++lastFakeReportID}`,
         reportName: 'Report',
-        maxSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-        lastReadSequenceNumber: TEST_MAX_SEQUENCE_NUMBER,
-        lastMessageTimestamp: Date.now() - millisecondsInThePast,
+        lastVisibleActionCreated,
+        lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
         participants,
+    };
+}
+
+/**
+ * @param {String} actor
+ * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @returns {Object}
+ */
+function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 0) {
+    const timestamp = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
+
+    return {
+        actor,
+        actorAccountID: 1,
+        reportActionID: `${++lastFakeReportActionID}`,
+        shouldShow: true,
+        timestamp,
+        reportActionTimestamp: timestamp,
+        person: [
+            {
+                type: 'TEXT',
+                style: 'strong',
+                text: 'Email One',
+            },
+        ],
+        whisperedTo: [],
+        automatic: false,
     };
 }
 
@@ -97,12 +126,12 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
  */
 function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
     return {
-        ...getFakeReport(),
+        ...getFakeReport(['email1@test.com', 'email2@test.com'], 0, isUnread),
+        type: CONST.REPORT.TYPE.CHAT,
         chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         statusNum: isArchived ? CONST.REPORT.STATUS.CLOSED : 0,
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.SUBMITTED : 0,
         errorFields: hasAddWorkspaceError ? {addWorkspaceRoom: 'blah'} : null,
-        lastReadSequenceNumber: isUnread ? TEST_MAX_SEQUENCE_NUMBER - 1 : TEST_MAX_SEQUENCE_NUMBER,
         isPinned,
         hasDraft,
     };
@@ -110,7 +139,6 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
 
 /**
  * @param {String} [reportIDFromRoute]
- * @returns {RenderAPI}
  */
 function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
@@ -139,13 +167,8 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
-    return render((
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                LocaleContextProvider,
-            ]}
-        >
+    render(
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <ErrorBoundary>
                 <SidebarLinks
                     onLinkClick={() => {}}
@@ -155,19 +178,12 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
                         right: 0,
                         bottom: 0,
                     }}
-                    onAvatarClick={() => {}}
                     isSmallScreenWidth={false}
                     reportIDFromRoute={reportIDFromRoute}
                 />
             </ErrorBoundary>
-        </ComposeProviders>
-    ));
+        </ComposeProviders>,
+    );
 }
 
-export {
-    fakePersonalDetails,
-    getDefaultRenderedSidebarLinks,
-    getAdvancedFakeReport,
-    getFakeReport,
-    TEST_MAX_SEQUENCE_NUMBER,
-};
+export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction};

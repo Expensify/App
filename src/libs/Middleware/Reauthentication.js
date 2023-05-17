@@ -3,7 +3,6 @@ import CONST from '../../CONST';
 import * as NetworkStore from '../Network/NetworkStore';
 import * as MainQueue from '../Network/MainQueue';
 import * as Authentication from '../Authentication';
-import * as PersistedRequests from '../actions/PersistedRequests';
 import * as Request from '../Request';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
@@ -50,12 +49,12 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 return;
             }
 
-            if (NetworkStore.isOffline()) {
-                // If we are offline and somehow handling this response we do not want to reauthenticate
-                throw new Error('Unable to reauthenticate because we are offline');
-            }
-
             if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+                if (NetworkStore.isOffline()) {
+                    // If we are offline and somehow handling this response we do not want to reauthenticate
+                    throw new Error('Unable to reauthenticate because we are offline');
+                }
+
                 // There are some API requests that should not be retried when there is an auth failure like
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
@@ -103,7 +102,6 @@ function Reauthentication(response, request, isFromSequentialQueue) {
             }
 
             if (isFromSequentialQueue) {
-                PersistedRequests.remove(request);
                 return data;
             }
 
@@ -113,6 +111,17 @@ function Reauthentication(response, request, isFromSequentialQueue) {
 
             // Return response data so we can chain the response with the following middlewares.
             return data;
+        })
+        .catch((error) => {
+            // If the request is on the sequential queue, re-throw the error so we can decide to retry or not
+            if (isFromSequentialQueue) {
+                throw error;
+            }
+
+            // If we have caught a networking error from a DeprecatedAPI request, resolve it as unable to retry, otherwise the request will never resolve or reject.
+            if (request.resolve) {
+                request.resolve({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
+            }
         });
 }
 

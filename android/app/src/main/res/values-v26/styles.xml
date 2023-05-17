@@ -1,0 +1,8 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- App Theme for Android 8.0 and above -->
+    <style name="AppTheme" parent="BaseAppTheme">
+        <item name="android:autofilledHighlight">@android:color/transparent</item>
+    </style>
+
+</resources>

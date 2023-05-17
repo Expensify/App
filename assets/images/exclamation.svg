@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 24.3.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!-- Generator: Adobe Illustrator 26.5.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 20 20" style="enable-background:new 0 0 20 20;" xml:space="preserve">
-<path d="M10.1,1.4c-4.9,0-8.8,3.9-8.8,8.8s3.9,8.8,8.8,8.8s8.8-3.9,8.8-8.8S14.9,1.4,10.1,1.4z M10.1,16.4c-0.8,0-1.2-0.5-1.2-1.2
-	s0.5-1.2,1.2-1.2s1.2,0.5,1.2,1.2C11.4,15.8,10.8,16.4,10.1,16.4z M11.4,6.9l-0.6,5.6H9.5L8.9,6.9V4.4c0-0.4,0.2-0.6,0.6-0.6h1.2
-	c0.4,0,0.6,0.2,0.6,0.6V6.9z"/>
+<style type="text/css">
+	.st0{fill-rule:evenodd;clip-rule:evenodd;}
+</style>
+<path class="st0" d="M10,19c5,0,9-4,9-9c0-5-4-9-9-9c-5,0-9,4-9,9C1,15,5,19,10,19z M8,3l0.7,8h2.7L12,3H8z M8,15c0-1.1,0.9-2,2-2
+	c1.1,0,2,0.9,2,2s-0.9,2-2,2C8.9,17,8,16.1,8,15z"/>
 </svg>

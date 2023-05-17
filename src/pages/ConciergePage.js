@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
@@ -13,10 +12,13 @@ const propTypes = {
     session: PropTypes.shape({
         /** Currently logged in user authToken */
         authToken: PropTypes.string,
+    }),
+};
 
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }).isRequired,
+const defaultProps = {
+    session: {
+        authToken: null,
+    },
 };
 
 /*
@@ -26,7 +28,9 @@ const propTypes = {
  */
 const ConciergePage = (props) => {
     if (_.has(props.session, 'authToken')) {
-        Report.fetchOrCreateChatReport([props.session.email, CONST.EMAIL.CONCIERGE]);
+        Navigation.isDrawerReady().then(() => {
+            Report.navigateToConciergeChat();
+        });
     } else {
         Navigation.navigate();
     }
@@ -35,6 +39,7 @@ const ConciergePage = (props) => {
 };
 
 ConciergePage.propTypes = propTypes;
+ConciergePage.defaultProps = defaultProps;
 ConciergePage.displayName = 'ConciergePage';
 
 export default withOnyx({

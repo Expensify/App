@@ -1,16 +1,11 @@
 import React, {Component} from 'react';
-import {
-    SafeAreaView,
-    View,
-} from 'react-native';
+import {View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {
-    propTypes as validateLinkPropTypes,
-    defaultProps as validateLinkDefaultProps,
-} from './validateLinkPropTypes';
+import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './ValidateLoginPage/validateLinkPropTypes';
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
@@ -19,8 +14,8 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
+import FormSubmit from '../components/FormSubmit';
 import * as ErrorUtils from '../libs/ErrorUtils';
-import OfflineIndicator from '../components/OfflineIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -99,27 +94,27 @@ class SetPasswordPage extends Component {
                     shouldShowWelcomeText
                     welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
                 >
-                    <View style={[styles.mb4]}>
-                        {/* The prop onSubmitEditing is required, but it needs to stay as a no-op because the form is submitted and validated from the button below */}
-                        <NewPasswordForm
-                            onSubmitEditing={() => {}}
-                            password={this.state.password}
-                            updatePassword={password => this.setState({password})}
-                            updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                        />
-                    </View>
-                    <View>
-                        <FormAlertWithSubmitButton
-                            buttonText={buttonText}
-                            isLoading={this.props.account.isLoading}
-                            onSubmit={this.validateAndSubmitForm}
-                            containerStyles={[styles.mb2, styles.mh0]}
-                            message={error}
-                            isAlertVisible={!_.isEmpty(error)}
-                            isDisabled={!this.state.isFormValid}
-                        />
-                    </View>
-                    <OfflineIndicator containerStyles={[styles.mv1]} />
+                    <FormSubmit onSubmit={this.validateAndSubmitForm}>
+                        <View style={[styles.mb4]}>
+                            <NewPasswordForm
+                                password={this.state.password}
+                                updatePassword={(password) => this.setState({password})}
+                                updateIsFormValid={(isValid) => this.setState({isFormValid: isValid})}
+                            />
+                        </View>
+                        <View>
+                            <FormAlertWithSubmitButton
+                                buttonText={buttonText}
+                                isLoading={this.props.account.isLoading}
+                                onSubmit={this.validateAndSubmitForm}
+                                containerStyles={[styles.mb2, styles.mh0]}
+                                message={error}
+                                isAlertVisible={!_.isEmpty(error)}
+                                isDisabled={!this.state.isFormValid}
+                                disablePressOnEnter
+                            />
+                        </View>
+                    </FormSubmit>
                 </SignInPageLayout>
             </SafeAreaView>
         );

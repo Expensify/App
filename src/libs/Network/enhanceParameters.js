@@ -11,16 +11,7 @@ import * as NetworkStore from './NetworkStore';
  * @return {Boolean}
  */
 function isAuthTokenRequired(command) {
-    return !_.contains([
-        'Log',
-        'Graphite_Timer',
-        'Authenticate',
-        'BeginSignIn',
-        'SetPassword',
-        'User_SignUp',
-        'ResendValidateCode',
-        'ValidateEmail',
-    ], command);
+    return !_.contains(['Log', 'Authenticate', 'BeginSignIn', 'SetPassword'], command);
 }
 
 /**

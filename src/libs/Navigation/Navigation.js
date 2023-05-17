@@ -1,15 +1,18 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {Keyboard} from 'react-native';
-import {DrawerActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {CommonActions, DrawerActions, getPathFromState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
+import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import DeprecatedCustomActions from './DeprecatedCustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+import SCREENS from '../../SCREENS';
+import dismissKeyboardGoingBack from './dismissKeyboardGoingBack';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -17,8 +20,13 @@ const navigationIsReadyPromise = new Promise((resolve) => {
 });
 
 let resolveDrawerIsReadyPromise;
-const drawerIsReadyPromise = new Promise((resolve) => {
+let drawerIsReadyPromise = new Promise((resolve) => {
     resolveDrawerIsReadyPromise = resolve;
+});
+
+let resolveReportScreenIsReadyPromise;
+let reportScreenIsReadyPromise = new Promise((resolve) => {
+    resolveReportScreenIsReadyPromise = resolve;
 });
 
 let isLoggedIn = false;
@@ -26,7 +34,7 @@ let pendingRoute = null;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => isLoggedIn = Boolean(val && val.authToken),
+    callback: (val) => (isLoggedIn = Boolean(val && val.authToken)),
 });
 
 // This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
@@ -51,7 +59,6 @@ function canNavigate(methodName, params = {}) {
     if (navigationRef.isReady()) {
         return true;
     }
-
     Log.hmmm(`[Navigation] ${methodName} failed because navigation ref was not yet ready`, params);
     return false;
 }
@@ -108,7 +115,6 @@ function goBack(shouldOpenDrawer = true) {
         }
         return;
     }
-
     navigationRef.current.goBack();
 }
 
@@ -122,8 +128,8 @@ function goBack(shouldOpenDrawer = true) {
  * @returns {Boolean}
  */
 function isDrawerRoute(route) {
-    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
-    return reportID && !isParticipantsRoute;
+    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
+    return reportID && !isSubReportPageRoute;
 }
 
 /**
@@ -139,6 +145,11 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
+    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
+    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
+    // More info: https://github.com/Expensify/App/issues/13146
+    DomUtils.blurActiveElement();
+
     if (route === ROUTES.HOME) {
         if (isLoggedIn && pendingRoute === null) {
             openDrawer();
@@ -148,7 +159,7 @@ function navigate(route = ROUTES.HOME) {
         // If we're navigating to the signIn page while logged out, pop whatever screen is on top
         // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
         // Also, if we're coming from a link to validate login (pendingRoute is not null), we want to pop the loading screen.
-        navigationRef.current.dispatch(StackActions.pop());
+        navigationRef.current.dispatch(CommonActions.reset({index: 0, routes: [{name: SCREENS.HOME}]}));
         return;
     }
 
@@ -161,6 +172,19 @@ function navigate(route = ROUTES.HOME) {
 }
 
 /**
+ * Update route params for the specified route.
+ *
+ * @param {Object} params
+ * @param {String} routeKey
+ */
+function setParams(params, routeKey) {
+    navigationRef.current.dispatch({
+        ...CommonActions.setParams(params),
+        source: routeKey,
+    });
+}
+
+/**
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
  * @param {Boolean} [shouldOpenDrawer]
@@ -170,9 +194,7 @@ function dismissModal(shouldOpenDrawer = false) {
         return;
     }
 
-    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
-        ? shouldOpenDrawer
-        : false;
+    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer) ? shouldOpenDrawer : false;
 
     DeprecatedCustomActions.navigateBackToRootDrawer();
     if (normalizedShouldOpenDrawer) {
@@ -185,9 +207,23 @@ function dismissModal(shouldOpenDrawer = false) {
  * @returns {String}
  */
 function getActiveRoute() {
-    return navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
-        : '';
+    const currentRouteHasName = navigationRef.current && navigationRef.current.getCurrentRoute().name;
+    if (!currentRouteHasName) {
+        return '';
+    }
+
+    const routeState = navigationRef.current.getState();
+    const currentRoute = routeState.routes[routeState.index];
+
+    if (currentRoute.state) {
+        return getPathFromState(routeState, linkingConfig.config);
+    }
+
+    if (currentRoute.params && currentRoute.params.path) {
+        return currentRoute.params.path;
+    }
+
+    return '';
 }
 
 /**
@@ -242,6 +278,12 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
+function resetIsReportScreenReadyPromise() {
+    reportScreenIsReadyPromise = new Promise((resolve) => {
+        resolveReportScreenIsReadyPromise = resolve;
+    });
+}
+
 /**
  * @returns {Promise}
  */
@@ -253,9 +295,40 @@ function setIsDrawerReady() {
     resolveDrawerIsReadyPromise();
 }
 
+function resetDrawerIsReadyPromise() {
+    drawerIsReadyPromise = new Promise((resolve) => {
+        resolveDrawerIsReadyPromise = resolve;
+    });
+}
+
+function isReportScreenReady() {
+    return reportScreenIsReadyPromise;
+}
+
+function setIsReportScreenIsReady() {
+    resolveReportScreenIsReadyPromise();
+}
+
+/**
+ * Navigation function with additional logic to dismiss the opened keyboard
+ *
+ * Navigation events are not fired when we navigate to an existing screen in the navigation stack,
+ * that is why we need to manipulate closing keyboard manually
+ * @param {string} backRoute - Name of the screen to navigate the user to
+ */
+function drawerGoBack(backRoute) {
+    dismissKeyboardGoingBack();
+    if (!backRoute) {
+        goBack();
+        return;
+    }
+    navigate(backRoute);
+}
+
 export default {
     canNavigate,
     navigate,
+    setParams,
     dismissModal,
     isActiveRoute,
     getActiveRoute,
@@ -268,9 +341,12 @@ export default {
     getReportIDFromRoute,
     isDrawerReady,
     setIsDrawerReady,
+    resetDrawerIsReadyPromise,
+    resetIsReportScreenReadyPromise,
     isDrawerRoute,
+    isReportScreenReady,
+    setIsReportScreenIsReady,
+    drawerGoBack,
 };
 
-export {
-    navigationRef,
-};
+export {navigationRef};

@@ -31,7 +31,7 @@ let credentials;
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val;
+        credentials = val || {};
     },
 });
 
@@ -51,9 +51,4 @@ function getReimbursementAccountWorkspaceID() {
     return reimbursementAccountWorkspaceID;
 }
 
-export {
-    getReimbursementAccountInSetup,
-    getBankAccountList,
-    getCredentials,
-    getReimbursementAccountWorkspaceID,
-};
+export {getReimbursementAccountInSetup, getBankAccountList, getCredentials, getReimbursementAccountWorkspaceID};

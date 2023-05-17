@@ -1,109 +1,84 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as IOU from '../libs/actions/IOU';
+import * as ReportActions from '../libs/actions/ReportActions';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 import Button from './Button';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
     /* eslint-disable-next-line react/no-unused-prop-types */
-    chatReportID: PropTypes.number.isRequired,
+    chatReportID: PropTypes.string.isRequired,
 
     /** ID for the IOU report */
     /* eslint-disable-next-line react/no-unused-prop-types */
-    iouReportID: PropTypes.number.isRequired,
+    iouReportID: PropTypes.string.isRequired,
 
     /** The report action which we are displaying */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** Can this transaction be rejected? */
-    canBeRejected: PropTypes.bool,
+    /** Can this transaction be deleted? */
+    canBeDeleted: PropTypes.bool,
 
-    /** Text label for the reject transaction button */
-    rejectButtonLabelText: PropTypes.string.isRequired,
+    /** Indicates whether pressing the delete button should hide the details sidebar */
+    shouldCloseOnDelete: PropTypes.bool,
 
-    /* Onyx Props */
-
-    /** List of transactionIDs in process of rejection */
-    /* eslint-disable-next-line react/no-unused-prop-types, react/require-default-props */
-    transactionsBeingRejected: PropTypes.shape({
-        /** IOUTransactionID that's being rejected */
-        transactionID: PropTypes.bool,
-    }),
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    canBeRejected: false,
+    canBeDeleted: false,
+    shouldCloseOnDelete: false,
 };
 
 class ReportTransaction extends Component {
     constructor(props) {
         super(props);
 
-        this.rejectTransaction = this.rejectTransaction.bind(this);
+        this.deleteMoneyRequest = this.deleteMoneyRequest.bind(this);
     }
 
-    rejectTransaction() {
-        IOU.rejectTransaction({
-            reportID: this.props.iouReportID,
-            chatReportID: this.props.chatReportID,
-            transactionID: this.props.action.originalMessage.IOUTransactionID,
-            comment: '',
-        });
-    }
-
-    /**
-     * Checks if current IOUTransactionID is being rejected.
-     * @returns {boolean} Returns `true` if current IOUtransactionID is being rejected, else `false`.
-     */
-    isBeingRejected() {
-        const IOUTransactionID = lodashGet(this.props.action, 'originalMessage.IOUTransactionID', '');
-        const transactionsBeingRejected = lodashGet(this.props, 'transactionsBeingRejected', {});
-        if (_.isEmpty(transactionsBeingRejected)) {
-            return false;
-        }
-        return _.has(transactionsBeingRejected, IOUTransactionID);
+    deleteMoneyRequest() {
+        IOU.deleteMoneyRequest(this.props.chatReportID, this.props.iouReportID, this.props.action, this.props.shouldCloseOnDelete);
     }
 
     render() {
         return (
-            <View styles={[styles.mb5]}>
-                <ReportActionItemSingle
-                    action={this.props.action}
-                    wrapperStyles={[styles.reportTransactionWrapper]}
-                >
-                    <Text style={[styles.chatItemMessage]}>
-                        {this.props.action.message[0].text}
-                    </Text>
-                </ReportActionItemSingle>
-                {this.props.canBeRejected && (
-                    <View style={[styles.flexRow, styles.justifyContentStart]}>
-                        <Button
-                            small
-                            text={this.props.rejectButtonLabelText}
-                            style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
-                            onPress={this.rejectTransaction}
-                            isLoading={this.isBeingRejected()}
-                        />
-                    </View>
-                )}
-            </View>
+            <OfflineWithFeedback
+                onClose={() => ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action)}
+                pendingAction={this.props.action.pendingAction}
+                errors={this.props.action.errors}
+                errorRowStyles={[styles.ml10, styles.mr2]}
+            >
+                <View styles={[styles.mb5]}>
+                    <ReportActionItemSingle
+                        action={this.props.action}
+                        wrapperStyles={[styles.reportTransactionWrapper]}
+                    >
+                        <Text style={[styles.chatItemMessage]}>{this.props.action.message[0].text}</Text>
+                    </ReportActionItemSingle>
+                    {this.props.canBeDeleted && (
+                        <View style={[styles.flexRow, styles.justifyContentStart]}>
+                            <Button
+                                small
+                                text={this.props.translate('common.delete')}
+                                style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
+                                onPress={this.deleteMoneyRequest}
+                            />
+                        </View>
+                    )}
+                </View>
+            </OfflineWithFeedback>
         );
     }
 }
 
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
-export default withOnyx({
-    transactionsBeingRejected: {
-        key: ONYXKEYS.TRANSACTIONS_BEING_REJECTED,
-    },
-})(ReportTransaction);
+export default withLocalize(ReportTransaction);

@@ -1,9 +1,13 @@
-import lodashGet from 'lodash/get';
+import get from 'lodash/get';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
 import * as Url from './libs/Url';
 import CONST from './CONST';
+
+// react-native-config doesn't trim whitespace on iOS for some reason so we
+// add a trim() call to lodashGet here to prevent headaches
+const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).trim();
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
@@ -13,13 +17,10 @@ const stagingExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGI
 const stagingSecureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
 const ngrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const secureNgrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
-const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(
-    Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/',
-));
+const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
-const conciergeUrl = `${expensifyURL}concierge/`;
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -42,18 +43,27 @@ const expensifyURLRoot = useNgrok && ngrokURL ? ngrokURL : expensifyComWithProxy
 export default {
     APP_NAME: 'NewExpensify',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
+    ENVIRONMENT,
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
         EXPENSIFY_URL: expensifyURL,
-        SECURE_EXPENSIFY_URL: secureURLRoot,
         NEW_EXPENSIFY_URL: newExpensifyURL,
-        URL_API_ROOT: expensifyURLRoot,
-        STAGING_EXPENSIFY_URL: stagingExpensifyURL,
-        STAGING_SECURE_EXPENSIFY_URL: stagingSecureExpensifyUrl,
+
+        // The DEFAULT API is the API used by most environments, except staging, where we use STAGING (defined below)
+        // The "staging toggle" in settings toggles between DEFAULT and STAGING APIs
+        // On both STAGING and PROD this (DEFAULT) address points to production
+        // On DEV it can be configured through ENV settings and can be a proxy or ngrok address (defaults to PROD)
+        // Usually you don't need to use this URL directly - prefer `ApiUtils.getApiRoot()`
+        DEFAULT_API_ROOT: expensifyURLRoot,
+        DEFAULT_SECURE_API_ROOT: secureURLRoot,
+        STAGING_API_ROOT: stagingExpensifyURL,
+        STAGING_SECURE_API_ROOT: stagingSecureExpensifyUrl,
         PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
-        CONCIERGE_URL: conciergeUrl,
+        CONCIERGE_URL_PATHNAME: 'concierge/',
+        DEVPORTAL_URL_PATHNAME: '_devportal/',
+        CONCIERGE_URL: `${expensifyURL}concierge/`,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,
@@ -72,4 +82,6 @@ export default {
     ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
     DEV_PORT: process.env.PORT || 8080,
     E2E_TESTING: lodashGet(Config, 'E2E_TESTING', 'false') === 'true',
+    SEND_CRASH_REPORTS: lodashGet(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
+    IS_USING_WEB_PROXY: getPlatform() === 'web' && useWebProxy,
 };

@@ -4,13 +4,8 @@ import Performance from '../../Performance';
 import E2EClient from '../client';
 
 const test = () => {
-    const email = 'applausetester+perf2@applause.expensifail.com';
-    const password = 'Password123';
-
-    console.debug('[E2E] App is ready, logging in…');
-
     // check for login (if already logged in the action will simply resolve)
-    E2ELogin(email, password).then((neededLogin) => {
+    E2ELogin().then((neededLogin) => {
         if (neededLogin) {
             // we don't want to submit the first login to the results
             return E2EClient.submitTestDone();
@@ -23,16 +18,20 @@ const test = () => {
 
         // underscore promises in sequence without for-loop
         Promise.all(
-            _.map(metrics, metric => E2EClient.submitTestResults({
-                name: metric.name,
-                duration: metric.duration,
-            })),
-        ).then(() => {
-            console.debug('[E2E] Done, exiting…');
-            E2EClient.submitTestDone();
-        }).catch((err) => {
-            console.debug('[E2E] Error while submitting test results:', err);
-        });
+            _.map(metrics, (metric) =>
+                E2EClient.submitTestResults({
+                    name: `App start ${metric.name}`,
+                    duration: metric.duration,
+                }),
+            ),
+        )
+            .then(() => {
+                console.debug('[E2E] Done, exiting…');
+                E2EClient.submitTestDone();
+            })
+            .catch((err) => {
+                console.debug('[E2E] Error while submitting test results:', err);
+            });
     });
 };
 

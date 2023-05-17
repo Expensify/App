@@ -7,7 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
 import Log from '../../libs/Log';
@@ -22,37 +22,41 @@ class Onfido extends React.Component {
         this.onfidoOut = OnfidoSDK.init({
             token: this.props.sdkToken,
             containerId: CONST.ONFIDO.CONTAINER_ID,
+            useMemoryHistory: true,
             customUI: {
-                fontFamilyTitle: `${fontFamily.GTA}, -apple-system, serif`,
-                fontFamilySubtitle: `${fontFamily.GTA}, -apple-system, serif`,
-                fontFamilyBody: `${fontFamily.GTA}, -apple-system, serif`,
+                fontFamilyTitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
+                fontFamilySubtitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
+                fontFamilyBody: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
                 fontSizeTitle: `${variables.fontSizeLarge}px`,
                 fontWeightTitle: fontWeightBold,
                 fontWeightSubtitle: 400,
                 fontSizeSubtitle: `${variables.fontSizeNormal}px`,
-                colorContentTitle: colors.dark,
-                colorContentSubtitle: colors.dark,
-                colorContentBody: colors.dark,
-                borderRadiusButton: `${variables.componentBorderRadius}px`,
-                colorBackgroundSurfaceModal: colors.white,
-                colorBorderDocTypeButton: colors.gray2,
-                colorBorderDocTypeButtonHover: colors.blue,
-                colorBackgroundButtonPrimary: colors.green,
-                colorBackgroundButtonPrimaryHover: colors.greenHover,
-                colorBackgroundButtonPrimaryActive: colors.greenHover,
-                colorBorderButtonPrimary: colors.green,
-                colorContentButtonSecondaryText: colors.dark,
-                colorBackgroundButtonSecondary: colors.gray2,
-                colorBackgroundButtonSecondaryHover: colors.gray3,
-                colorBackgroundButtonSecondaryActive: colors.gray3,
-                colorBorderButtonSecondary: colors.gray2,
-                colorBackgroundIcon: colors.white,
-                colorContentLinkTextHover: colors.white,
-                colorBorderLinkUnderline: colors.blue,
-                colorBackgroundLinkHover: colors.blue,
-                colorBackgroundLinkActive: colors.blue,
-                authAccentColor: colors.blue,
-                colorBackgroundInfoPill: colors.blue,
+                colorContentTitle: themeColors.text,
+                colorContentSubtitle: themeColors.text,
+                colorContentBody: themeColors.text,
+                borderRadiusButton: `${variables.buttonBorderRadius}px`,
+                colorBackgroundSurfaceModal: themeColors.appBG,
+                colorBorderDocTypeButton: themeColors.border,
+                colorBorderDocTypeButtonHover: themeColors.link,
+                colorBackgroundButtonPrimary: themeColors.success,
+                colorBackgroundButtonPrimaryHover: themeColors.successHover,
+                colorBackgroundButtonPrimaryActive: themeColors.successHover,
+                colorBorderButtonPrimary: themeColors.success,
+                colorContentButtonSecondaryText: themeColors.text,
+                colorBackgroundButtonSecondary: themeColors.border,
+                colorBackgroundButtonSecondaryHover: themeColors.icon,
+                colorBackgroundButtonSecondaryActive: themeColors.icon,
+                colorBorderButtonSecondary: themeColors.border,
+                colorBackgroundIcon: themeColors.transparent,
+                colorContentLinkTextHover: themeColors.appBG,
+                colorBorderLinkUnderline: themeColors.link,
+                colorBackgroundLinkHover: themeColors.link,
+                colorBackgroundLinkActive: themeColors.link,
+                authAccentColor: themeColors.link,
+                colorBackgroundInfoPill: themeColors.link,
+                colorBackgroundSelector: themeColors.appBG,
+                colorBackgroundDocTypeButton: themeColors.success,
+                colorBackgroundDocTypeButtonHover: themeColors.successHover,
             },
             steps: [
                 {
@@ -60,16 +64,12 @@ class Onfido extends React.Component {
                     options: {
                         useLiveDocumentCapture: true,
                         forceCrossDevice: true,
-                        showCountrySelection: false,
+                        hideCountrySelection: true,
+                        country: 'USA',
+                        uploadFallback: false,
                         documentTypes: {
                             driving_licence: {
-                                country: null,
-                            },
-                            national_identity_card: {
-                                country: null,
-                            },
-                            residence_permit: {
-                                country: null,
+                                country: 'USA',
                             },
                             passport: true,
                         },
@@ -104,6 +104,18 @@ class Onfido extends React.Component {
             onModalRequestClose: () => {
                 Log.hmmm('Onfido user closed the modal');
             },
+            language: {
+                // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
+                locale: this.props.preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : this.props.preferredLocale,
+
+                // Provide a custom phrase for the back button so that the first letter is capitalized,
+                // and translate the phrase while we're at it. See the issue and documentation for more context.
+                // https://github.com/Expensify/App/issues/17244
+                // https://documentation.onfido.com/sdk/web/#custom-languages
+                phrases: {
+                    'generic.back': this.props.translate('common.back'),
+                },
+            },
         });
 
         window.addEventListener('userAnalyticsEvent', (event) => {
@@ -112,9 +124,7 @@ class Onfido extends React.Component {
     }
 
     render() {
-        return (
-            <div id={CONST.ONFIDO.CONTAINER_ID} />
-        );
+        return <div id={CONST.ONFIDO.CONTAINER_ID} />;
     }
 }
 

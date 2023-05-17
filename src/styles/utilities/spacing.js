@@ -45,6 +45,14 @@ export default {
         marginHorizontal: 20,
     },
 
+    mh8: {
+        marginHorizontal: 32,
+    },
+
+    mhn5: {
+        marginHorizontal: -20,
+    },
+
     mv1: {
         marginVertical: 4,
     },
@@ -89,8 +97,16 @@ export default {
         marginRight: 20,
     },
 
+    mr8: {
+        marginRight: 32,
+    },
+
     mrn5: {
         marginRight: -20,
+    },
+
+    mrn8: {
+        marginRight: -32,
     },
 
     mlAuto: {
@@ -125,8 +141,16 @@ export default {
         marginLeft: 40,
     },
 
+    ml18: {
+        marginLeft: 72,
+    },
+
     mln5: {
         marginLeft: -20,
+    },
+
+    mln8: {
+        marginLeft: -32,
     },
 
     mt1: {
@@ -151,6 +175,10 @@ export default {
 
     mt6: {
         marginTop: 24,
+    },
+
+    mt8: {
+        marginTop: 32,
     },
 
     mb0: {
@@ -181,8 +209,16 @@ export default {
         marginBottom: 24,
     },
 
+    mb7: {
+        marginBottom: 28,
+    },
+
     mb8: {
         marginBottom: 32,
+    },
+
+    mb15: {
+        marginBottom: 60,
     },
 
     mbn1: {
@@ -278,6 +314,22 @@ export default {
         paddingHorizontal: 24,
     },
 
+    ph8: {
+        paddingHorizontal: 32,
+    },
+
+    ph10: {
+        paddingHorizontal: 40,
+    },
+
+    ph25: {
+        paddingHorizontal: 100,
+    },
+
+    pr0: {
+        paddingRight: 0,
+    },
+
     pr1: {
         paddingRight: 4,
     },
@@ -302,6 +354,10 @@ export default {
         paddingRight: 60,
     },
 
+    pl0: {
+        paddingLeft: 0,
+    },
+
     pl1: {
         paddingLeft: 4,
     },
@@ -314,8 +370,20 @@ export default {
         paddingLeft: 20,
     },
 
+    pl6: {
+        paddingLeft: 24,
+    },
+
+    pl10: {
+        paddingLeft: 40,
+    },
+
     pt0: {
         paddingTop: 0,
+    },
+
+    pt1: {
+        paddingTop: 4,
     },
 
     pt2: {
@@ -332,6 +400,14 @@ export default {
 
     pt5: {
         paddingTop: 20,
+    },
+
+    pt10: {
+        paddingTop: 40,
+    },
+
+    pt20: {
+        paddingTop: 80,
     },
 
     pb1: {
@@ -358,11 +434,19 @@ export default {
         paddingBottom: 32,
     },
 
+    pb20: {
+        paddingBottom: 80,
+    },
+
     pb10Percentage: {
         paddingBottom: '10%',
     },
 
     gap1: {
         gap: 4,
+    },
+
+    gap7: {
+        gap: 28,
     },
 };

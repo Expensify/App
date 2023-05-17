@@ -18,6 +18,9 @@ const windowDimensionsPropTypes = {
 
     // Is the window width narrow, like on a tablet device?
     isMediumScreenWidth: PropTypes.bool.isRequired,
+
+    // Is the window width wide, like on a browser or desktop?
+    isLargeScreenWidth: PropTypes.bool.isRequired,
 };
 
 const windowDimensionsProviderPropTypes = {
@@ -33,8 +36,8 @@ class WindowDimensionsProvider extends React.Component {
 
         const initialDimensions = Dimensions.get('window');
         const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-        const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint
-          && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
+        const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
+        const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
 
         this.dimensionsEventListener = null;
 
@@ -43,6 +46,7 @@ class WindowDimensionsProvider extends React.Component {
             windowWidth: initialDimensions.width,
             isSmallScreenWidth,
             isMediumScreenWidth,
+            isLargeScreenWidth,
         };
     }
 
@@ -67,20 +71,18 @@ class WindowDimensionsProvider extends React.Component {
         const {window} = newDimensions;
         const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
         const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.tabletResponsiveWidthBreakpoint;
+        const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
         this.setState({
             windowHeight: window.height,
             windowWidth: window.width,
             isSmallScreenWidth,
             isMediumScreenWidth,
+            isLargeScreenWidth,
         });
     }
 
     render() {
-        return (
-            <WindowDimensionsContext.Provider value={this.state}>
-                {this.props.children}
-            </WindowDimensionsContext.Provider>
-        );
+        return <WindowDimensionsContext.Provider value={this.state}>{this.props.children}</WindowDimensionsContext.Provider>;
     }
 }
 
@@ -93,9 +95,14 @@ WindowDimensionsProvider.propTypes = windowDimensionsProviderPropTypes;
 export default function withWindowDimensions(WrappedComponent) {
     const WithWindowDimensions = forwardRef((props, ref) => (
         <WindowDimensionsContext.Consumer>
-            {windowDimensionsProps => (
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                <WrappedComponent {...windowDimensionsProps} {...props} ref={ref} />
+            {(windowDimensionsProps) => (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...windowDimensionsProps}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                />
             )}
         </WindowDimensionsContext.Consumer>
     ));
@@ -104,7 +111,4 @@ export default function withWindowDimensions(WrappedComponent) {
     return WithWindowDimensions;
 }
 
-export {
-    WindowDimensionsProvider,
-    windowDimensionsPropTypes,
-};
+export {WindowDimensionsProvider, windowDimensionsPropTypes};

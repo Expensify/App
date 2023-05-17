@@ -8,9 +8,14 @@ import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
-import getNumberOfLines from '../../libs/ComposerUtils/index';
+import * as ComposerUtils from '../../libs/ComposerUtils';
+import * as Browser from '../../libs/Browser';
+import Clipboard from '../../libs/Clipboard';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import compose from '../../libs/compose';
+import styles from '../../styles/styles';
+import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -21,6 +26,12 @@ const propTypes = {
 
     /** The value of the comment box */
     value: PropTypes.string,
+
+    /** Number of lines for the comment */
+    numberOfLines: PropTypes.number,
+
+    /** Callback method to update number of lines for the comment */
+    onNumberOfLinesChange: PropTypes.func,
 
     /** Callback method to handle pasting a file */
     onPasteFile: PropTypes.func,
@@ -37,18 +48,6 @@ const propTypes = {
 
     /** When the input has cleared whoever owns this input should know about it */
     onClear: PropTypes.func,
-
-    /** Callback to fire when a file has being dragged over the text input & report body */
-    onDragOver: PropTypes.func,
-
-    /** Callback to fire when a file has been dragged into the text input & report body */
-    onDragEnter: PropTypes.func,
-
-    /** Callback to fire when the user is no longer dragging over the text input & report body */
-    onDragLeave: PropTypes.func,
-
-    /** Callback to fire when a file is dropped on the text input & report body */
-    onDrop: PropTypes.func,
 
     /** Whether or not this TextInput is disabled. */
     isDisabled: PropTypes.bool,
@@ -72,21 +71,24 @@ const propTypes = {
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
+    /** Whether the composer is full size */
+    isComposerFullSize: PropTypes.bool,
+
     ...withLocalizePropTypes,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     defaultValue: undefined,
     value: undefined,
+    numberOfLines: undefined,
+    onNumberOfLinesChange: () => {},
     maxLines: -1,
     onPasteFile: () => {},
     shouldClear: false,
     onClear: () => {},
     style: null,
-    onDragEnter: () => {},
-    onDragOver: () => {},
-    onDragLeave: () => {},
-    onDrop: () => {},
     isDisabled: false,
     autoFocus: false,
     forwardedRef: null,
@@ -97,6 +99,7 @@ const defaultProps = {
     },
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
+    isComposerFullSize: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -109,8 +112,6 @@ const IMAGE_EXTENSIONS = {
     'image/webp': 'webp',
 };
 
-const COPY_DROP_EFFECT = 'copy';
-
 /**
  * Enable Markdown parsing.
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
@@ -119,22 +120,22 @@ class Composer extends React.Component {
     constructor(props) {
         super(props);
 
-        const initialValue = props.defaultValue
-            ? `${props.defaultValue}`
-            : `${props.value || ''}`;
+        const initialValue = props.defaultValue ? `${props.defaultValue}` : `${props.value || ''}`;
 
         this.state = {
-            numberOfLines: 1,
+            numberOfLines: props.numberOfLines,
             selection: {
                 start: initialValue.length,
                 end: initialValue.length,
             },
         };
-        this.dragNDropListener = this.dragNDropListener.bind(this);
+
         this.paste = this.paste.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
+        this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
     }
 
@@ -152,14 +153,9 @@ class Composer extends React.Component {
         // There is no onPaste or onDrag for TextInput in react-native so we will add event
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
-            // Firefox will not allow dropping unless we call preventDefault on the dragover event
-            // We listen on document to extend the Drop area beyond Composer
-            document.addEventListener('dragover', this.dragNDropListener);
-            document.addEventListener('dragenter', this.dragNDropListener);
-            document.addEventListener('dragleave', this.dragNDropListener);
-            document.addEventListener('drop', this.dragNDropListener);
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
+            this.textInput.addEventListener('keydown', this.putSelectionInClipboard);
         }
     }
 
@@ -171,9 +167,13 @@ class Composer extends React.Component {
             this.props.onClear();
         }
 
-        if (prevProps.value !== this.props.value
-            || prevProps.defaultValue !== this.props.defaultValue
-            || prevProps.isComposerFullSize !== this.props.isComposerFullSize) {
+        if (
+            prevProps.value !== this.props.value ||
+            prevProps.defaultValue !== this.props.defaultValue ||
+            prevProps.isComposerFullSize !== this.props.isComposerFullSize ||
+            prevProps.windowWidth !== this.props.windowWidth ||
+            prevProps.numberOfLines !== this.props.numberOfLines
+        ) {
             this.updateNumberOfLines();
         }
 
@@ -188,53 +188,16 @@ class Composer extends React.Component {
             return;
         }
 
-        document.removeEventListener('dragover', this.dragNDropListener);
-        document.removeEventListener('dragenter', this.dragNDropListener);
-        document.removeEventListener('dragleave', this.dragNDropListener);
-        document.removeEventListener('drop', this.dragNDropListener);
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
-    /**
-     * Handles all types of drag-N-drop events on the composer
-     *
-     * @param {Object} e native Event
-     */
-    dragNDropListener(e) {
-        let isOriginComposer = false;
-        const handler = () => {
-            // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
-            switch (e.type) {
-                case 'dragover':
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragOver(e, isOriginComposer);
-                    break;
-                case 'dragenter':
-                    e.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragEnter(e, isOriginComposer);
-                    break;
-                case 'dragleave':
-                    this.props.onDragLeave(e, isOriginComposer);
-                    break;
-                case 'drop':
-                    this.props.onDrop(e, isOriginComposer);
-                    break;
-                default: break;
-            }
-        };
-
-        // We first check if drop target is composer so that it can be highlighted
-        if (this.textInput.contains(e.target)) {
-            isOriginComposer = true;
-            handler();
+    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
+    handleKeyPress(e) {
+        if (!this.props.onKeyPress || isEnterWhileComposition(e)) {
             return;
         }
-
-        if (document.getElementById(CONST.REPORT.DROP_NATIVE_ID).contains(e.target)) {
-            handler();
-        }
+        this.props.onKeyPress(e);
     }
 
     /**
@@ -249,7 +212,7 @@ class Composer extends React.Component {
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             this.textInput.blur();
             this.textInput.focus();
-        // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-empty
         } catch (e) {}
     }
 
@@ -291,15 +254,23 @@ class Composer extends React.Component {
 
             // If HTML has img tag, then fetch images from it.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
+                // If HTML has emoji, then treat this as plain text.
+                if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                    const plainText = event.clipboardData.getData('text/plain');
+                    this.paste(Str.htmlDecode(plainText));
+                    return;
+                }
                 fetch(embeddedImages[0].src)
                     .then((response) => {
-                        if (!response.ok) { throw Error(response.statusText); }
+                        if (!response.ok) {
+                            throw Error(response.statusText);
+                        }
                         return response.blob();
                     })
                     .then((x) => {
                         const extension = IMAGE_EXTENSIONS[x.type];
                         if (!extension) {
-                            throw new Error(this.props.translate('composer.noExtentionFoundForMimeType'));
+                            throw new Error(this.props.translate('composer.noExtensionFoundForMimeType'));
                         }
 
                         return new File([x], `pasted_image.${extension}`, {});
@@ -310,11 +281,11 @@ class Composer extends React.Component {
                         Growl.error(errorDesc);
 
                         /*
-                        * Since we intercepted the user-triggered paste event to check for attachments,
-                        * we need to manually set the value and call the `onChangeText` handler.
-                        * Synthetically-triggered paste events do not affect the document's contents.
-                        * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                        */
+                         * Since we intercepted the user-triggered paste event to check for attachments,
+                         * we need to manually set the value and call the `onChangeText` handler.
+                         * Synthetically-triggered paste events do not affect the document's contents.
+                         * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
+                         */
                         this.handlePastedHTML(pastedHTML);
                     });
                 return;
@@ -325,6 +296,7 @@ class Composer extends React.Component {
         }
 
         const plainText = event.clipboardData.getData('text/plain');
+
         this.paste(Str.htmlDecode(plainText));
     }
 
@@ -340,6 +312,19 @@ class Composer extends React.Component {
         this.textInput.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
+    }
+
+    putSelectionInClipboard(event) {
+        // If anything happens that isn't cmd+c or cmd+x, ignore the event because it's not a copy command
+        if (!event.metaKey || (event.key !== 'c' && event.key !== 'x')) {
+            return;
+        }
+
+        // The user might have only highlighted a portion of the message to copy, so using the selection will ensure that
+        // the only stuff put into the clipboard is what the user selected.
+        const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
+
+        Clipboard.setHtml(selectedText, selectedText);
     }
 
     /**
@@ -368,13 +353,14 @@ class Composer extends React.Component {
         this.setState({numberOfLines: 1}, () => {
             const computedStyle = window.getComputedStyle(this.textInput);
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
-            + parseInt(computedStyle.paddingTop, 10);
-            const numberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
+            const computedNumberOfLines = ComposerUtils.getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
+            const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
             });
+            this.props.onNumberOfLinesChange(numberOfLines);
         });
     }
 
@@ -382,19 +368,29 @@ class Composer extends React.Component {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+
+        // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
             <RNTextInput
                 autoComplete="off"
+                autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
-                ref={el => this.textInput = el}
+                ref={(el) => (this.textInput = el)}
                 selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
-                numberOfLines={this.state.numberOfLines}
-                style={propStyles}
+                style={[
+                    propStyles,
+
+                    // We are hiding the scrollbar to prevent it from reducing the text input width,
+                    // so we can get the correct scroll height while calculating the number of lines.
+                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
+                numberOfLines={this.state.numberOfLines}
                 disabled={this.props.isDisabled}
+                onKeyPress={this.handleKeyPress}
             />
         );
     }
@@ -403,7 +399,15 @@ class Composer extends React.Component {
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default withLocalize(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Composer {...props} forwardedRef={ref} />
-)));
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(
+    React.forwardRef((props, ref) => (
+        <Composer
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

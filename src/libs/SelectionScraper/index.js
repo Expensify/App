@@ -1,9 +1,8 @@
 import render from 'dom-serializer';
 import {parseDocument} from 'htmlparser2';
-import {Element} from 'domhandler';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import * as htmlEngineUtils from '../../components/HTMLEngineProvider/htmlEngineUtils';
+import CONST from '../../CONST';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -35,13 +34,18 @@ const getHTMLOfSelection = () => {
     // We traverse all ranges, and get closest node with data-testid and replace its contents with contents of
     // range.
     for (let i = 0; i < selection.rangeCount; i++) {
-        const range = selection.getRangeAt(i);
+        const range = selection.getRangeAt(i).cloneRange();
+
+        while (range.endOffset === 0) {
+            range.setEndBefore(range.endContainer);
+        }
 
         const clonedSelection = range.cloneContents();
 
         // If clonedSelection has no text content this data has no meaning to us.
         if (clonedSelection.textContent) {
-            let node = null;
+            let parent;
+            let child = clonedSelection;
 
             // If selection starts and ends within same text node we use its parentNode. This is because we can't
             // use closest function on a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
@@ -59,20 +63,30 @@ const getHTMLOfSelection = () => {
             //     </div>
             // and finally commonAncestorContainer.parentNode.closest('data-testid') is targeted dom.
             if (range.commonAncestorContainer instanceof HTMLElement) {
-                node = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
+                parent = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
             } else {
-                node = range.commonAncestorContainer.parentNode.closest(`[${tagAttribute}]`);
+                parent = range.commonAncestorContainer.parentNode.closest(`[${tagAttribute}]`);
             }
 
-            // This means "range.commonAncestorContainer" is a text node. We simply get its parent node.
-            if (!node) {
-                node = range.commonAncestorContainer.parentNode;
+            // Keep traversing up to clone all parents with 'data-testid' attribute.
+            while (parent) {
+                const cloned = parent.cloneNode();
+                cloned.appendChild(child);
+                child = cloned;
+
+                parent = parent.parentNode.closest(`[${tagAttribute}]`);
             }
 
-            node = node.cloneNode();
-            node.appendChild(clonedSelection);
-            div.appendChild(node);
+            div.appendChild(child);
         }
+    }
+
+    // Find and remove the div housing the UnreadActionIndicator because we don't want
+    // the 'New/Nuevo' text inside it being copied.
+    const newMessageLineIndicatorDiv = div.querySelector(`#${CONST.UNREAD_ACTION_INDICATOR_ID}`);
+
+    if (newMessageLineIndicatorDiv) {
+        newMessageLineIndicatorDiv.remove();
     }
 
     return div.innerHTML;
@@ -100,11 +114,10 @@ const replaceNodes = (dom) => {
         if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
             domName = dom.attribs[tagAttribute];
         }
-
-        // Adding a new line after each comment here, because adding after each range is not working for chrome.
-        if (htmlEngineUtils.isCommentTag(dom.attribs[tagAttribute])) {
-            dom.children.push(new Element('br', {}));
-        }
+    } else if (dom.name === 'div' && dom.children.length === 1 && dom.children[0].type !== 'text') {
+        // We are excluding divs that have only one child and no text nodes and don't have a tagAttribute to prevent
+        // additional newlines from being added in the HTML to Markdown conversion process.
+        return replaceNodes(dom.children[0]);
     }
 
     // We need to preserve href attribute in order to copy links.
@@ -113,7 +126,7 @@ const replaceNodes = (dom) => {
     }
 
     if (dom.children) {
-        domChildren = _.map(dom.children, c => replaceNodes(c));
+        domChildren = _.map(dom.children, (c) => replaceNodes(c));
     }
 
     return {
@@ -133,7 +146,10 @@ const getCurrentSelection = () => {
     const domRepresentation = parseDocument(getHTMLOfSelection());
     domRepresentation.children = _.map(domRepresentation.children, replaceNodes);
 
-    const newHtml = Str.htmlDecode(render(domRepresentation));
+    // Newline characters need to be removed here because the HTML could contain both newlines and <br> tags, and when
+    // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
+    // is pasted, there are extra newlines in the content that we want to avoid.
+    const newHtml = render(domRepresentation).replace(/<br>\n/g, '<br>');
     return newHtml || '';
 };
 

@@ -1,9 +1,11 @@
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -18,13 +20,14 @@ import CommunicationsLink from '../components/CommunicationsLink';
 import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
-import DateUtils from '../libs/DateUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
-import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
 import PressableWithoutFocus from '../components/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
+import OfflineWithFeedback from '../components/OfflineWithFeedback';
+import AutoUpdateTime from '../components/AutoUpdateTime';
+import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -45,12 +48,20 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
+    session: {
+        email: null,
+    },
 };
 
 /**
@@ -63,40 +74,35 @@ const defaultProps = {
  */
 const getPhoneNumber = (details) => {
     // If the user hasn't set a displayName, it is set to their phone number, so use that
-    if (Str.isValidPhone(details.displayName)) {
-        return details.displayName;
+    const parsedPhoneNumber = parsePhoneNumber(details.displayName);
+    if (parsedPhoneNumber.possible) {
+        return parsedPhoneNumber.number.e164;
     }
 
     // If the user has set a displayName, get the phone number from the SMS login
-    return Str.removeSMSDomain(details.login);
+    return details.login ? Str.removeSMSDomain(details.login) : '';
 };
 
 class DetailsPage extends React.PureComponent {
-    componentDidMount() {
-        if (lodashGet(this.props.route.params, 'login')) {
-            return;
-        }
-
-        // Leave the page when the login information is not available
-        Navigation.dismissModal();
-    }
-
     render() {
-        const details = lodashGet(this.props.personalDetails, lodashGet(this.props.route.params, 'login'));
+        const login = lodashGet(this.props.route.params, 'login', '');
+        const reportID = lodashGet(this.props.route.params, 'reportID', '');
+        let details = lodashGet(this.props.personalDetails, login);
+
         if (!details) {
-            // Personal details have not loaded yet
-            return <FullscreenLoadingIndicator />;
+            details = {
+                login,
+                displayName: ReportUtils.getDisplayNameForParticipant(login),
+                avatar: ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
+            };
         }
-        const isSMSLogin = Str.isSMSLogin(details.login);
+
+        const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-        const shouldShowBackButton = Boolean(this.props.route.params.reportID);
-        const timezone = DateUtils.getLocalMomentFromTimestamp(this.props.preferredLocale, null, details.timezone.selected);
-        const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
-        const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
-        const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
-
+        const shouldShowBackButton = Boolean(reportID);
+        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -104,103 +110,96 @@ class DetailsPage extends React.PureComponent {
             pronouns = this.props.translate(`pronouns.${localeKey}`);
         }
 
+        const phoneNumber = getPhoneNumber(details);
+        const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
+
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.details')}
-                    shouldShowBackButton={shouldShowBackButton}
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
-                <View
-                    pointerEvents="box-none"
-                    style={[
-                        styles.containerWithSpaceBetween,
-                    ]}
-                >
-                    {details ? (
-                        <ScrollView>
-                            <View style={styles.pageWrapper}>
-                                <AttachmentModal
-                                    headerTitle={isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    sourceURL={details.avatar}
-                                    isAuthTokenRequired
-                                >
-                                    {({show}) => (
-                                        <PressableWithoutFocus
-                                            style={styles.noOutline}
-                                            onPress={show}
+                <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('common.details')}
+                        shouldShowBackButton={shouldShowBackButton}
+                        onBackButtonPress={() => Navigation.goBack()}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                    />
+                    <View
+                        pointerEvents="box-none"
+                        style={[styles.containerWithSpaceBetween]}
+                    >
+                        {details ? (
+                            <ScrollView>
+                                <View style={styles.avatarSectionWrapper}>
+                                    <AttachmentModal
+                                        headerTitle={details.displayName}
+                                        source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
+                                        isAuthTokenRequired
+                                        originalFileName={details.originalFileName}
+                                    >
+                                        {({show}) => (
+                                            <PressableWithoutFocus
+                                                style={styles.noOutline}
+                                                onPress={show}
+                                            >
+                                                <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
+                                                    <Avatar
+                                                        containerStyles={[styles.avatarLarge, styles.mb3]}
+                                                        imageStyles={[styles.avatarLarge]}
+                                                        source={ReportUtils.getAvatar(details.avatar, details.login)}
+                                                        size={CONST.AVATAR_SIZE.LARGE}
+                                                    />
+                                                </OfflineWithFeedback>
+                                            </PressableWithoutFocus>
+                                        )}
+                                    </AttachmentModal>
+                                    {Boolean(details.displayName) && (
+                                        <Text
+                                            style={[styles.textHeadline, styles.mb6, styles.pre]}
+                                            numberOfLines={1}
                                         >
-                                            <Avatar
-                                                containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                imageStyles={[styles.avatarLarge]}
-                                                source={details.avatar}
-                                                size={CONST.AVATAR_SIZE.LARGE}
-                                            />
-                                        </PressableWithoutFocus>
+                                            {details.displayName}
+                                        </Text>
                                     )}
-                                </AttachmentModal>
-                                {details.displayName && (
-                                    <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
-                                        {isSMSLogin ? this.props.toLocalPhone(details.displayName) : details.displayName}
-                                    </Text>
+                                    {details.login ? (
+                                        <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
+                                            <Text
+                                                style={[styles.textLabelSupporting, styles.mb1]}
+                                                numberOfLines={1}
+                                            >
+                                                {this.props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                            </Text>
+                                            <CommunicationsLink value={phoneOrEmail}>
+                                                <Tooltip text={phoneOrEmail}>
+                                                    <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
+                                                </Tooltip>
+                                            </CommunicationsLink>
+                                        </View>
+                                    ) : null}
+                                    {pronouns ? (
+                                        <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                            <Text
+                                                style={[styles.textLabelSupporting, styles.mb1]}
+                                                numberOfLines={1}
+                                            >
+                                                {this.props.translate('profilePage.preferredPronouns')}
+                                            </Text>
+                                            <Text numberOfLines={1}>{pronouns}</Text>
+                                        </View>
+                                    ) : null}
+                                    {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
+                                </View>
+                                {details.login !== this.props.session.email && (
+                                    <MenuItem
+                                        title={`${this.props.translate('common.message')}${details.displayName}`}
+                                        icon={Expensicons.ChatBubble}
+                                        onPress={() => Report.navigateToAndOpenReport([details.login])}
+                                        wrapperStyle={styles.breakAll}
+                                        shouldShowRightIcon
+                                    />
                                 )}
-                                {details.login ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                            {this.props.translate(isSMSLogin
-                                                ? 'common.phoneNumber'
-                                                : 'common.email')}
-                                        </Text>
-                                        <CommunicationsLink
-                                            type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
-                                            value={isSMSLogin ? getPhoneNumber(details) : details.login}
-                                        >
-                                            <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
-                                                <Text numberOfLines={1}>
-                                                    {isSMSLogin
-                                                        ? this.props.toLocalPhone(getPhoneNumber(details))
-                                                        : details.login}
-                                                </Text>
-                                            </Tooltip>
-                                        </CommunicationsLink>
-                                    </View>
-                                ) : null}
-                                {pronouns ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                            {this.props.translate('profilePage.preferredPronouns')}
-                                        </Text>
-                                        <Text numberOfLines={1}>
-                                            {pronouns}
-                                        </Text>
-                                    </View>
-                                ) : null}
-                                {shouldShowLocalTime && details.timezone ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                            {this.props.translate('detailsPage.localTime')}
-                                        </Text>
-                                        <Text numberOfLines={1}>
-                                            {timezone.format('LT')}
-                                            {' '}
-                                            {currentTime}
-                                        </Text>
-                                    </View>
-                                ) : null}
-                            </View>
-                            {details.login !== this.props.session.email && (
-                                <MenuItem
-                                    title={`${this.props.translate('common.message')}${details.displayName}`}
-                                    icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.fetchOrCreateChatReport([this.props.session.email, details.login])}
-                                    wrapperStyle={styles.breakAll}
-                                    shouldShowRightIcon
-                                />
-                            )}
-                        </ScrollView>
-                    ) : null}
-                </View>
+                            </ScrollView>
+                        ) : null}
+                    </View>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }

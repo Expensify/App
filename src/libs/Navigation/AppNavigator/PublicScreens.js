@@ -3,10 +3,10 @@ import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
-import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
-import ConciergePage from '../../../pages/ConciergePage';
+import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
+import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
 
 const RootStack = createStackNavigator();
 
@@ -20,7 +20,7 @@ const PublicScreens = () => (
         <RootStack.Screen
             name={SCREENS.TRANSITION_FROM_OLD_DOT}
             options={defaultScreenOptions}
-            component={LogInWithShortLivedTokenPage}
+            component={LogInWithShortLivedAuthTokenPage}
         />
         <RootStack.Screen
             name="ValidateLogin"
@@ -28,14 +28,14 @@ const PublicScreens = () => (
             component={ValidateLoginPage}
         />
         <RootStack.Screen
+            name="UnlinkLogin"
+            options={defaultScreenOptions}
+            component={UnlinkLoginPage}
+        />
+        <RootStack.Screen
             name="SetPassword"
             options={defaultScreenOptions}
             component={SetPasswordPage}
-        />
-        <RootStack.Screen
-            name="Concierge"
-            options={defaultScreenOptions}
-            component={ConciergePage}
         />
     </RootStack.Navigator>
 );

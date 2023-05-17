@@ -2,20 +2,23 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import OptionRow from '../OptionRow';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
+import OptionsListSkeletonView from '../OptionsListSkeletonView';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
     keyboardDismissMode: PropTypes.string,
 
-    /** Called when the user begins to drag the scroll view */
+    /** Called when the user begins to drag the scroll view. Only used for the native component */
     onScrollBeginDrag: PropTypes.func,
+
+    /** Callback executed on scroll. Only used for web/desktop component */
+    onScroll: PropTypes.func,
 
     ...optionsListPropTypes,
 };
@@ -23,6 +26,7 @@ const propTypes = {
 const defaultProps = {
     keyboardDismissMode: 'none',
     onScrollBeginDrag: () => {},
+    onScroll: () => {},
     ...optionsListDefaultProps,
 };
 
@@ -36,30 +40,19 @@ class BaseOptionsList extends Component {
         this.buildFlatSectionArray = this.buildFlatSectionArray.bind(this);
         this.extractKey = this.extractKey.bind(this);
         this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
-        this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
         this.didLayout = false;
 
         this.flattenedData = this.buildFlatSectionArray();
     }
 
     shouldComponentUpdate(nextProps) {
-        if (nextProps.focusedIndex !== this.props.focusedIndex) {
-            return true;
-        }
-
-        if (nextProps.selectedOptions.length !== this.props.selectedOptions.length) {
-            return true;
-        }
-
-        if (nextProps.headerMessage !== this.props.headerMessage) {
-            return true;
-        }
-
-        if (!_.isEqual(nextProps.sections, this.props.sections)) {
-            return true;
-        }
-
-        return false;
+        return (
+            nextProps.focusedIndex !== this.props.focusedIndex ||
+            nextProps.selectedOptions.length !== this.props.selectedOptions.length ||
+            nextProps.headerMessage !== this.props.headerMessage ||
+            nextProps.isLoading !== this.props.isLoading ||
+            !_.isEqual(nextProps.sections, this.props.sections)
+        );
     }
 
     componentDidUpdate(prevProps) {
@@ -114,7 +107,6 @@ class BaseOptionsList extends Component {
      * @returns {Array<Object>}
      */
     buildFlatSectionArray() {
-        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
         let offset = 0;
 
         // Start with just an empty list header
@@ -131,8 +123,12 @@ class BaseOptionsList extends Component {
 
             // Add section items
             for (let i = 0; i < section.data.length; i++) {
-                flatArray.push({length: optionHeight, offset});
-                offset += optionHeight;
+                let fullOptionHeight = variables.optionRowHeight;
+                if (i > 0 && this.props.shouldHaveOptionSeparator) {
+                    fullOptionHeight += variables.borderTopWidth;
+                }
+                flatArray.push({length: fullOptionHeight, offset});
+                offset += fullOptionHeight;
             }
 
             // Add the section footer
@@ -164,23 +160,20 @@ class BaseOptionsList extends Component {
      * @return {Component}
      */
     renderItem({item, index, section}) {
+        const isDisabled = this.props.isDisabled || section.isDisabled;
         return (
             <OptionRow
-                alternateTextAccessibilityLabel={this.props.optionRowAlternateTextAccessibilityLabel}
-                accessibilityHint={this.props.optionRowAccessibilityHint}
                 option={item}
-                mode={this.props.optionMode}
                 showTitleTooltip={this.props.showTitleTooltip}
-                backgroundColor={this.props.optionBackgroundColor}
                 hoverStyle={this.props.optionHoveredStyle}
-                optionIsFocused={!this.props.disableFocusOptions
-                        && this.props.focusedIndex === (index + section.indexOffset)}
+                optionIsFocused={!this.props.disableFocusOptions && !isDisabled && this.props.focusedIndex === index + section.indexOffset}
                 onSelectRow={this.props.onSelectRow}
-                isSelected={Boolean(_.find(this.props.selectedOptions, option => option.login === item.login))}
+                isSelected={Boolean(_.find(this.props.selectedOptions, (option) => option.login === item.login))}
                 showSelectedState={this.props.canSelectMultipleOptions}
-                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                isDisabled={this.props.isDisabled || section.isDisabled}
+                boldStyle={this.props.boldStyle}
+                isDisabled={isDisabled}
+                shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
+                shouldDisableRowInnerPadding={this.props.shouldDisableRowInnerPadding}
             />
         );
     }
@@ -198,15 +191,12 @@ class BaseOptionsList extends Component {
     renderSectionHeader({section: {title, shouldShow}}) {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
-
                 // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
                 // We do this so that we can reference the height in `getItemLayout` –
                 // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-                <View style={styles.optionsListSectionHeader}>
-                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
-                        {title}
-                    </Text>
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
                 </View>
             );
         }
@@ -217,34 +207,39 @@ class BaseOptionsList extends Component {
     render() {
         return (
             <View style={this.props.listContainerStyles}>
-                {this.props.headerMessage ? (
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
-                            {this.props.headerMessage}
-                        </Text>
-                    </View>
-                ) : null}
-                <SectionList
-                    ref={this.props.innerRef}
-                    indicatorStyle="white"
-                    keyboardShouldPersistTaps="always"
-                    keyboardDismissMode={this.props.keyboardDismissMode}
-                    onScrollBeginDrag={this.props.onScrollBeginDrag}
-                    contentContainerStyle={this.props.contentContainerStyles}
-                    showsVerticalScrollIndicator={false}
-                    sections={this.props.sections}
-                    keyExtractor={this.extractKey}
-                    stickySectionHeadersEnabled={false}
-                    renderItem={this.renderItem}
-                    getItemLayout={this.getItemLayout}
-                    renderSectionHeader={this.renderSectionHeader}
-                    extraData={this.props.focusedIndex}
-                    initialNumToRender={5}
-                    maxToRenderPerBatch={5}
-                    windowSize={5}
-                    viewabilityConfig={this.viewabilityConfig}
-                    onViewableItemsChanged={this.onViewableItemsChanged}
-                />
+                {this.props.isLoading ? (
+                    <OptionsListSkeletonView />
+                ) : (
+                    <>
+                        {this.props.headerMessage ? (
+                            <View style={[styles.ph5, styles.pb5]}>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.headerMessage}</Text>
+                            </View>
+                        ) : null}
+                        <SectionList
+                            ref={this.props.innerRef}
+                            indicatorStyle="white"
+                            keyboardShouldPersistTaps="always"
+                            keyboardDismissMode={this.props.keyboardDismissMode}
+                            onScrollBeginDrag={this.props.onScrollBeginDrag}
+                            onScroll={this.props.onScroll}
+                            contentContainerStyle={this.props.contentContainerStyles}
+                            showsVerticalScrollIndicator={false}
+                            sections={this.props.sections}
+                            keyExtractor={this.extractKey}
+                            stickySectionHeadersEnabled={false}
+                            renderItem={this.renderItem}
+                            getItemLayout={this.getItemLayout}
+                            renderSectionHeader={this.renderSectionHeader}
+                            extraData={this.props.focusedIndex}
+                            initialNumToRender={12}
+                            maxToRenderPerBatch={5}
+                            windowSize={5}
+                            viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                            onViewableItemsChanged={this.onViewableItemsChanged}
+                        />
+                    </>
+                )}
             </View>
         );
     }
@@ -254,6 +249,9 @@ BaseOptionsList.propTypes = propTypes;
 BaseOptionsList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseOptionsList {...props} innerRef={ref} />
+    <BaseOptionsList
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
 ));

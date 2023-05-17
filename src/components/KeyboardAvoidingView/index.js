@@ -1,18 +1,18 @@
 /*
- * This is a KeyboardAvoidingView only enabled for ios && disabled for all other platforms
+ * The KeyboardAvoidingView is only used on ios
  */
-import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
 
-const propTypes = {
-    children: PropTypes.node,
+const KeyboardAvoidingView = (props) => {
+    const viewProps = _.omit(props, ['behavior', 'contentContainerStyle', 'enabled', 'keyboardVerticalOffset']);
+    return (
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        <View {...viewProps} />
+    );
 };
-const defaultProps = {
-    children: null,
-};
 
-const KeyboardAvoidingView = props => props.children;
-
-KeyboardAvoidingView.propTypes = propTypes;
-KeyboardAvoidingView.defaultProps = defaultProps;
 KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
+
 export default KeyboardAvoidingView;

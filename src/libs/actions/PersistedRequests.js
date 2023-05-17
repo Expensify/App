@@ -1,27 +1,30 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import lodashUnionWith from 'lodash/unionWith';
+import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import RetryCounter from '../RetryCounter';
+import HttpUtils from '../HttpUtils';
 
-const persistedRequestsRetryCounter = new RetryCounter();
 let persistedRequests = [];
 
 Onyx.connect({
     key: ONYXKEYS.PERSISTED_REQUESTS,
-    callback: val => persistedRequests = val || [],
+    callback: (val) => (persistedRequests = val || []),
 });
 
 function clear() {
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
-    persistedRequestsRetryCounter.clear();
 }
 
 /**
  * @param {Array} requestsToPersist
  */
 function save(requestsToPersist) {
-    persistedRequests = lodashUnionWith(persistedRequests, requestsToPersist, _.isEqual);
+    HttpUtils.cancelPendingReconnectAppRequest();
+    persistedRequests = _.chain(persistedRequests)
+        .concat(requestsToPersist)
+        .partition((request) => request.command !== CONST.NETWORK.COMMAND.RECONNECT_APP)
+        .flatten()
+        .value();
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
@@ -29,8 +32,7 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    persistedRequestsRetryCounter.remove(requestToRemove);
-    persistedRequests = _.reject(persistedRequests, persistedRequest => _.isEqual(persistedRequest, requestToRemove));
+    persistedRequests = _.reject(persistedRequests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
@@ -41,18 +43,4 @@ function getAll() {
     return persistedRequests;
 }
 
-/**
- * @param {Object} request
- * @returns {Number}
- */
-function incrementRetries(request) {
-    return persistedRequestsRetryCounter.incrementRetries(request);
-}
-
-export {
-    clear,
-    save,
-    getAll,
-    remove,
-    incrementRetries,
-};
+export {clear, save, getAll, remove};

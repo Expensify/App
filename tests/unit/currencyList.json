@@ -7,11 +7,13 @@
     "AFN": {
       "symbol": "Af",
       "name": "Afghan Afghani",
+      "decimals": 0,
       "ISO4217": "971"
     },
     "ALL": {
       "symbol": "ALL",
       "name": "Albanian Lek",
+      "decimals": 0,
       "ISO4217": "008"
     },
     "AMD": {
@@ -123,6 +125,7 @@
     "BYR": {
       "symbol": "BR",
       "name": "Belarus Ruble",
+      "decimals": 0,
       "retired": true,
       "retirementDate": "2016-07-01",
       "ISO4217": "974"
@@ -330,11 +333,13 @@
     "IQD": {
       "symbol": "IQD",
       "name": "Iraqi Dinar",
+      "decimals": 0,
       "ISO4217": "368"
     },
     "IRR": {
       "symbol": "﷼",
       "name": "Iran Rial",
+      "decimals": 0,
       "ISO4217": "364"
     },
     "ISK": {
@@ -377,16 +382,19 @@
     "KMF": {
       "symbol": "CF",
       "name": "Comoros Franc",
+      "decimals": 0,
       "ISO4217": "174"
     },
     "KPW": {
       "symbol": "KP₩",
       "name": "North Korean Won",
+      "decimals": 0,
       "ISO4217": "408"
     },
     "KRW": {
       "symbol": "₩",
       "name": "Korean Won",
+      "decimals": 0,
       "ISO4217": "410"
     },
     "KWD": {
@@ -407,11 +415,13 @@
     "LAK": {
       "symbol": "₭",
       "name": "Lao Kip",
+      "decimals": 0,
       "ISO4217": "418"
     },
     "LBP": {
       "symbol": "LBP",
       "name": "Lebanese Pound",
+      "decimals": 0,
       "ISO4217": "422"
     },
     "LKR": {
@@ -460,6 +470,7 @@
     "MGA": {
       "symbol": "MGA",
       "name": "Malagasy Ariary",
+      "decimals": 0,
       "ISO4217": "969"
     },
     "MKD": {
@@ -470,6 +481,7 @@
     "MMK": {
       "symbol": "Ks",
       "name": "Myanmar Kyat",
+      "decimals": 0,
       "ISO4217": "104"
     },
     "MNT": {
@@ -594,6 +606,7 @@
     "PYG": {
       "symbol": "₲",
       "name": "Paraguayan Guarani",
+      "decimals": 0,
       "ISO4217": "600"
     },
     "QAR": {
@@ -609,6 +622,7 @@
     "RSD": {
       "symbol": "РСД",
       "name": "Serbian Dinar",
+      "decimals": 0,
       "ISO4217": "941"
     },
     "RUB": {
@@ -660,11 +674,13 @@
     "SLL": {
       "symbol": "Le",
       "name": "Sierra Leone Leone",
+      "decimals": 0,
       "ISO4217": "694"
     },
     "SOS": {
       "symbol": "So.",
       "name": "Somali Shilling",
+      "decimals": 0,
       "ISO4217": "706"
     },
     "SRD": {
@@ -675,6 +691,7 @@
     "STD": {
       "symbol": "Db",
       "name": "Sao Tome Dobra",
+      "decimals": 0,
       "retired": true,
       "retirementDate": "2018-07-11",
       "ISO4217": "678"
@@ -692,6 +709,7 @@
     "SYP": {
       "symbol": "SYP",
       "name": "Syrian Pound",
+      "decimals": 0,
       "ISO4217": "760"
     },
     "SZL": {
@@ -798,6 +816,7 @@
     "VUV": {
       "symbol": "Vt",
       "name": "Vanuatu Vatu",
+      "decimals": 0,
       "ISO4217": "548"
     },
     "WST": {
@@ -830,7 +849,8 @@
     },
     "YER": {
       "symbol": "YER",
-      "name": "Yemen  Riyal",
+      "name": "Yemen Riyal",
+      "decimals": 0,
       "ISO4217": "886"
     },
     "ZAR": {
@@ -841,6 +861,7 @@
     "ZMK": {
       "symbol": "ZK",
       "name": "Zambian Kwacha",
+      "decimals": 0,
       "retired": true,
       "retirementDate": "2013-01-01",
       "ISO4217": "894"
@@ -852,4 +873,3 @@
       "ISO4217": "967"
     }
 }
-  

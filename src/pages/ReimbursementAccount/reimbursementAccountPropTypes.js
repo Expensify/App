@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
+import BankAccount from '../../libs/models/BankAccount';
 
-export default PropTypes.shape({
+const reimbursementAccountPropTypes = PropTypes.shape({
     /** Whether we are loading the data via the API */
     isLoading: PropTypes.bool,
 
@@ -9,7 +10,6 @@ export default PropTypes.shape({
 
     /** Additional data for the account in setup */
     achData: PropTypes.shape({
-
         /** Step of the setup flow that we are on. Determines which view is presented. */
         currentStep: PropTypes.string,
 
@@ -18,7 +18,6 @@ export default PropTypes.shape({
 
         /** Bank account ID of the VBA that we are validating is required */
         bankAccountID: PropTypes.number,
-
     }),
 
     /** Disable validation button if max attempts exceeded */
@@ -33,3 +32,16 @@ export default PropTypes.shape({
     /** Any additional error message to show */
     errors: PropTypes.objectOf(PropTypes.string),
 });
+
+const reimbursementAccountDefaultProps = {
+    achData: {
+        state: BankAccount.STATE.SETUP,
+    },
+    isLoading: false,
+    errorFields: {},
+    errors: {},
+    maxAttemptsReached: false,
+    shouldShowResetModal: false,
+};
+
+export {reimbursementAccountPropTypes, reimbursementAccountDefaultProps};

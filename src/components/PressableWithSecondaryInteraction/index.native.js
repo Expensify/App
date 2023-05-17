@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import {Pressable} from 'react-native';
-import {LongPressGestureHandler, State} from 'react-native-gesture-handler';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import Text from '../Text';
 import HapticFeedback from '../../libs/HapticFeedback';
@@ -16,28 +15,24 @@ const PressableWithSecondaryInteraction = (props) => {
     // Use Text node for inline mode to prevent content overflow.
     const Node = props.inline ? Text : Pressable;
     return (
-        <LongPressGestureHandler
-            onHandlerStateChange={(e) => {
-                if (e.nativeEvent.state !== State.ACTIVE) {
+        <Node
+            ref={props.forwardedRef}
+            onPress={props.onPress}
+            onLongPress={(e) => {
+                if (!props.onSecondaryInteraction) {
                     return;
                 }
                 e.preventDefault();
-                HapticFeedback.trigger();
+                HapticFeedback.longPress();
                 props.onSecondaryInteraction(e);
             }}
-        >
-            <Node
-                ref={props.forwardedRef}
-                onPress={props.onPress}
-                onPressIn={props.onPressIn}
-                onPressOut={props.onPressOut}
+            onPressIn={props.onPressIn}
+            onPressOut={props.onPressOut}
             // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(_.omit(props, 'onLongPress'))}
-            >
-                {props.children}
-            </Node>
-        </LongPressGestureHandler>
-
+            {..._.omit(props, 'onLongPress')}
+        >
+            {props.children}
+        </Node>
     );
 };
 
@@ -46,6 +41,9 @@ PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteracti
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />
+    <PressableWithSecondaryInteraction
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

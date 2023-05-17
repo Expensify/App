@@ -1,15 +1,22 @@
 import React, {Component} from 'react';
-import {TouchableWithoutFeedback, View} from 'react-native';
+import {View} from 'react-native';
 import PDF from 'react-native-pdf';
+import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
-import KeyboardAvoidingView from '../KeyboardAvoidingView';
+import Text from '../Text';
 import PDFPasswordForm from './PDFPasswordForm';
-import * as pdfViewPropTypes from './pdfViewPropTypes';
+import {propTypes as pdfViewPropTypes, defaultProps} from './pdfViewPropTypes';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
-import withKeyboardState from '../withKeyboardState';
+import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
+import withLocalize from '../withLocalize';
+
+const propTypes = {
+    ...pdfViewPropTypes,
+    ...keyboardStatePropTypes,
+};
 
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
@@ -30,18 +37,32 @@ class PDFView extends Component {
         super(props);
         this.state = {
             shouldRequestPassword: false,
-            shouldAttemptPdfLoad: true,
+            shouldAttemptPDFLoad: true,
             shouldShowLoadingIndicator: true,
             isPasswordInvalid: false,
+            failedToLoadPDF: false,
             password: '',
         };
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
-        this.attemptPdfLoadWithPassword = this.attemptPdfLoadWithPassword.bind(this);
-        this.finishPdfLoad = this.finishPdfLoad.bind(this);
+        this.attemptPDFLoadWithPassword = this.attemptPDFLoadWithPassword.bind(this);
+        this.finishPDFLoad = this.finishPDFLoad.bind(this);
+        this.handleFailureToLoadPDF = this.handleFailureToLoadPDF.bind(this);
     }
 
     componentDidUpdate() {
-        this.props.onToggleKeyboard(this.props.isShown);
+        this.props.onToggleKeyboard(this.props.isKeyboardShown);
+    }
+
+    handleFailureToLoadPDF(error) {
+        if (error.message.match(/password/i)) {
+            this.initiatePasswordChallenge();
+            return;
+        }
+
+        this.setState({
+            failedToLoadPDF: true,
+            shouldAttemptPDFLoad: false,
+        });
     }
 
     /**
@@ -51,20 +72,14 @@ class PDFView extends Component {
      * For a password challenge the message is "Password required or incorrect password."
      * Note that the message doesn't specify whether the password is simply empty or
      * invalid.
-     *
-     * @param {String} message
      */
-    initiatePasswordChallenge({message}) {
+    initiatePasswordChallenge() {
         this.setState({shouldShowLoadingIndicator: false});
-
-        if (!message.match(/password/i)) {
-            return;
-        }
 
         // Render password form, and don't render PDF and loading indicator.
         this.setState({
             shouldRequestPassword: true,
-            shouldAttemptPdfLoad: false,
+            shouldAttemptPDFLoad: false,
         });
 
         // The message provided by react-native-pdf doesn't indicate whether this
@@ -82,13 +97,13 @@ class PDFView extends Component {
      *
      * @param {String} password Password submitted via PDFPasswordForm
      */
-    attemptPdfLoadWithPassword(password) {
+    attemptPDFLoadWithPassword(password) {
         // Render react-native-pdf/PDF so that it can validate the password.
         // Note that at this point in the password challenge, shouldRequestPassword is true.
         // Thus react-native-pdf/PDF will be rendered - but not visible.
         this.setState({
             password,
-            shouldAttemptPdfLoad: true,
+            shouldAttemptPDFLoad: true,
             shouldShowLoadingIndicator: true,
         });
     }
@@ -97,23 +112,16 @@ class PDFView extends Component {
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
      */
-    finishPdfLoad() {
+    finishPDFLoad() {
         this.setState({
             shouldRequestPassword: false,
             shouldShowLoadingIndicator: false,
         });
+        this.props.onLoadComplete();
     }
 
     render() {
-        const pdfStyles = [
-            styles.imageModalPDF,
-            StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight),
-        ];
-        const touchableStyles = [
-            styles.flex1,
-            this.props.style,
-            styles.w100,
-        ];
+        const pdfStyles = [styles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
@@ -123,29 +131,32 @@ class PDFView extends Component {
             pdfStyles.push(styles.invisible);
         }
 
-        const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth
-            ? [styles.w100, styles.flex1]
-            : [styles.alignItemsCenter, styles.flex1];
+        const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth ? [styles.w100, styles.flex1] : [styles.alignItemsCenter, styles.flex1];
 
         return (
             <View style={containerStyles}>
-                {this.state.shouldAttemptPdfLoad && (
-                    <TouchableWithoutFeedback style={touchableStyles}>
-                        <PDF
-                            trustAllCerts={false}
-                            renderActivityIndicator={() => <FullScreenLoadingIndicator />}
-                            source={{uri: this.props.sourceURL}}
-                            style={pdfStyles}
-                            onError={this.initiatePasswordChallenge}
-                            password={this.state.password}
-                            onLoadComplete={this.finishPdfLoad}
-                        />
-                    </TouchableWithoutFeedback>
+                {this.state.failedToLoadPDF && (
+                    <View style={[styles.flex1, styles.justifyContentCenter]}>
+                        <Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
+                    </View>
+                )}
+                {this.state.shouldAttemptPDFLoad && (
+                    <PDF
+                        trustAllCerts={false}
+                        renderActivityIndicator={() => <FullScreenLoadingIndicator />}
+                        source={{uri: this.props.sourceURL}}
+                        style={pdfStyles}
+                        onError={this.handleFailureToLoadPDF}
+                        password={this.state.password}
+                        onLoadComplete={this.finishPDFLoad}
+                        onPageSingleTap={this.props.onPress}
+                        onScaleChanged={this.props.onScaleChanged}
+                    />
                 )}
                 {this.state.shouldRequestPassword && (
-                    <KeyboardAvoidingView>
+                    <KeyboardAvoidingView style={styles.flex1}>
                         <PDFPasswordForm
-                            onSubmit={this.attemptPdfLoadWithPassword}
+                            onSubmit={this.attemptPDFLoadWithPassword}
                             onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                             isPasswordInvalid={this.state.isPasswordInvalid}
                             shouldShowLoadingIndicator={this.state.shouldShowLoadingIndicator}
@@ -157,10 +168,7 @@ class PDFView extends Component {
     }
 }
 
-PDFView.propTypes = pdfViewPropTypes.propTypes;
-PDFView.defaultProps = pdfViewPropTypes.defaultProps;
+PDFView.propTypes = propTypes;
+PDFView.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withKeyboardState,
-)(PDFView);
+export default compose(withWindowDimensions, withKeyboardState, withLocalize)(PDFView);

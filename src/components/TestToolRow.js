@@ -12,16 +12,12 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const TestToolRow = props => (
-    <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween, styles.alignItemsCenter]}>
-        <View style={styles.flex3}>
-            <Text>
-                {props.title}
-            </Text>
+const TestToolRow = (props) => (
+    <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween, styles.alignItemsCenter, styles.mnw120]}>
+        <View style={styles.flex2}>
+            <Text>{props.title}</Text>
         </View>
-        <View style={[styles.flex1, styles.alignItemsEnd]}>
-            {props.children}
-        </View>
+        <View style={[styles.flex1, styles.alignItemsEnd]}>{props.children}</View>
     </View>
 );
 

@@ -1,11 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    TouchableOpacity,
-    View,
-    StyleSheet,
-} from 'react-native';
+import {TouchableOpacity, View, StyleSheet} from 'react-native';
+import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Icon from '../Icon';
@@ -13,15 +10,14 @@ import * as Expensicons from '../Icon/Expensicons';
 import MultipleAvatars from '../MultipleAvatars';
 import Hoverable from '../Hoverable';
 import DisplayNames from '../DisplayNames';
-import IOUBadge from '../IOUBadge';
 import colors from '../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
-import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
+import TextPill from '../TextPill';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
@@ -61,39 +57,32 @@ const OptionRowLHN = (props) => {
     }
 
     let touchableRef = null;
-    const textStyle = props.isFocused
-        ? styles.sidebarLinkActiveText
-        : styles.sidebarLinkText;
-    const textUnreadStyle = optionItem.isUnread
-        ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const displayNameStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
-        ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
-        : [styles.optionDisplayName, ...textUnreadStyle], props.style);
-    const alternateTextStyle = StyleUtils.combineStyles(props.viewMode === CONST.OPTION_MODE.COMPACT
-        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
-        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting], props.style);
-    const contentContainerStyles = props.viewMode === CONST.OPTION_MODE.COMPACT
-        ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
-        : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten(props.viewMode === CONST.OPTION_MODE.COMPACT ? [
-        styles.chatLinkRowPressable,
-        styles.flexGrow1,
-        styles.optionItemAvatarNameWrapper,
-        styles.optionRowCompact,
-        styles.justifyContentCenter,
-    ] : [
-        styles.chatLinkRowPressable,
-        styles.flexGrow1,
-        styles.optionItemAvatarNameWrapper,
-        styles.optionRow,
-        styles.justifyContentCenter,
-    ]);
-    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor
-        ? props.hoverStyle.backgroundColor
-        : themeColors.sidebar;
+    const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
+    const textPillStyle = props.isFocused ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)] : [styles.ml1];
+    const alternateTextStyle = StyleUtils.combineStyles(
+        props.viewMode === CONST.OPTION_MODE.COMPACT
+            ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
+            : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting],
+        props.style,
+    );
+    const contentContainerStyles =
+        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles] : [styles.flex1];
+    const sidebarInnerRowStyle = StyleSheet.flatten(
+        props.viewMode === CONST.OPTION_MODE.COMPACT
+            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
+            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
+    );
+    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
+    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
+
+    // If the item is a thread within a workspace, we will show the subtitle as the second line instead of in a pill
+    const alternativeText = optionItem.isThread && optionItem.subtitle ? optionItem.subtitle : optionItem.alternateText;
 
     return (
         <OfflineWithFeedback
@@ -102,9 +91,9 @@ const OptionRowLHN = (props) => {
             shouldShowErrorMessages={false}
         >
             <Hoverable>
-                {hovered => (
+                {(hovered) => (
                     <TouchableOpacity
-                        ref={el => touchableRef = el}
+                        ref={(el) => (touchableRef = el)}
                         onPress={(e) => {
                             if (e) {
                                 e.preventDefault();
@@ -124,18 +113,15 @@ const OptionRowLHN = (props) => {
                             hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
                     >
-                        <View accessibilityHint="Navigates to a chat" style={sidebarInnerRowStyle}>
-                            <View
-                                style={[
-                                    styles.flexRow,
-                                    styles.alignItemsCenter,
-                                ]}
-                            >
-                                {
-                                !_.isEmpty(optionItem.icons)
-                                && (
-                                    optionItem.shouldShowSubscript ? (
+                        <View
+                            accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
+                            style={sidebarInnerRowStyle}
+                        >
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                {!_.isEmpty(optionItem.icons) &&
+                                    (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
+                                            backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
                                             mainTooltip={optionItem.ownerEmail}
@@ -145,55 +131,57 @@ const OptionRowLHN = (props) => {
                                     ) : (
                                         <MultipleAvatars
                                             icons={optionItem.icons}
+                                            isFocusMode={props.viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
-                                                props.isFocused
-                                                    ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
-                                                    : undefined,
-                                                hovered && !props.isFocused
-                                                    ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
-                                                    : undefined,
+                                                props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                                hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
                                             avatarTooltips={optionItem.isPolicyExpenseChat ? [optionItem.subtitle] : avatarTooltips}
                                         />
-                                    )
-                                )
-                                }
+                                    ))}
                                 <View style={contentContainerStyles}>
-                                    <DisplayNames
-                                        accessibilityLabel="Chat user display names"
-                                        fullTitle={optionItem.text}
-                                        displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
-                                        tooltipEnabled
-                                        numberOfLines={1}
-                                        textStyles={displayNameStyle}
-                                        shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
-                                    />
-                                    {optionItem.alternateText ? (
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
+                                        <DisplayNames
+                                            accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
+                                            fullTitle={optionItem.text}
+                                            displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
+                                            tooltipEnabled
+                                            numberOfLines={1}
+                                            textStyles={displayNameStyle}
+                                            shouldUseFullTitle={
+                                                optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
+                                            }
+                                        />
+                                        {optionItem.isChatRoom && !optionItem.isThread && (
+                                            <TextPill
+                                                style={textPillStyle}
+                                                accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
+                                                text={optionItem.subtitle}
+                                            />
+                                        )}
+                                    </View>
+                                    {alternativeText ? (
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
-                                            accessibilityLabel="Last chat message preview"
+                                            accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.alternateText}
+                                            {alternativeText}
                                         </Text>
                                     ) : null}
                                 </View>
                                 {optionItem.descriptiveText ? (
                                     <View style={[styles.flexWrap]}>
-                                        <Text style={[styles.textLabel]}>
-                                            {optionItem.descriptiveText}
-                                        </Text>
+                                        <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                     </View>
                                 ) : null}
-                                {optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                {hasBrickError && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
                                             fill={colors.red}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
                                         />
                                     </View>
                                 )}
@@ -203,24 +191,27 @@ const OptionRowLHN = (props) => {
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessible={false}
                         >
+                            {shouldShowGreenDotIndicator && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={themeColors.success}
+                                />
+                            )}
                             {optionItem.hasDraftComment && (
-                            <View
-                                style={styles.ml2}
-                                accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
-                            >
-                                <Icon src={Expensicons.Pencil} height={16} width={16} />
-                            </View>
+                                <View
+                                    style={styles.ml2}
+                                    accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
+                                >
+                                    <Icon src={Expensicons.Pencil} />
+                                </View>
                             )}
-                            {optionItem.hasOutstandingIOU && (
-                            <IOUBadge iouReportID={optionItem.iouReportID} />
-                            )}
-                            {optionItem.isPinned && (
-                            <View
-                                style={styles.ml2}
-                                accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
-                            >
-                                <Icon src={Expensicons.Pin} height={16} width={16} />
-                            </View>
+                            {!shouldShowGreenDotIndicator && optionItem.isPinned && (
+                                <View
+                                    style={styles.ml2}
+                                    accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
+                                >
+                                    <Icon src={Expensicons.Pin} />
+                                </View>
                             )}
                         </View>
                     </TouchableOpacity>

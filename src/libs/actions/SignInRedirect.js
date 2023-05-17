@@ -1,61 +1,80 @@
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
 import DateUtils from '../DateUtils';
 import * as Localize from '../Localize';
-
-let currentActiveClients;
-Onyx.connect({
-    key: ONYXKEYS.ACTIVE_CLIENTS,
-    callback: (val) => {
-        currentActiveClients = !val ? [] : val;
-    },
-});
-
-let currentPreferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val,
-});
+import * as PersistedRequests from './PersistedRequests';
+import NetworkConnection from '../NetworkConnection';
+import HttpUtils from '../HttpUtils';
+import navigationRef from '../Navigation/navigationRef';
+import SCREENS from '../../SCREENS';
+import Navigation from '../Navigation/Navigation';
 
 let currentIsOffline;
+let currentShouldForceOffline;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: val => currentIsOffline = val.isOffline,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        currentIsOffline = network.isOffline;
+        currentShouldForceOffline = Boolean(network.shouldForceOffline);
+    },
 });
 
 /**
  * @param {String} errorMessage
  */
 function clearStorageAndRedirect(errorMessage) {
-    const activeClients = currentActiveClients;
-    const preferredLocale = currentPreferredLocale;
-    const isOffline = currentIsOffline;
+    // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
+    // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
+    // flashes of unwanted default state.
+    const keysToPreserve = [];
+    keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
+    keysToPreserve.push(ONYXKEYS.DEVICE_ID);
 
-    // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    Onyx.clear()
-        .then(() => {
-            if (preferredLocale) {
-                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-            }
-            if (activeClients && activeClients.length > 0) {
-                Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
-            }
-            if (isOffline) {
-                Onyx.set(ONYXKEYS.NETWORK, {isOffline});
-            }
+    // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
+    // If we are forcing offline, ignore it while signed out, otherwise it would require a refresh because there's no way to toggle the switch to go back online while signed out.
+    if (currentIsOffline && !currentShouldForceOffline) {
+        keysToPreserve.push(ONYXKEYS.NETWORK);
+    }
 
-            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
-            if (errorMessage) {
-                Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
-            }
+    Onyx.clear(keysToPreserve).then(() => {
+        if (!errorMessage) {
+            return;
+        }
+
+        // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
+        Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
+    });
+}
+
+/**
+ * Reset all current params of the Home route
+ */
+function resetHomeRouteParams() {
+    Navigation.isNavigationReady().then(() => {
+        const routes = navigationRef.current && lodashGet(navigationRef.current.getState(), 'routes');
+        const homeRoute = _.find(routes, (route) => route.name === SCREENS.HOME);
+
+        const emptyParams = {};
+        _.keys(lodashGet(homeRoute, 'params')).forEach((paramKey) => {
+            emptyParams[paramKey] = undefined;
         });
+
+        Navigation.setParams(emptyParams, lodashGet(homeRoute, 'key', ''));
+    });
 }
 
 /**
  * Cleanup actions resulting in the user being redirected to the Sign-in page
  * - Clears the Onyx store - removing the authToken redirects the user to the Sign-in page
  * - Cancels pending network calls - any lingering requests are discarded to prevent unwanted storage writes
+ * - Clears all current params of the Home route - the login page URL should not contain any parameter
  *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
@@ -63,7 +82,11 @@ function clearStorageAndRedirect(errorMessage) {
  */
 function redirectToSignIn(errorMessage) {
     MainQueue.clear();
+    HttpUtils.cancelPendingRequests();
+    PersistedRequests.clear();
+    NetworkConnection.clearReconnectionCallbacks();
     clearStorageAndRedirect(errorMessage);
+    resetHomeRouteParams();
 }
 
 export default redirectToSignIn;

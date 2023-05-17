@@ -21,23 +21,19 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceReimbursePage = props => (
+const WorkspaceReimbursePage = (props) => (
     <WorkspacePageWithSections
         shouldUseScrollView
         headerText={props.translate('workspace.common.reimburse')}
         route={props.route}
         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
+        shouldSkipVBBACall
     >
-        {hasVBA => (
-            <WorkspaceReimburseView policy={props.policy} hasVBA={hasVBA} />
-        )}
+        {() => <WorkspaceReimburseView policy={props.policy} />}
     </WorkspacePageWithSections>
 );
 
 WorkspaceReimbursePage.propTypes = propTypes;
 WorkspaceReimbursePage.displayName = 'WorkspaceReimbursePage';
 
-export default compose(
-    withPolicy,
-    withLocalize,
-)(WorkspaceReimbursePage);
+export default compose(withPolicy, withLocalize)(WorkspaceReimbursePage);

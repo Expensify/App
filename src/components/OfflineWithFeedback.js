@@ -13,6 +13,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import DotIndicatorMessage from './DotIndicatorMessage';
+import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -72,7 +73,7 @@ function applyStrikeThrough(children) {
         if (!React.isValidElement(child)) {
             return child;
         }
-        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted)};
+        const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone)};
         if (child.props.children) {
             props.children = applyStrikeThrough(child.props.children);
         }
@@ -97,17 +98,24 @@ const OfflineWithFeedback = (props) => {
     return (
         <View style={props.style}>
             {!hideChildren && (
-                <View style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}>
+                <View
+                    style={[needsOpacity ? styles.offlineFeedback.pending : {}, props.contentContainerStyle]}
+                    needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && props.needsOffscreenAlphaCompositing : undefined}
+                >
                     {children}
                 </View>
             )}
-            {(props.shouldShowErrorMessages && hasErrors) && (
+            {props.shouldShowErrorMessages && hasErrors && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
-                    <DotIndicatorMessage messages={props.errors} type="error" />
+                    <DotIndicatorMessage
+                        style={[styles.flex1]}
+                        messages={props.errors}
+                        type="error"
+                    />
                     <Tooltip text={props.translate('common.close')}>
                         <Pressable
                             onPress={props.onClose}
-                            style={[styles.touchableButtonImage, styles.mr0]}
+                            style={[styles.touchableButtonImage]}
                             accessibilityRole="button"
                             accessibilityLabel={props.translate('common.close')}
                         >
@@ -124,7 +132,4 @@ OfflineWithFeedback.propTypes = propTypes;
 OfflineWithFeedback.defaultProps = defaultProps;
 OfflineWithFeedback.displayName = 'OfflineWithFeedback';
 
-export default compose(
-    withLocalize,
-    withNetwork(),
-)(OfflineWithFeedback);
+export default compose(withLocalize, withNetwork())(OfflineWithFeedback);

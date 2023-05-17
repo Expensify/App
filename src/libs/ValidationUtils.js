@@ -1,8 +1,11 @@
 import moment from 'moment';
 import _ from 'underscore';
+import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
+import * as Localize from './Localize';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -23,7 +26,7 @@ function validateCardNumber(val) {
         }
         sum += intVal;
     }
-    return (sum % 10) === 0;
+    return sum % 10 === 0;
 }
 
 /**
@@ -193,24 +196,62 @@ function isValidPaypalUsername(paypalUsername) {
 }
 
 /**
- * Validate that "date" is between 18 and 150 years in the past
+ * Validate that a date meets the minimum age requirement.
  *
  * @param {String} date
  * @returns {Boolean}
  */
-function meetsAgeRequirements(date) {
-    const eighteenYearsAgo = moment().subtract(18, 'years');
-    const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
+function meetsMinimumAgeRequirement(date) {
     const testDate = moment(date);
-    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo);
+    const minDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT, 'years');
+    return testDate.isValid() && testDate.isSameOrBefore(minDate, 'day');
 }
 
 /**
+ * Validate that a date meets the maximum age requirement.
+ *
+ * @param {String} date
+ * @returns {Boolean}
+ */
+function meetsMaximumAgeRequirement(date) {
+    const testDate = moment(date);
+    const maxDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years');
+    return testDate.isValid() && testDate.isSameOrAfter(maxDate, 'day');
+}
+
+/**
+ * Validate that given date is in a specified range of years before now.
+ *
+ * @param {String} date
+ * @param {Number} minimumAge
+ * @param {Number} maximumAge
+ * @returns {String}
+ */
+function getAgeRequirementError(date, minimumAge, maximumAge) {
+    const recentDate = moment().startOf('day').subtract(minimumAge, 'years');
+    const longAgoDate = moment().startOf('day').subtract(maximumAge, 'years');
+    const testDate = moment(date);
+    if (!testDate.isValid()) {
+        return Localize.translateLocal('common.error.dateInvalid');
+    }
+    if (testDate.isBetween(longAgoDate, recentDate, undefined, '[]')) {
+        return '';
+    }
+    if (testDate.isSameOrAfter(recentDate)) {
+        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+    }
+    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+}
+
+/**
+ * Similar to backend, checks whether a website has a valid URL or not.
+ * http/https/ftp URL scheme required.
+ *
  * @param {String} url
  * @returns {Boolean}
  */
-function isValidURL(url) {
-    return CONST.REGEX.HYPERLINK.test(url);
+function isValidWebsite(url) {
+    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
 }
 
 /**
@@ -238,9 +279,9 @@ function validateIdentity(identity) {
     }
 
     // dob field has multiple validations/errors, we are handling it temporarily like this.
-    if (!isValidDate(identity.dob)) {
+    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
         errors.dob = true;
-    } else if (!meetsAgeRequirements(identity.dob)) {
+    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
         errors.dobAge = true;
     }
 
@@ -257,12 +298,11 @@ function validateIdentity(identity) {
  * @returns {Boolean}
  */
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
-    // Remove non alphanumeric characters from the phone number
-    const sanitizedPhone = (phoneNumber || '').replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
-    const isUsPhone = isCountryCodeOptional
-        ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone) : CONST.REGEX.US_PHONE.test(sanitizedPhone);
+    const phone = phoneNumber || '';
+    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : null;
 
-    return CONST.REGEX.PHONE_E164_PLUS.test(sanitizedPhone) && isUsPhone;
+    const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
+    return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
 
 /**
@@ -274,11 +314,19 @@ function isValidPassword(password) {
 }
 
 /**
- * @param {String} input
+ * @param {string} validateCode
  * @returns {Boolean}
  */
-function isPositiveInteger(input) {
-    return CONST.REGEX.POSITIVE_INTEGER.test(input);
+function isValidValidateCode(validateCode) {
+    return validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
+}
+
+/**
+ * @param {String} code
+ * @returns {Boolean}
+ */
+function isValidTwoFactorCode(code) {
+    return Boolean(code.match(CONST.REGEX.CODE_2FA));
 }
 
 /**
@@ -299,9 +347,7 @@ function isNumericWithSpecialChars(input) {
 function isValidRoutingNumber(number) {
     let n = 0;
     for (let i = 0; i < number.length; i += 3) {
-        n += (parseInt(number.charAt(i), 10) * 3)
-            + (parseInt(number.charAt(i + 1), 10) * 7)
-            + parseInt(number.charAt(i + 2), 10);
+        n += parseInt(number.charAt(i), 10) * 3 + parseInt(number.charAt(i + 1), 10) * 7 + parseInt(number.charAt(i + 2), 10);
     }
 
     // If the resulting sum is an even multiple of ten (but not zero),
@@ -313,27 +359,35 @@ function isValidRoutingNumber(number) {
 }
 
 /**
- * Checks if each string in array is of valid length and then returns true
- * for each string which exceeds the limit.
+ * Checks that the provided name doesn't contain any commas or semicolons
  *
- * @param {Number} maxLength
- * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
+ * @param {String} name
+ * @returns {Boolean}
  */
-function doesFailCharacterLimit(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value && value.length > maxLength);
+function isValidDisplayName(name) {
+    return !name.includes(',') && !name.includes(';');
 }
 
 /**
- * Checks if each string in array is of valid length and then returns true
- * for each string which exceeds the limit. The function trims the passed values.
+ * Checks that the provided legal name doesn't contain special characters
  *
- * @param {Number} maxLength
- * @param {String[]} valuesToBeValidated
- * @returns {Boolean[]}
+ * @param {String} name
+ * @returns {Boolean}
  */
-function doesFailCharacterLimitAfterTrim(maxLength, valuesToBeValidated) {
-    return _.map(valuesToBeValidated, value => value && value.trim().length > maxLength);
+function isValidLegalName(name) {
+    return CONST.REGEX.ALPHABETIC_CHARS_WITH_NUMBER.test(name);
+}
+
+/**
+ * Checks if the provided string includes any of the provided reserved words
+ *
+ * @param {String} value
+ * @param {String[]} reservedWords
+ * @returns {Boolean}
+ */
+function doesContainReservedWord(value, reservedWords) {
+    const valueToCheck = value.trim().toLowerCase();
+    return _.some(reservedWords, (reservedWord) => valueToCheck.includes(reservedWord.toLowerCase()));
 }
 
 /**
@@ -356,11 +410,20 @@ function isReservedRoomName(roomName) {
  * @returns {Boolean}
  */
 function isExistingRoomName(roomName, reports, policyID) {
-    return _.some(
-        reports,
-        report => report && report.policyID === policyID
-        && report.reportName === roomName,
-    );
+    return _.some(reports, (report) => report && report.policyID === policyID && report.reportName === roomName);
+}
+
+/**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ * - It's between 1 and MAX_ROOM_NAME_LENGTH characters long
+ *
+ * @param {String} roomName
+ * @returns {Boolean}
+ */
+function isValidRoomName(roomName) {
+    return CONST.REGEX.ROOM_NAME.test(roomName);
 }
 
 /**
@@ -373,8 +436,23 @@ function isValidTaxID(taxID) {
     return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
 }
 
+/**
+ * Checks if a string value is a number.
+ *
+ * @param {String} value
+ * @returns {Boolean}
+ */
+function isNumeric(value) {
+    if (typeof value !== 'string') {
+        return false;
+    }
+    return /^\d*$/.test(value);
+}
+
 export {
-    meetsAgeRequirements,
+    meetsMinimumAgeRequirement,
+    meetsMaximumAgeRequirement,
+    getAgeRequirementError,
     isValidAddress,
     isValidDate,
     isValidCardName,
@@ -386,18 +464,22 @@ export {
     isValidZipCode,
     isRequiredFulfilled,
     isValidUSPhone,
-    isValidURL,
+    isValidWebsite,
     validateIdentity,
     isValidPassword,
-    isPositiveInteger,
+    isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidPaypalUsername,
     isValidRoutingNumber,
     isValidSSNLastFour,
     isValidSSNFullNine,
-    doesFailCharacterLimit,
-    doesFailCharacterLimitAfterTrim,
     isReservedRoomName,
     isExistingRoomName,
+    isValidRoomName,
     isValidTaxID,
+    isValidValidateCode,
+    isValidDisplayName,
+    isValidLegalName,
+    doesContainReservedWord,
+    isNumeric,
 };

@@ -3,7 +3,6 @@ import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
-import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -16,7 +15,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    /** Do the urls require an authToken? */
+    /** Whether the image requires an authToken */
     isAuthTokenRequired: PropTypes.bool.isRequired,
 
     /** Width of the thumbnail image */
@@ -63,7 +62,7 @@ class ThumbnailImage extends PureComponent {
         // Note: Clamp minimum width 40px to support touch device
         let thumbnailScreenWidth = lodashClamp(width, 40, 250);
         const imageHeight = height / (width / thumbnailScreenWidth);
-        let thumbnailScreenHeight = lodashClamp(imageHeight, 40, this.props.windowHeight * 0.40);
+        let thumbnailScreenHeight = lodashClamp(imageHeight, 40, this.props.windowHeight * 0.4);
         const aspectRatio = height / width;
 
         // If thumbnail height is greater than its width, then the image is portrait otherwise landscape.
@@ -73,7 +72,7 @@ class ThumbnailImage extends PureComponent {
         } else {
             thumbnailScreenHeight = Math.round(thumbnailScreenWidth * aspectRatio);
         }
-        return {thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
+        return {thumbnailWidth: Math.max(40, thumbnailScreenWidth), thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
     }
 
     /**
@@ -87,22 +86,13 @@ class ThumbnailImage extends PureComponent {
     }
 
     render() {
-        const url = this.props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(this.props.previewSourceURL)
-            : this.props.previewSourceURL;
-
         return (
             <View style={[this.props.style, styles.overflowHidden]}>
-                <View
-                    style={[
-                        StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight),
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
-                >
+                <View style={[StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <ImageWithSizeCalculation
-                        url={url}
+                        url={this.props.previewSourceURL}
                         onMeasure={this.updateImageSize}
+                        isAuthTokenRequired={this.props.isAuthTokenRequired}
                     />
                 </View>
             </View>

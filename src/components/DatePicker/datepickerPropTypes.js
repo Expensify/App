@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
-import {
-    propTypes as fieldPropTypes,
-    defaultProps as defaultFieldPropTypes,
-} from '../TextInput/baseTextInputPropTypes';
+import {propTypes as fieldPropTypes, defaultProps as defaultFieldPropTypes} from '../TextInput/baseTextInputPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...fieldPropTypes,
@@ -19,14 +17,18 @@ const propTypes = {
      */
     defaultValue: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
 
-    /* Restricts for selectable max date range for the picker */
-    maximumDate: PropTypes.instanceOf(Date),
+    /** The earliest date allowed to select */
+    minDate: PropTypes.instanceOf(Date),
+
+    /** The latest date allowed to select */
+    maxDate: PropTypes.instanceOf(Date),
 };
 
 const defaultProps = {
     ...defaultFieldPropTypes,
     value: undefined,
-    maximumDate: undefined,
+    minDate: new Date(CONST.DATE.MIN_DATE),
+    maxDate: new Date(CONST.DATE.MAX_DATE),
 };
 
 export {propTypes, defaultProps};

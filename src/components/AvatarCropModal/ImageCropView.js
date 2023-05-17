@@ -8,6 +8,7 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import * as StyleUtils from '../../styles/StyleUtils';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
+import ControlSelection from '../../libs/ControlSelection';
 
 const propTypes = {
     /** Link to image for cropping   */
@@ -36,12 +37,16 @@ const propTypes = {
 
     /** React-native-reanimated lib handler which executes when the user is panning image */
     panGestureEventHandler: gestureHandlerPropTypes,
+
+    /** Image crop vector mask */
+    maskImage: PropTypes.func,
 };
 
 const defaultProps = {
     imageUri: '',
     containerSize: 0,
     panGestureEventHandler: () => {},
+    maskImage: Expensicons.ImageCropCircleMask,
 };
 
 const ImageCropView = (props) => {
@@ -54,21 +59,29 @@ const ImageCropView = (props) => {
         const aspectRatio = height > width ? height / width : width / height;
         const rotate = interpolate(props.rotation.value, [0, 360], [0, 360]);
         return {
-            transform: [
-                {translateX: props.translateX.value},
-                {translateY: props.translateY.value},
-                {scale: props.scale.value * aspectRatio},
-                {rotate: `${rotate}deg`},
-            ],
+            transform: [{translateX: props.translateX.value}, {translateY: props.translateY.value}, {scale: props.scale.value * aspectRatio}, {rotate: `${rotate}deg`}],
         };
     }, [props.originalImageHeight, props.originalImageWidth]);
 
+    // We're preventing text selection with ControlSelection.blockElement to prevent safari
+    // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
     return (
         <PanGestureHandler onGestureEvent={props.panGestureEventHandler}>
-            <Animated.View style={[containerStyle, styles.imageCropContainer]}>
-                <Animated.Image style={[imageStyle, styles.h100, styles.w100]} source={{uri: props.imageUri}} resizeMode="contain" />
+            <Animated.View
+                ref={ControlSelection.blockElement}
+                style={[containerStyle, styles.imageCropContainer]}
+            >
+                <Animated.Image
+                    style={[imageStyle, styles.h100, styles.w100]}
+                    source={{uri: props.imageUri}}
+                    resizeMode="contain"
+                />
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
-                    <Icon src={Expensicons.ImageCropMask} width={props.containerSize} height={props.containerSize} />
+                    <Icon
+                        src={props.maskImage}
+                        width={props.containerSize}
+                        height={props.containerSize}
+                    />
                 </View>
             </Animated.View>
         </PanGestureHandler>

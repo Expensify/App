@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import CONST from '../CONST';
+import avatarPropTypes from '../components/avatarPropTypes';
 
 export default PropTypes.shape({
-
     /** The specific type of chat */
     chatType: PropTypes.oneOf(['', ..._.values(CONST.REPORT.CHAT_TYPE)]),
 
@@ -11,7 +11,7 @@ export default PropTypes.shape({
     hasOutstandingIOU: PropTypes.bool,
 
     /** List of icons for report participants */
-    icons: PropTypes.arrayOf(PropTypes.string),
+    icons: PropTypes.arrayOf(avatarPropTypes),
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: PropTypes.bool,
@@ -32,16 +32,10 @@ export default PropTypes.shape({
     lastMessageText: PropTypes.string,
 
     /** The time of the last message on the report */
-    lastMessageTimestamp: PropTypes.number,
-
-    /** The sequence number of the last action read by the user */
-    lastReadSequenceNumber: PropTypes.number,
+    lastVisibleActionCreated: PropTypes.string,
 
     /** The last time the report was visited */
-    lastVisitedTimestamp: PropTypes.number,
-
-    /** The largest sequenceNumber on this report */
-    maxSequenceNumber: PropTypes.number,
+    lastReadTime: PropTypes.string,
 
     /** The current user's notification preference for this report */
     notificationPreference: PropTypes.oneOfType([

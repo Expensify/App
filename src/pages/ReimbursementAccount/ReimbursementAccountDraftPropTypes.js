@@ -20,7 +20,7 @@ export default PropTypes.shape({
     website: PropTypes.string,
     companyTaxID: PropTypes.string,
     incorporationType: PropTypes.string,
-    incorporationDate: PropTypes.string,
+    incorporationDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
     incorporationState: PropTypes.string,
     hasNoConnectionToCannabis: PropTypes.bool,
 
@@ -31,7 +31,7 @@ export default PropTypes.shape({
     requestorAddressCity: PropTypes.string,
     requestorAddressState: PropTypes.string,
     requestorAddressZipCode: PropTypes.string,
-    dob: PropTypes.string,
+    dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
     ssnLast4: PropTypes.string,
     isControllingOfficer: PropTypes.bool,
     isOnfidoSetupComplete: PropTypes.bool,
@@ -41,16 +41,5 @@ export default PropTypes.shape({
     hasOtherBeneficialOwners: PropTypes.bool,
     acceptTermsAndConditions: PropTypes.bool,
     certifyTrueInformation: PropTypes.bool,
-    beneficialOwners: PropTypes.arrayOf(
-        PropTypes.shape({
-            firstName: PropTypes.string,
-            lastName: PropTypes.string,
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zipCode: PropTypes.string,
-            dob: PropTypes.string,
-            ssnLast4: PropTypes.string,
-        }),
-    ),
+    beneficialOwners: PropTypes.arrayOf(PropTypes.string),
 });

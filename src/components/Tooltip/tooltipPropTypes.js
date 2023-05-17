@@ -10,6 +10,9 @@ const propTypes = {
     /** The text to display in the tooltip. */
     text: PropTypes.string,
 
+    /** Maximum number of lines to show in tooltip */
+    numberOfLines: PropTypes.number,
+
     /** Styles to be assigned to the Tooltip wrapper views */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -30,8 +33,14 @@ const propTypes = {
     /** Number of pixels to set max-width on tooltip  */
     maxWidth: PropTypes.number,
 
-    /** Maximum number of lines to show in tooltip */
-    numberOfLines: PropTypes.number,
+    /** Accessibility prop. Sets the tabindex to 0 if true. Default is true. */
+    focusable: PropTypes.bool,
+
+    /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
+    renderTooltipContent: PropTypes.func,
+
+    /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
+    renderTooltipContentKey: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -42,9 +51,9 @@ const defaultProps = {
     text: '',
     maxWidth: variables.sideBarWidth,
     numberOfLines: CONST.TOOLTIP_MAX_LINES,
+    renderTooltipContent: undefined,
+    renderTooltipContentKey: [],
+    focusable: true,
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

@@ -3,9 +3,14 @@ function getBrowser() {
 }
 
 function isMobile() {
-    return '';
+    return false;
 }
-export {
-    getBrowser,
-    isMobile,
-};
+
+function isMobileSafari() {
+    return false;
+}
+function isMobileChrome() {
+    return false;
+}
+
+export {getBrowser, isMobile, isMobileSafari, isMobileChrome};

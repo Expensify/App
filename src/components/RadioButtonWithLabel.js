@@ -5,7 +5,7 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import RadioButton from './RadioButton';
 import Text from './Text';
-import InlineErrorText from './InlineErrorText';
+import FormHelpMessage from './FormHelpMessage';
 
 const propTypes = {
     /** Whether the radioButton is checked */
@@ -57,27 +57,13 @@ const RadioButtonWithLabel = (props) => {
                 />
                 <TouchableOpacity
                     onPress={() => props.onPress()}
-                    style={[
-                        styles.ml3,
-                        styles.pr2,
-                        styles.w100,
-                        styles.flexRow,
-                        styles.flexWrap,
-                        styles.flexShrink1,
-                        styles.alignItemsCenter,
-                    ]}
+                    style={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
                 >
-                    {props.label && (
-                        <Text style={[styles.ml1]}>
-                            {props.label}
-                        </Text>
-                    )}
-                    {LabelComponent && (<LabelComponent />)}
+                    {Boolean(props.label) && <Text style={[styles.ml1]}>{props.label}</Text>}
+                    {Boolean(LabelComponent) && <LabelComponent />}
                 </TouchableOpacity>
             </View>
-            <InlineErrorText>
-                {props.errorText}
-            </InlineErrorText>
+            <FormHelpMessage message={props.errorText} />
         </>
     );
 };

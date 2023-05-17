@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -25,14 +26,14 @@ const propTypes = {
     /** Additional styles to add to checkbox button */
     style: stylePropTypes,
 
+    /** Additional styles to add to checkbox container */
+    containerStyle: stylePropTypes,
+
     /** Callback that is called when mousedown is triggered. */
     onMouseDown: PropTypes.func,
 
     /** A ref to forward to the Pressable */
-    forwardedRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-    ]),
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 };
 
 const defaultProps = {
@@ -40,6 +41,7 @@ const defaultProps = {
     hasError: false,
     disabled: false,
     style: [],
+    containerStyle: [],
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
@@ -81,6 +83,13 @@ class Checkbox extends React.Component {
             return;
         }
 
+        const wasChecked = this.props.isChecked;
+
+        // If checkbox is checked and focused, make sure it's unfocused when pressed.
+        if (this.state.isFocused && wasChecked) {
+            this.onBlur();
+        }
+
         this.props.onPress();
     }
 
@@ -93,6 +102,7 @@ class Checkbox extends React.Component {
                 onFocus={this.onFocus}
                 onBlur={this.onBlur}
                 ref={this.props.forwardedRef}
+                onPressOut={this.onBlur}
                 style={this.props.style}
                 onKeyDown={this.handleSpaceKey}
                 accessibilityRole="checkbox"
@@ -100,21 +110,29 @@ class Checkbox extends React.Component {
                     checked: this.props.isChecked,
                 }}
             >
-                {this.props.children
-                    ? this.props.children
-                    : (
-                        <View
-                            style={[
-                                styles.checkboxContainer,
-                                this.props.isChecked && styles.checkedContainer,
-                                this.props.hasError && styles.borderColorDanger,
-                                this.props.disabled && styles.cursorDisabled,
-                                this.state.isFocused && styles.borderColorFocus,
-                            ]}
-                        >
-                            <Icon src={Expensicons.Checkmark} fill="white" height={14} width={14} />
-                        </View>
-                    )}
+                {this.props.children ? (
+                    this.props.children
+                ) : (
+                    <View
+                        style={[
+                            styles.checkboxContainer,
+                            this.props.containerStyle,
+                            this.props.isChecked && styles.checkedContainer,
+                            this.props.hasError && styles.borderColorDanger,
+                            this.props.disabled && styles.cursorDisabled,
+                            (this.state.isFocused || this.props.isChecked) && styles.borderColorFocus,
+                        ]}
+                    >
+                        {this.props.isChecked && (
+                            <Icon
+                                src={Expensicons.Checkmark}
+                                fill={themeColors.textLight}
+                                height={14}
+                                width={14}
+                            />
+                        )}
+                    </View>
+                )}
             </Pressable>
         );
     }

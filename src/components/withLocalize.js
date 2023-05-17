@@ -1,14 +1,18 @@
 import React, {createContext, forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
 import DateUtils from '../libs/DateUtils';
-import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import * as NumberFormatUtils from '../libs/NumberFormatUtils';
 import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
+import compose from '../libs/compose';
+import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
+import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 
 const LocaleContext = createContext(null);
 
@@ -19,17 +23,15 @@ const withLocalizePropTypes = {
     /** Formats number formatted according to locale and options */
     numberFormat: PropTypes.func.isRequired,
 
-    /** Converts a timestamp into a localized string representation that's relative to current moment in time */
-    timestampToRelative: PropTypes.func.isRequired,
+    /** Converts a datetime into a localized string representation that's relative to current moment in time */
+    datetimeToRelative: PropTypes.func.isRequired,
 
-    /** Formats a timestamp to local date and time string */
-    timestampToDateTime: PropTypes.func.isRequired,
+    /** Formats a datetime to local date and time string */
+    datetimeToCalendarTime: PropTypes.func.isRequired,
 
-    /** Returns a locally converted phone number without the country code */
-    toLocalPhone: PropTypes.func.isRequired,
-
-    /** Returns an internationally converted phone number with the country code */
-    fromLocalPhone: PropTypes.func.isRequired,
+    /** Returns a locally converted phone number for numbers from the same region
+     * and an internationally converted phone number with the country code for numbers from other regions */
+    formatPhoneNumber: PropTypes.func.isRequired,
 
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: PropTypes.func.isRequired,
@@ -42,12 +44,22 @@ const localeProviderPropTypes = {
     /** The user's preferred locale e.g. 'en', 'es-ES' */
     preferredLocale: PropTypes.string,
 
-    /* Actual content wrapped by this component */
+    /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
+
+    /** The current user's personalDetails */
+    currentUserPersonalDetails: PropTypes.shape({
+        /** Timezone of the current user */
+        timezone: PropTypes.shape({
+            /** Value of the selected timezone */
+            selected: PropTypes.string,
+        }),
+    }),
 };
 
 const localeProviderDefaultProps = {
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
+    currentUserPersonalDetails: {},
 };
 
 class LocaleContextProvider extends React.Component {
@@ -59,10 +71,9 @@ class LocaleContextProvider extends React.Component {
         return {
             translate: this.translate.bind(this),
             numberFormat: this.numberFormat.bind(this),
-            timestampToRelative: this.timestampToRelative.bind(this),
-            timestampToDateTime: this.timestampToDateTime.bind(this),
-            fromLocalPhone: this.fromLocalPhone.bind(this),
-            toLocalPhone: this.toLocalPhone.bind(this),
+            datetimeToRelative: this.datetimeToRelative.bind(this),
+            datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
+            formatPhoneNumber: this.formatPhoneNumber.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
             toLocaleDigit: this.toLocaleDigit.bind(this),
             preferredLocale: this.props.preferredLocale,
@@ -88,40 +99,28 @@ class LocaleContextProvider extends React.Component {
     }
 
     /**
-     * @param {Number} timestamp
+     * @param {String} datetime
      * @returns {String}
      */
-    timestampToRelative(timestamp) {
-        return DateUtils.timestampToRelative(this.props.preferredLocale, timestamp);
+    datetimeToRelative(datetime) {
+        return DateUtils.datetimeToRelative(this.props.preferredLocale, datetime);
     }
 
     /**
-     * @param {Number} timestamp
+     * @param {String} datetime - ISO-formatted datetime string
      * @param {Boolean} [includeTimezone]
      * @returns {String}
      */
-    timestampToDateTime(timestamp, includeTimezone) {
-        return DateUtils.timestampToDateTime(
-            this.props.preferredLocale,
-            timestamp,
-            includeTimezone,
-        );
+    datetimeToCalendarTime(datetime, includeTimezone) {
+        return DateUtils.datetimeToCalendarTime(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'));
     }
 
     /**
-     * @param {Number} number
+     * @param {String} phoneNumber
      * @returns {String}
      */
-    toLocalPhone(number) {
-        return LocalePhoneNumber.toLocalPhone(this.props.preferredLocale, number);
-    }
-
-    /**
-     * @param {Number} number
-     * @returns {String}
-     */
-    fromLocalPhone(number) {
-        return LocalePhoneNumber.fromLocalPhone(this.props.preferredLocale, number);
+    formatPhoneNumber(phoneNumber) {
+        return LocalePhoneNumber.formatPhoneNumber(phoneNumber);
     }
 
     /**
@@ -141,30 +140,36 @@ class LocaleContextProvider extends React.Component {
     }
 
     render() {
-        return (
-            <LocaleContext.Provider value={this.getContextValue()}>
-                {this.props.children}
-            </LocaleContext.Provider>
-        );
+        return <LocaleContext.Provider value={this.getContextValue()}>{this.props.children}</LocaleContext.Provider>;
     }
 }
 
 LocaleContextProvider.propTypes = localeProviderPropTypes;
 LocaleContextProvider.defaultProps = localeProviderDefaultProps;
 
-const Provider = withOnyx({
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(LocaleContextProvider);
+const Provider = compose(
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+    }),
+)(LocaleContextProvider);
 
 Provider.displayName = 'withOnyx(LocaleContextProvider)';
 
 export default function withLocalize(WrappedComponent) {
     const WithLocalize = forwardRef((props, ref) => (
         <LocaleContext.Consumer>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            {translateUtils => <WrappedComponent {...translateUtils} {...props} ref={ref} />}
+            {(translateUtils) => (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...translateUtils}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                />
+            )}
         </LocaleContext.Consumer>
     ));
 
@@ -173,7 +178,4 @@ export default function withLocalize(WrappedComponent) {
     return WithLocalize;
 }
 
-export {
-    withLocalizePropTypes,
-    Provider as LocaleContextProvider,
-};
+export {withLocalizePropTypes, Provider as LocaleContextProvider};

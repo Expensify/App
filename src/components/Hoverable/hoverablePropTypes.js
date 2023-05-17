@@ -5,10 +5,7 @@ const propTypes = {
     absolute: PropTypes.bool,
 
     /** Children to wrap with Hoverable. */
-    children: PropTypes.oneOfType([
-        PropTypes.node,
-        PropTypes.func,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 
     /** Styles to be assigned to the Hoverable Container */
     // eslint-disable-next-line react/forbid-prop-types
@@ -19,9 +16,6 @@ const propTypes = {
 
     /** Function that executes when the mouse leaves the children. */
     onHoverOut: PropTypes.func,
-
-    // If the mouse clicks outside, should we dismiss hover?
-    resetsOnClickOutside: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -29,10 +23,6 @@ const defaultProps = {
     containerStyles: [],
     onHoverIn: () => {},
     onHoverOut: () => {},
-    resetsOnClickOutside: false,
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

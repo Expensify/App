@@ -1,6 +1,8 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Linking} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -11,7 +13,10 @@ import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as Illustrations from '../components/Icon/Illustrations';
 import * as Report from '../libs/actions/Report';
-import ROUTES from '../ROUTES';
+import * as Link from '../libs/actions/Link';
+import CONST from '../CONST';
+import compose from '../libs/compose';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** Route object from navigation */
@@ -22,45 +27,87 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** URL to the assigned guide's appointment booking calendar */
+        guideCalendarLink: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
-const GetAssistancePage = props => (
-    <ScreenWrapper>
-        <HeaderWithCloseButton
-            title={props.translate('getAssistancePage.title')}
-            onCloseButtonPress={() => Navigation.dismissModal(true)}
-            shouldShowBackButton
-            onBackButtonPress={() => Navigation.goBack()}
-        />
-        <ScrollView>
-            <Section
-                title={props.translate('getAssistancePage.subtitle')}
-                icon={Illustrations.ConciergeExclamation}
-                menuItems={[
-                    {
-                        title: props.translate('getAssistancePage.chatWithConcierge'),
-                        onPress: () => Report.navigateToConciergeChat(),
-                        icon: Expensicons.ChatBubble,
-                        shouldShowRightIcon: true,
-                    },
-                    {
-                        title: props.translate('getAssistancePage.requestSetupCall'),
-                        onPress: () => Navigation.navigate(ROUTES.getRequestCallRoute(props.route.params.taskID)),
-                        icon: Expensicons.Phone,
-                        shouldShowRightIcon: true,
-                    },
-                ]}
-            >
-                <View style={styles.mv4}>
-                    <Text>{props.translate('getAssistancePage.description')}</Text>
-                </View>
-            </Section>
-        </ScrollView>
-    </ScreenWrapper>
-);
+const defaultProps = {
+    account: {
+        guideCalendarLink: null,
+    },
+};
+
+const GetAssistancePage = (props) => {
+    const menuItems = [
+        {
+            title: props.translate('getAssistancePage.chatWithConcierge'),
+            onPress: () => Report.navigateToConciergeChat(),
+            icon: Expensicons.ChatBubble,
+            shouldShowRightIcon: true,
+            wrapperStyle: [styles.cardMenuItem],
+        },
+        {
+            title: props.translate('getAssistancePage.exploreHelpDocs'),
+            onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
+            icon: Expensicons.QuestionMark,
+            shouldShowRightIcon: true,
+            iconRight: Expensicons.NewWindow,
+            wrapperStyle: [styles.cardMenuItem],
+            link: CONST.NEWHELP_URL,
+        },
+    ];
+
+    // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list
+    const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
+    if (guideCalendarLink) {
+        menuItems.splice(1, 0, {
+            title: props.translate('getAssistancePage.scheduleSetupCall'),
+            onPress: () => Linking.openURL(guideCalendarLink),
+            icon: Expensicons.Phone,
+            shouldShowRightIcon: true,
+            iconRight: Expensicons.NewWindow,
+            wrapperStyle: [styles.cardMenuItem],
+        });
+    }
+
+    return (
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={props.translate('getAssistancePage.title')}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <ScrollView>
+                <Section
+                    title={props.translate('getAssistancePage.subtitle')}
+                    icon={Illustrations.ConciergeNew}
+                    menuItems={menuItems}
+                >
+                    <View style={styles.mv3}>
+                        <Text>{props.translate('getAssistancePage.description')}</Text>
+                    </View>
+                </Section>
+            </ScrollView>
+        </ScreenWrapper>
+    );
+};
 
 GetAssistancePage.propTypes = propTypes;
+GetAssistancePage.defaultProps = defaultProps;
 GetAssistancePage.displayName = 'GetAssistancePage';
 
-export default withLocalize(GetAssistancePage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        account: {
+            key: ONYXKEYS.ACCOUNT,
+            selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
+        },
+    }),
+)(GetAssistancePage);

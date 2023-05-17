@@ -12,7 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
 
@@ -20,12 +19,16 @@ const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
     shouldDelayFocus: PropTypes.bool,
 
+    /** padding bottom style of safe area */
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     shouldDelayFocus: false,
+    safeAreaPaddingBottomStyle: {},
     ...optionsSelectorDefaultProps,
 };
 
@@ -39,9 +42,12 @@ class BaseOptionsSelector extends Component {
         this.relatedTarget = null;
 
         const allOptions = this.flattenSections();
+        const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
+
         this.state = {
             allOptions,
-            focusedIndex: this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0,
+            focusedIndex,
+            shouldDisableRowSelection: false,
         };
     }
 
@@ -54,8 +60,16 @@ class BaseOptionsSelector extends Component {
                 if (!focusedOption) {
                     return;
                 }
-
-                this.selectRow(focusedOption);
+                if (this.props.canSelectMultipleOptions) {
+                    this.selectRow(focusedOption);
+                } else if (!this.state.shouldDisableRowSelection) {
+                    this.setState({shouldDisableRowSelection: true});
+                    let result = this.selectRow(focusedOption);
+                    if (!(result instanceof Promise)) {
+                        result = Promise.resolve();
+                    }
+                    setTimeout(() => result.finally(() => this.setState({shouldDisableRowSelection: false})), 500);
+                }
             },
             enterConfig.descriptionKey,
             enterConfig.modifiers,
@@ -84,14 +98,18 @@ class BaseOptionsSelector extends Component {
             true,
         );
 
+        this.scrollToIndex(this.props.selectedOptions.length ? 0 : this.state.focusedIndex, false);
+
         if (!this.props.autoFocus) {
             return;
         }
 
-        if (this.props.shouldDelayFocus) {
-            this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
-        } else {
-            this.textInput.focus();
+        if (this.props.shouldShowTextInput) {
+            if (this.props.shouldDelayFocus) {
+                this.focusTimeout = setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+            } else {
+                this.textInput.focus();
+            }
         }
     }
 
@@ -103,22 +121,25 @@ class BaseOptionsSelector extends Component {
         const newOptions = this.flattenSections();
         const newFocusedIndex = this.props.selectedOptions.length;
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({
-            allOptions: newOptions,
-            focusedIndex: newFocusedIndex,
-        }, () => {
-            // If we just toggled an option on a multi-selection page, scroll to top
-            if (this.props.selectedOptions.length !== prevProps.selectedOptions.length) {
-                this.scrollToIndex(0);
-                return;
-            }
+        this.setState(
+            {
+                allOptions: newOptions,
+                focusedIndex: newFocusedIndex,
+            },
+            () => {
+                // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
+                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || this.props.value === '') {
+                    this.scrollToIndex(0);
+                    return;
+                }
 
-            // Otherwise, scroll to the focused index (as long as it's in range)
-            if (this.state.allOptions.length <= this.state.focusedIndex) {
-                return;
-            }
-            this.scrollToIndex(this.state.focusedIndex);
-        });
+                // Otherwise, scroll to the focused index (as long as it's in range)
+                if (this.state.allOptions.length <= this.state.focusedIndex) {
+                    return;
+                }
+                this.scrollToIndex(this.state.focusedIndex);
+            },
+        );
     }
 
     componentWillUnmount() {
@@ -133,6 +154,28 @@ class BaseOptionsSelector extends Component {
         if (this.unsubscribeCTRLEnter) {
             this.unsubscribeCTRLEnter();
         }
+    }
+
+    /**
+     * @param {Array<Object>} allOptions
+     * @returns {Number}
+     */
+    getInitiallyFocusedIndex(allOptions) {
+        if (this.props.selectedOptions.length > 0) {
+            return this.props.selectedOptions.length;
+        }
+        const defaultIndex = this.props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
+        if (_.isUndefined(this.props.initiallyFocusedOptionKey)) {
+            return defaultIndex;
+        }
+
+        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === this.props.initiallyFocusedOptionKey);
+
+        if (indexOfInitiallyFocusedOption >= 0) {
+            return indexOfInitiallyFocusedOption;
+        }
+
+        return defaultIndex;
     }
 
     /**
@@ -175,8 +218,9 @@ class BaseOptionsSelector extends Component {
      * Scrolls to the focused index within the SectionList
      *
      * @param {Number} index
+     * @param {Boolean} animated
      */
-    scrollToIndex(index) {
+    scrollToIndex(index, animated = true) {
         const option = this.state.allOptions[index];
         if (!this.list || !option) {
             return;
@@ -195,7 +239,7 @@ class BaseOptionsSelector extends Component {
             }
         }
 
-        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex});
+        this.list.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
     }
 
     /**
@@ -203,42 +247,46 @@ class BaseOptionsSelector extends Component {
      *
      * @param {Object} option
      * @param {Object} ref
+     * @returns {Promise}
      */
     selectRow(option, ref) {
-        if (this.props.shouldFocusOnSelectRow) {
-            // Input is permanently focused on native platforms, so we always highlight the text inside of it
-            setSelection(this.textInput, 0, this.props.value.length);
-            if (this.relatedTarget && ref === this.relatedTarget) {
-                this.textInput.focus();
+        return new Promise((resolve) => {
+            if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
+                if (this.relatedTarget && ref === this.relatedTarget) {
+                    this.textInput.focus();
+                    this.relatedTarget = null;
+                }
+                if (this.textInput.isFocused()) {
+                    setSelection(this.textInput, 0, this.props.value.length);
+                }
             }
-            this.relatedTarget = null;
-        }
-        this.props.onSelectRow(option);
+            const selectedOption = this.props.onSelectRow(option);
+            resolve(selectedOption);
 
-        if (!this.props.canSelectMultipleOptions) {
-            return;
-        }
+            if (!this.props.canSelectMultipleOptions) {
+                return;
+            }
 
-        // Focus the first unselected item from the list (i.e: the best result according to the current search term)
-        this.setState({
-            focusedIndex: this.props.selectedOptions.length,
+            // Focus the first unselected item from the list (i.e: the best result according to the current search term)
+            this.setState({
+                focusedIndex: this.props.selectedOptions.length,
+            });
         });
     }
 
     render() {
-        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent)
-            && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
-        const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText)
-            ? this.props.translate('common.confirm')
-            : this.props.confirmButtonText;
+        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
+        const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const textInput = (
             <TextInput
-                ref={el => this.textInput = el}
+                ref={(el) => (this.textInput = el)}
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 onChangeText={this.props.onChangeText}
-                placeholder={this.props.placeholderText || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                placeholder={this.props.placeholderText}
+                maxLength={this.props.maxLength}
+                keyboardType={this.props.keyboardType}
                 onBlur={(e) => {
                     if (!this.props.shouldFocusOnSelectRow) {
                         return;
@@ -249,9 +297,9 @@ class BaseOptionsSelector extends Component {
                 blurOnSubmit={Boolean(this.state.allOptions.length)}
             />
         );
-        const optionsList = this.props.shouldShowOptions ? (
+        const optionsList = (
             <OptionsList
-                ref={el => this.list = el}
+                ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.selectRow}
                 sections={this.props.sections}
@@ -260,12 +308,23 @@ class BaseOptionsSelector extends Component {
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
                 hideSectionHeaders={this.props.hideSectionHeaders}
                 headerMessage={this.props.headerMessage}
-                hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                boldStyle={this.props.boldStyle}
                 showTitleTooltip={this.props.showTitleTooltip}
                 isDisabled={this.props.isDisabled}
+                shouldHaveOptionSeparator={this.props.shouldHaveOptionSeparator}
+                onLayout={() => {
+                    if (this.props.selectedOptions.length === 0) {
+                        this.scrollToIndex(this.state.focusedIndex, false);
+                    }
+
+                    if (this.props.onLayout) {
+                        this.props.onLayout();
+                    }
+                }}
+                contentContainerStyles={shouldShowFooter ? undefined : [this.props.safeAreaPaddingBottomStyle]}
+                isLoading={!this.props.shouldShowOptions}
             />
-        ) : <FullScreenLoadingIndicator />;
+        );
         return (
             <ArrowKeyFocusManager
                 disabledIndexes={this.disabledOptionsIndexes}
@@ -274,26 +333,23 @@ class BaseOptionsSelector extends Component {
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
             >
                 <View style={[styles.flex1]}>
-                    {
-                        this.props.shouldTextInputAppearBelowOptions
-                            ? (
-                                <>
-                                    <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>
-                                        {optionsList}
-                                    </View>
-                                    <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0]}>
-                                        {textInput}
-                                    </View>
-                                </>
-                            ) : (
-                                <>
-                                    <View style={[styles.ph5, styles.pv3]}>
-                                        {textInput}
-                                    </View>
-                                    {optionsList}
-                                </>
-                            )
-                    }
+                    {this.props.shouldTextInputAppearBelowOptions ? (
+                        <>
+                            <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
+                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
+                                {this.props.children}
+                                {this.props.shouldShowTextInput && textInput}
+                            </View>
+                        </>
+                    ) : (
+                        <>
+                            <View style={this.props.shouldUseStyleForChildren ? [styles.ph5, styles.pb3] : []}>
+                                {this.props.children}
+                                {this.props.shouldShowTextInput && textInput}
+                            </View>
+                            {optionsList}
+                        </>
+                    )}
                 </View>
                 {shouldShowFooter && (
                     <FixedFooter>

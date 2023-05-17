@@ -1,12 +1,9 @@
 import _ from 'underscore';
 import React from 'react';
-import {
-    ActivityIndicator,
-    View,
-} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
 import * as BankAccounts from '../libs/actions/BankAccounts';
@@ -16,15 +13,18 @@ import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Picker from './Picker';
-import plaidDataPropTypes from '../pages/ReimbursementAccount/plaidDataPropTypes';
+import {plaidDataPropTypes} from '../pages/ReimbursementAccount/plaidDataPropTypes';
 import Text from './Text';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
+import {withNetwork} from './OnyxProvider';
+import CONST from '../CONST';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Contains plaid data */
-    plaidData: plaidDataPropTypes,
+    plaidData: plaidDataPropTypes.isRequired,
 
     /** Selected account ID from the Picker associated with the end of the Plaid flow */
     selectedPlaidAccountID: PropTypes.string,
@@ -57,13 +57,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    plaidData: {
-        bankName: '',
-        plaidAccessToken: '',
-        bankAccounts: [],
-        isLoading: false,
-        error: '',
-    },
     selectedPlaidAccountID: '',
     plaidLinkToken: '',
     onExitPlaid: () => {},
@@ -80,15 +73,31 @@ class AddPlaidBankAccount extends React.Component {
         super(props);
 
         this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
+        this.subscribedKeyboardShortcuts = [];
     }
 
     componentDidMount() {
+        this.subscribeToNavigationShortcuts();
+
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if ((this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) || !_.isEmpty(this.props.plaidData)) {
+        if (this.isAuthenticatedWithPlaid()) {
             return;
         }
 
         BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.network.isOffline || this.props.network.isOffline || this.isAuthenticatedWithPlaid()) {
+            return;
+        }
+
+        // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
+        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+    }
+
+    componentWillUnmount() {
+        this.unsubscribeToNavigationShortcuts();
     }
 
     /**
@@ -104,42 +113,78 @@ class AddPlaidBankAccount extends React.Component {
         }
     }
 
+    /**
+     * @returns {Boolean}
+     */
+    isAuthenticatedWithPlaid() {
+        return (
+            (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) ||
+            !_.isEmpty(lodashGet(this.props.plaidData, 'bankAccounts')) ||
+            !_.isEmpty(lodashGet(this.props.plaidData, 'errors'))
+        );
+    }
+
+    /**
+     * Blocks the keyboard shortcuts that can navigate
+     */
+    subscribeToNavigationShortcuts() {
+        // find and block the shortcuts
+        const shortcutsToBlock = _.filter(CONST.KEYBOARD_SHORTCUTS, (x) => x.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
+        this.subscribedKeyboardShortcuts = _.map(shortcutsToBlock, (shortcut) =>
+            KeyboardShortcut.subscribe(
+                shortcut.shortcutKey,
+                () => {}, // do nothing
+                shortcut.descriptionKey,
+                shortcut.modifiers,
+                false,
+                () => lodashGet(this.props.plaidData, 'bankAccounts', []).length > 0, // start bubbling when there are bank accounts
+            ),
+        );
+    }
+
+    /**
+     * Unblocks the keyboard shortcuts that can navigate
+     */
+    unsubscribeToNavigationShortcuts() {
+        _.each(this.subscribedKeyboardShortcuts, (unsubscribe) => unsubscribe());
+        this.subscribedKeyboardShortcuts = [];
+    }
+
     render() {
-        const plaidBankAccounts = lodashGet(this.props.plaidData, 'bankAccounts', []);
+        const plaidBankAccounts = lodashGet(this.props.plaidData, 'bankAccounts') || [];
         const token = this.getPlaidLinkToken();
-        const options = _.map(plaidBankAccounts, account => ({
+        const options = _.map(plaidBankAccounts, (account) => ({
             value: account.plaidAccountID,
             label: `${account.addressName} ${account.mask}`,
         }));
         const {icon, iconSize} = getBankIcon();
+        const plaidErrors = lodashGet(this.props.plaidData, 'errors');
+        const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
+        const bankName = lodashGet(this.props.plaidData, 'bankName');
 
         // Plaid Link view
         if (!plaidBankAccounts.length) {
             return (
                 <FullPageOfflineBlockingView>
-                    {(!token || this.props.plaidData.isLoading)
-                    && (
+                    {lodashGet(this.props.plaidData, 'isLoading') && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <ActivityIndicator color={themeColors.spinner} size="large" />
+                            <ActivityIndicator
+                                color={themeColors.spinner}
+                                size="large"
+                            />
                         </View>
                     )}
-                    {Boolean(this.props.plaidData.error) && (
-                        <Text style={[styles.formError, styles.mh5]}>
-                            {this.props.plaidData.error}
-                        </Text>
-                    )}
-                    {Boolean(token) && (
+                    {Boolean(plaidDataErrorMessage) && <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>}
+                    {Boolean(token) && !bankName && (
                         <PlaidLink
                             token={token}
                             onSuccess={({publicToken, metadata}) => {
                                 Log.info('[PlaidLink] Success!');
                                 BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, this.props.allowDebit);
-                                BankAccounts.updatePlaidData({institution: metadata.institution});
                             }}
                             onError={(error) => {
                                 Log.hmmm('[PlaidLink] Error: ', error.message);
                             }}
-
                             // User prematurely exited the Plaid flow
                             // eslint-disable-next-line react/jsx-props-no-multi-spaces
                             onExit={this.props.onExitPlaid}
@@ -153,16 +198,14 @@ class AddPlaidBankAccount extends React.Component {
         // Plaid bank accounts view
         return (
             <View>
-                {!_.isEmpty(this.props.text) && (
-                    <Text style={[styles.mb5]}>{this.props.text}</Text>
-                )}
+                {!_.isEmpty(this.props.text) && <Text style={[styles.mb5]}>{this.props.text}</Text>}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Icon
                         src={icon}
                         height={iconSize}
                         width={iconSize}
                     />
-                    <Text style={[styles.ml3, styles.textStrong]}>{this.props.plaidData.bankName}</Text>
+                    <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
                 </View>
                 <View style={[styles.mb5]}>
                     <Picker
@@ -186,10 +229,8 @@ AddPlaidBankAccount.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
-        },
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
             initWithStoredValues: false,

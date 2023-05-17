@@ -7,31 +7,39 @@ const propTypes = {
     onSelectRow: PropTypes.func,
 
     /** Sections for the section list */
-    sections: PropTypes.arrayOf(PropTypes.shape({
-        /** Title of the section */
-        title: PropTypes.string,
+    sections: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** Title of the section */
+            title: PropTypes.string,
 
-        /** The initial index of this section given the total number of options in each section's data array */
-        indexOffset: PropTypes.number,
+            /** The initial index of this section given the total number of options in each section's data array */
+            indexOffset: PropTypes.number,
 
-        /** Array of options */
-        data: PropTypes.arrayOf(optionPropTypes),
+            /** Array of options */
+            data: PropTypes.arrayOf(optionPropTypes),
 
-        /** Whether this section should show or not */
-        shouldShow: PropTypes.bool,
+            /** Whether this section should show or not */
+            shouldShow: PropTypes.bool,
 
-        /** Whether this section items disabled for selection */
-        isDisabled: PropTypes.bool,
-    })).isRequired,
+            /** Whether this section items disabled for selection */
+            isDisabled: PropTypes.bool,
+        }),
+    ).isRequired,
 
     /** Value in the search input field */
     value: PropTypes.string.isRequired,
 
     /** Callback fired when text changes */
-    onChangeText: PropTypes.func.isRequired,
+    onChangeText: PropTypes.func,
+
+    /** Limits the maximum number of characters that can be entered in input field */
+    maxLength: PropTypes.number,
 
     /** Label to display for the text input */
     textInputLabel: PropTypes.string,
+
+    /** Optional keyboard type for the input */
+    keyboardType: PropTypes.string,
 
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
@@ -54,11 +62,8 @@ const propTypes = {
     /** Whether to disable interactivity of option rows */
     isDisabled: PropTypes.bool,
 
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
-    /** Force the text style to be the unread style on all rows */
-    forceTextUnreadStyle: PropTypes.bool,
+    /** Display the text of the option in bold font style */
+    boldStyle: PropTypes.bool,
 
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
@@ -81,6 +86,9 @@ const propTypes = {
     /** If true, the text input will be below the options in the selector, not above. */
     shouldTextInputAppearBelowOptions: PropTypes.bool,
 
+    /** If false, the text input will not be shown at all. Defaults to true */
+    shouldShowTextInput: PropTypes.bool,
+
     /** Custom content to display in the footer instead of the default button. */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
@@ -89,18 +97,27 @@ const propTypes = {
 
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
+
+    /** Whether to show a line separating options in list */
+    shouldHaveOptionSeparator: PropTypes.bool,
+
+    /** Key of the option that we should focus on when first opening the options list */
+    initiallyFocusedOptionKey: PropTypes.string,
+
+    /** Whether to use default padding and flex styles for children */
+    shouldUseStyleForChildren: PropTypes.bool,
 };
 
 const defaultProps = {
     onSelectRow: () => {},
     textInputLabel: '',
     placeholderText: '',
+    keyboardType: 'default',
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
     hideSectionHeaders: false,
-    hideAdditionalOptionStates: false,
-    forceTextUnreadStyle: false,
+    boldStyle: false,
     showTitleTooltip: false,
     shouldFocusOnSelectRow: false,
     autoFocus: true,
@@ -113,6 +130,12 @@ const defaultProps = {
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,
+    shouldHaveOptionSeparator: false,
+    initiallyFocusedOptionKey: undefined,
+    maxLength: undefined,
+    shouldShowTextInput: true,
+    onChangeText: () => {},
+    shouldUseStyleForChildren: true,
 };
 
 export {propTypes, defaultProps};

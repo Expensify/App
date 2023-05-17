@@ -1,3 +1,3 @@
-import canUseTouchScreen from '../canUseTouchscreen';
+import * as DeviceCapabilities from '../DeviceCapabilities';
 
-export default () => !canUseTouchScreen();
+export default () => !DeviceCapabilities.canUseTouchScreen();

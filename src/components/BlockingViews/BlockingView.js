@@ -6,6 +6,8 @@ import variables from '../../styles/variables';
 import Icon from '../Icon';
 import Text from '../Text';
 import themeColors from '../../styles/themes/default';
+import TextLink from '../TextLink';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -19,24 +21,46 @@ const propTypes = {
 
     /** Subtitle message below the title */
     subtitle: PropTypes.string.isRequired,
+
+    /** Link message below the subtitle */
+    link: PropTypes.string,
+
+    /** Whether we should show a go back home link */
+    shouldShowBackHomeLink: PropTypes.bool,
+
+    /** The custom icon width */
+    iconWidth: PropTypes.number,
+
+    /** The custom icon height */
+    iconHeight: PropTypes.number,
 };
 
 const defaultProps = {
     iconColor: themeColors.offline,
+    shouldShowBackHomeLink: false,
+    link: 'notFound.goBackHome',
+    iconWidth: variables.iconSizeSuperLarge,
+    iconHeight: variables.iconSizeSuperLarge,
 };
 
-const BlockingView = props => (
-    <View
-        style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}
-    >
+const BlockingView = (props) => (
+    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
         <Icon
             src={props.icon}
             fill={props.iconColor}
-            width={variables.iconSizeSuperLarge}
-            height={variables.iconSizeSuperLarge}
+            width={props.iconWidth}
+            height={props.iconHeight}
         />
-        <Text style={[styles.headerText, styles.textLarge, styles.mt5]}>{props.title}</Text>
-        <Text style={[styles.w70, styles.textAlignCenter]}>{props.subtitle}</Text>
+        <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
+        <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
+        {props.shouldShowBackHomeLink ? (
+            <TextLink
+                onPress={() => Navigation.dismissModal(true)}
+                style={[styles.link, styles.mt2]}
+            >
+                {props.link}
+            </TextLink>
+        ) : null}
     </View>
 );
 

@@ -4,6 +4,8 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import platformSetup from './platformSetup';
 import * as Metrics from '../libs/Metrics';
+import * as Device from '../libs/actions/Device';
+import intlPolyfill from '../libs/IntlPolyfill';
 
 export default function () {
     /*
@@ -21,26 +23,41 @@ export default function () {
      */
     Onyx.init({
         keys: ONYXKEYS,
+
+        // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
+        maxCachedKeysCount: 10000,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         captureMetrics: Metrics.canCaptureOnyxMetrics(),
         initialKeyStates: {
-
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.NETWORK]: {isOffline: false},
             [ONYXKEYS.IOU]: {
-                loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
+                loading: false,
+                error: false,
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
         },
     });
 
+    Device.setDeviceID();
+
     // Force app layout to work left to right because our design does not currently support devices using this mode
     I18nManager.allowRTL(false);
     I18nManager.forceRTL(false);
 
+    // Polyfill the Intl API if locale data is not as expected
+    intlPolyfill();
+
     // Perform any other platform-specific setup
     platformSetup();
+
+    // Workaround to a reanimated issue -> https://github.com/software-mansion/react-native-reanimated/issues/3355
+    // We can remove it as soon as we are on > reanimated 3.0.0+
+    if (process.browser) {
+        // eslint-disable-next-line no-underscore-dangle
+        window._frameTimestamp = null;
+    }
 }

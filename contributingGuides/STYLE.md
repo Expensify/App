@@ -123,10 +123,10 @@ There are a few things that we have customized for our tastes which will take pr
 <SomeComponent shouldShowIcon />
 
 // Bad
-const valid = this.props.something && this.props.somethingElse;
+const valid = props.something && props.somethingElse;
 
 // Good
-const isValid = this.props.something && this.props.somethingElse;
+const isValid = props.something && props.somethingElse;
 ```
 
 ## Functions
@@ -297,11 +297,9 @@ Don't destructure props or state. It makes the source of a given variable unclea
 
 ```javascript
 // Bad
-render() {
-	const {userData} = this.props;
-	const {firstName, lastName} = this.state;
-	...
-}
+const {userData} = props;
+const {firstName, lastName} = state;
+...
 
 // Bad
 const UserInfo = ({name, email}) => (
@@ -413,63 +411,7 @@ const propTypes = {
 };
 ```
 
-* Avoid public methods on components and calling them via refs
-
-```javascript
-// Bad
-class MyComponent extends React.Component {
-
-    /**
-     * Refresh the data in our component by calling `MyComponent.refreshData()`
-     *
-     * @public
-     * @params {Object[]} newData
-     */
-    refreshData(newData) {
-        this.setState({data: newData});
-    }
-}
-
-class SomeOtherComponent extends Component {
-    setDataInMyComponent(newData) {
-        this.myComponent.refreshData(newData);
-    }
-
-    render() {
-        return (
-            <MyComponent ref={el => this.myComponent = el} />
-        );
-    }
-}
-```
-
-```javascript
-// Good
-class MyComponent extends Component {
-    ...
-}
-
-class SomeOtherComponent extends Component {
-    constructor(props) {
-        this.state = {
-            data: {},
-        };
-    }
-
-    ...
-
-    render() {
-        return (
-            <MyComponent data={this.state.data} />
-        );
-    }
-}
-```
-
-**Note:** One exception to this rule would be lower level React Native UI components like inputs that maybe need a `focus()` method to be called via a `ref`.
-
 * Do not use underscores when naming private methods.
-* Do not add method documentation for the built-in [lifecycle methods](https://facebook.github.io/react/docs/component-specs.html) of a component.
 * Add descriptions to all `propTypes` using a block comment above the definition. No need to document the types (that's what `propTypes` is doing already), but add some context for each property so that other developers understand the intended use.
 
 ```javascript
@@ -540,96 +482,48 @@ const propTypes = {
 }
 ```
 
-## Binding methods
-
-For class components, methods should be bound in the `constructor()` if passed directly as a prop or needing to be accessed via the component instance from outside of the component's execution context. Binding all methods in the constructor is unnecessary. Learn and understand how `this` works [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this).
-
-```javascript
-// Bad
-class SomeComponent {
-    constructor(props) {
-        super(props);
-
-        this.myMethod = this.myMethod.bind(this);
-    }
-
-    myMethod() {...}
-
-    render() {
-        return (
-            // No need to bind this since arrow function is used
-            <Button onPress={() => this.myMethod()} />
-        );
-    }
-}
-
-// Good
-class SomeComponent {
-    constructor(props) {
-        super(props);
-
-        this.myMethod = this.myMethod.bind(this);
-    }
-
-    myMethod() {...}
-
-    render() {
-        return (
-            // Passed directly to Button so this should be bound to the component
-            <Button onPress={this.myMethod} />
-        );
-    }
-}
-```
-
 ## Inline Ternaries
 * Use inline ternary statements when rendering optional pieces of templates. Notice the white space and formatting of the ternary.
 
 ```javascript
 // Bad
 {
-    render() {
-        const optionalTitle = this.props.title ? <div className="title">{this.props.title}</div> : null;
-        return (
-            <div>
-                {optionalTitle}
-                <div className="body">This is the body</div>
-            </div>
-        );
-    }
+    const optionalTitle = props.title ? <div className="title">{props.title}</div> : null;
+    return (
+        <div>
+            {optionalTitle}
+            <div className="body">This is the body</div>
+        </div>
+    );
 }
 ```
 
 ```javascript
 // Good
 {
-    render() {
-        return (
-            <div>
-                {this.props.title
-                    ? <div className="title">{this.props.title}</div>
-                    : null}
-                <div className="body">This is the body</div>
-            </div>
-        );
-    }
+    return (
+        <div>
+            {props.title
+                ? <div className="title">{props.title}</div>
+                : null}
+            <div className="body">This is the body</div>
+        </div>
+    );
 }
 ```
 
 ```javascript
 // Good
 {
-    render() {
-        return (
-            <div>
-                {this.props.title
-                    ? <div className="title">{this.props.title}</div>
-                    : <div className="title">Default Title</div>
-                }
-                <div className="body">This is the body</body>
-            </div>
-        );
-    }
+    return (
+        <div>
+            {props.title
+                ? <div className="title">{props.title}</div>
+                : <div className="title">Default Title</div>
+            }
+            <div className="body">This is the body</body>
+        </div>
+    );
 }
 ```
 
@@ -640,36 +534,32 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 ```javascript
 // Bad! This will cause a breaking an error on native platforms
 {
-    render() {
-        return (
-            <View>
-                {this.props.title
-                    ? <View style={styles.title}>{this.props.title}</View>
-                    : null}
-                <View style={styles.body}>This is the body</View>
-            </View>
-        );
-    }
+    return (
+        <View>
+            {props.title
+                ? <View style={styles.title}>{props.title}</View>
+                : null}
+            <View style={styles.body}>This is the body</View>
+        </View>
+    );
 }
 
 // Good
 {
-    render() {
-        return (
-            <View>
-                {!_.isEmpty(this.props.title)
-                    ? <View style={styles.title}>{this.props.title}</View>
-                    : null}
-                <View style={styles.body}>This is the body</View>
-            </View>
-        );
-    }
+    return (
+        <View>
+            {!_.isEmpty(props.title)
+                ? <View style={styles.title}>{props.title}</View>
+                : null}
+            <View style={styles.body}>This is the body</View>
+        </View>
+    );
 }
 ```
 
-## Stateless component style
+## Function component style
 
-When writing a stateless component you must ALWAYS add a `displayName` property and give it the same value as the name of the component (this is so it appears properly in the React dev tools)
+When writing a function component you must ALWAYS add a `displayName` property and give it the same value as the name of the component (this is so it appears properly in the React dev tools)
 
 ```javascript
 
@@ -684,125 +574,9 @@ When writing a stateless component you must ALWAYS add a `displayName` property 
 
 ## Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?
 
-*_1. Stateless components: Used when you don't need to maintain state or use lifecycle methods._*
+Class components are DEPRECATED. Use function components and React hooks.
 
-In many cases, we create components that do not need to have a state, lifecycle hooks or any internal variables. In other words just a simple component that takes props and renders something presentational. But often times we write them as class based components which come with a lot of cruft (for e.g., it has a state, lifecycle hooks and it is a javascript class which means that React creates instances of it) that is unnecessary in many cases.
-
-A quote from the React documentation:
-
-> These components must not retain internal state, do not have backing instances, and do not have the component lifecycle methods. They are pure functional transforms of their input, with zero boilerplate. However, you may still specify .propTypes and .defaultProps by setting them as properties on the function, just as you would set them on an ES6 class.
-
-
- - Here is an [example](https://github.com/Expensify/JS-Libs/blob/e3b7ee4b111a3a370a1427ad904485df4e65a472/lib/components/StepProgressBar.js#L20) from our codebase of a stateless component.
-```js
-const StepProgressBar = ({steps, currentStep}) => {
-    const currentStepIndex = Math.max(0, _.findIndex(steps, step => step.id === currentStep));
-    return (
-        <div id="js_steps_progress" className="progress-wrapper">
-...
-
-```
-*_2. Pure components: Use to improve performance where a component does not need to be rendered too often._*
-
-*IF YOU ARE NOT SURE ABOUT USING React.PureComponent, USE React.Component INSTEAD.* It's very important that you understand the differences.
-
-By default, a plain `React.Component` has `shouldComponentUpdate` set to always return true. This is good because it means React errs on the side of always updating the component in case there’s any new data to show. However, it’s bad because it means React might trigger unnecessary re-renders.
-
-`React.PureComponent` has a default implementation of `shouldComponentUpdate` that does a shallow comparison of props and state to determine if it should re-render or not.
-
-Read the [React Docs](https://reactjs.org/docs/react-api.html#reactpurecomponent) to understand this more.
-
-
-```js
-// Internal react code for pure component looks like this with regards to shouldComponentUpdate
-
-if (type.prototype && type.prototype.isPureReactComponent) {
-    shouldUpdate = !shallowEqual(oldProps, props) ||
-                   !shallowEqual(oldState, state);
-}
-```
-
-> A common pitfall when converting from Component to PureComponent is to forget that the children need to re-render too. As with all React - if the parent doesn’t re-render the children won’t either. So if you have a PureComponent with children, those children can only update if the parent’s state or props are shallowly different (causing the parent to re-render). You can only have a PureComponent parent if you know none of the children should re-render if the parent doesn’t re-render.
-
-**Tip:** If you think you need `React.PureComponent`, but you're not using a class component use [`React.memo()`](https://reactjs.org/docs/react-api.html#reactmemo) to achieve the same thing.
-
-*_3. Class based components: Use it when you need to maintain state and use lifecycle methods._*
-
-Always extend from `React.Component` and use a class component when:
-
-- A component needs some data passed to it from a parent holding the data in `this.state`. A class component would hold this data in state and pass it down to the child via props. - If you need to perform some kind of side-effect after the component mounts (`componentDidMount()`) or tweak a component's rendering performance.
-- A final case where you might need to use a class component is if you need to use a `ref`. We have not yet adopted built-in React hooks like `useRef()` so if you need a `ref` use a class component.
-
-```javascript
-// Bad
-const MyComponent = props => {
-    const inputRef = useRef();
-    return <Input ref={inputRef} />;
-};
-
-// Good
-class MyComponent extends React.Component {
-    render() {
-        return <Input ref={el => this.inputRef = el} />;
-    }
-}
-```
-
-*_4. Render Props: Use for Cross-Cutting Concerns and Code Reuse_*
-
-Let's say you have two separate components that render two different things, but you want them both to be based on the same state. You can pass a `render` property to a component or pass a function as a child to accomplish this. You can read more about how this works and when to use it in the [React Docs](https://reactjs.org/docs/render-props.html).
-
-## Do not use inheritance for other React components
-```js
-// Bad
-// Extends from our custom components
-class AComponent extends CComponent, React.Component { ... }
-class BComponent extends CComponent, React.Component { ... }
-
-// Good
-const AEnhancedComponent = higherOrderComponent({ ... })(CComponent);
-
-// Good
-// Only extends from React's component, not from our own components
-class AComponent extends React.Component { ... }
-class BComposedComponent extends React.Component
-{
-
-    ...
-    render() {
-        return (
-            <AComponent {...props}>
-                <Text>
-                    {this.state.whatever}
-                </Text>
-            </AComponent>
-        )
-    }
-    ...
-}
-```
-
-## isMounted is an Antipattern
-
-Sometimes we must set React state when a resolved promise is handled. This can cause errors in the JS console because a promise does not have any awareness of whether a component we are setting state on still exists or has unmounted. It may be tempting in these situations to use an instance flag like `this.isComponentMounted` and then set it to `false` in `componentWillUnmount()`. The correct way to handle this is to use a "cancellable" promise.
-
-```js
-componentWillUnmount() {
-    if (!this.doSomethingPromise) {
-        return;
-    }
-
-    this.doSomethingPromise.cancel();
-}
-
-doSomethingThenSetState() {
-    this.doSomethingPromise = makeCancellablePromise(this.doSomething());
-    this.doSomethingPromise.promise
-        .then((value) => this.setState({value}));
-}
-```
-
-**Read more:** [https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html](https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html)
+[https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function](https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function)
 
 ## Composition vs Inheritance
 
@@ -842,12 +616,7 @@ There are several ways to use and declare refs and we prefer the [callback metho
 
 ## Are we allowed to use [insert brand new React feature]? Why or why not?
 
-We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to a very strict and stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. Participation in our React driven codebases shouldn't mean everyone is required to keep up to date on the latest and greatest features. So with that in mind, here are a few things we would ask you to not use:
-
-- Hooks - Use a class `Component` and relevant lifecycle methods instead of hooks. One exception here is if a 3rd party library offers some functionality via hooks (and only hooks).
-- `createRef()` - Use a callback ref instead
-- Class properties - Use an anonymous arrow function when calling a method or bind your method in the `constructor()`
-- Static getters and setters - Use props directly or create a method that computes some value
+We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to the most stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. That said, if you aren't sure if we have adopted something please ask us first.
 
 # Onyx Best Practices
 

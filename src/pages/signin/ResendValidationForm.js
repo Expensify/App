@@ -14,7 +14,6 @@ import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
 import * as ReportUtils from '../../libs/ReportUtils';
-import OfflineIndicator from '../../components/OfflineIndicator';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
@@ -26,7 +25,7 @@ const propTypes = {
     credentials: PropTypes.shape({
         /** The email/phone the user logged in with */
         login: PropTypes.string,
-    }).isRequired,
+    }),
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
@@ -44,12 +43,16 @@ const propTypes = {
 };
 
 const defaultProps = {
+    credentials: {},
     account: {},
 };
 
 const ResendValidationForm = (props) => {
     const isSMSLogin = Str.isSMSLogin(props.credentials.login);
-    const login = isSMSLogin ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login)) : props.credentials.login;
+
+    // replacing spaces with "hard spaces" to prevent breaking the number
+    const login = isSMSLogin ? props.formatPhoneNumber(props.credentials.login).replace(/ /g, '\u00A0') : props.credentials.login;
+
     const loginType = (isSMSLogin ? props.translate('common.phone') : props.translate('common.email')).toLowerCase();
 
     return (
@@ -60,29 +63,35 @@ const ResendValidationForm = (props) => {
                     imageStyles={[styles.mr2]}
                 />
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.textStrong]}>
+                    <Text
+                        textBreakStrategy="simple"
+                        style={[styles.textStrong]}
+                    >
                         {login}
                     </Text>
                 </View>
             </View>
             <View style={[styles.mv5]}>
-                <Text>
-                    {props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
-                </Text>
+                <Text>{props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}</Text>
             </View>
             {!_.isEmpty(props.account.message) && (
-
                 // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-                <DotIndicatorMessage style={[styles.mb5]} type="success" messages={{0: props.account.message}} />
+                <DotIndicatorMessage
+                    style={[styles.mb5, styles.flex0]}
+                    type="success"
+                    messages={{0: props.translate(props.account.message)}}
+                />
             )}
             {!_.isEmpty(props.account.errors) && (
-                <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
+                <DotIndicatorMessage
+                    style={[styles.mb5]}
+                    type="error"
+                    messages={props.account.errors}
+                />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
-                    <Text>
-                        {props.translate('common.back')}
-                    </Text>
+                    <Text style={[styles.link]}>{props.translate('common.back')}</Text>
                 </TouchableOpacity>
                 <Button
                     medium
@@ -93,7 +102,6 @@ const ResendValidationForm = (props) => {
                     isDisabled={props.network.isOffline}
                 />
             </View>
-            <OfflineIndicator containerStyles={[styles.mv1]} />
         </>
     );
 };

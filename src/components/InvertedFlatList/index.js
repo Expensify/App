@@ -1,6 +1,4 @@
-import React, {
-    forwardRef,
-} from 'react';
+import React, {forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, StyleSheet} from 'react-native';
 import _ from 'underscore';
@@ -24,7 +22,6 @@ class InvertedFlatList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.invertedWheelEvent = this.invertedWheelEvent.bind(this);
         this.list = undefined;
     }
 
@@ -35,24 +32,6 @@ class InvertedFlatList extends React.Component {
         } else {
             this.props.innerRef(this.list);
         }
-
-        if (!this.list) {
-            return;
-        }
-
-        this.list
-            .getScrollableNode()
-            .addEventListener('wheel', this.invertedWheelEvent);
-    }
-
-    componentWillUnmount() {
-        this.list.getScrollableNode()
-            .removeEventListener('wheel', this.invertedWheelEvent);
-    }
-
-    invertedWheelEvent(e) {
-        this.list.getScrollableNode().scrollTop -= e.deltaY;
-        e.preventDefault();
     }
 
     render() {
@@ -60,10 +39,10 @@ class InvertedFlatList extends React.Component {
             <BaseInvertedFlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
-                ref={el => this.list = el}
+                inverted
+                ref={(el) => (this.list = el)}
                 shouldMeasureItems
                 contentContainerStyle={StyleSheet.compose(this.props.contentContainerStyle, styles.justifyContentEnd)}
-                style={{transform: [{translateX: 0}, {translateY: 0}, {scaleY: -1}]}}
             />
         );
     }
@@ -75,6 +54,9 @@ InvertedFlatList.defaultProps = {
 };
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <InvertedFlatList {...props} innerRef={ref} />
+    <InvertedFlatList
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
 ));

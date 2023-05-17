@@ -1,10 +1,12 @@
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
 import NetInfo from '@react-native-community/netinfo';
 import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
 import * as NetworkActions from './actions/Network';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 
 let isOffline = false;
 let hasPendingNetworkCheck = false;
@@ -16,10 +18,14 @@ const reconnectionCallbacks = {};
 /**
  * Loop over all reconnection callbacks and fire each one
  */
-const triggerReconnectionCallbacks = _.throttle((reason) => {
-    Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-    _.each(reconnectionCallbacks, callback => callback());
-}, 5000, {trailing: false});
+const triggerReconnectionCallbacks = _.throttle(
+    (reason) => {
+        Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
+        _.each(reconnectionCallbacks, (callback) => callback());
+    },
+    5000,
+    {trailing: false},
+);
 
 /**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
@@ -39,6 +45,28 @@ function setOfflineStatus(isCurrentlyOffline) {
     isOffline = isCurrentlyOffline;
 }
 
+// Update the offline status in response to changes in shouldForceOffline
+let shouldForceOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        const currentShouldForceOffline = Boolean(network.shouldForceOffline);
+        if (currentShouldForceOffline === shouldForceOffline) {
+            return;
+        }
+        shouldForceOffline = currentShouldForceOffline;
+        if (shouldForceOffline) {
+            setOfflineStatus(true);
+        } else {
+            // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
+            NetInfo.fetch().then((state) => setOfflineStatus(state.isInternetReachable === false));
+        }
+    },
+});
+
 /**
  * Set up the event listener for NetInfo to tell whether the user has
  * internet connectivity or not. This is more reliable than the Pusher
@@ -53,8 +81,8 @@ function subscribeToNetInfo() {
             // By default, NetInfo uses `/` for `reachabilityUrl`
             // When App is served locally (or from Electron) this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
-            reachabilityUrl: `${CONFIG.EXPENSIFY.URL_API_ROOT}api`,
-            reachabilityTest: response => Promise.resolve(response.status === 200),
+            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api`,
+            reachabilityTest: (response) => Promise.resolve(response.status === 200),
 
             // If a check is taking longer than this time we're considered offline
             reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
@@ -65,6 +93,10 @@ function subscribeToNetInfo() {
     // whether a user has internet connectivity or not.
     NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, state);
+        if (shouldForceOffline) {
+            Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
+            return;
+        }
         setOfflineStatus(state.isInternetReachable === false);
     });
 }
@@ -91,6 +123,13 @@ function onReconnect(callback) {
 }
 
 /**
+ * Delete all queued reconnection callbacks
+ */
+function clearReconnectionCallbacks() {
+    _.each(_.keys(reconnectionCallbacks), (key) => delete reconnectionCallbacks[key]);
+}
+
+/**
  * Refresh NetInfo state.
  */
 function recheckNetworkConnection() {
@@ -100,11 +139,11 @@ function recheckNetworkConnection() {
 
     Log.info('[NetworkConnection] recheck NetInfo');
     hasPendingNetworkCheck = true;
-    NetInfo.refresh()
-        .finally(() => hasPendingNetworkCheck = false);
+    NetInfo.refresh().finally(() => (hasPendingNetworkCheck = false));
 }
 
 export default {
+    clearReconnectionCallbacks,
     setOfflineStatus,
     listenForReconnect,
     onReconnect,

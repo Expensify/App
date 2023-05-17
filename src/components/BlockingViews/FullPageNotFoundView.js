@@ -1,12 +1,12 @@
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import BlockingView from './BlockingView';
-import * as Expensicons from '../Icon/Expensicons';
+import * as Illustrations from '../Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
+import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -14,7 +14,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Child elements */
-    children: PropTypes.node.isRequired,
+    children: PropTypes.node,
 
     /** If true, child components are replaced with a blocking "not found" view */
     shouldShow: PropTypes.bool,
@@ -31,15 +31,24 @@ const propTypes = {
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
+    /** Whether we should show a go back home link */
+    shouldShowBackHomeLink: PropTypes.bool,
+
+    /** The key in the translations file to use for the go back link */
+    linkKey: PropTypes.string,
+
     /** Method to trigger when pressing the back button of the header */
     onBackButtonPress: PropTypes.func,
 };
 
 const defaultProps = {
+    children: null,
     shouldShow: false,
     titleKey: 'notFound.notHere',
     subtitleKey: 'notFound.pageNotFound',
+    linkKey: 'notFound.goBackHome',
     shouldShowBackButton: true,
+    shouldShowBackHomeLink: false,
     shouldShowCloseButton: true,
     onBackButtonPress: () => Navigation.dismissModal(),
 };
@@ -57,13 +66,16 @@ const FullPageNotFoundView = (props) => {
                 />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
-                        icon={Expensicons.QuestionMark}
+                        icon={Illustrations.ToddBehindCloud}
+                        iconWidth={variables.modalTopIconWidth}
+                        iconHeight={variables.modalTopIconHeight}
                         title={props.translate(props.titleKey)}
                         subtitle={props.translate(props.subtitleKey)}
+                        link={props.translate(props.linkKey)}
+                        shouldShowBackHomeLink={props.shouldShowBackHomeLink}
                     />
                 </View>
             </>
-
         );
     }
 

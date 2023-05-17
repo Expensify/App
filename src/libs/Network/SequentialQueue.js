@@ -5,6 +5,9 @@ import * as NetworkStore from './NetworkStore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as ActiveClientManager from '../ActiveClientManager';
 import * as Request from '../Request';
+import * as RequestThrottle from '../RequestThrottle';
+import CONST from '../../CONST';
+import * as QueuedOnyxUpdates from '../actions/QueuedOnyxUpdates';
 
 let resolveIsReadyPromise;
 let isReadyPromise = new Promise((resolve) => {
@@ -15,33 +18,46 @@ let isReadyPromise = new Promise((resolve) => {
 resolveIsReadyPromise();
 
 let isSequentialQueueRunning = false;
-
 let currentRequest = null;
 
 /**
- * This method will get any persisted requests and fire them off in sequence to retry them.
+ * Process any persisted requests, when online, one at a time until the queue is empty.
  *
+ * If a request fails due to some kind of network error, such as a request being throttled or when our backend is down, then we retry it with an exponential back off process until a response
+ * is successfully returned. The first time a request fails we set a random, small, initial wait time. After waiting, we retry the request. If there are subsequent failures the request wait
+ * time is doubled creating an exponential back off in the frequency of requests hitting the server. Since the initial wait time is random and it increases exponentially, the load of
+ * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
  * @returns {Promise}
  */
 function process() {
     const persistedRequests = PersistedRequests.getAll();
-
-    // This sanity check is also a recursion exit point
-    if (NetworkStore.isOffline() || _.isEmpty(persistedRequests)) {
+    if (_.isEmpty(persistedRequests) || NetworkStore.isOffline()) {
         return Promise.resolve();
     }
+    const requestToProcess = persistedRequests[0];
 
-    const task = _.reduce(persistedRequests, (previousRequest, request) => previousRequest.then(() => {
-        currentRequest = Request.processWithMiddleware(request, true);
-        return currentRequest;
-    }), Promise.resolve());
-
-    // Do a recursive call in case the queue is not empty after processing the current batch
-    return task.then(process);
+    // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
+    currentRequest = Request.processWithMiddleware(requestToProcess, true)
+        .then(() => {
+            PersistedRequests.remove(requestToProcess);
+            RequestThrottle.clear();
+            return process();
+        })
+        .catch((error) => {
+            // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
+            // Duplicate records don't need to be retried as they just mean the record already exists on the server
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
+                PersistedRequests.remove(requestToProcess);
+                RequestThrottle.clear();
+                return process();
+            }
+            return RequestThrottle.sleep().then(process);
+        });
+    return currentRequest;
 }
 
 function flush() {
-    if (isSequentialQueueRunning) {
+    if (isSequentialQueueRunning || _.isEmpty(PersistedRequests.getAll())) {
         return;
     }
 
@@ -63,12 +79,12 @@ function flush() {
         key: ONYXKEYS.PERSISTED_REQUESTS,
         callback: () => {
             Onyx.disconnect(connectionID);
-            process()
-                .finally(() => {
-                    isSequentialQueueRunning = false;
-                    resolveIsReadyPromise();
-                    currentRequest = null;
-                });
+            process().finally(() => {
+                isSequentialQueueRunning = false;
+                resolveIsReadyPromise();
+                currentRequest = null;
+                Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
+            });
         },
     });
 }
@@ -114,9 +130,12 @@ function getCurrentRequest() {
     return currentRequest;
 }
 
-export {
-    flush,
-    getCurrentRequest,
-    isRunning,
-    push,
-};
+/**
+ * Returns a promise that resolves when the sequential queue is done processing all persisted write requests.
+ * @returns {Promise}
+ */
+function waitForIdle() {
+    return isReadyPromise;
+}
+
+export {flush, getCurrentRequest, isRunning, push, waitForIdle};

@@ -18,15 +18,16 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesNoVBAView = props => (
+const WorkspaceInvoicesNoVBAView = (props) => (
     <>
         <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
         <Section
             title={props.translate('workspace.invoices.unlockOnlineInvoiceCollection')}
-            icon={Illustrations.JewelBoxGreen}
+            icon={Illustrations.MoneyIntoWallet}
+            containerStyles={[styles.cardSection]}
         >
-            <View style={[styles.mv4]}>
+            <View style={[styles.mv3]}>
                 <Text>{props.translate('workspace.invoices.unlockNoVBACopy')}</Text>
             </View>
             <Button

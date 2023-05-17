@@ -7,7 +7,7 @@ on:
         description: The number of a pull request to CP
         required: true
       NEW_VERSION:
-        description: The new app version
+        description: The new app version (leave empty if running manually)
         required: false
         default: ''
 

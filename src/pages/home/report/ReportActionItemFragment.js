@@ -12,9 +12,12 @@ import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
-import * as StyleUtils from '../../../styles/StyleUtils';
+import convertToLTR from '../../../libs/convertToLTR';
+import {withNetwork} from '../../../components/OnyxProvider';
+import CONST from '../../../CONST';
+import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -28,7 +31,6 @@ const propTypes = {
 
     /** If this fragment is attachment than has info? */
     attachmentInfo: PropTypes.shape({
-
         /** The file name of attachment */
         name: PropTypes.string,
 
@@ -52,10 +54,7 @@ const propTypes = {
     isSingleLine: PropTypes.bool,
 
     // Additional styles to add after local styles
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...windowDimensionsPropTypes,
 
@@ -83,59 +82,51 @@ const ReportActionItemFragment = (props) => {
         case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
             if (props.isAttachment && props.loading) {
-                return (
-                    Str.isImage(props.attachmentInfo.name)
-                        ? (
-                            <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
-                        ) : (
-                            <View style={[styles.chatItemAttachmentPlaceholder]}>
-                                <ActivityIndicator
-                                    size="large"
-                                    color={themeColors.textSupporting}
-                                    style={[styles.flex1]}
-                                />
-                            </View>
-                        )
+                return Str.isImage(props.attachmentInfo.name) ? (
+                    <RenderHTML html={`<comment><img src="${props.attachmentInfo.source}" data-expensify-preview-modal-disabled="true"/></comment>`} />
+                ) : (
+                    <View style={[styles.chatItemAttachmentPlaceholder]}>
+                        <ActivityIndicator
+                            size="large"
+                            color={themeColors.textSupporting}
+                            style={[styles.flex1]}
+                        />
+                    </View>
                 );
             }
-            let {html, text} = props.fragment;
+            const {html, text} = props.fragment;
+
+            if (props.fragment.isDeletedParentAction) {
+                return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
+            }
 
             // If the only difference between fragment.text and fragment.html is <br /> tags
-            // we replace them with line breaks and render it as text, not as html.
+            // we render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.
-            const differByLineBreaksOnly = Str.replaceAll(props.fragment.html, '<br />', ' ') === props.fragment.text;
-            if (differByLineBreaksOnly) {
-                const textWithLineBreaks = Str.replaceAll(props.fragment.html, '<br />', '\n');
-                html = textWithLineBreaks;
-                text = textWithLineBreaks;
-            }
+            const differByLineBreaksOnly = Str.replaceAll(html, '<br />', '\n') === text;
 
             // Only render HTML if we have html in the fragment
-            if (html !== text) {
+            if (!differByLineBreaksOnly) {
+                const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
                 const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
-                const htmlContent = html + editedTag;
-                return (
-                    <RenderHTML
-                        html={props.source === 'email'
-                            ? `<email-comment>${htmlContent}</email-comment>`
-                            : `<comment>${htmlContent}</comment>`}
-                    />
-                );
+                const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);
+
+                return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
             }
             return (
                 <Text
                     family="EMOJI_TEXT_FONT"
-                    selectable={!canUseTouchScreen() || !props.isSmallScreenWidth}
+                    selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {StyleUtils.convertToLTR(Str.htmlDecode(text))}
-                    {props.fragment.isEdited && (
-                    <Text
-                        fontSize={variables.fontSizeSmall}
-                        color={themeColors.textSupporting}
-                    >
-                        {` ${props.translate('reportActionCompose.edited')}`}
-                    </Text>
+                    {convertToLTR(Str.htmlDecode(text))}
+                    {Boolean(props.fragment.isEdited) && (
+                        <Text
+                            fontSize={variables.fontSizeSmall}
+                            color={themeColors.textSupporting}
+                        >
+                            {` ${props.translate('reportActionCompose.edited')}`}
+                        </Text>
                     )}
                 </Text>
             );
@@ -144,11 +135,10 @@ const ReportActionItemFragment = (props) => {
             return (
                 <Tooltip text={props.tooltipText}>
                     <Text
-                        selectable
                         numberOfLines={props.isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender]}
+                        style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}
                     >
-                        {Str.htmlDecode(props.fragment.text)}
+                        {props.fragment.text}
                     </Text>
                 </Tooltip>
             );
@@ -167,7 +157,7 @@ const ReportActionItemFragment = (props) => {
         case 'OLD_MESSAGE':
             return <Text>OLD_MESSAGE</Text>;
         default:
-            return <Text>fragment.text</Text>;
+            return <Text>props.fragment.text</Text>;
     }
 };
 
@@ -175,7 +165,4 @@ ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(memo(ReportActionItemFragment));
+export default compose(withWindowDimensions, withLocalize, withNetwork())(memo(ReportActionItemFragment));
