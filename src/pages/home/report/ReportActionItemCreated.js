@@ -36,11 +36,11 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
-
-    if (ReportUtils.isMoneyRequestReport(props.report.reportID) || ReportUtils.isTaskReport(props.report)) {
+    if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
+
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
 
     return (
         <OfflineWithFeedback

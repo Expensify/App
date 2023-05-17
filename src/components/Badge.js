@@ -26,6 +26,10 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     badgeStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Styles for Badge Text */
+    // eslint-disable-next-line react/forbid-prop-types
+    textStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Callback to be called on onPress */
     onPress: PropTypes.func,
 };
@@ -35,6 +39,7 @@ const defaultProps = {
     error: false,
     pressable: false,
     badgeStyles: [],
+    textStyles: [],
     onPress: undefined,
     environment: CONST.ENVIRONMENT.DEV,
 };
@@ -55,7 +60,7 @@ const Badge = (props) => {
             onPress={props.onPress}
         >
             <Text
-                style={[styles.badgeText, textStyles]}
+                style={[styles.badgeText, textStyles, ...props.textStyles]}
                 numberOfLines={1}
             >
                 {props.text}
