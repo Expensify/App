@@ -8,14 +8,15 @@ const stylePropTypeWithFunction = PropTypes.oneOfType([stylePropType, PropTypes.
  * Marks prop as required if the component is accessible
  * @param {Object} props
  * @param {String} propName
+ * @param {String} componentName
  * @returns {Error} Error if prop is required
  */
-const requireIfAccessible = (props, propName) => {
-    if (!props.accessible || !!props[propName]) {
+function requiredIfAccessible(props, propName, componentName) {
+    if (props.accessible !== true || (props[propName] !== undefined && typeof props[propName] === 'string')) {
         return;
     }
-    return new Error(`Prop "${propName}" is required when "accessible" is true`);
-};
+    return new Error(`Provide a valid string for ${propName} prop when accessible is true in ${componentName}`);
+}
 
 const pressablePropTypes = {
     /**
@@ -105,7 +106,7 @@ const pressablePropTypes = {
      * @example 'Search'
      * @example 'Close'
      */
-    accessibilityLabel: requireIfAccessible,
+    accessibilityLabel: requiredIfAccessible,
 
     /**
      * Specifies the accessibility hint for the component
@@ -132,6 +133,7 @@ const defaultProps = {
     enableInScreenReaderStates: CONST.SCREEN_READER_STATES.ALL,
     nextFocusRef: undefined,
     shouldUseAutoHitSlop: true,
+    accessible: true,
 };
 
 export default {
