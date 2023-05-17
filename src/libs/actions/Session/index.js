@@ -456,8 +456,8 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
     );
 }
 
-function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode) {
-    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode, preferredLocale);
     Navigation.navigate(ROUTES.HOME);
 }
 
