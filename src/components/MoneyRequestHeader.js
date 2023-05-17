@@ -27,6 +27,7 @@ import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbu
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
+import reportPropTypes from '../pages/reportPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -42,7 +43,7 @@ const propTypes = {
     }).isRequired,
 
     /** The chat report this report is linked to */
-    chatReport: iouReportPropTypes,
+    chatReport: reportPropTypes,
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
