@@ -67,6 +67,7 @@ const MoneyRequestHeader = (props) => {
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
+                shouldShowBackButton={props.isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
             <View style={[styles.ph5, styles.pb5]}>

@@ -276,6 +276,7 @@ class AttachmentModal extends PureComponent {
                         shouldShowDownloadButton={this.props.allowDownload}
                         onDownloadButtonPress={() => this.downloadAttachment(source)}
                         shouldShowCloseButton={!this.props.isSmallScreenWidth}
+                        shouldShowBackButton={this.props.isSmallScreenWidth}
                         onBackButtonPress={() => this.setState({isModalOpen: false})}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />

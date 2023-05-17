@@ -64,6 +64,9 @@ const propTypes = {
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
+    /** Whether we should show a back button */
+    shouldShowBackButton: PropTypes.bool,
+
     /** Whether we should show the step counter */
     shouldShowStepCounter: PropTypes.bool,
 
@@ -109,6 +112,7 @@ const defaultProps = {
     shouldShowThreeDotsButton: false,
     shouldShowStepCounter: true,
     shouldShowCloseButton: false,
+    shouldShowBackButton: true,
     shouldShowAvatarWithDisplay: false,
     report: null,
     policies: {},
@@ -146,7 +150,7 @@ class HeaderWithBackButton extends Component {
         return (
             <View style={[styles.headerBar, this.props.shouldShowBorderBottom && styles.borderBottom, this.props.shouldShowBackButton && styles.pl2]}>
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                    {!this.props.shouldShowCloseButton && (
+                    {this.props.shouldShowBackButton && (
                         <Tooltip text={this.props.translate('common.back')}>
                             <Pressable
                                 onPress={() => {
