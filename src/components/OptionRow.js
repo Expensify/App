@@ -160,7 +160,7 @@ class OptionRow extends Component {
                                     result = Promise.resolve();
                                 }
                                 InteractionManager.runAfterInteractions(() => {
-                                    result.then(() => this.setState({isDisabled: this.props.isDisabled}));
+                                    result.finally(() => this.setState({isDisabled: this.props.isDisabled}));
                                 });
                             }}
                             disabled={this.state.isDisabled}
@@ -208,7 +208,7 @@ class OptionRow extends Component {
                                             tooltipEnabled={this.props.showTitleTooltip}
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
-                                            shouldUseFullTitle={this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat}
+                                            shouldUseFullTitle={this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport}
                                         />
                                         {this.props.option.alternateText ? (
                                             <Text
