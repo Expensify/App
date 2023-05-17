@@ -155,7 +155,7 @@ const MoneyRequestHeader = (props) => {
                                 <SettlementButton
                                     currency={props.report.currency}
                                     policyID={props.report.policyID}
-                                    shouldShowPaypal={false}
+                                    shouldShowPaypal={Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']))}
                                     chatReportID={props.report.chatReportID}
                                     iouReport={props.report}
                                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
