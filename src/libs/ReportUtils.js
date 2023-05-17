@@ -204,18 +204,28 @@ function isSettled(reportID) {
 }
 
 /**
- * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report
+ * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
+ * policy admin
  *
  * @param {Object} reportAction
+ * @param {String} reportID
  * @returns {Boolean}
  */
-function canDeleteReportAction(reportAction) {
-    return (
-        reportAction.actorEmail === sessionEmail &&
-        ((reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportActionsUtils.isCreatedTaskReportAction(reportAction)) ||
-            (ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID))) &&
-        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
+function canDeleteReportAction(reportAction, reportID) {
+    if (
+        reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+        ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
+        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID))
+    ) {
+        return false;
+    }
+    if (reportAction.actorEmail === sessionEmail) {
+        return true;
+    }
+    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {});
+    return policy.role === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
