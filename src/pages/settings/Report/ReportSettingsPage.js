@@ -81,7 +81,7 @@ class ReportSettingsPage extends Component {
 
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
-        const linkedWorkspace = _.find(this.props.policies, policy => policy && policy.id === this.props.report.policyID);
+        const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
 
@@ -108,15 +108,20 @@ class ReportSettingsPage extends Component {
                         >
                             {shouldDisableRename ? (
                                 <View style={[styles.ph5, styles.pv3]}>
-                                    <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                        numberOfLines={1}
+                                    >
                                         {this.props.translate('newRoomPage.roomName')}
                                     </Text>
-                                    <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.optionAlternateText, styles.pre]}
+                                    >
                                         {this.props.report.reportName}
                                     </Text>
                                 </View>
-                            )
-                            : (
+                            ) : (
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
                                     title={this.props.report.reportName}
@@ -129,28 +134,38 @@ class ReportSettingsPage extends Component {
                     <View style={[styles.ph5]}>
                         {Boolean(linkedWorkspace) && (
                             <View style={[styles.pv3]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                    numberOfLines={1}
+                                >
                                     {this.props.translate('workspace.common.workspace')}
                                 </Text>
-                                <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.optionAlternateText, styles.pre]}
+                                >
                                     {linkedWorkspace.name}
                                 </Text>
                             </View>
                         )}
                         {Boolean(this.props.report.visibility) && (
                             <View style={[styles.pv3]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                    numberOfLines={1}
+                                >
                                     {this.props.translate('newRoomPage.visibility')}
                                 </Text>
-                                <Text numberOfLines={1} style={[styles.reportSettingsVisibilityText]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.reportSettingsVisibilityText]}
+                                >
                                     {this.props.translate(`newRoomPage.visibilityOptions.${this.props.report.visibility}`)}
                                 </Text>
                                 <Text style={[styles.textLabelSupporting, styles.mt1]}>
-                                    {
-                                        this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
-                                            ? this.props.translate('newRoomPage.restrictedDescription')
-                                            : this.props.translate('newRoomPage.privateDescription')
-                                    }
+                                    {this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
+                                        ? this.props.translate('newRoomPage.restrictedDescription')
+                                        : this.props.translate('newRoomPage.privateDescription')}
                                 </Text>
                             </View>
                         )}

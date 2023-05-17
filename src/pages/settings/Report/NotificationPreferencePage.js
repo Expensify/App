@@ -23,20 +23,17 @@ const propTypes = {
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const NotificationPreferencePage = (props) => {
-    const notificationPreferenceOptions = _.map(props.translate('notificationPreferencesPage.notificationPreferences'),
-        (preference, key) => (
-            {
-                value: key,
-                text: preference,
-                keyForList: key,
+    const notificationPreferenceOptions = _.map(props.translate('notificationPreferencesPage.notificationPreferences'), (preference, key) => ({
+        value: key,
+        text: preference,
+        keyForList: key,
 
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: key === props.report.notificationPreference ? greenCheckmark : null,
+        // Include the green checkmark icon to indicate the currently selected value
+        customIcon: key === props.report.notificationPreference ? greenCheckmark : null,
 
-                // This property will make the currently selected value have bold text
-                boldStyle: key === props.report.notificationPreference,
-            }
-        ));
+        // This property will make the currently selected value have bold text
+        boldStyle: key === props.report.notificationPreference,
+    }));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -48,15 +45,13 @@ const NotificationPreferencePage = (props) => {
             />
             <OptionsList
                 sections={[{data: notificationPreferenceOptions}]}
-                onSelectRow={option => Report.updateNotificationPreferenceAndNavigate(props.report.reportID, props.report.notificationPreference, option.value)}
+                onSelectRow={(option) => Report.updateNotificationPreferenceAndNavigate(props.report.reportID, props.report.notificationPreference, option.value)}
                 hideSectionHeaders
-                optionHoveredStyle={
-                    {
-                        ...styles.hoveredComponentBG,
-                        ...styles.mhn5,
-                        ...styles.ph5,
-                    }
-                }
+                optionHoveredStyle={{
+                    ...styles.hoveredComponentBG,
+                    ...styles.mhn5,
+                    ...styles.ph5,
+                }}
                 shouldHaveOptionSeparator
                 shouldDisableRowInnerPadding
                 contentContainerStyles={[styles.ph5]}
@@ -68,7 +63,4 @@ const NotificationPreferencePage = (props) => {
 NotificationPreferencePage.displayName = 'NotificationPreferencePage';
 NotificationPreferencePage.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-    withReportOrNotFound,
-)(NotificationPreferencePage);
+export default compose(withLocalize, withReportOrNotFound)(NotificationPreferencePage);

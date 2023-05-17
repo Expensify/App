@@ -37,30 +37,33 @@ const RoomNamePage = (props) => {
     const reports = props.reports;
     const translate = props.translate;
 
-    const validate = useCallback((values) => {
-        const errors = {};
+    const validate = useCallback(
+        (values) => {
+            const errors = {};
 
-        // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
-        if (values.roomName === report.reportName) {
+            // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
+            if (values.roomName === report.reportName) {
+                return errors;
+            }
+
+            if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
+                // We error if the user doesn't enter a room name or left blank
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
+            } else if (!ValidationUtils.isValidRoomName(values.roomName)) {
+                // We error if the room name has invalid characters
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
+            } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
+                // Certain names are reserved for default rooms and should not be used for policy rooms.
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report.policyID)) {
+                // The room name can't be set to one that already exists on the policy
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
+            }
+
             return errors;
-        }
-
-        if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
-            // We error if the user doesn't enter a room name or left blank
-            ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
-        } else if (!ValidationUtils.isValidRoomName(values.roomName)) {
-            // We error if the room name has invalid characters
-            ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
-        } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
-            // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
-        } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report.policyID)) {
-            // The room name can't be set to one that already exists on the policy
-            ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
-        }
-
-        return errors;
-    }, [report, reports, translate]);
+        },
+        [report, reports, translate],
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -73,7 +76,7 @@ const RoomNamePage = (props) => {
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                onSubmit={values => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
+                onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
                 validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
