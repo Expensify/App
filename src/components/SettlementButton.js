@@ -14,6 +14,7 @@ import KYCWall from './KYCWall';
 import withNavigation from './withNavigation';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
+import iouReportPropTypes from '../pages/iouReportPropTypes';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
@@ -30,6 +31,9 @@ const propTypes = {
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
+
+    /** The IOU/Expense report we are paying */
+    iouReport: iouReportPropTypes,
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -60,6 +64,7 @@ const defaultProps = {
     shouldShowPaymentOptions: false,
     nvp_lastPaymentMethod: {},
     style: [],
+    iouReport: {},
 };
 
 class SettlementButton extends React.Component {
@@ -108,6 +113,7 @@ class SettlementButton extends React.Component {
                 addDebitCardRoute={this.props.addDebitCardRoute}
                 isDisabled={this.props.network.isOffline}
                 chatReportID={this.props.chatReportID}
+                iouReport={this.props.iouReport}
             >
                 {(triggerKYCFlow) => (
                     <ButtonWithDropdownMenu

@@ -157,6 +157,7 @@ const MoneyRequestHeader = (props) => {
                                     policyID={props.report.policyID}
                                     shouldShowPaypal={false}
                                     chatReportID={props.report.chatReportID}
+                                    iouReport={props.report}
                                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
                                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                                     addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
@@ -172,6 +173,7 @@ const MoneyRequestHeader = (props) => {
                         policyID={props.report.policyID}
                         shouldShowPaypal={false}
                         chatReportID={props.report.chatReportID}
+                        iouReport={props.report}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                         addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}

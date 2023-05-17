@@ -144,6 +144,7 @@ const ReportPreview = (props) => {
                     currency={props.iouReport.currency}
                     policyID={props.iouReport.policyID}
                     chatReportID={props.chatReportID}
+                    iouReport={props.iouReport}
                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport, props.reimbursementAccount && props.reimbursementAccount.state)}
                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                     addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}

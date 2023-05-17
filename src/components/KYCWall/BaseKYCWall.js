@@ -1,6 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {Dimensions} from 'react-native';
+import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
 import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
@@ -93,12 +94,14 @@ class KYCWall extends React.Component {
      * @param {Event} event
      */
     continue(event) {
-        this.setState({
-            transferBalanceButton: event.nativeEvent.target,
-        });
+        this.setState({transferBalanceButton: event.nativeEvent.target});
+        const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-        if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
+        if (
+            (isExpenseReport && lodashGet(this.props.reimbursementAccount, 'achData.state', '') !== CONST.BANK_ACCOUNT.STATE.OPEN)
+            || (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList))
+        ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
             const clickedElementLocation = getClickedTargetLocation(event.nativeEvent.target);
             const position = this.getAnchorPosition(clickedElementLocation);
@@ -109,7 +112,7 @@ class KYCWall extends React.Component {
             return;
         }
 
-        if (this.props.chatReport && !ReportUtils.isPolicyExpenseChat(this.props.chatReport)) {
+        if (!isExpenseReport) {
             // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
             const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
             if (!hasGoldWallet) {
@@ -161,6 +164,9 @@ export default withOnyx({
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
+    reimbursementAccount: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
     chatReport: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
