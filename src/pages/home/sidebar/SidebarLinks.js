@@ -14,7 +14,6 @@ import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
-import Header from '../../../components/Header';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
@@ -30,7 +29,11 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import LHNSkeletonView from '../../../components/LHNSkeletonView';
+import Header from '../../../components/Header';
+import defaultTheme from '../../../styles/themes/default';
+import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
+import variables from '../../../styles/variables';
+import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -135,7 +138,7 @@ class SidebarLinks extends React.Component {
         const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
-        const skeletonPlaceholder = <LHNSkeletonView shouldAnimate={!shouldFreeze} />;
+        const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate={!shouldFreeze} />;
 
         return (
             <View
@@ -148,11 +151,15 @@ class SidebarLinks extends React.Component {
                     nativeID="drag-area"
                 >
                     <Header
-                        title={this.props.translate('sidebarScreen.headerChat')}
-                        accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                        title={
+                            <LogoComponent
+                                fill={defaultTheme.textLight}
+                                width={variables.lhnLogoWidth}
+                                height={variables.lhnLogoHeight}
+                            />
+                        }
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
-                        textStyles={[styles.textHeadline]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
@@ -23,6 +23,7 @@ export default function (WrappedComponent) {
         /** Session of the current user */
         session: PropTypes.shape({
             email: PropTypes.string,
+            accountID: PropTypes.number,
         }),
     };
     const defaultProps = {
@@ -30,18 +31,20 @@ export default function (WrappedComponent) {
         personalDetails: {},
         session: {
             email: '',
+            accountID: 0,
         },
     };
 
     const WithCurrentUserPersonalDetails = (props) => {
         const currentUserEmail = props.session.email;
-
+        const accountID = props.session.accountID;
+        const currentUserPersonalDetails = useMemo(() => ({...props.personalDetails[currentUserEmail], accountID}), [props.personalDetails, currentUserEmail, accountID]);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={props.forwardedRef}
-                currentUserPersonalDetails={props.personalDetails[currentUserEmail]}
+                currentUserPersonalDetails={currentUserPersonalDetails}
             />
         );
     };

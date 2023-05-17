@@ -17,7 +17,6 @@ import FormSubmit from '../../components/FormSubmit';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import * as Link from '../../libs/actions/Link';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -92,6 +91,13 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (!_.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            this.updateOptionsWithSearchTerm(this.props.searchTerm);
+        }
+        if (!_.isEqual(prevProps.policyMemberList, this.props.policyMemberList)) {
+            this.updateOptionsWithSearchTerm(this.state.searchTerm);
+        }
+
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
         if (!isReconnecting) {
             return;
@@ -269,25 +275,22 @@ class WorkspaceInvitePage extends React.Component {
                                 onBackButtonPress={() => Navigation.goBack()}
                             />
                             <View style={[styles.flex1]}>
-                                {didScreenTransitionEnd ? (
-                                    <OptionsSelector
-                                        autoFocus={false}
-                                        canSelectMultipleOptions
-                                        sections={sections}
-                                        selectedOptions={this.state.selectedOptions}
-                                        value={this.state.searchTerm}
-                                        onSelectRow={this.toggleOption}
-                                        onChangeText={this.updateOptionsWithSearchTerm}
-                                        onConfirmSelection={this.inviteUser}
-                                        headerMessage={headerMessage}
-                                        hideSectionHeaders
-                                        boldStyle
-                                        shouldFocusOnSelectRow
-                                        textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                    />
-                                ) : (
-                                    <FullScreenLoadingIndicator />
-                                )}
+                                <OptionsSelector
+                                    autoFocus={false}
+                                    canSelectMultipleOptions
+                                    sections={sections}
+                                    selectedOptions={this.state.selectedOptions}
+                                    value={this.state.searchTerm}
+                                    shouldShowOptions={didScreenTransitionEnd && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
+                                    onSelectRow={this.toggleOption}
+                                    onChangeText={this.updateOptionsWithSearchTerm}
+                                    onConfirmSelection={this.inviteUser}
+                                    headerMessage={headerMessage}
+                                    hideSectionHeaders
+                                    boldStyle
+                                    shouldFocusOnSelectRow
+                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                />
                             </View>
                             <View style={[styles.flexShrink0]}>
                                 <FormAlertWithSubmitButton

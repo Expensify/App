@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
@@ -13,7 +14,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -69,6 +69,13 @@ class NewChatPage extends Component {
             selectedOptions: [],
             userToInvite,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            return;
+        }
+        this.updateOptionsWithSearchTerm(this.state.searchTerm);
     }
 
     /**
@@ -216,6 +223,8 @@ class NewChatPage extends Component {
             this.state.searchTerm,
             maxParticipantsReached,
         );
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -228,26 +237,23 @@ class NewChatPage extends Component {
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative, this.state.selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-                            {didScreenTransitionEnd ? (
-                                <OptionsSelector
-                                    canSelectMultipleOptions={this.props.isGroupChat}
-                                    sections={sections}
-                                    selectedOptions={this.state.selectedOptions}
-                                    value={this.state.searchTerm}
-                                    onSelectRow={(option) => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
-                                    onChangeText={this.updateOptionsWithSearchTerm}
-                                    headerMessage={headerMessage}
-                                    boldStyle
-                                    shouldFocusOnSelectRow={this.props.isGroupChat}
-                                    shouldShowConfirmButton={this.props.isGroupChat}
-                                    confirmButtonText={this.props.translate('newChatPage.createGroup')}
-                                    onConfirmSelection={this.createGroup}
-                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                    safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                                />
-                            ) : (
-                                <FullScreenLoadingIndicator />
-                            )}
+                            <OptionsSelector
+                                canSelectMultipleOptions={this.props.isGroupChat}
+                                sections={sections}
+                                selectedOptions={this.state.selectedOptions}
+                                value={this.state.searchTerm}
+                                onSelectRow={(option) => (this.props.isGroupChat ? this.toggleOption(option) : this.createChat(option))}
+                                onChangeText={this.updateOptionsWithSearchTerm}
+                                headerMessage={headerMessage}
+                                boldStyle
+                                shouldFocusOnSelectRow={this.props.isGroupChat}
+                                shouldShowConfirmButton={this.props.isGroupChat}
+                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
+                                confirmButtonText={this.props.translate('newChatPage.createGroup')}
+                                onConfirmSelection={this.createGroup}
+                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            />
                         </View>
                     </>
                 )}

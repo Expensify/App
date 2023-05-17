@@ -12,6 +12,7 @@ import * as Report from '../../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
+import ReportActionItemParentAction from './ReportActionItemParentAction';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -158,7 +159,14 @@ function ReportActionsList(props) {
             } else {
                 shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current.id;
             }
-            return (
+           
+            const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isThread(report);
+            return shouldDisplayParentAction ? (
+                <ReportActionItemParentAction
+                    reportID={report.reportID}
+                    parentReportID={`${report.parentReportID}`}
+                />
+            ) : (
                 <ReportActionItem
                     report={report}
                     action={reportAction}

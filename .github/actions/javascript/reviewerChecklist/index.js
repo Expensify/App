@@ -654,6 +654,7 @@ class GithubUtils {
 module.exports = GithubUtils;
 module.exports.GITHUB_OWNER = GITHUB_OWNER;
 module.exports.APP_REPO = APP_REPO;
+module.exports.APP_REPO_URL = APP_REPO_URL;
 module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
 module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
 module.exports.APPLAUSE_BOT = APPLAUSE_BOT;

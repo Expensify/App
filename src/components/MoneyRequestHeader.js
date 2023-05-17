@@ -18,6 +18,7 @@ import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
+import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -43,11 +44,8 @@ const defaultProps = {
 };
 
 const MoneyRequestHeader = (props) => {
-    const formattedAmount = props.numberFormat(props.report.total / 100, {
-        style: 'currency',
-        currency: props.report.currency,
-    });
-    const isSettled = false; // TODO: use ReportUtils.isSettled(props.report.reportID) once that method is added
+    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
+    const isSettled = ReportUtils.isSettled(props.report.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
     const payeeAvatar = isExpenseReport
@@ -73,17 +71,17 @@ const MoneyRequestHeader = (props) => {
                 shouldShowBackButton={props.isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
             />
-            <View style={[styles.ph5, styles.pb5]}>
+            <View style={[styles.ph5, styles.pb2]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Avatar
                             source={payeeAvatar}
                             type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
                             name={payeeName}
-                            size={CONST.AVATAR_SIZE.HEADER}
+                            size={CONST.AVATAR_SIZE.DEFAULT}
                         />
-                        <View style={[styles.flexColumn, styles.ml3]}>
+                        <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                             <Text
                                 style={[styles.headerText, styles.pre]}
                                 numberOfLines={1}

@@ -16,7 +16,7 @@ const defaultTypes = {
     shouldAnimate: true,
 };
 
-class LHNSkeletonView extends React.Component {
+class OptionsListSkeletonView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -93,7 +93,7 @@ class LHNSkeletonView extends React.Component {
     render() {
         return (
             <View
-                style={styles.flex1}
+                style={[styles.flex1, styles.overflowHidden]}
                 onLayout={(event) => {
                     const numItems = Math.ceil(event.nativeEvent.layout.height / CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT);
                     this.generateSkeletonViewItems(numItems);
@@ -105,7 +105,7 @@ class LHNSkeletonView extends React.Component {
     }
 }
 
-LHNSkeletonView.propTypes = propTypes;
-LHNSkeletonView.defaultProps = defaultTypes;
+OptionsListSkeletonView.propTypes = propTypes;
+OptionsListSkeletonView.defaultProps = defaultTypes;
 
-export default LHNSkeletonView;
+export default OptionsListSkeletonView;
