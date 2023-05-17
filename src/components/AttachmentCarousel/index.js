@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, PixelRatio} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -244,8 +244,8 @@ class AttachmentCarousel extends React.Component {
     renderCell(props) {
         // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
         // considering horizontal margin and border width in centered modal
-        const modalStyles = styles.centeredModalStyles(this.props.isSmallScreenWidth);
-        const style = [props.style, styles.h100, {width: this.props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2 + 1}];
+        const modalStyles = styles.centeredModalStyles(this.props.isSmallScreenWidth, true);
+        const style = [props.style, styles.h100, {width: PixelRatio.roundToNearestPixel(this.props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 
         return (
             <View
@@ -289,7 +289,7 @@ class AttachmentCarousel extends React.Component {
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
-                onLayout={({nativeEvent}) => this.setState({containerWidth: nativeEvent.layout.width + 1})}
+                onLayout={({nativeEvent}) => this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width)})}
                 onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
             >

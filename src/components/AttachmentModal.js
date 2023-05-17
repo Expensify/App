@@ -167,8 +167,8 @@ class AttachmentModal extends PureComponent {
      */
     isValidFile(file) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = this.props.translate('attachmentPicker.notAllowedExtension');
             this.setState({
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
@@ -289,6 +289,7 @@ class AttachmentModal extends PureComponent {
                             Boolean(this.state.source) &&
                             this.state.shouldLoadAttachment && (
                                 <AttachmentView
+                                    containerStyles={[styles.mh5]}
                                     source={source}
                                     isAuthTokenRequired={this.props.isAuthTokenRequired}
                                     file={this.state.file}

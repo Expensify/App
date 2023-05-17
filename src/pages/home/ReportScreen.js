@@ -38,7 +38,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import TaskHeaderView from './TaskHeaderView';
+import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
 
@@ -227,7 +227,6 @@ class ReportScreen extends React.Component {
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
-        const isTaskReport = ReportUtils.isTaskReport(this.props.report);
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
@@ -245,7 +244,8 @@ class ReportScreen extends React.Component {
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const shouldAnimate = !shouldFreeze;
-
+        const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
+        const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
         return (
             <ScreenWrapper style={screenWrapperStyle}>
                 <Freeze
@@ -267,7 +267,7 @@ class ReportScreen extends React.Component {
                     }
                 >
                     <FullPageNotFoundView
-                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
+                        shouldShow={(!reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
@@ -282,11 +282,13 @@ class ReportScreen extends React.Component {
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    {ReportUtils.isMoneyRequestReport(this.props.report) ? (
+                                    {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
                                         <MoneyRequestHeader
                                             report={this.props.report}
                                             policies={this.props.policies}
                                             personalDetails={this.props.personalDetails}
+                                            isSingleTransactionView={isSingleTransactionView}
+                                            parentReportAction={parentReportAction}
                                         />
                                     ) : (
                                         <HeaderView
@@ -294,6 +296,13 @@ class ReportScreen extends React.Component {
                                             onNavigationMenuButtonClicked={Navigation.goBack}
                                             personalDetails={this.props.personalDetails}
                                             report={this.props.report}
+                                        />
+                                    )}
+
+                                    {ReportUtils.isTaskReport(this.props.report) && (
+                                        <TaskHeader
+                                            report={this.props.report}
+                                            personalDetails={this.props.personalDetails}
                                         />
                                     )}
                                 </OfflineWithFeedback>
@@ -307,7 +316,6 @@ class ReportScreen extends React.Component {
                                         shouldShowCloseButton
                                     />
                                 )}
-                                {isTaskReport && <TaskHeaderView report={this.props.report} />}
                             </>
                         )}
                         <View

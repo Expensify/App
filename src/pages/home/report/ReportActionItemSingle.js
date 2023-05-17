@@ -37,7 +37,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** Report for this action */
-    report: reportPropTypes.isRequired,
+    report: reportPropTypes,
 
     /** Show header for action */
     showHeader: PropTypes.bool,
@@ -53,6 +53,7 @@ const defaultProps = {
     wrapperStyles: [styles.chatItem],
     showHeader: true,
     shouldShowSubscriptAvatar: false,
+    report: undefined,
 };
 
 const showUserDetails = (email) => {
@@ -88,9 +89,9 @@ const ReportActionItemSingle = (props) => {
                     {props.shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
                             mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
-                            secondaryAvatar={ReportUtils.getIcons(props.report, {})[0]}
+                            secondaryAvatar={ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
                             mainTooltip={actorEmail}
-                            secondaryTooltip={ReportUtils.getReportName(props.report)}
+                            secondaryTooltip={ReportUtils.getPolicyName(props.report)}
                             noMargin
                         />
                     ) : (
