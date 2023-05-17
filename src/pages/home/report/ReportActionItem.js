@@ -47,6 +47,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
@@ -115,7 +116,6 @@ function ReportActionItem(props) {
     }, [isDraftEmpty]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
-        console.log('>>>> Here');
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     }, [props.action.reportActionID]);
 
@@ -163,13 +163,17 @@ function ReportActionItem(props) {
      */
     const renderItemContent = (hovered = false) => {
         let children;
+        const originalMessage = lodashGet(props.action, 'originalMessage', {});
+        // Show the IOUPreview for when request was created, bill was split or money was sent
         if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-            props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.DELETE &&
-            props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY
+            originalMessage &&
+            (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
+                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = props.action.originalMessage.IOUReportID ? props.action.originalMessage.IOUReportID.toString() : '0';
+            const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
 
             children = (
                 <MoneyRequestAction
@@ -182,7 +186,22 @@ function ReportActionItem(props) {
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 />
             );
-        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED || props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELED) {
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
+            children = (
+                <ReportPreview
+                    iouReportID={props.action.originalMessage.linkedReportID}
+                    chatReportID={props.report.reportID}
+                    action={props.action}
+                    isHovered={hovered}
+                    contextMenuAnchor={popoverAnchor}
+                    checkIfContextMenuActive={checkIfContextMenuActive}
+                />
+            );
+        } else if (
+            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELED ||
+            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+        ) {
             children = (
                 <TaskAction
                     taskReportID={props.action.originalMessage.taskReportID.toString()}
@@ -248,6 +267,7 @@ function ReportActionItem(props) {
                 {hasReactions && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions
+                            reportActionID={props.action.reportActionID}
                             reactions={reactions}
                             toggleReaction={toggleReaction}
                         />

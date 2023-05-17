@@ -253,7 +253,7 @@ class ReportActionItemMessageEdit extends React.Component {
         if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
             e.preventDefault();
             this.publishDraft();
-        } else if (e.key === 'Escape') {
+        } else if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
             e.preventDefault();
             this.deleteDraft();
         }

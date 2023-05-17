@@ -351,7 +351,10 @@ class ReportActionsView extends React.Component {
                     loadMoreChats={this.loadMoreChats}
                     newMarkerReportActionID={this.state.newMarkerReportActionID}
                 />
-                <PopoverReactionList ref={ReactionList.reactionListRef} />
+                <PopoverReactionList
+                    ref={ReactionList.reactionListRef}
+                    reportID={this.props.report.reportID}
+                />
                 <CopySelectionHelper />
             </>
         );
