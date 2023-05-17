@@ -36,6 +36,7 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
 
+    /* Onyx Props */
     /** chatReport associated with iouReport */
     chatReport: PropTypes.shape({
         /** The participants of this report */
@@ -72,9 +73,6 @@ const propTypes = {
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
 
-    /** Callback invoked when View Details is pressed */
-    onViewDetailsPressed: PropTypes.func,
-
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
@@ -89,7 +87,6 @@ const defaultProps = {
     isHovered: false,
     chatReport: {},
     iouReport: {},
-    onViewDetailsPressed: () => {},
     checkIfContextMenuActive: () => {},
     session: {
         email: null,
@@ -106,7 +103,9 @@ const ReportPreview = (props) => {
             {_.map(props.action.message, (index) => (
                 <Pressable
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
-                    onPress={props.onViewDetailsPressed}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
+                    }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
