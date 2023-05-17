@@ -1,5 +1,6 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 /* eslint-disable max-len */
 export default {
@@ -151,7 +152,7 @@ export default {
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
-        notAllowedExtension: 'Attachments must be one of the following types:',
+        notAllowedExtension: 'This filetype is not allowed',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -253,8 +254,8 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         editComment: 'Edit comment',
-        deleteComment: 'Delete comment',
-        deleteConfirmation: 'Are you sure you want to delete this comment?',
+        deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
+        deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
     },
@@ -301,7 +302,6 @@ export default {
         newChat: 'New chat',
         newGroup: 'New group',
         newRoom: 'New room',
-        headerChat: 'Chats',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'New chat (Floating action)',
@@ -1197,6 +1197,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'Completed task',
+            canceled: 'Canceled task',
             reopened: 'Reopened task',
         },
     },
@@ -1322,8 +1323,12 @@ export default {
         deletedMessage: '[Deleted message]',
     },
     threads: {
-        lastReply: 'Last Reply',
+        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
+    },
+    qrCodes: {
+        copyUrlToClipboard: 'Copy URL to clipboard',
+        copied: 'Copied!',
     },
 };

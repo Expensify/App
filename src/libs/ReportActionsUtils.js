@@ -41,6 +41,14 @@ function isDeletedAction(reportAction) {
 }
 
 /**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isMoneyRequestAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
+
+/**
  * Returns the parentReportAction if the given report is a thread.
  *
  * @param {Object} report
@@ -92,6 +100,10 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
             if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
                 return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
             }
+            // Ensure that `REPORTPREVIEW` actions always come after if they have the same timestamp as another action type
+            if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) && first.actionName !== second.actionName) {
+                return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? 1 : -1) * invertedMultiplier;
+            }
 
             // Then fallback on reportActionID as the final sorting criteria. It is a random number,
             // but using this will ensure that the order of reportActions with the same created time and action type
@@ -141,6 +153,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 
     // Comments are only grouped if they happen within 5 minutes of each other
     if (moment(currentAction.created).unix() - moment(previousAction.created).unix() > 300) {
+        return false;
+    }
+
+    // Do not group if previous action was a created action
+    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return false;
     }
 
@@ -227,7 +244,11 @@ function shouldReportActionBeVisible(reportAction, key) {
     }
 
     // Filter out any unsupported reportAction types
-    if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
+    if (
+        !_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) &&
+        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName) &&
+        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.TASK), reportAction.actionName)
+    ) {
         return false;
     }
 
@@ -316,6 +337,18 @@ function getLinkedTransactionID(reportID, reportActionID) {
     return reportAction.originalMessage.IOUTransactionID;
 }
 
+/**
+ * @param {*} chatReportID
+ * @param {*} iouReportID
+ * @returns {Object} The report preview action or `null` if one couldn't be found
+ */
+function getReportPreviewAction(chatReportID, iouReportID) {
+    return _.find(
+        allReportActions[chatReportID],
+        (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lodashGet(reportAction, 'originalMessage.linkedReportID') === iouReportID,
+    );
+}
+
 function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
@@ -332,7 +365,9 @@ export {
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
+    isMoneyRequestAction,
     getLinkedTransactionID,
+    getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
     isTransactionThread,

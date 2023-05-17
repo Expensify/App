@@ -108,8 +108,7 @@ class PDFView extends Component {
     render() {
         const pdfContainerWidth = this.state.windowWidth - 100;
         const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
-        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
-
+        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth : pageWidthOnLargeScreen;
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
         // If we're requesting a password then we need to hide - but still render -

@@ -137,7 +137,7 @@ const IOUPreview = (props) => {
 
     // When displaying within a IOUDetailsModal we cannot guarantee that participants are included in the originalMessage data
     // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
-    const participantEmails = props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail];
+    const participantEmails = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participants', []) : [managerEmail, ownerEmail];
     const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails, props.personalDetails);
 
     // Pay button should only be visible to the manager of the report.
@@ -224,7 +224,6 @@ const IOUPreview = (props) => {
                             </View>
                         )}
                     </View>
-
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1]}>
                             {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
