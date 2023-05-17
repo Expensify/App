@@ -261,15 +261,12 @@ function ReportActionItem(props) {
 
         const reactions = _.get(props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-        const numberOfThreadReplies = _.get(this.props, ['action', 'childVisibleActionCount'], 0);
+        const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
         const shouldDisplayThreadReplies =
-            hasReplies &&
-            this.props.action.childCommenterCount &&
-            Permissions.canUseThreads(this.props.betas) &&
-            !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
-        const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
+            hasReplies && props.action.childCommenterCount && Permissions.canUseThreads(props.betas) && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
+        const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
 
         return (
             <>
@@ -285,9 +282,9 @@ function ReportActionItem(props) {
                 )}
                 {shouldDisplayThreadReplies && (
                     <ReportActionItemThread
-                        childReportID={`${this.props.action.childReportID}`}
+                        childReportID={`${props.action.childReportID}`}
                         numberOfReplies={numberOfThreadReplies}
-                        mostRecentReply={`${this.props.action.childLastVisibleActionCreated}`}
+                        mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
                         isHovered={hovered}
                         icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
                     />
