@@ -211,10 +211,12 @@ function canDeleteReportAction(reportAction, reportID) {
     ) {
         return false;
     }
+    if (reportAction.actorEmail === sessionEmail) {
+        return true;
+    }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
     const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {});
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    return isPolicyAdmin || reportAction.actorEmail === sessionEmail;
+    return policy.role === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
