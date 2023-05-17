@@ -138,6 +138,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     let outstandingIOUReports = [];
     let draftReports = [];
     let nonArchivedReports = [];
+    const settledMoneyRequestReports = [];
     let archivedReports = [];
 
     _.each(reportsToDisplay, (report) => {
@@ -148,6 +149,11 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
         if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, moneyRequestReports)) {
             outstandingIOUReports.push(report);
+            return;
+        }
+
+        if (!report.hasOutstandingIOU && ReportUtils.isMoneyRequestReport(report)) {
+            settledMoneyRequestReports.push(report);
             return;
         }
 
@@ -185,7 +191,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    return _.pluck([].concat(pinnedReports).concat(outstandingIOUReports).concat(draftReports).concat(nonArchivedReports).concat(archivedReports), 'reportID');
+    return _.pluck([].concat(pinnedReports).concat(outstandingIOUReports).concat(draftReports).concat(nonArchivedReports).concat(settledMoneyRequestReports).concat(archivedReports), 'reportID');
 }
 
 /**
