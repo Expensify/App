@@ -1198,7 +1198,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAc
             command = 'PayMoneyRequestViaPaypal';
             break;
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-            command = 'PayMoneyRequestWithWallet';
+            command = ReportUtils.isExpenseReport(iouReport) ? 'PayMoneyRequest' : 'PayMoneyRequestWithWallet';
             break;
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
             command = 'PayMoneyRequestElsewhere';
