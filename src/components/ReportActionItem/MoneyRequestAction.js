@@ -7,7 +7,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
 import compose from '../../libs/compose';
-import ReportPreview from './ReportPreview';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import networkPropTypes from '../networkPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -123,11 +122,6 @@ const MoneyRequestAction = (props) => {
         }
     };
 
-    const onReportPreviewPressed = () => {
-        Report.openReport(props.requestReportID);
-        Navigation.navigate(ROUTES.getReportRoute(props.requestReportID));
-    };
-
     let shouldShowPendingConversionMessage = false;
     if (
         !_.isEmpty(props.iouReport) &&
@@ -154,17 +148,6 @@ const MoneyRequestAction = (props) => {
                 containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
                 isHovered={props.isHovered}
             />
-            {props.isMostRecentIOUReportAction && !hasMultipleParticipants && (
-                <ReportPreview
-                    action={props.action}
-                    chatReportID={props.chatReportID}
-                    iouReportID={props.requestReportID}
-                    contextMenuAnchor={props.contextMenuAnchor}
-                    onViewDetailsPressed={onReportPreviewPressed}
-                    checkIfContextMenuActive={props.checkIfContextMenuActive}
-                    isHovered={props.isHovered}
-                />
-            )}
         </>
     );
 };

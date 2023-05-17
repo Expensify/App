@@ -224,7 +224,6 @@ const IOUPreview = (props) => {
                             </View>
                         )}
                     </View>
-
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1]}>
                             {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
