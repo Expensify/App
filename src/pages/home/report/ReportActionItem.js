@@ -270,7 +270,11 @@ class ReportActionItem extends Component {
         const numberOfThreadReplies = _.get(this.props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
-        const shouldDisplayThreadReplies = hasReplies && this.props.action.childCommenterCount && Permissions.canUseThreads(this.props.betas) && !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
+        const shouldDisplayThreadReplies =
+            hasReplies &&
+            this.props.action.childCommenterCount &&
+            Permissions.canUseThreads(this.props.betas) &&
+            !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
         const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
 
         return (
