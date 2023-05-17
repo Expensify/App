@@ -1427,29 +1427,6 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
 
 /**
  * Returns true if the accountID has reacted to the report action (with the given skin tone).
- * Uses the OLD FORMAT for "reactions"
- * @param {String} accountID
- * @param {Array<Object | String | number>} users
- * @param {Number} [skinTone]
- * @returns {boolean}
- */
-function hasAccountIDReacted(accountID, users, skinTone) {
-    return (
-        _.find(users, (user) => {
-            let userAccountID;
-            if (typeof user === 'object') {
-                userAccountID = `${user.accountID}`;
-            } else {
-                userAccountID = `${user}`;
-            }
-
-            return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
-        }) !== undefined
-    );
-}
-
-/**
- * Returns true if the accountID has reacted to the report action (with the given skin tone).
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} accountID
  * @param {Array<Object | String | number>} users
@@ -1619,7 +1596,6 @@ export {
     subscribeToNewActionEvent,
     showReportActionNotification,
     toggleEmojiReaction,
-    hasAccountIDReacted,
     hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
 };
