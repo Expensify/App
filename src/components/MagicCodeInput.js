@@ -118,24 +118,23 @@ function MagicCodeInput(props) {
         return props.shouldSubmitOnComplete && _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length === CONST.MAGIC_CODE_LENGTH && !props.network.isOffline;
     };
 
-    useOnNetworkReconnect(() => {
+    const validateAndSubmit = () => {
         if (!isReadyToSubmit()) {
             return;
         }
+        // Blurs the input and removes focus from the last input and, if it should submit
+        // on complete, it will call the onFulfill callback.
         inputRefs.current[editIndex].blur();
         setFocusedIndex(undefined);
         props.onFulfill(props.value);
+    }
+
+    useOnNetworkReconnect(() => {
+        validateAndSubmit();
     });
 
     useEffect(() => {
-        // Blurs the input and removes focus from the last input and, if it should submit
-        // on complete, it will call the onFulfill callback.
-        if (!isReadyToSubmit()) {
-            return;
-        }
-        inputRefs.current[editIndex].blur();
-        setFocusedIndex(undefined);
-        props.onFulfill(props.value);
+        validateAndSubmit();
 
         // We have not added the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // eslint-disable-next-line react-hooks/exhaustive-deps
