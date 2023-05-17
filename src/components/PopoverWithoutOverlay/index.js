@@ -40,6 +40,7 @@ const Popover = (props) => {
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
         Modal.setCloseModal(props.isVisible ? () => props.onClose(props.anchorRef) : null);
+        // eslint-disable-next-line
     }, [props.isVisible]);
 
     return props.isVisible ? (
