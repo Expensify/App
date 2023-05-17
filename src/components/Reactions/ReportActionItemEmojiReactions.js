@@ -88,23 +88,26 @@ const defaultProps = {
 const ReportActionItemEmojiReactions = (props) => {
     const popoverReactionListAnchor = useRef(null);
     let totalReactionCount = 0;
-    // @TODO: need to sort everything so that emojis and users are in the order they were added
 
-    // each emoji is sorted by the oldest timestamp of user reactions
+    // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
     const sortedReactions = _.sortBy(props.emojiReactions, (emojiReaction, emojiName) => {
+        // Since the emojiName is only stored as the object key, when _.sortBy() runs, the object is converted to an array and the
+        // keys are lost. To keep from losing the emojiName, it's copied to the emojiReaction object.
+        // eslint-disable-next-line no-param-reassign
         emojiReaction.emojiName = emojiName;
-        return _.reduce(
-            emojiReaction.users,
-            (oldestTimestamp, userData) => {
-                // userData can be null in the case where they have removed all their reactions of this emoji
+        return _.chain(emojiReaction.users)
+            .reduce((allTimestampsArray, userData) => {
                 if (!userData) {
-                    return oldestTimestamp;
+                    return allTimestampsArray;
                 }
-                const oldestUserReaction = _.chain(userData.skinTones).values().flatten().sort().first().value();
-                return oldestUserReaction < oldestTimestamp ? oldestUserReaction : oldestTimestamp;
-            },
-            '',
-        );
+                _.each(userData.skinTones, (createdAt) => {
+                    allTimestampsArray.push(createdAt);
+                });
+                return allTimestampsArray;
+            }, [])
+            .sort()
+            .first()
+            .value();
     });
     return (
         <View
