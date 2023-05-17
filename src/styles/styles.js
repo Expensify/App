@@ -1547,8 +1547,8 @@ const styles = {
             // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
             paddingHorizontal: variables.avatarChatSpacing,
-            paddingTop: 0,
-            paddingBottom: 0,
+            paddingTop: 5,
+            paddingBottom: 5,
             alignSelf: 'center',
             textAlignVertical: 'center',
         },
@@ -1569,7 +1569,7 @@ const styles = {
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 5,
+        paddingVertical: 0,
         ...flex.flexRow,
         flex: 1,
     },
