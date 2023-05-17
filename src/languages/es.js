@@ -561,6 +561,9 @@ export default {
         transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
         transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor, transfiere los fondos a una cuenta bancaria.',
+        notHereTitle: "Oops, you shouldn't be here",
+        notHereSubTitle: 'Please transfer your balance from the payments page',
+        goToPayment: 'Go to Payments',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',
