@@ -345,11 +345,14 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
         },
     },
-    notificationPreferences: {
+    notificationPreferencesPage: {
+        header: 'Notification preferences',
         label: 'Notify me about new messages',
-        immediately: 'Immediately',
-        daily: 'Daily',
-        mute: 'Mute',
+        notificationPreferences: {
+            always: 'Immediately',
+            daily: 'Daily',
+            mute: 'Mute',
+        },
     },
     loginField: {
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
