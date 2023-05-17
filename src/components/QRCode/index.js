@@ -9,9 +9,10 @@ const propTypes = {
      */
     url: PropTypes.string.isRequired,
     /**
-     * The logo which will be displayed in the middle of the QR code
+     * The logo which will be displayed in the middle of the QR code.
+     * Follows `ImageSourcePropType` from react-native.
      */
-    logo: PropTypes.string,
+    logo: PropTypes.oneOfType([PropTypes.shape({uri: PropTypes.string}), PropTypes.number]),
     /**
      * The QRCode size
      */
