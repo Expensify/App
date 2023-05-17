@@ -1117,7 +1117,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
-            policyExpenseChatID: ReportUtils.isPolicyExpenseChat(chatReport) ? iouReport.policyID : null,
         },
         optimisticData,
         successData,
@@ -1181,32 +1180,19 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
  * @param {Object} iouReport
  * @param {String} reimbursementBankAccountState
  */
-function payMoneyRequest(paymentType, chatReport, iouReport, reimbursementBankAccountState = null) {
-    if (ReportUtils.isPolicyExpenseChat(chatReport) && reimbursementBankAccountState !== CONST.BANK_ACCOUNT.STATE.OPEN && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NEW);
-        return;
-    }
+function payMoneyRequest(paymentType, chatReport, iouReport) {
+    // if (ReportUtils.isPolicyExpenseChat(chatReport) && reimbursementBankAccountState !== CONST.BANK_ACCOUNT.STATE.OPEN && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+    //     Navigation.navigate(ROUTES.BANK_ACCOUNT_NEW);
+    //     return;
+    // }
 
     const recipient = {
         login: iouReport.ownerEmail,
         payPalMeAddress: iouReport.submitterPayPalMeAddress,
     };
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
-    let command;
-    switch (paymentType) {
-        case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-            command = 'PayMoneyRequestViaPaypal';
-            break;
-        case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-            command = ReportUtils.isExpenseReport(iouReport) ? 'PayMoneyRequest' : 'PayMoneyRequestWithWallet';
-            break;
-        case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-            command = 'PayMoneyRequestElsewhere';
-            break;
-        default:
-            throw new Error('Unsupported payment method');
-    }
-    API.write(command, params, {optimisticData, successData, failureData});
+
+    API.write('PayMoneyRequest', params, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
     if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));

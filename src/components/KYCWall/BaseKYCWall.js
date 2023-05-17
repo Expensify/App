@@ -92,8 +92,9 @@ class KYCWall extends React.Component {
      * If they are already KYC'd we will continue whatever action is gated behind the KYC wall.
      *
      * @param {Event} event
+     * @param {String} iouPaymentType
      */
-    continue(event) {
+    continue(event, iouPaymentType) {
         this.setState({transferBalanceButton: event.nativeEvent.target});
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
 
@@ -123,7 +124,7 @@ class KYCWall extends React.Component {
         }
 
         Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
-        this.props.onSuccessfulKYC();
+        this.props.onSuccessfulKYC(iouPaymentType);
     }
 
     render() {

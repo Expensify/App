@@ -15,6 +15,7 @@ import withNavigation from './withNavigation';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
@@ -78,7 +79,7 @@ class SettlementButton extends React.Component {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: this.props.translate('iou.settleExpensify'),
                 icon: Expensicons.Wallet,
-                value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                value: ReportUtils.isExpenseReport(this.props.iouReport) ? CONST.IOU.PAYMENT_TYPE.VBBA : CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
                 text: this.props.translate('iou.settlePaypalMe'),
@@ -107,7 +108,7 @@ class SettlementButton extends React.Component {
     render() {
         return (
             <KYCWall
-                onSuccessfulKYC={() => this.props.onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY)}
+                onSuccessfulKYC={(iouPaymentType) => this.props.onPress(iouPaymentType)}
                 enablePaymentsRoute={this.props.enablePaymentsRoute}
                 addBankAccountRoute={this.props.addBankAccountRoute}
                 addDebitCardRoute={this.props.addDebitCardRoute}
@@ -120,8 +121,8 @@ class SettlementButton extends React.Component {
                         isDisabled={this.props.isDisabled}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {
-                            if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                                triggerKYCFlow(event);
+                            if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
+                                triggerKYCFlow(event, iouPaymentType);
                                 return;
                             }
 
