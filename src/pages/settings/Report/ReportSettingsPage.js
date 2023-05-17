@@ -91,8 +91,8 @@ class ReportSettingsPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('common.settings')}
                         shouldShowBackButton
-                        onBackButtonPress={Navigation.goBack}
-                        onCloseButtonPress={Navigation.dismissModal}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(this.props.report.reportID))}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon

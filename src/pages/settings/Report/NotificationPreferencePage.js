@@ -40,7 +40,7 @@ const NotificationPreferencePage = (props) => {
             <HeaderWithCloseButton
                 title={props.translate('notificationPreferencesPage.header')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID))}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <OptionsList
