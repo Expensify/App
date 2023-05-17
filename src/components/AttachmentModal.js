@@ -250,7 +250,7 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const source = this.state.source;
+        const source = this.props.source || this.state.source;
         return (
             <>
                 <Modal
@@ -282,12 +282,11 @@ class AttachmentModal extends PureComponent {
                             <AttachmentCarousel
                                 reportID={this.props.reportID}
                                 onNavigate={this.onNavigate}
-                                source={this.props.source}
+                                source={source}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
                         ) : (
-                            Boolean(this.state.source) &&
-                            this.state.shouldLoadAttachment && (
+                            Boolean(source) && this.state.shouldLoadAttachment && (
                                 <AttachmentView
                                     containerStyles={[styles.mh5]}
                                     source={source}
