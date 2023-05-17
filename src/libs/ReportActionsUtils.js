@@ -102,7 +102,7 @@ function isTransactionThread(parentReportAction) {
     return (
         parentReportAction &&
         parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
+        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails')))
     );
 }
 
