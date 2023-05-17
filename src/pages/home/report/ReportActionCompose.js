@@ -48,7 +48,6 @@ import MentionSuggestions from '../../../components/MentionSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as Welcome from '../../../libs/actions/Welcome';
@@ -232,24 +231,6 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                const suggestionsExist = this.state.suggestedEmojis.length > 0 || this.state.suggestedMentions.length > 0;
-
-                if (!this.state.isFocused || this.comment.length === 0 || suggestionsExist) {
-                    return;
-                }
-
-                this.updateComment('', true);
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
         this.setMaxLines();
         this.updateComment(this.comment);
 
@@ -294,10 +275,6 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-
-        if (this.unsubscribeEscapeKey) {
-            this.unsubscribeEscapeKey();
-        }
     }
 
     onSelectionChange(e) {
@@ -773,9 +750,13 @@ class ReportActionCompose extends React.Component {
             }
             return;
         }
-        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && suggestionsExist) {
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
             e.preventDefault();
-            this.resetSuggestions();
+            if (suggestionsExist) {
+                this.resetSuggestions();
+            } else if (this.comment.length > 0) {
+                this.updateComment('', true);
+            }
             return;
         }
 
