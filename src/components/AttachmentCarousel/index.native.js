@@ -287,9 +287,6 @@ class AttachmentCarousel extends React.Component {
 		return (
 			<View
 				style={[styles.attachmentModalArrowsContainer, styles.flex1]}
-				onLayout={({ nativeEvent }) => this.setState({ containerWidth: nativeEvent.layout.width + 1 })}
-				onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
-				onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
 			>
 				{this.state.shouldShowArrow && (
 					<>
@@ -334,44 +331,12 @@ class AttachmentCarousel extends React.Component {
 					</>
 				)}
 
-
-				{this.state.containerWidth > 0 && (
-					<FlatList
-						listKey="AttachmentCarousel"
-						horizontal
-						// Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
-						// promotes the natural feeling of swiping left/right to go to the next/previous image
-						// We don't want to invert the list for desktop/web because this interferes with mouse
-						// wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
-						inverted={this.canUseTouchScreen}
-						decelerationRate="fast"
-						showsHorizontalScrollIndicator={false}
-						bounces={false}
-						// Scroll only one image at a time no matter how fast the user swipes
-						disableIntervalMomentum
-						pagingEnabled
-						snapToAlignment="start"
-						snapToInterval={this.state.containerWidth}
-						// Enable scrolling by swiping on mobile (touch) devices only
-						// disable scroll for desktop/browsers because they add their scrollbars
-						// Enable scrolling FlatList only when PDF is not in a zoomed state
-						scrollEnabled={this.canUseTouchScreen && !this.state.isZoomed}
-						ref={this.scrollRef}
-						initialScrollIndex={this.state.page}
-						initialNumToRender={3}
-						windowSize={5}
-						maxToRenderPerBatch={3}
-						data={this.state.attachments}
-						CellRendererComponent={this.renderCell}
-						renderItem={this.renderItem}
-						getItemLayout={this.getItemLayout}
-						keyExtractor={(item) => item.source}
-						viewabilityConfig={this.viewabilityConfig}
-						onViewableItemsChanged={this.updatePage}
-					/>
-				)}
-
-				<CarouselActions onCycleThroughAttachments={this.cycleThroughAttachments} />
+				<Pager
+					items={this.state.attachments}
+					initialIndex={this.state.page}
+					onTap={this.toggleArrowsVisibility}
+					itemExtractor={({ item }) => ({ key: item.source, url: addEncryptedAuthTokenToURL(item.source) })}
+				/>
 			</View>
 		);
 	}
