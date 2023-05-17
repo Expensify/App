@@ -219,7 +219,6 @@ const IOUPreview = (props) => {
                                 <MultipleAvatars
                                     icons={participantAvatars}
                                     secondAvatarStyle={[styles.secondAvatarInline, props.isHovered ? styles.iouPreviewBoxAvatarHover : undefined]}
-                                    avatarTooltips={participantEmails}
                                 />
                             </View>
                         )}
