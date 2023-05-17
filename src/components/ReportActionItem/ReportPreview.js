@@ -6,7 +6,6 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Text from '../Text';
 import Icon from '../Icon';
-import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -140,7 +139,7 @@ const ReportPreview = (props) => {
                     />
                 </Pressable>
             ))}
-            {isCurrentUserManager && props.iouReport.state === CONST.REPORT.STATE.SUBMITTED && (
+            {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
                 <SettlementButton
                     currency={props.iouReport.currency}
                     policyID={props.iouReport.policyID}
