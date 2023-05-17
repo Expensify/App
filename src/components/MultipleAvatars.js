@@ -42,7 +42,7 @@ const propTypes = {
     isInReportAction: PropTypes.bool,
 
     /** Whether to show the toolip text */
-    shouldShowTooltip: PropTypes.bool,
+    shouldShowTooltipText: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -55,7 +55,7 @@ const defaultProps = {
     isPressed: false,
     isFocusMode: false,
     isInReportAction: false,
-    shouldShowTooltip: true,
+    shouldShowTooltipText: true,
 };
 
 const MultipleAvatars = (props) => {
@@ -70,7 +70,7 @@ const MultipleAvatars = (props) => {
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
         return (
             <View style={avatarContainerStyles}>
-                <Tooltip text={props.shouldShowTooltip && props.icons[0].name}>
+                <Tooltip text={props.shouldShowTooltipText && props.icons[0].name}>
                     <Avatar
                         source={props.icons[0].source}
                         size={props.size}
@@ -108,7 +108,7 @@ const MultipleAvatars = (props) => {
                 <>
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
                         <Tooltip
-                            text={props.shouldShowTooltip && icon.name}
+                            text={props.shouldShowTooltipText && icon.name}
                             absolute
                         >
                             <View
@@ -134,7 +134,7 @@ const MultipleAvatars = (props) => {
                     {props.icons.length > 4 && (
                         <Tooltip
                             // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                            text={props.shouldShowTooltip && _.pluck(props.icons, 'name').slice(3, 10).join(', ')}
+                            text={props.shouldShowTooltipText && _.pluck(props.icons, 'name').slice(3, 10).join(', ')}
                             absolute
                         >
                             <View
@@ -161,7 +161,7 @@ const MultipleAvatars = (props) => {
             ) : (
                 <View style={singleAvatarStyles}>
                     <Tooltip
-                        text={props.shouldShowTooltip && props.icons[0].name}
+                        text={props.shouldShowTooltipText && props.icons[0].name}
                         absolute
                     >
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
@@ -179,7 +179,7 @@ const MultipleAvatars = (props) => {
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
                             <Tooltip
-                                text={props.shouldShowTooltip && props.icons[1].name}
+                                text={props.shouldShowTooltipText && props.icons[1].name}
                                 absolute
                             >
                                 <View>
@@ -195,7 +195,7 @@ const MultipleAvatars = (props) => {
                             </Tooltip>
                         ) : (
                             <Tooltip
-                                text={props.shouldShowTooltip && _.pluck(props.icons, 'name').slice(1).join(', ')}
+                                text={props.shouldShowTooltipText && _.pluck(props.icons, 'name').slice(1).join(', ')}
                                 absolute
                             >
                                 <View style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>

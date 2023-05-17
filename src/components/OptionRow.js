@@ -195,7 +195,7 @@ class OptionRow extends Component {
                                                     this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                     hovered && !this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                                 ]}
-                                                shouldShowTooltip={this.props.showTitleTooltip}
+                                                shouldShowTooltipText={this.props.showTitleTooltip}
                                             />
                                         ))}
                                     <View style={contentContainerStyles}>
