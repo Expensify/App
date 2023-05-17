@@ -7,9 +7,7 @@ import Checkbox from './Checkbox';
 import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
 import variables from '../styles/variables';
-import * as Pressables from './Pressable';
-
-const PressableWithFeedback = Pressables.PressableWithFeedback;
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
@@ -114,8 +112,8 @@ class CheckboxWithLabel extends React.Component {
                         pressDimmingValue={variables.checkboxLabelActiveOpacity}
                         // We want to disable hover dimming
                         hoverDimmingValue={1}
-                        style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, styles.noSelect]}
-                        wrapperStyle={[styles.ml3, styles.pr2, styles.w100]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
+                        wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
                     >
                         {this.props.label && <Text style={[styles.ml1]}>{this.props.label}</Text>}
                         {this.LabelComponent && <this.LabelComponent />}
