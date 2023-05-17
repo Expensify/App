@@ -154,9 +154,7 @@ const HeaderView = (props) => {
                                     secondaryTooltip={subtitle}
                                 />
                             ) : (
-                                <MultipleAvatars
-                                    icons={icons}
-                                />
+                                <MultipleAvatars icons={icons} />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
