@@ -1565,10 +1565,6 @@ const styles = {
             height: 'auto',
             lineHeight: variables.lineHeightXLarge,
             ...overflowXHidden,
-
-            // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
-            // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
-
             paddingHorizontal: variables.avatarChatSpacing,
             paddingTop: 5,
             paddingBottom: 5,
