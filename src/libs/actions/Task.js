@@ -7,8 +7,8 @@ import * as ReportUtils from '../ReportUtils';
 import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import DateUtils from '../DateUtils';
 import CONST from '../../CONST';
+import DateUtils from '../DateUtils';
 
 /**
  * Clears out the task info from the store
@@ -502,6 +502,71 @@ function getShareDestination(reportID, reports, personalDetails) {
     };
 }
 
+/**
+ * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
+ * @param {string} taskReportID
+ * @param {string} parentReportID
+ * @param {string} taskTitle
+ * @param {number} originalStateNum
+ * @param {number} originalStatusNum
+ */
+function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, originalStatusNum) {
+    const message = `Canceled task: ${taskTitle}`;
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELED, message);
+    const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS.CLOSED,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: {
+                lastVisibleActionCreated: optimisticCancelReportAction.created,
+                lastMessageText: message,
+                lastActorEmail: optimisticCancelReportAction.actorEmail,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                [optimisticReportActionID]: optimisticCancelReportAction,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            value: {
+                stateNum: originalStateNum,
+                statusNum: originalStatusNum,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                [optimisticReportActionID]: null,
+            },
+        },
+    ];
+
+    API.write('CancelTask', {taskReportID, optimisticReportActionID}, {optimisticData, failureData});
+}
+
+function isTaskCanceled(taskReport) {
+    return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -517,4 +582,6 @@ export {
     clearOutTaskInfoAndNavigate,
     getAssignee,
     getShareDestination,
+    cancelTask,
+    isTaskCanceled,
 };
