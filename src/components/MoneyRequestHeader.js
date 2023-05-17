@@ -90,7 +90,7 @@ const MoneyRequestHeader = (props) => {
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
-    const policy = props.policies[`policy_${props.report.policyID}`];
+    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const shouldShowSettlementButton =
         !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(props.report) && lodashGet(props.session, 'email', null) === props.report.managerEmail));
     return (

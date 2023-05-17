@@ -94,11 +94,6 @@ class SettlementButton extends React.Component {
         }
         if (this.props.shouldShowPaypal && _.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, this.props.currency)) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]);
-            buttonOptions.push({
-                text: this.props.translate('iou.settlePaypalMe'),
-                icon: Expensicons.PayPal,
-                value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
-            });
         }
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
         return buttonOptions;
