@@ -76,10 +76,14 @@ function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
     const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
 
+    const browser = getBrowser();
+
     // This check is necessary for Safari, otherwise, if the user
     // does NOT have the Expensify desktop app installed, it's gonna
-    // show an error in the page saying that the address is invalid
-    if (CONST.BROWSER.SAFARI === getBrowser()) {
+    // show an error in the page saying that the address is invalid.
+    // It is also necessary for Firefox, otherwise the window.location.href redirect
+    // will abort the fetch request from NetInfo, which will cause the app to go offline temporarily.
+    if (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX) {
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         document.body.appendChild(iframe);

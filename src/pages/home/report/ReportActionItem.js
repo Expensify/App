@@ -47,6 +47,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
@@ -185,13 +186,17 @@ class ReportActionItem extends Component {
      */
     renderItemContent(hovered = false) {
         let children;
+        const originalMessage = lodashGet(this.props.action, 'originalMessage', {});
+        // Show the IOUPreview for when request was created, bill was split or money was sent
         if (
             this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.DELETE &&
-            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY
+            originalMessage &&
+            (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
+                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
+            const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
 
             children = (
                 <MoneyRequestAction
@@ -199,6 +204,17 @@ class ReportActionItem extends Component {
                     requestReportID={iouReportID}
                     action={this.props.action}
                     isMostRecentIOUReportAction={this.props.isMostRecentIOUReportAction}
+                    isHovered={hovered}
+                    contextMenuAnchor={this.popoverAnchor}
+                    checkIfContextMenuActive={this.checkIfContextMenuActive}
+                />
+            );
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
+            children = (
+                <ReportPreview
+                    iouReportID={this.props.action.originalMessage.linkedReportID}
+                    chatReportID={this.props.report.reportID}
+                    action={this.props.action}
                     isHovered={hovered}
                     contextMenuAnchor={this.popoverAnchor}
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
