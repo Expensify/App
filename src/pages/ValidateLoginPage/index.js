@@ -69,5 +69,5 @@ export default compose(
     withOnyx({
         betas: {key: ONYXKEYS.BETAS},
         session: {key: ONYXKEYS.SESSION},
-    })
+    }),
 )(ValidateLoginPage);
