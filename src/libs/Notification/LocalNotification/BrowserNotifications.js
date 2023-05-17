@@ -103,8 +103,10 @@ export default {
         let body;
 
         const isChatRoom = ReportUtils.isChatRoom(report);
+
         const {person, message} = reportAction;
         const plainTextPerson = _.map(person, (f) => f.text).join();
+
         // Specifically target the comment part of the message
         const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
 
