@@ -1067,6 +1067,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: optimisticTransaction,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+            value: {[iouReport.policyID]: paymentMethodType},
+        },
     ];
 
     const successData = [

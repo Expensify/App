@@ -1216,7 +1216,7 @@ const styles = {
 
     createMenuPositionProfile: (windowWidth) => ({
         horizontal: windowWidth - 355,
-        vertical: 332,
+        vertical: 250,
     }),
 
     createMenuPositionReportActionCompose: (windowHeight) => ({

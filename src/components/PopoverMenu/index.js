@@ -63,7 +63,7 @@ const PopoverMenu = (props) => {
     return (
         <PopoverWithMeasuredContent
             anchorPosition={props.anchorPosition}
-            anchorOrigin={props.anchorOrigin}
+            anchorAlignment={props.anchorOrigin}
             onClose={props.onClose}
             isVisible={props.isVisible}
             onModalHide={() => setFocusedIndex(-1)}

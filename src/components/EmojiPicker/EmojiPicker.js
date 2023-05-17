@@ -161,7 +161,7 @@ class EmojiPicker extends React.Component {
                     width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                     height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
                 }}
-                anchorOrigin={this.state.emojiPopoverAnchorOrigin}
+                anchorAlignment={this.state.emojiPopoverAnchorOrigin}
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
