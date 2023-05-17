@@ -14,6 +14,7 @@ import withParentReportAction, {withParentReportActionPropTypes, withParentRepor
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import ReportActionItem from './ReportActionItem';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The id of the report */
@@ -37,29 +38,37 @@ const defaultProps = {
     ...withParentReportActionDefaultProps,
 };
 
-const ReportActionItemParentAction = (props) => (
-    <OfflineWithFeedback
-        pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
-        errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
-        errorRowStyles={[styles.ml10, styles.mr2]}
-        onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
-    >
-        <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-            <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
-            {props.parentReportAction && (
-                <ReportActionItem
-                    report={props.report}
-                    action={props.parentReportAction}
-                    displayAsGroup={false}
-                    isMostRecentIOUReportAction={false}
-                    shouldDisplayNewMarker={false}
-                    index={0}
-                />
-            )}
-        </View>
-        <View style={[styles.threadDividerLine]} />
-    </OfflineWithFeedback>
-);
+const ReportActionItemParentAction = (props) => {
+    const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
+
+    // In case of transaction threads, we do not want to render the parent report action.
+    if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        return null;
+    }
+    return (
+        <OfflineWithFeedback
+            pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
+            errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
+            errorRowStyles={[styles.ml10, styles.mr2]}
+            onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
+        >
+            <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+                <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
+                {parentReportAction && (
+                    <ReportActionItem
+                        report={props.report}
+                        action={parentReportAction}
+                        displayAsGroup={false}
+                        isMostRecentIOUReportAction={false}
+                        shouldDisplayNewMarker={false}
+                        index={0}
+                    />
+                )}
+            </View>
+            <View style={[styles.threadDividerLine]} />
+        </OfflineWithFeedback>
+    );
+};
 
 ReportActionItemParentAction.defaultProps = defaultProps;
 ReportActionItemParentAction.propTypes = propTypes;
