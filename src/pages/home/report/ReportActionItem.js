@@ -124,30 +124,33 @@ function ReportActionItem(props) {
      *
      * @param {Object} [event] - A press event.
      */
-    const showPopover = useCallback((event) => {
-        // Block menu on the message being Edited or if the report action item has errors
-        if (props.draftMessage || !_.isEmpty(props.action.errors)) {
-            return;
-        }
+    const showPopover = useCallback(
+        (event) => {
+            // Block menu on the message being Edited or if the report action item has errors
+            if (props.draftMessage || !_.isEmpty(props.action.errors)) {
+                return;
+            }
 
-        setIsContextMenuActive(true);
+            setIsContextMenuActive(true);
 
-        const selection = SelectionScraper.getCurrentSelection();
-        ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
-            event,
-            selection,
-            popoverAnchorRef,
-            props.report.reportID,
-            props.action,
-            props.draftMessage,
-            undefined,
-            toggleContextMenuFromActiveReportAction,
-            ReportUtils.isArchivedRoom(props.report),
-            ReportUtils.chatIncludesChronos(props.report),
-            props.action.childReportID,
-        );
-    });
+            const selection = SelectionScraper.getCurrentSelection();
+            ReportActionContextMenu.showContextMenu(
+                ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                event,
+                selection,
+                popoverAnchorRef,
+                props.report.reportID,
+                props.action,
+                props.draftMessage,
+                () => {},
+                toggleContextMenuFromActiveReportAction,
+                ReportUtils.isArchivedRoom(props.report),
+                ReportUtils.chatIncludesChronos(props.report),
+                props.action.childReportID,
+            );
+        },
+        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
+    );
 
     const toggleReaction = useCallback(
         (emoji) => {
@@ -193,8 +196,8 @@ function ReportActionItem(props) {
                     chatReportID={props.report.reportID}
                     action={props.action}
                     isHovered={hovered}
-                    contextMenuAnchor={popoverAnchor}
-                    checkIfContextMenuActive={checkIfContextMenuActive}
+                    contextMenuAnchor={popoverAnchorRef}
+                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 />
             );
         } else if (
