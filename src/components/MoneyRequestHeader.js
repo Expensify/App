@@ -145,7 +145,7 @@ const MoneyRequestHeader = (props) => {
                                 />
                             </View>
                         )}
-                        {(shouldShowSettlementButton && !props.isSmallScreenWidth) && (
+                        {shouldShowSettlementButton && !props.isSmallScreenWidth && (
                             <View style={[styles.ml4]}>
                                 <SettlementButton
                                     currency={props.report.currency}
@@ -162,7 +162,7 @@ const MoneyRequestHeader = (props) => {
                         )}
                     </View>
                 </View>
-                {(shouldShowSettlementButton && props.isSmallScreenWidth) && (
+                {shouldShowSettlementButton && props.isSmallScreenWidth && (
                     <SettlementButton
                         currency={props.report.currency}
                         policyID={props.report.policyID}
