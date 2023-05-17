@@ -193,7 +193,7 @@ class PopoverReactionList extends React.Component {
         const reactionUsers = lodashMap(selectedReaction.users, (sender) => sender.accountID.toString());
         const emoji = lodashFind(emojis, (e) => e.name === selectedReaction.emoji);
         const emojiCodes = getUniqueEmojiCodes(emoji, selectedReaction.users);
-        const hasUserReacted = Report.hasAccountIDReacted(this.props.currentUserPersonalDetails.accountID, reactionUsers);
+        const hasUserReacted = Report.hasAccountIDEmojiReacted(this.props.currentUserPersonalDetails.accountID, reactionUsers);
         const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
         return {
             emojiCount,

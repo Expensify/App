@@ -12,7 +12,6 @@ import getPreferredEmojiCode from './getPreferredEmojiCode';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import * as Report from '../../libs/actions/Report';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 
 /**
@@ -66,6 +65,9 @@ const propTypes = {
             ),
         }),
     ),
+
+    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
+    reportActionID: PropTypes.string.isRequired,
 
     /**
      * Function to call when the user presses on an emoji.
@@ -126,8 +128,7 @@ const ReportActionItemEmojiReactions = (props) => {
                     props.toggleReaction(emojiAsset);
                 };
                 const onReactionListOpen = (event) => {
-                    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers, props.currentUserPersonalDetails.accountID);
-                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, users, reaction.emoji, emojiCodes, reactionCount, hasUserReacted);
+                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
                 };
 
                 return (
