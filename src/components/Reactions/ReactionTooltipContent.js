@@ -32,6 +32,7 @@ const defaultProps = {
 };
 
 const ReactionTooltipContent = (props) => {
+    console.log(props.accountIDs);
     const users = useMemo(
         () => PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, props.currentUserPersonalDetails.accountID, true),
         [props.currentUserPersonalDetails.accountID, props.accountIDs],

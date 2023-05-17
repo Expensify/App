@@ -87,19 +87,37 @@ const ReportActionItemEmojiReactions = (props) => {
     const popoverReactionListAnchor = useRef(null);
     let totalReactionCount = 0;
     // @TODO: need to sort everything so that emojis and users are in the order they were added
+
+    // each emoji is sorted by the oldest timestamp of user reactions
+    const sortedReactions = _.sortBy(props.emojiReactions, (emojiReaction, emojiName) => {
+        emojiReaction.emojiName = emojiName;
+        return _.reduce(
+            emojiReaction.users,
+            (oldestTimestamp, userData) => {
+                // userData can be null in the case where they have removed all their reactions of this emoji
+                if (!userData) {
+                    return oldestTimestamp;
+                }
+                const oldestUserReaction = _.chain(userData.skinTones).values().flatten().sort().first().value();
+                return oldestUserReaction < oldestTimestamp ? oldestUserReaction : oldestTimestamp;
+            },
+            '',
+        );
+    });
     return (
         <View
             ref={popoverReactionListAnchor}
             style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
         >
-            {_.map(props.emojiReactions, (reaction, reactionEmoji) => {
+            {_.map(sortedReactions, (reaction) => {
+                const reactionEmojiName = reaction.emojiName;
                 const usersWithReactions = _.filter(reaction.users, (userData) => userData);
                 const reactionCount = _.size(usersWithReactions);
                 if (!reactionCount) {
                     return null;
                 }
                 totalReactionCount += reactionCount;
-                const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmoji);
+                const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmojiName);
                 const emojiCodes = getUniqueEmojiCodes(emojiAsset, reaction.users);
                 const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
                 const reactionUsers = _.keys(reaction.users);
@@ -116,13 +134,13 @@ const ReportActionItemEmojiReactions = (props) => {
                     <Tooltip
                         renderTooltipContent={() => (
                             <ReactionTooltipContent
-                                emojiName={reactionEmoji}
+                                emojiName={reactionEmojiName}
                                 emojiCodes={emojiCodes}
                                 accountIDs={reactionUsers}
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
-                        key={reactionEmoji}
+                        key={reactionEmojiName}
                     >
                         <EmojiReactionBubble
                             count={reactionCount}
