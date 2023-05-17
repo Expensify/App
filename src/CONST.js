@@ -576,6 +576,7 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        // Options for which room members can post
         WRITE_CAPABILITIES: {
             ALL: 'all',
             ADMINS: 'admins',

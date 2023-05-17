@@ -437,13 +437,9 @@ function isAllowedToComment(report, policy) {
         return true;
     }
 
-    // If we've made it here, commenting on this report is restricted
-    // If the user is an admin, allow them to post
-    if (lodashGet(policy, 'role', '') === CONST.POLICY.ROLE.ADMIN) {
-        return true;
-    }
-
-    return false;
+    // If we've made it here, commenting on this report is restricted.
+    // If the user is an admin, allow them to post.
+    return lodashGet(policy, 'role', '') === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
