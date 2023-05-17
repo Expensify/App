@@ -72,7 +72,7 @@ class ReportFooter extends React.Component {
 
     render() {
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
+        const linkedWorkspace = _.findWhere(this.props.policies, {id: this.props.report.policyID});
         const isAllowedToComment = ReportUtils.isAllowedToComment(this.props.report, linkedWorkspace);
         const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || !isAllowedToComment;
 

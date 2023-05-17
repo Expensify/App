@@ -65,6 +65,7 @@ class ReportSettingsPage extends Component {
         super(props);
 
         this.validate = this.validate.bind(this);
+        this.updateWriteCapability = this.updateWriteCapability.bind(this);
     }
 
     getNotificationPreferenceOptions() {
@@ -118,6 +119,14 @@ class ReportSettingsPage extends Component {
             return;
         }
         Report.updatePolicyRoomName(this.props.report, values.newRoomName);
+    }
+
+    updateWriteCapability(writeCapability) {
+        if (this.props.report.writeCapability === writeCapability) {
+            return;
+        }
+
+        Report.updateWriteCapability(this.props.report.reportID, this.props.report.writeCapability, writeCapability);
     }
 
     /**
@@ -229,13 +238,7 @@ class ReportSettingsPage extends Component {
                             {shouldAllowWriteCapabilityEditing ? (
                                 <Picker
                                     label={this.props.translate('reportSettings.writeCapability.label')}
-                                    onInputChange={(writeCapability) => {
-                                        if (this.props.report.writeCapability === writeCapability) {
-                                            return;
-                                        }
-
-                                        Report.updateWriteCapability(this.props.report.reportID, this.props.report.writeCapability, writeCapability);
-                                    }}
+                                    onInputChange={this.updateWriteCapability}
                                     items={this.getWriteCapabilityOptions()}
                                     value={this.props.report.writeCapability}
                                 />

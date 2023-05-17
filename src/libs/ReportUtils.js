@@ -431,7 +431,7 @@ function getPolicyName(report) {
  */
 function isAllowedToComment(report, policy) {
     // If the capability is unset, default to allowing all users to post
-    const capability = lodashGet(report, 'writeCapability', 'all');
+    const capability = lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL);
 
     if (capability === CONST.REPORT.WRITE_CAPABILITIES.ALL) {
         return true;
