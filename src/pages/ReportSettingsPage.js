@@ -227,7 +227,7 @@ class ReportSettingsPage extends Component {
                         )}
                         <View>
                             <View style={[styles.mt2]}>
-                                {shouldAllowWriteCapabilityEditing && (
+                                {shouldAllowWriteCapabilityEditing ? (
                                     <Picker
                                         label={this.props.translate('reportSettings.writeCapability.label')}
                                         onInputChange={(writeCapability) => {
@@ -240,6 +240,23 @@ class ReportSettingsPage extends Component {
                                         items={this.getWriteCapabilityOptions()}
                                         value={this.props.report.writeCapability}
                                     />
+                                ) : (
+                                    <View>
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                            numberOfLines={1}
+                                        >
+                                            {this.props.translate('reportSettings.writeCapability.label')}
+                                        </Text>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[styles.optionAlternateText, styles.pre]}
+                                        >
+                                            {_.isEmpty(this.props.report.writeCapability)
+                                                ? this.props.translate('reportSettings.writeCapability.all')
+                                                : this.props.translate(`reportSettings.writeCapability.${this.props.report.writeCapability}`)}
+                                        </Text>
+                                    </View>
                                 )}
                             </View>
                         </View>
