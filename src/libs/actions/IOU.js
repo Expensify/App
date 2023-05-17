@@ -338,7 +338,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     );
 
     let isNewReportPreviewAction = false;
-    let reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (!reportPreviewAction) {
         isNewReportPreviewAction = true;
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport.reportID, iouReport.reportID);
@@ -1037,6 +1037,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingIOU: false,
                 iouReportID: null,
+                lastMessageText: optimisticIOUReportAction.message[0].text,
+                lastMessageHtml: optimisticIOUReportAction.message[0].html,
             },
         },
         {
