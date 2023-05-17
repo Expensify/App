@@ -7,6 +7,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
+import convertToLTR from '../libs/convertToLTR';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import CONST from '../CONST';
@@ -160,7 +161,7 @@ const MenuItem = (props) => {
                                     style={titleTextStyle}
                                     numberOfLines={1}
                                 >
-                                    {StyleUtils.convertToLTR(props.title)}
+                                    {convertToLTR(props.title)}
                                 </Text>
                             )}
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (

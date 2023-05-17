@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
-import {TouchableOpacity, Animated} from 'react-native';
+import {Animated} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
+import * as Pressables from './Pressable';
 
 const propTypes = {
     /** Whether the switch is toggled to the on position */
@@ -9,8 +10,12 @@ const propTypes = {
 
     /** Callback to fire when the switch is toggled */
     onToggle: PropTypes.func.isRequired,
+
+    /** Accessibility label for the switch */
+    accessibilityLabel: PropTypes.string.isRequired,
 };
 
+const PressableWithFeedback = Pressables.PressableWithFeedback;
 class Switch extends Component {
     constructor(props) {
         super(props);
@@ -19,6 +24,7 @@ class Switch extends Component {
         this.offsetX = new Animated.Value(props.isOn ? this.onPosition : this.offPosition);
 
         this.toggleSwitch = this.toggleSwitch.bind(this);
+        this.toggleAction = this.toggleAction.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -29,6 +35,7 @@ class Switch extends Component {
         this.toggleSwitch();
     }
 
+    // animates the switch to the on or off position
     toggleSwitch() {
         Animated.timing(this.offsetX, {
             toValue: this.props.isOn ? this.onPosition : this.offPosition,
@@ -37,16 +44,28 @@ class Switch extends Component {
         }).start();
     }
 
+    // executes the callback passed in as a prop
+    toggleAction() {
+        this.props.onToggle(!this.props.isOn);
+    }
+
     render() {
         const switchTransform = {transform: [{translateX: this.offsetX}]};
         return (
-            <TouchableOpacity
+            <PressableWithFeedback
                 style={[styles.switchTrack, !this.props.isOn && styles.switchInactive]}
-                activeOpacity={0.8}
-                onPress={() => this.props.onToggle(!this.props.isOn)}
+                onPress={this.toggleAction}
+                onLongPress={this.toggleAction}
+                accessibilityRole="switch"
+                accessibilityState={{checked: this.props.isOn}}
+                aria-checked={this.props.isOn}
+                accessibilityLabel={this.props.accessibilityLabel}
+                // disable hover dim for switch
+                hoverDimmingValue={1}
+                pressDimmingValue={0.8}
             >
                 <Animated.View style={[styles.switchThumb, switchTransform]} />
-            </TouchableOpacity>
+            </PressableWithFeedback>
         );
     }
 }

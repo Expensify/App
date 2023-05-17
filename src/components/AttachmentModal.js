@@ -36,6 +36,9 @@ const propTypes = {
 	/** Optional callback to fire when we want to preview an image and approve it for use. */
 	onConfirm: PropTypes.func,
 
+	/** Optional callback to fire when we want to do something after modal show. */
+	onModalShow: PropTypes.func,
+
 	/** Optional callback to fire when we want to do something after modal hide. */
 	onModalHide: PropTypes.func,
 
@@ -70,6 +73,7 @@ const defaultProps = {
 	allowDownload: false,
 	headerTitle: null,
 	reportID: '',
+	onModalShow: () => { },
 	onModalHide: () => { },
 };
 
@@ -164,8 +168,8 @@ class AttachmentModal extends PureComponent {
 	 */
 	isValidFile(file) {
 		const { fileExtension } = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-		if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-			const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+		if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+			const invalidReason = this.props.translate('attachmentPicker.notAllowedExtension');
 			this.setState({
 				isAttachmentInvalid: true,
 				attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
@@ -248,7 +252,6 @@ class AttachmentModal extends PureComponent {
 
 	render() {
 		const source = this.state.source;
-		console.log('render attachment modal')
 
 		return (
 			<>
@@ -258,63 +261,63 @@ class AttachmentModal extends PureComponent {
 					onClose={() => this.setState({ isModalOpen: false })}
 					isVisible={this.state.isModalOpen}
 					backgroundColor={themeColors.componentBG}
-					onModalShow={() => this.setState({ shouldLoadAttachment: true })}
+					onModalShow={() => {
+						this.props.onModalShow();
+						this.setState({ shouldLoadAttachment: true });
+					}}
 					onModalHide={(e) => {
 						this.props.onModalHide(e);
 						this.setState({ shouldLoadAttachment: false });
 					}}
 					propagateSwipe
 				>
-					<GestureHandlerRootView style={{ flex: 1 }}>
-						{this.props.isSmallScreenWidth && <HeaderGap />}
-						<HeaderWithCloseButton
-							title={this.props.headerTitle || this.props.translate('common.attachment')}
-							shouldShowBorderBottom
-							shouldShowDownloadButton={this.props.allowDownload}
-							onDownloadButtonPress={() => this.downloadAttachment(source)}
-							onCloseButtonPress={() => this.setState({ isModalOpen: false })}
-						/>
-						<View style={styles.imageModalImageCenterContainer}>
-							{this.props.reportID ? (
-
-								<AttachmentCarousel
-									reportID={this.props.reportID}
-									onNavigate={this.onNavigate}
-									source={this.props.source}
+					{this.props.isSmallScreenWidth && <HeaderGap />}
+					<HeaderWithCloseButton
+						title={this.props.headerTitle || this.props.translate('common.attachment')}
+						shouldShowBorderBottom
+						shouldShowDownloadButton={this.props.allowDownload}
+						onDownloadButtonPress={() => this.downloadAttachment(source)}
+						onCloseButtonPress={() => this.setState({ isModalOpen: false })}
+					/>
+					<View style={styles.imageModalImageCenterContainer}>
+						{this.props.reportID ? (
+							<AttachmentCarousel
+								reportID={this.props.reportID}
+								onNavigate={this.onNavigate}
+								source={this.props.source}
+								onToggleKeyboard={this.updateConfirmButtonVisibility}
+							/>
+						) : (
+							Boolean(this.state.source) &&
+							this.state.shouldLoadAttachment && (
+								<AttachmentView
+									containerStyles={[styles.mh5]}
+									source={source}
+									isAuthTokenRequired={this.props.isAuthTokenRequired}
+									file={this.state.file}
 									onToggleKeyboard={this.updateConfirmButtonVisibility}
 								/>
-
-							) : (
-								Boolean(this.state.source) &&
-								this.state.shouldLoadAttachment && (
-									<AttachmentView
-										source={source}
-										isAuthTokenRequired={this.props.isAuthTokenRequired}
-										file={this.state.file}
-										onToggleKeyboard={this.updateConfirmButtonVisibility}
-									/>
-								)
-							)}
-						</View>
-						{/* If we have an onConfirm method show a confirmation button */}
-						{Boolean(this.props.onConfirm) && (
-							<SafeAreaConsumer>
-								{({ safeAreaPaddingBottomStyle }) => (
-									<Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
-										<Button
-											success
-											style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
-											textStyles={[styles.buttonConfirmText]}
-											text={this.props.translate('common.send')}
-											onPress={this.submitAndClose}
-											disabled={this.state.isConfirmButtonDisabled}
-											pressOnEnter
-										/>
-									</Animated.View>
-								)}
-							</SafeAreaConsumer>
+							)
 						)}
-					</GestureHandlerRootView>
+					</View>
+					{/* If we have an onConfirm method show a confirmation button */}
+					{Boolean(this.props.onConfirm) && (
+						<SafeAreaConsumer>
+							{({ safeAreaPaddingBottomStyle }) => (
+								<Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+									<Button
+										success
+										style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
+										textStyles={[styles.buttonConfirmText]}
+										text={this.props.translate('common.send')}
+										onPress={this.submitAndClose}
+										disabled={this.state.isConfirmButtonDisabled}
+										pressOnEnter
+									/>
+								</Animated.View>
+							)}
+						</SafeAreaConsumer>
+					)}
 				</Modal>
 
 				<ConfirmModal
