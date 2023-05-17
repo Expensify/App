@@ -25,10 +25,15 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import DateUtils from '../libs/DateUtils';
 
 const propTypes = {
     /** The report currently being looked at */
     report: iouReportPropTypes.isRequired,
+
+    /** The expense report or iou report (only will have a value if this is a transaction thread) */
+    parentReport: iouReportPropTypes,
 
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
@@ -62,16 +67,26 @@ const defaultProps = {
     chatReport: {},
     reimbursementAccount: {},
     account: {},
+    parentReport: {},
 };
 
 const MoneyRequestHeader = (props) => {
+    // These are only used for the single transaction view and not "money requests"
+    const transactionAmount = lodashGet(props.parentReportAction, ['originalMessage', 'amount']);
+    const transactionCurrency = lodashGet(props.parentReportAction, ['originalMessage', 'currency']);
+    const transactionDescription = lodashGet(props.parentReportAction, ['originalMessage', 'comment']);
+    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
+    const transactionDate = lodashGet(props.parentReportAction, ['created']);
+    const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
+
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-    const isSettled = ReportUtils.isSettled(props.chatReport.reportID);
-    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
-    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(props.report, props.policies) : ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
+    const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
+    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
+    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerEmail);
     const payeeAvatar = isExpenseReport
-        ? ReportUtils.getWorkspaceAvatar(props.report)
-        : ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+        ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
+        : ReportUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
     const policy = props.policies[`policy_${props.report.policyID}`];
     const shouldShowSettlementButton =
         !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isExpenseReport(props.report) && props.account.primaryLogin === props.report.managerEmail));
@@ -88,7 +103,7 @@ const MoneyRequestHeader = (props) => {
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={props.report}
+                report={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowCloseButton={false}
@@ -147,6 +162,23 @@ const MoneyRequestHeader = (props) => {
                     />
                 )}
             </View>
+            {props.isSingleTransactionView && (
+                <>
+                    <MenuItemWithTopDescription
+                        title={formattedTransactionAmount}
+                        description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}`}
+                        titleStyle={styles.newKansasLarge}
+                    />
+                    <MenuItemWithTopDescription
+                        description={props.translate('common.description')}
+                        title={transactionDescription}
+                    />
+                    <MenuItemWithTopDescription
+                        description={props.translate('common.date')}
+                        title={formattedTransactionDate}
+                    />
+                </>
+            )}
         </View>
     );
 };
@@ -167,6 +199,9 @@ export default compose(
         },
         account: {
             key: ONYXKEYS.ACCOUNT,
+        },
+        parentReport: {
+            key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
         },
     }),
 )(MoneyRequestHeader);
