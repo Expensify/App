@@ -12,11 +12,11 @@ const stylePropTypeWithFunction = PropTypes.oneOfType([stylePropType, PropTypes.
  * @returns {Error} Error if prop is required
  */
 function requiredIfAccessible(props, propName, componentName) {
-    if ((props.accessible !== true || (props[propName] !== undefined && typeof(props[propName]) === 'string'))) {
+    if (props.accessible !== true || (props[propName] !== undefined && typeof props[propName] === 'string')) {
         return;
     }
     return new Error(`Provide a valid string for ${propName} prop when accessible is true in ${componentName}`);
-};
+}
 
 const pressablePropTypes = {
     /**
