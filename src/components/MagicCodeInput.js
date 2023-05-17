@@ -277,7 +277,8 @@ function MagicCodeInput(props) {
             setEditIndex(newFocusedIndex);
             inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'Enter') {
-            if (!isReadyToSubmit()) {
+            // we shouldn also prevent user from submit here when it's offline.
+            if (props.network.isOffline) {
                 return;
             }
             setInput('');
