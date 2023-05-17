@@ -238,12 +238,11 @@ function endSignOnTransition() {
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @returns {Promise}
  */
 function createWorkspaceAndNavigateToIt(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
     const policyID = Policy.generatePolicyID();
     Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, policyID);
-    return Navigation.isNavigationReady()
+    Navigation.isNavigationReady()
         .then(() => {
             if (transitionFromOldDot) {
                 Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
