@@ -402,11 +402,6 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
             key: ONYXKEYS.SESSION,
             value: {autoAuthState: CONST.AUTO_AUTH_STATE.SIGNING_IN},
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-            value: preferredLocale,
-        },
     ];
 
     const successData = [
