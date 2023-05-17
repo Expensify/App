@@ -971,17 +971,17 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  */
 function getMoneyRequestAction(reportAction = {}) {
     const originalMessage = lodashGet(reportAction, 'originalMessage', {});
-    let total = originalMessage.amount || 0;
+    let amount = originalMessage.amount || 0;
     let currency = originalMessage.currency || CONST.CURRENCY.USD;
     let comment = originalMessage.comment || '';
 
     if (_.has(originalMessage, 'IOUDetails')) {
-        total = lodashGet(originalMessage, 'IOUDetails.amount', 0);
+        amount = lodashGet(originalMessage, 'IOUDetails.amount', 0);
         currency = lodashGet(originalMessage, 'IOUDetails.currency', CONST.CURRENCY.USD);
         comment = lodashGet(originalMessage, 'IOUDetails.comment', '');
     }
 
-    return {total, currency, comment};
+    return {amount, currency, comment};
 }
 
 /**
@@ -1055,8 +1055,8 @@ function getMoneyRequestReportName(report) {
  * @returns {String}
  */
 function getTransactionReportName(reportAction) {
-    return Localize.translateLocal('iou.threadReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', '')),
+    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
+        formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
         comment: lodashGet(reportAction, 'originalMessage.comment'),
     });
 }
@@ -1424,6 +1424,29 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        reportID,
+        created: DateUtils.getDBTime(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        accountID: payeeAccountID,
+        message: [
+            {
+                html: '',
+                text: '',
+                isEdited: false,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
+        originalMessage: {
+            linkedReportID: iouReportID,
+        },
+        actorEmail: currentUserEmail,
     };
 }
 
@@ -2224,6 +2247,7 @@ export {
     buildOptimisticIOUReport,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticReportPreview,
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
