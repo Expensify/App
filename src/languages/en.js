@@ -152,7 +152,7 @@ export default {
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
-        notAllowedExtension: 'Attachments must be one of the following types:',
+        notAllowedExtension: 'This filetype is not allowed',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -302,7 +302,6 @@ export default {
         newChat: 'New chat',
         newGroup: 'New group',
         newRoom: 'New room',
-        headerChat: 'Chats',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'New chat (Floating action)',
@@ -334,7 +333,8 @@ export default {
         payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
-        threadReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
+        threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
+        threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -1198,6 +1198,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'Completed task',
+            canceled: 'Canceled task',
             reopened: 'Reopened task',
         },
     },
@@ -1323,8 +1324,12 @@ export default {
         deletedMessage: '[Deleted message]',
     },
     threads: {
-        lastReply: 'Last Reply',
+        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
+    },
+    qrCodes: {
+        copyUrlToClipboard: 'Copy URL to clipboard',
+        copied: 'Copied!',
     },
 };
