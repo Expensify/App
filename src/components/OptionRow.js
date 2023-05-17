@@ -160,7 +160,7 @@ class OptionRow extends Component {
                                     result = Promise.resolve();
                                 }
                                 InteractionManager.runAfterInteractions(() => {
-                                    result.then(() => this.setState({isDisabled: this.props.isDisabled}));
+                                    result.finally(() => this.setState({isDisabled: this.props.isDisabled}));
                                 });
                             }}
                             disabled={this.state.isDisabled}

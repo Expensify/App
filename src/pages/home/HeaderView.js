@@ -26,8 +26,8 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
+import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -76,9 +76,9 @@ const HeaderView = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const reportHeaderData = isTaskReport && !_.isEmpty(props.parentReport) && (!isThread || isTaskReport) ? props.parentReport : props.report;
+    const reportHeaderData = (isTaskReport || !isThread) && !_.isEmpty(props.parentReport) ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
-    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, props.parentReport);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -86,15 +86,13 @@ const HeaderView = (props) => {
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
-    const shouldShowThreeDotsButton = isTaskReport;
     const threeDotMenuItems = [];
-
-    if (shouldShowThreeDotsButton) {
+    if (isTaskReport) {
         if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
-                onSelected: () => TaskUtils.completeTask(props.report.reportID, props.report.parentReportID, title),
+                onSelected: () => Task.completeTask(props.report.reportID, props.report.parentReportID, title),
             });
         }
 
@@ -103,9 +101,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
-
-                // Implementing in https://github.com/Expensify/App/issues/16858
-                onSelected: () => {},
+                onSelected: () => Task.reopenTask(props.report.reportID, props.report.parentReportID, title),
             });
         }
 
@@ -114,12 +110,11 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-
-                // Implementing in https://github.com/Expensify/App/issues/16857
-                onSelected: () => {},
+                onSelected: () => Task.cancelTask(props.report.reportID, props.report.parentReportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
             });
         }
     }
+    const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
     const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report) && !isTaskReport;
@@ -233,7 +228,11 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
+            selector: (account) =>
+                account && {
+                    guideCalendarLink: account.guideCalendarLink,
+                    primaryLogin: account.primaryLogin,
+                },
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,

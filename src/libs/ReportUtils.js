@@ -109,6 +109,16 @@ function getReportParticipantsTitle(logins) {
 }
 
 /**
+ * Checks if a report is a chat report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isChatReport(report) {
+    return lodashGet(report, 'type') === CONST.REPORT.TYPE.CHAT;
+}
+
+/**
  * Checks if a report is an Expense report.
  *
  * @param {Object} report
@@ -184,6 +194,8 @@ function canEditReportAction(reportAction) {
 }
 
 /**
+ * Whether the Money Request report is settled
+ *
  * @param {String} reportID
  * @returns {Boolean}
  */
@@ -192,7 +204,7 @@ function isSettled(reportID) {
 }
 
 /**
- * Can only delete if it's an ADDCOMMENT, the author is this user.
+ * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report
  *
  * @param {Object} reportAction
  * @returns {Boolean}
@@ -200,8 +212,8 @@ function isSettled(reportID) {
 function canDeleteReportAction(reportAction) {
     return (
         reportAction.actorEmail === sessionEmail &&
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        ((reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportActionsUtils.isCreatedTaskReportAction(reportAction)) ||
+            (ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID))) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
 }
@@ -434,7 +446,7 @@ function isPolicyExpenseChatAdmin(report, policies) {
  * @returns {Boolean}
  */
 function isThread(report) {
-    return Boolean(report && report.parentReportID && report.parentReportActionID);
+    return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
 }
 
 /**
@@ -461,9 +473,10 @@ function isThreadFirstChat(reportAction, reportID) {
 /**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
+ * @param {Object} parentReport
  * @returns {String}
  */
-function getChatRoomSubtitle(report) {
+function getChatRoomSubtitle(report, parentReport = null) {
     if (isThread(report)) {
         if (!getChatType(report)) {
             return '';
@@ -471,7 +484,15 @@ function getChatRoomSubtitle(report) {
 
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
         const workspaceName = getPolicyName(report);
-        const roomName = isChatRoom(report) ? lodashGet(report, 'displayName') : '';
+        let roomName = '';
+        if (isChatRoom(report)) {
+            if (parentReport) {
+                roomName = lodashGet(parentReport, 'displayName', '');
+            } else {
+                roomName = lodashGet(report, 'displayName', '');
+            }
+        }
+
         return [workspaceName, roomName].join(' • ');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
@@ -574,12 +595,12 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
 }
 
 /**
- * Trim the last message text to a fixed limit.
+ * Html decode, shorten last message text to fixed length and trim spaces.
  * @param {String} lastMessageText
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return String(lastMessageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    return Str.htmlDecode(String(lastMessageText)).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -1835,7 +1856,11 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
     // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
-    if (!report || !report.reportID || (_.isEmpty(report.participants) && !isThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report))) {
+    if (
+        !report ||
+        !report.reportID ||
+        (_.isEmpty(report.participants) && !isThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
+    ) {
         return false;
     }
 
@@ -2203,6 +2228,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isChatReport,
     isExpenseReport,
     isIOUReport,
     isTaskReport,
