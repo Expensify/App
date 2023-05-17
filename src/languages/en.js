@@ -333,7 +333,8 @@ export default {
         payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
-        threadReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
+        threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
+        threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',

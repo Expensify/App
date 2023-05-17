@@ -9,6 +9,7 @@ import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
+import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReportActions = {};
@@ -62,15 +63,46 @@ function getParentReportAction(report) {
 }
 
 /**
+ * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isSentMoneyReportAction(reportAction) {
+    return (
+        reportAction &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+        lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
+        _.has(reportAction.originalMessage, 'IOUDetails')
+    );
+}
+
+/**
+ * Returns the formatted amount of a money request. The request and money sent (from send money flow) have
+ * currency and amount in IOUDetails object.
+ *
+ * @param {Object} reportAction
+ * @returns {Number}
+ */
+function getFormattedAmount(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY && lodashGet(reportAction, 'originalMessage.IOUDetails', false)
+        ? CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''))
+        : CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', ''));
+}
+
+/**
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
- * report action of type create.
+ * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  *
  * @param {Object} parentReportAction
  * @returns {Boolean}
  */
 function isTransactionThread(parentReportAction) {
+    const originalMessage = lodashGet(parentReportAction, 'originalMessage', {});
     return (
-        parentReportAction && parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lodashGet(parentReportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE
+        parentReportAction &&
+        parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
     );
 }
 
@@ -371,4 +403,6 @@ export {
     isCreatedTaskReportAction,
     getParentReportAction,
     isTransactionThread,
+    getFormattedAmount,
+    isSentMoneyReportAction,
 };
