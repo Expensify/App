@@ -127,7 +127,7 @@ function MagicCodeInput(props) {
         inputRefs.current[editIndex].blur();
         setFocusedIndex(undefined);
         props.onFulfill(props.value);
-    }
+    };
 
     useOnNetworkReconnect(() => {
         validateAndSubmit();
