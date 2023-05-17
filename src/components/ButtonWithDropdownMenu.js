@@ -70,7 +70,7 @@ const ButtonWithDropdownMenu = (props) => {
     return (
         <View>
             {props.options.length > 1 ? (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, props.style]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...props.style]}>
                     <Button
                         success
                         onPress={(event) => props.onPress(event, selectedItem.value)}
@@ -102,7 +102,7 @@ const ButtonWithDropdownMenu = (props) => {
                 <Button
                     success
                     isDisabled={props.isDisabled}
-                    style={[styles.w100]}
+                    style={[styles.w100, ...props.style]}
                     isLoading={props.isLoading}
                     text={selectedItem.text}
                     onPress={(event) => props.onPress(event, props.options[0].value)}

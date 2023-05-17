@@ -10,6 +10,7 @@ import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
+import * as ReimbursementAccountProps from '../../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -24,6 +25,7 @@ import ROUTES from '../../ROUTES';
 import SettlementButton from '../SettlementButton';
 import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
+import * as IOU from '../../libs/actions/IOU';
 
 const propTypes = {
     /** All the data of the action */
@@ -64,6 +66,9 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
+    /** The reimbursement account to use */
+    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
+
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -87,6 +92,7 @@ const defaultProps = {
     isHovered: false,
     chatReport: {},
     iouReport: {},
+    reimbursementAccount: {},
     checkIfContextMenuActive: () => {},
     session: {
         email: null,
@@ -139,12 +145,10 @@ const ReportPreview = (props) => {
                     currency={props.iouReport.currency}
                     policyID={props.iouReport.policyID}
                     chatReportID={props.chatReportID}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.iouReportID));
-                    }}
+                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport, props.reimbursementAccount && props.reimbursementAccount.state)}
                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                     addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
-                    style={styles.requestPreviewBox}
+                    style={[styles.requestPreviewBox]}
                 />
             )}
         </View>
@@ -166,6 +170,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(ReportPreview);
