@@ -9,7 +9,6 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import * as ReimbursementAccountProps from '../../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -65,9 +64,6 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
-    /** The reimbursement account to use */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
-
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -91,7 +87,6 @@ const defaultProps = {
     isHovered: false,
     chatReport: {},
     iouReport: {},
-    reimbursementAccount: {},
     checkIfContextMenuActive: () => {},
     session: {
         email: null,
@@ -145,7 +140,7 @@ const ReportPreview = (props) => {
                     policyID={props.iouReport.policyID}
                     chatReportID={props.chatReportID}
                     iouReport={props.iouReport}
-                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport, props.reimbursementAccount && props.reimbursementAccount.state)}
+                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                     addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                     style={[styles.requestPreviewBox]}
@@ -170,9 +165,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(ReportPreview);

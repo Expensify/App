@@ -1230,7 +1230,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     fetch.pause();
-                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport, {login: iouReport.ownerEmail});
+                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
                     return waitForPromisesToResolve();
                 })
                 .then(

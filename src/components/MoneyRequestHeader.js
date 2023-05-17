@@ -23,7 +23,6 @@ import SettlementButton from './SettlementButton';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
-import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
@@ -51,9 +50,6 @@ const propTypes = {
     /** Whether we're viewing a report with a single transaction in it */
     isSingleTransactionView: PropTypes.bool,
 
-    /** The reimbursement account to use */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
-
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -66,7 +62,6 @@ const propTypes = {
 const defaultProps = {
     isSingleTransactionView: false,
     chatReport: {},
-    reimbursementAccount: {},
     session: {
         email: null,
     },
@@ -158,7 +153,7 @@ const MoneyRequestHeader = (props) => {
                                     shouldShowPaypal={Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']))}
                                     chatReportID={props.report.chatReportID}
                                     iouReport={props.report}
-                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
+                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
                                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                                     addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                                     shouldShowPaymentOptions
@@ -174,7 +169,7 @@ const MoneyRequestHeader = (props) => {
                         shouldShowPaypal={false}
                         chatReportID={props.report.chatReportID}
                         iouReport={props.report}
-                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
+                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                         addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                         shouldShowPaymentOptions
@@ -212,9 +207,6 @@ export default compose(
     withOnyx({
         chatReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
-        },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         session: {
             key: ONYXKEYS.SESSION,

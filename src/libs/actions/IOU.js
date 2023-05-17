@@ -1181,11 +1181,6 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
  * @param {String} reimbursementBankAccountState
  */
 function payMoneyRequest(paymentType, chatReport, iouReport) {
-    // if (ReportUtils.isPolicyExpenseChat(chatReport) && reimbursementBankAccountState !== CONST.BANK_ACCOUNT.STATE.OPEN && paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-    //     Navigation.navigate(ROUTES.BANK_ACCOUNT_NEW);
-    //     return;
-    // }
-
     const recipient = {
         login: iouReport.ownerEmail,
         payPalMeAddress: iouReport.submitterPayPalMeAddress,
