@@ -1,6 +1,7 @@
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
-import {Animated, Easing, StatusBar, StyleSheet} from 'react-native';
+import {StatusBar, StyleSheet} from 'react-native';
+import Reanimated, {useSharedValue, withTiming, Easing, useAnimatedStyle, runOnJS} from 'react-native-reanimated';
 import BootSplash from '../../libs/BootSplash';
 import Logo from '../../../assets/images/new-expensify-dark.svg';
 import styles from '../../styles/styles';
@@ -17,8 +18,16 @@ const defaultProps = {
 const SplashScreenHider = (props) => {
     const {onHide} = props;
 
-    const [opacity] = useState(() => new Animated.Value(1));
-    const [scale] = useState(() => new Animated.Value(1));
+    const opacity = useSharedValue(1);
+    const scale = useSharedValue(1);
+
+    const opacityStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+    }));
+    const scaleStyle = useAnimatedStyle(() => ({
+        transform: [{scale: scale.value}],
+    }));
+
     const hideHasBeenCalled = useRef(false);
 
     const hide = useCallback(() => {
@@ -30,51 +39,44 @@ const SplashScreenHider = (props) => {
         hideHasBeenCalled.current = true;
 
         BootSplash.hide().then(() => {
-            Animated.timing(scale, {
+            scale.value = withTiming(0, {
                 duration: 200,
                 easing: Easing.back(2),
-                toValue: 0,
-                useNativeDriver: true,
-            }).start();
-
-            Animated.timing(opacity, {
-                duration: 250,
-                easing: Easing.out(Easing.ease),
-                toValue: 0,
-                useNativeDriver: true,
-            }).start(() => {
-                onHide();
             });
+
+            opacity.value = withTiming(
+                0,
+                {
+                    duration: 250,
+                    easing: Easing.out(Easing.ease),
+                },
+                () => runOnJS(onHide)(),
+            );
         });
     }, [opacity, scale, onHide]);
 
     return (
-        <Animated.View
+        <Reanimated.View
             onLayout={hide}
             style={[
                 StyleSheet.absoluteFill,
                 styles.splashScreenHider,
+                opacityStyle,
                 {
-                    opacity,
-
                     // Apply negative margins to center the logo on window (instead of screen)
                     marginTop: -(StatusBar.currentHeight || 0),
                     marginBottom: -(BootSplash.navigationBarHeight || 0),
                 },
             ]}
         >
-            <Animated.View
-                style={{
-                    transform: [{scale}],
-                }}
-            >
+            <Reanimated.View style={scaleStyle}>
                 <Logo
                     viewBox="0 0 100 100"
                     width={100}
                     height={100}
                 />
-            </Animated.View>
-        </Animated.View>
+            </Reanimated.View>
+        </Reanimated.View>
     );
 };
 
