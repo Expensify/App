@@ -87,13 +87,13 @@ class DisplayNames extends PureComponent {
                 {this.props.shouldUseFullTitle
                     ? this.props.fullTitle
                     : _.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
-                        <Fragment key={index}>
-                            <Tooltip
-                                key={index}
-                                text={tooltip}
-                                shiftHorizontal={() => this.getTooltipShiftX(index)}
-                            >
-                                {/*  // We need to get the refs to all the names which will be used to correct
+                          <Fragment key={index}>
+                              <Tooltip
+                                  key={index}
+                                  text={tooltip}
+                                  shiftHorizontal={() => this.getTooltipShiftX(index)}
+                              >
+                                  {/*  // We need to get the refs to all the names which will be used to correct
                                     the horizontal position of the tooltip */}
                                   <Text
                                       ref={(el) => (this.childRefs[index] = el)}

@@ -47,7 +47,7 @@ const defaultProps = {
 
 const BaseQuickEmojiReactions = (props) => (
     <View style={styles.quickReactionsContainer}>
-        {_.map(CONST.QUICK_REACTIONS, emoji => (
+        {_.map(CONST.QUICK_REACTIONS, (emoji) => (
             <Tooltip
                 text={`:${emoji.name}:`}
                 key={emoji.name}
