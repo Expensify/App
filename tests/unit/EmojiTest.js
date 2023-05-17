@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import moment from 'moment';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import Emoji from '../../assets/emojis';
 import * as EmojiUtils from '../../src/libs/EmojiUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -102,22 +103,22 @@ describe('EmojiTest', () => {
 
     it('replaces an emoji code with an emoji and a space on mobile', () => {
         const text = 'Hi :smile:';
-        expect(EmojiUtils.replaceEmojis(text, true)).toBe('Hi 😄 ');
+        expect(lodashGet(EmojiUtils.replaceEmojis(text, true), 'text')).toBe('Hi 😄 ');
     });
 
     it('will not add a space after the last emoji if there is text after it', () => {
         const text = 'Hi :smile::wave:no space after last emoji';
-        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄👋no space after last emoji');
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋no space after last emoji');
     });
 
     it('will not add a space after the last emoji when there is text after it on mobile', () => {
         const text = 'Hi :smile::wave:no space after last emoji';
-        expect(EmojiUtils.replaceEmojis(text, true)).toBe('Hi 😄👋no space after last emoji');
+        expect(lodashGet(EmojiUtils.replaceEmojis(text, true), 'text')).toBe('Hi 😄👋no space after last emoji');
     });
 
     it("will not add a space after the last emoji if we're not on mobile", () => {
         const text = 'Hi :smile:';
-        expect(EmojiUtils.replaceEmojis(text)).toBe('Hi 😄');
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄');
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
@@ -197,7 +198,7 @@ describe('EmojiTest', () => {
                 const currentTime = moment().unix();
                 const smileEmoji = {code: '😄', name: 'smile'};
                 const newEmoji = [smileEmoji];
-                EmojiUtils.addToFrequentlyUsedEmojis(newEmoji);
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the new emoji should be at the last item of the list
                 const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
@@ -242,7 +243,7 @@ describe('EmojiTest', () => {
                 // When add an emoji that exists in the list
                 const currentTime = moment().unix();
                 const newEmoji = [smileEmoji];
-                EmojiUtils.addToFrequentlyUsedEmojis(newEmoji);
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the count should be increased and put into the very front of the other emoji within the same count
                 const expectedFrequentlyEmojisList = [frequentlyEmojisList[0], {...smileEmoji, count: 2, lastUpdatedAt: currentTime}, ...frequentlyEmojisList.slice(1, -1)];
@@ -283,7 +284,7 @@ describe('EmojiTest', () => {
                 // When add multiple emojis that either exist or not exist in the list
                 const currentTime = moment().unix();
                 const newEmoji = [smileEmoji, zzzEmoji, impEmoji];
-                EmojiUtils.addToFrequentlyUsedEmojis(newEmoji);
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the count should be increased for existing emoji and sorted descending by count and lastUpdatedAt
                 const expectedFrequentlyEmojisList = [
@@ -452,7 +453,7 @@ describe('EmojiTest', () => {
                 // When add new emojis
                 const currentTime = moment().unix();
                 const newEmoji = [bookEmoji, smileEmoji, zzzEmoji, impEmoji, smileEmoji];
-                EmojiUtils.addToFrequentlyUsedEmojis(newEmoji);
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the last emojis from the list should be replaced with the most recent new emoji (smile)
                 const expectedFrequentlyEmojisList = [

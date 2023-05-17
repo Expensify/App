@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity, InteractionManager, LayoutAnimation} from 'react-native';
+import {View, TouchableOpacity, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -143,6 +143,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+const {RNTextInputReset} = NativeModules;
 /**
  * Return the max available index for arrow manager.
  * @param {Number} numRows
@@ -152,8 +153,8 @@ const defaultProps = {
 const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
     const emojiRowCount = isAutoSuggestionPickerLarge
-        ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -593,6 +594,12 @@ class ReportActionCompose extends React.Component {
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
+        // In some Android phones keyboard, the text to search for the emoji is not cleared
+        // will be added after the user starts typing again on the keyboard. This package is
+        // a workaround to reset the keyboard natively.
+        if (RNTextInputReset) {
+            RNTextInputReset.resetKeyboardInput(findNodeHandle(this.textInput));
+        }
         this.setState((prevState) => ({
             selection: {
                 start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -600,7 +607,8 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
+        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+        User.updateFrequentlyUsedEmojis(frequentEmojiList);
     }
 
     /**
@@ -633,13 +641,13 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
         this.setState((prevState) => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
                 end: prevState.selection.start + emoji.length,
             },
         }));
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
     }
 
     /**
@@ -692,7 +700,12 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+
+        if (!_.isEmpty(emojis)) {
+            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+        }
+
         this.setState((prevState) => {
             const newState = {
                 isCommentEmpty: !!newComment.match(/^(\s)*$/),
@@ -867,6 +880,7 @@ class ReportActionCompose extends React.Component {
         const inputPlaceholder = this.getInputPlaceholder();
         const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
+        const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
 
         return (
             <View
@@ -908,7 +922,7 @@ class ReportActionCompose extends React.Component {
                                                     style={[
                                                         styles.dFlex,
                                                         styles.flexColumn,
-                                                        this.state.isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
                                                     ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
@@ -928,7 +942,7 @@ class ReportActionCompose extends React.Component {
                                                             </TouchableOpacity>
                                                         </Tooltip>
                                                     )}
-                                                    {!this.props.isComposerFullSize && this.state.isFullComposerAvailable && (
+                                                    {!this.props.isComposerFullSize && isFullComposerAvailable && (
                                                         <Tooltip text={this.props.translate('reportActionCompose.expand')}>
                                                             <TouchableOpacity
                                                                 onPress={(e) => {
@@ -1039,7 +1053,7 @@ class ReportActionCompose extends React.Component {
                                                 isDisabled={isComposeDisabled || isBlockedFromConcierge || this.props.disabled}
                                                 selection={this.state.selection}
                                                 onSelectionChange={this.onSelectionChange}
-                                                isFullComposerAvailable={this.state.isFullComposerAvailable}
+                                                isFullComposerAvailable={isFullComposerAvailable}
                                                 setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                                 isComposerFullSize={this.props.isComposerFullSize}
                                                 value={this.state.value}
@@ -1193,6 +1207,7 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
