@@ -138,7 +138,7 @@ const MoneyRequestHeader = (props) => {
                             )}
                         </View>
                     </View>
-                    <View style={[styles.flexRow]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
                         {isSettled && (
                             <View style={styles.moneyRequestHeaderCheckmark}>
@@ -148,9 +148,23 @@ const MoneyRequestHeader = (props) => {
                                 />
                             </View>
                         )}
+                        {(shouldShowSettlementButton && !props.isSmallScreenWidth) && (
+                            <View style={[styles.ml4]}>
+                                <SettlementButton
+                                    currency={props.report.currency}
+                                    policyID={props.report.policyID}
+                                    shouldShowPaypal={false}
+                                    chatReportID={props.report.chatReportID}
+                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.reimbursementAccount && props.reimbursementAccount.state)}
+                                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                                    shouldShowPaymentOptions
+                                />
+                            </View>
+                        )}
                     </View>
                 </View>
-                {shouldShowSettlementButton && (
+                {(shouldShowSettlementButton && props.isSmallScreenWidth) && (
                     <SettlementButton
                         currency={props.report.currency}
                         policyID={props.report.policyID}
