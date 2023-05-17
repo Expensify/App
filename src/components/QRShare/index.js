@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import QRCodeLibrary from 'react-native-qrcode-svg';
+import QrCode from 'react-native-qrcode-svg';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import defaultTheme from '../../styles/themes/default';
@@ -9,7 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import compose from '../../libs/compose';
 import variables from '../../styles/variables';
 import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
-import {qrSharePropTypes, qrShareDefaultProps} from './propTypes'
+import {qrSharePropTypes, qrShareDefaultProps} from './propTypes';
 
 const propTypes = {
     ...qrSharePropTypes,
@@ -22,7 +22,7 @@ class QRShare extends Component {
         super(props);
 
         this.state = {
-            qrCodeSize: 0,
+            qrCodeSize: 1,
         };
 
         this.onLayout = this.onLayout.bind(this);
@@ -30,8 +30,10 @@ class QRShare extends Component {
     }
 
     onLayout(event) {
+        const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
+
         this.setState({
-            qrCodeSize: event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2,
+            qrCodeSize: Math.max(1, containerWidth),
         });
     }
 
@@ -59,7 +61,7 @@ class QRShare extends Component {
                     />
                 </View>
 
-                <QRCodeLibrary
+                <QrCode
                     value={this.props.url}
                     logo={this.props.logo}
                     getRef={(svg) => (this.svg = svg)}
@@ -74,6 +76,7 @@ class QRShare extends Component {
                 <Text
                     family="EXP_NEW_KANSAS_MEDIUM"
                     fontSize={22}
+                    numberOfLines={2}
                     style={{marginTop: 15}}
                 >
                     {this.props.title}
@@ -83,7 +86,9 @@ class QRShare extends Component {
                     <Text
                         family="EXP_NEUE_BOLD"
                         fontSize={13}
+                        numberOfLines={1}
                         style={{marginTop: 4}}
+                        color={defaultTheme.textSupporting}
                     >
                         {this.props.subtitle}
                     </Text>

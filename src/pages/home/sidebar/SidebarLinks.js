@@ -14,7 +14,6 @@ import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
-import Header from '../../../components/Header';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
@@ -33,7 +32,11 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import withCurrentReportId from '../../../components/withCurrentReportId';
 import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
+import Header from '../../../components/Header';
+import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
+import variables from '../../../styles/variables';
+import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -179,11 +182,15 @@ class SidebarLinks extends React.Component {
                     nativeID="drag-area"
                 >
                     <Header
-                        title={this.props.translate('sidebarScreen.headerChat')}
-                        accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                        title={
+                            <LogoComponent
+                                fill={defaultTheme.textLight}
+                                width={variables.lhnLogoWidth}
+                                height={variables.lhnLogoHeight}
+                            />
+                        }
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
-                        textStyles={[styles.textHeadline]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity

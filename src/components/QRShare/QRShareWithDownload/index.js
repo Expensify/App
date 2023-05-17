@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import fileDownload from '../../../libs/fileDownload';
-import QRShare from '..'
+import QRShare from '..';
 import {qrShareDefaultProps, qrSharePropTypes} from '../propTypes';
 import getQrCodeFileName from '../getQrCodeDownloadFileName';
 

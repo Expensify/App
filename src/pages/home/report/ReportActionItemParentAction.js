@@ -14,6 +14,7 @@ import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import ReportActionItem from './ReportActionItem';
 import reportActionPropTypes from './reportActionPropTypes';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The id of the report */
@@ -41,6 +42,11 @@ const defaultProps = {
 
 const ReportActionItemParentAction = (props) => {
     const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
+
+    // In case of transaction threads, we do not want to render the parent report action.
+    if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        return null;
+    }
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}

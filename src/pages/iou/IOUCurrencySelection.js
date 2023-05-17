@@ -155,6 +155,7 @@ class IOUCurrencySelection extends Component {
                                 _.find(this.state.currencyData, (currency) => currency.currencyCode === this.props.iou.selectedCurrencyCode),
                                 'keyForList',
                             )}
+                            shouldHaveOptionSeparator
                         />
                     </>
                 )}
