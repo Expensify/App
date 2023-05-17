@@ -94,22 +94,13 @@ class ReportDetailsPage extends Component {
         }
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        const isThread = ReportUtils.isThread(this.props.report);
         if (
-            (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) &&
-            _.isEmpty(this.props.report.parentReportActionID)
+            (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) || isThread
         ) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leaveRoom',
-                icon: Expensicons.Exit,
-                action: () => Report.leaveRoom(this.props.report.reportID),
-            });
-        }
-
-        if (ReportUtils.isThread(this.props.report)) {
-            menuItems.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leaveThread',
+                translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
                 icon: Expensicons.Exit,
                 action: () => Report.leaveRoom(this.props.report.reportID),
             });
