@@ -106,33 +106,29 @@ class ReportSettingsPage extends Component {
                             errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
                             onClose={() => Report.clearPolicyRoomNameErrors(this.props.report.reportID)}
                         >
-                            <View style={[styles.flexRow]}>
-                                <View style={[styles.flex3]}>
-                                    {shouldDisableRename ? (
-                                        <View>
-                                            <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
-                                                {this.props.translate('newRoomPage.roomName')}
-                                            </Text>
-                                            <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
-                                                {this.props.report.reportName}
-                                            </Text>
-                                        </View>
-                                    )
-                                        : (
-                                            <MenuItemWithTopDescription
-                                                shouldShowRightIcon
-                                                title={this.props.report.reportName}
-                                                description={this.props.translate('newRoomPage.roomName')}
-                                                onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(this.props.report.reportID))}
-                                            />
-                                        )}
+                            {shouldDisableRename ? (
+                                <View style={[styles.ph5, styles.pv3]}>
+                                    <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
+                                        {this.props.translate('newRoomPage.roomName')}
+                                    </Text>
+                                    <Text numberOfLines={1} style={[styles.optionAlternateText, styles.pre]}>
+                                        {this.props.report.reportName}
+                                    </Text>
                                 </View>
-                            </View>
+                            )
+                            : (
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={this.props.report.reportName}
+                                    description={this.props.translate('newRoomPage.roomName')}
+                                    onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(this.props.report.reportID))}
+                                />
+                            )}
                         </OfflineWithFeedback>
                     )}
                     <View style={[styles.ph5]}>
                         {Boolean(linkedWorkspace) && (
-                            <View style={[styles.mt4]}>
+                            <View style={[styles.pv3]}>
                                 <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                     {this.props.translate('workspace.common.workspace')}
                                 </Text>
@@ -142,7 +138,7 @@ class ReportSettingsPage extends Component {
                             </View>
                         )}
                         {Boolean(this.props.report.visibility) && (
-                            <View style={[styles.mt4]}>
+                            <View style={[styles.pv3]}>
                                 <Text style={[styles.textLabelSupporting, styles.lh16, styles.mb1]} numberOfLines={1}>
                                     {this.props.translate('newRoomPage.visibility')}
                                 </Text>
