@@ -85,27 +85,6 @@ function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '',
 }
 
 /**
- * Get notification based on reportRoom and reportAction
- *
- * @param {Object} report
- * @param {Object} reportAction
- *
- * @return {String} - Notification title
- */
-function getNotificationTitle(report, reportAction) {
-    const isChatRoom = ReportUtils.isChatRoom(report);
-
-    if (isChatRoom) {
-        const roomName = _.get(report, 'displayName', '');
-        return roomName;
-    }
-
-    const {person} = reportAction;
-    const plainTextPerson = _.map(person, (f) => f.text).join();
-    return plainTextPerson;
-}
-
-/**
  * BrowserNotification
  * @namespace
  */
@@ -120,14 +99,28 @@ export default {
      * @param {Boolean} usesIcon true if notification uses right circular icon
      */
     pushReportCommentNotification({report, reportAction, onClick}, usesIcon = false) {
-        const {message} = reportAction;
+        const {person, message} = reportAction;
+        const plainTextPerson = _.map(person, (f) => f.text).join();
+        const isChatRoom = ReportUtils.isChatRoom(report);
 
         // Specifically target the comment part of the message
         const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
 
+        let title = '';
+        let body = '';
+
+        if (isChatRoom) {
+            const roomName = _.get(report, 'displayName', '');
+            title = roomName;
+            body = `${plainTextPerson}: ${plainTextMessage}`;
+        } else {
+            title = plainTextPerson;
+            body = plainTextMessage;
+        }
+
         push({
-            title: getNotificationTitle(report, reportAction),
-            body: plainTextMessage,
+            title,
+            body,
             delay: 0,
             onClick,
             icon: usesIcon ? EXPENSIFY_ICON_URL : '',
