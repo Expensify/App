@@ -4,7 +4,6 @@ import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import * as User from './actions/User';
 import emojisTrie from './EmojiTrie';
 import FrequentlyUsed from '../../assets/images/history.svg';
 
@@ -170,10 +169,11 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
 }
 
 /**
- * Update the frequently used emojis list by usage and sync with API
+ * Get the updated frequently used emojis list by usage
  * @param {Object|Object[]} newEmoji
+ * @return {Object[]}
  */
-function addToFrequentlyUsedEmojis(newEmoji) {
+function getFrequentlyUsedEmojis(newEmoji) {
     let frequentEmojiList = [...frequentlyUsedEmojis];
 
     const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW - 1;
@@ -196,7 +196,7 @@ function addToFrequentlyUsedEmojis(newEmoji) {
         frequentEmojiList.sort((a, b) => b.count - a.count || b.lastUpdatedAt - a.lastUpdatedAt);
     });
 
-    User.updateFrequentlyUsedEmojis(frequentEmojiList);
+    return frequentEmojiList;
 }
 
 /**
@@ -219,20 +219,18 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  *
- * All replaced emojis will be added to the frequently used emojis list.
- *
  * @param {String} text
  * @param {Boolean} isSmallScreenWidth
  * @param {Number} preferredSkinTone
- * @returns {String}
+ * @returns {Object}
  */
 function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
     let newText = text;
+    const emojis = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
     if (!emojiData || emojiData.length === 0) {
-        return text;
+        return {text: newText, emojis};
     }
-    const emojis = [];
     for (let i = 0; i < emojiData.length; i++) {
         const name = emojiData[i].slice(1, -1);
         const checkEmoji = emojisTrie.search(name);
@@ -253,11 +251,7 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
         }
     }
 
-    // Add all replaced emojis to the frequently used emojis list
-    if (!_.isEmpty(emojis)) {
-        addToFrequentlyUsedEmojis(emojis);
-    }
-    return newText;
+    return {text: newText, emojis};
 }
 
 /**
@@ -293,4 +287,28 @@ function suggestEmojis(text, limit = 5) {
     return [];
 }
 
-export {getHeaderEmojis, mergeEmojisWithFrequentlyUsedEmojis, addToFrequentlyUsedEmojis, containsOnlyEmojis, replaceEmojis, suggestEmojis, trimEmojiUnicode, getEmojiCodeWithSkinColor};
+/**
+ * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
+ *
+ * @param {Number | String} val
+ * @returns {Number}
+ */
+const getPreferredSkinToneIndex = (val) => {
+    if (!_.isNull(val) && Number.isInteger(Number(val))) {
+        return val;
+    }
+
+    return CONST.EMOJI_DEFAULT_SKIN_TONE;
+};
+
+export {
+    getHeaderEmojis,
+    mergeEmojisWithFrequentlyUsedEmojis,
+    getFrequentlyUsedEmojis,
+    containsOnlyEmojis,
+    replaceEmojis,
+    suggestEmojis,
+    trimEmojiUnicode,
+    getEmojiCodeWithSkinColor,
+    getPreferredSkinToneIndex,
+};

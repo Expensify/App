@@ -4,94 +4,11 @@ For almost all of our code style rules, refer to the [Airbnb JavaScript Style Gu
 
 When writing ES6 or React code, please also refer to the [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react).
 
+We use Prettier to automatically style our code.
+- You can run Prettier to fix the style on all files with `npm run prettier`
+- You can run Prettier in watch mode to fix the styles when they are saved with `npm run prettier-watch`
+
 There are a few things that we have customized for our tastes which will take precedence over Airbnb's guide.
-
-## Functions
-  - Always wrap the function expression for immediately-invoked function expressions (IIFE) in parens:
-
-    ```javascript
-    // Bad
-    (function () {
-        console.log('Welcome to the Internet. Please follow me.');
-    }());
-
-    // Good
-    (function () {
-        console.log('Welcome to the Internet. Please follow me.');
-    })();
-    ```
-
-## Whitespace
-  - Use soft tabs set to 4 spaces.
-
-    ```javascript
-    // Bad
-    function () {
-    ∙∙const name;
-    }
-
-    // Bad
-    function () {
-    ∙const name;
-    }
-
-    // Good
-    function () {
-    ∙∙∙∙const name;
-    }
-    ```
-
-  - Place 1 space before the function keyword and the opening parent for anonymous functions. This does not count for named functions.
-
-    ```javascript
-    // Bad
-    function() {
-        ...
-    }
-
-    // Bad
-    function getValue (element) {
-        ...
-    }
-
-    // Good
-    function∙() {
-        ...
-    }
-
-    // Good
-    function getValue(element) {
-        ...
-    }
-    ```
-
-  - Do not add spaces inside curly braces.
-
-    ```javascript
-    // Bad
-    const foo = { clark: 'kent' };
-
-    // Good
-    const foo = {clark: 'kent'};
-    ```
-  - Aligning tokens should be avoided as it rarely aids in readability and often
-  produces inconsistencies and larger diffs when updating the code.
-
-    ```javascript
-    // Good
-    const foo = {
-        foo: 'bar',
-        foobar: 'foobar',
-        foobarbaz: 'foobarbaz',
-    };
-
-    // Bad
-    const foo = {
-        foo      : 'bar',
-        foobar   : 'foobar',
-        foobarbaz: 'foobarbaz',
-    };
-    ```
 
 ## Naming Conventions
 
