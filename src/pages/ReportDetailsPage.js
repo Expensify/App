@@ -110,6 +110,7 @@ class ReportDetailsPage extends Component {
     render() {
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
+        const isThread =  ReportUtils.isThread(this.props.report);
         const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
@@ -140,7 +141,7 @@ class ReportDetailsPage extends Component {
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter, styles.pre]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread}
                                         />
                                     </View>
                                     <Text
