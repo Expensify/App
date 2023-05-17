@@ -21,6 +21,7 @@ import Icon from './Icon';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
+import * as IOU from '../libs/actions/IOU';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -70,7 +71,7 @@ const MoneyRequestHeader = (props) => {
                     {
                         icon: Expensicons.Trashcan,
                         text: props.translate('common.delete'),
-                        onSelected: () => {},
+                        onSelected: () => IOU.deleteMoneyRequest(props.report.chatReportID, props.report, props.parentReportAction),
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
