@@ -342,7 +342,7 @@ export default {
         },
     },
     notificationPreferencesPage: {
-        header: 'Notification Preferences',
+        header: 'Notification preferences',
         label: 'Notify me about new messages',
         notificationPreferences: {
             always: 'Immediately',

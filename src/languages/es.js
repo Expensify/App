@@ -341,7 +341,7 @@ export default {
         },
     },
     notificationPreferencesPage: {
-        header: 'Preferencias de Avisos',
+        header: 'Preferencias de avisos',
         label: 'Avisar sobre nuevos mensajes',
         notificationPreferences: {
             always: 'Inmediatamente',
