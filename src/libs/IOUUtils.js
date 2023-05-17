@@ -1,16 +1,17 @@
 import _ from 'underscore';
 import CONST from '../CONST';
+import * as ReportActionsUtils from './ReportActionsUtils';
 
 /**
  * Calculates the amount per user given a list of participants
  *
- * @param {Array} participants - List of logins for the participants in the chat. It should not include the current user's login.
+ * @param {Number} numberOfParticipants - Number of participants in the chat. It should not include the current user.
  * @param {Number} total - IOU total amount in the smallest units of the currency
  * @param {Boolean} isDefaultUser - Whether we are calculating the amount for the current user
  * @returns {Number}
  */
-function calculateAmount(participants, total, isDefaultUser = false) {
-    const totalParticipants = participants.length + 1;
+function calculateAmount(numberOfParticipants, total, isDefaultUser = false) {
+    const totalParticipants = numberOfParticipants + 1;
     const amountPerPerson = Math.round(total / totalParticipants);
     let finalAmount = amountPerPerson;
     if (isDefaultUser) {
@@ -74,7 +75,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
  */
 function getIOUReportActions(reportActions, iouReport, type = '', pendingAction = '', filterRequestsInDifferentCurrency = false) {
     return _.chain(reportActions)
-        .filter((action) => action.originalMessage && action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (!_.isEmpty(type) ? action.originalMessage.type === type : true))
+        .filter((action) => action.originalMessage && ReportActionsUtils.isMoneyRequestAction(action) && (!_.isEmpty(type) ? action.originalMessage.type === type : true))
         .filter((action) => action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
         .filter((action) => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
         .filter((action) => (filterRequestsInDifferentCurrency ? action.originalMessage.currency !== iouReport.currency : true))

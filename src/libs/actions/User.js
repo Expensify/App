@@ -563,14 +563,10 @@ function triggerNotifications(onyxUpdates) {
 }
 
 /**
- * Initialize our pusher subscription to listen for user changes
+ * Handles the newest events from Pusher where a single mega multipleEvents contains
+ * an array of singular events all in one event
  */
-function subscribeToUserEvents() {
-    // If we don't have the user's accountID yet we can't subscribe so return early
-    if (!currentUserAccountID) {
-        return;
-    }
-
+function subscribeToUserEventsUsingMultipleEventType() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {

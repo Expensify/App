@@ -1,6 +1,12 @@
 import CONST from '../../CONST';
 import variables from '../variables';
 import themeColors from '../themes/default';
+import styles from '../styles';
+
+const getCenteredModalStyles = (windowWidth, isSmallScreenWidth, isFullScreenWhenSmall = false) => ({
+    borderWidth: styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).borderWidth,
+    width: isSmallScreenWidth ? '100%' : windowWidth - styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall).marginHorizontal * 2,
+});
 
 export default (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
@@ -76,9 +82,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
-                borderWidth: isSmallScreenWidth ? 1 : 0,
                 overflow: 'hidden',
-                width: isSmallScreenWidth ? '100%' : windowWidth - 40,
+                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth),
             };
 
             // Allow this modal to be dismissed with a swipe down or swipe right
@@ -112,9 +117,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
-                borderWidth: isSmallScreenWidth ? 1 : 0,
                 overflow: 'hidden',
-                width: isSmallScreenWidth ? '100%' : windowWidth - 40,
+                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth, true),
             };
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
