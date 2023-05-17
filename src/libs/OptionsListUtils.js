@@ -847,28 +847,13 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
 
 /**
  * Build the suggestions for mentions
- * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Array<String>} [betas]
  * @param {String} [searchValue]
+ * @param {Number} [maxRecords]
  * @returns {Object}
  */
-function getMentionOptions(reports, personalDetails, betas = [], searchValue = '') {
-    const currentUser = _.find(personalDetails, isCurrentUser);
+function getMentionOptions(personalDetails, searchValue = '', maxRecords = 5) {
     const suggestions = [];
-    if (searchValue && `${currentUser.displayName} ${currentUser.login}`.includes(searchValue)) {
-        suggestions.push({
-            text: currentUser.displayName,
-            alternateText: currentUser.login,
-            icons: [
-                {
-                    name: currentUser.login,
-                    type: 'avatar',
-                    source: currentUser.avatar,
-                },
-            ],
-        });
-    }
 
     if ('here'.includes(searchValue)) {
         suggestions.push({
@@ -883,21 +868,24 @@ function getMentionOptions(reports, personalDetails, betas = [], searchValue = '
             ],
         });
     }
-    const {recentReports, userToInvite} = getOptions(reports, personalDetails, {
-        betas,
-        searchInputValue: searchValue.trim(),
-        selectedOptions: [],
-        includeRecentReports: true,
-        includePersonalDetails: true,
-        maxRecentReportsToShow: 5 - suggestions.length,
-        excludeLogins: [{login: currentUser.login}],
-        includeOwnedWorkspaceChats: false,
-        includeMoneyRequestReports: false,
-    });
+    _.each(_.values(personalDetails), (detail) => {
+        if (searchValue && !`${detail.displayName} ${detail.login}`.includes(searchValue)) {
+            return;
+        };
 
-    suggestions.push(...recentReports);
-    suggestions.push(userToInvite);
-    return _.filter(suggestions, (x) => !!x);
+        suggestions.push({
+            text: detail.displayName,
+            alternateText: detail.login,
+            icons: [
+                {
+                    name: detail.login,
+                    source: detail.avatar,
+                    type: 'avatar',
+                },
+            ]    
+        });
+    });
+    return suggestions.slice(0, maxRecords);
 }
 
 /**

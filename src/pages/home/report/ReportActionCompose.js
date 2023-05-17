@@ -117,9 +117,6 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
-    /** Collection of recent reports, used to calculate the mention suggestions */
-    reports: PropTypes.objectOf(reportPropTypes),
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -138,7 +135,6 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     isComposerFullSize: false,
     pendingAction: null,
-    reports: {},
     shouldShowComposeInput: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -550,7 +546,7 @@ class ReportActionCompose extends React.Component {
         const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
 
         if (!isCursorBeforeTheMention && this.isMentionCode(lastWord)) {
-            const suggestions = OptionsListUtils.getMentionOptions(this.props.reports, this.props.personalDetails, this.props.betas, prefix);
+            const suggestions = OptionsListUtils.getMentionOptions(this.props.personalDetails, prefix);
             nextState.suggestedMentions = suggestions;
             nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
         }
@@ -1192,9 +1188,6 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
