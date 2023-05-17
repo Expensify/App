@@ -971,17 +971,17 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
  */
 function getMoneyRequestAction(reportAction = {}) {
     const originalMessage = lodashGet(reportAction, 'originalMessage', {});
-    let total = originalMessage.amount || 0;
+    let amount = originalMessage.amount || 0;
     let currency = originalMessage.currency || CONST.CURRENCY.USD;
     let comment = originalMessage.comment || '';
 
     if (_.has(originalMessage, 'IOUDetails')) {
-        total = lodashGet(originalMessage, 'IOUDetails.amount', 0);
+        amount = lodashGet(originalMessage, 'IOUDetails.amount', 0);
         currency = lodashGet(originalMessage, 'IOUDetails.currency', CONST.CURRENCY.USD);
         comment = lodashGet(originalMessage, 'IOUDetails.comment', '');
     }
 
-    return {total, currency, comment};
+    return {amount, currency, comment};
 }
 
 /**
@@ -1055,8 +1055,8 @@ function getMoneyRequestReportName(report) {
  * @returns {String}
  */
 function getTransactionReportName(reportAction) {
-    return Localize.translateLocal('iou.threadReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', '')),
+    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
+        formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
         comment: lodashGet(reportAction, 'originalMessage.comment'),
     });
 }
