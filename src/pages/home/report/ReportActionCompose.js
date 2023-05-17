@@ -544,6 +544,7 @@ class ReportActionCompose extends React.Component {
 
         const nextState = {
             suggestedMentions: [],
+            highlightedMentionIndex: 0,
             atSignIndex,
             mentionPrefix: prefix,
         };
