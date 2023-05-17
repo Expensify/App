@@ -37,13 +37,11 @@ const propTypes = {
     /** Disable focus trap for the element on secondary interaction  */
     withoutFocusOnSecondaryInteraction: PropTypes.bool,
 
-
     /** Opacity to reduce to when active  */
     activeOpacity: PropTypes.number,
 
     /** Used to apply styles to the Pressable */
     style: stylePropTypes,
-
 };
 
 const defaultProps = {
