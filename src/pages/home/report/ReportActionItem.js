@@ -115,6 +115,7 @@ function ReportActionItem(props) {
     }, [isDraftEmpty]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
+        console.log('>>>> Here');
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     }, [props.action.reportActionID]);
 
@@ -123,26 +124,25 @@ function ReportActionItem(props) {
      *
      * @param {Object} [event] - A press event.
      */
-    const showPopover = useCallback(
-        (event) => {
-            // Block menu on the message being Edited or if the report action item has errors
-            if (props.draftMessage || !_.isEmpty(props.action.errors)) {
-                return;
-            }
+    const showPopover = useCallback((event) => {
+        // Block menu on the message being Edited or if the report action item has errors
+        if (props.draftMessage || !_.isEmpty(props.action.errors)) {
+            return;
+        }
 
-            setIsContextMenuActive(true);
+        setIsContextMenuActive(true);
 
         const selection = SelectionScraper.getCurrentSelection();
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
-            popoverAnchor,
+            popoverAnchorRef,
             props.report.reportID,
             props.action,
             props.draftMessage,
             undefined,
-            checkIfContextMenuActive,
+            toggleContextMenuFromActiveReportAction,
             ReportUtils.isArchivedRoom(props.report),
             ReportUtils.chatIncludesChronos(props.report),
             props.action.childReportID,
@@ -239,8 +239,7 @@ function ReportActionItem(props) {
 
         const reactions = _.get(props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
-        const shouldDisplayThreadReplies =
-            props.action.childCommenterCount && Permissions.canUseThreads(props.betas) && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
+        const shouldDisplayThreadReplies = props.action.childCommenterCount && Permissions.canUseThreads(props.betas) && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
         const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
 
         return (
