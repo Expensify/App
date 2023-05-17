@@ -95,9 +95,7 @@ class ReportDetailsPage extends Component {
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
         const isThread = ReportUtils.isThread(this.props.report);
-        if (
-            (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) || isThread
-        ) {
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy)) || isThread) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
