@@ -220,6 +220,9 @@
   "overrides": {
     "react-native": "$react-native"
   },
+  "electronmon": {
+    "patterns": ["!node_modules", "!node_modules/**/*", "!**/*.map", "!ios/**", "!android/**", "*.test.*", "*.spec.*"]
+  },
   "engines": {
     "node": "16.15.1",
     "npm": "8.11.0"
