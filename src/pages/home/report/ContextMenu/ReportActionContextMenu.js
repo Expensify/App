@@ -32,7 +32,6 @@ function showContextMenu(
     isChronosReport = false,
     isPinnedChat = false,
 ) {
-    console.log(isPinnedChat);
     if (!contextMenuRef.current) {
         return;
     }
