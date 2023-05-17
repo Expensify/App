@@ -1024,7 +1024,7 @@ function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = 
     }
 
     if (hasUserReacted) {
-        backgroundColor = themeColors.reactionActive;
+        backgroundColor = themeColors.reactionActiveBackground;
     }
 
     if (isContextMenu) {
@@ -1058,7 +1058,7 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
 
 function getEmojiReactionCounterTextStyle(hasUserReacted) {
     if (hasUserReacted) {
-        return {color: themeColors.link};
+        return {color: themeColors.reactionActiveText};
     }
 
     return {color: themeColors.textLight};

@@ -80,9 +80,9 @@ class ReportSettingsPage extends Component {
     }
 
     render() {
-        const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report);
+        const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report) && !ReportUtils.isThread(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
-        const shouldDisableRename = this.shouldDisableRename(linkedWorkspace);
+        const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
 
         return (

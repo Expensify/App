@@ -1597,6 +1597,43 @@ function openReportFromDeepLink(url) {
     });
 }
 
+/**
+ * Leave a report by setting the state to submitted and closed
+ *
+ * @param {String} reportID
+ */
+function leaveRoom(reportID) {
+    API.write(
+        'LeaveRoom',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS.CLOSED,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS.OPEN,
+                    },
+                },
+            ],
+        },
+    );
+    navigateToConciergeChat();
+}
+
 export {
     addComment,
     addAttachment,
@@ -1638,4 +1675,5 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
+    leaveRoom,
 };
