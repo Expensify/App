@@ -133,15 +133,15 @@ const MoneyRequestHeader = (props) => {
                 <>
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount}
-                        description="Amount • Cash"
+                        description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}`}
                         titleStyle={styles.newKansasLarge}
                     />
                     <MenuItemWithTopDescription
-                        description="Description"
+                        description={props.translate('common.description')}
                         title={transactionDescription}
                     />
                     <MenuItemWithTopDescription
-                        description="Date"
+                        description={props.translate('common.date')}
                         title={formattedTransactionDate}
                     />
                 </>
