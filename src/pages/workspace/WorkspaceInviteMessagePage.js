@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {Pressable, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -94,11 +93,6 @@ class WorkspaceInviteMessagePage extends React.Component {
         return this.props.translate('workspace.inviteMessage.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
-    }
-
-    getAvatarTooltips() {
-        const filteredPersonalDetails = _.pick(this.props.personalDetails, this.props.invitedMembersDraft);
-        return _.map(filteredPersonalDetails, (personalDetail) => Str.removeSMSDomain(personalDetail.login));
     }
 
     sendInvitation() {

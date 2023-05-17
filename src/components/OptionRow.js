@@ -133,7 +133,6 @@ class OptionRow extends Component {
 
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((this.props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
-
         let subscriptColor = themeColors.appBG;
         if (this.props.optionIsFocused) {
             subscriptColor = focusedBackgroundColor;
@@ -196,6 +195,7 @@ class OptionRow extends Component {
                                                     this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                     hovered && !this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                                 ]}
+                                                shouldShowTooltip={this.props.showTitleTooltip}
                                             />
                                         ))}
                                     <View style={contentContainerStyles}>
