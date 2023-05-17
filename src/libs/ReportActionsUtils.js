@@ -99,10 +99,10 @@ function getFormattedAmount(reportAction) {
  */
 function isTransactionThread(parentReportAction) {
     const originalMessage = lodashGet(parentReportAction, 'originalMessage', {});
-    return (
+    return Boolean(
         parentReportAction &&
-        parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
+            parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails)),
     );
 }
 
