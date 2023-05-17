@@ -26,7 +26,8 @@ const EnvironmentBadge = (props) => {
             success={props.environment === CONST.ENVIRONMENT.STAGING || props.environment === CONST.ENVIRONMENT.ADHOC}
             error={props.environment !== CONST.ENVIRONMENT.STAGING && props.environment !== CONST.ENVIRONMENT.ADHOC}
             text={text}
-            badgeStyles={[styles.alignSelfCenter]}
+            badgeStyles={[styles.alignSelfEnd, styles.headerEnvBadge]}
+            textStyles={[styles.headerEnvBadgeText]}
             environment={props.environment}
         />
     );
