@@ -1547,6 +1547,29 @@ const styles = {
             // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
             paddingHorizontal: variables.avatarChatSpacing,
+            paddingTop: 9,
+            paddingBottom: 9,
+            alignSelf: 'center',
+            textAlignVertical: 'center',
+        },
+        0,
+    ),
+    textInputComposeMultiLines: addOutlineWidth(
+        {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontSize: variables.fontSizeNormal,
+            borderWidth: 0,
+            height: 'auto',
+            lineHeight: variables.lineHeightXLarge,
+            ...overflowXHidden,
+
+            // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
+            // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
+
+            paddingHorizontal: variables.avatarChatSpacing,
             paddingTop: 5,
             paddingBottom: 5,
             alignSelf: 'center',
