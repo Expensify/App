@@ -127,7 +127,7 @@ const replaceNodes = (dom, isChildOfEditorElement) => {
     }
 
     if (dom.children) {
-        domChildren = _.map(dom.children, (c) => replaceNodes(c, isChildOfEditorElement || !_.isEmpty(dom.attribs[tagAttribute])));
+        domChildren = _.map(dom.children, (c) => replaceNodes(c, isChildOfEditorElement || !_.isEmpty(dom.attribs && dom.attribs[tagAttribute])));
     }
 
     return {
