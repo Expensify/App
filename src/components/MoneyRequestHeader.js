@@ -54,10 +54,10 @@ const propTypes = {
     /** The reimbursement account to use */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
-    /** Holds information about the users account */
-    account: PropTypes.shape({
-        /** The user's primary login */
-        primaryLogin: PropTypes.string.isRequired,
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
     }),
 
     ...withLocalizePropTypes,
@@ -67,7 +67,9 @@ const defaultProps = {
     isSingleTransactionView: false,
     chatReport: {},
     reimbursementAccount: {},
-    account: {},
+    session: {
+        email: null,
+    },
     parentReport: {},
 };
 
@@ -90,7 +92,7 @@ const MoneyRequestHeader = (props) => {
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
     const policy = props.policies[`policy_${props.report.policyID}`];
     const shouldShowSettlementButton =
-        !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(props.report) && props.account.primaryLogin === props.report.managerEmail));
+        !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(props.report) && lodashGet(props.session, 'email', null) === props.report.managerEmail));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
@@ -212,8 +214,8 @@ export default compose(
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
-        account: {
-            key: ONYXKEYS.ACCOUNT,
+        session: {
+            key: ONYXKEYS.SESSION,
         },
         parentReport: {
             key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
