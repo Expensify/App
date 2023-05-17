@@ -99,15 +99,14 @@ export default {
      * @param {Boolean} usesIcon true if notification uses right circular icon
      */
     pushReportCommentNotification({report, reportAction, onClick}, usesIcon = false) {
+        let title;
+        let body;
+
+        const isChatRoom = ReportUtils.isChatRoom(report);
         const {person, message} = reportAction;
         const plainTextPerson = _.map(person, (f) => f.text).join();
-        const isChatRoom = ReportUtils.isChatRoom(report);
-
         // Specifically target the comment part of the message
         const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
-
-        let title = '';
-        let body = '';
 
         if (isChatRoom) {
             const roomName = _.get(report, 'displayName', '');
