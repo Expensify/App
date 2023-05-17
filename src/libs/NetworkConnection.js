@@ -75,14 +75,23 @@ Onyx.connect({
 function subscribeToNetInfo() {
     // Note: We are disabling the configuration for NetInfo when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
     // If you need to test the "recheck" feature then switch to the production API proxy server.
-    if (!CONFIG.IS_USING_LOCAL_WEB) {
+    if (true) {
         // Calling NetInfo.configure (re)checks current state. We use it to force a recheck whenever we (re)subscribe
         NetInfo.configure({
             // By default, NetInfo uses `/` for `reachabilityUrl`
             // When App is served locally (or from Electron) this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
-            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api`,
-            reachabilityTest: (response) => Promise.resolve(response.status === 200),
+            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=Ping`,
+            reachabilityMethod: 'GET',
+            reachabilityTest: (response) => {
+                if (!response.ok) {
+                    return Promise.resolve(false);
+                }
+                return response
+                    .json()
+                    .then((json) => Promise.resolve(json.jsonCode === 200))
+                    .catch(() => Promise.resolve(false));
+            },
 
             // If a check is taking longer than this time we're considered offline
             reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
