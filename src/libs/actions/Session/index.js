@@ -383,7 +383,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
+function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
@@ -401,6 +401,11 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {autoAuthState: CONST.AUTO_AUTH_STATE.SIGNING_IN},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            value: preferredLocale,
         },
     ];
 
@@ -444,6 +449,7 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
             accountID,
             validateCode,
             twoFactorAuthCode,
+            preferredLocale,
             deviceInfo: getDeviceInfoForLogin(),
         },
         {optimisticData, successData, failureData},
