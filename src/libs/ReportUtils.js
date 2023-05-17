@@ -22,7 +22,6 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
-import * as PolicyUtils from './PolicyUtils';
 
 let sessionEmail;
 Onyx.connect({
