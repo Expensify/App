@@ -387,6 +387,7 @@ class WorkspaceMembersPage extends React.Component {
         data = _.sortBy(data, (value) => value.displayName.toLowerCase());
         data = this.getMemberOptions(data, this.state.searchValue.trim().toLowerCase());
 
+        // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
         if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner)) {
             // We don't want to show guides as policy members unless the user is not a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
