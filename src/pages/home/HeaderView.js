@@ -239,7 +239,7 @@ export default compose(
             canEvict: false,
         },
         parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
         },
     }),
 )(HeaderView);
