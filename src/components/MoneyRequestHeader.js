@@ -52,10 +52,8 @@ const defaultProps = {
 };
 
 const MoneyRequestHeader = (props) => {
-    // These are only used for the single transaction view and not "money requests"
-    const transactionAmount = lodashGet(props.parentReportAction, ['originalMessage', 'amount']);
-    const transactionCurrency = lodashGet(props.parentReportAction, ['originalMessage', 'currency']);
-    const transactionDescription = lodashGet(props.parentReportAction, ['originalMessage', 'comment']);
+    // These are only used for the single transaction view and not for expense and iou reports
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const transactionDate = lodashGet(props.parentReportAction, ['created']);
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
