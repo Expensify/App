@@ -1547,8 +1547,27 @@ const styles = {
             // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
             paddingHorizontal: variables.avatarChatSpacing,
-            paddingTop: 0,
-            paddingBottom: 0,
+            paddingTop: 9,
+            paddingBottom: 9,
+            alignSelf: 'center',
+            textAlignVertical: 'center',
+        },
+        0,
+    ),
+    textInputComposeMultiLines: addOutlineWidth(
+        {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontSize: variables.fontSizeNormal,
+            borderWidth: 0,
+            height: 'auto',
+            lineHeight: variables.lineHeightXLarge,
+            ...overflowXHidden,
+            paddingHorizontal: variables.avatarChatSpacing,
+            paddingTop: 5,
+            paddingBottom: 5,
             alignSelf: 'center',
             textAlignVertical: 'center',
         },
@@ -1569,7 +1588,7 @@ const styles = {
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 5,
+        paddingVertical: 0,
         ...flex.flexRow,
         flex: 1,
     },
