@@ -12,7 +12,6 @@ import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
@@ -20,10 +19,11 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Button from '../Button';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** All the data of the action */
@@ -35,6 +35,16 @@ const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
+
+    /* Onyx Props */
+    /** chatReport associated with iouReport */
+    chatReport: PropTypes.shape({
+        /** The participants of this report */
+        participants: PropTypes.arrayOf(PropTypes.string),
+
+        /** Whether the chat report has an outstanding IOU */
+        hasOutstandingIOU: PropTypes.bool.isRequired,
+    }),
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
@@ -63,9 +73,6 @@ const propTypes = {
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
 
-    /** Callback invoked when View Details is pressed */
-    onViewDetailsPressed: PropTypes.func,
-
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
@@ -78,8 +85,8 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: null,
     isHovered: false,
+    chatReport: {},
     iouReport: {},
-    onViewDetailsPressed: () => {},
     checkIfContextMenuActive: () => {},
     session: {
         email: null,
@@ -89,21 +96,23 @@ const defaultProps = {
 const ReportPreview = (props) => {
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
-    const managerName = ReportUtils.getDisplayNameForParticipant(managerEmail, true);
+    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     return (
         <View style={[styles.chatItemMessage, styles.mt4]}>
             {_.map(props.action.message, (index) => (
                 <Pressable
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
-                    onPress={props.onViewDetailsPressed}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
+                    }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                     style={[styles.flexRow, styles.justifyContentBetween]}
                     focusable
                 >
-                    <View>
+                    <View style={[styles.flexShrink1]}>
                         {props.iouReport.hasOutstandingIOU ? (
                             <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount})}</Text>
                         ) : (
@@ -149,6 +158,9 @@ ReportPreview.displayName = 'ReportPreview';
 export default compose(
     withLocalize,
     withOnyx({
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+        },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },

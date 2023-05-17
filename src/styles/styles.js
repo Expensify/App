@@ -1688,10 +1688,8 @@ const styles = {
 
     taskSelectorLink: {
         alignSelf: 'center',
-        height: 42,
         width: '100%',
         padding: 6,
-        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -1782,20 +1780,14 @@ const styles = {
 
     secondAvatarSubscript: {
         position: 'absolute',
-        right: -4,
-        bottom: -2,
-        borderWidth: 2,
-        borderRadius: 18,
-        borderColor: 'transparent',
+        right: -6,
+        bottom: -6,
     },
 
     secondAvatarSubscriptCompact: {
         position: 'absolute',
         bottom: -1,
         right: -1,
-        borderWidth: 1,
-        borderRadius: 18,
-        borderColor: 'transparent',
     },
 
     leftSideLargeAvatar: {
@@ -1981,8 +1973,8 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
-    centeredModalStyles: (isSmallScreenWidth) => ({
-        borderWidth: isSmallScreenWidth ? 1 : 0,
+    centeredModalStyles: (isSmallScreenWidth, isFullScreenWhenSmall) => ({
+        borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
         marginHorizontal: isSmallScreenWidth ? 0 : 20,
     }),
 
@@ -2114,6 +2106,58 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
+    },
+
+    twoFactorAuthSection: {
+        backgroundColor: themeColors.appBG,
+        padding: 0,
+    },
+
+    twoFactorAuthCodesBox: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.highlightBG,
+        paddingVertical: 28,
+        paddingHorizontal: 60,
+        borderRadius: 16,
+        marginTop: 32,
+    },
+
+    twoFactorLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 210,
+    },
+
+    twoFactorAuthCodesContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        height: 148,
+    },
+
+    twoFactorAuthCode: {
+        fontFamily: fontFamily.MONOSPACE,
+        width: 100,
+        height: 18,
+        textAlign: 'center',
+    },
+
+    twoFactorAuthCodesButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 12,
+        marginTop: 20,
+    },
+
+    twoFactorAuthCodesButton: {
+        minWidth: 100,
+    },
+
+    twoFactorAuthFooter: {
+        marginTop: 'auto',
     },
 
     roomHeaderAvatarSize: {
@@ -2346,6 +2390,10 @@ const styles = {
         fontSize: variables.fontSizeXLarge,
         color: themeColors.heading,
         lineHeight: variables.inputHeight,
+    },
+
+    magicCodeInputTransparent: {
+        color: 'transparent',
     },
 
     iouAmountText: {
@@ -3226,9 +3274,41 @@ const styles = {
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
+
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    shareCodePage: {
+        paddingHorizontal: 38.5,
+    },
+
+    shareCodeContainer: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: variables.qrShareHorizontalPadding,
+        paddingVertical: 20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderColor: themeColors.borderFocus,
+        borderWidth: 2,
+        backgroundColor: themeColors.highlightBG,
+    },
+
+    headerEnvBadge: {
+        marginLeft: 0,
+        marginBottom: 2,
+        height: 12,
+        paddingLeft: 4,
+        paddingRight: 4,
+        alignItems: 'center',
+    },
+
+    headerEnvBadgeText: {
+        fontSize: 7,
+        fontWeight: fontWeightBold,
+        lineHeight: undefined,
     },
 };
 

@@ -541,6 +541,8 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
+  - react-native-view-shot (3.6.0):
+    - React-Core
   - react-native-webview (11.23.0):
     - React-Core
   - React-perflogger (0.71.2-alpha.3)
@@ -698,7 +700,7 @@ PODS:
   - RNScreens (3.17.0):
     - React-Core
     - React-RCTImage
-  - RNSVG (13.5.0):
+  - RNSVG (13.9.0):
     - React-Core
   - SDWebImage (5.11.1):
     - SDWebImage/Core (= 5.11.1)
@@ -781,6 +783,7 @@ DEPENDENCIES:
   - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -944,6 +947,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-view-shot:
+    :path: "../node_modules/react-native-view-shot"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-perflogger:
@@ -1089,6 +1094,7 @@ SPEC CHECKSUMS:
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
+  react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
   react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
   React-perflogger: 9f7c5a9d22d104ae0348f38235ee636d156b5938
   React-RCTActionSheet: 43e74f3a54967bb1d0e9ff261bc076843fb50ca1
@@ -1120,13 +1126,13 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: fbc356493970e3acddc15586b1bccb5eab3ff1ec
   RNScreens: 0df01424e9e0ed7827200d6ed1087ddd06c493f9
-  RNSVG: 38ca962c970dbce1ca38991a5aebf26d163f9efb
+  RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   Yoga: f87bd008d34c18bf990d4371200802f2866ce18c
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 5feaab251246f42f41e69c8a28fa331b4899e814
+PODFILE CHECKSUM: 4ed1c7b099741c82e2b0411b95f6468e72be6c76
 
 COCOAPODS: 1.12.0
