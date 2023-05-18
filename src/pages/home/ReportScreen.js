@@ -313,7 +313,7 @@ class ReportScreen extends React.Component {
                                     ) : (
                                         <HeaderView
                                             reportID={reportID}
-                                            onNavigationMenuButtonClicked={Navigation.goBack}
+                                            onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
                                             personalDetails={this.props.personalDetails}
                                             report={this.props.report}
                                         />
