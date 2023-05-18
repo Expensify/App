@@ -56,10 +56,10 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                           and the left edge of the wrapped component.
  * @param {Number} yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
- * @param {Element} wrapper - The reference to the tooltip wrapper
+ * @param {Element} tooltip - The reference to the tooltip's root element
  * @returns {Boolean}
  */
-function isOverlappingAtTop(xOffset, yOffset, wrapper) {
+function isOverlappingAtTop(xOffset, yOffset, tooltip) {
     if (typeof document.elementFromPoint !== 'function') {
         return false;
     }
@@ -67,7 +67,7 @@ function isOverlappingAtTop(xOffset, yOffset, wrapper) {
     const element = document.elementFromPoint(xOffset, yOffset);
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!element || wrapper.contains(element)) {
+    if (!element || tooltip.contains(element)) {
         return false;
     }
 
