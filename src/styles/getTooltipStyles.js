@@ -231,7 +231,7 @@ export default function getTooltipStyles(
             //      so the pointer's center lines up with the rootWrapperWidth's center.
             //   3) Due to the tip start from the left edge of tooltip Tooltip so we have to remove the
             //      horizontalShift which is added to adjust it into the Window
-            left: horizontalShiftPointer + (rootWrapperWidth / 2 - POINTER_WIDTH / 2),
+            left: horizontalShiftPointer + (tooltipWidth / 2 - POINTER_WIDTH / 2),
 
             opacity,
         },
