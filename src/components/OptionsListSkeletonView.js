@@ -93,7 +93,7 @@ class OptionsListSkeletonView extends React.Component {
     render() {
         return (
             <View
-                style={styles.flex1}
+                style={[styles.flex1, styles.overflowHidden]}
                 onLayout={(event) => {
                     const numItems = Math.ceil(event.nativeEvent.layout.height / CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT);
                     this.generateSkeletonViewItems(numItems);
