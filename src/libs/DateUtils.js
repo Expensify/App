@@ -65,17 +65,24 @@ function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = 
  * @param {String} datetime
  * @param {Boolean} includeTimeZone
  * @param {String} [currentSelectedTimezone]
+ * @param {Boolean} isLowercase
  *
  * @returns {String}
  */
-function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone) {
+function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone, isLowercase = false) {
     const date = getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
-    const todayAt = Localize.translate(locale, 'common.todayAt');
-    const tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
-    const yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
+    let todayAt = Localize.translate(locale, 'common.todayAt');
+    let tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
+    let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
     const at = Localize.translate(locale, 'common.conjunctionAt');
+
+    if (isLowercase) {
+        todayAt = todayAt.toLowerCase();
+        tomorrowAt = tomorrowAt.toLowerCase();
+        yesterdayAt = yesterdayAt.toLowerCase();
+    }
 
     return moment(date).calendar({
         sameDay: `[${todayAt}] LT${tz}`,
@@ -186,6 +193,19 @@ function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
 }
 
 /**
+ * @param {string} isoTimestamp example: 2023-05-16 05:34:14.388
+ * @returns {string} example: 2023-05-16
+ */
+function getDateStringFromISOTimestamp(isoTimestamp) {
+    if (!isoTimestamp) {
+        return '';
+    }
+
+    const [dateString] = isoTimestamp.split(' ');
+    return dateString;
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -199,6 +219,7 @@ const DateUtils = {
     getMicroseconds,
     getDBTime,
     subtractMillisecondsFromDateTime,
+    getDateStringFromISOTimestamp,
 };
 
 export default DateUtils;
