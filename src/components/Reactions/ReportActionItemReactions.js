@@ -11,7 +11,7 @@ import * as Report from '../../libs/actions/Report';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
-import getUniqueEmojiCodes from './getUniqueEmojiCodes';
+import * as EmojiUtils from '../../libs/EmojiUtils';
 
 const propTypes = {
     /**
@@ -59,7 +59,7 @@ const ReportActionItemReactions = (props) => {
                 const reactionCount = reaction.users.length;
                 const reactionUsers = _.map(reaction.users, (sender) => sender.accountID.toString());
                 const emoji = _.find(emojis, (e) => e.name === reaction.emoji);
-                const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
+                const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
                 const onPress = () => {

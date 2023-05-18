@@ -11,10 +11,10 @@ import BaseReactionList from './BaseReactionList';
 import compose from '../../../../libs/compose';
 import reportActionPropTypes from '../reportActionPropTypes';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import getUniqueEmojiCodes from '../../../../components/Reactions/getUniqueEmojiCodes';
 import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import emojis from '../../../../../assets/emojis';
+import * as EmojiUtils from '../../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -164,7 +164,7 @@ class PopoverReactionList extends React.Component {
         const emojiCount = selectedReaction.users.length;
         const reactionUsers = _.map(selectedReaction.users, (sender) => sender.accountID.toString());
         const emoji = _.find(emojis, (e) => e.name === selectedReaction.emoji);
-        const emojiCodes = getUniqueEmojiCodes(emoji, selectedReaction.users);
+        const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, selectedReaction.users);
         const hasUserReacted = Report.hasAccountIDReacted(this.props.currentUserPersonalDetails.accountID, reactionUsers);
         const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
         return {
