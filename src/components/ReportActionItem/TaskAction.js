@@ -54,6 +54,9 @@ const TaskAction = (props) => {
         case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
             messageLinkText = props.translate('task.messages.completed');
             break;
+        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELED:
+            messageLinkText = props.translate('task.messages.canceled');
+            break;
         case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
             messageLinkText = props.translate('task.messages.reopened');
             break;

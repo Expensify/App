@@ -400,8 +400,8 @@ describe('ReportUtils', () => {
             });
         });
 
-        it('return both iou send and request money', () => {
-            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+        it('return both iou send and request money in DM', () => {
+            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserEmail, participants[0]], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);
