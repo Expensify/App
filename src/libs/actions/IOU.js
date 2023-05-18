@@ -882,6 +882,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         optimisticTransaction.transactionID,
         paymentMethodType,
         optimisticIOUReport.reportID,
+        false,
+        true,
     );
 
     // First, add data that will be used in all cases
