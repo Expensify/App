@@ -1123,7 +1123,12 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
  * @param {String} previousValue
  * @param {String} newValue
  */
-function updateWriteCapability(reportID, previousValue, newValue) {
+function updateWriteCapabilityAndNavigate(reportID, previousValue, newValue) {
+    if (previousValue === newValue) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        return;
+    }
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1139,6 +1144,7 @@ function updateWriteCapability(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateReportWriteCapability', {reportID, writeCapability: newValue}, {optimisticData, failureData});
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1661,7 +1667,7 @@ export {
     addComment,
     addAttachment,
     reconnect,
-    updateWriteCapability,
+    updateWriteCapabilityAndNavigate,
     updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,

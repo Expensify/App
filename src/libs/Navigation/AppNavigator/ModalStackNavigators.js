@@ -191,6 +191,13 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Report_Settings_Notification_Preferences',
     },
+    {
+        getComponent: () => {
+            const WriteCapabilityPage = require('../../../pages/settings/Report/WriteCapabilityPage').default;
+            return WriteCapabilityPage;
+        },
+        name: 'Report_Settings_Write_Capability',
+    },
 ]);
 
 const TaskModalStackNavigator = createModalStackNavigator([
