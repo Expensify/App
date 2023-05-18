@@ -204,7 +204,7 @@ class PasswordForm extends React.Component {
                     <View style={[styles.mv3]}>
                         <TextInput
                             ref={(el) => (this.input2FA = el)}
-                            label={this.props.translate('passwordForm.twoFactorCode')}
+                            label={this.props.translate('common.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}

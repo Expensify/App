@@ -87,6 +87,7 @@ function TaskHeader(props) {
                                 ) : (
                                     <Button
                                         success
+                                        isDisabled={TaskUtils.isTaskCanceled(props.report)}
                                         medium
                                         text={props.translate('newTaskPage.markAsDone')}
                                         onPress={() => TaskUtils.completeTask(props.report.reportID, parentReportID, title)}

@@ -410,6 +410,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isThread(report);
+        result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -549,7 +550,7 @@ function getOptions(
         forcePolicyNamePreview = false,
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
-        includeMoneyRequestReports = true,
+        includeTasks = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -592,6 +593,7 @@ function getOptions(
         const isThread = ReportUtils.isThread(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         const isChatRoom = ReportUtils.isChatRoom(report);
+        const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
 
@@ -603,7 +605,7 @@ function getOptions(
             return;
         }
 
-        if (isMoneyRequestReport && !includeMoneyRequestReports) {
+        if (isTaskReport && !includeTasks) {
             return;
         }
 
@@ -933,7 +935,7 @@ function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', e
         searchInputValue: searchValue.trim(),
         includePersonalDetails: true,
         excludeLogins,
-        sortPersonalDetailsByAlphaAsc: false,
+        sortPersonalDetailsByAlphaAsc: true,
     });
 }
 
