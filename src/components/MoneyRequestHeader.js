@@ -153,7 +153,7 @@ const MoneyRequestHeader = (props) => {
                                     iouReport={props.report}
                                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
                                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                                    addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                                     shouldShowPaymentOptions
                                 />
                             </View>
@@ -169,7 +169,7 @@ const MoneyRequestHeader = (props) => {
                         iouReport={props.report}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                        addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                        addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                         shouldShowPaymentOptions
                     />
                 )}

@@ -134,9 +134,6 @@ const IOUPreview = (props) => {
     const sessionEmail = lodashGet(props.session, 'email', null);
     const managerEmail = props.iouReport.managerEmail || '';
     const ownerEmail = props.iouReport.ownerEmail || '';
-
-    // When displaying within a IOUDetailsModal we cannot guarantee that participants are included in the originalMessage data
-    // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
     const participantEmails = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participants', []) : [managerEmail, ownerEmail];
     const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails, props.personalDetails);
 
@@ -145,7 +142,6 @@ const IOUPreview = (props) => {
 
     const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
 
-    // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
     const requestAmount = props.isIOUAction ? moneyRequestAction.amount : ReportUtils.getMoneyRequestTotal(props.iouReport);
     const requestCurrency = props.isIOUAction ? moneyRequestAction.currency : props.iouReport.currency;
     const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim();
@@ -164,8 +160,6 @@ const IOUPreview = (props) => {
     };
 
     const showContextMenu = (event) => {
-        // Use action prop to check if we are in IOUDetailsModal,
-        // if it's true, do nothing when user long press, otherwise show context menu.
         if (!props.action) {
             return;
         }
