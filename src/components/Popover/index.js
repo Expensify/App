@@ -20,6 +20,7 @@ const Popover = (props) => {
                 animationInTiming={props.disableAnimation ? 1 : props.animationInTiming}
                 animationOutTiming={props.disableAnimation ? 1 : props.animationOutTiming}
                 shouldCloseOnOutsideClick
+                onLayout={props.onLayout}
             />,
             document.body,
         );
@@ -33,6 +34,7 @@ const Popover = (props) => {
             fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
             animationInTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationInTiming}
             animationOutTiming={props.disableAnimation && !props.isSmallScreenWidth ? 1 : props.animationOutTiming}
+            onLayout={props.onLayout}
         />
     );
 };

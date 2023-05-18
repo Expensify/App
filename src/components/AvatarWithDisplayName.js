@@ -46,7 +46,7 @@ const defaultProps = {
 
 const AvatarWithDisplayName = (props) => {
     const title = ReportUtils.getDisplayNameForParticipant(props.report.ownerEmail, true);
-    const subtitle = ReportUtils.getChatRoomSubtitle(props.report, props.policies);
+    const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins([props.report.ownerEmail], props.personalDetails);

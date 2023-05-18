@@ -21,6 +21,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
+import * as EmojiUtils from '../EmojiUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -41,13 +42,7 @@ let preferredSkinTone;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     callback: (val) => {
-        // the preferred skin tone is sometimes still "default", although it
-        // was changed that "default" has become -1.
-        if (!_.isNull(val) && Number.isInteger(Number(val))) {
-            preferredSkinTone = val;
-        } else {
-            preferredSkinTone = -1;
-        }
+        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(val);
     },
 });
 
@@ -218,7 +213,7 @@ function addActions(reportID, text = '', file) {
 
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
-        lastMessageText: Str.htmlDecode(lastCommentText),
+        lastMessageText: lastCommentText,
         lastActorEmail: currentUserEmail,
         lastReadTime: currentTime,
     };
@@ -1032,7 +1027,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         const reportComment = parser.htmlToText(htmlForNewComment);
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
-            lastMessageText: Str.htmlDecode(lastMessageText),
+            lastMessageText,
         };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1590,6 +1585,43 @@ function openReportFromDeepLink(url) {
     });
 }
 
+/**
+ * Leave a report by setting the state to submitted and closed
+ *
+ * @param {String} reportID
+ */
+function leaveRoom(reportID) {
+    API.write(
+        'LeaveRoom',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS.CLOSED,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS.OPEN,
+                    },
+                },
+            ],
+        },
+    );
+    navigateToConciergeChat();
+}
+
 export {
     addComment,
     addAttachment,
@@ -1631,4 +1663,5 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
+    leaveRoom,
 };
