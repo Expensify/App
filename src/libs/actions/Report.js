@@ -2,6 +2,7 @@ import {InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {URL_REGEX} from 'expensify-common/lib/Url';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -902,7 +903,10 @@ function deleteReportComment(reportID, reportAction) {
  * @returns {Array}
  */
 const extractLinksInMarkdownComment = (comment) => {
-    const regex = /\[[^[\]]*\]\(([^()]*)\)/gm;
+    const regex = new RegExp(
+        `\\[(?:[^\\][]*(?:\\[[^\\][]*][^\\][]*)*)]\\(${URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`,
+        'gm',
+    );
     const matches = [...comment.matchAll(regex)];
 
     // Element 1 from match is the regex group if it exists which contains the link URLs
