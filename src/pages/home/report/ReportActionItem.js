@@ -374,7 +374,7 @@ function ReportActionItem(props) {
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
-                                needsOffscreenAlphaCompositing={props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
+                                needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(this.props.action)}
                             >
                                 {isWhisper && (
                                     <View style={[styles.flexRow, styles.pl5, styles.pt2]}>
@@ -409,6 +409,7 @@ function ReportActionItem(props) {
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                            childReportActionID={props.action.childReportActionID}
                         />
                     </View>
                 )}
