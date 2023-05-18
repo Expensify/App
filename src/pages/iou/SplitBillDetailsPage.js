@@ -1,59 +1,44 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
 import CONST from '../../CONST';
-import optionPropTypes from '../../components/optionPropTypes';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
-    onConfirm: PropTypes.func.isRequired,
-
-    /** Callback to parent modal to send money */
-    onSendMoney: PropTypes.func.isRequired,
-
-    /** Should we request a single or multiple participant selection from user */
-    hasMultipleParticipants: PropTypes.bool.isRequired,
-
-    /** IOU amount */
-    iouAmount: PropTypes.number.isRequired,
-
-    /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(optionPropTypes).isRequired,
-
-    /** IOU type */
-    iouType: PropTypes.string,
-
-    /** Can the participants be modified or not */
-    canModifyParticipants: PropTypes.bool,
-
-    /** Function to navigate to a given step in the parent MoneyRequestModal */
-    navigateToStep: PropTypes.func.isRequired,
-
-    /** The policyID of the request */
-    policyID: PropTypes.string.isRequired,
+    // eslint-disable-next-line react/forbid-prop-types
+    reportActions: PropTypes.objectOf(PropTypes.object),
 };
 
 const defaultProps = {
-    iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
-    canModifyParticipants: false,
+    reportActions: {},
 };
 
-const SplitBillDetailsPage = (props) => (
-    <MoneyRequestConfirmationList
-        hasMultipleParticipants={props.hasMultipleParticipants}
-        participants={props.participants}
-        iouAmount={props.iouAmount}
-        onConfirm={props.onConfirm}
-        onSendMoney={props.onSendMoney}
-        iouType={props.iouType}
-        canModifyParticipants={props.canModifyParticipants}
-        navigateToStep={props.navigateToStep}
-        policyID={props.policyID}
-    />
-);
+const SplitBillDetailsPage = (props) => {
+    const reportActionID = lodashGet(props, 'route.params.reportActionID', '');
+    const reportAction = props.reportActions[reportActionID];
+
+    return (
+        <MoneyRequestConfirmationList
+            hasMultipleParticipants
+            participants={reportAction.originalMessage.participants}
+            iouAmount={reportAction.originalMessage.amount}
+            onConfirm={() => {}}
+            onSendMoney={() => {}}
+            iouType={CONST.IOU.REPORT_ACTION_TYPE.SPLIT}
+            canModifyParticipants={false}
+            navigateToStep={() => {}}
+        />
+    );
+};
 
 SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 SplitBillDetailsPage.propTypes = propTypes;
 SplitBillDetailsPage.defaultProps = defaultProps;
 
-export default SplitBillDetailsPage;
+export default withOnyx({
+    reportActions: {
+        key: ({chatReportID}) => `ONYXKEYS.COLLECTION.REPORT_ACTIONS${chatReportID}`,
+    }
+})(SplitBillDetailsPage);
