@@ -180,7 +180,7 @@ const MultipleAvatars = (props) => {
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
                             <Tooltip
-                                text={props.shouldShowTooltip ? props.icons[1].name : ''}
+                                text={tooltipTexts[1]}
                                 absolute
                             >
                                 <View>
