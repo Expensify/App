@@ -437,10 +437,11 @@ function getPolicyName(report) {
  * @param {Object} report
  * @param {String} report.writeCapability
  * @param {Object} policy
+ * @param {String} policy.role
  * @returns {Boolean}
  */
 function isAllowedToComment(report, policy) {
-    // If the capability is unset, default to allowing all users to post
+    // Default to allowing all users to post
     const capability = lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL);
 
     if (capability === CONST.REPORT.WRITE_CAPABILITIES.ALL) {
