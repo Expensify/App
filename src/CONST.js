@@ -1020,14 +1020,17 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
+        SPECIAL_CHAR_OR_EMOJI:
         // eslint-disable-next-line no-misleading-character-class
-        NEW_LINE_OR_WHITE_SPACE_OR_EMOJI: /[\n\s\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        /[\n\s/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
         EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
 
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        MENTION_REPLACER: /^@[^\n\r]*?(?=$|[\s\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/,
+        MENTION_REPLACER:
+            // eslint-disable-next-line no-misleading-character-class
+            /^@[^\n\r]*?(?=$|[\s/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
