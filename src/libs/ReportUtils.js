@@ -2153,7 +2153,7 @@ function isReportDataReady() {
 }
 
 /**
- * Return true if user is an admin of the report's policy
+ * Checks if the current user is the admin of the policy.
  *
  * @param {Object} report
  * @returns {boolean}
