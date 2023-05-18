@@ -78,6 +78,10 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
+    /* Whether the option has an outstanding IOU */
+    // eslint-disable-next-line react/no-unused-prop-types
+    hasOutstandingIOU: PropTypes.bool.isRequired,
+
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
