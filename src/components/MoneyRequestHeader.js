@@ -149,7 +149,7 @@ const MoneyRequestHeader = (props) => {
                                     currency={props.report.currency}
                                     policyID={props.report.policyID}
                                     shouldShowPaypal={Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']))}
-                                    chatReportID={props.report.chatReportID}
+                                    chatReportID={props.chatReport.reportID}
                                     iouReport={props.report}
                                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
                                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
