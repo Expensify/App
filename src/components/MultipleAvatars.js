@@ -109,7 +109,7 @@ const MultipleAvatars = (props) => {
                 <>
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
                         <Tooltip
-                            text={props.shouldShowTooltip ? icon.name : ''}
+                            text={tooltipTexts[index]}
                             absolute
                         >
                             <View
