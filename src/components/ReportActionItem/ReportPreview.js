@@ -6,7 +6,6 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Text from '../Text';
 import Icon from '../Icon';
-import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -19,11 +18,12 @@ import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
-import Button from '../Button';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import SettlementButton from '../SettlementButton';
 import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
+import * as IOU from '../../libs/actions/IOU';
 
 const propTypes = {
     /** All the data of the action */
@@ -36,6 +36,7 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     iouReportID: PropTypes.string.isRequired,
 
+    /* Onyx Props */
     /** chatReport associated with iouReport */
     chatReport: PropTypes.shape({
         /** The participants of this report */
@@ -72,9 +73,6 @@ const propTypes = {
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
 
-    /** Callback invoked when View Details is pressed */
-    onViewDetailsPressed: PropTypes.func,
-
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
@@ -89,7 +87,6 @@ const defaultProps = {
     isHovered: false,
     chatReport: {},
     iouReport: {},
-    onViewDetailsPressed: () => {},
     checkIfContextMenuActive: () => {},
     session: {
         email: null,
@@ -106,7 +103,9 @@ const ReportPreview = (props) => {
             {_.map(props.action.message, (index) => (
                 <Pressable
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
-                    onPress={props.onViewDetailsPressed}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
+                    }}
                     onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
@@ -135,17 +134,16 @@ const ReportPreview = (props) => {
                     />
                 </Pressable>
             ))}
-            {isCurrentUserManager && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
-                <Button
+            {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
+                <SettlementButton
+                    currency={props.iouReport.currency}
+                    policyID={props.iouReport.policyID}
+                    chatReportID={props.chatReportID}
+                    iouReport={props.iouReport}
+                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                     style={[styles.requestPreviewBox]}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.iouReportID));
-                    }}
-                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                    onPressOut={() => ControlSelection.unblock()}
-                    text={props.translate('iou.pay')}
-                    success
-                    medium
                 />
             )}
         </View>

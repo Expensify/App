@@ -193,6 +193,19 @@ function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
 }
 
 /**
+ * @param {string} isoTimestamp example: 2023-05-16 05:34:14.388
+ * @returns {string} example: 2023-05-16
+ */
+function getDateStringFromISOTimestamp(isoTimestamp) {
+    if (!isoTimestamp) {
+        return '';
+    }
+
+    const [dateString] = isoTimestamp.split(' ');
+    return dateString;
+}
+
+/**
  * @namespace DateUtils
  */
 const DateUtils = {
@@ -206,6 +219,7 @@ const DateUtils = {
     getMicroseconds,
     getDBTime,
     subtractMillisecondsFromDateTime,
+    getDateStringFromISOTimestamp,
 };
 
 export default DateUtils;
