@@ -169,6 +169,30 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const ReportSettingsModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ReportSettingsPage = require('../../../pages/settings/Report/ReportSettingsPage').default;
+            return ReportSettingsPage;
+        },
+        name: 'Report_Settings_Root',
+    },
+    {
+        getComponent: () => {
+            const RoomNamePage = require('../../../pages/settings/Report/RoomNamePage').default;
+            return RoomNamePage;
+        },
+        name: 'Report_Settings_Room_Name',
+    },
+    {
+        getComponent: () => {
+            const NotificationPreferencesPage = require('../../../pages/settings/Report/NotificationPreferencePage').default;
+            return NotificationPreferencesPage;
+        },
+        name: 'Report_Settings_Notification_Preferences',
+    },
+]);
+
 const TaskModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -190,16 +214,6 @@ const TaskModalStackNavigator = createModalStackNavigator([
             return TaskAssigneeSelectorPage;
         },
         name: 'Task_Assignee',
-    },
-]);
-
-const ReportSettingsModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const ReportSettingsPage = require('../../../pages/ReportSettingsPage').default;
-            return ReportSettingsPage;
-        },
-        name: 'Report_Settings_Root',
     },
 ]);
 
