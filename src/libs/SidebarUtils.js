@@ -98,9 +98,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReports, (report) => 
-        ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, allReports, betas, policies),
-    );
+    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, allReports, betas, policies));
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {
