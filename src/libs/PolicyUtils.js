@@ -93,7 +93,7 @@ function isExpensifyTeam(email) {
 }
 
 /**
- * Checks if the current user is the admin of the policy.
+ * Checks if the current user is an admin of the policy.
  *
  * @param {Object} policy
  * @returns {Boolean}
