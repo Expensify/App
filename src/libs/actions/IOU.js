@@ -644,7 +644,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
  */
 function splitBill(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID = '') {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID);
-    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write(
         'SplitBill',
@@ -653,7 +652,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
             amount,
             splits: JSON.stringify(splits),
             currency,
-            comment: parsedComment,
+            comment,
             transactionID: groupData.transactionID,
             reportActionID: groupData.reportActionID,
             createdReportActionID: groupData.createdReportActionID,
@@ -673,7 +672,6 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
  */
 function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency) {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency);
-    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -682,7 +680,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
             amount,
             splits: JSON.stringify(splits),
             currency,
-            comment: parsedComment,
+            comment,
             transactionID: groupData.transactionID,
             reportActionID: groupData.reportActionID,
             createdReportActionID: groupData.createdReportActionID,
