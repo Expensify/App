@@ -1096,15 +1096,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [reportPreviewAction.reportActionID]: {
-                    created: reportPreviewAction.created,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
