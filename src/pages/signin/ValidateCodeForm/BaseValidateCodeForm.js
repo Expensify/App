@@ -203,7 +203,7 @@ class BaseValidateCodeForm extends React.Component {
                     <View style={[styles.mv3]}>
                         <TextInput
                             ref={(el) => (this.input2FA = el)}
-                            label={this.props.translate('validateCodeForm.twoFactorCode')}
+                            label={this.props.translate('common.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('validateCodeForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
