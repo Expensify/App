@@ -2,7 +2,7 @@ import React, {useCallback, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {View} from 'react-native';
-import Str from 'expensify-common/lib/str';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -16,10 +16,8 @@ import TextInput from '../components/TextInput';
 import * as Report from '../libs/actions/Report';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import * as ErrorUtils from '../libs/ErrorUtils';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import Form from '../components/Form';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 
 const propTypes = {
     ...withLocalizePropTypes,
