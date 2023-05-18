@@ -157,7 +157,7 @@ class ReportDetailsPage extends Component {
                                                 if (!isPolicyAdmin) {
                                                     return;
                                                 }
-                                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.report.policyID));
+                                                Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.report.policyID));
                                             }}
                                         >
                                             {chatRoomSubtitleText}
