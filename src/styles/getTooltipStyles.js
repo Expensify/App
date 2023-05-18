@@ -121,8 +121,10 @@ export default function getTooltipStyles(
     const opacity = xOffset === 0 && yOffset === 0 ? 0 : 1;
 
     const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
-    let shouldShowBelow = false;
+
+    // Set the scale to 1 to be able to measure the toolip size correctly when it's not ready yet.
     let scale = 1;
+    let shouldShowBelow = false;
     let horizontalShift = 0;
     let horizontalShiftPointer = 0;
     let wrapperTop = 0;
@@ -138,6 +140,7 @@ export default function getTooltipStyles(
         // we'll display it beneath its wrapped component rather than above it as usual.
         shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset);
 
+        // When the tooltip size is ready, we can start animating the scale.
         scale = currentSize;
 
         // Determine if we need to shift the tooltip horizontally to prevent it
