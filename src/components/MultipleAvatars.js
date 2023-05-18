@@ -112,11 +112,11 @@ const MultipleAvatars = (props) => {
                 <>
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
                         <Tooltip
+                            key={`stackedAvatars-${index}`}
                             text={props.avatarTooltips[index]}
                             absolute
                         >
                             <View
-                                key={`stackedAvatars-${index}`}
                                 style={[
                                     styles.justifyContentCenter,
                                     styles.alignItemsCenter,
