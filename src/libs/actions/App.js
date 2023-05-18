@@ -232,7 +232,7 @@ function endSignOnTransition() {
 }
 
 /**
- * create a new workspace and navigate to it
+ * Create a new workspace and navigate to it
  *
  * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
