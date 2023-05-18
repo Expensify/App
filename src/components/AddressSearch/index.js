@@ -168,7 +168,7 @@ const AddressSearch = (props) => {
 
         // UK addresses return countries (e.g. England) in the state field (administrative_area_level_1)
         // So we use a secondary field (administrative_area_level_2) as a fallback
-        if (country === 'GB') {
+        if (country === CONST.COUNTRY.GB) {
             values.state = stateFallback;
         }
 
