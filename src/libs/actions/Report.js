@@ -1124,6 +1124,12 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
  * @param {String} newValue
  */
 function updateWelcomeMessage(reportID, previousValue, newValue) {
+    // No change needed, navigate back
+    if (previousValue === newValue) {
+        Navigation.goBack();
+        return;
+    }
+
     const parsedWelcomeMessage = ReportUtils.getParsedComment(newValue);
     const optimisticData = [
         {

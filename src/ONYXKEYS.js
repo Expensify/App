@@ -198,6 +198,7 @@ export default {
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
         ROOM_NAME_FORM: 'roomNameForm',
+        WELCOME_MESSAGE_FORM: 'welcomeMessageForm',
         LEGAL_NAME_FORM: 'legalNameForm',
         WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',

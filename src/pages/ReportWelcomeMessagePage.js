@@ -1,7 +1,7 @@
 import React, {useCallback, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -11,12 +11,14 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import FixedFooter from '../components/FixedFooter';
-import Button from '../components/Button';
 import Text from '../components/Text';
 import TextInput from '../components/TextInput';
 import * as Report from '../libs/actions/Report';
+import ONYXKEYS from "../ONYXKEYS";
+import CONST from "../CONST";
+import * as ErrorUtils from "../libs/ErrorUtils";
+import FullPageNotFoundView from "../components/BlockingViews/FullPageNotFoundView";
+import Form from "../components/Form";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -60,28 +62,29 @@ function ReportWelcomeMessagePage(props) {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <ScrollView style={[styles.flex1]}>
-                    <Text style={[styles.ph5, styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
-                    <View style={[styles.ph5, styles.mb6]}>
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
+                    onSubmit={submitForm}
+                    validate={() => ({})}
+                    submitButtonText={props.translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
+                    <View style={[styles.mb6]}>
                         <TextInput
+                            inputID="welcomeMessage"
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
                             multiline
-                            numberOfLines={8}
+                            numberOfLines={10}
+                            maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={welcomeMessageInputRef}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
                         />
                     </View>
-                </ScrollView>
-                <FixedFooter style={[styles.flexGrow0]}>
-                    <Button
-                        success
-                        text={props.translate('common.save')}
-                        onPress={submitForm}
-                        pressOnEnter
-                    />
-                </FixedFooter>
+                </Form>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
