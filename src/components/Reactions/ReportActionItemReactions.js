@@ -7,31 +7,13 @@ import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import getPreferredEmojiCode from './getPreferredEmojiCode';
 import * as Report from '../../libs/actions/Report';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
+import getUniqueEmojiCodes from './getUniqueEmojiCodes';
 
-/**
- * Given an emoji object and a list of senders it will return an
- * array of emoji codes, that represents all used variations of the
- * emoji.
- * @param {{ name: string, code: string, types: string[] }} emoji
- * @param {Array} users
- * @return {string[]}
- * */
-const getUniqueEmojiCodes = (emoji, users) => {
-    const emojiCodes = [];
-    _.forEach(users, (user) => {
-        const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
 
-        if (emojiCode && !emojiCodes.includes(emojiCode)) {
-            emojiCodes.push(emojiCode);
-        }
-    });
-    return emojiCodes;
-};
 
 const propTypes = {
     /**
