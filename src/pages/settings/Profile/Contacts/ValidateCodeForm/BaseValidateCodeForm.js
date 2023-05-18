@@ -69,7 +69,7 @@ function BaseValidateCodeForm(props) {
      */
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(props.contactMethod);
-    }
+    };
 
     /**
      * Handle text input and clear formError upon text change
