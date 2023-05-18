@@ -76,8 +76,7 @@ class SignInPage extends Component {
         // - AND a validateCode has not been cached with sign in link
         const showLoginForm = !this.props.credentials.login && !this.props.credentials.validateCode;
 
-        // Show the Welcome form if
-        // - A user is signing up for a new account in a domain that is not controlled
+        // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
         const showWelcomeForm = Boolean(this.props.credentials.login) && !this.props.account.validated && !this.props.account.accountExists && !this.props.account.domainControlled;
 
         // Show the unlink form if
