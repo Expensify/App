@@ -108,6 +108,7 @@ function ReportActionItem(props) {
     const popoverAnchorRef = useRef();
 
     const isDraftEmpty = !props.draftMessage;
+
     useEffect(() => {
         if (isDraftEmpty) {
             return;
