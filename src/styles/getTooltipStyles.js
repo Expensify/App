@@ -137,7 +137,7 @@ export default function getTooltipStyles(
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
 
-    // We calculate tooltip width based on the tooltip's inner text width so the tooltip is just big enough to fit text and prevent white space.
+    // We calculate wrapper width based on the tooltip's inner text width so the wrapper is just big enough to fit text and prevent white space.
     // If the text width is less than the maximum available width, add horizontal padding.
     // Note: tooltipContentWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
     const rootWrapperWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1;
