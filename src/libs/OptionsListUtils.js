@@ -310,13 +310,12 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
-        if(isThread) {
+        if (isThread) {
             const title = ReportUtils.getReportName(report);
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
             Array.prototype.push.apply(searchTerms, title.split(/[,\s]/));
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
-
         } else if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
