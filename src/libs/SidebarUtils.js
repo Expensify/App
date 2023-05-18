@@ -184,7 +184,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
  */
 function getOptionData(reportID) {
     const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    const report = allReports[reportKey] || allReports[reportKey];
+    const report = allReports[reportKey];
 
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
