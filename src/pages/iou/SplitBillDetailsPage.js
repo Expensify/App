@@ -9,14 +9,10 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
-    chatReport: PropTypes.objectOf(PropTypes.object),
-
-    // eslint-disable-next-line react/forbid-prop-types
     reportActions: PropTypes.objectOf(PropTypes.object),
 };
 
 const defaultProps = {
-    chatReport: {},
     reportActions: {},
 };
 
@@ -49,9 +45,6 @@ SplitBillDetailsPage.propTypes = propTypes;
 SplitBillDetailsPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    chatReport: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-    },
     reportActions: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
         canEvict: false,
