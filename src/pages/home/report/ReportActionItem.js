@@ -109,7 +109,6 @@ function ReportActionItem(props) {
     const popoverAnchorRef = useRef();
 
     const isDraftEmpty = !props.draftMessage;
-    
     useEffect(() => {
         if (isDraftEmpty) {
             return;
@@ -170,7 +169,7 @@ function ReportActionItem(props) {
      * @param {Boolean} hovered whether the ReportActionItem is hovered
      * @returns {Object} child component(s)
      */
-    const renderItemContent = (hovered = false) => {
+    function renderItemContent = (hovered = false) => {
         let children;
         const originalMessage = lodashGet(props.action, 'originalMessage', {});
         // Show the IOUPreview for when request was created, bill was split or money was sent
