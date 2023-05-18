@@ -186,13 +186,17 @@ class ReportActionItem extends Component {
      */
     renderItemContent(hovered = false) {
         let children;
+        const originalMessage = lodashGet(this.props.action, 'originalMessage', {});
+        // Show the IOUPreview for when request was created, bill was split or money was sent
         if (
             this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.DELETE &&
-            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY
+            originalMessage &&
+            (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
+                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
+            const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
 
             children = (
                 <MoneyRequestAction
@@ -278,8 +282,14 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
+        const numberOfThreadReplies = _.get(this.props, ['action', 'childVisibleActionCount'], 0);
+        const hasReplies = numberOfThreadReplies > 0;
+
         const shouldDisplayThreadReplies =
-            this.props.action.childCommenterCount && Permissions.canUseThreads(this.props.betas) && !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
+            hasReplies &&
+            this.props.action.childCommenterCount &&
+            Permissions.canUseThreads(this.props.betas) &&
+            !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
         const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
 
         return (
@@ -288,6 +298,7 @@ class ReportActionItem extends Component {
                 {hasReactions && (
                     <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions
+                            reportActionID={this.props.action.reportActionID}
                             reactions={reactions}
                             toggleReaction={this.toggleReaction}
                         />
@@ -296,7 +307,7 @@ class ReportActionItem extends Component {
                 {shouldDisplayThreadReplies && (
                     <ReportActionItemThread
                         childReportID={`${this.props.action.childReportID}`}
-                        numberOfReplies={this.props.action.childVisibleActionCount || 0}
+                        numberOfReplies={numberOfThreadReplies}
                         mostRecentReply={`${this.props.action.childLastVisibleActionCreated}`}
                         isHovered={hovered}
                         icons={ReportUtils.getIconsForParticipants(oldestFourEmails, this.props.personalDetails)}
