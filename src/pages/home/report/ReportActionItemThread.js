@@ -5,11 +5,11 @@ import _ from 'underscore';
 import styles from '../../../styles/styles';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import avatarPropTypes from '../../../components/avatarPropTypes';
 import MultipleAvatars from '../../../components/MultipleAvatars';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /** List of participant icons for the thread */
@@ -24,43 +24,55 @@ const propTypes = {
     /** ID of child thread report */
     childReportID: PropTypes.string.isRequired,
 
-    /** localization props */
+    /** Whether the thread item / message is being hovered */
+    isHovered: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
-const ReportActionItemThread = (props) => (
-    <View style={[styles.chatItemMessage]}>
-        <Pressable
-            onPress={() => {
-                Report.openReport(props.childReportID);
-                Navigation.navigate(ROUTES.getReportRoute(props.childReportID));
-            }}
-        >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                <MultipleAvatars
-                    size={CONST.AVATAR_SIZE.SMALLER}
-                    icons={props.icons}
-                    shouldStackHorizontally
-                    avatarTooltips={_.map(props.icons, (icon) => icon.name)}
-                />
-                <View style={[styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
-                    <Text
-                        selectable={false}
-                        style={[styles.link, styles.ml2, styles.h4]}
-                    >
-                        {`${props.numberOfReplies} ${props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies')}`}
-                    </Text>
-                    <Text
-                        selectable={false}
-                        style={[styles.ml2, styles.textMicroSupporting]}
-                    >{`${props.translate('threads.lastReply')} ${props.datetimeToCalendarTime(props.mostRecentReply)}`}</Text>
+const ReportActionItemThread = (props) => {
+    const numberOfRepliesText = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
+    const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
+
+    const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply, false, true);
+
+    return (
+        <View style={[styles.chatItemMessage]}>
+            <Pressable
+                onPress={() => {
+                    Report.navigateToAndOpenChildReport(props.childReportID);
+                }}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                    <MultipleAvatars
+                        size={CONST.AVATAR_SIZE.SMALL}
+                        icons={props.icons}
+                        shouldStackHorizontally
+                        avatarTooltips={_.map(props.icons, (icon) => icon.name)}
+                        isHovered={props.isHovered}
+                        isInReportAction
+                    />
+                    <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
+                        <Text
+                            selectable={false}
+                            style={[styles.link, styles.ml2, styles.h4, styles.noWrap]}
+                        >
+                            {`${numberOfRepliesText} ${replyText}`}
+                        </Text>
+                        <Text
+                            selectable={false}
+                            numberOfLines={1}
+                            style={[styles.ml2, styles.textMicroSupporting, styles.flex1]}
+                        >{`${props.translate('threads.lastReply')} ${timeStamp}`}</Text>
+                    </View>
                 </View>
-            </View>
-        </Pressable>
-    </View>
-);
+            </Pressable>
+        </View>
+    );
+};
 
 ReportActionItemThread.propTypes = propTypes;
 ReportActionItemThread.displayName = 'ReportActionItemThread';
 
-export default withLocalize(ReportActionItemThread);
+export default compose(withLocalize, withWindowDimensions)(ReportActionItemThread);

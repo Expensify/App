@@ -10,7 +10,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import CONST from '../CONST';
-import ButtonWithMenu from './ButtonWithMenu';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
@@ -67,6 +67,9 @@ const propTypes = {
 
     /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
     navigateToStep: PropTypes.func.isRequired,
+
+    /** The policyID of the request */
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -288,9 +291,10 @@ class MoneyRequestConfirmationList extends Component {
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
+                            policyID={this.props.policyID}
                         />
                     ) : (
-                        <ButtonWithMenu
+                        <ButtonWithDropdownMenu
                             isDisabled={shouldDisableButton}
                             onPress={(_event, value) => this.confirm(value)}
                             options={this.getSplitOrRequestOptions()}
