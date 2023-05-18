@@ -2152,18 +2152,6 @@ function isReportDataReady() {
     return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
 }
 
-/**
- * Checks if the current user is the admin of the policy.
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-const isPolicyAdmin = (report) => {
-    const policyRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']);
-
-    return policyRole === CONST.POLICY.ROLE.ADMIN;
-};
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2253,5 +2241,4 @@ export {
     isReportDataReady,
     isSettled,
     getMoneyRequestAction,
-    isPolicyAdmin,
 };

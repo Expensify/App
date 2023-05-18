@@ -16,6 +16,7 @@ import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Policy from '../libs/actions/Policy';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -117,7 +118,8 @@ class ReportDetailsPage extends Component {
             isMultipleParticipant,
         );
         const menuItems = this.getMenuItems();
-        const isPolicyAdmin = ReportUtils.isPolicyAdmin(this.props.report);
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
         const chatRoomSubtitleText = (
             <Text
                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
