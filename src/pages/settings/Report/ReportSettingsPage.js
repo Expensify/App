@@ -84,7 +84,8 @@ class ReportSettingsPage extends Component {
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
-        const writeCapability = this.props.translate(`writeCapabilityPage.writeCapability.${this.props.report.writeCapability}`);
+        const writeCapability = this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+        const writeCapabilityText = this.props.translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
         const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
 
         return (
@@ -136,7 +137,7 @@ class ReportSettingsPage extends Component {
                     {shouldAllowWriteCapabilityEditing ? (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={writeCapability}
+                            title={writeCapabilityText}
                             description={this.props.translate('writeCapabilityPage.label')}
                             onPress={() => Navigation.navigate(ROUTES.getReportSettingsWriteCapabilityRoute(this.props.report.reportID))}
                         />
@@ -152,9 +153,7 @@ class ReportSettingsPage extends Component {
                                 numberOfLines={1}
                                 style={[styles.optionAlternateText, styles.pre]}
                             >
-                                {_.isEmpty(this.props.report.writeCapability)
-                                    ? this.props.translate('writeCapabilityPage.writeCapability.all')
-                                    : this.props.translate(`writeCapabilityPage.writeCapability.${this.props.report.writeCapability}`)}
+                                {writeCapabilityText}
                             </Text>
                         </View>
                     )}
