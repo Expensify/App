@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {Animated, View, TouchableWithoutFeedback, AppState, Keyboard, StyleSheet} from 'react-native';
+import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
@@ -17,7 +17,10 @@ import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
+import * as Pressables from '../Pressable';
 
+
+const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 class BaseTextInput extends Component {
     constructor(props) {
         super(props);
@@ -226,16 +229,17 @@ class BaseTextInput extends Component {
         return (
             <>
                 <View>
-                    <View
-                        style={[
-                            this.props.autoGrowHeight && styles.autoGrowHeightInputContainer(this.state.textInputHeight, maxHeight),
-                            !isMultiline && styles.componentHeightLarge,
-                            ...this.props.containerStyles,
-                        ]}
+                    <PressableWithoutFeedback
+                        onPress={this.onPress}
+                        focusable={false}
+                        accessibilityLabel={this.props.label}
                     >
-                        <TouchableWithoutFeedback
-                            onPress={this.onPress}
-                            focusable={false}
+                        <View
+                            style={[
+                                this.props.autoGrowHeight && styles.autoGrowHeightInputContainer(this.state.textInputHeight, maxHeight),
+                                !isMultiline && styles.componentHeightLarge,
+                                ...this.props.containerStyles,
+                            ]}
                         >
                             <View
                                 // When autoGrowHeight is true we calculate the width for the textInput, so It will break lines properly
@@ -362,8 +366,8 @@ class BaseTextInput extends Component {
                                     )}
                                 </View>
                             </View>
-                        </TouchableWithoutFeedback>
-                    </View>
+                        </View>
+                    </PressableWithoutFeedback>
                     {!_.isEmpty(inputHelpText) && (
                         <FormHelpMessage
                             isError={!_.isEmpty(this.props.errorText)}
