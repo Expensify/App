@@ -45,7 +45,7 @@ const propTypes = {
     isInReportAction: PropTypes.bool,
 
     /** Whether avatars are displayed within an IOUAction */
-    isInIOUCard: PropTypes.bool,
+    shouldUseCardBackground: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -59,7 +59,7 @@ const defaultProps = {
     isPressed: false,
     isFocusMode: false,
     isInReportAction: false,
-    isInIOUCard: false,
+    shouldUseCardBackground: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -124,7 +124,7 @@ const MultipleAvatars = (props) => {
                                         isHovered: props.isHovered,
                                         isPressed: props.isPressed,
                                         isInReportAction: props.isInReportAction,
-                                        isInIOUCard: props.isInIOUCard,
+                                        shouldUseCardBackground: props.shouldUseCardBackground,
                                     }),
                                     StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
                                     icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
@@ -153,7 +153,7 @@ const MultipleAvatars = (props) => {
                                         isHovered: props.isHovered,
                                         isPressed: props.isPressed,
                                         isInReportAction: props.isInReportAction,
-                                        isInIOUCard: props.isInIOUCard,
+                                        shouldUseCardBackground: props.shouldUseCardBackground,
                                     }),
 
                                     // Set overlay background color with RGBA value so that the text will not inherit opacity

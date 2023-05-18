@@ -221,7 +221,7 @@ const IOUPreview = (props) => {
                                     shouldStackHorizontally
                                     size="small"
                                     isHovered={props.isHovered}
-                                    isInIOUCard
+                                    shouldUseCardBackground
                                     avatarTooltips={participantEmails}
                                 />
                             </View>

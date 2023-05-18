@@ -823,11 +823,11 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
  * @param {Boolean} params.isHovered
  * @param {Boolean} params.isPressed
  * @param {Boolean} params.isInReportAction
- * @param {Boolean} params.isInIOUCard
+ * @param {Boolean} params.shouldUseCardBackground
  * @returns {Object}
  */
-function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, isInIOUCard = false}) {
-    let backgroundColor = isInIOUCard ? themeColors.cardBG : themeColors.appBG;
+function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}) {
+    let backgroundColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
 
     if (isHovered) {
         backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
