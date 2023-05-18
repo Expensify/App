@@ -290,6 +290,7 @@ export default {
                     IOU_Details_Enable_Payments: ROUTES.IOU_DETAILS_ENABLE_PAYMENTS,
                     IOU_Details_Add_Bank_Account: ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT,
                     IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
+                    IOU_Details_Split_Bill: ROUTES.IOU_DETAILS_SPLIT_BILL,
                 },
             },
             Task_Details: {

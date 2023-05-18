@@ -97,6 +97,7 @@ export default {
     IOU_DETAILS,
     IOU_DETAILS_ADD_BANK_ACCOUNT: `${IOU_DETAILS}/add-bank-account`,
     IOU_DETAILS_ADD_DEBIT_CARD: `${IOU_DETAILS}/add-debit-card`,
+    IOU_DETAILS_SPLIT_BILL: `${IOU_DETAILS}/split`,
     IOU_DETAILS_ENABLE_PAYMENTS: `${IOU_DETAILS}/enable-payments`,
     IOU_DETAILS_WITH_IOU_REPORT_ID: `${IOU_DETAILS}/:chatReportID/:iouReportID/`,
     getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
