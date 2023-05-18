@@ -19,6 +19,7 @@ const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
+    BANK_ACCOUNT_NEW: 'bank-account/new',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     getBankAccountRoute: (stepToOpen = '', policyID = '') => `bank-account/${stepToOpen}?policyID=${policyID}`,
@@ -123,7 +124,11 @@ export default {
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: (reportID) => `r/${reportID}/details`,
     REPORT_SETTINGS: 'r/:reportID/settings',
+    REPORT_SETTINGS_ROOM_NAME: 'r/:reportID/settings/room-name',
+    REPORT_SETTINGS_NOTIFICATION_PREFERENCES: 'r/:reportID/settings/notification-preferences',
     getReportSettingsRoute: (reportID) => `r/${reportID}/settings`,
+    getReportSettingsRoomNameRoute: (reportID) => `r/${reportID}/settings/room-name`,
+    getReportSettingsNotificationPreferencesRoute: (reportID) => `r/${reportID}/settings/notification-preferences`,
     TRANSITION_FROM_OLD_DOT: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',

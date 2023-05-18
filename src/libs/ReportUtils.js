@@ -204,18 +204,28 @@ function isSettled(reportID) {
 }
 
 /**
- * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report
+ * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
+ * policy admin
  *
  * @param {Object} reportAction
+ * @param {String} reportID
  * @returns {Boolean}
  */
-function canDeleteReportAction(reportAction) {
-    return (
-        reportAction.actorEmail === sessionEmail &&
-        ((reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportActionsUtils.isCreatedTaskReportAction(reportAction)) ||
-            (ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID))) &&
-        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
+function canDeleteReportAction(reportAction, reportID) {
+    if (
+        reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+        ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
+        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID))
+    ) {
+        return false;
+    }
+    if (reportAction.actorEmail === sessionEmail) {
+        return true;
+    }
+    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {});
+    return policy.role === CONST.POLICY.ROLE.ADMIN;
 }
 
 /**
@@ -473,14 +483,15 @@ function isThreadFirstChat(reportAction, reportID) {
 /**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
- * @param {Object} parentReport
  * @returns {String}
  */
-function getChatRoomSubtitle(report, parentReport = null) {
+function getChatRoomSubtitle(report) {
     if (isThread(report)) {
         if (!getChatType(report)) {
             return '';
         }
+
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
 
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
         const workspaceName = getPolicyName(report);
@@ -1113,7 +1124,7 @@ function getReportName(report) {
 function navigateToDetailsPage(report) {
     const participants = lodashGet(report, 'participants', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isThread(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
@@ -2080,11 +2091,21 @@ function canRequestMoney(report) {
  * @returns {Array}
  */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
+    // In the transaction thread, we do not allow any new money requests
+    if (ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report))) {
+        return [];
+    }
+
     const participants = _.filter(reportParticipants, (email) => currentUserPersonalDetails.login !== email);
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
     if (hasExcludedIOUEmails || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas)) {
+        return [];
+    }
+
+    // Additional requests should be blocked for money request reports
+    if (isMoneyRequestReport(report)) {
         return [];
     }
 
@@ -2100,7 +2121,9 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // Workspace chats should only see the Request money option, as "easy overages" is not available.
     return [
         ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
-        ...(Permissions.canUseIOUSend(betas) && !isPolicyExpenseChat(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+
+        // Send money option should be visible only in DMs
+        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && participants.length === 1 ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 

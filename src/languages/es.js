@@ -122,6 +122,7 @@ export default {
         enterManually: 'Introducir manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        leaveThread: 'Salir del hilo',
         you: 'Tú',
         youAfterPreposition: 'ti',
         your: 'tu',
@@ -343,11 +344,14 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
-    notificationPreferences: {
+    notificationPreferencesPage: {
+        header: 'Preferencias de avisos',
         label: 'Avisar sobre nuevos mensajes',
-        immediately: 'Inmediatamente',
-        daily: 'Cada día',
-        mute: 'Nunca',
+        notificationPreferences: {
+            always: 'Inmediatamente',
+            daily: 'Cada día',
+            mute: 'Nunca',
+        },
     },
     loginField: {
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
