@@ -72,11 +72,7 @@ const MiniQuickEmojiReactions = (props) => {
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={(ev) => {
-                    if (ev.nativeEvent.anchorRef && ev.nativeEvent.anchorRef === ref.current) {
-                        return;
-                    }
-
+                onPress={() => {
                     if (!EmojiPickerAction.emojiPickerRef.current.state.isEmojiPickerVisible) {
                         openEmojiPicker();
                     } else {

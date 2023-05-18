@@ -166,7 +166,6 @@ class FloatingActionButtonAndPopover extends React.Component {
     render() {
         // Workspaces are policies with type === 'free'
         const workspaces = _.filter(this.props.allPolicies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE);
-
         return (
             <View>
                 <PopoverMenu
@@ -252,11 +251,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                     accessibilityRole="button"
                     isActive={this.state.isCreateMenuActive}
                     ref={this.anchorRef}
-                    onPress={(e) => {
-                        if (e.nativeEvent.anchorRef && e.nativeEvent.anchorRef.current === this.anchorRef.current) {
-                            return;
-                        }
-
+                    onPress={() => {
                         if (this.state.isCreateMenuActive) {
                             this.hideCreateMenu();
                         } else {

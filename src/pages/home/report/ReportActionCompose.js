@@ -969,9 +969,7 @@ class ReportActionCompose extends React.Component {
 
                                                                 // Drop focus to avoid blue focus ring.
                                                                 this.actionButtonRef.current.blur();
-                                                                if (!e.nativeEvent.anchorRef || e.nativeEvent.anchorRef.current !== this.actionButtonRef.current) {
-                                                                    this.setMenuVisibility(!this.state.isMenuVisible);
-                                                                }
+                                                                this.setMenuVisibility(!this.state.isMenuVisible);
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}

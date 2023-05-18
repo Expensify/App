@@ -111,7 +111,7 @@ const propTypes = {
     accessibilityLabel: PropTypes.string,
 
     /** React ref being forwarded to the Button */
-    forwardedRef: PropTypes.func,
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 
 const defaultProps = {
@@ -144,7 +144,7 @@ const defaultProps = {
     shouldEnableHapticFeedback: false,
     nativeID: '',
     accessibilityLabel: '',
-    forwardedRef: () => {},
+    buttonRef: () => {},
 };
 
 class Button extends Component {
@@ -244,7 +244,16 @@ class Button extends Component {
     render() {
         return (
             <PressableWithFeedback
-                ref={this.props.forwardedRef}
+                ref={(el) => {
+                    if (!this.props.buttonRef) {
+                        return;
+                    }
+                    if (typeof this.props.buttonRef === 'function') {
+                        this.props.buttonRef(el);
+                    } else {
+                        this.props.buttonRef.current = el;
+                    }
+                }}
                 onPress={(e) => {
                     if (e && e.type === 'click') {
                         e.currentTarget.blur();
@@ -308,12 +317,4 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-const ComposedButton = compose(withNavigationFallback, withNavigationFocus)(Button);
-
-export default React.forwardRef((props, ref) => (
-    <ComposedButton
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default compose(withNavigationFallback, withNavigationFocus)(Button);

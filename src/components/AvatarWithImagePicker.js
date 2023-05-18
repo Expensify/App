@@ -259,11 +259,7 @@ class AvatarWithImagePicker extends React.Component {
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
                 <Pressable
                     ref={this.anchorRef}
-                    onPress={(e) => {
-                        if (e.nativeEvent.anchorRef && e.nativeEvent.anchorRef.current === this.anchorRef.current) {
-                            return;
-                        }
-
+                    onPress={() => {
                         this.setState((prev) => ({isMenuVisible: !prev.isMenuVisible}));
                     }}
                 >

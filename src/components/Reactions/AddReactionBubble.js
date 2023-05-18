@@ -45,7 +45,7 @@ const defaultProps = {
 const AddReactionBubble = (props) => {
     const ref = useRef();
 
-    const onPress = (ev) => {
+    const onPress = () => {
         const openPicker = (refParam, anchorOrigin) => {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
@@ -57,10 +57,6 @@ const AddReactionBubble = (props) => {
                 props.onWillShowPicker,
             );
         };
-
-        if (ev.nativeEvent.anchorRef && ev.nativeEvent.anchorRef.current === ref.current) {
-            return;
-        }
 
         if (!EmojiPickerAction.emojiPickerRef.current.state.isEmojiPickerVisible) {
             if (props.onPressOpenPicker) {

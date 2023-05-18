@@ -22,7 +22,14 @@ const propTypes = {
     // Current state (active or not active) of the component
     isActive: PropTypes.bool.isRequired,
 
+    // Ref for the button
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    buttonRef: () => {},
 };
 
 class FloatingActionButton extends PureComponent {
@@ -77,7 +84,12 @@ class FloatingActionButton extends PureComponent {
             >
                 <View style={styles.floatingActionButtonContainer}>
                     <AnimatedPressable
-                        ref={(el) => (this.fabPressable = el)}
+                        ref={(el) => {
+                            this.fabPressable = el;
+                            if (this.props.buttonRef) {
+                                this.props.buttonRef.current = el;
+                            }
+                        }}
                         accessibilityLabel={this.props.accessibilityLabel}
                         accessibilityRole={this.props.accessibilityRole}
                         onPress={(e) => {
@@ -99,5 +111,9 @@ class FloatingActionButton extends PureComponent {
 }
 
 FloatingActionButton.propTypes = propTypes;
+FloatingActionButton.defaultProps = defaultProps;
 
-export default withLocalize(FloatingActionButton);
+const FloatingActionButtonWithLocalize = withLocalize(FloatingActionButton);
+
+// eslint-disable-next-line
+export default React.forwardRef((props, ref) => <FloatingActionButtonWithLocalize {...props} buttonRef={ref}/>);

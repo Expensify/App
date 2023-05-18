@@ -54,7 +54,7 @@ const ButtonWithDropdown = (props) => (
             style={[styles.pl0]}
             onPress={props.onDropdownPress}
             shouldRemoveLeftBorderRadius
-            ref={props.dropdownButtonRef}
+            buttonRef={props.dropdownButtonRef}
         >
             <Icon
                 src={Expensicons.DownArrow}

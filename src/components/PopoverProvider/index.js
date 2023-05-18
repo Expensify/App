@@ -30,12 +30,21 @@ const PopoverContextProvider = (props) => {
 
     React.useEffect(() => {
         const listener = (e) => {
-            if (!activePopoverRef.current || !activePopoverRef.current.ref || !activePopoverRef.current.ref.current || activePopoverRef.current.ref.current.contains(e.target)) {
+            if (
+                !activePopoverRef.current ||
+                !activePopoverRef.current.ref ||
+                !activePopoverRef.current.ref.current ||
+                activePopoverRef.current.ref.current.contains(e.target) ||
+                (
+                    activePopoverRef.current.anchorRef &&
+                    activePopoverRef.current.anchorRef.current &&
+                    activePopoverRef.current.anchorRef.current.contains(e.target)
+                )
+            ) {
                 return;
             }
             const ref = activePopoverRef.current.anchorRef;
             closePopover(ref);
-            e.anchorRef = ref;
         };
         document.addEventListener('click', listener, true);
         return () => {
@@ -80,14 +89,26 @@ const PopoverContextProvider = (props) => {
     }, []);
 
     React.useEffect(() => {
-        document.addEventListener('scroll', () => closePopover(), true);
+        const listener = (e) => {
+            if(
+                activePopoverRef.current && 
+                activePopoverRef.current.ref && 
+                activePopoverRef.current.ref.current && 
+                activePopoverRef.current.ref.current.contains(e.target)
+            ) {
+                return;
+            }
+
+            closePopover();
+        }
+        document.addEventListener('scroll', listener, true);
         return () => {
-            document.removeEventListener('scroll', () => closePopover(), true);
+            document.removeEventListener('scroll', listener, true);
         };
     }, []);
 
     const onOpen = (popoverParams) => {
-        if (activePopoverRef.current) {
+        if (activePopoverRef.current && activePopoverRef.current.ref !== popoverParams.ref) {
             closePopover(activePopoverRef.current.anchorRef);
         }
         activePopoverRef.current = popoverParams;

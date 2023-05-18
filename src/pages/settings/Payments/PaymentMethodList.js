@@ -68,7 +68,7 @@ const propTypes = {
     listHeaderComponent: PropTypes.func,
 
     /** React ref being forwarded to the PaymentMethodList Button */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     ...withLocalizePropTypes,
 };
@@ -88,7 +88,7 @@ const defaultProps = {
     activePaymentMethodID: '',
     selectedMethodID: '',
     listHeaderComponent: null,
-    forwardedRef: () => {},
+    buttonRef: () => {},
 };
 
 class PaymentMethodList extends Component {
@@ -246,7 +246,7 @@ class PaymentMethodList extends Component {
                                 success
                                 shouldShowRightIcon
                                 large
-                                ref={this.props.forwardedRef}
+                                buttonRef={this.props.buttonRef}
                             />
                         )}
                     </FormAlertWrapper>

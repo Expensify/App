@@ -181,16 +181,16 @@ class BasePaymentsPage extends React.Component {
     /**
      * Display the delete/default menu, or the add payment method menu
      *
-     * @param {Object} ev
+     * @param {Object} e
      * @param {String} accountType
      * @param {String} account
      * @param {Boolean} isDefault
      * @param {String|Number} methodID
      */
-    paymentMethodPressed(ev, accountType, account, isDefault, methodID) {
-        const position = getClickedTargetLocation(ev.currentTarget);
+    paymentMethodPressed(e, accountType, account, isDefault, methodID) {
+        const position = getClickedTargetLocation(e.currentTarget);
         this.setState({
-            addPaymentMethodButton: ev.currentTarget,
+            addPaymentMethodButton: e.currentTarget,
         });
 
         // The delete/default menu
@@ -229,11 +229,9 @@ class BasePaymentsPage extends React.Component {
             this.setPositionAddPaymentMenu(position);
             return;
         }
-        if (!ev.nativeEvent.anchorRef || ev.nativeEvent.anchorRef.current !== this.addPaymentMethodAnchorRef.current) {
-            this.setState((prev) => ({
-                shouldShowAddPaymentMenu: !prev.shouldShowAddPaymentMenu,
-            }));
-        }
+        this.setState((prev) => ({
+            shouldShowAddPaymentMenu: !prev.shouldShowAddPaymentMenu,
+        }));
         this.setPositionAddPaymentMenu(position);
     }
 
@@ -413,7 +411,7 @@ class BasePaymentsPage extends React.Component {
                             actionPaymentMethodType={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt ? this.state.selectedPaymentMethodType : ''}
                             activePaymentMethodID={this.state.shouldShowDefaultDeleteMenu || this.state.shouldShowPasswordPrompt ? this.getSelectedPaymentMethodID() : ''}
                             listHeaderComponent={this.listHeaderComponent}
-                            forwardedRef={this.addPaymentMethodAnchorRef}
+                            buttonRef={this.addPaymentMethodAnchorRef}
                         />
                     </OfflineWithFeedback>
                 </View>
