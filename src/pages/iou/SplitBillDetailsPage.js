@@ -28,7 +28,7 @@ const SplitBillDetailsPage = (props) => {
     const reportActionID = lodashGet(props, 'route.params.reportActionID', '');
     const reportAction = props.reportActions[reportActionID];
     const personalDetails = OptionsListUtils.getPersonalDetailsForLogins(reportAction.originalMessage.participants);
-    const participants = OptionsListUtils.getParticipantsOptions(props.chatReport, personalDetails);
+    const participants = OptionsListUtils.getParticipantsOptions(reportAction.originalMessage, personalDetails);
 
     return (
         <MoneyRequestConfirmationList
