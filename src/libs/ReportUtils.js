@@ -2156,7 +2156,7 @@ function isReportDataReady() {
  * Checks if the current user is the admin of the policy.
  *
  * @param {Object} report
- * @returns {boolean}
+ * @returns {Boolean}
  */
 const isPolicyAdmin = (report) => {
     const policyRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']);
