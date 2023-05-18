@@ -154,9 +154,6 @@ class ReportDetailsPage extends Component {
                                     {isPolicyAdmin ? (
                                         <Pressable
                                             onPress={() => {
-                                                if (!isPolicyAdmin) {
-                                                    return;
-                                                }
                                                 Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.report.policyID));
                                             }}
                                         >
