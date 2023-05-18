@@ -23,7 +23,7 @@ const propTypes = {
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const WriteCapabilityPage = (props) => {
-    const writeCapabilityOptions = _.map(props.translate('reportSettings.writeCapability'), (preference, key) => ({
+    const writeCapabilityOptions = _.map(props.translate('writeCapabilityPage.writeCapability'), (preference, key) => ({
         value: key,
         text: preference,
         keyForList: key,
@@ -38,7 +38,7 @@ const WriteCapabilityPage = (props) => {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithCloseButton
-                title={props.translate('reportSettings.writeCapability.label')}
+                title={props.translate('writeCapabilityPage.label')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID))}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
