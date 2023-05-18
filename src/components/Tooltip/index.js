@@ -44,7 +44,7 @@ class Tooltip extends PureComponent {
     /**
      * Update the tooltip bounding rectangle
      *
-     * @param {DOMRectReadOnly} bounds - updated bounds
+     * @param {Object} bounds - updated bounds
      */
     updateBounds(bounds) {
         this.setState({

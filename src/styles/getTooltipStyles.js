@@ -5,7 +5,6 @@ import themeColors from './themes/default';
 import fontFamily from './fontFamily';
 import variables from './variables';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
-import DomUtils from '../libs/DomUtils';
 
 // This defines the proximity with the edge of the window in which tooltips should not be displayed.
 // If a tooltip is too close to the edge of the screen, we'll shift it towards the center.
@@ -67,10 +66,8 @@ function isOverlappingAtTop(xOffset, yOffset, wrapper) {
 
     const element = document.elementFromPoint(xOffset, yOffset);
 
-    const isElementPartOfTooltip = DomUtils.isInSubtree(element, wrapper);
-
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!element || isElementPartOfTooltip) {
+    if (!element || wrapper.contains(element)) {
         return false;
     }
 
