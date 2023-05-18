@@ -130,8 +130,8 @@ class IOUCurrencySelection extends Component {
      */
     confirmCurrencySelection(option) {
         const backTo = lodashGet(this.props.route, 'params.backTo', '');
-        // When we refresh the web, the money request route gets cleared from the navigation stack. 
-        // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection. 
+        // When we refresh the web, the money request route gets cleared from the navigation stack.
+        // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
         // To prevent any negative experience, we have made the decision to simply close the currency selection page.
         if (_.isEmpty(backTo) || this.props.navigation.getState().routes.length === 1) {
             Navigation.goBack();
