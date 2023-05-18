@@ -28,7 +28,6 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -54,9 +53,6 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }),
 
-    /** Indicated whether the report data is loading */
-    isLoadingReportData: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -66,7 +62,6 @@ const defaultProps = {
     session: {
         email: null,
     },
-    isLoadingReportData: true,
 };
 
 /**
@@ -93,7 +88,6 @@ class DetailsPage extends React.PureComponent {
         const login = lodashGet(this.props.route.params, 'login', '');
         const reportID = lodashGet(this.props.route.params, 'reportID', '');
         let details = lodashGet(this.props.personalDetails, login);
-
         if (!details) {
             details = {
                 login,
@@ -117,10 +111,6 @@ class DetailsPage extends React.PureComponent {
 
         const phoneNumber = getPhoneNumber(details);
         const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
-
-        if (this.props.isLoadingReportData && _.isEmpty(login)) {
-            return <FullscreenLoadingIndicator />;
-        }
 
         return (
             <ScreenWrapper>
@@ -225,9 +215,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(DetailsPage);

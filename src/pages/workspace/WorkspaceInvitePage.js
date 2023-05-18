@@ -18,12 +18,12 @@ import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
-import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -53,9 +53,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Indicated whether the report data is loading */
-    isLoadingReportData: PropTypes.bool,
-
     ...policyPropTypes,
     ...withLocalizePropTypes,
     network: networkPropTypes.isRequired,
@@ -64,7 +61,6 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     betas: [],
-    isLoadingReportData: true,
     ...policyDefaultProps,
 };
 
@@ -255,9 +251,6 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     render() {
-        if (this.props.isLoadingReportData && _.isEmpty(this.props.policy)) {
-            return <FullscreenLoadingIndicator />;
-        }
         const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(this.state.personalDetails.length !== 0, Boolean(this.state.userToInvite), this.state.searchTerm);
         const policyName = lodashGet(this.props.policy, 'name');
@@ -323,7 +316,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         personalDetails: {
@@ -331,9 +324,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(WorkspaceInvitePage);

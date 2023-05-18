@@ -18,13 +18,13 @@ import MultipleAvatars from '../../components/MultipleAvatars';
 import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ROUTES from '../../ROUTES';
 import * as Localize from '../../libs/Localize';
 import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -56,9 +56,6 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Indicated whether the report data is loading */
-    isLoadingReportData: PropTypes.bool,
-
     ...policyPropTypes,
     ...withLocalizePropTypes,
 };
@@ -68,7 +65,6 @@ const defaultProps = {
     personalDetails: {},
     betas: [],
     invitedMembersDraft: [],
-    isLoadingReportData: true,
 };
 
 class WorkspaceInviteMessagePage extends React.Component {
@@ -148,10 +144,6 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     render() {
-        if (this.props.isLoadingReportData && _.isEmpty(this.props.policy)) {
-            return <FullscreenLoadingIndicator />;
-        }
-
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
@@ -228,7 +220,7 @@ WorkspaceInviteMessagePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
@@ -238,9 +230,6 @@ export default compose(
         },
         invitedMembersDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(WorkspaceInviteMessagePage);
