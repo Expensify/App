@@ -9,6 +9,8 @@ import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
+// A "target" for the tooltip, i.e. an element that, when hovered over, triggers the tooltip to appear. The tooltip will
+// point towards this target.
 class Tooltip extends PureComponent {
     constructor(props) {
         super(props);
@@ -152,8 +154,8 @@ class Tooltip extends PureComponent {
                         windowWidth={this.props.windowWidth}
                         xOffset={this.state.xOffset}
                         yOffset={this.state.yOffset}
-                        wrapperWidth={this.state.wrapperWidth}
-                        wrapperHeight={this.state.wrapperHeight}
+                        targetWrapperWidth={this.state.wrapperWidth}
+                        targetWrapperHeight={this.state.wrapperHeight}
                         shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
                         shiftVertical={_.result(this.props, 'shiftVertical')}
                         text={this.props.text}
