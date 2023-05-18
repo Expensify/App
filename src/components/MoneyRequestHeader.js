@@ -1,8 +1,8 @@
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -19,10 +19,14 @@ import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
+import SettlementButton from './SettlementButton';
+import * as Policy from '../libs/actions/Policy';
+import ONYXKEYS from '../ONYXKEYS';
+import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
-import ONYXKEYS from '../ONYXKEYS';
+import reportPropTypes from '../pages/reportPropTypes';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -37,17 +41,30 @@ const propTypes = {
         name: PropTypes.string,
     }).isRequired,
 
+    /** The chat report this report is linked to */
+    chatReport: reportPropTypes,
+
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     /** Whether we're viewing a report with a single transaction in it */
     isSingleTransactionView: PropTypes.bool,
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isSingleTransactionView: false,
+    chatReport: {},
+    session: {
+        email: null,
+    },
     parentReport: {},
 };
 
@@ -59,7 +76,6 @@ const MoneyRequestHeader = (props) => {
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-
     const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
@@ -67,6 +83,9 @@ const MoneyRequestHeader = (props) => {
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
+    const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
+    const shouldShowSettlementButton =
+        !isSettled && (Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(props.report) && lodashGet(props.session, 'email', null) === props.report.managerEmail));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
@@ -79,7 +98,7 @@ const MoneyRequestHeader = (props) => {
                         onSelected: () => {},
                     },
                 ]}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
                 report={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
@@ -114,7 +133,7 @@ const MoneyRequestHeader = (props) => {
                             )}
                         </View>
                     </View>
-                    <View style={[styles.flexRow]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
                         {isSettled && (
                             <View style={styles.moneyRequestHeaderCheckmark}>
@@ -124,8 +143,36 @@ const MoneyRequestHeader = (props) => {
                                 />
                             </View>
                         )}
+                        {shouldShowSettlementButton && !props.isSmallScreenWidth && (
+                            <View style={[styles.ml4]}>
+                                <SettlementButton
+                                    currency={props.report.currency}
+                                    policyID={props.report.policyID}
+                                    shouldShowPaypal={Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']))}
+                                    chatReportID={props.report.chatReportID}
+                                    iouReport={props.report}
+                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                                    shouldShowPaymentOptions
+                                />
+                            </View>
+                        )}
                     </View>
                 </View>
+                {shouldShowSettlementButton && props.isSmallScreenWidth && (
+                    <SettlementButton
+                        currency={props.report.currency}
+                        policyID={props.report.policyID}
+                        shouldShowPaypal={false}
+                        chatReportID={props.report.chatReportID}
+                        iouReport={props.report}
+                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                        addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                        shouldShowPaymentOptions
+                    />
+                )}
             </View>
             {props.isSingleTransactionView && (
                 <>
@@ -156,6 +203,12 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
+        chatReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
         parentReport: {
             key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
         },
