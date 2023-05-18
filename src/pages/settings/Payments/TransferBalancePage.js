@@ -177,7 +177,7 @@ class TransferBalancePage extends React.Component {
             <ScreenWrapper>
                 <FullPageNotFoundView
                     shouldShow={!shouldShowTransferView}
-                    titleKey="transferAmountPage.notHereTitle"
+                    titleKey="notFound.pageNotFound"
                     subtitleKey="transferAmountPage.notHereSubTitle"
                     shouldShowLink
                     linkKey="transferAmountPage.goToPayment"
