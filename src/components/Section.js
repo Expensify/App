@@ -26,6 +26,10 @@ const propTypes = {
     /** Customize the Section container */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Customize the Icon container */
+    // eslint-disable-next-line react/forbid-prop-types
+    iconContainerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -34,6 +38,7 @@ const defaultProps = {
     icon: null,
     IconComponent: null,
     containerStyles: [],
+    iconContainerStyles: [],
 };
 
 const Section = (props) => {
@@ -45,7 +50,7 @@ const Section = (props) => {
                     <View style={[styles.flexShrink1]}>
                         <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{props.title}</Text>
                     </View>
-                    <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
+                    <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd, ...props.iconContainerStyles]}>
                         {Boolean(props.icon) && (
                             <Icon
                                 src={props.icon}

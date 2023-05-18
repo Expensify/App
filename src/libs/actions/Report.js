@@ -1095,7 +1095,11 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} previousValue
  * @param {String} newValue
  */
-function updateNotificationPreference(reportID, previousValue, newValue) {
+function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
+    if (previousValue === newValue) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        return;
+    }
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1111,6 +1115,7 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1248,9 +1253,15 @@ function navigateToConciergeChatAndDeleteReport(reportID) {
  * @param {String} policyRoomReport.reportName
  * @param {String} policyRoomName The updated name for the policy room
  */
-function updatePolicyRoomName(policyRoomReport, policyRoomName) {
+function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
     const reportID = policyRoomReport.reportID;
     const previousName = policyRoomReport.reportName;
+
+    // No change needed, navigate back
+    if (previousName === policyRoomName) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        return;
+    }
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1287,6 +1298,7 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1626,7 +1638,7 @@ export {
     addComment,
     addAttachment,
     reconnect,
-    updateNotificationPreference,
+    updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
     saveReportComment,
@@ -1652,8 +1664,8 @@ export {
     navigateToAndOpenReport,
     navigateToAndOpenChildReport,
     openPaymentDetailsPage,
+    updatePolicyRoomNameAndNavigate,
     openMoneyRequestsReportPage,
-    updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
