@@ -363,6 +363,7 @@ class ReportActionItem extends Component {
             );
         }
 
+        const isReportValid = !lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') && !lodashGet(this.props.report, 'errorFields.createChat');
         const hasErrors = !_.isEmpty(this.props.action.errors);
         const whisperedTo = lodashGet(this.props.action, 'whisperedTo', []);
         const isWhisper = whisperedTo.length > 0;
@@ -394,6 +395,7 @@ class ReportActionItem extends Component {
                                     onClose={() => ReportActions.clearReportActionErrors(this.props.report.reportID, this.props.action)}
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
+                                    shouldShowErrorMessages={isReportValid}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                     needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(this.props.action)}
                                 >
