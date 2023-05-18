@@ -207,7 +207,7 @@ const HeaderView = (props) => {
                             </Tooltip>
                             {shouldShowThreeDotsButton && (
                                 <ThreeDotsMenu
-                                    anchorPosition={styles.threeDotsPopoverOffset}
+                                    anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                                     menuItems={threeDotMenuItems}
                                 />
                             )}
