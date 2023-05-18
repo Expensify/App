@@ -207,6 +207,7 @@ class ReportActionItem extends Component {
                     isHovered={hovered}
                     contextMenuAnchor={this.popoverAnchor}
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
+                    style={this.props.displayAsGroup ? [] : [styles.mt2]}
                 />
             );
         } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {

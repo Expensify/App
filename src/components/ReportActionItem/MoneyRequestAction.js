@@ -67,6 +67,10 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** Styles to be assigned to Container */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
@@ -82,6 +86,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    style: [],
 };
 
 const MoneyRequestAction = (props) => {
@@ -145,7 +150,7 @@ const MoneyRequestAction = (props) => {
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
                 shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                 onPreviewPressed={onIOUPreviewPressed}
-                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
+                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
                 isHovered={props.isHovered}
             />
         </>

@@ -2456,7 +2456,6 @@ const styles = {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
-        marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
