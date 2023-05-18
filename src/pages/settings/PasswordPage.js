@@ -158,7 +158,7 @@ class PasswordPage extends Component {
                         heading={this.props.translate('passwordConfirmationScreen.passwordUpdated')}
                         shouldShowButton
                         onButtonPress={Navigation.goBack}
-                        buttonText={this.props.translate('passwordConfirmationScreen.gotIt')}
+                        buttonText={this.props.translate('common.buttonConfirm')}
                         description={this.props.translate('passwordConfirmationScreen.allSet')}
                     />
                 ) : (

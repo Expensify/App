@@ -153,6 +153,7 @@ function signInAndGetAppWithUnreadChat() {
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
+                type: CONST.REPORT.TYPE.CHAT,
             });
             const createdReportActionID = NumberUtils.rand64();
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {

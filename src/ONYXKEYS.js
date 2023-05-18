@@ -91,6 +91,9 @@ export default {
     // A unique identifier that each user has that's used to send notifications
     NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
 
+    // The NVP with the last payment method used per policy
+    NVP_LAST_PAYMENT_METHOD: 'nvp_lastPaymentMethod',
+
     // Does this user have push notifications enabled for this device?
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -194,6 +197,7 @@ export default {
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
+        ROOM_NAME_FORM: 'roomNameForm',
         LEGAL_NAME_FORM: 'legalNameForm',
         WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
