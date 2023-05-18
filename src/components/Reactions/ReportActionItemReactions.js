@@ -13,8 +13,6 @@ import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import getUniqueEmojiCodes from './getUniqueEmojiCodes';
 
-
-
 const propTypes = {
     /**
      * An array of objects containing the reaction data.

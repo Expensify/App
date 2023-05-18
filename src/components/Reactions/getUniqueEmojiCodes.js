@@ -9,7 +9,7 @@ import getPreferredEmojiCode from './getPreferredEmojiCode';
  * @param {Array} users
  * @return {string[]}
  * */
-export default function  getUniqueEmojiCodes(emoji, users) {
+export default function getUniqueEmojiCodes(emoji, users) {
     const emojiCodes = [];
     _.forEach(users, (user) => {
         const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
@@ -19,5 +19,4 @@ export default function  getUniqueEmojiCodes(emoji, users) {
         }
     });
     return emojiCodes;
-};
-
+}
