@@ -896,7 +896,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
     if (isIOUReport(report)) {
         return [
             {
-                source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+                source: getAvatar(lodashGet(personalDetails, [report.managerEmail, 'avatar']), report.managerEmail),
                 name: report.ownerEmail,
                 type: CONST.ICON_TYPE_AVATAR,
             },
