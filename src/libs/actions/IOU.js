@@ -1014,7 +1014,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  * @returns {Object}
  */
 function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
-    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(iouReport.total, iouReport.currency, iouReport.reportID);
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
@@ -1040,15 +1039,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 iouReportID: null,
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [reportPreviewAction.reportActionID]: {
-                    created: DateUtils.getDBTime(),
-                },
             },
         },
         {
