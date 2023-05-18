@@ -188,7 +188,7 @@ export default function getTooltipStyles(
             // so Position fixed children will be relative to this new Local cordinate system
             transform: [{scale}],
         },
-        wrapperStyle: {
+        rootWrapperStyle: {
             position: 'fixed',
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,

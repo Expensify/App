@@ -67,7 +67,7 @@ const TooltipRenderedOnPageBody = (props) => {
     const [wrapperMeasuredWidth, setWrapperMeasuredWidth] = useState(0);
     const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState(0);
     const contentRef = useRef();
-    const wrapper = useRef();
+    const rootWrapper = useRef();
 
     useEffect(() => {
         if (!props.renderTooltipContent || !props.text) {
@@ -79,14 +79,14 @@ const TooltipRenderedOnPageBody = (props) => {
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
         // because of the late update of the width and the height from onLayout.
-        const rect = wrapper.current.getBoundingClientRect();
+        const rect = rootWrapper.current.getBoundingClientRect();
 
         setWrapperMeasuredWidth(rect.width);
         setWrapperMeasuredHeight(rect.height);
         setContentMeasuredWidth(contentRef.current.offsetWidth);
     }, []);
 
-    const {animationStyle, wrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
+    const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             getTooltipStyles(
                 props.animation,
@@ -101,7 +101,7 @@ const TooltipRenderedOnPageBody = (props) => {
                 contentMeasuredWidth,
                 props.shiftHorizontal,
                 props.shiftVertical,
-                wrapper.current,
+                rootWrapper.current,
             ),
         [
             props.animation,
@@ -140,8 +140,8 @@ const TooltipRenderedOnPageBody = (props) => {
 
     return ReactDOM.createPortal(
         <Animated.View
-            ref={wrapper}
-            style={[wrapperStyle, animationStyle]}
+            ref={rootWrapper}
+            style={[rootWrapperStyle, animationStyle]}
         >
             {content}
             <View style={pointerWrapperStyle}>
