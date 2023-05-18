@@ -98,6 +98,6 @@ function isExpensifyTeam(email) {
  * @param {Object} policy
  * @returns {Boolean}
  */
-const isPolicyAdmin = (policy) => policy.role === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
 
 export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam, isPolicyAdmin};
