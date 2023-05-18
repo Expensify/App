@@ -274,7 +274,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.downloadAttachment(source)}
+                        onDownloadButtonPress={() => this.downloadAttachment(this.state.source)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
@@ -282,7 +282,7 @@ class AttachmentModal extends PureComponent {
                             <AttachmentCarousel
                                 reportID={this.props.reportID}
                                 onNavigate={this.onNavigate}
-                                source={source}
+                                source={this.props.source}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
                         ) : (
