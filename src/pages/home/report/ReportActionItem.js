@@ -405,6 +405,7 @@ function ReportActionItem(props) {
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                            childReportActionID={props.action.childReportActionID}
                         />
                     </View>
                 )}
