@@ -2,7 +2,7 @@ import React, {useCallback, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {ScrollView, View} from 'react-native';
-import Str from "expensify-common/lib/str";
+import Str from 'expensify-common/lib/str';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';

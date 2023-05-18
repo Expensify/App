@@ -22,8 +22,8 @@ import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ROUTES from '../../../ROUTES';
-import * as Expensicons from "../../../components/Icon/Expensicons";
-import MenuItem from "../../../components/MenuItem";
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
     /** Route params */
@@ -182,15 +182,15 @@ class ReportSettingsPage extends Component {
                                 </Text>
                             </View>
                         )}
-                        {!shouldDisableWelcomeMessage && (
-                            <MenuItem
-                                title={this.props.translate('welcomeMessagePage.welcomeMessage')}
-                                icon={Expensicons.ChatBubble}
-                                onPress={() => Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(this.props.report.reportID))}
-                                shouldShowRightIcon
-                            />
-                        )}
                     </View>
+                    {!shouldDisableWelcomeMessage && (
+                        <MenuItem
+                            title={this.props.translate('welcomeMessagePage.welcomeMessage')}
+                            icon={Expensicons.ChatBubble}
+                            onPress={() => Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(this.props.report.reportID))}
+                            shouldShowRightIcon
+                        />
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );
