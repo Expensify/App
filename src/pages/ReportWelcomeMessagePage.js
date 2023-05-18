@@ -19,6 +19,7 @@ import CONST from "../CONST";
 import * as ErrorUtils from "../libs/ErrorUtils";
 import FullPageNotFoundView from "../components/BlockingViews/FullPageNotFoundView";
 import Form from "../components/Form";
+import ExpensiMark from "expensify-common/lib/ExpensiMark";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -36,7 +37,8 @@ const propTypes = {
 };
 
 function ReportWelcomeMessagePage(props) {
-    const [welcomeMessage, setWelcomeMessage] = useState(Str.htmlDecode(props.report.welcomeMessage));
+    const parser = new ExpensiMark();
+    const [welcomeMessage, setWelcomeMessage] = useState(parser.htmlToMarkdown(props.report.welcomeMessage));
     const welcomeMessageInputRef = useRef(null);
 
     const handleWelcomeMessageChange = useCallback((value) => {
