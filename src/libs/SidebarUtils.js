@@ -161,7 +161,8 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (ReportUtils.isTaskReport(report)) {
+        if (ReportUtils.isTaskReport(report) && report.stateNum !== CONST.REPORT.STATE.OPEN && report.statusNum !== CONST.REPORT.STATUS.OPEN) {
+            archivedReports.push(report);
             return;
         }
 
@@ -259,10 +260,9 @@ function getOptionData(reportID) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
-
     const parentReport = result.parentReportID ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${result.parentReportID}`] : null;
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
-    const subtitle = ReportUtils.getChatRoomSubtitle(report, parentReport);
+    const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
@@ -303,10 +303,8 @@ function getOptionData(reportID) {
         });
     }
 
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread) && !result.isArchivedRoom) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
         result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
-    } else if (result.isTaskReport) {
-        result.alternateText = Localize.translate(preferredLocale, 'newTaskPage.task');
     } else {
         if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
@@ -349,7 +347,6 @@ function getOptionData(reportID) {
     result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
-
     return result;
 }
 
