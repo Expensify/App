@@ -237,7 +237,7 @@ class ContactMethodDetailsPage extends Component {
                             <ValidateCodeForm
                                 contactMethod={contactMethod}
                                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                                loginData={loginData}
+                                loginList={this.props.loginList}
                             />
                         </View>
                     )}

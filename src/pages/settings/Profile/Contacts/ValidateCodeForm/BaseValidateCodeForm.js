@@ -26,8 +26,8 @@ const propTypes = {
     /** If the magic code has been resent previously */
     hasMagicCodeBeenSent: PropTypes.bool.isRequired,
 
-    /** The data required for login validation */
-    loginData: PropTypes.shape({
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
         /** Value of partner name */
         partnerName: PropTypes.string,
 
@@ -38,10 +38,10 @@ const propTypes = {
         validatedDate: PropTypes.string,
 
         /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.string),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
 
         /** Field-specific pending states for offline UI status */
-        pendingFields: PropTypes.objectOf(PropTypes.string),
+        pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }).isRequired,
 
     /* Onyx Props */
@@ -63,6 +63,7 @@ const defaultProps = {
 function BaseValidateCodeForm(props) {
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState('');
+    const loginData = props.loginList[props.contactMethod];
 
     /**
      * Request a validate code / magic code be sent to verify this contact method
@@ -119,8 +120,8 @@ function BaseValidateCodeForm(props) {
                 autoFocus
             />
             <OfflineWithFeedback
-                pendingAction={lodashGet(props.loginData, 'pendingFields.validateCodeSent', null)}
-                errors={ErrorUtils.getLatestErrorField(props.loginData, 'validateCodeSent')}
+                pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
+                errors={ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateCodeSent')}
             >
@@ -141,8 +142,8 @@ function BaseValidateCodeForm(props) {
                 </View>
             </OfflineWithFeedback>
             <OfflineWithFeedback
-                pendingAction={lodashGet(props.loginData, 'pendingFields.validateLogin', null)}
-                errors={ErrorUtils.getLatestErrorField(props.loginData, 'validateLogin')}
+                pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
+                errors={ErrorUtils.getLatestErrorField(loginData, 'validateLogin')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateLogin')}
             >
