@@ -140,18 +140,18 @@ export default function getTooltipStyles(
     // We calculate tooltip width based on the tooltip's inner text width so the tooltip is just big enough to fit text and prevent white space.
     // If the text width is less than the maximum available width, add horizontal padding.
     // Note: tooltipContentWidth ignores the fractions (OffsetWidth) so add 1px to fit the text properly.
-    const wrapperNominalWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1;
+    const rootWrapperWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1;
 
-    const isWrapperSizeReady = tooltipWidth !== 0 && tooltipHeight !== 0;
+    const isTooltipSizeReady = tooltipWidth !== 0 && tooltipHeight !== 0;
 
     // Hide the tooltip entirely if it's size hasn't finished measuring yet. This prevents UI jank where the tooltip flashes close to its expected position.
-    const opacity = isWrapperSizeReady ? 1 : 0;
+    const opacity = isTooltipSizeReady ? 1 : 0;
 
-    const scale = !isWrapperSizeReady ? 1 : currentSize;
-    let wrapperTop = 0;
-    let wrapperLeft = 0;
+    const scale = !isTooltipSizeReady ? 1 : currentSize;
+    let rootWrapperTop = 0;
+    let rootWrapperLeft = 0;
 
-    if (isWrapperSizeReady) {
+    if (isTooltipSizeReady) {
         // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
         // with the top-left corner of the window by default.
         // we will use yOffset to position the tooltip relative to the Wrapped Component
@@ -160,7 +160,7 @@ export default function getTooltipStyles(
         // First, we'll position it vertically.
         // To shift the tooltip down, we'll give `top` a positive value.
         // To shift the tooltip up, we'll give `top` a negative value.
-        wrapperTop = shouldShowBelow
+        rootWrapperTop = shouldShowBelow
             ? // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
               yOffset + tooltipTargetHeight + POINTER_HEIGHT + manualShiftVertical
             : // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
@@ -178,7 +178,7 @@ export default function getTooltipStyles(
         //      so the tooltip's center lines up with the center of the wrapped component.
         //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
         //   4) Lastly, add the manual horizontal shift passed in as a parameter.
-        wrapperLeft = xOffset + (tooltipTargetWidth / 2 - tooltipWidth / 2) + horizontalShift + manualShiftHorizontal;
+        rootWrapperLeft = xOffset + (tooltipTargetWidth / 2 - tooltipWidth / 2) + horizontalShift + manualShiftHorizontal;
     }
 
     return {
@@ -195,10 +195,10 @@ export default function getTooltipStyles(
             ...tooltipVerticalPadding,
             ...spacing.ph2,
             zIndex: variables.tooltipzIndex,
-            width: wrapperNominalWidth,
+            width: rootWrapperWidth,
             maxWidth,
-            top: wrapperTop,
-            left: wrapperLeft,
+            top: rootWrapperTop,
+            left: rootWrapperLeft,
             opacity,
 
             // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
@@ -225,13 +225,13 @@ export default function getTooltipStyles(
             top: shouldShowBelow ? -POINTER_HEIGHT : tooltipHeight,
 
             // To align it horizontally, we'll:
-            //   1) Shift the pointer to the right (+) by the half the wrapperNominalWidth's width,
-            //      so the left edge of the pointer lines up with the wrapperNominalWidth's center.
+            //   1) Shift the pointer to the right (+) by the half the rootWrapperWidth's width,
+            //      so the left edge of the pointer lines up with the rootWrapperWidth's center.
             //   2) To the left (-) by half the pointer's width,
-            //      so the pointer's center lines up with the wrapperNominalWidth's center.
+            //      so the pointer's center lines up with the rootWrapperWidth's center.
             //   3) Due to the tip start from the left edge of tooltip Tooltip so we have to remove the
             //      horizontalShift which is added to adjust it into the Window
-            left: horizontalShiftPointer + (wrapperNominalWidth / 2 - POINTER_WIDTH / 2),
+            left: horizontalShiftPointer + (rootWrapperWidth / 2 - POINTER_WIDTH / 2),
 
             opacity,
         },
