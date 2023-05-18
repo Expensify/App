@@ -3,26 +3,37 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
-    /** Callback to inform parent modal of success */
+    // eslint-disable-next-line react/forbid-prop-types
+    chatReport: PropTypes.objectOf(PropTypes.object),
+
     // eslint-disable-next-line react/forbid-prop-types
     reportActions: PropTypes.objectOf(PropTypes.object),
 };
 
 const defaultProps = {
+    chatReport: {},
     reportActions: {},
 };
+
+function getReportID(route) {
+    return route.params.reportID.toString();
+}
 
 const SplitBillDetailsPage = (props) => {
     const reportActionID = lodashGet(props, 'route.params.reportActionID', '');
     const reportAction = props.reportActions[reportActionID];
+    const personalDetails = OptionsListUtils.getPersonalDetailsForLogins(reportAction.originalMessage.participants);
+    const participants = OptionsListUtils.getParticipantsOptions(props.chatReport, personalDetails);
 
     return (
         <MoneyRequestConfirmationList
             hasMultipleParticipants
-            participants={reportAction.originalMessage.participants}
+            participants={participants}
             iouAmount={reportAction.originalMessage.amount}
             onConfirm={() => {}}
             onSendMoney={() => {}}
@@ -38,7 +49,11 @@ SplitBillDetailsPage.propTypes = propTypes;
 SplitBillDetailsPage.defaultProps = defaultProps;
 
 export default withOnyx({
+    chatReport: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
     reportActions: {
-        key: ({chatReportID}) => `ONYXKEYS.COLLECTION.REPORT_ACTIONS${chatReportID}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+        canEvict: false,
     }
 })(SplitBillDetailsPage);
