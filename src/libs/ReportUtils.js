@@ -504,7 +504,7 @@ function getChatRoomSubtitle(report) {
             }
         }
 
-        return [workspaceName, roomName].join(' • ');
+        return !roomName ? workspaceName : [workspaceName, roomName].join(' • ');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
