@@ -286,8 +286,8 @@ class AttachmentModal extends PureComponent {
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
                         ) : (
-                            Boolean(this.state.source)
-                            && this.state.shouldLoadAttachment && (
+                            Boolean(this.state.source) &&
+                            this.state.shouldLoadAttachment && (
                                 <AttachmentView
                                     containerStyles={[styles.mh5]}
                                     source={source}
