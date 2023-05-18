@@ -8,7 +8,7 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
-import Navigation from '../Navigation/Navigation';
+import Navigation, { navigationRef } from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
@@ -1082,6 +1082,8 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         if (transitionFromOldDot) {
             Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
         }
+        const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
+        Navigation.setParams({reportID: adminsChatReportID}, routeKey);
         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
     });
 }
