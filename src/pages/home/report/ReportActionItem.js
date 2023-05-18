@@ -282,8 +282,14 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
+        const numberOfThreadReplies = _.get(this.props, ['action', 'childVisibleActionCount'], 0);
+        const hasReplies = numberOfThreadReplies > 0;
+
         const shouldDisplayThreadReplies =
-            this.props.action.childCommenterCount && Permissions.canUseThreads(this.props.betas) && !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
+            hasReplies &&
+            this.props.action.childCommenterCount &&
+            Permissions.canUseThreads(this.props.betas) &&
+            !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
         const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
 
         return (
@@ -292,6 +298,7 @@ class ReportActionItem extends Component {
                 {hasReactions && (
                     <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions
+                            reportActionID={this.props.action.reportActionID}
                             reactions={reactions}
                             toggleReaction={this.toggleReaction}
                         />
@@ -300,7 +307,7 @@ class ReportActionItem extends Component {
                 {shouldDisplayThreadReplies && (
                     <ReportActionItemThread
                         childReportID={`${this.props.action.childReportID}`}
-                        numberOfReplies={this.props.action.childVisibleActionCount || 0}
+                        numberOfReplies={numberOfThreadReplies}
                         mostRecentReply={`${this.props.action.childLastVisibleActionCreated}`}
                         isHovered={hovered}
                         icons={ReportUtils.getIconsForParticipants(oldestFourEmails, this.props.personalDetails)}

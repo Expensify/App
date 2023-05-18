@@ -145,6 +145,26 @@ export default {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                         exact: true,
                     },
+                    Settings_TwoFactorAuthIsEnabled: {
+                        path: ROUTES.SETTINGS_2FA_IS_ENABLED,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthDisable: {
+                        path: ROUTES.SETTINGS_2FA_DISABLE,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthCodes: {
+                        path: ROUTES.SETTINGS_2FA_CODES,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthVerify: {
+                        path: ROUTES.SETTINGS_2FA_VERIFY,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthSuccess: {
+                        path: ROUTES.SETTINGS_2FA_SUCCESS,
+                        exact: true,
+                    },
                     Workspace_Initial: {
                         path: ROUTES.WORKSPACE_INITIAL,
                     },
@@ -195,7 +215,15 @@ export default {
             },
             Report_Settings: {
                 screens: {
-                    Report_Settings_Root: ROUTES.REPORT_SETTINGS,
+                    Report_Settings_Root: {
+                        path: ROUTES.REPORT_SETTINGS,
+                    },
+                    Report_Settings_Room_Name: {
+                        path: ROUTES.REPORT_SETTINGS_ROOM_NAME,
+                    },
+                    Report_Settings_Notification_Preferences: {
+                        path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES,
+                    },
                 },
             },
             NewGroup: {
