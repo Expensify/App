@@ -109,17 +109,9 @@ function MagicCodeInput(props) {
         },
     }));
 
-    /**
-     * Check if current magic code is ready for submit
-     * @returns {boolean}
-     */
-    const isReadyToSubmit = () => {
-        const numbers = decomposeString(props.value);
-        return props.shouldSubmitOnComplete && _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length === CONST.MAGIC_CODE_LENGTH && !props.network.isOffline;
-    };
-
     const validateAndSubmit = () => {
-        if (!isReadyToSubmit()) {
+        const numbers = decomposeString(props.value);
+        if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== CONST.MAGIC_CODE_LENGTH || props.network.isOffline) {
             return;
         }
         // Blurs the input and removes focus from the last input and, if it should submit
