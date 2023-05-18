@@ -43,7 +43,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
                         onPressOut={props.onPressOut}
                         onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                         accessibilityRole="text"
-                        accessibilityLabel="prestyled text"
+                        accessibilityLabel={props.translate('accessibilityHints.prestyledText')}
                     >
                         <View>
                             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
