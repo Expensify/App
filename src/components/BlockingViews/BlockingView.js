@@ -7,7 +7,6 @@ import Icon from '../Icon';
 import Text from '../Text';
 import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
-import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Expensicon for the page */
