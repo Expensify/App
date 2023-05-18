@@ -170,7 +170,6 @@ class TransferBalancePage extends React.Component {
         const shouldShowTransferView =
             !_.isEmpty(this.props.userWallet) &&
             PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList) &&
-            this.props.userWallet.tierName &&
             this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
         return (
