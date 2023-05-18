@@ -1127,7 +1127,7 @@ PODS:
     - Firebase/Performance (= 8.8.0)
     - React-Core
     - RNFBApp
-  - RNGestureHandler (2.9.0):
+  - RNGestureHandler (2.10.1):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1642,7 +1642,7 @@ SPEC CHECKSUMS:
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
-  RNGestureHandler: 9d2ebd17a9fef618d9720e3d95ff5e6607acf8d4
+  RNGestureHandler: 07ba0aeab20e60e2c1d2426db258b8b6a0e6783b
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   RNPermissions: 5c43d3f6c3ca216a0cffa79362827ff102a5fcd0
   RNReactNativeHapticFeedback: c6a6b38daf5f6f187de5f8319102f786170a43c7
