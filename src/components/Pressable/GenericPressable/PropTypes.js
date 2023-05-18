@@ -8,7 +8,7 @@ const pressablePropTypes = {
     /**
      * onPress callback
      */
-    onPress: PropTypes.func.isRequired,
+    onPress: PropTypes.func,
 
     /**
      * Specifies keyboard shortcut to trigger onPressHandler
