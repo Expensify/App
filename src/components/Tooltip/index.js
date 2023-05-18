@@ -14,8 +14,11 @@ class Tooltip extends PureComponent {
         super(props);
 
         this.state = {
-            // Is tooltip rendered?
+            // Is tooltip already rendered on the page's body? This happens once.
             isRendered: false,
+
+            // Is the tooltip currently visible?
+            isVisible: false,
 
             // The distance between the left side of the wrapper view and the left side of the window
             xOffset: 0,
@@ -60,6 +63,8 @@ class Tooltip extends PureComponent {
             this.setState({isRendered: true});
         }
 
+        this.setState({isVisible: true});
+
         this.animation.stopAnimation();
 
         // When TooltipSense is active, immediately show the tooltip
@@ -97,7 +102,7 @@ class Tooltip extends PureComponent {
 
         TooltipSense.deactivate();
 
-        this.setState({isRendered: false});
+        this.setState({isVisible: false});
     }
 
     render() {
@@ -161,7 +166,7 @@ class Tooltip extends PureComponent {
                     />
                 )}
                 <BoundsObserver
-                    enabled={this.state.isRendered}
+                    enabled={this.state.isVisible}
                     onBoundsChange={this.updateBounds}
                 >
                     <Hoverable
