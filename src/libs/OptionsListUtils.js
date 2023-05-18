@@ -591,7 +591,6 @@ function getOptions(
         }
 
         const isThread = ReportUtils.isThread(report);
-        const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -848,49 +847,6 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
 }
 
 /**
- * Build the suggestions for mentions
- * @param {Object} personalDetails
- * @param {String} [searchValue]
- * @param {Number} [maxRecords]
- * @returns {Object}
- */
-function getMentionOptions(personalDetails, searchValue = '', maxRecords = 5) {
-    const suggestions = [];
-
-    if ('here'.includes(searchValue)) {
-        suggestions.push({
-            text: '@here',
-            alternateText: 'Notify everyone online in this room',
-            icons: [
-                {
-                    name: '',
-                    source: () => {},
-                    type: 'avatar',
-                },
-            ],
-        });
-    }
-    _.each(_.values(personalDetails), (detail) => {
-        if (searchValue && !`${detail.displayName} ${detail.login}`.includes(searchValue)) {
-            return;
-        };
-
-        suggestions.push({
-            text: detail.displayName,
-            alternateText: detail.login,
-            icons: [
-                {
-                    name: detail.login,
-                    source: detail.avatar,
-                    type: 'avatar',
-                },
-            ]    
-        });
-    });
-    return suggestions.slice(0, maxRecords);
-}
-
-/**
  * Build the options for the Share Destination for a Task
  * *
  * @param {Object} reports
@@ -984,7 +940,6 @@ export {
     isPersonalDetailsReady,
     getSearchOptions,
     getNewChatOptions,
-    getMentionOptions,
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,

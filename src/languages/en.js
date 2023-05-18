@@ -285,6 +285,9 @@ export default {
         sayHello: 'Say hello!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
+    mentionSuggestions: {
+        hereAlternateText: 'Notify everyone online in this room',
+    },
     newMessages: 'New messages',
     reportTypingIndicator: {
         isTyping: 'is typing...',
