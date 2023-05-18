@@ -57,6 +57,10 @@ const defaultProps = {
 };
 
 class ReportDetailsPage extends Component {
+    getPolicy() {
+        return this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+    }
+
     getMenuItems() {
         const menuItems = [
             {
@@ -94,7 +98,7 @@ class ReportDetailsPage extends Component {
             });
         }
 
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        const policy = this.getPolicy();
         if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
@@ -118,8 +122,7 @@ class ReportDetailsPage extends Component {
             isMultipleParticipant,
         );
         const menuItems = this.getMenuItems();
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
-        const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+        const isPolicyAdmin = PolicyUtils.isPolicyAdmin(this.getPolicy());
         const chatRoomSubtitleText = (
             <Text
                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
