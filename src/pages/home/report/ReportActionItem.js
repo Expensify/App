@@ -169,7 +169,7 @@ function ReportActionItem(props) {
      * @param {Boolean} hovered whether the ReportActionItem is hovered
      * @returns {Object} child component(s)
      */
-    function renderItemContent = (hovered = false) => {
+    const renderItemContent = (hovered = false) => {
         let children;
         const originalMessage = lodashGet(props.action, 'originalMessage', {});
         // Show the IOUPreview for when request was created, bill was split or money was sent
