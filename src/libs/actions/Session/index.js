@@ -417,7 +417,7 @@ function signUp(preferredLocale = CONST.LOCALES.DEFAULT) {
 
     const params = {email: credentials.login, preferredLocale};
 
-    API.write('SignupUser', params, {optimisticData, successData, failureData});
+    API.write('SignUpUser', params, {optimisticData, successData, failureData});
 }
 
 function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
