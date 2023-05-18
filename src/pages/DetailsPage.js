@@ -88,7 +88,7 @@ class DetailsPage extends React.PureComponent {
         const login = lodashGet(this.props.route.params, 'login', '');
         const reportID = lodashGet(this.props.route.params, 'reportID', '');
         let details = lodashGet(this.props.personalDetails, login);
-        
+
         if (!details) {
             details = {
                 login,
