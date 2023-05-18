@@ -80,7 +80,7 @@ const propTypes = {
 
     /* Whether the option has an outstanding IOU */
     // eslint-disable-next-line react/no-unused-prop-types
-    hasOutstandingIOU: PropTypes.bool.isRequired,
+    hasOutstandingIOU: PropTypes.bool,
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
@@ -99,6 +99,7 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
+    hasOutstandingIOU: false,
     betas: [],
 };
 
@@ -108,6 +109,7 @@ function ReportActionItem(props) {
     const popoverAnchorRef = useRef();
 
     const isDraftEmpty = !props.draftMessage;
+    
     useEffect(() => {
         if (isDraftEmpty) {
             return;
