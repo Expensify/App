@@ -17,6 +17,7 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Policy from '../libs/actions/Policy';
 import * as PolicyUtils from '../libs/PolicyUtils';
+import * as Report from '../libs/actions/Report';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -87,7 +88,7 @@ class ReportDetailsPage extends Component {
             });
         }
 
-        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
+        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report) || ReportUtils.isThread(this.props.report)) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
@@ -99,12 +100,13 @@ class ReportDetailsPage extends Component {
         }
 
         const policy = this.getPolicy();
-        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
+        const isThread = ReportUtils.isThread(this.props.report);
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy)) || isThread) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leaveRoom',
+                translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
                 icon: Expensicons.Exit,
-                action: () => Policy.leaveRoom(this.props.report.reportID),
+                action: () => Report.leaveRoom(this.props.report.reportID),
             });
         }
 
@@ -114,6 +116,7 @@ class ReportDetailsPage extends Component {
     render() {
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
+        const isThread = ReportUtils.isThread(this.props.report);
         const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
@@ -153,7 +156,7 @@ class ReportDetailsPage extends Component {
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter, styles.pre]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread}
                                         />
                                     </View>
                                     {isPolicyAdmin ? (

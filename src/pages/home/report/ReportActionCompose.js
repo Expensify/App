@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity, InteractionManager, LayoutAnimation} from 'react-native';
+import {View, TouchableOpacity, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -48,7 +48,6 @@ import MentionSuggestions from '../../../components/MentionSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as Welcome from '../../../libs/actions/Welcome';
@@ -143,6 +142,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+const {RNTextInputReset} = NativeModules;
 /**
  * Return the max available index for arrow manager.
  * @param {Number} numRows
@@ -231,24 +231,6 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                const suggestionsExist = this.state.suggestedEmojis.length > 0 || this.state.suggestedMentions.length > 0;
-
-                if (!this.state.isFocused || this.comment.length === 0 || suggestionsExist) {
-                    return;
-                }
-
-                this.updateComment('', true);
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
         this.setMaxLines();
         this.updateComment(this.comment);
 
@@ -293,10 +275,6 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-
-        if (this.unsubscribeEscapeKey) {
-            this.unsubscribeEscapeKey();
-        }
     }
 
     onSelectionChange(e) {
@@ -543,6 +521,7 @@ class ReportActionCompose extends React.Component {
 
         const nextState = {
             suggestedMentions: [],
+            highlightedMentionIndex: 0,
             atSignIndex,
             mentionPrefix: prefix,
         };
@@ -593,6 +572,12 @@ class ReportActionCompose extends React.Component {
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
+        // In some Android phones keyboard, the text to search for the emoji is not cleared
+        // will be added after the user starts typing again on the keyboard. This package is
+        // a workaround to reset the keyboard natively.
+        if (RNTextInputReset) {
+            RNTextInputReset.resetKeyboardInput(findNodeHandle(this.textInput));
+        }
         this.setState((prevState) => ({
             selection: {
                 start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -765,9 +750,13 @@ class ReportActionCompose extends React.Component {
             }
             return;
         }
-        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && suggestionsExist) {
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
             e.preventDefault();
-            this.resetSuggestions();
+            if (suggestionsExist) {
+                this.resetSuggestions();
+            } else if (this.comment.length > 0) {
+                this.updateComment('', true);
+            }
             return;
         }
 
@@ -974,7 +963,8 @@ class ReportActionCompose extends React.Component {
                                                     isVisible={this.state.isMenuVisible}
                                                     onClose={() => this.setMenuVisibility(false)}
                                                     onItemSelected={() => this.setMenuVisibility(false)}
-                                                    anchorPosition={styles.createMenuPositionReportActionCompose}
+                                                    anchorPosition={styles.createMenuPositionReportActionCompose(this.props.windowHeight)}
+                                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                     menuItems={[
                                                         ...this.getMoneyRequestOptions(reportParticipants),
                                                         ...this.getTaskOption(reportParticipants),
@@ -1032,7 +1022,10 @@ class ReportActionCompose extends React.Component {
                                                 placeholderTextColor={themeColors.placeholderText}
                                                 onChangeText={(comment) => this.updateComment(comment, true)}
                                                 onKeyPress={this.triggerHotkeyActions}
-                                                style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                                style={[
+                                                    this.props.numberOfLines > 1 ? styles.textInputComposeMultiLines : styles.textInputCompose,
+                                                    this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4,
+                                                ]}
                                                 maxLines={this.state.maxLines}
                                                 onFocus={() => this.setIsFocused(true)}
                                                 onBlur={() => {
