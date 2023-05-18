@@ -134,6 +134,7 @@ class BaseModal extends PureComponent {
                 animationIn={this.props.animationIn || animationIn}
                 animationOut={this.props.animationOut || animationOut}
                 useNativeDriver={this.props.useNativeDriver}
+                useNativeDriverForBackdrop={this.props.useNativeDriverForBackdrop !== undefined ? this.props.useNativeDriverForBackdrop : this.props.useNativeDriver}
                 hideModalContentWhileAnimating={this.props.hideModalContentWhileAnimating}
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
