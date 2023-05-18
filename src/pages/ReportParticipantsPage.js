@@ -86,10 +86,12 @@ const ReportParticipantsPage = (props) => {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithCloseButton
-                        title={props.translate(ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) ? 'common.members' : 'common.details')}
+                        title={props.translate(
+                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report) ? 'common.members' : 'common.details',
+                        )}
                         onCloseButtonPress={Navigation.dismissModal}
                         onBackButtonPress={Navigation.goBack}
-                        shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
+                        shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report)}
                     />
                     <View
                         pointerEvents="box-none"
