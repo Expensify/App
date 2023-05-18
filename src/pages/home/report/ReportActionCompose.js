@@ -467,7 +467,7 @@ class ReportActionCompose extends React.Component {
         _.each(sortedPersonalDetails, (detail) => {
             if (searchValue && !`${detail.displayName} ${detail.login}`.trim().includes(searchValue)) {
                 return;
-            };
+            }
 
             suggestions.push({
                 text: detail.displayName,
@@ -478,57 +478,57 @@ class ReportActionCompose extends React.Component {
                         source: detail.avatar,
                         type: 'avatar',
                     },
-                ]    
+                ],
             });
         });
         return suggestions.slice(0, maxRecords);
     }
 
-        /**
+    /**
      * Clean data related to EmojiSuggestions and MentionSuggestions
      */
-        resetSuggestions() {
-            this.setState({
-                ...this.getDefaultSuggestionsValues(),
-            });
+    resetSuggestions() {
+        this.setState({
+            ...this.getDefaultSuggestionsValues(),
+        });
+    }
+
+    /**
+     * Calculates and cares about the content of an Emoji Suggester
+     */
+    calculateEmojiSuggestion() {
+        if (!this.state.value) {
+            this.resetSuggestions();
+            return;
         }
-    
-        /**
-         * Calculates and cares about the content of an Emoji Suggester
-         */
-        calculateEmojiSuggestion() {
-            if (!this.state.value) {
-                this.resetSuggestions();
-                return;
-            }
-            if (this.state.shouldBlockEmojiCalc) {
-                this.setState({shouldBlockEmojiCalc: false});
-                return;
-            }
-            const leftString = this.state.value.substring(0, this.state.selection.end);
-            const colonIndex = leftString.lastIndexOf(':');
-            const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
-    
-            // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
-            const hasEnoughSpaceForLargeSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
-            const isAutoSuggestionPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
-    
-            const nextState = {
-                suggestedEmojis: [],
-                highlightedEmojiIndex: 0,
-                colonIndex,
-                shouldShowEmojiSuggestionMenu: false,
-                isAutoSuggestionPickerLarge,
-            };
-            const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
-    
-            if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
-                nextState.suggestedEmojis = newSuggestedEmojis;
-                nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
-            }
-    
-            this.setState(nextState);
+        if (this.state.shouldBlockEmojiCalc) {
+            this.setState({shouldBlockEmojiCalc: false});
+            return;
         }
+        const leftString = this.state.value.substring(0, this.state.selection.end);
+        const colonIndex = leftString.lastIndexOf(':');
+        const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
+
+        // the larger composerHeight the less space for EmojiPicker, Pixel 2 has pretty small screen and this value equal 5.3
+        const hasEnoughSpaceForLargeSuggestion = this.props.windowHeight / this.state.composerHeight >= 6.8;
+        const isAutoSuggestionPickerLarge = !this.props.isSmallScreenWidth || (this.props.isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
+
+        const nextState = {
+            suggestedEmojis: [],
+            highlightedEmojiIndex: 0,
+            colonIndex,
+            shouldShowEmojiSuggestionMenu: false,
+            isAutoSuggestionPickerLarge,
+        };
+        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
+
+        if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
+            nextState.suggestedEmojis = newSuggestedEmojis;
+            nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
+        }
+
+        this.setState(nextState);
+    }
 
     calculateMentionSuggestion() {
         if (this.state.selection.end < 1) {
