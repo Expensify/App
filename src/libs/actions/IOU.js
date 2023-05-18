@@ -359,14 +359,13 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     );
 
     // STEP 6: Make the request
-    const parsedComment = ReportUtils.getParsedComment(comment);
     API.write(
         'RequestMoney',
         {
             debtorEmail: payerEmail,
             amount,
             currency,
-            comment: parsedComment,
+            comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: optimisticTransaction.transactionID,
@@ -844,12 +843,11 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  */
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
     const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
-    const parsedComment = ReportUtils.getParsedComment(comment);
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
         requestorEmail: recipientEmail,
-        comment: parsedComment,
+        comment,
         idempotencyKey: Str.guid(),
     });
 
