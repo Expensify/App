@@ -59,10 +59,10 @@ class IOUCurrencySelection extends Component {
     constructor(props) {
         super(props);
 
-        this.selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.selectedCurrencyCode);
         this.state = {
             searchValue: '',
             currencyData: this.getCurrencyOptions(this.props.currencyList),
+            selectedCurrencyCode: lodashGet(props.route, 'params.currency', props.iou.selectedCurrencyCode),
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.getSections = this.getSections.bind(this);
@@ -95,7 +95,7 @@ class IOUCurrencySelection extends Component {
      */
     getCurrencyOptions() {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
-            const isSelectedCurrency = currencyCode === this.selectedCurrencyCode;
+            const isSelectedCurrency = currencyCode === this.state.selectedCurrencyCode;
             return {
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
@@ -130,6 +130,9 @@ class IOUCurrencySelection extends Component {
      */
     confirmCurrencySelection(option) {
         const backTo = lodashGet(this.props.route, 'params.backTo', '');
+        // When we refresh the web, the money request route gets cleared from the navigation stack. 
+        // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection. 
+        // To prevent any negative experience, we have made the decision to simply close the currency selection page.
         if (_.isEmpty(backTo) || this.props.navigation.getState().routes.length === 1) {
             Navigation.goBack();
         } else {
@@ -156,7 +159,7 @@ class IOUCurrencySelection extends Component {
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             initiallyFocusedOptionKey={_.get(
-                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.selectedCurrencyCode),
+                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.state.selectedCurrencyCode),
                                 'keyForList',
                             )}
                             shouldHaveOptionSeparator
