@@ -1,11 +1,11 @@
-import _ from 'lodash';
+import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {Animated, View} from 'react-native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
-import {defaultProps, propTypes} from './tooltipPropTypes';
+import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
@@ -38,6 +38,11 @@ class Tooltip extends PureComponent {
         this.updateBounds = this.updateBounds.bind(this);
     }
 
+    /**
+     * Update the tooltip bounding rectangle
+     *
+     * @param {DOMRectReadOnly} bounds - updated bounds
+     */
     updateBounds(bounds) {
         this.setState({
             wrapperWidth: bounds.width,
@@ -173,6 +178,6 @@ class Tooltip extends PureComponent {
     }
 }
 
-Tooltip.propTypes = propTypes;
-Tooltip.defaultProps = defaultProps;
+Tooltip.propTypes = tooltipPropTypes.propTypes;
+Tooltip.defaultProps = tooltipPropTypes.defaultProps;
 export default withWindowDimensions(Tooltip);
