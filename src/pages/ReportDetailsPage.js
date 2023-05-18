@@ -15,7 +15,6 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
-import * as Policy from '../libs/actions/Policy';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as Report from '../libs/actions/Report';
 import participantPropTypes from '../components/participantPropTypes';
