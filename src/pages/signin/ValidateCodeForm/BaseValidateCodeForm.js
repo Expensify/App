@@ -161,24 +161,25 @@ class BaseValidateCodeForm extends React.Component {
     validateAndSubmitForm() {
         const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
 
-        if (!this.state.validateCode.trim()) {
-            this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
-            return;
-        }
+        if (requiresTwoFactorAuth) {
+            if (!this.state.twoFactorAuthCode.trim()) {
+                this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
+                return;
+            }
 
-        if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
-            this.setState({formError: {validateCode: 'validateCodeForm.error.incorrectMagicCode'}});
-            return;
-        }
-
-        if (requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
-            this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
-            return;
-        }
-
-        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
-            this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
-            return;
+            if (!ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
+                this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
+                return;
+            }
+        } else {
+            if (!this.state.validateCode.trim()) {
+                this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
+                return;
+            }
+            if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
+                this.setState({formError: {validateCode: 'validateCodeForm.error.incorrectMagicCode'}});
+                return;
+            }
         }
 
         this.setState({
@@ -202,7 +203,7 @@ class BaseValidateCodeForm extends React.Component {
                     <View style={[styles.mv3]}>
                         <TextInput
                             ref={(el) => (this.input2FA = el)}
-                            label={this.props.translate('validateCodeForm.twoFactorCode')}
+                            label={this.props.translate('common.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('validateCodeForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}

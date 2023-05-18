@@ -197,6 +197,7 @@ class WorkspacesListPage extends Component {
                 )}
                 <FixedFooter style={[styles.flexGrow0]}>
                     <Button
+                        accessibilityLabel={this.props.translate('workspace.new.newWorkspace')}
                         success
                         text={this.props.translate('workspace.new.newWorkspace')}
                         onPress={() => Policy.createWorkspace()}

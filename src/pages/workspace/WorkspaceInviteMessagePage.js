@@ -74,23 +74,41 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.validate = this.validate.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
         this.state = {
-            welcomeNote: this.getWelcomeNote(),
+            welcomeNote: this.getDefaultWelcomeNote(),
         };
+    }
+
+    componentDidMount() {
+        this.focusTimeout = setTimeout(() => {
+            this.welcomeMessageInputRef.focus();
+            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
+            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
+                const length = this.welcomeMessageInputRef.value.length;
+                this.welcomeMessageInputRef.setSelectionRange(length, length);
+            }
+        }, CONST.ANIMATED_TRANSITION);
     }
 
     componentDidUpdate(prevProps) {
         if (
             !(
-                prevProps.preferredLocale !== this.props.preferredLocale &&
-                this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.inviteMessage.welcomeNote', {workspaceName: this.props.policy.name})
+                (prevProps.preferredLocale !== this.props.preferredLocale || prevProps.policy.name !== this.props.policy.name) &&
+                this.state.welcomeNote === Localize.translate(prevProps.preferredLocale, 'workspace.inviteMessage.welcomeNote', {workspaceName: prevProps.policy.name})
             )
         ) {
             return;
         }
-        this.setState({welcomeNote: this.getWelcomeNote()});
+        this.setState({welcomeNote: this.getDefaultWelcomeNote()});
     }
 
-    getWelcomeNote() {
+    componentWillUnmount() {
+        if (!this.focusTimeout) {
+            return;
+        }
+        clearTimeout(this.focusTimeout);
+    }
+
+    getDefaultWelcomeNote() {
         return this.props.translate('workspace.inviteMessage.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
@@ -102,7 +120,7 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     sendInvitation() {
-        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote || this.getWelcomeNote(), this.props.route.params.policyID, this.props.betas);
+        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
@@ -176,6 +194,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         </View>
                         <View style={[styles.mb3]}>
                             <TextInput
+                                ref={(el) => (this.welcomeMessageInputRef = el)}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"

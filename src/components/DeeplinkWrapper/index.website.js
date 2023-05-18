@@ -85,10 +85,14 @@ class DeeplinkWrapper extends PureComponent {
     openRouteInDesktopApp(expensifyDeeplinkUrl) {
         this.updateAppInstallationCheckStatus();
 
+        const browser = Browser.getBrowser();
+
         // This check is necessary for Safari, otherwise, if the user
         // does NOT have the Expensify desktop app installed, it's gonna
         // show an error in the page saying that the address is invalid
-        if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
+        // It is also necessary for Firefox, otherwise the window.location.href redirect
+        // will abort the fetch request from NetInfo, which will cause the app to go offline temporarily.
+        if (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX) {
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             document.body.appendChild(iframe);
