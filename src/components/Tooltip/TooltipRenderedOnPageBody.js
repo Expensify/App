@@ -20,11 +20,11 @@ const propTypes = {
     /** The distance between the top of the wrapper view and the top of the window */
     yOffset: PropTypes.number.isRequired,
 
-    /** The width of the tooltip's target wrapper */
-    targetWrapperWidth: PropTypes.number.isRequired,
+    /** The width of the tooltip's target */
+    targetWidth: PropTypes.number.isRequired,
 
-    /** The height of the tooltip's target wrapper */
-    targetWrapperHeight: PropTypes.number.isRequired,
+    /** The height of the tooltip's target */
+    targetHeight: PropTypes.number.isRequired,
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
@@ -93,8 +93,8 @@ const TooltipRenderedOnPageBody = (props) => {
                 props.windowWidth,
                 props.xOffset,
                 props.yOffset,
-                props.targetWrapperWidth,
-                props.targetWrapperHeight,
+                props.targetWidth,
+                props.targetHeight,
                 props.maxWidth,
                 wrapperMeasuredWidth,
                 wrapperMeasuredHeight,
@@ -108,8 +108,8 @@ const TooltipRenderedOnPageBody = (props) => {
             props.windowWidth,
             props.xOffset,
             props.yOffset,
-            props.targetWrapperWidth,
-            props.targetWrapperHeight,
+            props.targetWidth,
+            props.targetHeight,
             props.maxWidth,
             wrapperMeasuredWidth,
             wrapperMeasuredHeight,

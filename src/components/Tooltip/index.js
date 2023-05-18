@@ -154,8 +154,8 @@ class Tooltip extends PureComponent {
                         windowWidth={this.props.windowWidth}
                         xOffset={this.state.xOffset}
                         yOffset={this.state.yOffset}
-                        targetWrapperWidth={this.state.wrapperWidth}
-                        targetWrapperHeight={this.state.wrapperHeight}
+                        targetWidth={this.state.wrapperWidth}
+                        targetHeight={this.state.wrapperHeight}
                         shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
                         shiftVertical={_.result(this.props, 'shiftVertical')}
                         text={this.props.text}
