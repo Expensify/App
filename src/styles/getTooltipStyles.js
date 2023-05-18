@@ -124,7 +124,7 @@ export default function getTooltipStyles(
 
     // Determine if we need to shift the tooltip horizontally to prevent it
     // from displaying too near to the edge of the screen.
-    const horizontalShift = computeHorizontalShift(windowWidth, xOffset, targetWrapperWidth, wrapperNominalWidth, manualShiftHorizontal);
+    const horizontalShift = computeHorizontalShift(windowWidth, xOffset, targetWrapperWidth, wrapperMeasuredWidth, manualShiftHorizontal);
 
     // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
     // We shift it to the right a bit if the tooltip is positioned on the extreme left
