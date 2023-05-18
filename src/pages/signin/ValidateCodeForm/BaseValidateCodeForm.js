@@ -200,7 +200,7 @@ class BaseValidateCodeForm extends React.Component {
                         <MagicCodeInput
                             autoComplete={this.props.autoComplete}
                             ref={(el) => (this.input2FA = el)}
-                            label={this.props.translate('validateCodeForm.twoFactorCode')}
+                            label={this.props.translate('common.twoFactorCode')}
                             name="twoFactorAuthCode"
                             value={this.state.twoFactorAuthCode}
                             onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
