@@ -570,10 +570,6 @@ function subscribeToUserEventsUsingMultipleEventType() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
-        // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
-        if (!currentUserAccountID) {
-            return;
-        }
         _.each(pushJSON, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
         });
@@ -582,6 +578,10 @@ function subscribeToUserEventsUsingMultipleEventType() {
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
+            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            if (!currentUserAccountID) {
+                return;
+            }
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
         });
