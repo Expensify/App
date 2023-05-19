@@ -172,13 +172,16 @@ function ReportActionItem(props) {
     const renderItemContent = (hovered = false) => {
         let children;
         const originalMessage = lodashGet(props.action, 'originalMessage', {});
+
+        // IOUDetails only exists when we are sending money
+        const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
+
         // Show the IOUPreview for when request was created, bill was split or money was sent
         if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
             originalMessage &&
-            (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-                originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
-                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails')))
+            // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
+            (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT || isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
@@ -241,7 +244,9 @@ function ReportActionItem(props) {
                             action={props.action}
                             style={[
                                 !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
-                                _.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), props.action.actionName) ? styles.colorMuted : undefined,
+                                _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
+                                    ? styles.colorMuted
+                                    : undefined,
                             ]}
                         />
                     ) : (

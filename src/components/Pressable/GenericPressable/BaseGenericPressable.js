@@ -136,7 +136,7 @@ const GenericPressable = forwardRef((props, ref) => {
             onLayout={onLayout}
             ref={ref}
             onPress={!isDisabled ? onPressHandler : undefined}
-            onLongPress={!isDisabled ? onLongPressHandler : undefined}
+            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
