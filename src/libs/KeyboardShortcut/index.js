@@ -52,7 +52,7 @@ function getDisplayName(key, modifiers) {
         displayName = [..._.sortBy(modifiers), ...displayName];
     }
 
-    displayName = _.map(displayName, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
+    displayName = _.map(displayName, (modifier) => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
 
     return displayName.join(' + ');
 }
@@ -65,10 +65,7 @@ _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
         return;
     }
 
-    KeyCommand.addListener(
-        shortcutTrigger,
-        (keycommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event),
-    );
+    KeyCommand.addListener(shortcutTrigger, (keycommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event));
 });
 
 /**
@@ -79,7 +76,7 @@ _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
  * @private
  */
 function unsubscribe(displayName, callbackID) {
-    eventHandlers[displayName] = _.reject(eventHandlers[displayName], callback => callback.id === callbackID);
+    eventHandlers[displayName] = _.reject(eventHandlers[displayName], (callback) => callback.id === callbackID);
 }
 
 /**

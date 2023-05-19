@@ -2,10 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {
-    propTypes as validateLinkPropTypes,
-    defaultProps as validateLinkDefaultProps,
-} from './validateLinkPropTypes';
+import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
 import * as User from '../../libs/actions/User';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';

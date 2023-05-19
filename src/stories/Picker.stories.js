@@ -17,7 +17,7 @@ const Template = (args) => {
     return (
         <Picker
             value={value}
-            onInputChange={e => setValue(e)}
+            onInputChange={(e) => setValue(e)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
         />
@@ -100,9 +100,4 @@ Disabled.args = {
 };
 
 export default story;
-export {
-    Default,
-    PickerWithValue,
-    ErrorStory,
-    Disabled,
-};
+export {Default, PickerWithValue, ErrorStory, Disabled};

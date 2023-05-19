@@ -10,6 +10,7 @@ import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
+import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import withMoneyRequest, {moneyRequestPropTypes} from '../../withMoneyRequest';
 import ModalHeader from '../../ModalHeader';
 
@@ -27,34 +28,35 @@ const MoneyRequestParticipantsPage = (props) => {
 
     useEffect(() => {
         props.redirectIfEmpty([props.amount], iouType.current, reportID.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false} shouldEnableMaxHeight>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+        >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
                     <ModalHeader
                         title={props.translate('iou.cash')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT
-                        ? (
-                            <MoneyRequestParticipantsSplitSelector
-                                onStepComplete={navigateToNextStep}
-                                participants={props.participants}
-                                onAddParticipants={props.setParticipants}
-                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            />
-                        )
-                        : (
-                            <MoneyRequestParticipantsSelector
-                                onStepComplete={navigateToNextStep}
-                                onAddParticipants={props.setParticipants}
-                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                                iouType={iouType.current}
-                            />
-                        )}
+                    {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
+                        <MoneyRequestParticipantsSplitSelector
+                            onStepComplete={navigateToNextStep}
+                            participants={props.participants}
+                            onAddParticipants={props.setParticipants}
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        />
+                    ) : (
+                        <MoneyRequestParticipantsSelector
+                            onStepComplete={navigateToNextStep}
+                            onAddParticipants={props.setParticipants}
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            iouType={iouType.current}
+                        />
+                    )}
                 </View>
             )}
         </ScreenWrapper>
@@ -64,7 +66,4 @@ const MoneyRequestParticipantsPage = (props) => {
 MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
 
-export default compose(
-    withMoneyRequest,
-    withLocalize,
-)(MoneyRequestParticipantsPage);
+export default compose(withMoneyRequest, withLocalize)(MoneyRequestParticipantsPage);

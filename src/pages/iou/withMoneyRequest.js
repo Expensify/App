@@ -1,22 +1,18 @@
-import React, {
-    createContext, forwardRef, useEffect, useRef, useState,
-} from 'react';
+import React, {createContext, forwardRef, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import {withNetwork} from '../../components/OnyxProvider';
-import compose from '../../libs/compose';
 import optionPropTypes from '../../components/optionPropTypes';
-import networkPropTypes from '../../components/networkPropTypes';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect';
 
 const MoneyRequestContext = createContext();
 const moneyRequestPropTypes = {
     // Money request amount
-    amount: PropTypes.string.isRequired,
+    amount: PropTypes.number.isRequired,
 
     // Money request currency
     currency: PropTypes.string.isRequired,
@@ -51,15 +47,16 @@ const moneyRequestPropTypes = {
  */
 // eslint-disable-next-line rulesdir/prefer-early-return
 const redirectIfEmpty = (data, iouType, reportID) => {
-    if (_.some(data, d => _.isEmpty(d))) {
+    // If one of the data is empty, redirect the user to the initial money request page.
+    // If the data is a number (amount), 0 will be treated as empty.
+    if (_.some(data, (d) => (_.isNumber(d) ? d === 0 : _.isEmpty(d)))) {
         Navigation.goBack();
         Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
     }
 };
 
 const MoneyRequestProvider = (props) => {
-    const prevNetworkStatusRef = useRef(props.network.isOffline);
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState(0);
     const [currency, setCurrency] = useState(props.currentUserPersonalDetails.localCurrencyCode);
     const [participants, setParticipants] = useState([]);
     const [comment, setComment] = useState('');
@@ -68,19 +65,8 @@ const MoneyRequestProvider = (props) => {
         PersonalDetails.openMoneyRequestModalPage();
     }, []);
 
-    useEffect(() => {
-        if (props.network.isOffline || !prevNetworkStatusRef.current) {
-            return;
-        }
-
-        // User came back online, so let's refetch the currency details based on location
-        PersonalDetails.openMoneyRequestModalPage();
-    }, [props.network.isOffline]);
-
-    useEffect(() => {
-        // Used to store previous prop values to compare on next render
-        prevNetworkStatusRef.current = props.network.isOffline;
-    });
+    // User came back online, so let's refetch the currency details based on location
+    useOnNetworkReconnect(PersonalDetails.openMoneyRequestModalPage);
 
     const value = {
         amount,
@@ -94,32 +80,29 @@ const MoneyRequestProvider = (props) => {
         redirectIfEmpty,
     };
 
-    return (
-        <MoneyRequestContext.Provider value={value}>
-            {props.children}
-        </MoneyRequestContext.Provider>
-    );
+    return <MoneyRequestContext.Provider value={value}>{props.children}</MoneyRequestContext.Provider>;
 };
 MoneyRequestProvider.propTypes = {
     children: PropTypes.node.isRequired,
-    network: networkPropTypes.isRequired,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 MoneyRequestProvider.defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const MoneyRequestProviderWithOnyx = compose(
-    withNetwork(),
-    withCurrentUserPersonalDetails,
-)(MoneyRequestProvider);
+const MoneyRequestProviderWithOnyx = withCurrentUserPersonalDetails(MoneyRequestProvider);
 
 export default function withMoneyRequest(WrappedComponent) {
     const WithMoneyRequest = forwardRef((props, ref) => (
         <MoneyRequestContext.Consumer>
-            {moneyRequestProps => (
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                <WrappedComponent {...moneyRequestProps} {...props} ref={ref} />
+            {(moneyRequestProps) => (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...moneyRequestProps}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                />
             )}
         </MoneyRequestContext.Consumer>
     ));
@@ -128,7 +111,4 @@ export default function withMoneyRequest(WrappedComponent) {
     return WithMoneyRequest;
 }
 
-export {
-    MoneyRequestProviderWithOnyx as MoneyRequestProvider,
-    moneyRequestPropTypes,
-};
+export {MoneyRequestProviderWithOnyx as MoneyRequestProvider, moneyRequestPropTypes};

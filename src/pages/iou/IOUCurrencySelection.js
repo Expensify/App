@@ -10,25 +10,31 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import * as CurrencySymbolUtils from '../../libs/CurrencySymbolUtils';
 import {withNetwork} from '../../components/OnyxProvider';
 import withMoneyRequest from './withMoneyRequest';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import themeColors from '../../styles/themes/default';
+import * as Expensicons from '../../components/Icon/Expensicons';
+
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 /**
  * IOU Currency selection for selecting currency
  */
 const propTypes = {
     // The currency list constant object from Onyx
-    currencyList: PropTypes.objectOf(PropTypes.shape({
-        // Symbol for the currency
-        symbol: PropTypes.string,
+    currencyList: PropTypes.objectOf(
+        PropTypes.shape({
+            // Symbol for the currency
+            symbol: PropTypes.string,
 
-        // Name of the currency
-        name: PropTypes.string,
+            // Name of the currency
+            name: PropTypes.string,
 
-        // ISO4217 Code for the currency
-        ISO4217: PropTypes.string,
-    })),
+            // ISO4217 Code for the currency
+            ISO4217: PropTypes.string,
+        }),
+    ),
 
     ...withLocalizePropTypes,
 };
@@ -75,11 +81,16 @@ class IOUCurrencySelection extends Component {
      * @returns {Object}
      */
     getCurrencyOptions() {
-        return _.map(this.props.currencyList, (currencyInfo, currencyCode) => ({
-            text: `${currencyCode} - ${CurrencySymbolUtils.getLocalizedCurrencySymbol(this.props.preferredLocale, currencyCode)}`,
-            currencyCode,
-            keyForList: currencyCode,
-        }));
+        return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
+            const isSelectedCurrency = currencyCode === this.props.currency;
+            return {
+                text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
+                currencyCode,
+                keyForList: currencyCode,
+                customIcon: isSelectedCurrency ? greenCheckmark : undefined,
+                boldStyle: isSelectedCurrency,
+            };
+        });
     }
 
     /**
@@ -90,7 +101,7 @@ class IOUCurrencySelection extends Component {
     changeSearchValue(searchValue) {
         const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
-        const filteredCurrencies = _.filter(currencyOptions, currencyOption => searchRegex.test(currencyOption.text));
+        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
 
         this.setState({
             searchValue,
@@ -124,9 +135,14 @@ class IOUCurrencySelection extends Component {
                             onSelectRow={this.confirmCurrencySelection}
                             value={this.state.searchValue}
                             onChangeText={this.changeSearchValue}
-                            placeholderText={this.props.translate('common.search')}
+                            textInputLabel={this.props.translate('common.search')}
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            initiallyFocusedOptionKey={_.get(
+                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.props.currency),
+                                'keyForList',
+                            )}
+                            shouldHaveOptionSeparator
                         />
                     </>
                 )}

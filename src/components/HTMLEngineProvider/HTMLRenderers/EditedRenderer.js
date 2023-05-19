@@ -5,7 +5,6 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import Text from '../../Text';
 import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
-import styles from '../../../styles/styles';
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -21,9 +20,7 @@ const EditedRenderer = (props) => {
             fontSize={variables.fontSizeSmall}
             color={themeColors.textSupporting}
         >
-            {/* Native devices do not support margin between nested text */}
-            <Text style={styles.w1}>{' '}</Text>
-            {props.translate('reportActionCompose.edited')}
+            {` ${props.translate('reportActionCompose.edited')}`}
         </Text>
     );
 };

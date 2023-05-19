@@ -12,7 +12,7 @@ export default {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <Checkbox {...args} />;
+const Template = (args) => <Checkbox {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -22,6 +22,4 @@ Default.args = {
     isChecked: true,
 };
 
-export {
-    Default,
-};
+export {Default};

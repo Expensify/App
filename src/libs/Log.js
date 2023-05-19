@@ -17,8 +17,7 @@ let timeout = null;
  */
 function LogCommand(parameters) {
     const commandName = 'Log';
-    requireParameters(['logPacket', 'expensifyCashAppVersion'],
-        parameters, commandName);
+    requireParameters(['logPacket', 'expensifyCashAppVersion'], parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs

@@ -10,7 +10,6 @@ const reimbursementAccountPropTypes = PropTypes.shape({
 
     /** Additional data for the account in setup */
     achData: PropTypes.shape({
-
         /** Step of the setup flow that we are on. Determines which view is presented. */
         currentStep: PropTypes.string,
 
@@ -19,7 +18,6 @@ const reimbursementAccountPropTypes = PropTypes.shape({
 
         /** Bank account ID of the VBA that we are validating is required */
         bankAccountID: PropTypes.number,
-
     }),
 
     /** Disable validation button if max attempts exceeded */

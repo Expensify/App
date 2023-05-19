@@ -2,6 +2,8 @@ import React from 'react';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import * as formSubmitPropTypes from './formSubmitPropTypes';
+import CONST from '../../CONST';
+import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 
 // This is a wrapper component to handle the ENTER key press, and submit the form.
 class FormSubmit extends React.Component {
@@ -17,8 +19,8 @@ class FormSubmit extends React.Component {
      */
 
     submitForm(event) {
-        // ENTER is pressed with modifier key, do not submit the form
-        if (event.shiftKey || event.key !== 'Enter') {
+        // ENTER is pressed with modifier key or during text composition, do not submit the form
+        if (event.shiftKey || event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || isEnterWhileComposition(event)) {
             return;
         }
 
@@ -44,11 +46,16 @@ class FormSubmit extends React.Component {
 
     render() {
         return (
-
             // React-native-web prevents event bubbling on TextInput for key presses
             // https://github.com/necolas/react-native-web/blob/fa47f80d34ee6cde2536b2a2241e326f84b633c4/packages/react-native-web/src/exports/TextInput/index.js#L272
             // Thus use capture phase.
-            <View ref={this.props.innerRef} onKeyDownCapture={this.submitForm} style={this.props.style}>{this.props.children}</View>
+            <View
+                ref={this.props.innerRef}
+                onKeyDownCapture={this.submitForm}
+                style={this.props.style}
+            >
+                {this.props.children}
+            </View>
         );
     }
 }
@@ -57,6 +64,9 @@ FormSubmit.propTypes = formSubmitPropTypes.propTypes;
 FormSubmit.defaultProps = formSubmitPropTypes.defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <FormSubmit {...props} innerRef={ref} />
+    <FormSubmit
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
 ));

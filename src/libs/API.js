@@ -5,6 +5,7 @@ import * as Middleware from './Middleware';
 import * as SequentialQueue from './Network/SequentialQueue';
 import pkg from '../../package.json';
 import CONST from '../CONST';
+import * as Pusher from './Pusher/pusher';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -46,6 +47,10 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
         ...apiCommandParameters,
         appversion: pkg.version,
         apiRequestType: CONST.API_REQUEST_TYPE.WRITE,
+
+        // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to the requesting client. The push event
+        // is sent back to the requesting client in the response data instead, which prevents a replay effect in the UI. See https://github.com/Expensify/App/issues/12775.
+        pusherSocketID: Pusher.getPusherSocketID(),
     };
 
     // Assemble all the request data we'll be storing in the queue
@@ -128,8 +133,4 @@ function read(command, apiCommandParameters, onyxData) {
     SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 
-export {
-    write,
-    makeRequestWithSideEffects,
-    read,
-};
+export {write, makeRequestWithSideEffects, read};

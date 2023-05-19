@@ -5,7 +5,10 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 // eslint-disable-next-line rulesdir/no-negated-variables
 const NotFoundPage = () => (
     <ScreenWrapper>
-        <FullPageNotFoundView shouldShow shouldShowBackHomeLink />
+        <FullPageNotFoundView
+            shouldShow
+            shouldShowBackHomeLink
+        />
     </ScreenWrapper>
 );
 

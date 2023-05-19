@@ -22,7 +22,9 @@ function setCloseModal(onClose) {
 function close(onModalCloseCallback, isNavigating = true) {
     if (!closeModal) {
         // If modal is already closed, no need to wait for modal close. So immediately call callback.
-        if (onModalCloseCallback) { onModalCloseCallback(); }
+        if (onModalCloseCallback) {
+            onModalCloseCallback();
+        }
         onModalClose = null;
         return;
     }
@@ -31,7 +33,9 @@ function close(onModalCloseCallback, isNavigating = true) {
 }
 
 function onModalDidClose() {
-    if (!onModalClose) { return; }
+    if (!onModalClose) {
+        return;
+    }
     onModalClose();
     onModalClose = null;
 }
@@ -55,10 +59,4 @@ function willAlertModalBecomeVisible(isVisible) {
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible});
 }
 
-export {
-    setCloseModal,
-    close,
-    onModalDidClose,
-    setModalVisibility,
-    willAlertModalBecomeVisible,
-};
+export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible};

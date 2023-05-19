@@ -26,6 +26,10 @@ const propTypes = {
     /** Customize the Section container */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Customize the Icon container */
+    // eslint-disable-next-line react/forbid-prop-types
+    iconContainerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
@@ -34,6 +38,7 @@ const defaultProps = {
     icon: null,
     IconComponent: null,
     containerStyles: [],
+    iconContainerStyles: [],
 };
 
 const Section = (props) => {
@@ -43,23 +48,24 @@ const Section = (props) => {
             <View style={[styles.pageWrapper, styles.cardSection, ...props.containerStyles]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
                     <View style={[styles.flexShrink1]}>
-                        <Text style={[styles.textHeadline]}>{props.title}</Text>
+                        <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{props.title}</Text>
                     </View>
-                    <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
-                        {Boolean(props.icon) && <Icon src={props.icon} height={68} width={68} />}
+                    <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd, ...props.iconContainerStyles]}>
+                        {Boolean(props.icon) && (
+                            <Icon
+                                src={props.icon}
+                                height={68}
+                                width={68}
+                            />
+                        )}
                         {Boolean(IconComponent) && <IconComponent />}
                     </View>
                 </View>
 
-                <View style={[styles.w100]}>
-                    {props.children}
-                </View>
+                <View style={[styles.w100]}>{props.children}</View>
 
-                <View style={[styles.w100]}>
-                    {Boolean(props.menuItems) && <MenuItemList menuItems={props.menuItems} />}
-                </View>
+                <View style={[styles.w100]}>{Boolean(props.menuItems) && <MenuItemList menuItems={props.menuItems} />}</View>
             </View>
-
         </>
     );
 };

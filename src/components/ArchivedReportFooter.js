@@ -35,12 +35,6 @@ const propTypes = {
     /** Personal details of all users */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    /** The list of policies the user has access to. */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The name of the policy */
-        name: PropTypes.string,
-    })),
-
     ...withLocalizePropTypes,
 };
 
@@ -51,7 +45,6 @@ const defaultProps = {
         },
     },
     personalDetails: {},
-    policies: {},
 };
 
 const ArchivedReportFooter = (props) => {
@@ -72,7 +65,7 @@ const ArchivedReportFooter = (props) => {
             text={props.translate(`reportArchiveReasons.${archiveReason}`, {
                 displayName: `<strong>${displayName}</strong>`,
                 oldDisplayName: `<strong>${oldDisplayName}</strong>`,
-                policyName: `<strong>${ReportUtils.getPolicyName(props.report, props.policies)}</strong>`,
+                policyName: `<strong>${ReportUtils.getPolicyName(props.report)}</strong>`,
             })}
             shouldRenderHTML={archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT}
             shouldShowIcon
@@ -89,9 +82,6 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
         reportClosedAction: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,

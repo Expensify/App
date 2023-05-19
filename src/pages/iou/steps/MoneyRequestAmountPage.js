@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    View,
-    InteractionManager,
-} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -16,6 +13,7 @@ import compose from '../../../libs/compose';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as IOUUtils from '../../../libs/IOUUtils';
+import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
@@ -75,12 +73,13 @@ class MoneyRequestAmountPage extends React.Component {
         this.reportID = lodashGet(props.route, 'params.reportID', '');
         this.isEditing = lodashGet(props.route, 'path', '').includes('amount');
 
+        const selectedAmountAsString = props.amount ? CurrencyUtils.convertToWholeUnit(props.currency, props.amount).toString() : '';
         this.state = {
-            amount: props.amount,
+            amount: selectedAmountAsString,
             shouldUpdateSelection: true,
             selection: {
-                start: props.amount.length,
-                end: props.amount.length,
+                start: selectedAmountAsString.length,
+                end: selectedAmountAsString.length,
             },
         };
     }
@@ -93,7 +92,7 @@ class MoneyRequestAmountPage extends React.Component {
             const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
                 ? OptionsListUtils.getPolicyExpenseReportOptions(this.props.report)
                 : OptionsListUtils.getParticipantsOptions(this.props.report, this.props.personalDetails);
-            this.props.setParticipants(_.map(participants, participant => ({...participant, selected: true})));
+            this.props.setParticipants(_.map(participants, (participant) => ({...participant, selected: true})));
         }
 
         this.focusTextInput();
@@ -108,11 +107,12 @@ class MoneyRequestAmountPage extends React.Component {
         if (prevProps.amount === this.props.amount) {
             return;
         }
+        const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.currency, this.props.amount).toString();
         this.setState({
-            amount: this.props.amount,
+            amount: selectedAmountAsString,
             selection: {
-                start: this.props.amount.length,
-                end: this.props.amount.length,
+                start: selectedAmountAsString.length,
+                end: selectedAmountAsString.length,
             },
         });
     }
@@ -373,14 +373,8 @@ class MoneyRequestAmountPage extends React.Component {
                             />
                             <View
                                 nativeID={this.amountViewID}
-                                onMouseDown={event => this.onMouseDown(event, [this.amountViewID])}
-                                style={[
-                                    styles.flex1,
-                                    styles.flexRow,
-                                    styles.w100,
-                                    styles.alignItemsCenter,
-                                    styles.justifyContentCenter,
-                                ]}
+                                onMouseDown={(event) => this.onMouseDown(event, [this.amountViewID])}
+                                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                             >
                                 <TextInputWithCurrencySymbol
                                     formattedAmount={formattedAmount}
@@ -388,7 +382,7 @@ class MoneyRequestAmountPage extends React.Component {
                                     onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                                     placeholder={this.props.numberFormat(0)}
                                     preferredLocale={this.props.preferredLocale}
-                                    ref={el => this.textInput = el}
+                                    ref={(el) => (this.textInput = el)}
                                     selectedCurrencyCode={this.props.currency}
                                     selection={this.state.selection}
                                     onSelectionChange={(e) => {
@@ -400,24 +394,26 @@ class MoneyRequestAmountPage extends React.Component {
                                 />
                             </View>
                             <View
-                                onMouseDown={event => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
+                                onMouseDown={(event) => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
                                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
                                 nativeID={this.numPadContainerViewID}
                             >
-                                {DeviceCapabilities.canUseTouchScreen()
-                                    ? (
-                                        <BigNumberPad
-                                            nativeID={this.numPadViewID}
-                                            numberPressed={this.updateAmountNumberPad}
-                                            longPressHandlerStateChanged={this.updateLongPressHandlerState}
-                                        />
-                                    ) : <View />}
+                                {DeviceCapabilities.canUseTouchScreen() ? (
+                                    <BigNumberPad
+                                        nativeID={this.numPadViewID}
+                                        numberPressed={this.updateAmountNumberPad}
+                                        longPressHandlerStateChanged={this.updateLongPressHandlerState}
+                                    />
+                                ) : (
+                                    <View />
+                                )}
 
                                 <Button
                                     success
                                     style={[styles.w100, styles.mt5]}
                                     onPress={() => {
-                                        this.props.setAmount(this.state.amount);
+                                        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(this.props.currency, Number.parseFloat(this.state.amount));
+                                        this.props.setAmount(amountInSmallestCurrencyUnits);
                                         this.navigateToNextPage();
                                     }}
                                     pressOnEnter

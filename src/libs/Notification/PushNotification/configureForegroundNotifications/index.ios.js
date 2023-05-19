@@ -13,5 +13,5 @@ export default function configureForegroundNotifications() {
 
     // Set a callback to override our foreground presentation per notification depending on the app's current state.
     // Returning null keeps the default presentation. Returning [] uses no presentation (hides the notification).
-    Airship.push.iOS.setForegroundPresentationOptionsCallback(pushPayload => Promise.resolve(shouldShowPushNotification(pushPayload) ? null : []));
+    Airship.push.iOS.setForegroundPresentationOptionsCallback((pushPayload) => Promise.resolve(shouldShowPushNotification(pushPayload) ? null : []));
 }
