@@ -48,7 +48,6 @@ import MentionSuggestions from '../../../components/MentionSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ActionSheetAwareScrollView from '../../../components/ActionSheetAwareScrollView';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
@@ -431,20 +430,6 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Measure the size of the popover's content.
-     *
-     * @param {Object} nativeEvent
-     */
-    measurePopover({nativeEvent}) {
-        this.context.transitionActionSheetState({
-            type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
-            payload: {
-                popoverHeight: nativeEvent.layout.height,
-            },
-        });
-    }
-
-    /**
      * Determines if we can show the task option
      *
      * @param {Array} reportParticipants
@@ -466,6 +451,20 @@ class ReportActionCompose extends React.Component {
                 onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(this.props.reportID),
             },
         ];
+    }
+
+    /**
+     * Measure the size of the popover's content.
+     *
+     * @param {Object} nativeEvent
+     */
+    measurePopover({nativeEvent}) {
+        this.context.transitionActionSheetState({
+            type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
+            payload: {
+                popoverHeight: nativeEvent.layout.height,
+            },
+        });
     }
 
     /**

@@ -5,9 +5,9 @@ import ActionSheetKeyboardSpace from './ActionSheetKeyboardSpace';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 
 const ActionSheetAwareScrollView = forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <ScrollView
         ref={ref}
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     >
         <ActionSheetKeyboardSpace>{props.children}</ActionSheetKeyboardSpace>

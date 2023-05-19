@@ -124,11 +124,11 @@ function useWorkletStateMachine(stateMachine, initialState) {
 
     const reset = useCallback(() => {
         runOnUI(resetWorklet)();
-    }, []);
+    }, [resetWorklet]);
 
     const transition = useCallback((action) => {
         runOnUI(transitionWorklet)(action);
-    }, []);
+    }, [transitionWorklet]);
 
     return {
         currentState,

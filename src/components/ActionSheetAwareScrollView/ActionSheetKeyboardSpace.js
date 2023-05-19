@@ -62,7 +62,7 @@ function ActionSheetKeyboardSpace(props) {
                 // noop
             }
         };
-    }, []);
+    }, [resetStateMachine, transitionActionSheetState]);
 
     // We need this because of the bug in useAnimatedKeyboard.
     // It calls the same state twice which triggers this thing again.
@@ -218,10 +218,10 @@ function ActionSheetKeyboardSpace(props) {
         transform: [{translateY: translateY.value}],
     }));
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <Reanimated.View
             style={[styles.flex1, animatedStyle]}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

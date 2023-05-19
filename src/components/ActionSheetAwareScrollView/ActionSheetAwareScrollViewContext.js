@@ -135,7 +135,7 @@ function ActionSheetAwareScrollViewProvider(props) {
             transitionActionSheetStateWorklet: transitionWorklet,
             resetStateMachine: reset,
         }),
-        [],
+        [currentState, reset, transition, transitionWorklet],
     );
 
     return <ActionSheetAwareScrollViewContext.Provider value={value}>{props.children}</ActionSheetAwareScrollViewContext.Provider>;

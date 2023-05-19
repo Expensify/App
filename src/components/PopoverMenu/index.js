@@ -75,7 +75,7 @@ const PopoverMenu = (props) => {
             animationInTiming={props.animationInTiming}
             disableAnimation={props.disableAnimation}
             fromSidebarMediumScreen={props.fromSidebarMediumScreen}
-            onLayout={this.props.onLayout}
+            onLayout={props.onLayout}
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!_.isEmpty(props.headerText) && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{props.headerText}</Text>}
