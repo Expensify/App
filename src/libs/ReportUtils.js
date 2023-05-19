@@ -1941,6 +1941,11 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
+    // Exclude empty chats
+    if (isChatReport() && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml)) {
+        return false;
+    }
+
     return true;
 }
 
