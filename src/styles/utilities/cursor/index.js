@@ -29,4 +29,7 @@ export default {
     cursorInitial: {
         cursor: 'initial',
     },
+    cursorText: {
+        cursor: 'text',
+    },
 };

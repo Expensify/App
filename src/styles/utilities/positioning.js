@@ -21,14 +21,26 @@ export default {
     l0: {
         left: 0,
     },
-    l4: {
+    l1: {
         left: 4,
+    },
+    l2: {
+        left: 8,
+    },
+    l8: {
+        left: 32,
     },
     r0: {
         right: 0,
     },
+    r2: {
+        right: 8,
+    },
     r4: {
         right: 16,
+    },
+    r8: {
+        right: 32,
     },
     b0: {
         bottom: 0,

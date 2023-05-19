@@ -24,6 +24,7 @@ jest.doMock('react-native', () => {
                 BootSplash: {
                     getVisibilityStatus: jest.fn(),
                     hide: jest.fn(),
+                    navigationBarHeight: 0,
                 },
                 StartupTimer: {stop: jest.fn()},
             },
@@ -41,7 +42,7 @@ jest.doMock('react-native', () => {
                 },
                 emitCurrentTestState(state) {
                     appState = state;
-                    _.each(changeListeners, listener => listener(appState));
+                    _.each(changeListeners, (listener) => listener(appState));
                 },
                 addEventListener(type, listener) {
                     if (type === 'change') {

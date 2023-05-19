@@ -1,8 +1,5 @@
 const _ = require('underscore');
-const {
-    contextBridge,
-    ipcRenderer,
-} = require('electron');
+const {contextBridge, ipcRenderer} = require('electron');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 
 const WHITELIST_CHANNELS_RENDERER_TO_MAIN = [
@@ -14,14 +11,9 @@ const WHITELIST_CHANNELS_RENDERER_TO_MAIN = [
     ELECTRON_EVENTS.LOCALE_UPDATED,
 ];
 
-const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
-    ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL,
-    ELECTRON_EVENTS.UPDATE_DOWNLOADED,
-    ELECTRON_EVENTS.FOCUS,
-    ELECTRON_EVENTS.BLUR,
-];
+const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL, ELECTRON_EVENTS.UPDATE_DOWNLOADED, ELECTRON_EVENTS.FOCUS, ELECTRON_EVENTS.BLUR];
 
-const getErrorMessage = channel => `Electron context bridge cannot be used with channel '${channel}'`;
+const getErrorMessage = (channel) => `Electron context bridge cannot be used with channel '${channel}'`;
 
 /**
  * The following methods will be available in the renderer process under `window.electron`.

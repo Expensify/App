@@ -34,8 +34,7 @@ const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: 
 const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
 const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
 
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}`
-    + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
+const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
 /**
  * @param {String} deployer
@@ -49,9 +48,10 @@ function getDeployMessage(deployer, deployVerb, prTitle) {
     message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
     message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
-    if (deployVerb === 'Cherry-picked' && !(/no qa/gi).test(prTitle)) {
+    if (deployVerb === 'Cherry-picked' && !/no qa/gi.test(prTitle)) {
         // eslint-disable-next-line max-len
-        message += '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
+        message +=
+            '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
     }
 
     return message;
@@ -76,14 +76,15 @@ function commentPR(PR, message) {
 const run = function () {
     if (isProd) {
         // First find the deployer (who closed the last deploy checklist)?
-        return GithubUtils.octokit.issues.listForRepo({
-            owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.APP_REPO,
-            labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
-            state: 'closed',
-        })
+        return GithubUtils.octokit.issues
+            .listForRepo({
+                owner: GithubUtils.GITHUB_OWNER,
+                repo: GithubUtils.APP_REPO,
+                labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
+                state: 'closed',
+            })
             .then(({data}) => _.first(data).number)
-            .then(lastDeployChecklistNumber => GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber))
+            .then((lastDeployChecklistNumber) => GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber))
             .then((actor) => {
                 // Create comment on each pull request (one after another to avoid throttling issues)
                 const deployMessage = getDeployMessage(actor, 'Deployed');
@@ -92,13 +93,14 @@ const run = function () {
     }
 
     // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
-    return GithubUtils.octokit.repos.listTags({
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.APP_REPO,
-        per_page: 100,
-    })
+    return GithubUtils.octokit.repos
+        .listTags({
+            owner: GithubUtils.GITHUB_OWNER,
+            repo: GithubUtils.APP_REPO,
+            per_page: 100,
+        })
         .then(({data}) => {
-            const tagSHA = _.find(data, tag => tag.name === version).commit.sha;
+            const tagSHA = _.find(data, (tag) => tag.name === version).commit.sha;
             return GithubUtils.octokit.git.getCommit({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.APP_REPO,
@@ -107,35 +109,40 @@ const run = function () {
         })
         .then(({data}) => {
             const isCP = /Merge pull request #\d+ from Expensify\/.*-?cherry-pick-staging-\d+/.test(data.message);
-            _.reduce(prList, (promise, PR) => promise
+            _.reduce(
+                prList,
+                (promise, PR) =>
+                    promise
 
-                // Then, for each PR, find out who merged it and determine the deployer
-                .then(() => GithubUtils.octokit.pulls.get({
-                    owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.APP_REPO,
-                    pull_number: PR,
-                }))
-                .then((response) => {
-                    /*
-                     * The deployer for staging deploys is:
-                     *   1. For regular staging deploys, the person who merged the PR.
-                     *   2. For automatic CPs (using the label), the person who merged the PR.
-                     *   3. For manual CPs (using the GH UI), the person who triggered the workflow
-                     *      (reflected in the branch name).
-                     */
-                    let deployer = lodashGet(response, 'data.merged_by.login', '');
-                    const issueTitle = lodashGet(response, 'data.title', '');
-                    const CPActorMatches = data.message
-                        .match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
-                    if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
-                        deployer = CPActorMatches[1];
-                    }
+                        // Then, for each PR, find out who merged it and determine the deployer
+                        .then(() =>
+                            GithubUtils.octokit.pulls.get({
+                                owner: GithubUtils.GITHUB_OWNER,
+                                repo: GithubUtils.APP_REPO,
+                                pull_number: PR,
+                            }),
+                        )
+                        .then((response) => {
+                            /*
+                             * The deployer for staging deploys is:
+                             *   1. For regular staging deploys, the person who merged the PR.
+                             *   2. For automatic CPs (using the label), the person who merged the PR.
+                             *   3. For manual CPs (using the GH UI), the person who triggered the workflow
+                             *      (reflected in the branch name).
+                             */
+                            let deployer = lodashGet(response, 'data.merged_by.login', '');
+                            const issueTitle = lodashGet(response, 'data.title', '');
+                            const CPActorMatches = data.message.match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
+                            if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
+                                deployer = CPActorMatches[1];
+                            }
 
-                    // Finally, comment on the PR
-                    const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', issueTitle);
-                    return commentPR(PR, deployMessage);
-                }),
-            Promise.resolve());
+                            // Finally, comment on the PR
+                            const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', issueTitle);
+                            return commentPR(PR, deployMessage);
+                        }),
+                Promise.resolve(),
+            );
         });
 };
 

@@ -75,12 +75,7 @@ const ConfirmContent = (props) => {
                 <Header title={props.title} />
             </View>
 
-            {_.isString(props.prompt)
-                ? (
-                    <Text>
-                        {props.prompt}
-                    </Text>
-                ) : props.prompt}
+            {_.isString(props.prompt) ? <Text>{props.prompt}</Text> : props.prompt}
 
             <Button
                 success={props.success}

@@ -106,7 +106,10 @@ class WorkspacePageWithSections extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
@@ -120,20 +123,16 @@ class WorkspacePageWithSections extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
-                    {this.props.shouldUseScrollView
-                        ? (
-                            <ScrollViewWithContext
-                                keyboardShouldPersistTaps="handled"
-                                style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                            >
-                                <View style={[styles.w100, styles.flex1]}>
-
-                                    {this.props.children(hasVBA, policyID, isUsingECard)}
-
-                                </View>
-                            </ScrollViewWithContext>
-                        )
-                        : this.props.children(hasVBA, policyID, isUsingECard)}
+                    {this.props.shouldUseScrollView ? (
+                        <ScrollViewWithContext
+                            keyboardShouldPersistTaps="handled"
+                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                        >
+                            <View style={[styles.w100, styles.flex1]}>{this.props.children(hasVBA, policyID, isUsingECard)}</View>
+                        </ScrollViewWithContext>
+                    ) : (
+                        this.props.children(hasVBA, policyID, isUsingECard)
+                    )}
                     {this.props.footer}
                 </FullPageNotFoundView>
             </ScreenWrapper>

@@ -5,10 +5,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {
-    propTypes as validateLinkPropTypes,
-    defaultProps as validateLinkDefaultProps,
-} from './ValidateLoginPage/validateLinkPropTypes';
+import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './ValidateLoginPage/validateLinkPropTypes';
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
@@ -101,8 +98,8 @@ class SetPasswordPage extends Component {
                         <View style={[styles.mb4]}>
                             <NewPasswordForm
                                 password={this.state.password}
-                                updatePassword={password => this.setState({password})}
-                                updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
+                                updatePassword={(password) => this.setState({password})}
+                                updateIsFormValid={(isValid) => this.setState({isFormValid: isValid})}
                             />
                         </View>
                         <View>

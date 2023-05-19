@@ -9,4 +9,5 @@ export default {
     cursorGrabbing: {},
     cursorZoomOut: {},
     cursorInitial: {},
+    cursorText: {},
 };

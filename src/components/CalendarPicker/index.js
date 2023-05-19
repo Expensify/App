@@ -56,7 +56,7 @@ class CalendarPicker extends React.PureComponent {
         }
 
         // If the selectedYear prop has changed, update the currentDateView state with the new year value
-        this.setState(prev => ({currentDateView: moment(prev.currentDateView).set('year', this.props.selectedYear).toDate()}));
+        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).set('year', this.props.selectedYear).toDate()}));
     }
 
     /**
@@ -82,16 +82,16 @@ class CalendarPicker extends React.PureComponent {
     }
 
     moveToPrevMonth() {
-        this.setState(prev => ({currentDateView: moment(prev.currentDateView).subtract(1, 'M').toDate()}));
+        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).subtract(1, 'M').toDate()}));
     }
 
     moveToNextMonth() {
-        this.setState(prev => ({currentDateView: moment(prev.currentDateView).add(1, 'M').toDate()}));
+        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).add(1, 'M').toDate()}));
     }
 
     render() {
         const monthNames = _.map(moment.localeData(this.props.preferredLocale).months(), Str.recapitalize);
-        const daysOfWeek = _.map(moment.localeData(this.props.preferredLocale).weekdays(), day => day.toUpperCase());
+        const daysOfWeek = _.map(moment.localeData(this.props.preferredLocale).weekdays(), (day) => day.toUpperCase());
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
@@ -105,7 +105,13 @@ class CalendarPicker extends React.PureComponent {
                         onPress={this.onYearPickerPressed}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
                     >
-                        <Text style={styles.sidebarLinkTextBold} testID="currentYearText" accessibilityLabel={this.props.translate('common.currentYear')}>{currentYearView}</Text>
+                        <Text
+                            style={styles.sidebarLinkTextBold}
+                            testID="currentYearText"
+                            accessibilityLabel={this.props.translate('common.currentYear')}
+                        >
+                            {currentYearView}
+                        </Text>
                         <ArrowIcon />
                     </TouchableOpacity>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
@@ -116,23 +122,40 @@ class CalendarPicker extends React.PureComponent {
                         >
                             {monthNames[currentMonthView]}
                         </Text>
-                        <TouchableOpacity testID="prev-month-arrow" disabled={!hasAvailableDatesPrevMonth} onPress={this.moveToPrevMonth}>
-                            <ArrowIcon disabled={!hasAvailableDatesPrevMonth} direction={CONST.DIRECTION.LEFT} />
+                        <TouchableOpacity
+                            testID="prev-month-arrow"
+                            disabled={!hasAvailableDatesPrevMonth}
+                            onPress={this.moveToPrevMonth}
+                        >
+                            <ArrowIcon
+                                disabled={!hasAvailableDatesPrevMonth}
+                                direction={CONST.DIRECTION.LEFT}
+                            />
                         </TouchableOpacity>
-                        <TouchableOpacity testID="next-month-arrow" disabled={!hasAvailableDatesNextMonth} onPress={this.moveToNextMonth}>
+                        <TouchableOpacity
+                            testID="next-month-arrow"
+                            disabled={!hasAvailableDatesNextMonth}
+                            onPress={this.moveToNextMonth}
+                        >
                             <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                         </TouchableOpacity>
                     </View>
                 </View>
                 <View style={styles.flexRow}>
-                    {_.map(daysOfWeek, (dayOfWeek => (
-                        <View key={dayOfWeek} style={[styles.calendarDayRoot, styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    {_.map(daysOfWeek, (dayOfWeek) => (
+                        <View
+                            key={dayOfWeek}
+                            style={[styles.calendarDayRoot, styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
+                        >
                             <Text style={styles.sidebarLinkTextBold}>{dayOfWeek[0]}</Text>
                         </View>
-                    )))}
+                    ))}
                 </View>
-                {_.map(calendarDaysMatrix, week => (
-                    <View key={`week-${week}`} style={styles.flexRow}>
+                {_.map(calendarDaysMatrix, (week) => (
+                    <View
+                        key={`week-${week}`}
+                        style={styles.flexRow}
+                    >
                         {_.map(week, (day, index) => {
                             const currentDate = moment([currentYearView, currentMonthView, day]);
                             const isBeforeMinDate = currentDate < moment(this.props.minDate).startOf('day');

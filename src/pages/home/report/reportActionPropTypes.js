@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 export default {

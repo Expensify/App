@@ -25,7 +25,7 @@ const MenuItemList = (props) => {
      */
     const secondaryInteraction = (link, e) => {
         if (typeof link === 'function') {
-            link().then(url => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, url, popoverAnchor));
+            link().then((url) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, url, popoverAnchor));
         } else if (!_.isEmpty(link)) {
             ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, link, popoverAnchor);
         }
@@ -33,11 +33,11 @@ const MenuItemList = (props) => {
 
     return (
         <>
-            {_.map(props.menuItems, menuItemProps => (
+            {_.map(props.menuItems, (menuItemProps) => (
                 <MenuItem
                     key={menuItemProps.title}
-                    onSecondaryInteraction={!_.isUndefined(menuItemProps.link) ? e => secondaryInteraction(menuItemProps.link, e) : undefined}
-                    ref={el => popoverAnchor = el}
+                    onSecondaryInteraction={!_.isUndefined(menuItemProps.link) ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                    ref={(el) => (popoverAnchor = el)}
                     shouldBlockSelection={Boolean(menuItemProps.link)}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}

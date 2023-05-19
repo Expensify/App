@@ -17,10 +17,8 @@ export default forwardRef((props, ref) => (
     <BasePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-
         // Forward the ref to Picker, as we implement imperative methods there
         ref={ref}
-
         // On the Web, focusing the inner picker improves the accessibility,
         // but doesn't open the picker (which we don't want), like it does on
         // Native.

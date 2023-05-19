@@ -37,8 +37,7 @@ export default function () {
 
                 Log.info(`[Migrate Onyx] Adding lastVisibleActionCreated field to ${_.keys(reportsToUpdate).length} reports`);
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate)
-                    .then(resolve);
+                return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate).then(resolve);
             },
         });
     });

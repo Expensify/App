@@ -17,7 +17,8 @@
 
         <div class="cards-group">
             {% for article in section.articles %}
-                {% include article-card.html hub=hub.href href=article.href title=article.title %}
+                {% assign article_href = section.href | append: '/' | append: article.href %}
+                {% include article-card.html hub=hub.href href=article_href title=article.title %}
             {% endfor %}
         </div>
     </section>

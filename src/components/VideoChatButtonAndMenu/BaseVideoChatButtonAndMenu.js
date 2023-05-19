@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {
-    View, Pressable, Dimensions, Linking,
-} from 'react-native';
+import {View, Pressable, Dimensions, Linking} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -106,21 +104,23 @@ class BaseVideoChatButtonAndMenu extends Component {
             return;
         }
 
-        this.videoChatIconWrapper.measureInWindow((x, y) => this.setState({
-            videoChatIconPosition: {x, y},
-        }));
+        this.videoChatIconWrapper.measureInWindow((x, y) =>
+            this.setState({
+                videoChatIconPosition: {x, y},
+            }),
+        );
     }
 
     render() {
         return (
             <>
                 <View
-                    ref={el => this.videoChatIconWrapper = el}
+                    ref={(el) => (this.videoChatIconWrapper = el)}
                     onLayout={this.measureVideoChatIconPosition}
                 >
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
-                            ref={el => this.videoChatButton = el}
+                            ref={(el) => (this.videoChatButton = el)}
                             onPress={() => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
@@ -173,7 +173,4 @@ BaseVideoChatButtonAndMenu.propTypes = propTypes;
 BaseVideoChatButtonAndMenu.defaultProps = defaultProps;
 BaseVideoChatButtonAndMenu.contextType = ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(BaseVideoChatButtonAndMenu);
+export default compose(withWindowDimensions, withLocalize)(BaseVideoChatButtonAndMenu);
