@@ -75,7 +75,7 @@ function CodesPage(props) {
                     <View style={styles.mv3}>
                         <Text>{props.translate('twoFactorAuth.codesLoseAccess')}</Text>
                     </View>
-                    <View style={[styles.twoFactorAuthCodesBox, {paddingHorizontal: props.isSmallScreenWidth ? 40 : 60}]}>
+                    <View style={[styles.twoFactorAuthCodesBox, {paddingHorizontal: props.isSmallScreenWidth ? styles.ph40 : styles.ph60}]}>
                         {props.account.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
                                 <ActivityIndicator color={themeColors.spinner} />
