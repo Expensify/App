@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
+import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -29,10 +30,10 @@ const WriteCapabilityPage = (props) => {
         keyForList: key,
 
         // Include the green checkmark icon to indicate the currently selected value
-        customIcon: key === props.report.writeCapability ? greenCheckmark : null,
+        customIcon: key === (props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL) ? greenCheckmark : null,
 
         // This property will make the currently selected value have bold text
-        boldStyle: key === props.report.writeCapability,
+        boldStyle: key === (props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL),
     }));
 
     return (
