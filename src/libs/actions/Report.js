@@ -906,7 +906,7 @@ const extractLinksInMarkdownComment = (comment) => {
     const matches = [...comment.matchAll(regex)];
 
     // Element 1 from match is the regex group if it exists which contains the link URLs
-    const links = _.map(matches, (match) => match[1]);
+    const links = _.map(matches, (match) => Str.sanitizeURL(match[1]));
     return links;
 };
 
@@ -1419,6 +1419,7 @@ function showReportActionNotification(reportID, action) {
 
     Log.info('[LocalNotification] Creating notification');
     LocalNotification.showCommentNotification({
+        report: allReports[reportID],
         reportAction: action,
         onClick: () => {
             // Navigate to this report onClick

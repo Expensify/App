@@ -193,11 +193,10 @@ class ReportActionItem extends Component {
             originalMessage &&
             (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
                 originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
-                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
+                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails')))
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
-
             children = (
                 <MoneyRequestAction
                     chatReportID={this.props.report.reportID}
@@ -384,6 +383,15 @@ class ReportActionItem extends Component {
                     {(hovered) => (
                         <View accessibilityLabel={this.props.translate('accessibilityHints.chatMessage')}>
                             {this.props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={this.props.action.reportActionID} />}
+                            <MiniReportActionContextMenu
+                                reportID={this.props.report.reportID}
+                                reportAction={this.props.action}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
+                                displayAsGroup={this.props.displayAsGroup}
+                                isVisible={hovered && !this.props.draftMessage && !hasErrors}
+                                draftMessage={this.props.draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
+                            />
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered || isWhisper || this.state.isContextMenuActive || this.props.draftMessage,
@@ -422,16 +430,6 @@ class ReportActionItem extends Component {
                                     {this.renderReportActionItem(hovered, isWhisper)}
                                 </OfflineWithFeedback>
                             </View>
-                            <MiniReportActionContextMenu
-                                reportID={this.props.report.reportID}
-                                reportAction={this.props.action}
-                                isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
-                                displayAsGroup={this.props.displayAsGroup}
-                                isVisible={hovered && !this.props.draftMessage && !hasErrors}
-                                draftMessage={this.props.draftMessage}
-                                isChronosReport={ReportUtils.chatIncludesChronos(this.props.report)}
-                                childReportActionID={this.props.action.childReportActionID}
-                            />
                         </View>
                     )}
                 </Hoverable>
