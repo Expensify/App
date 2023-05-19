@@ -62,7 +62,6 @@ class IOUCurrencySelection extends Component {
         this.state = {
             searchValue: '',
             currencyData: this.getCurrencyOptions(this.props.currencyList),
-            selectedCurrencyCode: lodashGet(props.route, 'params.currency', props.iou.selectedCurrencyCode),
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.getSections = this.getSections.bind(this);
@@ -90,12 +89,16 @@ class IOUCurrencySelection extends Component {
         return sections;
     }
 
+    getSelectedCurrencyCode() {
+        return lodashGet(this.props.route, 'params.currency', this.props.iou.selectedCurrencyCode);
+    }
+
     /**
      * @returns {Object}
      */
     getCurrencyOptions() {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
-            const isSelectedCurrency = currencyCode === this.state.selectedCurrencyCode;
+            const isSelectedCurrency = currencyCode === this.getSelectedCurrencyCode();
             return {
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
@@ -159,7 +162,7 @@ class IOUCurrencySelection extends Component {
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             initiallyFocusedOptionKey={_.get(
-                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.state.selectedCurrencyCode),
+                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.getSelectedCurrencyCode()),
                                 'keyForList',
                             )}
                             shouldHaveOptionSeparator
