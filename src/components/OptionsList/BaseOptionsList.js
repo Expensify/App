@@ -8,6 +8,7 @@ import OptionRow from '../OptionRow';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
+import OptionsListSkeletonView from '../OptionsListSkeletonView';
 
 const propTypes = {
     /** Determines whether the keyboard gets dismissed in response to a drag */
@@ -49,7 +50,7 @@ class BaseOptionsList extends Component {
             nextProps.focusedIndex !== this.props.focusedIndex ||
             nextProps.selectedOptions.length !== this.props.selectedOptions.length ||
             nextProps.headerMessage !== this.props.headerMessage ||
-            !_.isEqual(nextProps.sections, this.props.sections) ||
+            nextProps.isLoading !== this.props.isLoading ||
             !_.isEqual(nextProps.sections, this.props.sections)
         );
     }
@@ -206,33 +207,39 @@ class BaseOptionsList extends Component {
     render() {
         return (
             <View style={this.props.listContainerStyles}>
-                {this.props.headerMessage ? (
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.headerMessage}</Text>
-                    </View>
-                ) : null}
-                <SectionList
-                    ref={this.props.innerRef}
-                    indicatorStyle="white"
-                    keyboardShouldPersistTaps="always"
-                    keyboardDismissMode={this.props.keyboardDismissMode}
-                    onScrollBeginDrag={this.props.onScrollBeginDrag}
-                    onScroll={this.props.onScroll}
-                    contentContainerStyle={this.props.contentContainerStyles}
-                    showsVerticalScrollIndicator={false}
-                    sections={this.props.sections}
-                    keyExtractor={this.extractKey}
-                    stickySectionHeadersEnabled={false}
-                    renderItem={this.renderItem}
-                    getItemLayout={this.getItemLayout}
-                    renderSectionHeader={this.renderSectionHeader}
-                    extraData={this.props.focusedIndex}
-                    initialNumToRender={12}
-                    maxToRenderPerBatch={5}
-                    windowSize={5}
-                    viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                    onViewableItemsChanged={this.onViewableItemsChanged}
-                />
+                {this.props.isLoading ? (
+                    <OptionsListSkeletonView />
+                ) : (
+                    <>
+                        {this.props.headerMessage ? (
+                            <View style={[styles.ph5, styles.pb5]}>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.headerMessage}</Text>
+                            </View>
+                        ) : null}
+                        <SectionList
+                            ref={this.props.innerRef}
+                            indicatorStyle="white"
+                            keyboardShouldPersistTaps="always"
+                            keyboardDismissMode={this.props.keyboardDismissMode}
+                            onScrollBeginDrag={this.props.onScrollBeginDrag}
+                            onScroll={this.props.onScroll}
+                            contentContainerStyle={this.props.contentContainerStyles}
+                            showsVerticalScrollIndicator={false}
+                            sections={this.props.sections}
+                            keyExtractor={this.extractKey}
+                            stickySectionHeadersEnabled={false}
+                            renderItem={this.renderItem}
+                            getItemLayout={this.getItemLayout}
+                            renderSectionHeader={this.renderSectionHeader}
+                            extraData={this.props.focusedIndex}
+                            initialNumToRender={12}
+                            maxToRenderPerBatch={5}
+                            windowSize={5}
+                            viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                            onViewableItemsChanged={this.onViewableItemsChanged}
+                        />
+                    </>
+                )}
             </View>
         );
     }

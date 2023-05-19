@@ -17,6 +17,7 @@ import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
 import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
+import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 
@@ -47,6 +48,17 @@ Onyx.connect({
         }
     },
 });
+
+/**
+ * @private
+ * @returns {string}
+ */
+function getDeviceInfoForLogin() {
+    return JSON.stringify({
+        ...Device.getDeviceInfo(),
+        parentLogin: credentials.login,
+    });
+}
 
 /**
  * Clears the Onyx store and redirects user to the sign in page
@@ -335,6 +347,13 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CREDENTIALS,
+            value: {
+                validateCode,
+            },
+        },
     ];
 
     const failureData = [
@@ -347,11 +366,16 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
         },
     ];
 
-    const params = {twoFactorAuthCode, email: credentials.login, preferredLocale};
+    const params = {
+        twoFactorAuthCode,
+        email: credentials.login,
+        preferredLocale,
+        deviceInfo: getDeviceInfoForLogin(),
+    };
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
-    if (validateCode) {
-        params.validateCode = validateCode;
+    if (validateCode || twoFactorAuthCode) {
+        params.validateCode = validateCode || credentials.validateCode;
     } else {
         params.password = password;
     }
@@ -420,6 +444,7 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
             accountID,
             validateCode,
             twoFactorAuthCode,
+            deviceInfo: getDeviceInfoForLogin(),
         },
         {optimisticData, successData, failureData},
     );
@@ -747,7 +772,91 @@ function unlinkLogin(accountID, validateCode) {
         },
     ];
 
-    API.write('UnlinkLogin', {accountID, validateCode}, {optimisticData, successData, failureData});
+    API.write(
+        'UnlinkLogin',
+        {
+            accountID,
+            validateCode,
+        },
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
+}
+
+/**
+ * Toggles two-factor authentication based on the `enable` parameter
+ *
+ * @param {Boolean} enable
+ */
+function toggleTwoFactorAuth(enable) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write(enable ? 'EnableTwoFactorAuth' : 'DisableTwoFactorAuth', {}, {optimisticData, successData, failureData});
+}
+
+function validateTwoFactorAuth(twoFactorAuthCode) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write('TwoFactorAuth_Validate', {twoFactorAuthCode}, {optimisticData, successData, failureData});
 }
 
 export {
@@ -774,4 +883,6 @@ export {
     reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
+    toggleTwoFactorAuth,
+    validateTwoFactorAuth,
 };
