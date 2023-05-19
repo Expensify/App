@@ -153,10 +153,9 @@ class MoneyRequestConfirmationList extends Component {
                 },
             );
         } else {
-            const formattedParticipants = this.props.participants;
             sections.push({
                 title: this.props.translate('common.to'),
-                data: formattedParticipants,
+                data: this.props.participants,
                 shouldShow: true,
                 indexOffset: 0,
             });
