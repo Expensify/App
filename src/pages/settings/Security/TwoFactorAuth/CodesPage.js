@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import ROUTES from '../../../../ROUTES';
@@ -14,6 +15,7 @@ import * as Illustrations from '../../../../components/Icon/Illustrations';
 import styles from '../../../../styles/styles';
 import FixedFooter from '../../../../components/FixedFooter';
 import Button from '../../../../components/Button';
+import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
 import Text from '../../../../components/Text';
 import Section from '../../../../components/Section';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -92,23 +94,27 @@ function CodesPage(props) {
                                         ))}
                                 </View>
                                 <View style={styles.twoFactorAuthCodesButtonsContainer}>
-                                    <Button
+                                    <PressableWithDelayToggle
                                         text={props.translate('twoFactorAuth.copyCodes')}
-                                        medium
+                                        icon={Expensicons.Copy}
+                                        inline={false}
                                         onPress={() => {
                                             Clipboard.setString(props.account.recoveryCodes);
                                             setIsNextButtonDisabled(false);
                                         }}
-                                        style={styles.twoFactorAuthCodesButton}
+                                        styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                        textStyles={[styles.buttonMediumText]}
                                     />
-                                    <Button
-                                        text="Download"
-                                        medium
+                                    <PressableWithDelayToggle
+                                        text={props.translate('common.download')}
+                                        icon={Expensicons.Download}
                                         onPress={() => {
                                             localFileDownload('two-factor-auth-codes', props.account.recoveryCodes);
                                             setIsNextButtonDisabled(false);
                                         }}
-                                        style={styles.twoFactorAuthCodesButton}
+                                        inline={false}
+                                        styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                        textStyles={[styles.buttonMediumText]}
                                     />
                                 </View>
                             </>
