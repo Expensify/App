@@ -121,9 +121,7 @@ function MagicCodeInput(props) {
         props.onFulfill(props.value);
     };
 
-    useOnNetworkReconnect(() => {
-        validateAndSubmit();
-    });
+    useOnNetworkReconnect(validateAndSubmit);
 
     useEffect(() => {
         validateAndSubmit();
