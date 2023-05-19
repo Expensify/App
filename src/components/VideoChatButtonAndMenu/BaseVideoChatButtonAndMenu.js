@@ -88,9 +88,7 @@ class BaseVideoChatButtonAndMenu extends Component {
      */
     setMenuVisibility(isVideoChatMenuActive) {
         this.context.transitionActionSheetState({
-            type: isVideoChatMenuActive
-                ? ActionSheetAwareScrollView.Actions.OPEN_CALL_POPOVER
-                : ActionSheetAwareScrollView.Actions.CLOSE_CALL_POPOVER,
+            type: isVideoChatMenuActive ? ActionSheetAwareScrollView.Actions.OPEN_CALL_POPOVER : ActionSheetAwareScrollView.Actions.CLOSE_CALL_POPOVER,
         });
 
         this.setState({isVideoChatMenuActive});

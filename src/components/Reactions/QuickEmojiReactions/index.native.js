@@ -31,15 +31,11 @@ const QuickEmojiReactions = (props) => {
             // gets closed, before the picker actually opens, we pass the composer
             // ref as anchor for the emoji picker popover.
 
-            openPicker(
-                ReportActionComposeFocusManager.composerRef.current,
-                undefined,
-                () => {
-                    actionSheetContext.transitionActionSheetState({
-                        type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
-                    });
-                },
-            );
+            openPicker(ReportActionComposeFocusManager.composerRef.current, undefined, () => {
+                actionSheetContext.transitionActionSheetState({
+                    type: ActionSheetAwareScrollView.Actions.CLOSE_EMOJI_PICKER_POPOVER,
+                });
+            });
         });
     };
 
@@ -53,7 +49,11 @@ const QuickEmojiReactions = (props) => {
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <BaseQuickEmojiReactions {...props} onEmojiSelected={onEmojiSelected} onPressOpenPicker={onPressOpenPicker} />
+        <BaseQuickEmojiReactions
+            {...props}
+            onEmojiSelected={onEmojiSelected}
+            onPressOpenPicker={onPressOpenPicker}
+        />
     );
 };
 

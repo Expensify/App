@@ -70,7 +70,10 @@ const ConfirmContent = (props) => {
     };
 
     return (
-        <View onLayout={onLayout} style={[styles.m5, ...props.contentStyles]}>
+        <View
+            onLayout={onLayout}
+            style={[styles.m5, ...props.contentStyles]}
+        >
             <View style={[styles.flexRow, styles.mb4]}>
                 <Header title={props.title} />
             </View>
@@ -86,11 +89,11 @@ const ConfirmContent = (props) => {
                 text={props.confirmText || props.translate('common.yes')}
             />
             {props.shouldShowCancelButton && (
-            <Button
-                style={[styles.mt3, styles.noSelect]}
-                onPress={props.onCancel}
-                text={props.cancelText || props.translate('common.no')}
-            />
+                <Button
+                    style={[styles.mt3, styles.noSelect]}
+                    onPress={props.onCancel}
+                    text={props.cancelText || props.translate('common.no')}
+                />
             )}
         </View>
     );

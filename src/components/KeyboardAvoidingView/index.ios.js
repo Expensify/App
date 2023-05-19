@@ -2,10 +2,7 @@
  * The KeyboardAvoidingView is only used on ios
  */
 import React, {useState} from 'react';
-import {
-    StyleSheet,
-    KeyboardAvoidingView as RNKeyboardAvoidingView,
-} from 'react-native';
+import {StyleSheet, KeyboardAvoidingView as RNKeyboardAvoidingView} from 'react-native';
 import Reanimated, {KeyboardState, useAnimatedKeyboard, useAnimatedStyle} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
@@ -55,15 +52,10 @@ const KeyboardAvoidingView = (props) => {
             };
         }
 
-        return {
-        };
+        return {};
     });
 
-    return (
-        <Reanimated.View style={[StyleSheet.flatten(props.style), animatedStyle]}>
-            {props.children}
-        </Reanimated.View>
-    );
+    return <Reanimated.View style={[StyleSheet.flatten(props.style), animatedStyle]}>{props.children}</Reanimated.View>;
 };
 
 KeyboardAvoidingView.propTypes = RNKeyboardAvoidingView.propTypes;

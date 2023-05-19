@@ -442,7 +442,6 @@ class ReportActionCompose extends React.Component {
                 popoverHeight: nativeEvent.layout.height,
             },
         });
-
     }
 
     /**

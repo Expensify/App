@@ -1,6 +1,4 @@
-import React, {
-    createContext, useMemo,
-} from 'react';
+import React, {createContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import useWorkletStateMachine from '../../hooks/useWorkletStateMachine';
 
@@ -122,9 +120,7 @@ const STATE_MACHINE = {
 };
 
 function ActionSheetAwareScrollViewProvider(props) {
-    const {
-        currentState, transition, transitionWorklet, reset,
-    } = useWorkletStateMachine(STATE_MACHINE, {
+    const {currentState, transition, transitionWorklet, reset} = useWorkletStateMachine(STATE_MACHINE, {
         previous: null,
         current: {
             state: 'idle',
@@ -132,29 +128,21 @@ function ActionSheetAwareScrollViewProvider(props) {
         },
     });
 
-    const value = useMemo(() => ({
-        currentActionSheetState: currentState,
-        transitionActionSheetState: transition,
-        transitionActionSheetStateWorklet: transitionWorklet,
-        resetStateMachine: reset,
-    }), []);
-
-    return (
-        <ActionSheetAwareScrollViewContext.Provider
-            value={value}
-        >
-            {props.children}
-        </ActionSheetAwareScrollViewContext.Provider>
+    const value = useMemo(
+        () => ({
+            currentActionSheetState: currentState,
+            transitionActionSheetState: transition,
+            transitionActionSheetStateWorklet: transitionWorklet,
+            resetStateMachine: reset,
+        }),
+        [],
     );
+
+    return <ActionSheetAwareScrollViewContext.Provider value={value}>{props.children}</ActionSheetAwareScrollViewContext.Provider>;
 }
 
 ActionSheetAwareScrollViewProvider.propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-export {
-    ActionSheetAwareScrollViewContext,
-    ActionSheetAwareScrollViewProvider,
-    Actions,
-    States,
-};
+export {ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions, States};

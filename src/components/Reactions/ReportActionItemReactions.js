@@ -124,7 +124,12 @@ const ReportActionItemReactions = (props) => {
                     </Tooltip>
                 );
             })}
-            {reactionsWithCount.length > 0 && <AddReactionBubble onPressOpenPicker={props.onPressOpenPicker} onSelectEmoji={props.toggleReaction} />}
+            {reactionsWithCount.length > 0 && (
+                <AddReactionBubble
+                    onPressOpenPicker={props.onPressOpenPicker}
+                    onSelectEmoji={props.toggleReaction}
+                />
+            )}
         </View>
     );
 };

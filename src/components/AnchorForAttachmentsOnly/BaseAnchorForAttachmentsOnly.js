@@ -56,9 +56,11 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                     }}
                     onPressIn={props.onPressIn}
                     onPressOut={props.onPressOut}
-                    onLongPress={(event) => onShowContextMenu(() => {
-                        showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))
-                    })}
+                    onLongPress={(event) =>
+                        onShowContextMenu(() => {
+                            showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report));
+                        })
+                    }
                 >
                     <AttachmentView
                         source={sourceURLWithAuth}

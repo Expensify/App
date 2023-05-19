@@ -3,20 +3,13 @@ import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import withDrawerState, {
-    withDrawerPropTypes,
-} from '../../../components/withDrawerState';
+import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import withWindowDimensions, {
-    windowDimensionsPropTypes,
-} from '../../../components/withWindowDimensions';
-import {
-    withNetwork,
-    withPersonalDetails,
-} from '../../../components/OnyxProvider';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';

@@ -1,7 +1,5 @@
 import {useCallback} from 'react';
-import {
-    runOnJS, runOnUI, useSharedValue, useWorkletCallback,
-} from 'react-native-reanimated';
+import {runOnJS, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Log from '../libs/Log';
 
 // When you need to debug state machine change this to true

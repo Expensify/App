@@ -1,13 +1,6 @@
-import React, {
-    useContext, useEffect, useState,
-} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {useWindowDimensions, Keyboard} from 'react-native';
-import Reanimated, {
-    useWorkletCallback,
-    KeyboardState,
-    useAnimatedKeyboard,
-    useAnimatedStyle, useDerivedValue, withSpring,
-} from 'react-native-reanimated';
+import Reanimated, {useWorkletCallback, KeyboardState, useAnimatedKeyboard, useAnimatedStyle, useDerivedValue, withSpring} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../styles/styles';
 import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
@@ -28,9 +21,7 @@ function ActionSheetKeyboardSpace(props) {
         keyboardValue: 0,
     });
     const {height: windowHeight} = useWindowDimensions();
-    const {
-        currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine,
-    } = useContext(ActionSheetAwareScrollViewContext);
+    const {currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
 
     useEffect(() => {
         // Sometimes it triggers multiple times the same action
@@ -79,14 +70,16 @@ function ActionSheetKeyboardSpace(props) {
     // return withSequence(withTiming(set, {
     //     duration: 0,
     // }), withSpring(animateTo, config));
-    const setAndTiming = useWorkletCallback((set, animateTo) => (!syncLocalWorkletState.shouldRunAnimation
-        ? (() => {
-            syncLocalWorkletState.shouldRunAnimation = true;
-            return set;
-        })()
-        : withSpring(animateTo, config, () => {
-            syncLocalWorkletState.shouldRunAnimation = false;
-        })));
+    const setAndTiming = useWorkletCallback((set, animateTo) =>
+        !syncLocalWorkletState.shouldRunAnimation
+            ? (() => {
+                  syncLocalWorkletState.shouldRunAnimation = true;
+                  return set;
+              })()
+            : withSpring(animateTo, config, () => {
+                  syncLocalWorkletState.shouldRunAnimation = false;
+              }),
+    );
 
     const translateY = useDerivedValue(() => {
         const {current, previous} = currentActionSheetState.value;
@@ -107,19 +100,15 @@ function ActionSheetKeyboardSpace(props) {
 
         const {popoverHeight, fy, height} = current.payload || {};
 
-        const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED
-            ? lastKeyboardValue
-            : 0;
+        const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardValue : 0;
 
-        const elementOffset = (fy + safeArea.top + height)
-      - (windowHeight - popoverHeight);
+        const elementOffset = fy + safeArea.top + height - (windowHeight - popoverHeight);
 
         // when the sate is not idle we know for sure we have previous state
         const previousPayload = previous.payload || {};
 
         // it will be NaN when we don't have proper payload
-        const previousElementOffset = (previousPayload.fy + safeArea.top + previousPayload.height)
-      - (windowHeight - previousPayload.popoverHeight);
+        const previousElementOffset = previousPayload.fy + safeArea.top + previousPayload.height - (windowHeight - previousPayload.popoverHeight);
 
         // Depending on the current and sometimes previous state we can return
         // either animation or just a value
@@ -159,8 +148,8 @@ function ActionSheetKeyboardSpace(props) {
 
             case States.DELETE_MODAL_WITH_KEYBOARD_OPEN:
             case States.EMOJI_PICKER_POPOVER_WITH_KEYBOARD_OPEN: {
-            // when item is higher than keyboard and bottom sheet
-            // we should just stay in place
+                // when item is higher than keyboard and bottom sheet
+                // we should just stay in place
                 if (elementOffset < 0) {
                     return invertedKeyboardHeight;
                 }
@@ -230,7 +219,12 @@ function ActionSheetKeyboardSpace(props) {
     }));
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <Reanimated.View style={[styles.flex1, animatedStyle]} {...props} />;
+    return (
+        <Reanimated.View
+            style={[styles.flex1, animatedStyle]}
+            {...props}
+        />
+    );
 }
 
 ActionSheetKeyboardSpace.displayName = 'ReportKeyboardSpace';

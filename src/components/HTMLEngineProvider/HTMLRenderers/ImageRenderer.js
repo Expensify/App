@@ -62,9 +62,11 @@ const ImageRenderer = (props) => {
                         <PressableWithoutFocus
                             styles={[styles.noOutline, styles.alignItemsStart]}
                             onPress={show}
-                            onLongPress={(event) => onShowContextMenu(() => {
-                                showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))
-                            })}
+                            onLongPress={(event) =>
+                                onShowContextMenu(() => {
+                                    showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report));
+                                })
+                            }
                         >
                             <ThumbnailImage
                                 previewSourceURL={previewSource}

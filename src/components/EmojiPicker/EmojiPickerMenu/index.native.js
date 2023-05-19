@@ -152,7 +152,10 @@ class EmojiPickerMenu extends Component {
 
     render() {
         return (
-            <View onLayout={this.onLayout} style={styles.emojiPickerContainer}>
+            <View
+                onLayout={this.onLayout}
+                style={styles.emojiPickerContainer}
+            >
                 <View>
                     <CategoryShortcutBar
                         headerEmojis={this.headerEmojis}
