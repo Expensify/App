@@ -32,10 +32,10 @@ function calculateAmount(numberOfParticipants, total, isDefaultUser = false) {
  * @param {String} actorEmail
  * @param {Number} amount
  * @param {String} currency
- * @param {String} type
+ * @param {String} isDeleting - whether the user is deleting the request
  * @returns {Object}
  */
-function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, isDeleting = false) {
     if (currency !== iouReport.currency) {
         return iouReport;
     }
@@ -44,9 +44,9 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
     const iouReportUpdate = {...iouReport};
 
     if (actorEmail === iouReport.ownerEmail) {
-        iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? -amount : amount;
+        iouReportUpdate.total += isDeleting === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? -amount : amount;
     } else {
-        iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? amount : -amount;
+        iouReportUpdate.total += isDeleting === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? amount : -amount;
     }
 
     if (iouReportUpdate.total < 0) {
