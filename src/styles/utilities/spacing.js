@@ -330,16 +330,12 @@ export default {
         paddingHorizontal: 40,
     },
 
+    ph15: {
+        paddingHorizontal: 60,
+    },
+
     ph25: {
         paddingHorizontal: 100,
-    },
-
-    ph40: {
-        paddingHorizontal: 40,
-    },
-
-    ph60: {
-        paddingHorizontal: 60,
     },
 
     pr0: {
