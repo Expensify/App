@@ -27,7 +27,7 @@ async function beginAppleSignIn() {
     if (credentialState === appleAuth.State.AUTHORIZED) {
         // user is authenticated
         console.log('making API request');
-        const result = await API.makeRequestWithSideEffects('AuthenticateApple', {idToken}, ...ONYX_DATA);
+        const result = await API.makeRequestWithSideEffects('SignInWithApple', {idToken}, ...ONYX_DATA);
         console.log('RESULT: ', result);
     } else {
         throw new Error('sign in failed');
