@@ -126,9 +126,12 @@ function useWorkletStateMachine(stateMachine, initialState) {
         runOnUI(resetWorklet)();
     }, [resetWorklet]);
 
-    const transition = useCallback((action) => {
-        runOnUI(transitionWorklet)(action);
-    }, [transitionWorklet]);
+    const transition = useCallback(
+        (action) => {
+            runOnUI(transitionWorklet)(action);
+        },
+        [transitionWorklet],
+    );
 
     return {
         currentState,
