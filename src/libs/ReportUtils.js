@@ -212,15 +212,18 @@ function isSettled(reportID) {
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction, reportID) {
+    const isActionOwner = reportAction.actorEmail === sessionEmail;
+    if (isActionOwner && ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID)) {
+        return true;
+    }
     if (
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
         reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-        ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
-        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID))
+        ReportActionsUtils.isCreatedTaskReportAction(reportAction)
     ) {
         return false;
     }
-    if (reportAction.actorEmail === sessionEmail) {
+    if (isActionOwner) {
         return true;
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
