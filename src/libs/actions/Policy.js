@@ -214,7 +214,7 @@ function removeMembers(members, policyID) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
+            value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: 'workspace.people.error.genericRemove'}})),
         },
     ];
     API.write(
@@ -370,7 +370,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
                 logins,
                 Array(logins.length).fill({
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericAdd'),
+                        [DateUtils.getMicroseconds()]: 'workspace.people.error.genericAdd',
                     },
                 }),
             ),
@@ -482,7 +482,7 @@ function deleteWorkspaceAvatar(policyID) {
                 },
                 errorFields: {
                     avatar: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
+                        [DateUtils.getMicroseconds()]: 'avatarWithImagePicker.deleteWorkspaceError',
                     },
                 },
             },
@@ -554,7 +554,7 @@ function updateGeneralSettings(policyID, name, currency) {
                 },
                 errorFields: {
                     generalSettings: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
+                        [DateUtils.getMicroseconds()]: 'workspace.editor.genericFailureMessage',
                     },
                 },
             },
@@ -742,7 +742,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
                             [currentCustomUnitRate.customUnitRateID]: {
                                 ...currentCustomUnitRate,
                                 errors: {
-                                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
+                                    [DateUtils.getMicroseconds()]: 'workspace.reimburse.updateCustomUnitError',
                                 },
                             },
                         },

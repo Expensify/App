@@ -81,7 +81,7 @@ function getVBBADataForOnyx() {
                 value: {
                     isLoading: false,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                        [DateUtils.getMicroseconds()]: 'paymentsPage.addBankAccountFailure',
                     },
                 },
             },
@@ -160,7 +160,7 @@ function addPersonalBankAccount(account) {
                 value: {
                     isLoading: false,
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
+                        [DateUtils.getMicroseconds()]: 'paymentsPage.addBankAccountFailure',
                     },
                 },
             },

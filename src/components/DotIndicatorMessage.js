@@ -7,6 +7,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
 import Text from './Text';
+import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /**
@@ -64,7 +65,7 @@ const DotIndicatorMessage = (props) => {
                         key={i}
                         style={styles.offlineFeedback.text}
                     >
-                        {message}
+                        {Localize.translateError(message)}
                     </Text>
                 ))}
             </View>

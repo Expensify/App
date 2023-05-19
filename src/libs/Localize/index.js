@@ -92,6 +92,24 @@ function translateLocal(phrase, variables) {
 }
 
 /**
+ * Return translated message for phrase.
+ *
+ * @param {String} phrase
+ * @returns {String}
+ */
+function translateError(phrase) {
+    const desiredLanguage = BaseLocaleListener.getPreferredLocale();
+
+    const defaultLanguageDictionary = lodashGet(translations, desiredLanguage, {});
+    const translatedPhrase = lodashGet(defaultLanguageDictionary, phrase);
+    if (translatedPhrase) {
+        return Str.result(translatedPhrase, {});
+    }
+
+    return phrase;
+}
+
+/**
  * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
  *
  * @param {Array} anArray
@@ -114,4 +132,4 @@ function getDevicePreferredLocale() {
     return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
-export {translate, translateLocal, arrayToString, getDevicePreferredLocale};
+export {translate, translateLocal, translateError, arrayToString, getDevicePreferredLocale};

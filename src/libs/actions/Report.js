@@ -262,7 +262,7 @@ function addActions(reportID, text = '', file) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: _.mapObject(optimisticReportActions, (action) => ({
                 ...action,
-                errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')},
+                errors: {[DateUtils.getMicroseconds()]: 'report.genericAddCommentFailureMessage'},
             })),
         },
     ];

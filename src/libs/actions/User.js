@@ -166,7 +166,7 @@ function requestContactMethodValidateCode(contactMethod) {
                     validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                            [DateUtils.getMicroseconds()]: 'contacts.genericFailureMessages.requestContactMethodValidateCode',
                         },
                     },
                     pendingFields: {
@@ -267,7 +267,7 @@ function deleteContactMethod(contactMethod, loginList) {
                     ...oldLoginData,
                     errorFields: {
                         deletedLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.deleteContactMethod'),
+                            [DateUtils.getMicroseconds()]: 'contacts.genericFailureMessages.deleteContactMethod',
                         },
                     },
                     pendingFields: {
@@ -353,7 +353,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
                 [contactMethod]: {
                     errorFields: {
                         addedLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
+                            [DateUtils.getMicroseconds()]: 'contacts.genericFailureMessages.addContactMethod',
                         },
                     },
                     pendingFields: {
@@ -454,7 +454,7 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 [contactMethod]: {
                     errorFields: {
                         validateLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'),
+                            [DateUtils.getMicroseconds()]: 'contacts.genericFailureMessages.validateSecondaryLogin',
                         },
                     },
                     pendingFields: {
@@ -836,7 +836,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
                     },
                     errorFields: {
                         defaultLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.setDefaultContactMethod'),
+                            [DateUtils.getMicroseconds()]: 'contacts.genericFailureMessages.setDefaultContactMethod',
                         },
                     },
                 },

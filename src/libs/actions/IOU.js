@@ -187,7 +187,7 @@ function buildOnyxDataForMoneyRequest(
                     ? {
                           errorFields: {
                               createChat: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
+                                  [DateUtils.getMicroseconds()]: 'report.genericCreateReportFailureMessage',
                               },
                           },
                       }
@@ -202,7 +202,7 @@ function buildOnyxDataForMoneyRequest(
                       value: {
                           errorFields: {
                               createChat: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
+                                  [DateUtils.getMicroseconds()]: 'report.genericCreateReportFailureMessage',
                               },
                           },
                       },
@@ -214,7 +214,7 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    [DateUtils.getMicroseconds()]: 'iou.error.genericCreateFailureMessage',
                 },
             },
         },
@@ -226,7 +226,7 @@ function buildOnyxDataForMoneyRequest(
                     ? {
                           [chatCreatedAction.reportActionID]: {
                               errors: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                                  [DateUtils.getMicroseconds()]: 'iou.error.genericCreateFailureMessage',
                               },
                           },
                       }
@@ -244,14 +244,14 @@ function buildOnyxDataForMoneyRequest(
                     ? {
                           [iouCreatedAction.reportActionID]: {
                               errors: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                                  [DateUtils.getMicroseconds()]: 'iou.error.genericCreateFailureMessage',
                               },
                           },
                       }
                     : {
                           [iouAction.reportActionID]: {
                               errors: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                                  [DateUtils.getMicroseconds()]: 'iou.error.genericCreateFailureMessage',
                               },
                           },
                       }),
@@ -489,7 +489,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             value: {
                 [groupIOUReportAction.reportActionID]: {
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                        [DateUtils.getMicroseconds()]: 'iou.error.genericCreateFailureMessage',
                     },
                 },
             },
@@ -499,7 +499,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
             value: {
                 errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    [DateUtils.getMicroseconds()]: 'iou.error.genericCreateFailureMessage',
                 },
             },
         },
@@ -512,7 +512,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             value: {
                 errorFields: {
                     createChat: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
+                        [DateUtils.getMicroseconds()]: 'report.genericCreateReportFailureMessage',
                     },
                 },
             },
@@ -771,7 +771,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             value: {
                 [optimisticIOUAction.reportActionID]: {
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
+                        [DateUtils.getMicroseconds()]: 'iou.error.genericDeleteFailureMessage',
                     },
                 },
             },
@@ -940,7 +940,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
+                        [DateUtils.getMicroseconds()]: 'iou.error.other',
                     },
                 },
             },
@@ -950,7 +950,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {
                 errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
+                    [DateUtils.getMicroseconds()]: 'iou.error.other',
                 },
             },
         },
@@ -977,7 +977,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             value: {
                 errorFields: {
                     createChat: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
+                        [DateUtils.getMicroseconds()]: 'report.genericCreateReportFailureMessage',
                     },
                 },
             },
@@ -1102,7 +1102,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
+                        [DateUtils.getMicroseconds()]: 'iou.error.other',
                     },
                 },
             },
@@ -1112,7 +1112,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {
                 errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
+                    [DateUtils.getMicroseconds()]: 'iou.error.genericCreateFailureMessage',
                 },
             },
         },

@@ -246,7 +246,7 @@ function beginSignIn(login) {
             value: {
                 isLoading: false,
                 errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
+                    [DateUtils.getMicroseconds()]: 'loginForm.cannotGetAccountDetails',
                 },
             },
         },
