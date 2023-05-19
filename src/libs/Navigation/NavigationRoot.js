@@ -5,9 +5,7 @@ import {useFlipper} from '@react-navigation/devtools';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
 import Log from '../Log';
 
 // https://reactnavigation.org/docs/themes
@@ -52,7 +50,6 @@ const NavigationRoot = (props) => {
     useFlipper(navigationRef);
     return (
         <NavigationContainer
-            fallback={<FullScreenLoadingIndicator style={styles.navigatorFullScreenLoading} />}
             onStateChange={parseAndLogRoute}
             onReady={props.onReady}
             theme={navigationTheme}

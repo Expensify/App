@@ -8,9 +8,15 @@ import CONST from '../CONST';
 import Text from './Text';
 import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
+import useOnNetworkReconnect from './hooks/useOnNetworkReconnect';
 import * as Browser from '../libs/Browser';
 
 const propTypes = {
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     /** Name attribute for the input */
     name: PropTypes.string,
 
@@ -103,16 +109,22 @@ function MagicCodeInput(props) {
         },
     }));
 
-    useEffect(() => {
-        // Blurs the input and removes focus from the last input and, if it should submit
-        // on complete, it will call the onFulfill callback.
+    const validateAndSubmit = () => {
         const numbers = decomposeString(props.value);
-        if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== CONST.MAGIC_CODE_LENGTH) {
+        if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== CONST.MAGIC_CODE_LENGTH || props.network.isOffline) {
             return;
         }
+        // Blurs the input and removes focus from the last input and, if it should submit
+        // on complete, it will call the onFulfill callback.
         inputRefs.current[editIndex].blur();
         setFocusedIndex(undefined);
         props.onFulfill(props.value);
+    };
+
+    useOnNetworkReconnect(validateAndSubmit);
+
+    useEffect(() => {
+        validateAndSubmit();
 
         // We have not added the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -255,6 +267,10 @@ function MagicCodeInput(props) {
             setEditIndex(newFocusedIndex);
             inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'Enter') {
+            // We should prevent users from submitting when it's offline.
+            if (props.network.isOffline) {
+                return;
+            }
             setInput('');
             props.onFulfill(props.value);
         }
@@ -321,10 +337,12 @@ function MagicCodeInput(props) {
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
 
-export default forwardRef((props, ref) => (
-    <MagicCodeInput
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+export default withNetwork()(
+    forwardRef((props, ref) => (
+        <MagicCodeInput
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);
