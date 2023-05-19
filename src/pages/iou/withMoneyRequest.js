@@ -10,7 +10,7 @@ import ROUTES from '../../ROUTES';
 import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect';
 
 const MoneyRequestContext = createContext();
-const moneyRequestPropTypes = {
+const moneyRequestPropTypes = PropTypes.shape({
     // Money request amount
     amount: PropTypes.number.isRequired,
 
@@ -37,7 +37,7 @@ const moneyRequestPropTypes = {
 
     // Helper function to prevent user going further steps without completeing the previous steps
     redirectIfEmpty: PropTypes.func.isRequired,
-};
+});
 
 /**
  * Redirect to money request initial page if one of the data is empty
@@ -69,15 +69,17 @@ const MoneyRequestProvider = (props) => {
     useOnNetworkReconnect(PersonalDetails.openMoneyRequestModalPage);
 
     const value = {
-        amount,
-        currency,
-        participants,
-        comment,
-        setAmount,
-        setCurrency,
-        setParticipants,
-        setComment,
-        redirectIfEmpty,
+        moneyRequest: {
+            amount,
+            currency,
+            participants,
+            comment,
+            setAmount,
+            setCurrency,
+            setParticipants,
+            setComment,
+            redirectIfEmpty,
+        },
     };
 
     return <MoneyRequestContext.Provider value={value}>{props.children}</MoneyRequestContext.Provider>;

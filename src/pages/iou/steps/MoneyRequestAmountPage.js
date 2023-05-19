@@ -41,8 +41,9 @@ const propTypes = {
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
 
+    moneyRequest: moneyRequestPropTypes.isRequired,
+
     ...withLocalizePropTypes,
-    ...moneyRequestPropTypes,
 };
 
 const defaultProps = {
@@ -73,7 +74,7 @@ class MoneyRequestAmountPage extends React.Component {
         this.reportID = lodashGet(props.route, 'params.reportID', '');
         this.isEditing = lodashGet(props.route, 'path', '').includes('amount');
 
-        const selectedAmountAsString = props.amount ? CurrencyUtils.convertToWholeUnit(props.currency, props.amount).toString() : '';
+        const selectedAmountAsString = props.moneyRequest.amount ? CurrencyUtils.convertToWholeUnit(props.moneyRequest.currency, props.moneyRequest.amount).toString() : '';
         this.state = {
             amount: selectedAmountAsString,
             shouldUpdateSelection: true,
@@ -86,13 +87,13 @@ class MoneyRequestAmountPage extends React.Component {
 
     componentDidMount() {
         if (this.isEditing) {
-            this.props.redirectIfEmpty([this.props.participants, this.props.amount], this.iouType, this.reportID);
+            this.props.moneyRequest.redirectIfEmpty([this.props.moneyRequest.participants, this.props.moneyRequest.amount], this.iouType, this.reportID);
         } else {
             // Set the money request participants based on the report participants
             const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
                 ? OptionsListUtils.getPolicyExpenseReportOptions(this.props.report)
                 : OptionsListUtils.getParticipantsOptions(this.props.report, this.props.personalDetails);
-            this.props.setParticipants(_.map(participants, (participant) => ({...participant, selected: true})));
+            this.props.moneyRequest.setParticipants(_.map(participants, (participant) => ({...participant, selected: true})));
         }
 
         this.focusTextInput();
@@ -104,10 +105,10 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.amount === this.props.amount) {
+        if (prevProps.moneyRequest.amount === this.props.moneyRequest.amount) {
             return;
         }
-        const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.currency, this.props.amount).toString();
+        const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.moneyRequest.currency, this.props.moneyRequest.amount).toString();
         this.setState({
             amount: selectedAmountAsString,
             selection: {
@@ -383,7 +384,7 @@ class MoneyRequestAmountPage extends React.Component {
                                     placeholder={this.props.numberFormat(0)}
                                     preferredLocale={this.props.preferredLocale}
                                     ref={(el) => (this.textInput = el)}
-                                    selectedCurrencyCode={this.props.currency}
+                                    selectedCurrencyCode={this.props.moneyRequest.currency}
                                     selection={this.state.selection}
                                     onSelectionChange={(e) => {
                                         if (!this.state.shouldUpdateSelection) {
@@ -412,8 +413,8 @@ class MoneyRequestAmountPage extends React.Component {
                                     success
                                     style={[styles.w100, styles.mt5]}
                                     onPress={() => {
-                                        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(this.props.currency, Number.parseFloat(this.state.amount));
-                                        this.props.setAmount(amountInSmallestCurrencyUnits);
+                                        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(this.props.moneyRequest.currency, Number.parseFloat(this.state.amount));
+                                        this.props.moneyRequest.setAmount(amountInSmallestCurrencyUnits);
                                         this.navigateToNextPage();
                                     }}
                                     pressOnEnter

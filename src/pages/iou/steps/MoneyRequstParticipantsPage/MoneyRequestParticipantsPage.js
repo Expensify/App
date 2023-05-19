@@ -7,7 +7,7 @@ import MoneyRequestParticipantsSplitSelector from './MoneyRequestParticipantsSpl
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 import styles from '../../../../styles/styles';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withLocalize from '../../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
@@ -15,7 +15,9 @@ import withMoneyRequest, {moneyRequestPropTypes} from '../../withMoneyRequest';
 import ModalHeader from '../../ModalHeader';
 
 const propTypes = {
-    ...moneyRequestPropTypes,
+    moneyRequest: moneyRequestPropTypes.isRequired,
+
+    ...withLocalizePropTypes,
 };
 
 const MoneyRequestParticipantsPage = (props) => {
@@ -27,7 +29,7 @@ const MoneyRequestParticipantsPage = (props) => {
     };
 
     useEffect(() => {
-        props.redirectIfEmpty([props.amount], iouType.current, reportID.current);
+        props.moneyRequest.redirectIfEmpty([props.moneyRequest.amount], iouType.current, reportID.current);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -45,14 +47,14 @@ const MoneyRequestParticipantsPage = (props) => {
                     {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
                         <MoneyRequestParticipantsSplitSelector
                             onStepComplete={navigateToNextStep}
-                            participants={props.participants}
-                            onAddParticipants={props.setParticipants}
+                            participants={props.moneyRequest.participants}
+                            onAddParticipants={props.moneyRequest.setParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     ) : (
                         <MoneyRequestParticipantsSelector
                             onStepComplete={navigateToNextStep}
-                            onAddParticipants={props.setParticipants}
+                            onAddParticipants={props.moneyRequest.setParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             iouType={iouType.current}
                         />

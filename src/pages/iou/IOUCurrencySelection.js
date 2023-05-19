@@ -11,7 +11,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {withNetwork} from '../../components/OnyxProvider';
-import withMoneyRequest from './withMoneyRequest';
+import withMoneyRequest, {moneyRequestPropTypes} from './withMoneyRequest';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import themeColors from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -35,6 +35,8 @@ const propTypes = {
             ISO4217: PropTypes.string,
         }),
     ),
+
+    moneyRequest: moneyRequestPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -82,7 +84,7 @@ class IOUCurrencySelection extends Component {
      */
     getCurrencyOptions() {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
-            const isSelectedCurrency = currencyCode === this.props.currency;
+            const isSelectedCurrency = currencyCode === this.props.moneyRequest.currency;
             return {
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
@@ -116,7 +118,7 @@ class IOUCurrencySelection extends Component {
      * @param {String} option.currencyCode
      */
     confirmCurrencySelection(option) {
-        this.props.setCurrency(option.currencyCode);
+        this.props.moneyRequest.setCurrency(option.currencyCode);
         Navigation.goBack();
     }
 
@@ -139,7 +141,7 @@ class IOUCurrencySelection extends Component {
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             initiallyFocusedOptionKey={_.get(
-                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.props.currency),
+                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.props.moneyRequest.currency),
                                 'keyForList',
                             )}
                             shouldHaveOptionSeparator

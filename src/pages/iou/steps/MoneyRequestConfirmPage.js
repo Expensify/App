@@ -21,9 +21,9 @@ import withMoneyRequest, {moneyRequestPropTypes} from '../withMoneyRequest';
 const propTypes = {
     report: reportPropTypes,
 
-    ...withCurrentUserPersonalDetailsPropTypes,
+    moneyRequest: moneyRequestPropTypes.isRequired,
 
-    ...moneyRequestPropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -36,30 +36,30 @@ const MoneyRequestConfirmPage = (props) => {
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
     useEffect(() => {
-        props.redirectIfEmpty([props.participants, props.amount], iouType.current, reportID.current);
+        props.moneyRequest.redirectIfEmpty([props.moneyRequest.participants, props.moneyRequest.amount], iouType.current, reportID.current);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const createTransaction = useCallback(
         (selectedParticipants) => {
-            const trimmedComment = props.comment.trim();
+            const trimmedComment = props.moneyRequest.comment.trim();
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
-                IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, props.amount, trimmedComment, props.currency, reportID.current);
+                IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, props.moneyRequest.amount, trimmedComment, props.moneyRequest.currency, reportID.current);
                 return;
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
-                IOU.splitBillAndOpenReport(selectedParticipants, props.currentUserPersonalDetails.login, props.amount, trimmedComment, props.currency);
+                IOU.splitBillAndOpenReport(selectedParticipants, props.currentUserPersonalDetails.login, props.moneyRequest.amount, trimmedComment, props.moneyRequest.currency);
                 return;
             }
 
-            IOU.requestMoney(props.report, props.amount, props.currency, props.currentUserPersonalDetails.login, selectedParticipants[0], trimmedComment);
+            IOU.requestMoney(props.report, props.moneyRequest.amount, props.moneyRequest.currency, props.currentUserPersonalDetails.login, selectedParticipants[0], trimmedComment);
         },
-        [props.amount, props.comment, props.currentUserPersonalDetails.login, props.currency, props.report],
+        [props.moneyRequest.amount, props.moneyRequest.comment, props.currentUserPersonalDetails.login, props.moneyRequest.currency, props.report],
     );
 
     /**
@@ -69,25 +69,25 @@ const MoneyRequestConfirmPage = (props) => {
      */
     const sendMoney = useCallback(
         (paymentMethodType) => {
-            const currency = props.currency;
-            const trimmedComment = props.comment.trim();
-            const participant = props.participants[0];
+            const currency = props.moneyRequest.currency;
+            const trimmedComment = props.moneyRequest.comment.trim();
+            const participant = props.moneyRequest.participants[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                IOU.sendMoneyElsewhere(props.report, props.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyElsewhere(props.report, props.moneyRequest.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
                 return;
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                IOU.sendMoneyViaPaypal(props.report, props.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyViaPaypal(props.report, props.moneyRequest.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
                 return;
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                IOU.sendMoneyWithWallet(props.report, props.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyWithWallet(props.report, props.moneyRequest.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
             }
         },
-        [props.amount, props.comment, props.participants, props.currentUserPersonalDetails.login, props.currency, props.report],
+        [props.moneyRequest, props.currentUserPersonalDetails.login, props.report],
     );
 
     return (

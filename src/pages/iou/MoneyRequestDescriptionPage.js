@@ -13,8 +13,9 @@ import compose from '../../libs/compose';
 import withMoneyRequest, {moneyRequestPropTypes} from './withMoneyRequest';
 
 const propTypes = {
+    moneyRequest: moneyRequestPropTypes.isRequired,
+
     ...withLocalizePropTypes,
-    ...moneyRequestPropTypes,
 };
 
 class MoneyRequestDescriptionPage extends Component {
@@ -27,7 +28,7 @@ class MoneyRequestDescriptionPage extends Component {
     componentDidMount() {
         const iouType = lodashGet(this.props.route, 'params.iouType', '');
         const reportID = lodashGet(this.props.route, 'params.reportID', '');
-        this.props.redirectIfEmpty([this.props.participants, this.props.amount], iouType, reportID);
+        this.props.moneyRequest.redirectIfEmpty([this.props.moneyRequest.participants, this.props.moneyRequest.amount], iouType, reportID);
     }
 
     /**
@@ -37,7 +38,7 @@ class MoneyRequestDescriptionPage extends Component {
      * @param {String} value.moneyRequestComment
      */
     updateComment(value) {
-        this.props.setComment(value.moneyRequestComment.trim());
+        this.props.moneyRequest.setComment(value.moneyRequestComment.trim());
         Navigation.goBack();
     }
 
@@ -66,7 +67,7 @@ class MoneyRequestDescriptionPage extends Component {
                         <TextInput
                             inputID="moneyRequestComment"
                             name="moneyRequestComment"
-                            defaultValue={this.props.comment}
+                            defaultValue={this.props.moneyRequest.comment}
                             label={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
                             ref={(el) => (this.descriptionInputRef = el)}
                         />

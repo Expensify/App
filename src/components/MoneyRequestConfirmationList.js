@@ -45,13 +45,13 @@ const propTypes = {
     /** The policyID of the request */
     policyID: PropTypes.string.isRequired,
 
+    moneyRequest: moneyRequestPropTypes.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
-
-    ...moneyRequestPropTypes,
 };
 
 const defaultProps = {
@@ -81,7 +81,7 @@ class MoneyRequestConfirmationList extends Component {
      */
     getSplitOrRequestOptions() {
         const text = this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-            amount: CurrencyUtils.convertToDisplayString(this.props.amount, this.props.currency),
+            amount: CurrencyUtils.convertToDisplayString(this.props.moneyRequest.amount, this.props.moneyRequest.currency),
         });
         return [
             {
@@ -96,7 +96,7 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getSelectedParticipants() {
-        return _.filter(this.props.participants, (participant) => participant.selected);
+        return _.filter(this.props.moneyRequest.participants, (participant) => participant.selected);
     }
 
     /**
@@ -104,7 +104,7 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getUnselectedParticipants() {
-        return _.filter(this.props.participants, (participant) => !participant.selected);
+        return _.filter(this.props.moneyRequest.participants, (participant) => !participant.selected);
     }
 
     /**
@@ -113,8 +113,8 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getParticipantsWithAmount(participants) {
-        const iouAmount = IOUUtils.calculateAmount(participants.length, this.props.amount);
-        return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, this.props.currency));
+        const iouAmount = IOUUtils.calculateAmount(participants.length, this.props.moneyRequest.amount);
+        return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, this.props.moneyRequest.currency));
     }
 
     /**
@@ -131,10 +131,10 @@ class MoneyRequestConfirmationList extends Component {
             const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
             const formattedParticipants = _.union(formattedSelectedParticipants, unselectedParticipants);
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.amount, true);
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.moneyRequest.amount, true);
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.currentUserPersonalDetails,
-                CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.currency),
+                CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.moneyRequest.currency),
             );
 
             sections.push(
@@ -155,7 +155,7 @@ class MoneyRequestConfirmationList extends Component {
         } else {
             sections.push({
                 title: this.props.translate('common.to'),
-                data: this.props.participants,
+                data: this.props.moneyRequest.participants,
                 shouldShow: true,
                 indexOffset: 0,
             });
@@ -185,13 +185,13 @@ class MoneyRequestConfirmationList extends Component {
             return;
         }
 
-        const newParticipants = _.map(this.props.participants, (participant) => {
+        const newParticipants = _.map(this.props.moneyRequest.participants, (participant) => {
             if (participant.login === option.login) {
                 return {...participant, selected: !participant.selected};
             }
             return participant;
         });
-        this.props.setParticipants(newParticipants);
+        this.props.moneyRequest.setParticipants(newParticipants);
     }
 
     /**
@@ -221,9 +221,9 @@ class MoneyRequestConfirmationList extends Component {
         const selectedParticipants = this.getSelectedParticipants();
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = this.props.participants[0] || {};
+        const recipient = this.props.moneyRequest.participants[0] || {};
         const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.amount, this.props.currency);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.moneyRequest.amount, this.props.moneyRequest.currency);
 
         return (
             <OptionsSelector
@@ -249,7 +249,7 @@ class MoneyRequestConfirmationList extends Component {
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                            currency={this.props.currency}
+                            currency={this.props.moneyRequest.urrency}
                             policyID={this.props.policyID}
                         />
                     ) : (
@@ -272,7 +272,7 @@ class MoneyRequestConfirmationList extends Component {
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    title={this.props.comment}
+                    title={this.props.moneyRequest.comment}
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(this.props.iouType, this.props.reportID))}
                     style={[styles.moneyRequestMenuItem, styles.mb2]}
