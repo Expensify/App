@@ -171,7 +171,7 @@ function Expensify(props) {
 
     return (
         <DeeplinkWrapper>
-            {shouldHideSplash && (
+            {isSplashHidden && (
                 <>
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
