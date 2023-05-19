@@ -151,8 +151,6 @@ class EmojiPicker extends React.Component {
                 onModalHide={this.onModalHide}
                 hideModalContentWhileAnimating
                 shouldSetModalVisibility={false}
-                animationInTiming={1}
-                animationOutTiming={1}
                 anchorPosition={{
                     vertical: this.state.emojiPopoverAnchorPosition.vertical,
                     horizontal: this.state.emojiPopoverAnchorPosition.horizontal,
