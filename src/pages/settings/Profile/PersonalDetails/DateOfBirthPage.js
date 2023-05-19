@@ -15,6 +15,7 @@ import NewDatePicker from '../../../../components/NewDatePicker';
 import CONST from '../../../../CONST';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import withNavigationFocus from '../../../../components/withNavigationFocus';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,8 +54,13 @@ class DateOfBirthPage extends Component {
         this.props.navigation.addListener('focus', this.getYearFromRouteParams);
     }
 
-    componentWillUnmount() {
-        this.props.navigation.removeListener('focus', this.getYearFromRouteParams);
+    componentDidUpdate(prevProps) {
+        // When we're navigating back from Year page. We need to update the selected year from the URL
+        if (prevProps.isFocused || !this.props.isFocused) {
+            return;
+        }
+
+        this.getYearFromRouteParams();
     }
 
     /**
@@ -134,6 +140,7 @@ DateOfBirthPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNavigationFocus,
     withOnyx({
         privatePersonalDetails: {
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
