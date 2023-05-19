@@ -229,7 +229,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
 
-    const messageText = lodashGet(lastVisibleAction, 'message[0].text', '');
+    const messageText = lodashGet(message, 'text', '');
     return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
