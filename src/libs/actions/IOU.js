@@ -16,20 +16,11 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
 
-const chatReports = {};
-const iouReports = {};
+let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!report) {
-            delete iouReports[key];
-            delete chatReports[key];
-        } else if (ReportUtils.isMoneyRequestReport(report)) {
-            iouReports[key] = report;
-        } else {
-            chatReports[key] = report;
-        }
-    },
+    waitForCollectionCallback: true,
+    callback: val => allReports = val,
 });
 
 let transactions = {};
@@ -283,7 +274,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
     // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
     if (!chatReport && isPolicyExpenseChat) {
-        chatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+        chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
     }
 
     if (!chatReport) {
@@ -302,12 +293,12 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
 
     if (!isNewIOUReport) {
         if (isPolicyExpenseChat) {
-            iouReport = {...iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
+            iouReport = {...allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]};
 
             // Because of the Expense reports are stored as negative values, we substract the total from the amount
             iouReport.total -= amount;
         } else {
-            iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
+            iouReport = IOUUtils.updateIOUOwnerAndTotal(allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
         }
     } else {
         iouReport = isPolicyExpenseChat
@@ -404,7 +395,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantLogins = _.map(participants, (participant) => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase());
     const existingGroupChatReport = existingGroupChatReportID
-        ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
+        ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantLogins);
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
 
@@ -545,7 +536,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         const isNewOneOnOneIOUReport = !oneOnOneChatReport.iouReportID;
         let oneOnOneIOUReport;
         if (!isNewOneOnOneIOUReport) {
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`], currentUserEmail, splitAmount, currency);
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(allReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`], currentUserEmail, splitAmount, currency);
         } else {
             oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(currentUserEmail, email, splitAmount, oneOnOneChatReport.reportID, currency);
         }
@@ -701,7 +692,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {Boolean} shouldCloseOnDelete
  */
 function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shouldCloseOnDelete) {
-    const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
 
     // Get the amount we are deleting
