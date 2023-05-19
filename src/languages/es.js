@@ -1049,6 +1049,7 @@ export default {
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
+            goToRoom: ({roomName})=>`Ir a la sala de ${roomName}`
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
