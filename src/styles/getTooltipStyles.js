@@ -198,7 +198,7 @@ export default function getTooltipStyles(
         //      so the left edge of the pointer lines up with the tooltipWidth's center.
         //   2) To the left (-) by half the pointer's width,
         //      so the pointer's center lines up with the tooltipWidth's center.
-        //   3) Remove the wrapper's horizontalShift to maintain the pointer 
+        //   3) Remove the wrapper's horizontalShift to maintain the pointer
         //      at the center of the hovered component.
         pointerWrapperLeft = horizontalShiftPointer + (tooltipWidth / 2 - POINTER_WIDTH / 2);
 
