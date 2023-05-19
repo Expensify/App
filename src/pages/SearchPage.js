@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
@@ -33,9 +34,6 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** Indicates whether report data is ready */
-    isLoadingReportData: PropTypes.bool,
-
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
@@ -46,7 +44,6 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
-    isLoadingReportData: true,
 };
 
 class SearchPage extends Component {
@@ -170,7 +167,7 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -217,9 +214,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(SearchPage);

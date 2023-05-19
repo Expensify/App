@@ -40,6 +40,9 @@ const propTypes = {
 
     /** Whether #focus mode is on */
     isFocusMode: PropTypes.bool,
+
+    /** Whether avatars are displayed within a reportAction */
+    isInReportAction: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -52,6 +55,7 @@ const defaultProps = {
     isHovered: false,
     isPressed: false,
     isFocusMode: false,
+    isInReportAction: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -80,7 +84,7 @@ const MultipleAvatars = (props) => {
     }
 
     const oneAvatarSize = StyleUtils.getAvatarStyle(props.size);
-    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size);
+    const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(props.size).borderWidth;
     const overlapSize = oneAvatarSize.width / 3;
 
     if (props.shouldStackHorizontally) {
@@ -108,7 +112,7 @@ const MultipleAvatars = (props) => {
                             style={[
                                 styles.justifyContentCenter,
                                 styles.alignItemsCenter,
-                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
+                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInReportAction),
                                 StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
                                 icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
                             ]}
@@ -127,7 +131,7 @@ const MultipleAvatars = (props) => {
                             style={[
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
-                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed),
+                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInReportAction),
 
                                 // Set overlay background color with RGBA value so that the text will not inherit opacity
                                 StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
@@ -182,7 +186,12 @@ const MultipleAvatars = (props) => {
                                 absolute
                             >
                                 <View style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                                    <Text style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}>{`+${props.icons.length - 1}`}</Text>
+                                    <Text
+                                        selectable={false}
+                                        style={props.size === CONST.AVATAR_SIZE.SMALL ? styles.avatarInnerTextSmall : styles.avatarInnerText}
+                                    >
+                                        {`+${props.icons.length - 1}`}
+                                    </Text>
                                 </View>
                             </Tooltip>
                         )}

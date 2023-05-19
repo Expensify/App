@@ -47,6 +47,7 @@ class BaseOptionsSelector extends Component {
         this.state = {
             allOptions,
             focusedIndex,
+            shouldDisableRowSelection: false,
         };
     }
 
@@ -59,8 +60,16 @@ class BaseOptionsSelector extends Component {
                 if (!focusedOption) {
                     return;
                 }
-
-                this.selectRow(focusedOption);
+                if (this.props.canSelectMultipleOptions) {
+                    this.selectRow(focusedOption);
+                } else if (!this.state.shouldDisableRowSelection) {
+                    this.setState({shouldDisableRowSelection: true});
+                    let result = this.selectRow(focusedOption);
+                    if (!(result instanceof Promise)) {
+                        result = Promise.resolve();
+                    }
+                    setTimeout(() => result.finally(() => this.setState({shouldDisableRowSelection: false})), 500);
+                }
             },
             enterConfig.descriptionKey,
             enterConfig.modifiers,
