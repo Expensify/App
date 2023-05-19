@@ -44,6 +44,7 @@ const SplitBillDetailsPage = (props) => {
                 iouType={CONST.IOU.REPORT_ACTION_TYPE.SPLIT}
                 canModifyParticipants={false}
                 canEditDetails={false}
+                shouldShowFooter={false}
             />
         </>
     );
