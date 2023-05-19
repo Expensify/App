@@ -102,7 +102,7 @@ function isTransactionThread(parentReportAction) {
     return (
         parentReportAction &&
         parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
+        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails')))
     );
 }
 
@@ -184,7 +184,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    if (moment(currentAction.created).unix() - moment(previousAction.created).unix() > 300) {
+    if (new Date(currentAction.created).getTime() - new Date(previousAction.created).getTime() > 300000) {
         return false;
     }
 
