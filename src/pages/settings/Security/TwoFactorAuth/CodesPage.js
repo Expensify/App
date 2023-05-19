@@ -102,7 +102,7 @@ function CodesPage(props) {
                                         style={styles.twoFactorAuthCodesButton}
                                     />
                                     <Button
-                                        text="Download"
+                                        text={props.translate('common.download')}
                                         medium
                                         onPress={() => {
                                             localFileDownload('two-factor-auth-codes', props.account.recoveryCodes);
