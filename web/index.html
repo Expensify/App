@@ -15,6 +15,10 @@
     <meta property="og:image" content="https://new.expensify.com/og-preview-image.png">
     <link rel="stylesheet" type="text/css" href="/css/fonts.css" />
     <link rel="stylesheet" type="text/css" href="/css/pdf.css" />
+    <!-- Do not index the staging site -->
+    <% if (htmlWebpackPlugin.options.isStaging) { %>
+        <meta name="robots" content="noindex, nofollow">
+    <% } %>
     <style>
         html,
         body,
@@ -40,7 +44,7 @@
         #no-drag-area {
             -webkit-app-region: no-drag;
         }
-        input::placeholder {
+        input::placeholder, textarea::placeholder {
             user-select: none;
             -webkit-user-select: none
         }
@@ -78,6 +82,36 @@
             -webkit-text-fill-color: #ffffff;
             caret-color: #ffffff;
         }
+
+        @media screen and (min-width: 480px) { 
+            .splash-logo > svg { 
+                width: 104px; 
+                height: 104px; 
+            }
+        }
+
+        @media screen and (max-width: 479px) { 
+            .splash-logo > svg { 
+                width: 52px; 
+                height: 52px; 
+            }
+        }
+
+        #splash {
+            position: absolute; 
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            background-color: #061B09; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            transition-duration: 250ms;
+            transition-property: opacity;
+        }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
@@ -90,7 +124,9 @@
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" id="drag-area"></div>
     <div id="root"></div>
     <div id="splash">
-        <div class="splash-logo"></div>
+        <div class="splash-logo">
+            <%= htmlWebpackPlugin.options.splashLogo %>
+        </div>
     </div>
 </body>
 </html>

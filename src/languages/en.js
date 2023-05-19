@@ -123,6 +123,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        leaveThread: 'Leave thread',
         you: 'You',
         youAfterPreposition: 'you',
         your: 'your',
@@ -344,11 +345,14 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
         },
     },
-    notificationPreferences: {
+    notificationPreferencesPage: {
+        header: 'Notification preferences',
         label: 'Notify me about new messages',
-        immediately: 'Immediately',
-        daily: 'Daily',
-        mute: 'Mute',
+        notificationPreferences: {
+            always: 'Immediately',
+            daily: 'Daily',
+            mute: 'Mute',
+        },
     },
     loginField: {
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
@@ -1137,6 +1141,7 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameIsTooLongError: `Your workspace name can be at most ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} characters long.`,
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             currencyInputDisabledText: "The default currency can't be changed because this workspace is linked to a USD bank account.",

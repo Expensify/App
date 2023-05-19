@@ -122,8 +122,8 @@ const defaultProps = {
     stepCounter: null,
     threeDotsMenuItems: [],
     threeDotsAnchorPosition: {
-        top: 0,
-        left: 0,
+        vertical: 0,
+        horizontal: 0,
     },
 };
 
