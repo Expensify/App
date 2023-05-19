@@ -170,9 +170,12 @@ class LoginForm extends React.Component {
         const hasError = !_.isEmpty(serverErrorText);
         return (
             <>
-                <View accessibilityLabel={this.props.translate('loginForm.loginForm')} style={[styles.mt3]}>
+                <View
+                    accessibilityLabel={this.props.translate('loginForm.loginForm')}
+                    style={[styles.mt3]}
+                >
                     <TextInput
-                        ref={el => this.input = el}
+                        ref={(el) => (this.input = el)}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="username"
@@ -188,18 +191,18 @@ class LoginForm extends React.Component {
                         hasError={hasError}
                     />
                 </View>
-                {!_.isEmpty(this.props.account.success) && (
-                    <Text style={[styles.formSuccess]}>
-                        {this.props.account.success}
-                    </Text>
-                )}
-                {!_.isEmpty(this.props.closeAccount.success) && (
-
+                {!_.isEmpty(this.props.account.success) && <Text style={[styles.formSuccess]}>{this.props.account.success}</Text>}
+                {!_.isEmpty(this.props.closeAccount.success || this.props.account.message) && (
                     // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
-                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
+                    <DotIndicatorMessage
+                        style={[styles.mv2]}
+                        type="success"
+                        messages={{0: this.props.closeAccount.success || this.props.account.message}}
+                    />
                 )}
-                { // We need to unmount the submit button when the component is not visible so that the Enter button
-                  // key handler gets unsubscribed and does not conflict with the Password Form
+                {
+                    // We need to unmount the submit button when the component is not visible so that the Enter button
+                    // key handler gets unsubscribed and does not conflict with the Password Form
                     this.props.isVisible && (
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton

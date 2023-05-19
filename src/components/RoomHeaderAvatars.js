@@ -48,15 +48,15 @@ const RoomHeaderAvatars = (props) => {
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (icon, index) => (
-                    <View key={`${icon.source}${index}`} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <View
+                        key={`${icon.source}${index}`}
+                        style={[styles.justifyContentCenter, styles.alignItemsCenter]}
+                    >
                         <Avatar
                             source={icon.source}
                             fill={themeColors.iconSuccessFill}
                             size={CONST.AVATAR_SIZE.LARGE}
-                            containerStyles={[
-                                ...iconStyle,
-                                StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type),
-                            ]}
+                            containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                             name={icon.name}
                             type={icon.type}
                         />
@@ -71,9 +71,7 @@ const RoomHeaderAvatars = (props) => {
                                         styles.roomHeaderAvatarOverlay,
                                     ]}
                                 />
-                                <Text style={styles.avatarInnerTextChat}>
-                                    {`+${props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
-                                </Text>
+                                <Text style={styles.avatarInnerTextChat}>{`+${props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}</Text>
                             </>
                         )}
                     </View>

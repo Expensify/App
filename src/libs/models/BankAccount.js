@@ -227,16 +227,19 @@ class BankAccount {
      * @returns {Object}
      */
     toACHData() {
-        return _.extend({
-            routingNumber: this.getRoutingNumber(),
-            accountNumber: this.getMaskedAccountNumber(),
-            addressName: this.getAddressName(),
-            isSavings: this.json.isSavings,
-            bankAccountID: this.getID(),
-            state: this.getState(),
-            validateCodeExpectedDate: this.getValidateCodeExpectedDate(),
-            needsToUpgrade: this.needsToUpgrade(),
-        }, this.getAdditionalData());
+        return _.extend(
+            {
+                routingNumber: this.getRoutingNumber(),
+                accountNumber: this.getMaskedAccountNumber(),
+                addressName: this.getAddressName(),
+                isSavings: this.json.isSavings,
+                bankAccountID: this.getID(),
+                state: this.getState(),
+                validateCodeExpectedDate: this.getValidateCodeExpectedDate(),
+                needsToUpgrade: this.needsToUpgrade(),
+            },
+            this.getAdditionalData(),
+        );
     }
 
     /**

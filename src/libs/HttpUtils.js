@@ -87,6 +87,15 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true, 
             return response.json();
         })
         .then((response) => {
+            // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
+            if (response.jsonCode === CONST.JSON_CODE.BAD_REQUEST && response.message === CONST.ERROR_TITLE.DUPLICATE_RECORD) {
+                throw new HttpsError({
+                    message: CONST.ERROR.DUPLICATE_RECORD,
+                    status: CONST.JSON_CODE.BAD_REQUEST,
+                    title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
+                });
+            }
+
             // Auth is down or timed out while making a request
             if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
                 throw new HttpsError({
@@ -96,8 +105,11 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true, 
                 });
             }
             if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR) {
-                const {phpCommandName, authWriteCommandsCount} = response.data;
-                const message = `The API call (${phpCommandName}) did ${authWriteCommandsCount - 1} more Auth write requests than allowed. Check the APIWriteCommands class in Web-Expensify`;
+                const {phpCommandName, authWriteCommands} = response.data;
+                // eslint-disable-next-line max-len
+                const message = `The API call (${phpCommandName}) did more Auth write requests than allowed. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
+                    ', ',
+                )}. Check the APIWriteCommands class in Web-Expensify`;
                 alert('Too many auth writes', message);
             }
             return response;

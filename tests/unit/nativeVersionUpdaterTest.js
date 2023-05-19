@@ -54,7 +54,8 @@ describe('updateAndroidVersion', () => {
             versionName "1.0.1-47"
         }
     }
-`],
+`,
+        ],
         [
             '1.0.1-0',
             '1001000100',
@@ -65,7 +66,8 @@ describe('updateAndroidVersion', () => {
             versionName "1.0.1-0"
         }
     }
-`],
+`,
+        ],
         [
             '10.99.66-88',
             '1010996688',
@@ -76,9 +78,12 @@ describe('updateAndroidVersion', () => {
             versionName "10.99.66-88"
         }
     }
-`],
-    ])('updateAndroidVersion("%s", "%s")', (versionName, versionCode, expected) => updateAndroidVersion(versionName, versionCode).then(() => {
-        const result = fs.readFileSync(BUILD_GRADLE_PATH, {encoding: 'utf8'}).toString();
-        expect(result).toBe(expected);
-    }));
+`,
+        ],
+    ])('updateAndroidVersion("%s", "%s")', (versionName, versionCode, expected) =>
+        updateAndroidVersion(versionName, versionCode).then(() => {
+            const result = fs.readFileSync(BUILD_GRADLE_PATH, {encoding: 'utf8'}).toString();
+            expect(result).toBe(expected);
+        }),
+    );
 });

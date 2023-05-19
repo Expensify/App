@@ -94,7 +94,7 @@ class Hoverable extends Component {
         return (
             <View
                 style={this.props.containerStyles}
-                ref={el => this.wrapperView = el}
+                ref={(el) => (this.wrapperView = el)}
                 onMouseEnter={() => this.setIsHovered(true)}
                 onMouseLeave={() => this.setIsHovered(false)}
                 onBlur={(el) => {
@@ -104,10 +104,9 @@ class Hoverable extends Component {
                     this.setIsHovered(false);
                 }}
             >
-                { // If this.props.children is a function, call it to provide the hover state to the children.
-                    _.isFunction(this.props.children)
-                        ? this.props.children(this.state.isHovered)
-                        : this.props.children
+                {
+                    // If this.props.children is a function, call it to provide the hover state to the children.
+                    _.isFunction(this.props.children) ? this.props.children(this.state.isHovered) : this.props.children
                 }
             </View>
         );

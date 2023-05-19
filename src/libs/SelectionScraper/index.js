@@ -2,7 +2,7 @@ import render from 'dom-serializer';
 import {parseDocument} from 'htmlparser2';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import styles from '../../styles/styles';
+import CONST from '../../CONST';
 
 const elementsWillBeSkipped = ['html', 'body'];
 const tagAttribute = 'data-testid';
@@ -81,8 +81,13 @@ const getHTMLOfSelection = () => {
         }
     }
 
-    // Remove any element that isn't selectable to prevent copying unnecessary text/items
-    div.querySelectorAll(`div[style*="user-select: ${styles.userSelectNone.WebkitUserSelect}"]`).forEach(item => item.remove());
+    // Find and remove the div housing the UnreadActionIndicator because we don't want
+    // the 'New/Nuevo' text inside it being copied.
+    const newMessageLineIndicatorDiv = div.querySelector(`#${CONST.UNREAD_ACTION_INDICATOR_ID}`);
+
+    if (newMessageLineIndicatorDiv) {
+        newMessageLineIndicatorDiv.remove();
+    }
 
     return div.innerHTML;
 };
@@ -90,9 +95,10 @@ const getHTMLOfSelection = () => {
 /**
  * Clears all attributes from dom elements
  * @param {Object} dom htmlparser2 dom representation
+ * @param {Boolean} isChildOfEditorElement
  * @returns {Object} htmlparser2 dom representation
  */
-const replaceNodes = (dom) => {
+const replaceNodes = (dom, isChildOfEditorElement) => {
     let domName = dom.name;
     let domChildren;
     const domAttribs = {};
@@ -109,10 +115,10 @@ const replaceNodes = (dom) => {
         if (!elementsWillBeSkipped.includes(dom.attribs[tagAttribute])) {
             domName = dom.attribs[tagAttribute];
         }
-    } else if (dom.name === 'div' && dom.children.length === 1 && dom.children[0].type !== 'text') {
-        // We are excluding divs that have only one child and no text nodes and don't have a tagAttribute to prevent
+    } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement) {
+        // We are excluding divs that are children of our editor element and have only one child to prevent
         // additional newlines from being added in the HTML to Markdown conversion process.
-        return replaceNodes(dom.children[0]);
+        return replaceNodes(dom.children[0], isChildOfEditorElement);
     }
 
     // We need to preserve href attribute in order to copy links.
@@ -121,7 +127,7 @@ const replaceNodes = (dom) => {
     }
 
     if (dom.children) {
-        domChildren = _.map(dom.children, c => replaceNodes(c));
+        domChildren = _.map(dom.children, (c) => replaceNodes(c, isChildOfEditorElement || !_.isEmpty(dom.attribs && dom.attribs[tagAttribute])));
     }
 
     return {

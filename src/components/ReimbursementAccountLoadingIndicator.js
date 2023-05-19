@@ -23,7 +23,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ReimbursementAccountLoadingIndicator = props => (
+const ReimbursementAccountLoadingIndicator = (props) => (
     <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
         <HeaderWithCloseButton
             title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
@@ -41,9 +41,7 @@ const ReimbursementAccountLoadingIndicator = props => (
                         style={styles.loadingVBAAnimation}
                     />
                     <View style={[styles.ph6]}>
-                        <Text style={[styles.textAlignCenter]}>
-                            {props.translate('reimbursementAccountLoadingAnimation.explanationLine')}
-                        </Text>
+                        <Text style={[styles.textAlignCenter]}>{props.translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
                     </View>
                 </View>
             ) : (
@@ -56,8 +54,4 @@ const ReimbursementAccountLoadingIndicator = props => (
 ReimbursementAccountLoadingIndicator.propTypes = propTypes;
 ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';
 
-export default compose(
-    withLocalize,
-    withNetwork(),
-)(ReimbursementAccountLoadingIndicator);
-
+export default compose(withLocalize, withNetwork())(ReimbursementAccountLoadingIndicator);

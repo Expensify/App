@@ -14,7 +14,4 @@ const canCapturePerformanceMetrics = () => CONFIG.CAPTURE_METRICS;
  */
 const canCaptureOnyxMetrics = () => CONFIG.ONYX_METRICS;
 
-export {
-    canCapturePerformanceMetrics,
-    canCaptureOnyxMetrics,
-};
+export {canCapturePerformanceMetrics, canCaptureOnyxMetrics};

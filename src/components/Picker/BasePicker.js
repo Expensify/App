@@ -22,13 +22,15 @@ const propTypes = {
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** The items to display in the list of selections */
-    items: PropTypes.arrayOf(PropTypes.shape({
-        /** The value of the item that is being selected */
-        value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    items: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** The value of the item that is being selected */
+            value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 
-        /** The text to display for the item */
-        label: PropTypes.string.isRequired,
-    })).isRequired,
+            /** The text to display for the item */
+            label: PropTypes.string.isRequired,
+        }),
+    ).isRequired,
 
     /** Something to show as the placeholder before something is selected */
     placeholder: PropTypes.shape({
@@ -90,7 +92,7 @@ const defaultProps = {
     value: undefined,
     placeholder: {},
     size: 'normal',
-    icon: size => (
+    icon: (size) => (
         <Icon
             src={Expensicons.DownArrow}
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -121,10 +123,12 @@ class BasePicker extends PureComponent {
 
         // Windows will reuse the text color of the select for each one of the options
         // so we might need to color accordingly so it doesn't blend with the background.
-        this.placeholder = _.isEmpty(this.props.placeholder) ? {} : {
-            ...this.props.placeholder,
-            color: themeColors.pickerOptionsTextColor,
-        };
+        this.placeholder = _.isEmpty(this.props.placeholder)
+            ? {}
+            : {
+                  ...this.props.placeholder,
+                  color: themeColors.pickerOptionsTextColor,
+              };
     }
 
     componentDidMount() {
@@ -216,19 +220,15 @@ class BasePicker extends PureComponent {
             return (
                 <View>
                     {Boolean(this.props.label) && (
-                        <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
+                        <Text
+                            style={[styles.textLabelSupporting, styles.mb1]}
+                            numberOfLines={1}
+                        >
                             {this.props.label}
                         </Text>
                     )}
-                    <Text numberOfLines={1}>
-                        {this.props.value}
-                    </Text>
-                    {Boolean(this.props.hintText)
-                    && (
-                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
-                            {this.props.hintText}
-                        </Text>
-                    )}
+                    <Text numberOfLines={1}>{this.props.value}</Text>
+                    {Boolean(this.props.hintText) && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{this.props.hintText}</Text>}
                 </View>
             );
         }
@@ -236,7 +236,7 @@ class BasePicker extends PureComponent {
         return (
             <>
                 <View
-                    ref={el => this.root = el}
+                    ref={(el) => (this.root = el)}
                     style={[
                         styles.pickerContainer,
                         this.props.isDisabled && styles.inputDisabled,
@@ -246,18 +246,18 @@ class BasePicker extends PureComponent {
                     ]}
                 >
                     {this.props.label && (
-                        <Text pointerEvents="none" style={[styles.pickerLabel, styles.textLabelSupporting]}>
+                        <Text
+                            pointerEvents="none"
+                            style={[styles.pickerLabel, styles.textLabelSupporting]}
+                        >
                             {this.props.label}
                         </Text>
                     )}
                     <RNPickerSelect
                         onValueChange={this.onInputChange}
-
                         // We add a text color to prevent white text on white background dropdown items on Windows
-                        items={_.map(this.props.items, item => ({...item, color: themeColors.pickerOptionsTextColor}))}
-                        style={this.props.size === 'normal'
-                            ? styles.picker(this.props.isDisabled, this.props.backgroundColor)
-                            : styles.pickerSmall(this.props.backgroundColor)}
+                        items={_.map(this.props.items, (item) => ({...item, color: themeColors.pickerOptionsTextColor}))}
+                        style={this.props.size === 'normal' ? styles.picker(this.props.isDisabled, this.props.backgroundColor) : styles.pickerSmall(this.props.backgroundColor)}
                         useNativeAndroidPickerStyle={false}
                         placeholder={this.placeholder}
                         value={this.props.value}
@@ -270,31 +270,23 @@ class BasePicker extends PureComponent {
                             allowFontScaling: false,
                         }}
                         pickerProps={{
-                            ref: el => this.picker = el,
+                            ref: (el) => (this.picker = el),
                             onFocus: this.enableHighlight,
                             onBlur: () => {
                                 this.disableHighlight();
                                 this.props.onBlur();
                             },
-                            ...this.props.additionalPickerEvents(
-                                this.enableHighlight,
-                                (value, index) => {
-                                    this.onInputChange(value, index);
-                                    this.disableHighlight();
-                                },
-                            ),
+                            ...this.props.additionalPickerEvents(this.enableHighlight, (value, index) => {
+                                this.onInputChange(value, index);
+                                this.disableHighlight();
+                            }),
                         }}
                         scrollViewRef={this.context && this.context.scrollViewRef}
                         scrollViewContentOffsetY={this.context && this.context.contentOffsetY}
                     />
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
-                {Boolean(this.props.hintText)
-                    && (
-                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
-                            {this.props.hintText}
-                        </Text>
-                    )}
+                {Boolean(this.props.hintText) && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{this.props.hintText}</Text>}
             </>
         );
     }
@@ -308,7 +300,6 @@ export default React.forwardRef((props, ref) => (
     <BasePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-
         // Forward the ref to BasePicker, as we implement imperative methods there
         ref={ref}
         key={props.inputID}

@@ -15,6 +15,7 @@ import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
+import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -119,9 +120,7 @@ class Composer extends React.Component {
     constructor(props) {
         super(props);
 
-        const initialValue = props.defaultValue
-            ? `${props.defaultValue}`
-            : `${props.value || ''}`;
+        const initialValue = props.defaultValue ? `${props.defaultValue}` : `${props.value || ''}`;
 
         this.state = {
             numberOfLines: props.numberOfLines,
@@ -132,6 +131,7 @@ class Composer extends React.Component {
         };
 
         this.paste = this.paste.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
@@ -167,11 +167,13 @@ class Composer extends React.Component {
             this.props.onClear();
         }
 
-        if (prevProps.value !== this.props.value
-            || prevProps.defaultValue !== this.props.defaultValue
-            || prevProps.isComposerFullSize !== this.props.isComposerFullSize
-            || prevProps.windowWidth !== this.props.windowWidth
-            || prevProps.numberOfLines !== this.props.numberOfLines) {
+        if (
+            prevProps.value !== this.props.value ||
+            prevProps.defaultValue !== this.props.defaultValue ||
+            prevProps.isComposerFullSize !== this.props.isComposerFullSize ||
+            prevProps.windowWidth !== this.props.windowWidth ||
+            prevProps.numberOfLines !== this.props.numberOfLines
+        ) {
             this.updateNumberOfLines();
         }
 
@@ -190,6 +192,14 @@ class Composer extends React.Component {
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
+    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
+    handleKeyPress(e) {
+        if (!this.props.onKeyPress || isEnterWhileComposition(e)) {
+            return;
+        }
+        this.props.onKeyPress(e);
+    }
+
     /**
      * Set pasted text to clipboard
      * @param {String} text
@@ -202,7 +212,7 @@ class Composer extends React.Component {
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             this.textInput.blur();
             this.textInput.focus();
-        // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-empty
         } catch (e) {}
     }
 
@@ -252,7 +262,9 @@ class Composer extends React.Component {
                 }
                 fetch(embeddedImages[0].src)
                     .then((response) => {
-                        if (!response.ok) { throw Error(response.statusText); }
+                        if (!response.ok) {
+                            throw Error(response.statusText);
+                        }
                         return response.blob();
                     })
                     .then((x) => {
@@ -269,11 +281,11 @@ class Composer extends React.Component {
                         Growl.error(errorDesc);
 
                         /*
-                        * Since we intercepted the user-triggered paste event to check for attachments,
-                        * we need to manually set the value and call the `onChangeText` handler.
-                        * Synthetically-triggered paste events do not affect the document's contents.
-                        * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                        */
+                         * Since we intercepted the user-triggered paste event to check for attachments,
+                         * we need to manually set the value and call the `onChangeText` handler.
+                         * Synthetically-triggered paste events do not affect the document's contents.
+                         * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
+                         */
                         this.handlePastedHTML(pastedHTML);
                     });
                 return;
@@ -341,8 +353,7 @@ class Composer extends React.Component {
         this.setState({numberOfLines: 1}, () => {
             const computedStyle = window.getComputedStyle(this.textInput);
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
-            + parseInt(computedStyle.paddingTop, 10);
+            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
             const computedNumberOfLines = ComposerUtils.getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
             const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
             updateIsFullComposerAvailable(this.props, numberOfLines);
@@ -364,7 +375,7 @@ class Composer extends React.Component {
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
-                ref={el => this.textInput = el}
+                ref={(el) => (this.textInput = el)}
                 selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
@@ -379,6 +390,7 @@ class Composer extends React.Component {
                 {...propsWithoutStyles}
                 numberOfLines={this.state.numberOfLines}
                 disabled={this.props.isDisabled}
+                onKeyPress={this.handleKeyPress}
             />
         );
     }
@@ -390,7 +402,12 @@ Composer.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-)(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Composer {...props} forwardedRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        <Composer
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

@@ -12,7 +12,7 @@ import ONYXKEYS from '../ONYXKEYS';
  * @returns {Boolean}
  */
 function hasPolicyMemberError(policyMemberList) {
-    return _.some(policyMemberList, member => !_.isEmpty(member.errors));
+    return _.some(policyMemberList, (member) => !_.isEmpty(member.errors));
 }
 
 /**
@@ -23,7 +23,7 @@ function hasPolicyMemberError(policyMemberList) {
  * @return {Boolean}
  */
 function hasPolicyErrorFields(policy) {
-    return _.some(lodashGet(policy, 'errorFields', {}), fieldErrors => !_.isEmpty(fieldErrors));
+    return _.some(lodashGet(policy, 'errorFields', {}), (fieldErrors) => !_.isEmpty(fieldErrors));
 }
 
 /**
@@ -35,9 +35,7 @@ function hasPolicyErrorFields(policy) {
  * @return {Boolean}
  */
 function hasPolicyError(policy) {
-    return !_.isEmpty(lodashGet(policy, 'errors', {}))
-        ? true
-        : hasPolicyErrorFields(policy);
+    return !_.isEmpty(lodashGet(policy, 'errors', {})) ? true : hasPolicyErrorFields(policy);
 }
 
 /**
@@ -77,13 +75,11 @@ function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
  * @returns {Boolean}
  */
 function shouldShowPolicy(policy, isOffline) {
-    return policy
-    && policy.type === CONST.POLICY.TYPE.FREE
-    && policy.role === CONST.POLICY.ROLE.ADMIN
-    && (
-        isOffline
-        || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-        || !_.isEmpty(policy.errors)
+    return (
+        policy &&
+        policy.type === CONST.POLICY.TYPE.FREE &&
+        policy.role === CONST.POLICY.ROLE.ADMIN &&
+        (isOffline || policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policy.errors))
     );
 }
 
@@ -96,12 +92,12 @@ function isExpensifyTeam(email) {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
-export {
-    hasPolicyMemberError,
-    hasPolicyError,
-    hasPolicyErrorFields,
-    hasCustomUnitsError,
-    getPolicyBrickRoadIndicatorStatus,
-    shouldShowPolicy,
-    isExpensifyTeam,
-};
+/**
+ * Checks if the current user is an admin of the policy.
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+
+export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam, isPolicyAdmin};

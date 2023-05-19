@@ -27,28 +27,19 @@ const defaultProps = {
     onBackButtonPress: () => Navigation.goBack(),
 };
 
-const ModalHeader = props => (
+const ModalHeader = (props) => (
     <View style={[styles.headerBar, props.shouldShowBackButton && styles.pl2]}>
-        <View style={[
-            styles.dFlex,
-            styles.flexRow,
-            styles.alignItemsCenter,
-            styles.flexGrow1,
-            styles.justifyContentBetween,
-            styles.overflowHidden,
-        ]}
-        >
-            {props.shouldShowBackButton
-                    && (
-                    <Tooltip text={props.translate('common.back')}>
-                        <TouchableOpacity
-                            onPress={props.onBackButtonPress}
-                            style={[styles.touchableButtonImage]}
-                        >
-                            <Icon src={Expensicons.BackArrow} />
-                        </TouchableOpacity>
-                    </Tooltip>
-                    )}
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+            {props.shouldShowBackButton && (
+                <Tooltip text={props.translate('common.back')}>
+                    <TouchableOpacity
+                        onPress={props.onBackButtonPress}
+                        style={[styles.touchableButtonImage]}
+                    >
+                        <Icon src={Expensicons.BackArrow} />
+                    </TouchableOpacity>
+                </Tooltip>
+            )}
             <Header title={props.title} />
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 <Tooltip text={props.translate('common.close')}>
