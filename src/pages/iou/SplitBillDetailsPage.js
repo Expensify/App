@@ -6,10 +6,15 @@ import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmat
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
+import ModalHeader from './ModalHeader';
+import compose from '../../libs/compose';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     reportActions: PropTypes.objectOf(PropTypes.object),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -27,16 +32,22 @@ const SplitBillDetailsPage = (props) => {
     const participants = OptionsListUtils.getParticipantsOptions(reportAction.originalMessage, personalDetails);
 
     return (
-        <MoneyRequestConfirmationList
-            hasMultipleParticipants
-            participants={participants}
-            iouAmount={reportAction.originalMessage.amount}
-            onConfirm={() => {}}
-            onSendMoney={() => {}}
-            iouType={CONST.IOU.REPORT_ACTION_TYPE.SPLIT}
-            canModifyParticipants={false}
-            navigateToStep={() => {}}
-        />
+        <>
+            <ModalHeader
+                title={props.translate('common.details')}
+                shouldShowBackButton={false}
+            />
+            <MoneyRequestConfirmationList
+                hasMultipleParticipants
+                participants={participants}
+                iouAmount={reportAction.originalMessage.amount}
+                onConfirm={() => {}}
+                onSendMoney={() => {}}
+                iouType={CONST.IOU.REPORT_ACTION_TYPE.SPLIT}
+                canModifyParticipants={false}
+                navigateToStep={() => {}}
+            />
+        </>
     );
 };
 
@@ -44,9 +55,12 @@ SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 SplitBillDetailsPage.propTypes = propTypes;
 SplitBillDetailsPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    reportActions: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-        canEvict: false,
-    }
-})(SplitBillDetailsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+            canEvict: false,
+        },
+    }),
+)(SplitBillDetailsPage);
