@@ -419,6 +419,14 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
     ];
     const successData = [
         {
@@ -431,6 +439,11 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
         },
     ];
     const failureData = [
@@ -449,6 +462,11 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
         },
     ];
 
