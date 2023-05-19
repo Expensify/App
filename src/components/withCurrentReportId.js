@@ -49,10 +49,11 @@ CurrentReportIdContextProvider.propTypes = withCurrentReportIdPropTypes;
 export default function withCurrentReportId(WrappedComponent) {
     const WithCurrentReportId = forwardRef((props, ref) => (
         <CurrentReportIdContext.Consumer>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             {(translateUtils) => (
                 <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...translateUtils}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     ref={ref}
                 />

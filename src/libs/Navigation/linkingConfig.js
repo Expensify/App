@@ -190,6 +190,9 @@ export default {
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
                             },
+                            YearPicker_Root: {
+                                path: ROUTES.SELECT_YEAR,
+                            },
                         },
                     },
                     Report_Details: {
@@ -289,11 +292,6 @@ export default {
                     Wallet_Statement: {
                         screens: {
                             WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
-                        },
-                    },
-                    Select_Year: {
-                        screens: {
-                            YearPicker_Root: ROUTES.SELECT_YEAR,
                         },
                     },
                 },

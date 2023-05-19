@@ -1,5 +1,7 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {Freeze} from 'react-freeze';
 
 import SCREENS from '../../../../SCREENS';
 import ReportScreenWrapper from '../ReportScreenWrapper';
@@ -12,22 +14,47 @@ const url = getCurrentUrl();
 const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
 
 function CentralPaneNavigator() {
-    return (
-        <Stack.Navigator>
-            <Stack.Screen
-                name={SCREENS.REPORT}
-                // We do it this way to avoid adding this to url
-                initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
-                options={{
-                    headerShown: false,
-                    title: 'New Expensify',
+    const [isScreenBlurred, setIsScreenBlurred] = useState(false);
+    const [screenIndex, setScreenIndex] = useState(null);
+    const isFocused = useIsFocused();
+    const navigation = useNavigation();
 
-                    // Prevent unnecessary scrolling
-                    cardStyle: styles.cardStyleNavigator,
-                }}
-                component={ReportScreenWrapper}
-            />
-        </Stack.Navigator>
+    useEffect(() => {
+        if (screenIndex !== null) {
+            return;
+        }
+        setScreenIndex(navigation.getState().index);
+    }, [navigation, screenIndex]);
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('state', () => {
+            if (navigation.getState().index - screenIndex > 2) {
+                setIsScreenBlurred(true);
+            } else {
+                setIsScreenBlurred(false);
+            }
+        });
+        return () => unsubscribe();
+    }, [isFocused, isScreenBlurred, navigation, screenIndex]);
+
+    return (
+        <Freeze freeze={!isFocused && isScreenBlurred}>
+            <Stack.Navigator>
+                <Stack.Screen
+                    name={SCREENS.REPORT}
+                    // We do it this way to avoid adding this to url
+                    initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
+                    options={{
+                        headerShown: false,
+                        title: 'New Expensify',
+
+                        // Prevent unnecessary scrolling
+                        cardStyle: styles.cardStyleNavigator,
+                    }}
+                    component={ReportScreenWrapper}
+                />
+            </Stack.Navigator>
+        </Freeze>
     );
 }
 

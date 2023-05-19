@@ -7,7 +7,7 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../../components/OnyxProvider';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as IOU from '../../libs/actions/IOU';
@@ -172,9 +172,9 @@ class IOUDetailsModal extends Component {
                         subtitleKey="notFound.iouReportNotFound"
                         onBackButtonPress={Navigation.dismissModal}
                     >
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('common.details')}
-                            onCloseButtonPress={Navigation.dismissModal}
+                            onBackButtonPress={() => Navigation.goBack(ROUTES.IOU_REQUEST)}
                         />
                         {this.props.iou.loading ? (
                             <View style={styles.flex1}>

@@ -8,11 +8,10 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
-import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
 import * as Policy from '../libs/actions/Policy';
 import * as ReportUtils from '../libs/ReportUtils';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Text from '../components/Text';
@@ -150,12 +149,7 @@ class ReportSettingsPage extends Component {
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('common.settings')}
-                        shouldShowBackButton
-                        onBackButtonPress={Navigation.goBack}
-                        onCloseButtonPress={Navigation.dismissModal}
-                    />
+                    <HeaderWithBackButton title={this.props.translate('common.settings')} />
                     <Form
                         formID={ONYXKEYS.FORMS.ROOM_SETTINGS_FORM}
                         submitButtonText={this.props.translate('common.save')}

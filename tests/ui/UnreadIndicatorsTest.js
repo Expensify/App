@@ -329,6 +329,13 @@ describe('Unread Indicators', () => {
                         },
                         shouldNotify: true,
                     },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS,
+                        value: {
+                            [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
+                        },
+                    },
                 ]);
                 return waitForPromisesToResolve();
             })

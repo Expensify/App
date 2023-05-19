@@ -6,6 +6,7 @@ import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
+import {CurrentReportIdContextProvider} from '../../src/components/withCurrentReportId';
 
 // we have to mock `useIsFocused` because it's used in the SidebarLinks component
 const mockedNavigate = jest.fn();
@@ -16,6 +17,11 @@ jest.mock('@react-navigation/native', () => {
         useIsFocused: () => ({
             navigate: mockedNavigate,
         }),
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: jest.fn(),
+        }),
+        createNavigationContainerRef: jest.fn(),
     };
 });
 
@@ -180,7 +186,7 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
     render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIdContextProvider]}>
             <ErrorBoundary>
                 <SidebarLinks
                     onLinkClick={() => {}}

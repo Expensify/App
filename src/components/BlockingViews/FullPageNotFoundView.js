@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import BlockingView from './BlockingView';
 import * as Illustrations from '../Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import HeaderWithCloseButton from '../HeaderWithCloseButton';
+import HeaderWithBackButton from '../HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
@@ -25,12 +25,6 @@ const propTypes = {
     /** The key in the translations file to use for the subtitle */
     subtitleKey: PropTypes.string,
 
-    /** Whether we should show a back icon */
-    shouldShowBackButton: PropTypes.bool,
-
-    /** Whether we should show a close button */
-    shouldShowCloseButton: PropTypes.bool,
-
     /** Whether we should show a go back home link */
     shouldShowBackHomeLink: PropTypes.bool,
 
@@ -47,10 +41,8 @@ const defaultProps = {
     titleKey: 'notFound.notHere',
     subtitleKey: 'notFound.pageNotFound',
     linkKey: 'notFound.goBackHome',
-    shouldShowBackButton: true,
     shouldShowBackHomeLink: false,
-    shouldShowCloseButton: true,
-    onBackButtonPress: () => Navigation.dismissModal(),
+    onBackButtonPress: Navigation.goBack,
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -58,12 +50,7 @@ const FullPageNotFoundView = (props) => {
     if (props.shouldShow) {
         return (
             <>
-                <HeaderWithCloseButton
-                    shouldShowBackButton={props.shouldShowBackButton}
-                    shouldShowCloseButton={props.shouldShowCloseButton}
-                    onBackButtonPress={props.onBackButtonPress}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
+                <HeaderWithBackButton onBackButtonPress={props.onBackButtonPress} />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}

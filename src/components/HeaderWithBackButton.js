@@ -38,9 +38,6 @@ const propTypes = {
     /** Method to trigger when pressing more options button of the header */
     onThreeDotsButtonPress: PropTypes.func,
 
-    /** Whether we should show a back icon */
-    shouldShowBackButton: PropTypes.bool,
-
     /** Whether we should show a border on the bottom of the Header */
     shouldShowBorderBottom: PropTypes.bool,
 
@@ -66,6 +63,9 @@ const propTypes = {
 
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
+
+    /** Whether we should show a back button */
+    shouldShowBackButton: PropTypes.bool,
 
     /** Whether we should show the step counter */
     shouldShowStepCounter: PropTypes.bool,
@@ -103,16 +103,16 @@ const defaultProps = {
     title: '',
     subtitle: '',
     onDownloadButtonPress: () => {},
-    onCloseButtonPress: () => {},
-    onBackButtonPress: () => {},
+    onBackButtonPress: Navigation.goBack,
+    onCloseButtonPress: Navigation.dismissModal,
     onThreeDotsButtonPress: () => {},
-    shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
     shouldShowGetAssistanceButton: false,
     shouldShowThreeDotsButton: false,
-    shouldShowCloseButton: true,
     shouldShowStepCounter: true,
+    shouldShowCloseButton: false,
+    shouldShowBackButton: true,
     shouldShowAvatarWithDisplay: false,
     report: null,
     policies: {},
@@ -126,7 +126,7 @@ const defaultProps = {
     },
 };
 
-class HeaderWithCloseButton extends Component {
+class HeaderWithBackButton extends Component {
     constructor(props) {
         super(props);
 
@@ -238,7 +238,7 @@ class HeaderWithCloseButton extends Component {
     }
 }
 
-HeaderWithCloseButton.propTypes = propTypes;
-HeaderWithCloseButton.defaultProps = defaultProps;
+HeaderWithBackButton.propTypes = propTypes;
+HeaderWithBackButton.defaultProps = defaultProps;
 
-export default compose(withLocalize, withDelayToggleButtonState, withKeyboardState)(HeaderWithCloseButton);
+export default compose(withLocalize, withDelayToggleButtonState, withKeyboardState)(HeaderWithBackButton);

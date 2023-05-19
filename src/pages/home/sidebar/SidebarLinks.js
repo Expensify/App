@@ -31,6 +31,7 @@ import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import withCurrentReportId from '../../../components/withCurrentReportId';
+import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
@@ -78,6 +79,7 @@ const propTypes = {
     priorityMode: PropTypes.string,
 
     ...withLocalizePropTypes,
+    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -92,17 +94,42 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    transitionEndListener = null;
+
+    gestureStartListener = null;
+
     constructor(props) {
         super(props);
 
         this.showSearchPage = this.showSearchPage.bind(this);
         this.showSettingsPage = this.showSettingsPage.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
+
+        if (this.props.isSmallScreenWidth) {
+            App.confirmReadyToOpenApp();
+        }
+
+        this.state = {
+            isScreenBlurred: false,
+        };
     }
 
     componentDidMount() {
         App.setSidebarLoaded();
         this.isSidebarLoaded = true;
+        // SidebarLinks need to have information if the screen is blurred in order to enable freeze
+        this.transitionEndListener = this.props.navigation.addListener('transitionEnd', (e) => {
+            this.setState({isScreenBlurred: e.data.closing});
+        });
+
+        this.gestureStartListener = this.props.navigation.addListener('gestureStart', () => {
+            this.setState({isScreenBlurred: false});
+        });
+    }
+
+    componentWillUnmount() {
+        this.transitionEndListener();
+        this.gestureStartListener();
     }
 
     showSearchPage() {
@@ -138,7 +165,8 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused && this.isSidebarLoaded;
+        const isVisible = this.props.isFocused || !this.state.isScreenBlurred;
+        const shouldFreeze = this.props.isSmallScreenWidth && this.isSidebarLoaded && !isVisible;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
         const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate={!shouldFreeze} />;
@@ -294,6 +322,7 @@ export default compose(
     withNavigationFocus,
     withWindowDimensions,
     withCurrentReportId,
+    withNavigation,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
         // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated

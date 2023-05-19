@@ -40,6 +40,7 @@ import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
+import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
 
 const propTypes = {
@@ -89,6 +90,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
+    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -121,6 +123,10 @@ function getReportID(route) {
 let reportActionsListViewHeight = 0;
 
 class ReportScreen extends React.Component {
+    transitionEndListener = null;
+
+    gestureStartListener = null;
+
     constructor(props) {
         super(props);
 
@@ -132,6 +138,7 @@ class ReportScreen extends React.Component {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
             animationFinished: false,
+            isScreenBlurred: false,
         };
     }
 
@@ -152,6 +159,15 @@ class ReportScreen extends React.Component {
 
         InteractionManager.runAfterInteractions(() => {
             this.setState({animationFinished: true});
+        });
+
+        // ReportScreen is nested inside another navigator, so we need to listen to the parent navigator's events
+        this.transitionEndListener = this.props.navigation.getParent().addListener('transitionEnd', (e) => {
+            this.setState({isScreenBlurred: e.data.closing});
+        });
+
+        this.gestureStartListener = this.props.navigation.getParent().addListener('gestureStart', () => {
+            this.setState({isScreenBlurred: false});
         });
     }
 
@@ -175,6 +191,8 @@ class ReportScreen extends React.Component {
             this.unsubscribeVisibilityListener();
         }
         Navigation.resetIsReportScreenReadyPromise();
+        this.transitionEndListener();
+        this.gestureStartListener();
     }
 
     /**
@@ -241,7 +259,8 @@ class ReportScreen extends React.Component {
             (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
-        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isFocused;
+        const isVisible = this.props.isFocused || !this.state.isScreenBlurred;
+        const shouldFreeze = this.props.isSmallScreenWidth && !isVisible;
 
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.state.animationFinished;
 
@@ -294,7 +313,7 @@ class ReportScreen extends React.Component {
                                     ) : (
                                         <HeaderView
                                             reportID={reportID}
-                                            onNavigationMenuButtonClicked={Navigation.goBack}
+                                            onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
                                             personalDetails={this.props.personalDetails}
                                             report={this.props.report}
                                         />
@@ -388,6 +407,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNavigationFocus,
+    withNavigation,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {
