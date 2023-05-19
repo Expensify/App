@@ -819,6 +819,12 @@ const styles = {
         minHeight: variables.componentSizeLarge,
     }),
 
+    autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
+        maxWidth,
+        maxHeight: maxHeight && maxHeight + 1,
+        overflow: 'hidden',
+    }),
+
     textInputContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -1012,6 +1018,10 @@ const styles = {
         lineHeight: 16,
     },
 
+    lh140Percent: {
+        lineHeight: '140%',
+    },
+
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
@@ -1199,20 +1209,20 @@ const styles = {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
-    createMenuPositionSidebar: {
-        left: 18,
-        bottom: 100,
-    },
+    createMenuPositionSidebar: (windowHeight) => ({
+        horizontal: 18,
+        vertical: windowHeight - 100,
+    }),
 
-    createMenuPositionProfile: {
-        right: 18,
-        top: 180,
-    },
+    createMenuPositionProfile: (windowWidth) => ({
+        horizontal: windowWidth - 355,
+        vertical: 250,
+    }),
 
-    createMenuPositionReportActionCompose: {
-        left: 18 + variables.sideBarWidth,
-        bottom: 75,
-    },
+    createMenuPositionReportActionCompose: (windowHeight) => ({
+        horizontal: 18 + variables.sideBarWidth,
+        vertical: windowHeight - 75,
+    }),
 
     createMenuPositionRightSidepane: {
         right: 18,
@@ -1537,8 +1547,27 @@ const styles = {
             // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
             paddingHorizontal: variables.avatarChatSpacing,
-            paddingTop: 0,
-            paddingBottom: 0,
+            paddingTop: 9,
+            paddingBottom: 9,
+            alignSelf: 'center',
+            textAlignVertical: 'center',
+        },
+        0,
+    ),
+    textInputComposeMultiLines: addOutlineWidth(
+        {
+            backgroundColor: themeColors.componentBG,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontSize: variables.fontSizeNormal,
+            borderWidth: 0,
+            height: 'auto',
+            lineHeight: variables.lineHeightXLarge,
+            ...overflowXHidden,
+            paddingHorizontal: variables.avatarChatSpacing,
+            paddingTop: 5,
+            paddingBottom: 5,
             alignSelf: 'center',
             textAlignVertical: 'center',
         },
@@ -1559,7 +1588,7 @@ const styles = {
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 5,
+        paddingVertical: 0,
         ...flex.flexRow,
         flex: 1,
     },
@@ -1678,10 +1707,8 @@ const styles = {
 
     taskSelectorLink: {
         alignSelf: 'center',
-        height: 42,
         width: '100%',
         padding: 6,
-        margin: 3,
         backgroundColor: themeColors.transparent,
     },
 
@@ -1772,20 +1799,14 @@ const styles = {
 
     secondAvatarSubscript: {
         position: 'absolute',
-        right: -4,
-        bottom: -2,
-        borderWidth: 2,
-        borderRadius: 18,
-        borderColor: 'transparent',
+        right: -6,
+        bottom: -6,
     },
 
     secondAvatarSubscriptCompact: {
         position: 'absolute',
         bottom: -1,
         right: -1,
-        borderWidth: 1,
-        borderRadius: 18,
-        borderColor: 'transparent',
     },
 
     leftSideLargeAvatar: {
@@ -1971,6 +1992,11 @@ const styles = {
         backgroundColor: themeColors.modalBackdrop,
     },
 
+    centeredModalStyles: (isSmallScreenWidth, isFullScreenWhenSmall) => ({
+        borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
+        marginHorizontal: isSmallScreenWidth ? 0 : 20,
+    }),
+
     imageModalImageCenterContainer: {
         alignItems: 'center',
         flex: 1,
@@ -2101,6 +2127,58 @@ const styles = {
         width: '100%',
     },
 
+    twoFactorAuthSection: {
+        backgroundColor: themeColors.appBG,
+        padding: 0,
+    },
+
+    twoFactorAuthCodesBox: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.highlightBG,
+        paddingVertical: 28,
+        paddingHorizontal: 60,
+        borderRadius: 16,
+        marginTop: 32,
+    },
+
+    twoFactorLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 210,
+    },
+
+    twoFactorAuthCodesContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        height: 148,
+    },
+
+    twoFactorAuthCode: {
+        fontFamily: fontFamily.MONOSPACE,
+        width: 100,
+        height: 18,
+        textAlign: 'center',
+    },
+
+    twoFactorAuthCodesButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 12,
+        marginTop: 20,
+    },
+
+    twoFactorAuthCodesButton: {
+        minWidth: 100,
+    },
+
+    twoFactorAuthFooter: {
+        marginTop: 'auto',
+    },
+
     roomHeaderAvatarSize: {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
@@ -2192,6 +2270,13 @@ const styles = {
         flexGrow: 1,
         marginRight: 8,
         opacity: 0.5,
+    },
+
+    threadDividerLine: {
+        height: 1,
+        backgroundColor: themeColors.border,
+        flexGrow: 1,
+        marginHorizontal: 20,
     },
 
     unreadIndicatorText: {
@@ -2326,6 +2411,10 @@ const styles = {
         lineHeight: variables.inputHeight,
     },
 
+    magicCodeInputTransparent: {
+        color: 'transparent',
+    },
+
     iouAmountText: {
         ...headlineFont,
         fontSize: variables.iouAmountTextSize,
@@ -2356,6 +2445,11 @@ const styles = {
         width: '100%',
         paddingHorizontal: 20,
         paddingVertical: 12,
+    },
+
+    requestPreviewBox: {
+        marginTop: 8,
+        maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
@@ -2801,15 +2895,15 @@ const styles = {
         flex: 1,
     },
 
-    threeDotsPopoverOffset: {
-        top: 50,
-        right: 60,
-    },
+    threeDotsPopoverOffset: (windowWidth) => ({
+        vertical: 50,
+        horizontal: windowWidth - 60,
+    }),
 
-    threeDotsPopoverOffsetNoCloseButton: {
-        top: 50,
-        right: 10,
-    },
+    threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
+        vertical: 50,
+        horizontal: windowWidth - 10,
+    }),
 
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
@@ -3196,8 +3290,51 @@ const styles = {
     whisper: {
         backgroundColor: themeColors.cardBG,
     },
+
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+
+    taskCheckbox: {
+        height: 16,
+        width: 16,
+    },
+
+    shareCodePage: {
+        paddingHorizontal: 38.5,
+    },
+
+    shareCodeContainer: {
+        width: '100%',
+        alignItems: 'center',
+        paddingHorizontal: variables.qrShareHorizontalPadding,
+        paddingVertical: 20,
+        borderRadius: 20,
+        overflow: 'hidden',
+        borderColor: themeColors.borderFocus,
+        borderWidth: 2,
+        backgroundColor: themeColors.highlightBG,
+    },
+
+    splashScreenHider: {
+        backgroundColor: themeColors.splashBG,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    headerEnvBadge: {
+        marginLeft: 0,
+        marginBottom: 2,
+        height: 12,
+        paddingLeft: 4,
+        paddingRight: 4,
+        alignItems: 'center',
+    },
+
+    headerEnvBadgeText: {
+        fontSize: 7,
+        fontWeight: fontWeightBold,
+        lineHeight: undefined,
     },
 };
 

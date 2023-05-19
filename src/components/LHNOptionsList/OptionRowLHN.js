@@ -81,6 +81,9 @@ const OptionRowLHN = (props) => {
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
 
+    // If the item is a thread within a workspace, we will show the subtitle as the second line instead of in a pill
+    const alternativeText = optionItem.isThread && optionItem.subtitle ? optionItem.subtitle : optionItem.alternateText;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -147,9 +150,11 @@ const OptionRowLHN = (props) => {
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
-                                            shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat}
+                                            shouldUseFullTitle={
+                                                optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
+                                            }
                                         />
-                                        {optionItem.isChatRoom && (
+                                        {optionItem.isChatRoom && !optionItem.isThread && (
                                             <TextPill
                                                 style={textPillStyle}
                                                 accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
@@ -157,13 +162,13 @@ const OptionRowLHN = (props) => {
                                             />
                                         )}
                                     </View>
-                                    {optionItem.alternateText ? (
+                                    {alternativeText ? (
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
                                             accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.alternateText}
+                                            {alternativeText}
                                         </Text>
                                     ) : null}
                                 </View>

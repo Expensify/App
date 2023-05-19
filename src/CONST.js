@@ -35,7 +35,62 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['webp', 'jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+        /* eslint-disable-next-line max-len */
+        UNALLOWED_EXTENSIONS: [
+            'ade',
+            'adp',
+            'apk',
+            'appx',
+            'appxbundle',
+            'bat',
+            'cab',
+            'chm',
+            'cmd',
+            'com',
+            'cpl',
+            'diagcab',
+            'diagcfg',
+            'diagpack',
+            'dll',
+            'dmg',
+            'ex',
+            'ex_',
+            'exe',
+            'hta',
+            'img',
+            'ins',
+            'iso',
+            'isp',
+            'jar',
+            'jnlp',
+            'js',
+            'jse',
+            'lib',
+            'lnk',
+            'mde',
+            'msc',
+            'msi',
+            'msix',
+            'msixbundle',
+            'msp',
+            'mst',
+            'nsh',
+            'pif',
+            'ps1',
+            'scr',
+            'sct',
+            'shb',
+            'sys',
+            'vb',
+            'vbe',
+            'vbs',
+            'vhd',
+            'vxd',
+            'wsc',
+            'wsf',
+            'wsh',
+            'xll',
+        ],
 
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -210,6 +265,7 @@ const CONST = {
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
+        THREADS: 'threads',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -406,9 +462,14 @@ const CONST = {
                 ADDCOMMENT: 'ADDCOMMENT',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                TASKEDITED: 'TASKEDITED',
+                TASKCANCELED: 'TASKCANCELED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKREOPENED: 'TASKREOPENED',
+                REPORTPREVIEW: 'REPORTPREVIEW',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -498,6 +559,7 @@ const CONST = {
         },
         STATE: {
             SUBMITTED: 'SUBMITTED',
+            PROCESSING: 'PROCESSING',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -579,6 +641,7 @@ const CONST = {
     },
     JSON_CODE: {
         SUCCESS: 200,
+        BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
@@ -612,12 +675,14 @@ const CONST = {
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
+        DUPLICATE_RECORD: 'A record already exists with this ID',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
+        DUPLICATE_RECORD: '400 Unique Constraints Violation',
     },
     NETWORK: {
         METHOD: {
@@ -896,6 +961,7 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
+            VBBA: 'ACH',
         },
         MONEY_REQUEST_TYPE: {
             SEND: 'send',
@@ -1067,6 +1133,8 @@ const CONST = {
     // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
     MAX_MARKUP_LENGTH: 10000,
 
+    MAX_THREAD_REPLIES_PREVIEW: 99,
+
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
@@ -1092,6 +1160,7 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
@@ -2311,6 +2380,10 @@ const CONST = {
         ACTIVE: 'active',
         DISABLED: 'disabled',
     },
+
+    // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
+    // div and then remove it from copied contents in the getHTMLOfSelection() method.
+    UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
 };
 
 export default CONST;
