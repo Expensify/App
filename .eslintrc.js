@@ -16,8 +16,4 @@ module.exports = {
     globals: {
         __DEV__: 'readonly',
     },
-  },
-  globals: {
-    __DEV__: 'readonly',
-  },
 };
