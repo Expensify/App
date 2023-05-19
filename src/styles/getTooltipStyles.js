@@ -56,22 +56,24 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                           and the left edge of the wrapped component.
  * @param {Number} yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
+ * @param {Element} tooltip - The reference to the tooltip's root element
  * @returns {Boolean}
  */
-function isOverlappingAtTop(xOffset, yOffset) {
+function isOverlappingAtTop(xOffset, yOffset, tooltip) {
     if (typeof document.elementFromPoint !== 'function') {
         return false;
     }
 
     const element = document.elementFromPoint(xOffset, yOffset);
 
-    if (!element) {
+    // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
+    if (!element || tooltip.contains(element)) {
         return false;
     }
 
     const rect = element.getBoundingClientRect();
 
-    // Ensure it's not itself + overlapping with another element by checking if the yOffset is greater than the top of the element
+    // Ensure it's not overlapping with another element by checking if the yOffset is greater than the top of the element
     // and less than the bottom of the element
     return yOffset > rect.top && yOffset < rect.bottom;
 }
@@ -85,16 +87,17 @@ function isOverlappingAtTop(xOffset, yOffset) {
  *                           and the left edge of the wrapped component.
  * @param {Number} yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
- * @param {Number} componentWidth - The width of the wrapped component.
- * @param {Number} componentHeight - The height of the wrapped component.
+ * @param {Number} tooltipTargetWidth - The width of the tooltip's target
+ * @param {Number} tooltipTargetHeight - The height of the tooltip's target
  * @param {Number} maxWidth - The tooltip's max width.
- * @param {Number} tooltipContentWidth - The tooltip's inner content width.
- * @param {Number} tooltipContentHeight - The tooltip's inner content height.
+ * @param {Number} tooltipContentWidth - The tooltip's inner content measured width.
+ * @param {Number} tooltipContentHeight - The tooltip's inner content measured height.
  * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
  * @param {Number} [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
+ * @param {Element} tooltip - The reference to the tooltip's root element
  * @returns {Object}
  */
 export default function getTooltipStyles(
@@ -102,23 +105,21 @@ export default function getTooltipStyles(
     windowWidth,
     xOffset,
     yOffset,
-    componentWidth,
-    componentHeight,
+    tooltipTargetWidth,
+    tooltipTargetHeight,
     maxWidth,
     tooltipContentWidth,
     tooltipContentHeight,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
+    tooltip,
 ) {
     const tooltipVerticalPadding = spacing.pv1;
 
-    // We get tooltip width and height based on the tooltip's content width and height
+    // We calculate tooltip width and height based on the tooltip's content width and height
     // so the tooltip wrapper is just big enough to fit content and prevent white space.
     const tooltipWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2;
     const tooltipHeight = tooltipContentHeight && tooltipContentHeight + tooltipVerticalPadding.paddingVertical * 2;
-
-    // Hide the tooltip entirely if it's position hasn't finished measuring yet. This prevents UI jank where the tooltip flashes in the top left corner of the screen.
-    const opacity = xOffset === 0 && yOffset === 0 ? 0 : 1;
 
     const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
 
@@ -127,8 +128,8 @@ export default function getTooltipStyles(
     let shouldShowBelow = false;
     let horizontalShift = 0;
     let horizontalShiftPointer = 0;
-    let wrapperTop = 0;
-    let wrapperLeft = 0;
+    let rootWrapperTop = 0;
+    let rootWrapperLeft = 0;
     let pointerWrapperTop = 0;
     let pointerWrapperLeft = 0;
     let pointerAdditionalStyle = {};
@@ -138,14 +139,14 @@ export default function getTooltipStyles(
         // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
         // Or the wrapped component is overlapping at top-left with another element
         // we'll display it beneath its wrapped component rather than above it as usual.
-        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset);
+        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip);
 
         // When the tooltip size is ready, we can start animating the scale.
         scale = currentSize;
 
         // Determine if we need to shift the tooltip horizontally to prevent it
         // from displaying too near to the edge of the screen.
-        horizontalShift = computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal);
+        horizontalShift = computeHorizontalShift(windowWidth, xOffset, tooltipTargetWidth, tooltipWidth, manualShiftHorizontal);
 
         // Determine if we need to shift the pointer horizontally to prevent it from being too near to the edge of the tooltip
         // We shift it to the right a bit if the tooltip is positioned on the extreme left
@@ -163,9 +164,9 @@ export default function getTooltipStyles(
         // First, we'll position it vertically.
         // To shift the tooltip down, we'll give `top` a positive value.
         // To shift the tooltip up, we'll give `top` a negative value.
-        wrapperTop = shouldShowBelow
+        rootWrapperTop = shouldShowBelow
             ? // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-              yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical
+              yOffset + tooltipTargetHeight + POINTER_HEIGHT + manualShiftVertical
             : // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
               yOffset - (tooltipHeight + POINTER_HEIGHT) + manualShiftVertical;
 
@@ -181,7 +182,7 @@ export default function getTooltipStyles(
         //      so the tooltip's center lines up with the center of the wrapped component.
         //   3) Add the horizontal shift (left or right) computed above to keep it out of the gutters.
         //   4) Lastly, add the manual horizontal shift passed in as a parameter.
-        wrapperLeft = xOffset + (componentWidth / 2 - tooltipWidth / 2) + horizontalShift + manualShiftHorizontal;
+        rootWrapperLeft = xOffset + (tooltipTargetWidth / 2 - tooltipWidth / 2) + horizontalShift + manualShiftHorizontal;
 
         // By default, the pointer's top-left will align with the top-left of the tooltip wrapper.
         //
@@ -212,7 +213,7 @@ export default function getTooltipStyles(
             // so Position fixed children will be relative to this new Local cordinate system
             transform: [{scale}],
         },
-        tooltipWrapperStyle: {
+        rootWrapperStyle: {
             position: 'fixed',
             backgroundColor: themeColors.heading,
             borderRadius: variables.componentBorderRadiusSmall,
@@ -221,14 +222,13 @@ export default function getTooltipStyles(
             zIndex: variables.tooltipzIndex,
             width: tooltipWidth,
             maxWidth,
-            top: wrapperTop,
-            left: wrapperLeft,
-            opacity,
+            top: rootWrapperTop,
+            left: rootWrapperLeft,
 
             // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
             ...styles.userSelectNone,
         },
-        tooltipTextStyle: {
+        textStyle: {
             color: themeColors.textReversed,
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -239,7 +239,6 @@ export default function getTooltipStyles(
             position: 'fixed',
             top: pointerWrapperTop,
             left: pointerWrapperLeft,
-            opacity,
         },
         pointerStyle: {
             width: 0,
