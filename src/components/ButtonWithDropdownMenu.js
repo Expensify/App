@@ -1,13 +1,15 @@
 import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
-import {View, useWindowDimensions} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
+import useWindowDimensions from '../hooks/useWindowDimensions';
 import styles from '../styles/styles';
 import Button from './Button';
 import PopoverMenu from './PopoverMenu';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Text to display for the menu header */
@@ -21,6 +23,9 @@ const propTypes = {
 
     /** Should the confirmation button be disabled? */
     isDisabled: PropTypes.bool,
+
+    /** Additional styles to add to the component */
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** Menu options to display */
     /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}] */
@@ -40,32 +45,32 @@ const defaultProps = {
     isLoading: false,
     isDisabled: false,
     menuHeaderText: '',
+    style: [],
 };
 
 const ButtonWithDropdownMenu = (props) => {
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
-    const [popoverDimensions, setPopoverDimensions] = useState({});
-    const {width, height} = useWindowDimensions();
+    const {width: windowWidth, height: windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
     useEffect(() => {
-        if (!caretButton.current || !popoverDimensions.nativeEvent) {
+        if (!caretButton.current) {
             return;
         }
-        caretButton.current.measureInWindow((x, y, w) => {
+        caretButton.current.measureInWindow((x, y, w, h) => {
             setPopoverAnchorPosition({
-                left: x - popoverDimensions.nativeEvent.layout.width,
-                top: y + w + 10,
+                horizontal: x + w,
+                vertical: y + h,
             });
         });
-    }, [width, height, popoverDimensions.nativeEvent]);
+    }, [windowWidth, windowHeight]);
 
     const selectedItem = props.options[selectedItemIndex];
     return (
         <View>
             {props.options.length > 1 ? (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...props.style]}>
                     <Button
                         success
                         onPress={(event) => props.onPress(event, selectedItem.value)}
@@ -97,19 +102,23 @@ const ButtonWithDropdownMenu = (props) => {
                 <Button
                     success
                     isDisabled={props.isDisabled}
-                    style={[styles.w100]}
+                    style={[styles.w100, ...props.style]}
                     isLoading={props.isLoading}
                     text={selectedItem.text}
                     onPress={(event) => props.onPress(event, props.options[0].value)}
                     pressOnEnter
                 />
             )}
-            {props.options.length > 1 && (
+            {props.options.length > 1 && !_.isEmpty(popoverAnchorPosition) && (
                 <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => setIsMenuVisible(false)}
                     onItemSelected={() => setIsMenuVisible(false)}
                     anchorPosition={popoverAnchorPosition}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
                     headerText={props.menuHeaderText}
                     menuItems={_.map(props.options, (item, index) => ({
                         ...item,
@@ -117,7 +126,6 @@ const ButtonWithDropdownMenu = (props) => {
                             setSelectedItemIndex(index);
                         },
                     }))}
-                    onLayout={setPopoverDimensions}
                 />
             )}
         </View>

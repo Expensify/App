@@ -19,7 +19,10 @@ const Template = (args) => <ButtonWithDropdownMenu {...args} />;
 const Default = Template.bind({});
 Default.args = {
     buttonText: 'Pay with PayPal.me',
-    options: [{value: 1, text: 'One'}, {value: 2, text: 'Two'}],
+    options: [
+        {value: 1, text: 'One'},
+        {value: 2, text: 'Two'},
+    ],
 };
 
 export default story;

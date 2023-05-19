@@ -25,6 +25,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
@@ -69,8 +70,6 @@ const propTypes = {
 
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
-
-        state: PropTypes.string,
     }),
 
     /** True if this is this IOU is a split instead of a 1:1 request */
@@ -129,11 +128,7 @@ const defaultProps = {
 };
 
 const IOUPreview = (props) => {
-    // Usually the parent determines whether the IOU Preview is displayed. But as the iouReport total cannot be known
-    // until it is stored locally, we need to make this check within the Component after retrieving it. This allows us
-    // to handle the loading UI from within this Component instead of needing to declare it within each parent, which
-    // would duplicate and complicate the logic
-    if (props.iouReport.total === 0) {
+    if (_.isEmpty(props.iouReport)) {
         return null;
     }
     const sessionEmail = lodashGet(props.session, 'email', null);
@@ -142,15 +137,18 @@ const IOUPreview = (props) => {
 
     // When displaying within a IOUDetailsModal we cannot guarantee that participants are included in the originalMessage data
     // Because an IOUPreview of type split can never be rendered within the IOUDetailsModal, manually building the email array is only needed for non-billSplit ious
-    const participantEmails = props.isBillSplit ? props.action.originalMessage.participants : [managerEmail, ownerEmail];
+    const participantEmails = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participants', []) : [managerEmail, ownerEmail];
     const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails, props.personalDetails);
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
 
+    const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
+
     // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
-    const requestAmount = props.isIOUAction ? lodashGet(props.action, 'originalMessage.amount', 0) : ReportUtils.getMoneyRequestTotal(props.iouReport);
-    const requestCurrency = props.isIOUAction ? lodashGet(props.action, 'originalMessage.currency', CONST.CURRENCY.USD) : props.iouReport.currency;
+    const requestAmount = props.isIOUAction ? moneyRequestAction.amount : ReportUtils.getMoneyRequestTotal(props.iouReport);
+    const requestCurrency = props.isIOUAction ? moneyRequestAction.currency : props.iouReport.currency;
+    const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim();
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -220,30 +218,30 @@ const IOUPreview = (props) => {
                             <View style={styles.iouPreviewBoxAvatar}>
                                 <MultipleAvatars
                                     icons={participantAvatars}
-                                    secondAvatarStyle={[styles.secondAvatarInline, props.isHovered ? styles.iouPreviewBoxAvatarHover : undefined]}
+                                    shouldStackHorizontally
+                                    size="small"
+                                    isHovered={props.isHovered}
+                                    shouldUseCardBackground
                                     avatarTooltips={participantEmails}
                                 />
                             </View>
                         )}
                     </View>
-
-                    {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
-                    )}
-
-                    <Text style={[styles.colorMuted]}>{Str.htmlDecode(lodashGet(props.action, 'originalMessage.comment', ''))}</Text>
-                    {isCurrentUserManager && !props.shouldHidePayButton && props.iouReport.state === CONST.REPORT.STATE.PROCESSING && (
-                        <Button
-                            style={styles.mt4}
-                            onPress={props.onPayButtonPressed}
-                            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                            onPressOut={() => ControlSelection.unblock()}
-                            onLongPress={showContextMenu}
-                            text={props.translate('iou.pay')}
-                            success
-                            medium
-                        />
-                    )}
+                    <View style={[styles.flexRow]}>
+                        <View style={[styles.flex1]}>
+                            {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                            )}
+                            {!_.isEmpty(requestComment) && <Text style={[styles.colorMuted]}>{requestComment}</Text>}
+                        </View>
+                        {props.isBillSplit && !_.isEmpty(participantEmails) && (
+                            <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
+                                {props.translate('iou.amountEach', {
+                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantEmails.length - 1, requestAmount), requestCurrency),
+                                })}
+                            </Text>
+                        )}
+                    </View>
                 </View>
             </OfflineWithFeedback>
         </View>

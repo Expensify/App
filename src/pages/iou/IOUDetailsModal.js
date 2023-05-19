@@ -161,7 +161,7 @@ class IOUDetailsModal extends Component {
                                     <IOUPreview
                                         chatReportID={this.props.route.params.chatReportID}
                                         iouReportID={this.props.route.params.iouReportID}
-                                        isBillSplit={this.props.chatReport.participants.length > 1}
+                                        isBillSplit={lodashGet(this.props.chatReport, 'participants', []).length > 1}
                                         isIOUAction={false}
                                         pendingAction={pendingAction}
                                     />
@@ -182,6 +182,7 @@ class IOUDetailsModal extends Component {
                                             addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                                             addDebitCardRoute={ROUTES.IOU_DETAILS_ADD_DEBIT_CARD}
                                             chatReportID={this.props.route.params.chatReportID}
+                                            policyID={this.props.iouReport.policyID}
                                         />
                                     </FixedFooter>
                                 )}
