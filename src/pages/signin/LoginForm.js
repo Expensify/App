@@ -24,6 +24,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -56,6 +57,8 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...toggleVisibilityViewPropTypes,
+
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
@@ -75,6 +78,9 @@ class LoginForm extends React.Component {
             login: '',
         };
 
+        if (!this.props.isFocused) {
+            return;
+        }
         if (this.props.account.errors || this.props.account.isLoading) {
             Session.clearAccountMessages();
         }
@@ -225,6 +231,7 @@ LoginForm.propTypes = propTypes;
 LoginForm.defaultProps = defaultProps;
 
 export default compose(
+    withNavigationFocus,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},
