@@ -119,7 +119,9 @@ const ReportPreview = (props) => {
                             </Text>
                         ) : (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>{lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}</Text>
+                                <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
+                                    {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
+                                </Text>
                                 {!props.iouReport.hasOutstandingIOU && (
                                     <Icon
                                         style={[styles.ml10]}
