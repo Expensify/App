@@ -58,6 +58,18 @@ Onyx.connect({
     },
 });
 
+const currentReportData = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (data, key) => {
+        if (!key || !data) {
+            return;
+        }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        currentReportData[reportID] = data;
+    },
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -328,7 +340,6 @@ function reportActionsExist(reportID) {
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  */
 function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0') {
-    // console.log(`~~Monil clrt ${currentLastReadTime}`);
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -421,10 +432,8 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         }
     }
 
-    // if (currentLastReadTime) {
-    //     params.currentLastReadTime = currentLastReadTime;
-    // }
-
+    params.currentLastReadTime = currentReportData[reportID].lastReadTime || '';
+    console.log(`~~Monil calling openReport ${JSON.stringify(params)}`);
     API.write('OpenReport', params, onyxData);
 }
 
