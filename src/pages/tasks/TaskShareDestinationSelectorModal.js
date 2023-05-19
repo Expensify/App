@@ -138,7 +138,7 @@ const TaskShareDestinationSelectorModal = (props) => {
 
     const sections = getSections();
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithCloseButton

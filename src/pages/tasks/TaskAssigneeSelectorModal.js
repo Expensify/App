@@ -174,7 +174,7 @@ const TaskAssigneeSelectorModal = (props) => {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithCloseButton

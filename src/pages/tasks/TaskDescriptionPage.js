@@ -68,7 +68,6 @@ function TaskDescriptionPage(props) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
             <HeaderWithCloseButton
