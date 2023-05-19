@@ -31,6 +31,8 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    withoutOverlay: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -40,6 +42,7 @@ const defaultProps = {
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     anchorRef: () => {},
+    withoutOverlay: false,
 };
 
 const PopoverMenu = (props) => {
@@ -77,6 +80,7 @@ const PopoverMenu = (props) => {
             animationInTiming={props.animationInTiming}
             disableAnimation={props.disableAnimation}
             fromSidebarMediumScreen={props.fromSidebarMediumScreen}
+            withoutOverlay={props.withoutOverlay}
         >
             <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
                 {!_.isEmpty(props.headerText) && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{props.headerText}</Text>}

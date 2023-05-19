@@ -97,6 +97,7 @@ class ThreeDotsMenu extends Component {
                     onItemSelected={this.hidePopoverMenu}
                     menuItems={this.props.menuItems}
                     anchorRef={this.buttonRef}
+                    withoutOverlay
                 />
             </>
         );
