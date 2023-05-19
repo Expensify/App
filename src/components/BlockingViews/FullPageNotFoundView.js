@@ -31,7 +31,7 @@ const propTypes = {
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
-    /** Whether we should show a go back home link */
+    /** Whether we should show a link to navigate elsewhere */
     shouldShowLink: PropTypes.bool,
 
     /** The key in the translations file to use for the go back link */
@@ -40,7 +40,7 @@ const propTypes = {
     /** Method to trigger when pressing the back button of the header */
     onBackButtonPress: PropTypes.func,
 
-    /** Method to trigger when pressing the go to link */
+    /** Function to call when pressing the navigation link */
     onLinkPress: PropTypes.func,
 };
 
@@ -54,7 +54,7 @@ const defaultProps = {
     shouldShowLink: false,
     shouldShowCloseButton: true,
     onBackButtonPress: () => Navigation.dismissModal(),
-    onLinkPress: () => Navigation.dismissModal(),
+    onLinkPress: () => Navigation.dismissModal(true),
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables

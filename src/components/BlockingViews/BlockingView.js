@@ -25,7 +25,7 @@ const propTypes = {
     /** Link message below the subtitle */
     link: PropTypes.string,
 
-    /** Whether we should show a go to link */
+    /** Whether we should show a link to navigate elsewhere */
     shouldShowLink: PropTypes.bool,
 
     /** The custom icon width */
@@ -34,7 +34,7 @@ const propTypes = {
     /** The custom icon height */
     iconHeight: PropTypes.number,
 
-    /** Method to trigger when pressing the go to link */
+    /** Function to call when pressing the navigation link */
     onLinkPress: PropTypes.func,
 };
 
@@ -44,7 +44,7 @@ const defaultProps = {
     link: 'notFound.goBackHome',
     iconWidth: variables.iconSizeSuperLarge,
     iconHeight: variables.iconSizeSuperLarge,
-    onLinkPress: () => Navigation.dismissModal(),
+    onLinkPress: () => Navigation.dismissModal(true),
 };
 
 const BlockingView = (props) => (
