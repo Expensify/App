@@ -694,9 +694,8 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shouldCloseOnDelete) {
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
-
-    // Get the amount we are deleting
     const amount = moneyRequestAction.originalMessage.amount;
+
     const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         amount,
@@ -727,6 +726,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
+                [moneyRequestAction.reportActionID]: null,
                 [optimisticIOUAction.reportActionID]: {
                     ...optimisticIOUAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -760,6 +760,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
+                [moneyRequestAction.reportActionID]: moneyRequestAction,
                 [optimisticIOUAction.reportActionID]: {
                     errors: {
                         [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
