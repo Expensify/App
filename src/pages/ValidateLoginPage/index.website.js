@@ -119,18 +119,19 @@ class ValidateLoginPage extends Component {
     render() {
         const is2FARequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
         const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
+        const currentAuthState = this.getAutoAuthState();
         return (
             <>
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <TfaRequiredModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && isSignedIn && <AbracadabraModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
+                {currentAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <TfaRequiredModal />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && isSignedIn && <AbracadabraModal />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
                     <ValidateCodeModal
                         accountID={this.getAccountID()}
                         code={this.getValidateCode()}
                     />
                 )}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
             </>
         );
     }
