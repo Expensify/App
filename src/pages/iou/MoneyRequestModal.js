@@ -366,6 +366,7 @@ const MoneyRequestModal = (props) => {
                                             // the floating-action-button (since it is something that exists outside the context of a report).
                                             canModifyParticipants={!_.isEmpty(reportID)}
                                             navigateToStep={navigateToStep}
+                                            policyID={props.report.policyID}
                                         />
                                     </AnimatedStep>
                                 )}

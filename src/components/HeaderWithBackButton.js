@@ -77,6 +77,7 @@ const propTypes = {
     stepCounter: PropTypes.shape({
         step: PropTypes.number,
         total: PropTypes.number,
+        text: PropTypes.string,
     }),
 
     /** Whether we should show an avatar */
@@ -121,8 +122,8 @@ const defaultProps = {
     stepCounter: null,
     threeDotsMenuItems: [],
     threeDotsAnchorPosition: {
-        top: 0,
-        left: 0,
+        vertical: 0,
+        horizontal: 0,
     },
 };
 

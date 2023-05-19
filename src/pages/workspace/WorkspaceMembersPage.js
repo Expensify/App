@@ -387,21 +387,12 @@ class WorkspaceMembersPage extends React.Component {
         data = _.sortBy(data, (value) => value.displayName.toLowerCase());
         data = this.getMemberOptions(data, this.state.searchValue.trim().toLowerCase());
 
-        data = _.reject(data, (member) => {
-            if (!policyOwner || !currentUserLogin) {
-                return;
-            }
-
-            // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
-            if (PolicyUtils.isExpensifyTeam(policyOwner)) {
-                return;
-            }
-
-            // We don't want to show guides as policy members unless the user is not a guide. Some customers get confused when they
-            // see random people added to their policy, but guides having access to the policies help set them up.
-            const isCurrentUserExpensifyTeam = PolicyUtils.isExpensifyTeam(currentUserLogin);
-            return !isCurrentUserExpensifyTeam && PolicyUtils.isExpensifyTeam(member.login);
-        });
+        // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
+        // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
+        // see random people added to their policy, but guides having access to the policies help set them up.
+        if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+            data = _.reject(data, (member) => PolicyUtils.isExpensifyTeam(member.login));
+        }
 
         _.each(data, (member) => {
             if (member.login === this.props.session.email || member.login === this.props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {

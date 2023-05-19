@@ -55,27 +55,30 @@ const defaultProps = {
 const getAllParticipants = (report, personalDetails) => {
     const {participants} = report;
 
-    return _.map(participants, (login) => {
-        const userLogin = Str.removeSMSDomain(login);
-        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
+    return _.chain(participants)
+        .map((login) => {
+            const userLogin = Str.removeSMSDomain(login);
+            const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
 
-        return {
-            alternateText: userLogin,
-            displayName: userPersonalDetail.displayName,
-            icons: [
-                {
-                    source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
-                    name: login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                },
-            ],
-            keyForList: userLogin,
-            login,
-            text: userPersonalDetail.displayName,
-            tooltipText: userLogin,
-            participantsList: [{login, displayName: userPersonalDetail.displayName}],
-        };
-    });
+            return {
+                alternateText: userLogin,
+                displayName: userPersonalDetail.displayName,
+                icons: [
+                    {
+                        source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
+                        name: login,
+                        type: CONST.ICON_TYPE_AVATAR,
+                    },
+                ],
+                keyForList: userLogin,
+                login,
+                text: userPersonalDetail.displayName,
+                tooltipText: userLogin,
+                participantsList: [{login, displayName: userPersonalDetail.displayName}],
+            };
+        })
+        .sortBy((participant) => participant.displayName.toLowerCase())
+        .value();
 };
 
 const ReportParticipantsPage = (props) => {
@@ -86,7 +89,9 @@ const ReportParticipantsPage = (props) => {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithBackButton
-                        title={props.translate(ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) ? 'common.members' : 'common.details')}
+                        title={props.translate(
+                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report) ? 'common.members' : 'common.details',
+                        )}
                     />
                     <View
                         pointerEvents="box-none"

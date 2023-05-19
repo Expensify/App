@@ -24,6 +24,7 @@ jest.doMock('react-native', () => {
                 BootSplash: {
                     getVisibilityStatus: jest.fn(),
                     hide: jest.fn(),
+                    navigationBarHeight: 0,
                 },
                 StartupTimer: {stop: jest.fn()},
             },

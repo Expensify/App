@@ -5,9 +5,7 @@ import {useFlipper} from '@react-navigation/devtools';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
 import withCurrentReportId from '../../components/withCurrentReportId';
@@ -66,7 +64,6 @@ const NavigationRoot = (props) => {
     return (
         <NavigationContainer
             key={props.isSmallScreenWidth ? 'small' : 'big'}
-            fallback={<FullScreenLoadingIndicator style={styles.navigatorFullScreenLoading} />}
             onStateChange={updateSavedNavigationStateAndLogRoute}
             initialState={navigationStateRef.current}
             onReady={props.onReady}

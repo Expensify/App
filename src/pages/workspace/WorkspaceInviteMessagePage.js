@@ -78,6 +78,17 @@ class WorkspaceInviteMessagePage extends React.Component {
         };
     }
 
+    componentDidMount() {
+        this.focusTimeout = setTimeout(() => {
+            this.welcomeMessageInputRef.focus();
+            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
+            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
+                const length = this.welcomeMessageInputRef.value.length;
+                this.welcomeMessageInputRef.setSelectionRange(length, length);
+            }
+        }, CONST.ANIMATED_TRANSITION);
+    }
+
     componentDidUpdate(prevProps) {
         if (
             !(
@@ -88,6 +99,13 @@ class WorkspaceInviteMessagePage extends React.Component {
             return;
         }
         this.setState({welcomeNote: this.getDefaultWelcomeNote()});
+    }
+
+    componentWillUnmount() {
+        if (!this.focusTimeout) {
+            return;
+        }
+        clearTimeout(this.focusTimeout);
     }
 
     getDefaultWelcomeNote() {
@@ -176,6 +194,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         </View>
                         <View style={[styles.mb3]}>
                             <TextInput
+                                ref={(el) => (this.welcomeMessageInputRef = el)}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"

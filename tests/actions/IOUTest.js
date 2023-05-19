@@ -1178,7 +1178,7 @@ describe('actions/IOU', () => {
                                     expect(iouReport.chatReportID).toBe(chatReport.reportID);
 
                                     expect(chatReport.pendingFields).toBeFalsy();
-                                    expect(chatReport.pendingFields).toBeFalsy();
+                                    expect(iouReport.pendingFields).toBeFalsy();
 
                                     // expect(iouReport.status).toBe(CONST.REPORT.STATUS.SUBMITTED);
                                     // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
@@ -1230,7 +1230,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     fetch.pause();
-                    IOU.payMoneyRequestElsewhere(chatReport, iouReport, {login: iouReport.ownerEmail});
+                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
                     return waitForPromisesToResolve();
                 })
                 .then(

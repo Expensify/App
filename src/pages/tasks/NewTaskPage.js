@@ -118,7 +118,7 @@ const NewTaskPage = (props) => {
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.confirmTask')}
                 onBackButtonPress={() => Navigation.goBack()}
