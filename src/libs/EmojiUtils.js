@@ -320,7 +320,7 @@ const getPreferredEmojiCode = (emoji, preferredSkinTone) => {
     }
 
     return emoji.code;
-}
+};
 
 /**
  * Given an emoji object and a list of senders it will return an
@@ -340,7 +340,7 @@ const getUniqueEmojiCodes = (emoji, users) => {
         }
     });
     return emojiCodes;
-}
+};
 
 export {
     getHeaderEmojis,
@@ -353,5 +353,5 @@ export {
     getEmojiCodeWithSkinColor,
     getPreferredSkinToneIndex,
     getPreferredEmojiCode,
-    getUniqueEmojiCodes
+    getUniqueEmojiCodes,
 };

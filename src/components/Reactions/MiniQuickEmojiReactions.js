@@ -18,7 +18,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as EmojiUtils from '../../libs/EmojiUtils';
 
-
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
 

@@ -11,8 +11,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Tooltip from '../../Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 
-
-
 const baseQuickEmojiReactionsPropTypes = {
     /**
      * Callback to fire when an emoji is selected.
