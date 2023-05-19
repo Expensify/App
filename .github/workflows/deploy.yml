@@ -38,24 +38,6 @@ jobs:
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Create robots.txt to disallow indexing on staging
-        run: |
-          touch robots.txt
-          echo "# Keep all robots from indexing staging" >> robots.txt
-          echo "User-agent: *" >> robots.txt
-          echo "Disallow: /" >> robots.txt
-
-          echo "cat robots.txt"
-          cat robots.txt
-
-          echo "pwd"
-          pwd
-
-          echo "ls -a ${{ github.workspace }}"
-          ls -a ${{ github.workspace }}
-
-        shell: bash
-
       - name: Tag version
         run: git tag "$(npm run print-version --silent)"
 
