@@ -22,7 +22,7 @@ export default function withNavigationFocus(WrappedComponent) {
 
     WithNavigationFocus.displayName = `withNavigationFocus(${getComponentDisplayName(WrappedComponent)})`;
     WithNavigationFocus.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
     };
     WithNavigationFocus.defaultProps = {
         forwardedRef: undefined,
