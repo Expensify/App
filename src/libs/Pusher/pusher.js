@@ -165,13 +165,15 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
         // Only call the event callback if we've received the last packet and we don't have any holes in the complete
         // packet.
         if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === _.keys(chunkedEvent.chunks).length) {
-            eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
+            const combinedData = chunkedEvent.chunks.join('');
+            const finalData = combinedData.substring(1, combinedData.length - 1);
+
             try {
-                eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
+                eventCallback(JSON.parse(finalData));
             } catch (err) {
                 Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher', {
                     error: err,
-                    eventData: chunkedEvent.chunks.join(''),
+                    eventData: finalData,
                 });
             }
 
