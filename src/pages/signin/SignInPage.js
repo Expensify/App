@@ -129,6 +129,7 @@ class SignInPage extends Component {
         let welcomeText = '';
 
         const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
+        // replacing spaces with "hard spaces" to prevent breaking the number
         const userLoginToDisplay = Str.isSMSLogin(userLogin) ? this.props.formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
 
         if (showValidateCodeForm) {
@@ -136,7 +137,7 @@ class SignInPage extends Component {
                 // We will only know this after a user signs in successfully, without their 2FA code
                 welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
-            } else if (this.props.account.validated) {
+            } else {
                 welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
                 welcomeText = this.props.isSmallScreenWidth
                     ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`

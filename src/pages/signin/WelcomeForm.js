@@ -19,12 +19,6 @@ import Terms from './Terms';
 const propTypes = {
     /* Onyx Props */
 
-    /** The credentials of the logged in person */
-    credentials: PropTypes.shape({
-        /** The email/phone the user logged in with */
-        login: PropTypes.string,
-    }),
-
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** Whether or not a sign on form is loading (being submitted) */
@@ -48,7 +42,6 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
-    credentials: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
@@ -75,13 +68,12 @@ const WelcomeForm = (props) => (
 
 WelcomeForm.propTypes = propTypes;
 WelcomeForm.defaultProps = defaultProps;
-WelcomeForm.displayName = 'UnlinkLoginForm';
+WelcomeForm.displayName = 'WelcomeForm';
 
 export default compose(
     withLocalize,
     withNetwork(),
     withOnyx({
-        credentials: {key: ONYXKEYS.CREDENTIALS},
         account: {key: ONYXKEYS.ACCOUNT},
     }),
 )(WelcomeForm);

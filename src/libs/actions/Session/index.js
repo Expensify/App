@@ -383,6 +383,11 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
+/**
+ * Creates an account for the new user and signs them into the application with the newly created account.
+ *
+ * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
+ */
 function signUp(preferredLocale = CONST.LOCALES.DEFAULT) {
     const optimisticData = [
         {
