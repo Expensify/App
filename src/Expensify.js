@@ -102,7 +102,6 @@ function Expensify(props) {
     const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded || !props.isCheckingPublicRoom);
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
-
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
             return;
