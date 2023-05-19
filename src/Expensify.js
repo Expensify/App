@@ -90,7 +90,8 @@ function Expensify(props) {
     const [isSplashHidden, setIsSplashHidden] = useState(false);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
-    const shouldHideSplash = isNavigationReady && !isSplashHidden && (!isAuthenticated || props.isSidebarLoaded);
+    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded);
+    const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -171,7 +172,7 @@ function Expensify(props) {
 
     return (
         <DeeplinkWrapper>
-            {isSplashHidden && (
+            {shouldInit && (
                 <>
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
