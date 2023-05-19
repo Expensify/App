@@ -331,7 +331,7 @@ class MoneyRequestConfirmationList extends Component {
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={this.props.canEditDetails}
-                    title={this.props.iou.comment}
+                    title={this.props.iou.comment || ''}
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                     style={[styles.moneyRequestMenuItem, styles.mb2]}

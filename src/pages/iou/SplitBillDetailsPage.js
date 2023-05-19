@@ -9,6 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ModalHeader from './ModalHeader';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -32,7 +33,7 @@ const SplitBillDetailsPage = (props) => {
     const participants = OptionsListUtils.getParticipantsOptions(reportAction.originalMessage, personalDetails);
 
     return (
-        <>
+        <ScreenWrapper>
             <ModalHeader
                 title={props.translate('common.details')}
                 shouldShowBackButton={false}
@@ -46,7 +47,7 @@ const SplitBillDetailsPage = (props) => {
                 canEditDetails={false}
                 shouldShowFooter={false}
             />
-        </>
+        </ScreenWrapper>
     );
 };
 
