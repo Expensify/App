@@ -86,7 +86,7 @@ function ReportActionsList(props) {
     const opacity = useSharedValue(0);
     const currentUnreadMarker = useRef(null);
     const report = props.report;
-    const lastReadTimeRef = useRef(report.lastReadTime);
+    const prevLastReadTimeRef = useRef(report.lastReadTime);
     const sortedReportActions = props.sortedReportActions;
     const [reportActionSize, setReportActionSize] = useState(sortedReportActions.lenght);
     const animatedStyles = useAnimatedStyle(() => ({
@@ -100,6 +100,10 @@ function ReportActionsList(props) {
     const windowHeight = props.windowHeight;
 
     useEffect(() => {
+        if (ReportUtils.isUnread(report)) {
+            Report.readNewestAction(report.reportID);
+        }
+
         if (currentUnreadMarker.current) {
             return;
         }
@@ -107,7 +111,6 @@ function ReportActionsList(props) {
         if (reportActionSize === sortedReportActions.length) {
             return;
         }
-
         setReportActionSize(sortedReportActions.length);
         Report.readNewestAction(report.reportID);
         currentUnreadMarker.current = null;
@@ -115,12 +118,17 @@ function ReportActionsList(props) {
     }, [sortedReportActions.length, report.reportID]);
 
     useEffect(() => {
-        if (lastReadTimeRef.current === report.lastReadTime && !ReportUtils.isUnread(report)) {
+        const didManuallyMarkReportAsUnread = prevLastReadTimeRef.current !== report.lastReadTime && ReportUtils.isUnread(report);
+        prevLastReadTimeRef.current = report.lastReadTime;
+
+        if (!didManuallyMarkReportAsUnread) {
             return;
         }
 
-        lastReadTimeRef.current = report.lastReadTime;
+        // Clearing the current unread marker so that it can be recalculated
         currentUnreadMarker.current = null;
+
+        // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastReadTime]);
 
@@ -159,7 +167,7 @@ function ReportActionsList(props) {
             } else {
                 shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current.id;
             }
-           
+
             const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isThread(report);
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction

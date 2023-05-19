@@ -339,7 +339,7 @@ function reportActionsExist(reportID) {
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  */
 function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0') {
-    console.log(`~~Monil clrt ${currentLastReadTime}`);
+    // console.log(`~~Monil clrt ${currentLastReadTime}`);
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -431,9 +431,9 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             });
         }
     }
-    if (currentLastReadTime) {
-        params.currentLastReadTime = currentLastReadTime;
-    }
+    // if (currentLastReadTime) {
+    //     params.currentLastReadTime = currentLastReadTime;
+    // }
 
     API.write('OpenReport', params, onyxData);
 }
