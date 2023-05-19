@@ -1,4 +1,5 @@
 import CONST from '../CONST';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 /* eslint-disable max-len */
 export default {
@@ -7,6 +8,7 @@ export default {
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
+        buttonConfirm: 'Ok, entendido',
         attachment: 'Archivo adjunto',
         to: 'A',
         optional: 'Opcional',
@@ -23,6 +25,7 @@ export default {
         zoom: 'Zoom',
         password: 'Contraseña',
         magicCode: 'Código mágico',
+        twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
@@ -119,6 +122,7 @@ export default {
         enterManually: 'Introducir manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        leaveThread: 'Salir del hilo',
         you: 'Tú',
         youAfterPreposition: 'ti',
         your: 'tu',
@@ -150,7 +154,7 @@ export default {
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
-        notAllowedExtension: 'Los archivos adjuntos deben ser de uno de los siguientes tipos:',
+        notAllowedExtension: 'Este tipo de archivo no está permitido',
     },
     avatarCropModal: {
         title: 'Editar foto',
@@ -252,8 +256,8 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         editComment: 'Editar comentario',
-        deleteComment: 'Eliminar comentario',
-        deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
+        deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
+        deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
     },
@@ -300,7 +304,6 @@ export default {
         newChat: 'Nuevo chat',
         newGroup: 'Nuevo grupo',
         newRoom: 'Nueva sala de chat',
-        headerChat: 'Chats',
         buttonSearch: 'Buscar',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Nuevo chat',
@@ -332,7 +335,8 @@ export default {
         payerSettled: ({amount}) => `pagado ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
-        threadReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         error: {
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -340,11 +344,14 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
-    notificationPreferences: {
+    notificationPreferencesPage: {
+        header: 'Preferencias de avisos',
         label: 'Avisar sobre nuevos mensajes',
-        immediately: 'Inmediatamente',
-        daily: 'Cada día',
-        mute: 'Nunca',
+        notificationPreferences: {
+            always: 'Inmediatamente',
+            daily: 'Cada día',
+            mute: 'Nunca',
+        },
     },
     loginField: {
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
@@ -495,10 +502,40 @@ export default {
             newPassword: 'Su contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
     },
+    twoFactorAuth: {
+        headerTitle: 'Autenticación de dos factores',
+        twoFactorAuthEnabled: 'Autenticación de dos factores habilitada',
+        whatIsTwoFactorAuth:
+            'La autenticación de dos factores (2FA) ayuda a mantener tu cuenta segura. Al iniciar sesión, deberás ingresar un código generado por tu aplicación de autenticación preferida.',
+        disableTwoFactorAuth: 'Deshabilitar la autenticación de dos factores',
+        disableTwoFactorAuthConfirmation: 'La autenticación de dos factores mantiene tu cuenta más segura. ¿Estás seguro de que quieres desactivarla?',
+        disabled: 'La autenticación de dos factores ahora está deshabilitada',
+        noAuthenticatorApp: 'Ya no necesitarás una aplicación de autenticación para iniciar sesión en Expensify.',
+        stepCodes: 'Códigos de recuperación',
+        keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
+        codesLoseAccess:
+            'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
+        stepVerify: 'Verificar',
+        scanCode: 'Escanea el código QR usando tu',
+        authenticatorApp: 'aplicación de autenticación',
+        addKey: 'O agrega esta clave secreta a su aplicación de autenticación:',
+        enterCode: 'Luego ingresa el código de seis dígitos generado por su aplicación de autenticación.',
+        stepSuccess: 'Finalizado',
+        enabled: '¡La autenticación de dos factores ahora está habilitada!',
+        congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
+        copyCodes: 'Copiar códigos',
+        copy: 'Copiar',
+        disable: 'Deshabilitar',
+    },
+    twoFactorAuthForm: {
+        error: {
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: 'Contraseña actualizada!',
         allSet: 'Todo está listo. Guarda tu contraseña en un lugar seguro.',
-        gotIt: 'Ok, entendido',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Recibe pagos vía PayPal.',
@@ -626,7 +663,6 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
-        twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         codeSent: '¡Código mágico enviado!',
         error: {
@@ -641,12 +677,11 @@ export default {
         pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
         enterYourTwoFactorAuthenticationCodeToContinue: 'Introduce el código de autenticación de dos factores para continuar',
         forgot: '¿Has olvidado la contraseña?',
-        twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         error: {
             incorrectPassword: 'Contraseña incorrecta. Por favor, inténtalo de nuevo.',
             incorrectLoginOrPassword: 'Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo',
-            incorrect2fa: 'Código de autenticación de 2 factores incorrecto. Por favor, inténtalo de nuevo',
+            incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor, conéctate usando tu email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor, inténtalo de nuevo o restablece la contraseña',
             unableToResetPassword:
@@ -725,7 +760,18 @@ export default {
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
         validateAccount: 'Verificar cuenta',
     },
-    stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
+    stepCounter: ({step, total, text}) => {
+        let result = `Paso ${step}`;
+
+        if (total) {
+            result = `${result} de ${total}`;
+        }
+
+        if (text) {
+            result = `${result}: ${text}`;
+        }
+        return result;
+    },
     bankAccount: {
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',
@@ -743,7 +789,6 @@ export default {
         hasPhoneLoginError:
             'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar agregar tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
-        buttonConfirm: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
@@ -1102,6 +1147,7 @@ export default {
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
+            nameIsTooLongError: `El nombre de su espacio de trabajo no puede tener más de ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} caracteres.`,
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',
@@ -1202,6 +1248,7 @@ export default {
         completed: 'Completada',
         messages: {
             completed: 'Tarea completada',
+            canceled: 'Tarea cancelada',
             reopened: 'Tarea reabrir',
         },
     },
@@ -1790,5 +1837,9 @@ export default {
         lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
+    },
+    qrCodes: {
+        copyUrlToClipboard: 'Copiar URL al portapapeles',
+        copied: '¡Copiado!',
     },
 };
