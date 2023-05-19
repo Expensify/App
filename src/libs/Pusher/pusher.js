@@ -165,6 +165,8 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
         // Only call the event callback if we've received the last packet and we don't have any holes in the complete
         // packet.
         if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === _.keys(chunkedEvent.chunks).length) {
+            // For some reason, PHP is sending chunked events wrapped in an extra set of double-quotes. This breaks the JSON parsing.
+            // To prevent that, the double-quotes are being manually removed here.
             const combinedData = chunkedEvent.chunks.join('');
             const finalData = combinedData.substring(1, combinedData.length - 1);
 
