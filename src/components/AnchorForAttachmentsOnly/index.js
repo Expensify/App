@@ -4,7 +4,7 @@ import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import ControlSelection from '../../libs/ControlSelection';
 
-const AnchorForAttachmentsOnly = props => (
+const AnchorForAttachmentsOnly = (props) => (
     <BaseAnchorForAttachmentsOnly
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}

@@ -3,11 +3,9 @@ import {View, Animated} from 'react-native';
 import styles from '../../../../../styles/styles';
 import floatingMessageCounterContainerPropTypes from './floatingMessageCounterContainerPropTypes';
 
-const FloatingMessageCounterContainer = props => (
+const FloatingMessageCounterContainer = (props) => (
     <Animated.View style={[styles.floatingMessageCounterWrapperAndroid, ...props.containerStyles]}>
-        <View style={styles.floatingMessageCounterSubWrapperAndroid}>
-            {props.children}
-        </View>
+        <View style={styles.floatingMessageCounterSubWrapperAndroid}>{props.children}</View>
     </Animated.View>
 );
 

@@ -12,7 +12,6 @@ const propTypes = {
 
     /** Count of the emoji */
     emojiCount: PropTypes.number.isRequired,
-
 };
 
 export default propTypes;

@@ -126,22 +126,34 @@ class AuthScreens extends React.Component {
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
-        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
-            Modal.close(() => {
-                if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
-                    return;
-                }
-                return Navigation.navigate(ROUTES.SEARCH);
-            });
-        }, searchShortcutConfig.descriptionKey, searchShortcutConfig.modifiers, true);
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
-            Modal.close(() => {
-                if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.NEW_GROUP);
-            });
-        }, groupShortcutConfig.descriptionKey, groupShortcutConfig.modifiers, true);
+        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
+            searchShortcutConfig.shortcutKey,
+            () => {
+                Modal.close(() => {
+                    if (Navigation.isActiveRoute(ROUTES.SEARCH)) {
+                        return;
+                    }
+                    return Navigation.navigate(ROUTES.SEARCH);
+                });
+            },
+            searchShortcutConfig.descriptionKey,
+            searchShortcutConfig.modifiers,
+            true,
+        );
+        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(
+            groupShortcutConfig.shortcutKey,
+            () => {
+                Modal.close(() => {
+                    if (Navigation.isActiveRoute(ROUTES.NEW_GROUP)) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.NEW_GROUP);
+                });
+            },
+            groupShortcutConfig.descriptionKey,
+            groupShortcutConfig.modifiers,
+            true,
+        );
     }
 
     shouldComponentUpdate(nextProps) {
@@ -173,7 +185,7 @@ class AuthScreens extends React.Component {
         const modalScreenOptions = {
             ...commonModalScreenOptions,
             cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
+            cardStyleInterpolator: (props) => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
             cardOverlayEnabled: true,
 
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
@@ -186,7 +198,6 @@ class AuthScreens extends React.Component {
         return (
             <RootStack.Navigator
                 mode="modal"
-
                 // We are disabling the default keyboard handling here since the automatic behavior is to close a
                 // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
                 // a header will briefly open and close the keyboard and crash Android.

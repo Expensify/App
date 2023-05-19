@@ -55,7 +55,7 @@ const defaultProps = {
     contentStyles: [],
 };
 
-const ConfirmPopover = props => (
+const ConfirmPopover = (props) => (
     <Popover
         onSubmit={props.onConfirm}
         onClose={props.onCancel}

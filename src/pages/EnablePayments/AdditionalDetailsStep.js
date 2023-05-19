@@ -43,11 +43,13 @@ const propTypes = {
         errors: PropTypes.objectOf(PropTypes.string),
 
         /** Questions returned by Idology */
-        questions: PropTypes.arrayOf(PropTypes.shape({
-            prompt: PropTypes.string,
-            type: PropTypes.string,
-            answer: PropTypes.arrayOf(PropTypes.string),
-        })),
+        questions: PropTypes.arrayOf(
+            PropTypes.shape({
+                prompt: PropTypes.string,
+                type: PropTypes.string,
+                answer: PropTypes.arrayOf(PropTypes.string),
+            }),
+        ),
 
         /** ExpectID ID number related to those questions */
         idNumber: PropTypes.string,
@@ -191,7 +193,10 @@ class AdditionalDetailsStep extends React.Component {
     render() {
         if (!_.isEmpty(this.props.walletAdditionalDetails.questions)) {
             return (
-                <ScreenWrapper style={[styles.flex1]} keyboardAvoidingViewBehavior="height">
+                <ScreenWrapper
+                    style={[styles.flex1]}
+                    keyboardAvoidingViewBehavior="height"
+                >
                     <HeaderWithCloseButton
                         title={this.props.translate('additionalDetailsStep.headerTitle')}
                         onCloseButtonPress={() => Navigation.dismissModal()}

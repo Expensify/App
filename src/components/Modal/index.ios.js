@@ -3,9 +3,9 @@ import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './modalPropTypes';
 
-const Modal = props => (
+const Modal = (props) => (
     <BaseModal
-            // eslint-disable-next-line react/jsx-props-no-spreading
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     >
         {props.children}

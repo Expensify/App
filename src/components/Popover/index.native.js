@@ -6,7 +6,7 @@ import Modal from '../Modal';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
-    ...(_.omit(popoverPropTypes, _.keys(windowDimensionsPropTypes))),
+    ..._.omit(popoverPropTypes, _.keys(windowDimensionsPropTypes)),
 };
 
 /*
@@ -21,7 +21,6 @@ const Popover = (props) => {
             popoverAnchorPosition={props.fromSidebarMediumScreen ? props.anchorPosition : undefined}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutAnimation}
-
             // Mobile will always has fullscreen menu
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             fullscreen

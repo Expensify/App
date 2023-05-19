@@ -4,7 +4,7 @@ import {defaultProps, propTypes} from './htmlEnginePropTypes';
 import withWindowDimensions from '../withWindowDimensions';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
-const HTMLEngineProvider = props => (
+const HTMLEngineProvider = (props) => (
     <BaseHTMLEngineProvider
         debug={props.debug}
         textSelectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}

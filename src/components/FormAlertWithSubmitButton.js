@@ -60,7 +60,7 @@ const defaultProps = {
     footerContent: null,
 };
 
-const FormAlertWithSubmitButton = props => (
+const FormAlertWithSubmitButton = (props) => (
     <FormAlertWrapper
         containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
         isAlertVisible={props.isAlertVisible}
@@ -68,9 +68,9 @@ const FormAlertWithSubmitButton = props => (
         message={props.message}
         onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
     >
-        {isOffline => (
+        {(isOffline) => (
             <View>
-                {(isOffline && !props.enabledWhenOffline) ? (
+                {isOffline && !props.enabledWhenOffline ? (
                     <Button
                         success
                         isDisabled

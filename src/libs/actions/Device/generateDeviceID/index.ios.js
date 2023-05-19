@@ -8,8 +8,7 @@ const deviceID = DeviceInfo.getDeviceId();
  * @returns {Promise<String>}
  */
 function generateDeviceID() {
-    return DeviceInfo.getUniqueId()
-        .then(uniqueID => `${deviceID}_${uniqueID}`);
+    return DeviceInfo.getUniqueId().then((uniqueID) => `${deviceID}_${uniqueID}`);
 }
 
 export default generateDeviceID;

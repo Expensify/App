@@ -50,7 +50,7 @@ function getLatestErrorMessage(onyxData) {
         .keys()
         .sortBy()
         .reverse()
-        .map(key => onyxData.errors[key])
+        .map((key) => onyxData.errors[key])
         .first()
         .value();
 }
@@ -71,7 +71,7 @@ function getLatestErrorField(onyxData, fieldName) {
         .keys()
         .sortBy()
         .reverse()
-        .map(key => ({[key]: errorsForField[key]}))
+        .map((key) => ({[key]: errorsForField[key]}))
         .first()
         .value();
 }
@@ -95,9 +95,4 @@ function addErrorMessage(errors, inputID, message) {
     }
 }
 
-export {
-    getAuthenticateErrorMessage,
-    getLatestErrorMessage,
-    getLatestErrorField,
-    addErrorMessage,
-};
+export {getAuthenticateErrorMessage, getLatestErrorMessage, getLatestErrorField, addErrorMessage};

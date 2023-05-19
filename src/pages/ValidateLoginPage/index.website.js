@@ -2,10 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import {
-    propTypes as validateLinkPropTypes,
-    defaultProps as validateLinkDefaultProps,
-} from './validateLinkPropTypes';
+import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
 import * as User from '../../libs/actions/User';
 import compose from '../../libs/compose';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -90,11 +87,7 @@ class ValidateLoginPage extends Component {
     }
 
     componentDidUpdate() {
-        if (
-            lodashGet(this.props, 'credentials.login', null)
-            || !lodashGet(this.props, 'credentials.accountID', null)
-            || !lodashGet(this.props, 'account.requiresTwoFactorAuth', false)
-        ) {
+        if (lodashGet(this.props, 'credentials.login', null) || !lodashGet(this.props, 'credentials.accountID', null) || !lodashGet(this.props, 'account.requiresTwoFactorAuth', false)) {
             return;
         }
 
@@ -131,7 +124,12 @@ class ValidateLoginPage extends Component {
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && (!isTfaRequired || isSignedIn) && <AbracadabraModal />}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isTfaRequired && !isSignedIn && <TfaRequiredModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && <ValidateCodeModal accountID={this.getAccountID()} code={this.getValidateCode()} />}
+                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
+                    <ValidateCodeModal
+                        accountID={this.getAccountID()}
+                        code={this.getValidateCode()}
+                    />
+                )}
                 {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
             </>
         );

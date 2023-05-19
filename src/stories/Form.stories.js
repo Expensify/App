@@ -113,9 +113,7 @@ const Template = (args) => {
             <CheckboxWithLabel
                 inputID="checkbox"
                 style={[styles.mb4, styles.mt5]}
-                LabelComponent={() => (
-                    <Text>I accept the Expensify Terms of Service</Text>
-                )}
+                LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
             />
         </Form>
     );
@@ -144,9 +142,7 @@ const WithNativeEventHandler = (args) => {
                 onChangeText={setLog}
                 shouldSaveDraft
             />
-            <Text>
-                {`Entered routing number: ${log}`}
-            </Text>
+            <Text>{`Entered routing number: ${log}`}</Text>
         </Form>
     );
 };
@@ -231,10 +227,4 @@ InputError.args = {
 WithNativeEventHandler.args = {...defaultArgs, draftValues: {routingNumber: '', accountNumber: ''}};
 
 export default story;
-export {
-    Default,
-    Loading,
-    ServerError,
-    InputError,
-    WithNativeEventHandler,
-};
+export {Default, Loading, ServerError, InputError, WithNativeEventHandler};

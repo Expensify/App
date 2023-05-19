@@ -8,11 +8,11 @@ describe('getIsReportFullyVisible', () => {
         });
 
         it.each`
-            isDrawerOpen       | isSmallScreenWidth   | expectedResult
-            ${false}           | ${false}             | ${true}
-            ${true}            | ${false}             | ${true}
-            ${false}           | ${true}              | ${true}
-            ${true}            | ${true}              | ${false}
+            isDrawerOpen | isSmallScreenWidth | expectedResult
+            ${false}     | ${false}           | ${true}
+            ${true}      | ${false}           | ${true}
+            ${false}     | ${true}            | ${true}
+            ${true}      | ${true}            | ${false}
         `('returns $expectedResult when isDrawerOpen is $isDrawerOpen and isSmallScreenWidth is $isSmallScreenWidth', ({isDrawerOpen, isSmallScreenWidth, expectedResult}) => {
             expect(getIsReportFullyVisible(isDrawerOpen, isSmallScreenWidth)).toBe(expectedResult);
         });
@@ -24,11 +24,11 @@ describe('getIsReportFullyVisible', () => {
         });
 
         it.each`
-            isDrawerOpen       | isSmallScreenWidth   | expectedResult
-            ${false}           | ${false}             | ${false}
-            ${true}            | ${false}             | ${false}
-            ${false}           | ${true}              | ${false}
-            ${true}            | ${true}              | ${false}
+            isDrawerOpen | isSmallScreenWidth | expectedResult
+            ${false}     | ${false}           | ${false}
+            ${true}      | ${false}           | ${false}
+            ${false}     | ${true}            | ${false}
+            ${true}      | ${true}            | ${false}
         `('returns $expectedResult when isDrawerOpen is $isDrawerOpen and isSmallScreenWidth is $isSmallScreenWidth', ({isDrawerOpen, isSmallScreenWidth, expectedResult}) => {
             expect(getIsReportFullyVisible(isDrawerOpen, isSmallScreenWidth)).toBe(expectedResult);
         });

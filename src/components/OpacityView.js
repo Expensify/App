@@ -21,7 +21,7 @@ const propTypes = {
      * @default []
      */
     // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 
     /**
      * The value to use for the opacity when the view is dimmed
@@ -51,9 +51,7 @@ const OpacityView = (props) => {
 
     return (
         <Animated.View style={[opacityStyle]}>
-            <View style={StyleUtils.parseStyleAsArray(props.style)}>
-                {props.children}
-            </View>
+            <View style={StyleUtils.parseStyleAsArray(props.style)}>{props.children}</View>
         </Animated.View>
     );
 };

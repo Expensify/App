@@ -32,20 +32,18 @@ function getTagsOrReleases(fetchReleases) {
 
 console.log(`Fetching ${itemToFetch} list from github...`);
 getTagsOrReleases(isProductionDeploy)
-    .catch(githubError => core.setFailed(githubError))
+    .catch((githubError) => core.setFailed(githubError))
     .then(({data}) => {
         const keyToPluck = isProductionDeploy ? 'tag_name' : 'name';
         const tags = _.pluck(data, keyToPluck);
         const priorTagIndex = _.indexOf(tags, inputTag) + 1;
 
         if (priorTagIndex === 0) {
-            console.log(`No ${itemToFetch} was found for input tag ${inputTag}.`
-                + `Comparing it to latest ${itemToFetch} ${tags[0]}`);
+            console.log(`No ${itemToFetch} was found for input tag ${inputTag}. Comparing it to latest ${itemToFetch} ${tags[0]}`);
         }
 
         if (priorTagIndex === tags.length) {
-            const err = new Error('Somehow, the input tag was at the end of the paginated result, '
-                + 'so we don\'t have the prior tag');
+            const err = new Error("Somehow, the input tag was at the end of the paginated result, so we don't have the prior tag");
             console.error(err.message);
             core.setFailed(err);
             return;
@@ -61,4 +59,4 @@ getTagsOrReleases(isProductionDeploy)
         console.log(`Found the pull request list: ${pullRequestList}`);
         return core.setOutput('PR_LIST', pullRequestList);
     })
-    .catch(error => core.setFailed(error));
+    .catch((error) => core.setFailed(error));
