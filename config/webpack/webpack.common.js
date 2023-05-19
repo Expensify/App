@@ -74,6 +74,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             template: 'web/index.html',
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
+            isStaging: envFile === '.env.staging',
         }),
         new HtmlInlineScriptPlugin({
             scriptMatchPattern: [/splash.+[.]js$/],
