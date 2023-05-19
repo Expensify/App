@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {Freeze} from 'react-freeze';
 
 import SCREENS from '../../../../SCREENS';
 import ReportScreenWrapper from '../ReportScreenWrapper';
@@ -36,26 +37,24 @@ function CentralPaneNavigator() {
         return () => unsubscribe();
     }, [isFocused, isScreenBlurred, navigation, screenIndex]);
 
-    if (!isFocused && isScreenBlurred) {
-        return null;
-    }
-
     return (
-        <Stack.Navigator>
-            <Stack.Screen
-                name={SCREENS.REPORT}
-                // We do it this way to avoid adding this to url
-                initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
-                options={{
-                    headerShown: false,
-                    title: 'New Expensify',
+        <Freeze freeze={!isFocused && isScreenBlurred}>
+            <Stack.Navigator>
+                <Stack.Screen
+                    name={SCREENS.REPORT}
+                    // We do it this way to avoid adding this to url
+                    initialParams={{openOnAdminRoom: openOnAdminRoom ? 'true' : undefined}}
+                    options={{
+                        headerShown: false,
+                        title: 'New Expensify',
 
-                    // Prevent unnecessary scrolling
-                    cardStyle: styles.cardStyleNavigator,
-                }}
-                component={ReportScreenWrapper}
-            />
-        </Stack.Navigator>
+                        // Prevent unnecessary scrolling
+                        cardStyle: styles.cardStyleNavigator,
+                    }}
+                    component={ReportScreenWrapper}
+                />
+            </Stack.Navigator>
+        </Freeze>
     );
 }
 
