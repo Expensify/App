@@ -23,10 +23,10 @@ import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
-    onConfirm: PropTypes.func.isRequired,
+    onConfirm: PropTypes.func,
 
     /** Callback to parent modal to send money */
-    onSendMoney: PropTypes.func.isRequired,
+    onSendMoney: PropTypes.func,
 
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
@@ -66,13 +66,19 @@ const propTypes = {
     }),
 
     /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
-    navigateToStep: PropTypes.func.isRequired,
+    navigateToStep: PropTypes.func,
 
     /** The policyID of the request */
     policyID: PropTypes.string.isRequired,
+
+    /** Whether we can edit the amount and description details */
+    canEditDetails: PropTypes.bool,
 };
 
 const defaultProps = {
+    onConfirm: () => {},
+    onSendMoney: () => {},
+    navigateToStep: () => {},
     iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
@@ -81,6 +87,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    canEditDetails: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -303,21 +310,21 @@ class MoneyRequestConfirmationList extends Component {
                 }
             >
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    shouldShowRightIcon={this.props.canEditDetails}
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
                     onPress={() => this.props.navigateToStep(0)}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={this.state.didConfirm}
+                    disabled={this.state.didConfirm || !this.props.canEditDetails}
                 />
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    shouldShowRightIcon={this.props.canEditDetails}
                     title={this.props.iou.comment}
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                     style={[styles.moneyRequestMenuItem, styles.mb2]}
-                    disabled={this.state.didConfirm}
+                    disabled={this.state.didConfirm || !this.props.canEditDetails}
                 />
             </OptionsSelector>
         );

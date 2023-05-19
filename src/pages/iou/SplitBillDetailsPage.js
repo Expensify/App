@@ -41,11 +41,9 @@ const SplitBillDetailsPage = (props) => {
                 hasMultipleParticipants
                 participants={participants}
                 iouAmount={reportAction.originalMessage.amount}
-                onConfirm={() => {}}
-                onSendMoney={() => {}}
                 iouType={CONST.IOU.REPORT_ACTION_TYPE.SPLIT}
                 canModifyParticipants={false}
-                navigateToStep={() => {}}
+                canEditDetails={false}
             />
         </>
     );
