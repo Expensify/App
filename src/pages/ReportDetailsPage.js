@@ -161,7 +161,7 @@ class ReportDetailsPage extends Component {
                                     {isPolicyAdmin ? (
                                         <Pressable
                                             onPress={() => {
-                                                Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.report.policyID));
+                                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.report.policyID));
                                             }}
                                         >
                                             {chatRoomSubtitleText}
