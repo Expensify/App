@@ -11,6 +11,7 @@ import compose from '../../../../libs/compose';
 import ROUTES from '../../../../ROUTES';
 import FullPageOfflineBlockingView from '../../../../components/BlockingViews/FullPageOfflineBlockingView';
 import * as Illustrations from '../../../../components/Icon/Illustrations';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import styles from '../../../../styles/styles';
 import FixedFooter from '../../../../components/FixedFooter';
 import Button from '../../../../components/Button';
@@ -24,6 +25,7 @@ import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthAct
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
     account: PropTypes.shape({
         /** User recovery codes for setting up 2-FA */
         recoveryCodes: PropTypes.string,
@@ -73,7 +75,7 @@ function CodesPage(props) {
                     <View style={styles.mv3}>
                         <Text>{props.translate('twoFactorAuth.codesLoseAccess')}</Text>
                     </View>
-                    <View style={styles.twoFactorAuthCodesBox}>
+                    <View style={[styles.twoFactorAuthCodesBox, { paddingHorizontal: props.isSmallScreenWidth ? 40 : 60 }]}>
                         {props.account.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
                                 <ActivityIndicator color={themeColors.spinner} />
@@ -133,6 +135,7 @@ CodesPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),

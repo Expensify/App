@@ -2137,7 +2137,6 @@ const styles = {
         justifyContent: 'center',
         backgroundColor: themeColors.highlightBG,
         paddingVertical: 28,
-        paddingHorizontal: 60,
         borderRadius: 16,
         marginTop: 32,
     },
