@@ -69,7 +69,7 @@ const propTypes = {
     navigateToStep: PropTypes.func,
 
     /** The policyID of the request */
-    policyID: PropTypes.string.isRequired,
+    policyID: PropTypes.string,
 
     /** Whether we can edit the amount and description details */
     canEditDetails: PropTypes.bool,
@@ -92,6 +92,7 @@ const defaultProps = {
     },
     canEditDetails: true,
     shouldShowFooter: true,
+    policyID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
