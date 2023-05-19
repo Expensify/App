@@ -24,16 +24,16 @@ const propTypes = {
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const WriteCapabilityPage = (props) => {
-    const writeCapabilityOptions = _.map(props.translate('writeCapabilityPage.writeCapability'), (preference, key) => ({
-        value: key,
-        text: preference,
-        keyForList: key,
+    const writeCapabilityOptions = _.map(CONST.REPORT.WRITE_CAPABILITIES, (value) => ({
+        value,
+        text: props.translate(`writeCapabilityPage.writeCapability.${value}`),
+        keyForList: value,
 
         // Include the green checkmark icon to indicate the currently selected value
-        customIcon: key === (props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL) ? greenCheckmark : null,
+        customIcon: value === (props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL) ? greenCheckmark : null,
 
         // This property will make the currently selected value have bold text
-        boldStyle: key === (props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL),
+        boldStyle: value === (props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL),
     }));
 
     return (
