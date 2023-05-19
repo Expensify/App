@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -64,6 +64,15 @@ function BaseValidateCodeForm(props) {
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState('');
     const loginData = props.loginList[props.contactMethod];
+    const inputValidateCodeRef = useRef();
+
+    useEffect(() => {
+        if (!props.hasMagicCodeBeenSent) {
+            return;
+        }
+        setValidateCode('');
+        inputValidateCodeRef.current.focus();
+    }, [props.hasMagicCodeBeenSent]);
 
     /**
      * Request a validate code / magic code be sent to verify this contact method
@@ -111,6 +120,7 @@ function BaseValidateCodeForm(props) {
         <>
             <MagicCodeInput
                 autoComplete={props.autoComplete}
+                ref={inputValidateCodeRef}
                 label={props.translate('common.magicCode')}
                 name="validateCode"
                 value={validateCode}
