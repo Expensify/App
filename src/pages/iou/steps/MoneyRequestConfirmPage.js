@@ -5,7 +5,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
 import CONST from '../../../CONST';
-import withMoneyRequest from '../withMoneyRequest';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -17,7 +16,7 @@ import ModalHeader from '../ModalHeader';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
-import {moneyRequestPropTypes} from '../withMoneyRequest';
+import withMoneyRequest, {moneyRequestPropTypes} from '../withMoneyRequest';
 
 const propTypes = {
     report: reportPropTypes,
