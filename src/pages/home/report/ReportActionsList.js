@@ -84,6 +84,7 @@ function isUnreadMsg(message, lastRead) {
 
 function ReportActionsList(props) {
     const opacity = useSharedValue(0);
+    const isUserActiveOnChat = useRef(false);
     const currentUnreadMarker = useRef(null);
     const report = props.report;
     const prevLastReadTimeRef = useRef(report.lastReadTime);
@@ -98,6 +99,13 @@ function ReportActionsList(props) {
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
     const windowHeight = props.windowHeight;
+
+    useEffect(() => {
+        isUserActiveOnChat.current = true;
+        return () => {
+            isUserActiveOnChat.current = false;
+        }
+    }, []);
 
     useEffect(() => {
         if (ReportUtils.isUnread(report)) {
