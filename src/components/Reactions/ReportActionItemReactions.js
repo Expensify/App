@@ -8,7 +8,6 @@ import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import getPreferredEmojiCode from './getPreferredEmojiCode';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import * as Report from '../../libs/actions/Report';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
@@ -50,6 +49,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
 
+    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
+    reportActionID: PropTypes.string.isRequired,
+
     /**
      * Function to call when the user presses on an emoji.
      * This can also be an emoji the user already reacted with,
@@ -83,9 +85,9 @@ const ReportActionItemReactions = (props) => {
                 const onPress = () => {
                     props.toggleReaction(emoji);
                 };
+
                 const onReactionListOpen = (event) => {
-                    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers, props.currentUserPersonalDetails.accountID);
-                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, users, reaction.emoji, emojiCodes, reactionCount, hasUserReacted);
+                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
                 };
 
                 return (

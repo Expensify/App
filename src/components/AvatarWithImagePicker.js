@@ -302,6 +302,7 @@ class AvatarWithImagePicker extends React.Component {
                                         anchorPosition={this.props.anchorPosition}
                                         withoutOverlay
                                         anchorRef={this.anchorRef}
+                                        anchorAlignment={this.props.anchorAlignment}
                                     />
                                 </>
                             )}

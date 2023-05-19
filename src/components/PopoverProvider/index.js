@@ -35,11 +35,7 @@ const PopoverContextProvider = (props) => {
                 !activePopoverRef.current.ref ||
                 !activePopoverRef.current.ref.current ||
                 activePopoverRef.current.ref.current.contains(e.target) ||
-                (
-                    activePopoverRef.current.anchorRef &&
-                    activePopoverRef.current.anchorRef.current &&
-                    activePopoverRef.current.anchorRef.current.contains(e.target)
-                )
+                (activePopoverRef.current.anchorRef && activePopoverRef.current.anchorRef.current && activePopoverRef.current.anchorRef.current.contains(e.target))
             ) {
                 return;
             }
@@ -90,17 +86,12 @@ const PopoverContextProvider = (props) => {
 
     React.useEffect(() => {
         const listener = (e) => {
-            if(
-                activePopoverRef.current && 
-                activePopoverRef.current.ref && 
-                activePopoverRef.current.ref.current && 
-                activePopoverRef.current.ref.current.contains(e.target)
-            ) {
+            if (activePopoverRef.current && activePopoverRef.current.ref && activePopoverRef.current.ref.current && activePopoverRef.current.ref.current.contains(e.target)) {
                 return;
             }
 
             closePopover();
-        }
+        };
         document.addEventListener('scroll', listener, true);
         return () => {
             document.removeEventListener('scroll', listener, true);

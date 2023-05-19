@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashMerge from 'lodash/merge';
 import lodashFindLast from 'lodash/findLast';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
@@ -102,7 +101,7 @@ function isTransactionThread(parentReportAction) {
     return (
         parentReportAction &&
         parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
+        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails')))
     );
 }
 
@@ -184,7 +183,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    if (moment(currentAction.created).unix() - moment(previousAction.created).unix() > 300) {
+    if (new Date(currentAction.created).getTime() - new Date(previousAction.created).getTime() > 300000) {
         return false;
     }
 
@@ -230,9 +229,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
 
-    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
-    const parser = new ExpensiMark();
-    const messageText = parser.htmlToText(htmlText);
+    const messageText = lodashGet(message, 'text', '');
     return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 

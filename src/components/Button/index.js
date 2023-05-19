@@ -110,8 +110,8 @@ const propTypes = {
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
 
-    /** React ref being forwarded to the Button */
-    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    /** A ref to forward the button */
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.oneOfType([PropTypes.instanceOf(React.Component), PropTypes.func])})]),
 };
 
 const defaultProps = {
@@ -144,7 +144,7 @@ const defaultProps = {
     shouldEnableHapticFeedback: false,
     nativeID: '',
     accessibilityLabel: '',
-    buttonRef: () => {},
+    forwardedRef: undefined,
 };
 
 class Button extends Component {
@@ -244,16 +244,7 @@ class Button extends Component {
     render() {
         return (
             <PressableWithFeedback
-                ref={(el) => {
-                    if (!this.props.buttonRef) {
-                        return;
-                    }
-                    if (typeof this.props.buttonRef === 'function') {
-                        this.props.buttonRef(el);
-                    } else {
-                        this.props.buttonRef.current = el;
-                    }
-                }}
+                ref={this.props.forwardedRef}
                 onPress={(e) => {
                     if (e && e.type === 'click') {
                         e.currentTarget.blur();
@@ -317,4 +308,15 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-export default compose(withNavigationFallback, withNavigationFocus)(Button);
+export default compose(
+    withNavigationFallback,
+    withNavigationFocus,
+)(
+    React.forwardRef((props, ref) => (
+        <Button
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
