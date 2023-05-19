@@ -1125,7 +1125,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
 function navigateToConciergeChat() {
     // In order to avoid creating concierge repeatedly, 
     // we need to ensure that the server data has been successfully pulled
-    Welcome.isReadyPromise.then(() => {
+    Welcome.serverDataIsReadyPromise().then(() => {
         // If we don't have a chat with Concierge then create it
         if (!conciergeChatReportID) {
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
@@ -1133,7 +1133,7 @@ function navigateToConciergeChat() {
         }
 
         Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
-    })
+    });
 }
 
 /**
