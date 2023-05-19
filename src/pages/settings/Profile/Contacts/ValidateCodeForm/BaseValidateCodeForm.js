@@ -71,7 +71,7 @@ function BaseValidateCodeForm(props) {
             return;
         }
         setValidateCode('');
-        inputValidateCodeRef.current.focus();
+        inputValidateCodeRef.current.clear();
     }, [props.hasMagicCodeBeenSent]);
 
     /**
