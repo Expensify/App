@@ -1,5 +1,5 @@
 import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View, Platform} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
@@ -263,7 +263,7 @@ function MagicCodeInput(props) {
     // We need to check the browser because, in iOS Safari, an input in a container with its opacity set to
     // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown.
     // Alternate styling will be applied based on this condition.
-    const isMobileSafari = Browser.isMobileSafari();
+    const isMobileSafariOrIOS = Browser.isMobileSafari() || Platform.OS === 'ios';
 
     return (
         <>
@@ -276,7 +276,7 @@ function MagicCodeInput(props) {
                         <View style={[styles.textInputContainer, focusedIndex === index ? styles.borderColorFocus : {}, props.hasError || props.errorText ? styles.borderColorDanger : {}]}>
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value)[index] || ''}</Text>
                         </View>
-                        <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
+                        <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafariOrIOS ? styles.bgTransparent : styles.opacity0]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
                                 autoFocus={index === 0 && props.autoFocus}
@@ -301,8 +301,8 @@ function MagicCodeInput(props) {
                                 onKeyPress={onKeyPress}
                                 onPress={(event) => onPress(event, index)}
                                 onFocus={onFocus}
-                                caretHidden={isMobileSafari}
-                                inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                                caretHidden={isMobileSafariOrIOS}
+                                inputStyle={[isMobileSafariOrIOS ? styles.magicCodeInputTransparent : undefined]}
                             />
                         </View>
                     </View>
