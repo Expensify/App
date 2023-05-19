@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useState, useRef, useMemo} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
@@ -8,7 +8,6 @@ import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import * as Report from '../../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
@@ -77,18 +76,8 @@ function keyExtractor(item) {
     return item.reportActionID;
 }
 
-function isUnreadMsg(message, lastRead) {
-    // console.log(`lastRead ${lastRead} < message ${message?.created}`, message);
-    return message && lastRead && message.created && lastRead < message.created;
-}
-
-function ReportActionsList(props) {
+const ReportActionsList = (props) => {
     const opacity = useSharedValue(0);
-    const currentUnreadMarker = useRef(null);
-    const report = props.report;
-    const lastReadTimeRef = useRef(report.lastReadTime);
-    const sortedReportActions = props.sortedReportActions;
-    const [reportActionSize, setReportActionSize] = useState(sortedReportActions.length);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
@@ -99,44 +88,21 @@ function ReportActionsList(props) {
 
     const windowHeight = props.windowHeight;
 
-    useEffect(() => {
-        if (currentUnreadMarker.current) {
-            return;
-        }
-
-        if (reportActionSize === sortedReportActions.length) {
-            return;
-        }
-
-        setReportActionSize(sortedReportActions.length);
-        Report.readNewestAction(report.reportID);
-        currentUnreadMarker.current = null;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedReportActions.length, report.reportID]);
-
-    useEffect(() => {
-        if (lastReadTimeRef.current === report.lastReadTime && !ReportUtils.isUnread(report)) {
-            return;
-        }
-
-        lastReadTimeRef.current = report.lastReadTime;
-        currentUnreadMarker.current = null;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.lastReadTime]);
-
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
      * @return {Number}
      */
-    const initialNumToRender = useMemo(() => {
+    const calculateInitialNumToRender = useCallback(() => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [windowHeight]);
 
+    const report = props.report;
     const hasOutstandingIOU = props.report.hasOutstandingIOU;
-
+    const newMarkerReportActionID = props.newMarkerReportActionID;
+    const sortedReportActions = props.sortedReportActions;
     const mostRecentIOUReportActionID = props.mostRecentIOUReportActionID;
 
     /**
@@ -146,20 +112,8 @@ function ReportActionsList(props) {
      */
     const renderItem = useCallback(
         ({item: reportAction, index}) => {
-            let shouldDisplayNewMarker = false;
-
-            if (!currentUnreadMarker.current) {
-                const nextMessage = sortedReportActions[index + 1];
-                const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
-                shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
-
-                if (!currentUnreadMarker.current && shouldDisplayNewMarker) {
-                    currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
-                }
-            } else {
-                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current.id;
-            }
-
+            // When the new indicator should not be displayed we explicitly set it to null
+            const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
             const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isThread(report);
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
@@ -179,14 +133,13 @@ function ReportActionsList(props) {
                 />
             );
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID],
+        [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [!props.isDrawerOpen && props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
-
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
@@ -197,7 +150,7 @@ function ReportActionsList(props) {
                 contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
-                initialNumToRender={initialNumToRender}
+                initialNumToRender={calculateInitialNumToRender()}
                 onEndReached={props.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponent={() => {
@@ -230,7 +183,7 @@ function ReportActionsList(props) {
             />
         </Animated.View>
     );
-}
+};
 
 ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;

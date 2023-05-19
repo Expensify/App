@@ -58,18 +58,6 @@ Onyx.connect({
     },
 });
 
-const currentReportData = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (data, key) => {
-        if (!data || !key) {
-            return;
-        }
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        currentReportData[reportID] = data;
-    },
-});
-
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -326,10 +314,6 @@ function addComment(reportID, text) {
     addActions(reportID, text);
 }
 
-function reportActionsExist(reportID) {
-    return allReportActions[reportID] !== undefined;
-}
-
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
@@ -343,13 +327,12 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        value: reportActionsExist(reportID)
-            ? {}
-            : {
-                  isLoadingReportActions: true,
-                  isLoadingMoreReportActions: false,
-                  reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
-              },
+        value: {
+            isLoadingReportActions: true,
+            isLoadingMoreReportActions: false,
+            lastReadTime: DateUtils.getDBTime(),
+            reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+        },
     };
     const reportSuccessData = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -431,9 +414,6 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             });
         }
     }
-    console.log(JSON.stringify(currentReportData));
-    params.currentLastReadTime = currentReportData[reportID].lastReadTime || '';
-    console.log(`~~Monil openReport params ${JSON.stringify(params)}`);
 
     API.write('OpenReport', params, onyxData);
 }
@@ -678,7 +658,6 @@ function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
  * @param {String} reportID
  */
 function readNewestAction(reportID) {
-    console.log(`~~Monil marking comment as read ${reportID}`);
     API.write(
         'ReadNewestAction',
         {
@@ -1619,20 +1598,6 @@ function openReportFromDeepLink(url) {
     });
 }
 
-function getCurrentUserAccountID() {
-    return currentUserAccountID;
-}
-
-/**
- * @param {String|null} reportID
- */
-function getAllReportActions(reportID) {
-    if (reportID) {
-        return allReportActions[reportID];
-    }
-    return allReportActions;
-}
-
 /**
  * Leave a report by setting the state to submitted and closed
  *
@@ -1711,6 +1676,5 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
-    getAllReportActions,
     leaveRoom,
 };
