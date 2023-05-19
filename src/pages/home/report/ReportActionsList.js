@@ -90,10 +90,10 @@ function ReportActionsList(props) {
     const sortedReportActions = props.sortedReportActions;
     const [reportActionSize, setReportActionSize] = useState(sortedReportActions.lenght);
     const animatedStyles = useAnimatedStyle(() => ({
-        opacity: withTiming(opacity.value, {duration: 100}),
+        opacity: opacity.value,
     }));
     useEffect(() => {
-        opacity.value = 1;
+        opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 

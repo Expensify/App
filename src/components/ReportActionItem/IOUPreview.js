@@ -146,7 +146,7 @@ const IOUPreview = (props) => {
     const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
 
     // If props.action is undefined then we are displaying within IOUDetailsModal and should use the full report amount
-    const requestAmount = props.isIOUAction ? moneyRequestAction.total : ReportUtils.getMoneyRequestTotal(props.iouReport);
+    const requestAmount = props.isIOUAction ? moneyRequestAction.amount : ReportUtils.getMoneyRequestTotal(props.iouReport);
     const requestCurrency = props.isIOUAction ? moneyRequestAction.currency : props.iouReport.currency;
     const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim();
 
@@ -218,13 +218,15 @@ const IOUPreview = (props) => {
                             <View style={styles.iouPreviewBoxAvatar}>
                                 <MultipleAvatars
                                     icons={participantAvatars}
-                                    secondAvatarStyle={[styles.secondAvatarInline, props.isHovered ? styles.iouPreviewBoxAvatarHover : undefined]}
+                                    shouldStackHorizontally
+                                    size="small"
+                                    isHovered={props.isHovered}
+                                    shouldUseCardBackground
                                     avatarTooltips={participantEmails}
                                 />
                             </View>
                         )}
                     </View>
-
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1]}>
                             {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
