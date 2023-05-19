@@ -22,7 +22,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
-import * as Welcome from './Welcome'
+import * as Welcome from './Welcome';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1123,7 +1123,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat() {
-    // In order to avoid creating concierge repeatedly, 
+    // In order to avoid creating concierge repeatedly,
     // we need to ensure that the server data has been successfully pulled
     Welcome.serverDataIsReadyPromise().then(() => {
         // If we don't have a chat with Concierge then create it
