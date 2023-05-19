@@ -445,10 +445,9 @@ class ReportActionCompose extends React.Component {
      * Build the suggestions for mentions
      * @param {Object} personalDetails
      * @param {String} [searchValue]
-     * @param {Number} [maxRecords]
      * @returns {Object}
      */
-    getMentionOptions(personalDetails, searchValue = '', maxRecords = 5) {
+    getMentionOptions(personalDetails, searchValue = '') {
         const suggestions = [];
 
         if (CONST.MENTION_SUGGESTER.HERE_TEXT.includes(searchValue)) {
@@ -481,7 +480,7 @@ class ReportActionCompose extends React.Component {
                 ],
             });
         });
-        return suggestions.slice(0, maxRecords);
+        return suggestions.slice(0, 5);
     }
 
     /**
