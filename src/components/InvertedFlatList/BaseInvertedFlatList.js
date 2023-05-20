@@ -136,8 +136,10 @@ class BaseInvertedFlatList extends Component {
                 // Native platforms do not need to measure items and work fine without this.
                 // Web requires that items be measured or else crazy things happen when scrolling.
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
-                // We keep this property very low so that chat switching remains fast
-                maxToRenderPerBatch={1}
+                // Keep batch size relatively small for responsiveness, but not too small as it will cause
+                // excessive rendering. See https://github.com/Expensify/App/pull/19345 for performance testing
+                // of this value.
+                maxToRenderPerBatch={10}
                 windowSize={15}
 
                 // Commenting the line below as it breaks the unread indicator test
