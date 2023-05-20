@@ -38,7 +38,7 @@ class DeeplinkWrapper extends PureComponent {
         this.state = {
             appInstallationCheckStatus:
                 this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
-            isOpenLinkInBrowser: false,
+            shouldOpenLinkInBrowser: false,
         };
         this.focused = true;
         this.openLinkInBrowser = this.openLinkInBrowser.bind(this);
@@ -122,12 +122,11 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     openLinkInBrowser() {
-        this.setState({isOpenLinkInBrowser: true});
+        this.setState({shouldOpenLinkInBrowser: true});
     }
 
-    deeplinkNeedRedirectLoadingIndicator() {
-        const validateLoginUrlPattern = '/v($|(//*))';
-        const routeRegex = new RegExp(validateLoginUrlPattern);
+    shouldShowDeeplinkLoadingIndicator() {
+        const routeRegex = new RegExp(CONST.REGEX.ROUTES.VALIDATE_LOGIN);
         return routeRegex.test(window.location.pathname);
     }
 
@@ -136,7 +135,7 @@ class DeeplinkWrapper extends PureComponent {
             return <FullScreenLoadingIndicator style={styles.flex1} />;
         }
 
-        if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED && this.deeplinkNeedRedirectLoadingIndicator() && !this.state.isOpenLinkInBrowser) {
+        if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED && this.shouldShowDeeplinkLoadingIndicator() && !this.state.shouldOpenLinkInBrowser) {
             return <DeeplinkRedirectLoadingIndicator openLinkInBrowser={this.openLinkInBrowser} />;
         }
 
