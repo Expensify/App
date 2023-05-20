@@ -1086,6 +1086,10 @@ const CONST = {
         MENTION_REPLACER: /^@[^\n\r]*?(?=$|\s)/,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
+
+        ROUTES: {
+            VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+        }
     },
 
     PRONOUNS: {
