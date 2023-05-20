@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import TextInput from '../../components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -9,6 +10,7 @@ import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import withMoneyRequest, {moneyRequestPropTypes} from './withMoneyRequest';
 
@@ -28,7 +30,10 @@ class MoneyRequestDescriptionPage extends Component {
     componentDidMount() {
         const iouType = lodashGet(this.props.route, 'params.iouType', '');
         const reportID = lodashGet(this.props.route, 'params.reportID', '');
-        this.props.moneyRequest.redirectIfEmpty([this.props.moneyRequest.participants, this.props.moneyRequest.amount], iouType, reportID);
+        if (_.isEmpty(this.props.moneyRequest.participants) || this.props.moneyRequest.amount === 0) {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
+        }
     }
 
     /**

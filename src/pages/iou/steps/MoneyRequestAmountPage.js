@@ -88,7 +88,10 @@ class MoneyRequestAmountPage extends React.Component {
 
     componentDidMount() {
         if (this.isEditing) {
-            this.props.moneyRequest.redirectIfEmpty([this.props.moneyRequest.participants, this.props.moneyRequest.amount], this.iouType, this.reportID);
+            if (_.isEmpty(this.props.moneyRequest.participants) || this.props.moneyRequest.amount === 0) {
+                Navigation.goBack();
+                Navigation.navigate(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
+            }
         } else {
             // Set the money request participants based on the report participants
             const participants = ReportUtils.isPolicyExpenseChat(this.props.report)

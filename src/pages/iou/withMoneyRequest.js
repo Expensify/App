@@ -1,12 +1,9 @@
 import React, {createContext, forwardRef, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import optionPropTypes from '../../components/optionPropTypes';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect';
 
 const MoneyRequestContext = createContext();
@@ -34,26 +31,7 @@ const moneyRequestPropTypes = PropTypes.shape({
 
     // Callback to update money request description
     setComment: PropTypes.func.isRequired,
-
-    // Helper function to prevent user going further steps without completeing the previous steps
-    redirectIfEmpty: PropTypes.func.isRequired,
 });
-
-/**
- * Redirect to money request initial page if one of the data is empty
- * @param {Array} data
- * @param {String} iouType
- * @param {String} reportID
- */
-// eslint-disable-next-line rulesdir/prefer-early-return
-const redirectIfEmpty = (data, iouType, reportID) => {
-    // If one of the data is empty, redirect the user to the initial money request page.
-    // If the data is a number (amount), 0 will be treated as empty.
-    if (_.some(data, (d) => (_.isNumber(d) ? d === 0 : _.isEmpty(d)))) {
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
-    }
-};
 
 const MoneyRequestProvider = (props) => {
     const [amount, setAmount] = useState(0);
@@ -78,7 +56,6 @@ const MoneyRequestProvider = (props) => {
             setCurrency,
             setParticipants,
             setComment,
-            redirectIfEmpty,
         },
     };
 

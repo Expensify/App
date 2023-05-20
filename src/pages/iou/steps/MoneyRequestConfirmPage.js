@@ -8,6 +8,7 @@ import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
@@ -35,8 +36,12 @@ const MoneyRequestConfirmPage = (props) => {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        props.moneyRequest.redirectIfEmpty([props.moneyRequest.participants, props.moneyRequest.amount], iouType.current, reportID.current);
+        if (_.isEmpty(props.moneyRequest.participants) || props.moneyRequest.amount === 0) {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

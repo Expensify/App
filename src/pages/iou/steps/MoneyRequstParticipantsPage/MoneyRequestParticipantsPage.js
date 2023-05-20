@@ -28,8 +28,12 @@ const MoneyRequestParticipantsPage = (props) => {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
     };
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        props.moneyRequest.redirectIfEmpty([props.moneyRequest.amount], iouType.current, reportID.current);
+        if (props.moneyRequest.amount === 0) {
+            Navigation.goBack();
+            Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
