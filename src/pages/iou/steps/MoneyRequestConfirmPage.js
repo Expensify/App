@@ -92,7 +92,7 @@ const MoneyRequestConfirmPage = (props) => {
                 IOU.sendMoneyWithWallet(props.report, props.moneyRequest.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
             }
         },
-        [props.moneyRequest, props.currentUserPersonalDetails.login, props.report],
+        [props.moneyRequest.amount, props.moneyRequest.comment, props.moneyRequest.participants, props.moneyRequest.currency, props.currentUserPersonalDetails.login, props.report],
     );
 
     return (
