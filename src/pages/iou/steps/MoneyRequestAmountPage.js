@@ -105,23 +105,27 @@ class MoneyRequestAmountPage extends React.Component {
         // Focus automatically after navigating back from currency selector
         this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
             this.focusTextInput();
-            this.getCurrencyFromRouteParams();
         });
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.moneyRequest.amount === this.props.moneyRequest.amount) {
-            return;
+        const prevCurrencyParam = lodashGet(prevProps.route.params, 'currency', '');
+        const currencyParam = lodashGet(this.props.route.params, 'currency', '');
+        if (currencyParam !== '' && prevCurrencyParam !== currencyParam) {
+            this.setState({selectedCurrencyCode: currencyParam});
         }
-        const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.moneyRequest.currency, this.props.moneyRequest.amount).toString();
-        this.setState({
-            amount: selectedAmountAsString,
-            selectedCurrencyCode: this.props.moneyRequest.currency,
-            selection: {
-                start: selectedAmountAsString.length,
-                end: selectedAmountAsString.length,
-            },
-        });
+
+        if (prevProps.moneyRequest.amount !== this.props.moneyRequest.amount) {
+            const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.moneyRequest.currency, this.props.moneyRequest.amount).toString();
+            this.setState({
+                amount: selectedAmountAsString,
+                selectedCurrencyCode: this.props.moneyRequest.currency,
+                selection: {
+                    start: selectedAmountAsString.length,
+                    end: selectedAmountAsString.length,
+                },
+            });
+        }
     }
 
     componentWillUnmount() {
@@ -142,13 +146,6 @@ class MoneyRequestAmountPage extends React.Component {
         event.preventDefault();
         if (!this.textInput.isFocused()) {
             this.textInput.focus();
-        }
-    }
-
-    getCurrencyFromRouteParams() {
-        const selectedCurrencyCode = lodashGet(this.props.route.params, 'currency', '');
-        if (selectedCurrencyCode !== '') {
-            this.setState({selectedCurrencyCode});
         }
     }
 
