@@ -93,7 +93,6 @@ export default {
     getIouRequestCurrencyRoute: (reportID) => `${IOU_REQUEST_CURRENCY}/${reportID}`,
     getIouBillCurrencyRoute: (reportID) => `${IOU_BILL_CURRENCY}/${reportID}`,
     getIouSendCurrencyRoute: (reportID) => `${IOU_SEND_CURRENCY}/${reportID}`,
-    getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
     getNewTaskRoute: (reportID) => `${NEW_TASK}/${reportID}`,
     NEW_TASK_WITH_REPORT_ID: `${NEW_TASK}/:reportID?`,
     TASK_TITLE: 'r/:reportID/title',

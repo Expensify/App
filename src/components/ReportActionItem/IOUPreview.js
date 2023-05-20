@@ -75,9 +75,6 @@ const propTypes = {
     /** True if this is this IOU is a split instead of a 1:1 request */
     isBillSplit: PropTypes.bool.isRequired,
 
-    /** True if the IOU Preview is rendered within a single IOUAction */
-    isIOUAction: PropTypes.bool,
-
     /** True if the IOU Preview card is hovered */
     isHovered: PropTypes.bool,
 
@@ -118,7 +115,6 @@ const defaultProps = {
     containerStyles: [],
     walletTerms: {},
     pendingAction: null,
-    isIOUAction: true,
     isHovered: false,
     personalDetails: {},
     session: {
@@ -142,8 +138,8 @@ const IOUPreview = (props) => {
 
     const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
 
-    const requestAmount = props.isIOUAction ? moneyRequestAction.amount : ReportUtils.getMoneyRequestTotal(props.iouReport);
-    const requestCurrency = props.isIOUAction ? moneyRequestAction.currency : props.iouReport.currency;
+    const requestAmount = moneyRequestAction.amount;
+    const requestCurrency = moneyRequestAction.currency;
     const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim();
 
     const getSettledMessage = () => {
@@ -160,10 +156,6 @@ const IOUPreview = (props) => {
     };
 
     const showContextMenu = (event) => {
-        if (!props.action) {
-            return;
-        }
-
         showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
     };
 
