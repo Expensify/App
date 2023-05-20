@@ -77,6 +77,7 @@ class MoneyRequestAmountPage extends React.Component {
         const selectedAmountAsString = props.moneyRequest.amount ? CurrencyUtils.convertToWholeUnit(props.moneyRequest.currency, props.moneyRequest.amount).toString() : '';
         this.state = {
             amount: selectedAmountAsString,
+            selectedCurrencyCode: props.moneyRequest.currency,
             shouldUpdateSelection: true,
             selection: {
                 start: selectedAmountAsString.length,
@@ -101,6 +102,7 @@ class MoneyRequestAmountPage extends React.Component {
         // Focus automatically after navigating back from currency selector
         this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
             this.focusTextInput();
+            this.getCurrencyFromRouteParams();
         });
     }
 
@@ -111,6 +113,7 @@ class MoneyRequestAmountPage extends React.Component {
         const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.moneyRequest.currency, this.props.moneyRequest.amount).toString();
         this.setState({
             amount: selectedAmountAsString,
+            selectedCurrencyCode: this.props.moneyRequest.currency,
             selection: {
                 start: selectedAmountAsString.length,
                 end: selectedAmountAsString.length,
@@ -136,6 +139,13 @@ class MoneyRequestAmountPage extends React.Component {
         event.preventDefault();
         if (!this.textInput.isFocused()) {
             this.textInput.focus();
+        }
+    }
+
+    getCurrencyFromRouteParams() {
+        const selectedCurrencyCode = lodashGet(this.props.route.params, 'currency', '');
+        if (selectedCurrencyCode !== '') {
+            this.setState({selectedCurrencyCode});
         }
     }
 
@@ -341,7 +351,9 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     navigateToCurrencySelectionPage() {
-        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(this.iouType, this.reportID));
+        // Remove query from the route and encode it.
+        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(this.iouType, this.reportID, this.state.selectedCurrencyCode, activeRoute));
     }
 
     navigateToNextPage() {
@@ -382,9 +394,8 @@ class MoneyRequestAmountPage extends React.Component {
                                     onChangeAmount={this.updateAmount}
                                     onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                                     placeholder={this.props.numberFormat(0)}
-                                    preferredLocale={this.props.preferredLocale}
                                     ref={(el) => (this.textInput = el)}
-                                    selectedCurrencyCode={this.props.moneyRequest.currency}
+                                    selectedCurrencyCode={this.state.selectedCurrencyCode}
                                     selection={this.state.selection}
                                     onSelectionChange={(e) => {
                                         if (!this.state.shouldUpdateSelection) {
@@ -413,8 +424,9 @@ class MoneyRequestAmountPage extends React.Component {
                                     success
                                     style={[styles.w100, styles.mt5]}
                                     onPress={() => {
-                                        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(this.props.moneyRequest.currency, Number.parseFloat(this.state.amount));
+                                        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(this.state.selectedCurrencyCode, Number.parseFloat(this.state.amount));
                                         this.props.moneyRequest.setAmount(amountInSmallestCurrencyUnits);
+                                        this.props.moneyRequest.setCurrency(this.state.selectedCurrencyCode);
                                         this.navigateToNextPage();
                                     }}
                                     pressOnEnter

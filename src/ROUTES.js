@@ -88,7 +88,7 @@ export default {
     getMoneyRequestAmountRoute: (iouType, reportID = '') => `${iouType}/new/amount/${reportID}`,
     getMoneyRequestParticipantsRoute: (iouType, reportID = '') => `${iouType}/new/participants/${reportID}`,
     getMoneyRequestConfirmationRoute: (iouType, reportID = '') => `${iouType}/new/confirmation/${reportID}`,
-    getMoneyRequestCurrencyRoute: (iouType, reportID = '') => `${iouType}/new/currency/${reportID}`,
+    getMoneyRequestCurrencyRoute: (iouType, reportID = '', currency, backTo) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
     IOU_DETAILS,
     IOU_DETAILS_ADD_BANK_ACCOUNT: `${IOU_DETAILS}/add-bank-account`,

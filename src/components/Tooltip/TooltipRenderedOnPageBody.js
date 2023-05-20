@@ -20,11 +20,11 @@ const propTypes = {
     /** The distance between the top of the wrapper view and the top of the window */
     yOffset: PropTypes.number.isRequired,
 
-    /** The width of the tooltip wrapper */
-    wrapperWidth: PropTypes.number.isRequired,
+    /** The width of the tooltip's target */
+    targetWidth: PropTypes.number.isRequired,
 
-    /** The Height of the tooltip wrapper */
-    wrapperHeight: PropTypes.number.isRequired,
+    /** The height of the tooltip's target */
+    targetHeight: PropTypes.number.isRequired,
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
@@ -60,14 +60,13 @@ const defaultProps = {
 // There will be n number of tooltip components in the page.
 // It's good to memoize this one.
 const TooltipRenderedOnPageBody = (props) => {
-    // The width of tooltip's inner content. Has to be undefined in the beginning
-    // as a width of 0 will cause the content to be rendered of a width of 0,
+    // The width and height of tooltip's inner content. Has to be undefined in the beginning
+    // as a width/height of 0 will cause the content to be rendered of a width/height of 0,
     // which prevents us from measuring it correctly.
-    const [tooltipContentWidth, setTooltipContentWidth] = useState(undefined);
-    const [tooltipWidth, setTooltipWidth] = useState(0);
-    const [tooltipHeight, setTooltipHeight] = useState(0);
+    const [contentMeasuredWidth, setContentMeasuredWidth] = useState(undefined);
+    const [contentMeasuredHeight, setContentMeasuredHeight] = useState(undefined);
     const contentRef = useRef();
-    const wrapper = useRef();
+    const rootWrapper = useRef();
 
     useEffect(() => {
         if (!props.renderTooltipContent || !props.text) {
@@ -79,40 +78,37 @@ const TooltipRenderedOnPageBody = (props) => {
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
         // because of the late update of the width and the height from onLayout.
-        const rect = wrapper.current.getBoundingClientRect();
-
-        setTooltipWidth(rect.width);
-        setTooltipHeight(rect.height);
-        setTooltipContentWidth(contentRef.current.offsetWidth);
+        const rect = contentRef.current.getBoundingClientRect();
+        setContentMeasuredWidth(rect.width);
+        setContentMeasuredHeight(rect.height);
     }, []);
 
-    const {animationStyle, tooltipWrapperStyle, tooltipTextStyle, pointerWrapperStyle, pointerStyle} = useMemo(
+    const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             getTooltipStyles(
                 props.animation,
                 props.windowWidth,
                 props.xOffset,
                 props.yOffset,
-                props.wrapperWidth,
-                props.wrapperHeight,
+                props.targetWidth,
+                props.targetHeight,
                 props.maxWidth,
-                tooltipWidth,
-                tooltipHeight,
-                tooltipContentWidth,
+                contentMeasuredWidth,
+                contentMeasuredHeight,
                 props.shiftHorizontal,
                 props.shiftVertical,
+                rootWrapper.current,
             ),
         [
             props.animation,
             props.windowWidth,
             props.xOffset,
             props.yOffset,
-            props.wrapperWidth,
-            props.wrapperHeight,
+            props.targetWidth,
+            props.targetHeight,
             props.maxWidth,
-            tooltipWidth,
-            tooltipHeight,
-            tooltipContentWidth,
+            contentMeasuredWidth,
+            contentMeasuredHeight,
             props.shiftHorizontal,
             props.shiftVertical,
         ],
@@ -125,10 +121,10 @@ const TooltipRenderedOnPageBody = (props) => {
         content = (
             <Text
                 numberOfLines={props.numberOfLines}
-                style={tooltipTextStyle}
+                style={textStyle}
             >
                 <Text
-                    style={tooltipTextStyle}
+                    style={textStyle}
                     ref={contentRef}
                 >
                     {props.text}
@@ -139,8 +135,8 @@ const TooltipRenderedOnPageBody = (props) => {
 
     return ReactDOM.createPortal(
         <Animated.View
-            ref={wrapper}
-            style={[tooltipWrapperStyle, animationStyle]}
+            ref={rootWrapper}
+            style={[rootWrapperStyle, animationStyle]}
         >
             {content}
             <View style={pointerWrapperStyle}>
