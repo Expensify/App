@@ -395,7 +395,7 @@ class ReportActionItem extends Component {
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     // This is to ensure we don't show redundant error messages
-                                    shouldShowErrorMessages={!lodashGet(this.props.report, 'errorFields.createChat') || !ReportUtils.isChatReport(props.report)}
+                                    shouldShowErrorMessages={!lodashGet(this.props.report, 'errorFields.createChat') || !ReportUtils.isChatReport(this.props.report)}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
                                     needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(this.props.action)}
                                 >
