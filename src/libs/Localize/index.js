@@ -92,7 +92,7 @@ function translateLocal(phrase, variables) {
 }
 
 /**
- * Return translated message for phrase.
+ * Return translated string for given error.
  *
  * @param {String} phrase
  * @returns {String}

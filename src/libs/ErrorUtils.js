@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import CONST from '../CONST';
+import DateUtils from './DateUtils';
 
 /**
  * @param {Object} response
@@ -35,6 +36,17 @@ function getAuthenticateErrorMessage(response) {
         default:
             return 'passwordForm.error.fallback';
     }
+}
+
+/**
+ * Method used to generate errors object for optimistic 
+ * @param {String} error - error key or message to be saved 
+ * @return {Object} - Object to be optimistically saved to Onyx
+ *
+ */
+function getOptimisticErrors(error) {
+    // eslint-disable-next-line rulesdir/prefer-localization
+    return ({[DateUtils.getMicroseconds()]: error});
 }
 
 /**
@@ -95,4 +107,4 @@ function addErrorMessage(errors, inputID, message) {
     }
 }
 
-export {getAuthenticateErrorMessage, getLatestErrorMessage, getLatestErrorField, addErrorMessage};
+export {getAuthenticateErrorMessage, getOptimisticErrors, getLatestErrorMessage, getLatestErrorField, addErrorMessage};
