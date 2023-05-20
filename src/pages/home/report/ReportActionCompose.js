@@ -280,6 +280,10 @@ class ReportActionCompose extends React.Component {
     onSelectionChange(e) {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         this.setState({selection: e.nativeEvent.selection});
+        if (!this.state.value || this.state.selection.end < 1) {
+            this.resetSuggestions();
+            return;
+        }
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
     }
@@ -459,10 +463,6 @@ class ReportActionCompose extends React.Component {
      * Calculates and cares about the content of an Emoji Suggester
      */
     calculateEmojiSuggestion() {
-        if (!this.state.value) {
-            this.resetSuggestions();
-            return;
-        }
         if (this.state.shouldBlockEmojiCalc) {
             this.setState({shouldBlockEmojiCalc: false});
             return;
@@ -493,10 +493,6 @@ class ReportActionCompose extends React.Component {
     }
 
     calculateMentionSuggestion() {
-        if (this.state.selection.end < 1) {
-            return;
-        }
-
         const valueAfterTheCursor = this.state.value.substring(this.state.selection.end);
         const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
 
