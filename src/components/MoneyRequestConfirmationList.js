@@ -249,7 +249,7 @@ class MoneyRequestConfirmationList extends Component {
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                            currency={this.props.moneyRequest.urrency}
+                            currency={this.props.moneyRequest.currency}
                             policyID={this.props.policyID}
                         />
                     ) : (
