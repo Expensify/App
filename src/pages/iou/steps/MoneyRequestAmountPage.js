@@ -115,11 +115,14 @@ class MoneyRequestAmountPage extends React.Component {
             this.setState({selectedCurrencyCode: currencyParam});
         }
 
+        if (prevProps.moneyRequest.currency !== this.props.moneyRequest.currency) {
+            this.setState({selectedCurrencyCode: this.props.moneyRequest.currency});
+        }
+
         if (prevProps.moneyRequest.amount !== this.props.moneyRequest.amount) {
             const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.moneyRequest.currency, this.props.moneyRequest.amount).toString();
             this.setState({
                 amount: selectedAmountAsString,
-                selectedCurrencyCode: this.props.moneyRequest.currency,
                 selection: {
                     start: selectedAmountAsString.length,
                     end: selectedAmountAsString.length,
