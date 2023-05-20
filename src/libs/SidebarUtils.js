@@ -15,25 +15,15 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
 // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
-// There are a couple of keys here which are OK to have stale data. iouReports for example, doesn't need to exist in withOnyx() because
-// when IOUs change, it also triggers a change on the reports collection. Having redundant subscriptions causes more re-renders which should be avoided.
+// There are a couple of keys here which are OK to have stale data. Having redundant subscriptions causes more re-renders which should be avoided.
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
-const chatReports = {};
-const iouReports = {};
+let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!report) {
-            delete iouReports[key];
-            delete chatReports[key];
-        } else if (ReportUtils.isIOUReport(report)) {
-            iouReports[key] = report;
-        } else {
-            chatReports[key] = report;
-        }
-    },
+    waitForCollectionCallback: true,
+    callback: (val) => (allReports = val),
 });
 
 let personalDetails;
@@ -108,7 +98,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(chatReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies));
+    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, allReports, betas, policies));
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {
@@ -119,7 +109,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getIOUTotal(report, iouReports);
+        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReports);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -144,7 +134,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, iouReports)) {
+        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, allReports)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -155,6 +145,11 @@ function getOrderedReportIDs(reportIDFromRoute) {
         }
 
         if (ReportUtils.isArchivedRoom(report)) {
+            archivedReports.push(report);
+            return;
+        }
+
+        if (ReportUtils.isTaskReport(report) && report.stateNum !== CONST.REPORT.STATE.OPEN && report.statusNum !== CONST.REPORT.STATUS.OPEN) {
             archivedReports.push(report);
             return;
         }
@@ -188,7 +183,8 @@ function getOrderedReportIDs(reportIDFromRoute) {
  * @returns {Object}
  */
 function getOptionData(reportID) {
-    const report = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const report = allReports[reportKey];
 
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -225,15 +221,19 @@ function getOptionData(reportID) {
         isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
+        isMoneyRequestReport: false,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
     const personalDetail = participantPersonalDetailList[0] || {};
 
+    result.isThread = ReportUtils.isThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
+    result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+    result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -247,7 +247,8 @@ function getOptionData(reportID) {
     result.keyForList = String(report.reportID);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
-
+    result.parentReportID = report.parentReportID || null;
+    const parentReport = result.parentReportID ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${result.parentReportID}`] : null;
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -290,7 +291,7 @@ function getOptionData(reportID) {
         });
     }
 
-    if ((result.isChatRoom || result.isPolicyExpenseChat) && !result.isArchivedRoom) {
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
         result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     } else {
         if (!lastMessageText) {
@@ -316,8 +317,8 @@ function getOptionData(reportID) {
         result.alternateText = lastMessageText || formattedLogin;
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
-    result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, allReports);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, allReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -326,14 +327,14 @@ function getOptionData(reportID) {
     }
 
     const reportName = ReportUtils.getReportName(report);
+
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
+    result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
-
     return result;
 }
 

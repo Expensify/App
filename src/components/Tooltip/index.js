@@ -1,21 +1,26 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {Animated, View} from 'react-native';
+import {BoundsObserver} from '@react-ng/bounds-observer';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
-import {propTypes, defaultProps} from './tooltipPropTypes';
+import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
-import makeCancellablePromise from '../../libs/MakeCancellablePromise';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
+// A "target" for the tooltip, i.e. an element that, when hovered over, triggers the tooltip to appear. The tooltip will
+// point towards this target.
 class Tooltip extends PureComponent {
     constructor(props) {
         super(props);
 
         this.state = {
-            // Is tooltip rendered?
+            // Is tooltip already rendered on the page's body? This happens once.
             isRendered: false,
+
+            // Is the tooltip currently visible?
+            isVisible: false,
 
             // The distance between the left side of the wrapper view and the left side of the window
             xOffset: 0,
@@ -30,57 +35,25 @@ class Tooltip extends PureComponent {
 
         // Whether the tooltip is first tooltip to activate the TooltipSense
         this.isTooltipSenseInitiator = false;
-        this.shouldStartShowAnimation = false;
         this.animation = new Animated.Value(0);
         this.hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
-        this.getWrapperPosition = this.getWrapperPosition.bind(this);
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.windowWidth === prevProps.windowWidth && this.props.windowHeight === prevProps.windowHeight) {
-            return;
-        }
-
-        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
-        this.getWrapperPositionPromise.promise.then(({x, y}) => this.setState({xOffset: x, yOffset: y}));
-    }
-
-    componentWillUnmount() {
-        if (!this.getWrapperPositionPromise) {
-            return;
-        }
-
-        this.getWrapperPositionPromise.cancel();
+        this.updateBounds = this.updateBounds.bind(this);
     }
 
     /**
-     * Measure the position of the wrapper view relative to the window.
+     * Update the tooltip bounding rectangle
      *
-     * @returns {Promise}
+     * @param {Object} bounds - updated bounds
      */
-    getWrapperPosition() {
-        return new Promise((resolve) => {
-            // Make sure the wrapper is mounted before attempting to measure it.
-            if (this.wrapperView && _.isFunction(this.wrapperView.measureInWindow)) {
-                this.wrapperView.measureInWindow((x, y, width, height) =>
-                    resolve({
-                        x,
-                        y,
-                        width,
-                        height,
-                    }),
-                );
-            } else {
-                resolve({
-                    x: 0,
-                    y: 0,
-                    width: 0,
-                    height: 0,
-                });
-            }
+    updateBounds(bounds) {
+        this.setState({
+            wrapperWidth: bounds.width,
+            wrapperHeight: bounds.height,
+            xOffset: bounds.x,
+            yOffset: bounds.y,
         });
     }
 
@@ -91,38 +64,24 @@ class Tooltip extends PureComponent {
         if (!this.state.isRendered) {
             this.setState({isRendered: true});
         }
+
+        this.setState({isVisible: true});
+
         this.animation.stopAnimation();
-        this.shouldStartShowAnimation = true;
 
-        // We have to dynamically calculate the position here as tooltip could have been rendered on some elments
-        // that has changed its position
-        this.getWrapperPositionPromise = makeCancellablePromise(this.getWrapperPosition());
-        this.getWrapperPositionPromise.promise.then(({x, y, width, height}) => {
-            this.setState({
-                wrapperWidth: width,
-                wrapperHeight: height,
-                xOffset: x,
-                yOffset: y,
-            });
-
-            // We may need this check due to the reason that the animation start will fire async
-            // and hideTooltip could fire before it thus keeping the Tooltip visible
-            if (this.shouldStartShowAnimation) {
-                // When TooltipSense is active, immediately show the tooltip
-                if (TooltipSense.isActive()) {
-                    this.animation.setValue(1);
-                } else {
-                    this.isTooltipSenseInitiator = true;
-                    Animated.timing(this.animation, {
-                        toValue: 1,
-                        duration: 140,
-                        delay: 500,
-                        useNativeDriver: false,
-                    }).start();
-                }
-                TooltipSense.activate();
-            }
-        });
+        // When TooltipSense is active, immediately show the tooltip
+        if (TooltipSense.isActive()) {
+            this.animation.setValue(1);
+        } else {
+            this.isTooltipSenseInitiator = true;
+            Animated.timing(this.animation, {
+                toValue: 1,
+                duration: 140,
+                delay: 500,
+                useNativeDriver: false,
+            }).start();
+        }
+        TooltipSense.activate();
     }
 
     /**
@@ -130,7 +89,7 @@ class Tooltip extends PureComponent {
      */
     hideTooltip() {
         this.animation.stopAnimation();
-        this.shouldStartShowAnimation = false;
+
         if (TooltipSense.isActive() && !this.isTooltipSenseInitiator) {
             this.animation.setValue(0);
         } else {
@@ -142,7 +101,10 @@ class Tooltip extends PureComponent {
                 useNativeDriver: false,
             }).start();
         }
+
         TooltipSense.deactivate();
+
+        this.setState({isVisible: false});
     }
 
     render() {
@@ -192,8 +154,8 @@ class Tooltip extends PureComponent {
                         windowWidth={this.props.windowWidth}
                         xOffset={this.state.xOffset}
                         yOffset={this.state.yOffset}
-                        wrapperWidth={this.state.wrapperWidth}
-                        wrapperHeight={this.state.wrapperHeight}
+                        targetWidth={this.state.wrapperWidth}
+                        targetHeight={this.state.wrapperHeight}
                         shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
                         shiftVertical={_.result(this.props, 'shiftVertical')}
                         text={this.props.text}
@@ -205,19 +167,24 @@ class Tooltip extends PureComponent {
                         key={[this.props.text, ...this.props.renderTooltipContentKey]}
                     />
                 )}
-                <Hoverable
-                    absolute={this.props.absolute}
-                    containerStyles={this.props.containerStyles}
-                    onHoverIn={this.showTooltip}
-                    onHoverOut={this.hideTooltip}
+                <BoundsObserver
+                    enabled={this.state.isVisible}
+                    onBoundsChange={this.updateBounds}
                 >
-                    {child}
-                </Hoverable>
+                    <Hoverable
+                        absolute={this.props.absolute}
+                        containerStyles={this.props.containerStyles}
+                        onHoverIn={this.showTooltip}
+                        onHoverOut={this.hideTooltip}
+                    >
+                        {child}
+                    </Hoverable>
+                </BoundsObserver>
             </>
         );
     }
 }
 
-Tooltip.propTypes = propTypes;
-Tooltip.defaultProps = defaultProps;
+Tooltip.propTypes = tooltipPropTypes.propTypes;
+Tooltip.defaultProps = tooltipPropTypes.defaultProps;
 export default withWindowDimensions(Tooltip);

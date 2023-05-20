@@ -192,7 +192,7 @@ class DebitCardPage extends Component {
                         LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('common.iAcceptThe')}`}
-                                <TextLink href="https://use.expensify.com/terms">{`${this.props.translate('common.expensifyTermsOfService')}`}</TextLink>
+                                <TextLink href={CONST.TERMS_URL}>{`${this.props.translate('common.expensifyTermsOfService')}`}</TextLink>
                             </Text>
                         )}
                         style={[styles.mt4]}

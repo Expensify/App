@@ -26,6 +26,9 @@ const propTypes = {
     /** Additional styles to add to checkbox button */
     style: stylePropTypes,
 
+    /** Additional styles to add to checkbox container */
+    containerStyle: stylePropTypes,
+
     /** Callback that is called when mousedown is triggered. */
     onMouseDown: PropTypes.func,
 
@@ -38,6 +41,7 @@ const defaultProps = {
     hasError: false,
     disabled: false,
     style: [],
+    containerStyle: [],
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
@@ -112,6 +116,7 @@ class Checkbox extends React.Component {
                     <View
                         style={[
                             styles.checkboxContainer,
+                            this.props.containerStyle,
                             this.props.isChecked && styles.checkedContainer,
                             this.props.hasError && styles.borderColorDanger,
                             this.props.disabled && styles.cursorDisabled,

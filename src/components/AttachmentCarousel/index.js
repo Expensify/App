@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, FlatList} from 'react-native';
+import {View, FlatList, PixelRatio} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -62,28 +62,11 @@ class AttachmentCarousel extends React.Component {
         this.updateZoomState = this.updateZoomState.bind(this);
         this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
 
-        this.state = {
-            attachments: [],
-            source: this.props.source,
-            shouldShowArrow: this.canUseTouchScreen,
-            containerWidth: 0,
-            isZoomed: false,
-        };
+        this.state = this.makeInitialState();
     }
 
     componentDidMount() {
-        this.makeStateWithReports();
         this.autoHideArrow();
-    }
-
-    componentDidUpdate(prevProps) {
-        const previousReportActionsCount = _.size(prevProps.reportActions);
-        const currentReportActionsCount = _.size(this.props.reportActions);
-        if (previousReportActionsCount === currentReportActionsCount) {
-            return;
-        }
-
-        this.makeStateWithReports();
     }
 
     /**
@@ -176,9 +159,10 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * Map report actions to attachment items
+     * Map report actions to attachment items and sets the initial carousel state
+     * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
      */
-    makeStateWithReports() {
+    makeInitialState() {
         let page = 0;
         const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
 
@@ -200,7 +184,7 @@ class AttachmentCarousel extends React.Component {
                 // Update the image URL so the images can be accessed depending on the config environment.
                 // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
                 const source = tryResolveUrlFromApiRoot(originalSource);
-                if (source === this.state.source) {
+                if (source === this.props.source) {
                     page = attachments.length;
                 }
 
@@ -208,10 +192,13 @@ class AttachmentCarousel extends React.Component {
             }
         });
 
-        this.setState({
+        return {
             page,
             attachments,
-        });
+            shouldShowArrow: this.canUseTouchScreen,
+            containerWidth: 0,
+            isZoomed: false,
+        };
     }
 
     /**
@@ -246,7 +233,7 @@ class AttachmentCarousel extends React.Component {
         const page = entry.index;
         const {source, file} = this.getAttachment(entry.item);
         this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
-        this.setState({page, source, isZoomed: false});
+        this.setState({page, isZoomed: false});
     }
 
     /**
@@ -255,7 +242,10 @@ class AttachmentCarousel extends React.Component {
      * @returns {JSX.Element}
      */
     renderCell(props) {
-        const style = [props.style, styles.h100, {width: this.state.containerWidth}];
+        // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
+        // considering horizontal margin and border width in centered modal
+        const modalStyles = styles.centeredModalStyles(this.props.isSmallScreenWidth, true);
+        const style = [props.style, styles.h100, {width: PixelRatio.roundToNearestPixel(this.props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 
         return (
             <View
@@ -299,7 +289,7 @@ class AttachmentCarousel extends React.Component {
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
-                onLayout={({nativeEvent}) => this.setState({containerWidth: nativeEvent.layout.width + 1})}
+                onLayout={({nativeEvent}) => this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width)})}
                 onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
             >

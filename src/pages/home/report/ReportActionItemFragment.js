@@ -14,10 +14,11 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import compose from '../../../libs/compose';
-import * as StyleUtils from '../../../styles/StyleUtils';
+import convertToLTR from '../../../libs/convertToLTR';
 import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
+import editedLabelStyles from '../../../styles/editedLabelStyles';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -96,6 +97,10 @@ const ReportActionItemFragment = (props) => {
             }
             const {html, text} = props.fragment;
 
+            if (props.fragment.isDeletedParentAction) {
+                return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
+            }
+
             // If the only difference between fragment.text and fragment.html is <br /> tags
             // we render it as text, not as html.
             // This is done to render emojis with line breaks between them as text.
@@ -115,13 +120,20 @@ const ReportActionItemFragment = (props) => {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {StyleUtils.convertToLTR(Str.htmlDecode(text))}
+                    {convertToLTR(Str.htmlDecode(text))}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}
                             color={themeColors.textSupporting}
+                            style={[styles.alignItemsBaseline, editedLabelStyles]}
                         >
-                            {` ${props.translate('reportActionCompose.edited')}`}
+                            <Text
+                                selectable={false}
+                                style={[styles.w1, styles.userSelectNone]}
+                            >
+                                {' '}
+                            </Text>
+                            {props.translate('reportActionCompose.edited')}
                         </Text>
                     )}
                 </Text>

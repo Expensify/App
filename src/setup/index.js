@@ -36,7 +36,6 @@ export default function () {
             [ONYXKEYS.IOU]: {
                 loading: false,
                 error: false,
-                creatingIOUTransaction: false,
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
@@ -54,11 +53,4 @@ export default function () {
 
     // Perform any other platform-specific setup
     platformSetup();
-
-    // Workaround to a reanimated issue -> https://github.com/software-mansion/react-native-reanimated/issues/3355
-    // We can remove it as soon as we are on > reanimated 3.0.0+
-    if (process.browser) {
-        // eslint-disable-next-line no-underscore-dangle
-        window._frameTimestamp = null;
-    }
 }
