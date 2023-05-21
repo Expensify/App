@@ -244,9 +244,7 @@ function ReportActionItem(props) {
                             action={props.action}
                             style={[
                                 !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
-                                _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
-                                    ? styles.colorMuted
-                                    : undefined,
+                                _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName) ? styles.colorMuted : undefined,
                             ]}
                         />
                     ) : (
