@@ -1083,8 +1083,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
         }
 
-        // This is needed to redirect the user to workspace admin screen on the main router stack 
-        // https://github.com/Expensify/App/pull/19224
+        // Get the reportID associated with the newly created #admins room and route the user to that chat
         const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
         Navigation.setParams({reportID: adminsChatReportID}, routeKey);
         
