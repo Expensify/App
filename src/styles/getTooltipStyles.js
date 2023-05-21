@@ -67,9 +67,10 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip) {
     }
 
     const element = document.elementFromPoint(xOffset, yOffset);
+    const tooltipRef = tooltip && tooltip.current || tooltip;
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!element || tooltip && ((tooltip.current && tooltip.current.contains(element)) || tooltip.contains(element))) {
+    if (!element || (tooltipRef && tooltipRef.contains(element))) {
         return false;
     }
 
