@@ -366,6 +366,15 @@ function ReportActionItem(props) {
                 {(hovered) => (
                     <View accessibilityLabel={props.translate('accessibilityHints.chatMessage')}>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
+                        <MiniReportActionContextMenu
+                            reportID={props.report.reportID}
+                            reportAction={props.action}
+                            isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
+                            displayAsGroup={props.displayAsGroup}
+                            isVisible={hovered && !props.draftMessage && !hasErrors}
+                            draftMessage={props.draftMessage}
+                            isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                        />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
                                 hovered || isWhisper || isContextMenuActive || props.draftMessage,
@@ -404,16 +413,6 @@ function ReportActionItem(props) {
                                 {renderReportActionItem(hovered, isWhisper)}
                             </OfflineWithFeedback>
                         </View>
-                        <MiniReportActionContextMenu
-                            reportID={props.report.reportID}
-                            reportAction={props.action}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
-                            displayAsGroup={props.displayAsGroup}
-                            isVisible={hovered && !props.draftMessage && !hasErrors}
-                            draftMessage={props.draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
-                            childReportActionID={props.action.childReportActionID}
-                        />
                     </View>
                 )}
             </Hoverable>
