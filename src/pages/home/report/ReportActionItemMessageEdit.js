@@ -101,12 +101,23 @@ class ReportActionItemMessageEdit extends React.Component {
         this.state = {
             draft: draftMessage,
             selection: {
-                start: draftMessage.length,
-                end: draftMessage.length,
+                start: 0,
+                end: 0,
             },
             isFocused: false,
             hasExceededMaxCommentLength: false,
         };
+    }
+
+    componentDidMount() {
+        this.setState((prevState) => {
+            return {
+                selection: {
+                    start: prevState.draft.length,
+                    end: prevState.draft.length,
+                },
+            };
+        });
     }
 
     componentWillUnmount() {

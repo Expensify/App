@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
-import {withOnyx} from 'react-native-onyx';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
@@ -17,7 +16,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
-import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -55,7 +53,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Set focus to this component the first time it renders.
-    Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
+     Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
 
     /** Update selection position on change */
@@ -76,12 +74,6 @@ const propTypes = {
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
-    /** Details about any modals being used */
-    modal: PropTypes.shape({
-        /** Indicates when an Alert modal is about to be visible */
-        willAlertModalBecomeVisible: PropTypes.bool,
-    }),
-
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -101,7 +93,6 @@ const defaultProps = {
     autoFocus: false,
     forwardedRef: null,
     onSelectionChange: () => {},
-    modal: {},
     selection: {
         start: 0,
         end: 0,
@@ -376,32 +367,16 @@ class Composer extends React.Component {
     render() {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
-        const propsWithoutStyles = _.omit(this.props, 'style', 'selection');
+        const propsWithoutStyles = _.omit(this.props, 'style');
 
         // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
-        const isMobileSafari = Browser.isMobileSafari();
-
-        const start = this.textInput ? this.textInput.selectionStart : 0;
-        const end = this.textInput ? this.textInput.selectionEnd : 0;
-        const selection = this.props.modal.willAlertModalBecomeVisible ? {start, end} : this.props.selection;
         return (
             <RNTextInput
                 autoComplete="off"
-                autoCorrect={!isMobileSafari}
+                autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={themeColors.placeholderText}
-                ref={(el) => {
-                    this.textInput = el;
-                    if (
-                        !el ||
-                        el.isFocused() ||
-                        (el.selectionStart === this.props.selection.start && el.selectionEnd === this.props.selection.end) ||
-                        this.props.modal.willAlertModalBecomeVisible ||
-                        !isMobileSafari
-                    ) {
-                        return;
-                    }
-                    el.focus();
-                }}
+                ref={(el) => (this.textInput = el)}
+                selection={this.state.selection}
                 onChange={this.shouldCallUpdateNumberOfLines}
                 onSelectionChange={this.onSelectionChange}
                 style={[
@@ -413,7 +388,6 @@ class Composer extends React.Component {
                 ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsWithoutStyles}
-                selection={selection}
                 numberOfLines={this.state.numberOfLines}
                 disabled={this.props.isDisabled}
                 onKeyPress={this.handleKeyPress}
@@ -428,11 +402,6 @@ Composer.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withOnyx({
-        modal: {
-            key: ONYXKEYS.MODAL,
-        },
-    }),
 )(
     React.forwardRef((props, ref) => (
         <Composer
