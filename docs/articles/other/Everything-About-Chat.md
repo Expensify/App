@@ -19,10 +19,10 @@ After downloading the app, log into your new.expensify.com account (you’ll use
 ## Start Chatting
 Select **New Chat** to chat one-on-one or **New Group** to start a group chat.
 ## Workspace Chat Rooms
-In addition to 1:1 and group chat, members of a Workspace will have access to two additional rooms; the #announce and #admins rooms.
+In addition to 1:1 and group chat, members of a Workspace or Policy will have access to two additional rooms; the #announce and #admins rooms.
 All workspace members are added to the #announce room by default. The #announce room lets you share important company announcements and have conversations between workspace members.
 
-Workspace admins will have access to the #admins room. Use the #admins room to collaborate between admins and your dedicated Expensify Guide!
+Workspace admins will have access to the #admins room. Use the #admins room to collaborate between admins and your dedicated Expensify Guide during onboarding. If you have a subscription for 10 or more paid users, then you'll be assigned an account manager, and you can ask for help and collaborate with your account manager in this same #admins room. Also, anytime your team, your dedicated setup specialist, or your dedicated account manager make a change to your Workspace settings, we'll log that change in the #admins room.
 
 # FAQs
 ## How do I add more than one person to a chat?
@@ -32,7 +32,7 @@ Creating a Group chat with multiple people is easy. Start by clicking the green 
 Adding people to an existing group chat isn’t possible right now, so you’ll need to make a new group chat with the latest additions.
 
 ## Someone I don’t recognize is in my #admins room for my workspace; who is it?
-After creating your workspace, you’ll have a dedicated Expensify specialist who will help you onboard and answer your questions. You can chat with them directly in the #admins room or request a call to talk to them over the phone.
+After creating your workspace, you’ll have a dedicated Expensify specialist who will help you onboard and answer your questions. You can chat with them directly in the #admins room or request a call to talk to them over the phone. Later, once you've finished onboarding, if you have a subscription for 10 or more paid users, then your dedicated account manager will be added to your #admins room to help with any questions you have.
 
 ## Can I force a chat to stay at the top of the chats list?
 You sure can! Click on the chat you want to keep at the top of the list, and then click the small **pin** icon. From now on, your chat will stay pinned to the top of the chat list. If you want to unpin a chat, just click the **pin** icon again.
