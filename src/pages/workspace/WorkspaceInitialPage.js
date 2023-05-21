@@ -28,6 +28,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import withWindowDimensions from '../../components/withWindowDimensions';
 
 const propTypes = {
     ...policyPropTypes,
@@ -149,7 +150,7 @@ const WorkspaceInitialPage = (props) => {
                                 onSelected: () => setIsDeleteModalOpen(true),
                             },
                         ]}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <OfflineWithFeedback
@@ -235,6 +236,7 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 export default compose(
     withLocalize,
     withPolicy,
+    withWindowDimensions,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

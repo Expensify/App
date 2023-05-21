@@ -891,7 +891,7 @@ function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', e
         searchInputValue: searchValue.trim(),
         includePersonalDetails: true,
         excludeLogins,
-        sortPersonalDetailsByAlphaAsc: false,
+        sortPersonalDetailsByAlphaAsc: true,
     });
 }
 

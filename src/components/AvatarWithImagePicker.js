@@ -293,6 +293,7 @@ class AvatarWithImagePicker extends React.Component {
                                         onItemSelected={() => this.setState({isMenuVisible: false})}
                                         menuItems={this.createMenuItems(openPicker)}
                                         anchorPosition={this.props.anchorPosition}
+                                        anchorAlignment={this.props.anchorAlignment}
                                     />
                                 </>
                             )}
