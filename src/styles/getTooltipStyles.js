@@ -1,5 +1,3 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import spacing from './utilities/spacing';
 import styles from './styles';
 import colors from './colors';
