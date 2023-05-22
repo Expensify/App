@@ -2108,6 +2108,58 @@ const styles = {
         width: '100%',
     },
 
+    twoFactorAuthSection: {
+        backgroundColor: themeColors.appBG,
+        padding: 0,
+    },
+
+    twoFactorAuthCodesBox: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: themeColors.highlightBG,
+        paddingVertical: 28,
+        paddingHorizontal: 60,
+        borderRadius: 16,
+        marginTop: 32,
+    },
+
+    twoFactorLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 210,
+    },
+
+    twoFactorAuthCodesContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        height: 148,
+    },
+
+    twoFactorAuthCode: {
+        fontFamily: fontFamily.MONOSPACE,
+        width: 100,
+        height: 18,
+        textAlign: 'center',
+    },
+
+    twoFactorAuthCodesButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 12,
+        marginTop: 20,
+    },
+
+    twoFactorAuthCodesButton: {
+        minWidth: 100,
+    },
+
+    twoFactorAuthFooter: {
+        marginTop: 'auto',
+    },
+
     roomHeaderAvatarSize: {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,

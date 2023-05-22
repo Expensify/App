@@ -193,11 +193,10 @@ class ReportActionItem extends Component {
             originalMessage &&
             (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
                 originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
-                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage.IOUDetails))
+                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails')))
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
-
             children = (
                 <MoneyRequestAction
                     chatReportID={this.props.report.reportID}
@@ -298,6 +297,7 @@ class ReportActionItem extends Component {
                 {hasReactions && (
                     <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions
+                            reportActionID={this.props.action.reportActionID}
                             reactions={reactions}
                             toggleReaction={this.toggleReaction}
                         />

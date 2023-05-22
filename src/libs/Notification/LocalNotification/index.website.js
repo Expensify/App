@@ -1,7 +1,7 @@
 import BrowserNotifications from './BrowserNotifications';
 
-function showCommentNotification({reportAction, onClick}) {
-    BrowserNotifications.pushReportCommentNotification({reportAction, onClick}, true);
+function showCommentNotification({report, reportAction, onClick}) {
+    BrowserNotifications.pushReportCommentNotification({report, reportAction, onClick}, true);
 }
 
 function showUpdateAvailableNotification() {
