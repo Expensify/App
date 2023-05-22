@@ -677,11 +677,12 @@ function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
  * @param {String} reportID
  */
 function readNewestAction(reportID) {
-    console.log(`~~Monil marking report as read - ${reportID}`);
+    const lastReadTime = DateUtils.getDBTime();
     API.write(
         'ReadNewestAction',
         {
             reportID,
+            lastReadTime,
         },
         {
             optimisticData: [
@@ -689,7 +690,7 @@ function readNewestAction(reportID) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
-                        lastReadTime: DateUtils.getDBTime(),
+                        lastReadTime,
                     },
                 },
             ],
