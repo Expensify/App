@@ -1037,7 +1037,7 @@ export default {
             reimburse: 'Reembolsos',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
-            travel: 'Ciajes',
+            travel: 'Viajes',
             members: 'Miembros',
             bankAccount: 'Cuenta bancaria',
             connectBankAccount: 'Conectar cuenta bancaria',
