@@ -10,12 +10,12 @@ import ONYXKEYS from '../ONYXKEYS';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
-import OptionsList from '../components/OptionsList';
-import ROUTES from '../ROUTES';
+import MoneyRequestConfirmationList from '../components/MoneyRequestConfirmationList';
 import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
+import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
@@ -30,10 +30,13 @@ const propTypes = {
     /** The active report */
     report: reportPropTypes.isRequired,
 
+    /** The report action which we are displaying */
+    action: PropTypes.shape(reportActionPropTypes),
+
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
-            /** Report ID passed via route r/:reportID/participants */
+            /** Report ID passed via route r/:reportID/split/details */
             reportID: PropTypes.string,
         }),
     }).isRequired,
@@ -43,6 +46,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
+    action: {},
 };
 
 /**
@@ -89,9 +93,7 @@ const SplitDetailsPage = (props) => {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithCloseButton
-                        title={props.translate(
-                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report) ? 'common.members' : 'common.details',
-                        )}
+                        title={props.translate('common.details')}
                         onCloseButtonPress={Navigation.dismissModal}
                         onBackButtonPress={Navigation.goBack}
                         shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report)}
@@ -101,25 +103,36 @@ const SplitDetailsPage = (props) => {
                         style={[styles.containerWithSpaceBetween]}
                     >
                         {Boolean(participants.length) && (
-                            <OptionsList
-                                sections={[
-                                    {
-                                        title: '',
-                                        data: participants,
-                                        shouldShow: true,
-                                        indexOffset: 0,
-                                    },
-                                ]}
-                                onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.login));
-                                }}
-                                hideSectionHeaders
-                                showTitleTooltip
-                                disableFocusOptions
-                                boldStyle
-                                optionHoveredStyle={styles.hoveredComponentBG}
-                                contentContainerStyles={[safeAreaPaddingBottomStyle]}
+                            <MoneyRequestConfirmationList
+                                hasMultipleParticipants
+                                participants={participants}
+                                iouAmount={9999}
+                                // onConfirm={props.onConfirm}
+                                // onSendMoney={props.onSendMoney}
+                                iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                                canModifyParticipants={false}
+                                // navigateToStep={props.navigateToStep}
+                                // policyID={props.policyID}
                             />
+                            // <OptionsList
+                            //     sections={[
+                            //         {
+                            //             title: '',
+                            //             data: participants,
+                            //             shouldShow: true,
+                            //             indexOffset: 0,
+                            //         },
+                            //     ]}
+                            //     onSelectRow={(option) => {
+                            //         Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.login));
+                            //     }}
+                            //     hideSectionHeaders
+                            //     showTitleTooltip
+                            //     disableFocusOptions
+                            //     boldStyle
+                            //     optionHoveredStyle={styles.hoveredComponentBG}
+                            //     contentContainerStyles={[safeAreaPaddingBottomStyle]}
+                            // />
                         )}
                     </View>
                 </FullPageNotFoundView>
