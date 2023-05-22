@@ -111,7 +111,7 @@ class CheckboxWithLabel extends React.Component {
                         onLongPress={this.toggleCheckbox}
                         pressDimmingValue={variables.checkboxLabelActiveOpacity}
                         // We want to disable hover dimming
-                        hoverDimmingValue={1}
+                        hoverDimmingValue={variables.checkboxLabelHoverOpacity}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
                         wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
                     >

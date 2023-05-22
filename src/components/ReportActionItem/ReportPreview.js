@@ -6,24 +6,24 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Text from '../Text';
 import Icon from '../Icon';
-import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
-import Button from '../Button';
-import themeColors from '../../styles/themes/default';
-import getButtonState from '../../libs/getButtonState';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import ONYXKEYS from '../../ONYXKEYS';
+import SettlementButton from '../SettlementButton';
+import themeColors from '../../styles/themes/default';
+import getButtonState from '../../libs/getButtonState';
+import * as IOU from '../../libs/actions/IOU';
 
 const propTypes = {
     /** All the data of the action */
@@ -99,8 +99,8 @@ const ReportPreview = (props) => {
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     return (
-        <View style={[styles.chatItemMessage, styles.mt4]}>
-            {_.map(props.action.message, (index) => (
+        <View style={[styles.chatItemMessage]}>
+            {_.map(props.action.message, (message, index) => (
                 <Pressable
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
                     onPress={() => {
@@ -114,10 +114,14 @@ const ReportPreview = (props) => {
                 >
                     <View style={[styles.flexShrink1]}>
                         {props.iouReport.hasOutstandingIOU ? (
-                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount})}</Text>
+                            <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
+                                {lodashGet(message, 'html', props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount}))}
+                            </Text>
                         ) : (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{props.translate('iou.payerSettled', {amount: reportAmount})}</Text>
+                                <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
+                                    {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
+                                </Text>
                                 {!props.iouReport.hasOutstandingIOU && (
                                     <Icon
                                         style={[styles.ml10]}
@@ -134,17 +138,16 @@ const ReportPreview = (props) => {
                     />
                 </Pressable>
             ))}
-            {isCurrentUserManager && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
-                <Button
+            {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
+                <SettlementButton
+                    currency={props.iouReport.currency}
+                    policyID={props.iouReport.policyID}
+                    chatReportID={props.chatReportID}
+                    iouReport={props.iouReport}
+                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
                     style={[styles.requestPreviewBox]}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.iouReportID));
-                    }}
-                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                    onPressOut={() => ControlSelection.unblock()}
-                    text={props.translate('iou.pay')}
-                    success
-                    medium
                 />
             )}
         </View>

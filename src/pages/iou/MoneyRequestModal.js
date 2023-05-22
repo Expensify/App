@@ -311,8 +311,9 @@ const MoneyRequestModal = (props) => {
                                     >
                                         {modalHeader}
                                         <MoneyRequestAmountPage
-                                            onStepComplete={(value) => {
-                                                const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(value));
+                                            onStepComplete={(value, selectedCurrencyCode) => {
+                                                const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(selectedCurrencyCode, Number.parseFloat(value));
+                                                IOU.setIOUSelectedCurrency(selectedCurrencyCode);
                                                 setAmount(amountInSmallestCurrencyUnits);
                                                 navigateToNextStep();
                                             }}
@@ -320,6 +321,7 @@ const MoneyRequestModal = (props) => {
                                             hasMultipleParticipants={props.hasMultipleParticipants}
                                             selectedAmount={CurrencyUtils.convertToWholeUnit(props.iou.selectedCurrencyCode, amount)}
                                             navigation={props.navigation}
+                                            route={props.route}
                                             iouType={props.iouType}
                                             buttonText={amountButtonText}
                                         />
@@ -367,6 +369,7 @@ const MoneyRequestModal = (props) => {
                                             // the floating-action-button (since it is something that exists outside the context of a report).
                                             canModifyParticipants={!_.isEmpty(reportID)}
                                             navigateToStep={navigateToStep}
+                                            policyID={props.report.policyID}
                                         />
                                     </AnimatedStep>
                                 )}
