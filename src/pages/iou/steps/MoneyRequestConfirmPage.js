@@ -52,7 +52,7 @@ const MoneyRequestConfirmPage = (props) => (
     />
 );
 
-MoneyRequestConfirmPage.displayName = 'IOUConfirmPage';
+MoneyRequestConfirmPage.displayName = 'MoneyRequestConfirmPage';
 MoneyRequestConfirmPage.propTypes = propTypes;
 MoneyRequestConfirmPage.defaultProps = defaultProps;
 
