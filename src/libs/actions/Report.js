@@ -677,6 +677,7 @@ function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
  * @param {String} reportID
  */
 function readNewestAction(reportID) {
+    console.log(`~~Monil marking report as read - ${reportID}`);
     API.write(
         'ReadNewestAction',
         {
@@ -1621,6 +1622,10 @@ function getCurrentUserAccountID() {
     return currentUserAccountID;
 }
 
+function getCurrentUserEmail() {
+    return currentUserEmail;
+}
+
 /**
  * @param {String|null} reportID
  */
@@ -1710,4 +1715,5 @@ export {
     hasAccountIDReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    getCurrentUserEmail,
 };

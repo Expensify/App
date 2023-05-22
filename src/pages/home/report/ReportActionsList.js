@@ -166,9 +166,10 @@ function ReportActionsList(props) {
             if (!currentUnreadMarker.current) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
-                shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
+                shouldDisplayNewMarker = isCurrentMessageUnread && reportAction.actorEmail !== Report.getCurrentUserEmail() && !isUnreadMsg(nextMessage, report.lastReadTime);
 
                 if (!currentUnreadMarker.current && shouldDisplayNewMarker && reportAction.created < userActiveSince.current) {
+                    console.log(`~~Monil setting new marker ${userActiveSince.current} and  ${JSON.stringify(reportAction)}`);
                     currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
                 }
             } else {
