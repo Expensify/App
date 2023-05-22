@@ -90,7 +90,7 @@ const SplitDetailsPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
+            {(
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithCloseButton
                         title={props.translate('common.details')}
@@ -110,25 +110,6 @@ const SplitDetailsPage = (props) => {
                                 iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                                 isReadOnly
                             />
-                            // <OptionsList
-                            //     sections={[
-                            //         {
-                            //             title: '',
-                            //             data: participants,
-                            //             shouldShow: true,
-                            //             indexOffset: 0,
-                            //         },
-                            //     ]}
-                            //     onSelectRow={(option) => {
-                            //         Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.login));
-                            //     }}
-                            //     hideSectionHeaders
-                            //     showTitleTooltip
-                            //     disableFocusOptions
-                            //     boldStyle
-                            //     optionHoveredStyle={styles.hoveredComponentBG}
-                            //     contentContainerStyles={[safeAreaPaddingBottomStyle]}
-                            // />
                         )}
                     </View>
                 </FullPageNotFoundView>
