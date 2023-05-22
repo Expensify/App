@@ -39,7 +39,7 @@ function getAuthenticateErrorMessage(response) {
 }
 
 /**
- * Method used to generate errors object for optimistic
+ * Method used to generate errors object optimistically.
  * @param {String} error - error key or message to be saved
  * @return {Object} - Object to be optimistically saved to Onyx
  *
