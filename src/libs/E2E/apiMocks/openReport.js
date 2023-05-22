@@ -11,7 +11,6 @@ export default () => ({
                 policyID: '_FAKE_',
                 participants: ['fake1@gmail.com', 'fake2@gmail.com', 'fake3@gmail.com', 'fake4@gmail.com', 'fake5@gmail.com', 'fake6@gmail.com', 'fake7@gmail.com', 'fake8@gmail.com'],
                 isPinned: false,
-                lastReadTimestamp: 1671470568415,
                 lastReadCreated: '1980-01-01 00:00:00.000',
                 lastVisibleActionCreated: '2022-08-01 20:49:11',
                 lastMessageTimestamp: 1659386951000,
