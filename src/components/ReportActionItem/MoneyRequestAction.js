@@ -90,10 +90,11 @@ const defaultProps = {
 };
 
 const MoneyRequestAction = (props) => {
+    const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
     const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
     
     const onIOUPreviewPressed = () => {
-        if (isSplitBillAction) {
+        if (isSplitBillAction && hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
             return;
         }
