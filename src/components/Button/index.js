@@ -111,7 +111,8 @@ const propTypes = {
     accessibilityLabel: PropTypes.string,
 
     /** A ref to forward the button */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 };
 
 const defaultProps = {
