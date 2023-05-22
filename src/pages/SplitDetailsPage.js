@@ -108,6 +108,7 @@ const SplitDetailsPage = (props) => {
                                 participants={participants}
                                 iouAmount={9999} // todo
                                 iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                                isReadOnly
                             />
                             // <OptionsList
                             //     sections={[
