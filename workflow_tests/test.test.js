@@ -68,7 +68,7 @@ describe('test workflow test', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('test'),
+                    logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
                 });
 
             assertions.assertJestJobExecuted(result);
@@ -95,7 +95,7 @@ describe('test workflow test', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('test'),
+                        logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
                     });
 
                 assertions.assertJestJobExecuted(result, false);
@@ -129,7 +129,7 @@ describe('test workflow test', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('test'),
+                    logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
                 });
 
             assertions.assertJestJobExecuted(result);
@@ -156,7 +156,7 @@ describe('test workflow test', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('test'),
+                        logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
                     });
 
                 assertions.assertJestJobExecuted(result, false);
@@ -188,7 +188,7 @@ describe('test workflow test', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('test'),
+                    logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
                 });
 
             assertions.assertJestJobExecuted(result);
@@ -215,7 +215,7 @@ describe('test workflow test', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('test'),
+                        logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
                     });
 
                 assertions.assertJestJobExecuted(result);

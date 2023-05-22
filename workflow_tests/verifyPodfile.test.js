@@ -71,7 +71,7 @@ describe('test workflow verifyPodfile', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('verifyPodfile'),
+                    logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
                 });
 
             assertions.assertVerifyJobExecuted(result);
@@ -101,7 +101,7 @@ describe('test workflow verifyPodfile', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('verifyPodfile'),
+                        logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
                     });
 
                 assertions.assertVerifyJobExecuted(result, false);
@@ -137,7 +137,7 @@ describe('test workflow verifyPodfile', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('verifyPodfile'),
+                    logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
                 });
 
             assertions.assertVerifyJobExecuted(result);
@@ -167,7 +167,7 @@ describe('test workflow verifyPodfile', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('verifyPodfile'),
+                        logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
                     });
 
                 assertions.assertVerifyJobExecuted(result, false);

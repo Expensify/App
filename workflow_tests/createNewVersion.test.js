@@ -76,7 +76,7 @@ describe('test workflow createNewVersion', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('createNewVersion'),
+                        logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
                     });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -108,7 +108,7 @@ describe('test workflow createNewVersion', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('createNewVersion'),
+                        logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
                     });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -140,7 +140,7 @@ describe('test workflow createNewVersion', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('createNewVersion'),
+                        logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
                     });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result, 'BUILD', false);
@@ -181,7 +181,7 @@ describe('test workflow createNewVersion', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('createNewVersion'),
+                        logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
                     });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result, 'BUILD', true, false);
@@ -211,7 +211,7 @@ describe('test workflow createNewVersion', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
-                    logFile: utils.getLogFilePath('createNewVersion'),
+                    logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
                 });
             assertions.assertValidateActorJobExecuted(result);
             assertions.assertCreateNewVersionJobExecuted(result, 'MAJOR');

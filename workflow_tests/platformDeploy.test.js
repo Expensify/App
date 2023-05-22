@@ -101,7 +101,7 @@ describe('test workflow platformDeploy', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('platformDeploy'),
+                        logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
                     });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');
@@ -174,7 +174,7 @@ describe('test workflow platformDeploy', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
                         mockSteps: testMockSteps,
                         actor: 'OSBotify',
-                        logFile: utils.getLogFilePath('platformDeploy'),
+                        logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
                     });
 
                 assertions.assertVerifyActorJobExecuted(result, 'OSBotify');
@@ -247,7 +247,7 @@ describe('test workflow platformDeploy', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('platformDeploy'),
+                        logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
                     });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');

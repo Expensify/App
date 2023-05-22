@@ -80,7 +80,7 @@ describe('test workflow preDeploy', () => {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                 mockSteps: testMockSteps,
                 actor: 'Dummy Tester',
-                logFile: utils.getLogFilePath('preDeploy'),
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
             });
 
         // assert results (some steps can run in parallel to each other so the order is not assured
@@ -126,7 +126,7 @@ describe('test workflow preDeploy', () => {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                 mockSteps: testMockSteps,
                 actor: 'Dummy Tester',
-                logFile: utils.getLogFilePath('preDeploy'),
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
             });
         assertions.assertLintJobExecuted(result, false);
         assertions.assertTestJobExecuted(result, false);
@@ -151,7 +151,7 @@ describe('test workflow preDeploy', () => {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                 mockSteps: testMockSteps,
                 actor: 'Dummy Tester',
-                logFile: utils.getLogFilePath('preDeploy'),
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
             });
         assertions.assertLintJobExecuted(result, false);
         assertions.assertTestJobExecuted(result, false);
@@ -204,7 +204,7 @@ describe('test workflow preDeploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy'),
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 });
             expect(result).toEqual(expect.arrayContaining(
                 [
@@ -283,7 +283,7 @@ describe('test workflow preDeploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy'),
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 });
             assertions.assertLintJobExecuted(result);
             expect(result).toEqual(expect.arrayContaining(
@@ -351,7 +351,7 @@ describe('test workflow preDeploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy'),
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
@@ -394,7 +394,7 @@ describe('test workflow preDeploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'OSBotify',
-                    logFile: utils.getLogFilePath('preDeploy'),
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
@@ -433,7 +433,7 @@ describe('test workflow preDeploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy'),
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
@@ -472,7 +472,7 @@ describe('test workflow preDeploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy'),
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
@@ -511,7 +511,7 @@ describe('test workflow preDeploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy'),
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
@@ -552,7 +552,7 @@ describe('test workflow preDeploy', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Tester',
-                            logFile: utils.getLogFilePath('preDeploy'),
+                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                         });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
@@ -592,7 +592,7 @@ describe('test workflow preDeploy', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'OSBotify',
-                            logFile: utils.getLogFilePath('preDeploy'),
+                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                         });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
@@ -638,7 +638,7 @@ describe('test workflow preDeploy', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Tester',
-                            logFile: utils.getLogFilePath('preDeploy'),
+                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                         });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
@@ -681,7 +681,7 @@ describe('test workflow preDeploy', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'OSBotify',
-                            logFile: utils.getLogFilePath('preDeploy'),
+                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                         });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
@@ -729,7 +729,7 @@ describe('test workflow preDeploy', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Tester',
-                            logFile: utils.getLogFilePath('preDeploy'),
+                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                         });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
@@ -773,7 +773,7 @@ describe('test workflow preDeploy', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'OSBotify',
-                            logFile: utils.getLogFilePath('preDeploy'),
+                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                         });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
@@ -819,7 +819,7 @@ describe('test workflow preDeploy', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Tester',
-                            logFile: utils.getLogFilePath('preDeploy'),
+                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                         });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
@@ -863,7 +863,7 @@ describe('test workflow preDeploy', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                             mockSteps: testMockSteps,
                             actor: 'OSBotify',
-                            logFile: utils.getLogFilePath('preDeploy'),
+                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                         });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
@@ -908,7 +908,7 @@ describe('test workflow preDeploy', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                     mockSteps: testMockSteps,
                     actor: 'OSBotify',
-                    logFile: utils.getLogFilePath('preDeploy'),
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);

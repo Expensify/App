@@ -66,7 +66,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('authorChecklist'),
+                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                     });
 
                 assertions.assertChecklistJobExecuted(result);
@@ -93,7 +93,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('authorChecklist'),
+                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);
@@ -126,7 +126,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('authorChecklist'),
+                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                     });
 
                 assertions.assertChecklistJobExecuted(result);
@@ -153,7 +153,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('authorChecklist'),
+                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);
@@ -186,7 +186,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('authorChecklist'),
+                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                     });
 
                 assertions.assertChecklistJobExecuted(result);
@@ -213,7 +213,7 @@ describe('test workflow authorChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('authorChecklist'),
+                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);

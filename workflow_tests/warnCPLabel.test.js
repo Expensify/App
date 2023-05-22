@@ -71,7 +71,7 @@ describe('test workflow warnCPLabel', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('warnCPLabel'),
+                    logFile: utils.getLogFilePath('warnCPLabel', expect.getState().currentTestName),
                 });
 
             assertions.assertWarnCPLabelJobExecuted(result);
@@ -106,7 +106,7 @@ describe('test workflow warnCPLabel', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('warnCPLabel'),
+                        logFile: utils.getLogFilePath('warnCPLabel', expect.getState().currentTestName),
                     });
 
                 assertions.assertWarnCPLabelJobExecuted(result, true, false);
@@ -138,7 +138,7 @@ describe('test workflow warnCPLabel', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('warnCPLabel'),
+                        logFile: utils.getLogFilePath('warnCPLabel', expect.getState().currentTestName),
                     });
 
                 assertions.assertWarnCPLabelJobExecuted(result, false);

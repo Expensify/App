@@ -72,7 +72,7 @@ describe('test workflow cherryPick', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('cherryPick'),
+                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -116,7 +116,7 @@ describe('test workflow cherryPick', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('cherryPick'),
+                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -175,7 +175,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -226,7 +226,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -280,7 +280,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -331,7 +331,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -388,7 +388,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -439,7 +439,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -493,7 +493,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -544,7 +544,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -605,7 +605,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -656,7 +656,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -710,7 +710,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -761,7 +761,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -818,7 +818,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -869,7 +869,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -923,7 +923,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -974,7 +974,7 @@ describe('test workflow cherryPick', () => {
                                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                                         mockSteps: testMockSteps,
                                         actor,
-                                        logFile: utils.getLogFilePath('cherryPick'),
+                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                                     });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -1030,7 +1030,7 @@ describe('test workflow cherryPick', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                     mockSteps: testMockSteps,
                     actor: 'Dummy Author',
-                    logFile: utils.getLogFilePath('cherryPick'),
+                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
                 });
 
             assertions.assertValidateActorJobExecuted(result, 'Dummy Author', false);

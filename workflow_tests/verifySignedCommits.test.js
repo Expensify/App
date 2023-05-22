@@ -65,7 +65,7 @@ describe('test workflow verifySignedCommits', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('verifySignedCommits'),
+                    logFile: utils.getLogFilePath('verifySignedCommits', expect.getState().currentTestName),
                 });
 
             assertions.assertVerifySignedCommitsJobExecuted(result);
@@ -95,7 +95,7 @@ describe('test workflow verifySignedCommits', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('verifySignedCommits'),
+                    logFile: utils.getLogFilePath('verifySignedCommits', expect.getState().currentTestName),
                 });
 
             assertions.assertVerifySignedCommitsJobExecuted(result);

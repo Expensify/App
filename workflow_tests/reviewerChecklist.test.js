@@ -62,7 +62,7 @@ describe('test workflow reviewerChecklist', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'reviewerChecklist.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('reviewerChecklist'),
+                    logFile: utils.getLogFilePath('reviewerChecklist', expect.getState().currentTestName),
                 });
 
             assertions.assertChecklistJobExecuted(result);
@@ -88,7 +88,7 @@ describe('test workflow reviewerChecklist', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'reviewerChecklist.yml'),
                         mockSteps: testMockSteps,
                         actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('reviewerChecklist'),
+                        logFile: utils.getLogFilePath('reviewerChecklist', expect.getState().currentTestName),
                     });
 
                 assertions.assertChecklistJobExecuted(result, false);

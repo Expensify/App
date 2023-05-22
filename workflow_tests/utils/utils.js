@@ -152,12 +152,16 @@ function deepCopy(originalObject) {
     return JSON.parse(JSON.stringify(originalObject));
 }
 
-function getLogFilePath(workflowName) {
+function getLogFilePath(workflowName, testName) {
     const logsDir = path.resolve(__dirname, '..', 'logs');
     if (!fs.existsSync(logsDir)) {
         fs.mkdirSync(logsDir);
     }
-    return path.resolve(logsDir, `${workflowName}.log`);
+    const workflowTestsLogDir = path.resolve(logsDir, workflowName);
+    if (!fs.existsSync(workflowTestsLogDir)) {
+        fs.mkdirSync(workflowTestsLogDir);
+    }
+    return path.resolve(workflowTestsLogDir, `${testName}.log`);
 }
 
 function removeMockRepoDir() {
