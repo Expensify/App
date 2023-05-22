@@ -213,24 +213,27 @@ class Button extends Component {
             </Text>
         );
 
-        if (this.props.icon) {
+        if (this.props.icon || this.props.shouldShowRightIcon) {
             return (
                 <View style={[styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
-                        <View style={[styles.mr1, ...this.props.iconStyles]}>
-                            <Icon
-                                src={this.props.icon}
-                                fill={this.props.iconFill}
-                                small={this.props.small}
-                            />
-                        </View>
+                        {this.props.icon && (
+                            <View style={[styles.mr1, ...this.props.iconStyles]}>
+                                <Icon
+                                    src={this.props.icon}
+                                    fill={this.props.iconFill}
+                                    small={this.props.small}
+                                />
+                            </View>
+                        )}
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
-                        <View style={styles.justifyContentCenter}>
+                        <View style={[styles.justifyContentCenter, styles.ml1, ...this.props.iconStyles]}>
                             <Icon
                                 src={this.props.iconRight}
                                 fill={this.props.iconFill}
+                                small={this.props.small}
                             />
                         </View>
                     )}
