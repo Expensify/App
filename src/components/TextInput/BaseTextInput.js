@@ -19,7 +19,6 @@ import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
 import * as Pressables from '../Pressable';
 
-
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 class BaseTextInput extends Component {
     constructor(props) {
