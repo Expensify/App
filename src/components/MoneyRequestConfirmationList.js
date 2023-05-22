@@ -286,7 +286,7 @@ class MoneyRequestConfirmationList extends Component {
                 shouldUseStyleForChildren={false}
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
                 footerContent={
-                    !this.props.isReadOnly ? (
+                    !this.props.isReadOnly && (
                         shouldShowSettlementButton ? (
                             <SettlementButton
                                 isDisabled={shouldDisableButton}
@@ -305,7 +305,7 @@ class MoneyRequestConfirmationList extends Component {
                                 options={this.getSplitOrRequestOptions()}
                             />
                         )
-                    ) : null
+                    )
                 }
             >
                 <MenuItemWithTopDescription
