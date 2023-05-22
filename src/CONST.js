@@ -1089,7 +1089,7 @@ const CONST = {
 
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,
-        }
+        },
     },
 
     PRONOUNS: {
