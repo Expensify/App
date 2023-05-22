@@ -1022,10 +1022,7 @@ class ReportActionCompose extends React.Component {
                                                 placeholderTextColor={themeColors.placeholderText}
                                                 onChangeText={(comment) => this.updateComment(comment, true)}
                                                 onKeyPress={this.triggerHotkeyActions}
-                                                style={[
-                                                    this.props.numberOfLines > 1 ? styles.textInputComposeMultiLines : styles.textInputCompose,
-                                                    this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4,
-                                                ]}
+                                                style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
                                                 maxLines={this.state.maxLines}
                                                 onFocus={() => this.setIsFocused(true)}
                                                 onBlur={() => {
