@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from './styles';
+import styles from './staticStyles';
 
 const StylesContext = React.createContext(styles);
 
