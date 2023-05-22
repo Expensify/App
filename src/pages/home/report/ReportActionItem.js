@@ -194,6 +194,7 @@ function ReportActionItem(props) {
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    style={props.displayAsGroup ? [] : [styles.mt2]}
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
