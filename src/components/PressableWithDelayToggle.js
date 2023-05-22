@@ -14,30 +14,40 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 
 const propTypes = {
+    /** The text to display */
     text: PropTypes.string,
 
+    /** The text to display once the pressable is pressed */
     textChecked: PropTypes.string,
 
+    /** The tooltip text to display */
     tooltipText: PropTypes.string,
 
+    /** The tooltip text to display once the pressable is pressed */
     tooltipTextChecked: PropTypes.string,
 
-    /** Styles to apply to the text */
+    /** Styles to apply to the container */
     // eslint-disable-next-line react/forbid-prop-types
     styles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Styles to apply to the text */
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Styles to apply to the icon */
     // eslint-disable-next-line react/forbid-prop-types
     iconStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Callback to be called on onPress */
     onPress: PropTypes.func.isRequired,
 
+    /** The icon to display */
     icon: PropTypes.func,
 
+    /** The icon to display once the pressable is pressed */
     iconChecked: PropTypes.func,
 
+    /** If the component should be inline with text or not */
     inline: PropTypes.bool,
 
     ...withLocalizePropTypes,
