@@ -39,14 +39,14 @@ function getAuthenticateErrorMessage(response) {
 }
 
 /**
- * Method used to generate errors object for optimistic 
- * @param {String} error - error key or message to be saved 
+ * Method used to generate errors object for optimistic
+ * @param {String} error - error key or message to be saved
  * @return {Object} - Object to be optimistically saved to Onyx
  *
  */
 function getOptimisticErrors(error) {
     // eslint-disable-next-line rulesdir/prefer-localization
-    return ({[DateUtils.getMicroseconds()]: error});
+    return {[DateUtils.getMicroseconds()]: error};
 }
 
 /**
