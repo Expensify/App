@@ -106,13 +106,8 @@ const SplitDetailsPage = (props) => {
                             <MoneyRequestConfirmationList
                                 hasMultipleParticipants
                                 participants={participants}
-                                iouAmount={9999}
-                                // onConfirm={props.onConfirm}
-                                // onSendMoney={props.onSendMoney}
+                                iouAmount={9999} // todo
                                 iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                                canModifyParticipants={false}
-                                // navigateToStep={props.navigateToStep}
-                                // policyID={props.policyID}
                             />
                             // <OptionsList
                             //     sections={[
