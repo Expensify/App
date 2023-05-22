@@ -2456,7 +2456,6 @@ const styles = {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
-        marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
@@ -2475,12 +2474,7 @@ const styles = {
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
-        marginBottom: -10,
-    },
-
-    iouPreviewBoxAvatarHover: {
-        borderColor: themeColors.border,
-        backgroundColor: themeColors.border,
+        marginBottom: 0,
     },
 
     iouPreviewBoxCheckmark: {
@@ -3290,6 +3284,7 @@ const styles = {
     whisper: {
         backgroundColor: themeColors.cardBG,
     },
+
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
@@ -3313,6 +3308,12 @@ const styles = {
         borderColor: themeColors.borderFocus,
         borderWidth: 2,
         backgroundColor: themeColors.highlightBG,
+    },
+
+    splashScreenHider: {
+        backgroundColor: themeColors.splashBG,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     headerEnvBadge: {
