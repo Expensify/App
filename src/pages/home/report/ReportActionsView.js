@@ -9,7 +9,6 @@ import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withDrawerPropTypes} from '../../../components/withDrawerState';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Performance from '../../../libs/Performance';
 import {withNetwork} from '../../../components/OnyxProvider';
@@ -66,7 +65,7 @@ class ReportActionsView extends React.Component {
         this.openReportIfNecessary();
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
+    shouldComponentUpdate(nextProps) {
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(nextProps.reportActions);
             return true;
