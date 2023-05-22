@@ -1,5 +1,3 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import spacing from './utilities/spacing';
 import styles from './styles';
 import colors from './colors';
@@ -67,7 +65,7 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip) {
     }
 
     const element = document.elementFromPoint(xOffset, yOffset);
-    const tooltipRef = tooltip && tooltip.current || tooltip;
+    const tooltipRef = (tooltip && tooltip.current) || tooltip;
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
     if (!element || (tooltipRef && tooltipRef.contains(element))) {
