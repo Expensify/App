@@ -895,7 +895,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         return [adminIcon, workspaceIcon];
     }
     if (isIOUReport(report)) {
-        const email = isPayer? report.managerEmail : report.ownerEmail;
+        const email = isPayer ? report.managerEmail : report.ownerEmail;
         return [
             {
                 source: getAvatar(lodashGet(personalDetails, [email, 'avatar']), email),
