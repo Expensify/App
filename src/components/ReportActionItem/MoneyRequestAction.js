@@ -7,7 +7,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
 import compose from '../../libs/compose';
-import ReportPreview from './ReportPreview';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import networkPropTypes from '../networkPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -20,7 +19,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -100,8 +99,8 @@ const MoneyRequestAction = (props) => {
             const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
             const thread = ReportUtils.buildOptimisticChatReport(
                 formattedUserLogins,
-                props.translate('iou.threadReportName', {
-                    formattedAmount: CurrencyUtils.convertToDisplayString(lodashGet(props.action, 'originalMessage.amount', 0), lodashGet(props.action, 'originalMessage.currency', '')),
+                props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
+                    formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
                     comment: props.action.originalMessage.comment,
                 }),
                 '',
@@ -112,7 +111,7 @@ const MoneyRequestAction = (props) => {
                 undefined,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 props.action.reportActionID,
-                props.chatReportID, // Needs to be changed to iouReportID
+                props.requestReportID,
             );
 
             Report.openReport(thread.reportID, thread.participants, thread, props.action.reportActionID);
@@ -149,17 +148,6 @@ const MoneyRequestAction = (props) => {
                 containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
                 isHovered={props.isHovered}
             />
-            {props.isMostRecentIOUReportAction && !hasMultipleParticipants && (
-                <ReportPreview
-                    action={props.action}
-                    chatReportID={props.chatReportID}
-                    iouReportID={props.requestReportID}
-                    contextMenuAnchor={props.contextMenuAnchor}
-                    onViewDetailsPressed={onIOUPreviewPressed}
-                    checkIfContextMenuActive={props.checkIfContextMenuActive}
-                    isHovered={props.isHovered}
-                />
-            )}
         </>
     );
 };

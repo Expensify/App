@@ -8,8 +8,15 @@ import CONST from '../CONST';
 import Text from './Text';
 import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
+import useOnNetworkReconnect from './hooks/useOnNetworkReconnect';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     /** Name attribute for the input */
     name: PropTypes.string,
 
@@ -41,6 +48,9 @@ const propTypes = {
 
     /** Specifies if the input has a validation error */
     hasError: PropTypes.bool,
+
+    /** Specifies the max length of the input */
+    maxLength: PropTypes.number,
 };
 
 const defaultProps = {
@@ -54,6 +64,7 @@ const defaultProps = {
     onChangeText: () => {},
     onFulfill: () => {},
     hasError: false,
+    maxLength: CONST.MAGIC_CODE_LENGTH,
 };
 
 /**
@@ -61,12 +72,13 @@ const defaultProps = {
  * number of elements as the number of inputs.
  *
  * @param {String} value
+ * @param {Number} length
  * @returns {Array}
  */
-const decomposeString = (value) => {
-    let arr = _.map(value.split('').slice(0, CONST.MAGIC_CODE_LENGTH), (v) => (ValidationUtils.isNumeric(v) ? v : CONST.MAGIC_CODE_EMPTY_CHAR));
-    if (arr.length < CONST.MAGIC_CODE_LENGTH) {
-        arr = arr.concat(Array(CONST.MAGIC_CODE_LENGTH - arr.length).fill(CONST.MAGIC_CODE_EMPTY_CHAR));
+const decomposeString = (value, length) => {
+    let arr = _.map(value.split('').slice(0, length), (v) => (ValidationUtils.isNumeric(v) ? v : CONST.MAGIC_CODE_EMPTY_CHAR));
+    if (arr.length < length) {
+        arr = arr.concat(Array(length - arr.length).fill(CONST.MAGIC_CODE_EMPTY_CHAR));
     }
     return arr;
 };
@@ -80,7 +92,7 @@ const decomposeString = (value) => {
  */
 const composeToString = (value) => _.map(value, (v) => (v === undefined || v === '' ? CONST.MAGIC_CODE_EMPTY_CHAR : v)).join('');
 
-const inputPlaceholderSlots = Array.from(Array(CONST.MAGIC_CODE_LENGTH).keys());
+const getInputPlaceholderSlots = (length) => Array.from(Array(length).keys());
 
 function MagicCodeInput(props) {
     const inputRefs = useRef([]);
@@ -102,16 +114,22 @@ function MagicCodeInput(props) {
         },
     }));
 
-    useEffect(() => {
-        // Blurs the input and removes focus from the last input and, if it should submit
-        // on complete, it will call the onFulfill callback.
-        const numbers = decomposeString(props.value);
-        if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== CONST.MAGIC_CODE_LENGTH) {
+    const validateAndSubmit = () => {
+        const numbers = decomposeString(props.value, props.maxLength);
+        if (!props.shouldSubmitOnComplete || _.filter(numbers, (n) => ValidationUtils.isNumeric(n)).length !== props.maxLength || props.network.isOffline) {
             return;
         }
+        // Blurs the input and removes focus from the last input and, if it should submit
+        // on complete, it will call the onFulfill callback.
         inputRefs.current[editIndex].blur();
         setFocusedIndex(undefined);
         props.onFulfill(props.value);
+    };
+
+    useOnNetworkReconnect(validateAndSubmit);
+
+    useEffect(() => {
+        validateAndSubmit();
 
         // We have not added the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -181,11 +199,11 @@ function MagicCodeInput(props) {
         const numbersArr = value
             .trim()
             .split('')
-            .slice(0, CONST.MAGIC_CODE_LENGTH - editIndex);
-        const updatedFocusedIndex = Math.min(editIndex + (numbersArr.length - 1) + 1, CONST.MAGIC_CODE_LENGTH - 1);
+            .slice(0, props.maxLength - editIndex);
+        const updatedFocusedIndex = Math.min(editIndex + (numbersArr.length - 1) + 1, props.maxLength - 1);
 
-        let numbers = decomposeString(props.value);
-        numbers = [...numbers.slice(0, editIndex), ...numbersArr, ...numbers.slice(numbersArr.length + editIndex, CONST.MAGIC_CODE_LENGTH)];
+        let numbers = decomposeString(props.value, props.maxLength);
+        numbers = [...numbers.slice(0, editIndex), ...numbersArr, ...numbers.slice(numbersArr.length + editIndex, props.maxLength)];
 
         setFocusedIndex(updatedFocusedIndex);
         setInput(value);
@@ -204,13 +222,13 @@ function MagicCodeInput(props) {
      */
     const onKeyPress = ({nativeEvent: {key: keyValue}}) => {
         if (keyValue === 'Backspace') {
-            let numbers = decomposeString(props.value);
+            let numbers = decomposeString(props.value, props.maxLength);
 
             // If the currently focused index already has a value, it will delete
             // that value but maintain the focus on the same input.
             if (numbers[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
                 setInput('');
-                numbers = [...numbers.slice(0, focusedIndex), CONST.MAGIC_CODE_EMPTY_CHAR, ...numbers.slice(focusedIndex + 1, CONST.MAGIC_CODE_LENGTH)];
+                numbers = [...numbers.slice(0, focusedIndex), CONST.MAGIC_CODE_EMPTY_CHAR, ...numbers.slice(focusedIndex + 1, props.maxLength)];
                 setEditIndex(focusedIndex);
                 props.onChangeText(composeToString(numbers));
                 return;
@@ -220,11 +238,11 @@ function MagicCodeInput(props) {
 
             // Fill the array with empty characters if there are no inputs.
             if (focusedIndex === 0 && !hasInputs) {
-                numbers = Array(CONST.MAGIC_CODE_LENGTH).fill(CONST.MAGIC_CODE_EMPTY_CHAR);
+                numbers = Array(props.maxLength).fill(CONST.MAGIC_CODE_EMPTY_CHAR);
 
                 // Deletes the value of the previous input and focuses on it.
             } else if (focusedIndex !== 0) {
-                numbers = [...numbers.slice(0, Math.max(0, focusedIndex - 1)), CONST.MAGIC_CODE_EMPTY_CHAR, ...numbers.slice(focusedIndex, CONST.MAGIC_CODE_LENGTH)];
+                numbers = [...numbers.slice(0, Math.max(0, focusedIndex - 1)), CONST.MAGIC_CODE_EMPTY_CHAR, ...numbers.slice(focusedIndex, props.maxLength)];
             }
 
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
@@ -248,36 +266,45 @@ function MagicCodeInput(props) {
             setEditIndex(newFocusedIndex);
             inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'ArrowRight' && !_.isUndefined(focusedIndex)) {
-            const newFocusedIndex = Math.min(focusedIndex + 1, CONST.MAGIC_CODE_LENGTH - 1);
+            const newFocusedIndex = Math.min(focusedIndex + 1, props.maxLength - 1);
             setInput('');
             setFocusedIndex(newFocusedIndex);
             setEditIndex(newFocusedIndex);
             inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'Enter') {
+            // We should prevent users from submitting when it's offline.
+            if (props.network.isOffline) {
+                return;
+            }
             setInput('');
             props.onFulfill(props.value);
         }
     };
 
+    // We need to check the browser because, in iOS Safari, an input in a container with its opacity set to
+    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown.
+    // Alternate styling will be applied based on this condition.
+    const isMobileSafari = Browser.isMobileSafari();
+
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
-                {_.map(inputPlaceholderSlots, (index) => (
+                {_.map(getInputPlaceholderSlots(props.maxLength), (index) => (
                     <View
                         key={index}
                         style={[styles.w15]}
                     >
                         <View style={[styles.textInputContainer, focusedIndex === index ? styles.borderColorFocus : {}, props.hasError || props.errorText ? styles.borderColorDanger : {}]}>
-                            <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value)[index] || ''}</Text>
+                            <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value, props.maxLength)[index] || ''}</Text>
                         </View>
-                        <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.opacity0]}>
+                        <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
                                 autoFocus={index === 0 && props.autoFocus}
                                 inputMode="numeric"
                                 textContentType="oneTimeCode"
                                 name={props.name}
-                                maxLength={CONST.MAGIC_CODE_LENGTH}
+                                maxLength={props.maxLength}
                                 value={input}
                                 hideFocusedState
                                 autoComplete={index === 0 ? props.autoComplete : 'off'}
@@ -295,6 +322,8 @@ function MagicCodeInput(props) {
                                 onKeyPress={onKeyPress}
                                 onPress={(event) => onPress(event, index)}
                                 onFocus={onFocus}
+                                caretHidden={isMobileSafari}
+                                inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
                             />
                         </View>
                     </View>
@@ -313,10 +342,12 @@ function MagicCodeInput(props) {
 MagicCodeInput.propTypes = propTypes;
 MagicCodeInput.defaultProps = defaultProps;
 
-export default forwardRef((props, ref) => (
-    <MagicCodeInput
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+export default withNetwork()(
+    forwardRef((props, ref) => (
+        <MagicCodeInput
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

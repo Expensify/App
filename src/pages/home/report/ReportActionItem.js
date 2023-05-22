@@ -34,6 +34,7 @@ import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
@@ -46,10 +47,10 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import Text from '../../../components/Text';
 import DisplayNames from '../../../components/DisplayNames';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
-import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
 import Permissions from '../../../libs/Permissions';
 
 const propTypes = {
@@ -185,14 +186,17 @@ class ReportActionItem extends Component {
      */
     renderItemContent(hovered = false) {
         let children;
+        const originalMessage = lodashGet(this.props.action, 'originalMessage', {});
+        // Show the IOUPreview for when request was created, bill was split or money was sent
         if (
             this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.DELETE &&
-            this.props.action.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY
+            originalMessage &&
+            (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
+                (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails')))
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = this.props.action.originalMessage.IOUReportID ? this.props.action.originalMessage.IOUReportID.toString() : '0';
-
+            const iouReportID = originalMessage.IOUReportID ? originalMessage.IOUReportID.toString() : '0';
             children = (
                 <MoneyRequestAction
                     chatReportID={this.props.report.reportID}
@@ -204,7 +208,22 @@ class ReportActionItem extends Component {
                     checkIfContextMenuActive={this.checkIfContextMenuActive}
                 />
             );
-        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+        } else if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
+            children = (
+                <ReportPreview
+                    iouReportID={this.props.action.originalMessage.linkedReportID}
+                    chatReportID={this.props.report.reportID}
+                    action={this.props.action}
+                    isHovered={hovered}
+                    contextMenuAnchor={this.popoverAnchor}
+                    checkIfContextMenuActive={this.checkIfContextMenuActive}
+                />
+            );
+        } else if (
+            this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
+            this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELED ||
+            this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
+        ) {
             children = (
                 <TaskAction
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}
@@ -212,7 +231,7 @@ class ReportActionItem extends Component {
                     isHovered={hovered}
                 />
             );
-        } else if (ReportActionUtils.isCreatedTaskReportAction(this.props.action)) {
+        } else if (ReportActionsUtils.isCreatedTaskReportAction(this.props.action)) {
             children = (
                 <TaskPreview
                     taskReportID={this.props.action.originalMessage.taskReportID.toString()}
@@ -262,8 +281,14 @@ class ReportActionItem extends Component {
 
         const reactions = _.get(this.props, ['action', 'message', 0, 'reactions'], []);
         const hasReactions = reactions.length > 0;
+        const numberOfThreadReplies = _.get(this.props, ['action', 'childVisibleActionCount'], 0);
+        const hasReplies = numberOfThreadReplies > 0;
+
         const shouldDisplayThreadReplies =
-            this.props.action.childCommenterCount && Permissions.canUseThreads(this.props.betas) && !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
+            hasReplies &&
+            this.props.action.childCommenterCount &&
+            Permissions.canUseThreads(this.props.betas) &&
+            !ReportUtils.isThreadFirstChat(this.props.action, this.props.report.reportID);
         const oldestFourEmails = lodashGet(this.props.action, 'childOldestFourEmails', '').split(',');
 
         return (
@@ -272,6 +297,7 @@ class ReportActionItem extends Component {
                 {hasReactions && (
                     <View style={this.props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions
+                            reportActionID={this.props.action.reportActionID}
                             reactions={reactions}
                             toggleReaction={this.toggleReaction}
                         />
@@ -280,8 +306,9 @@ class ReportActionItem extends Component {
                 {shouldDisplayThreadReplies && (
                     <ReportActionItemThread
                         childReportID={`${this.props.action.childReportID}`}
-                        numberOfReplies={this.props.action.childVisibleActionCount || 0}
+                        numberOfReplies={numberOfThreadReplies}
                         mostRecentReply={`${this.props.action.childLastVisibleActionCreated}`}
+                        isHovered={hovered}
                         icons={ReportUtils.getIconsForParticipants(oldestFourEmails, this.props.personalDetails)}
                     />
                 )}
@@ -367,7 +394,7 @@ class ReportActionItem extends Component {
                                     pendingAction={this.props.draftMessage ? null : this.props.action.pendingAction}
                                     errors={this.props.action.errors}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
-                                    needsOffscreenAlphaCompositing={this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
+                                    needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(this.props.action)}
                                 >
                                     {isWhisper && (
                                         <View style={[styles.flexRow, styles.pl5, styles.pt2]}>

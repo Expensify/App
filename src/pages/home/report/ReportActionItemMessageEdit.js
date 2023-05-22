@@ -32,6 +32,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** All the data of the action */
@@ -144,7 +145,12 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+
+        if (!_.isEmpty(emojis)) {
+            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+        }
+
         this.setState((prevState) => {
             const newState = {draft: newDraft};
             if (draft !== newDraft) {
@@ -246,7 +252,7 @@ class ReportActionItemMessageEdit extends React.Component {
         if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
             e.preventDefault();
             this.publishDraft();
-        } else if (e.key === 'Escape') {
+        } else if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
             e.preventDefault();
             this.deleteDraft();
         }

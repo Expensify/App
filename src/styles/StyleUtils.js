@@ -33,7 +33,7 @@ const workspaceColorOptions = [
 const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusMedium,
@@ -85,7 +85,7 @@ function getAvatarStyle(size) {
 /**
  * Get Font size of '+1' text on avatar overlay
  * @param {String} size
- * @returns {Number}
+ * @returns {Object}
  */
 function getAvatarExtraFontSizeStyle(size) {
     const AVATAR_SIZES = {
@@ -107,21 +107,23 @@ function getAvatarExtraFontSizeStyle(size) {
 /**
  * Get Bordersize of Avatar based on avatar size
  * @param {String} size
- * @returns {Number}
+ * @returns {Object}
  */
 function getAvatarBorderWidth(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: 3,
-        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
         [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
-        [CONST.AVATAR_SIZE.SMALL]: 3,
+        [CONST.AVATAR_SIZE.SMALL]: 2,
         [CONST.AVATAR_SIZE.SMALLER]: 2,
         [CONST.AVATAR_SIZE.LARGE]: 4,
         [CONST.AVATAR_SIZE.MEDIUM]: 3,
         [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
     };
-    return AVATAR_SIZES[size];
+    return {
+        borderWidth: AVATAR_SIZES[size],
+    };
 }
 
 /**
@@ -346,6 +348,18 @@ function getBackgroundAndBorderStyle(backgroundColor) {
 function getBackgroundColorStyle(backgroundColor) {
     return {
         backgroundColor,
+    };
+}
+
+/**
+ * Returns a style with the specified borderColor
+ *
+ * @param {String} borderColor
+ * @returns {Object}
+ */
+function getBorderColorStyle(borderColor) {
+    return {
+        borderColor,
     };
 }
 
@@ -805,19 +819,22 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
 }
 
 /**
- * @param {Boolean} isHovered
- * @param {Boolean} isPressed
+ * @param {Object} params
+ * @param {Boolean} params.isHovered
+ * @param {Boolean} params.isPressed
+ * @param {Boolean} params.isInReportAction
+ * @param {Boolean} params.shouldUseCardBackground
  * @returns {Object}
  */
-function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
-    let backgroundColor = themeColors.appBG;
+function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}) {
+    let backgroundColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = themeColors.border;
+        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
     }
 
     if (isPressed) {
-        backgroundColor = themeColors.buttonPressedBG;
+        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.buttonPressedBG;
     }
 
     return {
@@ -1009,7 +1026,7 @@ function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = 
     }
 
     if (hasUserReacted) {
-        backgroundColor = themeColors.reactionActive;
+        backgroundColor = themeColors.reactionActiveBackground;
     }
 
     if (isContextMenu) {
@@ -1043,7 +1060,7 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
 
 function getEmojiReactionCounterTextStyle(hasUserReacted) {
     if (hasUserReacted) {
-        return {color: themeColors.link};
+        return {color: themeColors.reactionActiveText};
     }
 
     return {color: themeColors.textLight};
@@ -1122,6 +1139,7 @@ export {
     getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBorderColorStyle,
     getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
