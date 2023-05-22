@@ -125,7 +125,7 @@ const ReportActionItemFragment = (props) => {
                         <Text
                             fontSize={variables.fontSizeSmall}
                             color={themeColors.textSupporting}
-                            style={[styles.alignItemsBaseline, editedLabelStyles]}
+                            style={[editedLabelStyles, ...props.style]}
                         >
                             <Text
                                 selectable={false}
