@@ -3,6 +3,7 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -168,9 +169,8 @@ class TransferBalancePage extends React.Component {
         const errorMessage = !_.isEmpty(this.props.walletTransfer.errors) ? _.chain(this.props.walletTransfer.errors).values().first().value() : '';
 
         const shouldShowTransferView =
-            !_.isEmpty(this.props.userWallet) &&
             PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList) &&
-            this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+            lodashGet(this.props.userWallet, 'tierName', '') === CONST.WALLET.TIER_NAME.GOLD;
 
         return (
             <ScreenWrapper>
