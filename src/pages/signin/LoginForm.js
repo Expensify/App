@@ -78,6 +78,8 @@ class LoginForm extends React.Component {
             login: '',
         };
 
+        // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
+        // this component will also be mounted, resetting account.isLoading will cause the app to briefly display the session expiration page.
         if (!this.props.isFocused) {
             return;
         }
