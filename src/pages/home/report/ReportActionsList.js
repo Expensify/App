@@ -68,6 +68,9 @@ const defaultProps = {
     isLoadingMoreReportActions: false,
 };
 
+const VERTICAL_OFFSET_THRESHOLD = 200;
+const MSG_VISIBLE_THRESHOLD = 250;
+
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -81,7 +84,6 @@ function keyExtractor(item) {
 }
 
 function isUnreadMsg(message, lastRead) {
-    // console.log(`lastRead ${lastRead} < message ${message?.created}`, message);
     return message && lastRead && message.created && lastRead < message.created;
 }
 
@@ -90,11 +92,12 @@ function ReportActionsList(props) {
     const userActiveSince = useRef(null);
     const currentUnreadMarker = useRef(null);
     const scrollingVerticalOffset = useRef(0);
+    const readActionSkipped = useRef(false);
     const [messageManuallyMarked, setMessageManuallyMarked] = useState(false);
     const report = props.report;
     const sortedReportActions = props.sortedReportActions;
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
-    const [reportActionSize, setReportActionSize] = useState(sortedReportActions.lenght);
+    const [reportActionSize, setReportActionSize] = useState(sortedReportActions.length);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
@@ -111,9 +114,12 @@ function ReportActionsList(props) {
     }, []);
 
     useEffect(() => {
-        console.log(`~~Monil in useEffect 1 ${JSON.stringify(userActiveSince)}`);
-        if (ReportUtils.isUnread(report) && scrollingVerticalOffset.current < 250) {
-            Report.readNewestAction(report.reportID);
+        if (ReportUtils.isUnread(report)) {
+            if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+                Report.readNewestAction(report.reportID);
+            } else {
+                readActionSkipped.current = true;
+            }
         }
 
         if (currentUnreadMarker.current || reportActionSize === sortedReportActions.length) {
@@ -121,7 +127,6 @@ function ReportActionsList(props) {
         }
 
         setReportActionSize(sortedReportActions.length);
-        // Report.readNewestAction(report.reportID);
         currentUnreadMarker.current = null;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sortedReportActions.length, report.reportID]);
@@ -142,24 +147,32 @@ function ReportActionsList(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastReadTime]);
 
-    const trackVerticalScrolling = (event) => {
-        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-
-        /**
-         * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
-         */
-        if (scrollingVerticalOffset.current > 200 && !isFloatingMessageCounterVisible) {
+    /**
+     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
+     */
+    const handleUnreadFloatingButton = () => {
+        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible) {
             setIsFloatingMessageCounterVisible(true);
         }
 
-        if (scrollingVerticalOffset.current < 200 && isFloatingMessageCounterVisible) {
+        if (scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
+            if (readActionSkipped.current) {
+                readActionSkipped.current = false;
+                Report.readNewestAction(report.reportID);
+            }
             setIsFloatingMessageCounterVisible(false);
         }
+    };
+
+    const trackVerticalScrolling = (event) => {
+        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+        handleUnreadFloatingButton();
         props.onScroll(event);
     };
 
     const scrollToBottomAndMarkReportAsRead = () => {
         ReportScrollManager.scrollToBottom();
+        readActionSkipped.current = false;
         Report.readNewestAction(report.reportID);
     };
 
@@ -195,13 +208,13 @@ function ReportActionsList(props) {
                 if (!messageManuallyMarked) {
                     shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorEmail !== Report.getCurrentUserEmail();
                 }
-                const canDisplayMarker = scrollingVerticalOffset.current < 250 ? reportAction.created < userActiveSince.current : true;
+                const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
 
                 if (!currentUnreadMarker.current && shouldDisplayNewMarker && canDisplayMarker) {
-                    currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
+                    currentUnreadMarker.current = reportAction.reportActionID;
                 }
             } else {
-                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current.id;
+                shouldDisplayNewMarker = reportAction.reportActionID === currentUnreadMarker.current;
             }
 
             const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isThread(report);
