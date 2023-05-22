@@ -113,6 +113,8 @@ export default {
     NEW_TASK_DETAILS: `${NEW_TASK}/details`,
     NEW_TASK_TITLE: `${NEW_TASK}/title`,
     NEW_TASK_DESCRIPTION: `${NEW_TASK}/description`,
+    FLAG_COMMENT: `flag/:reportActionID`,
+    getFlagCommentRoute: (reportActionID) => `flag/${reportActionID}`,
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
