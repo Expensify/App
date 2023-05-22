@@ -1,7 +1,7 @@
 import {useContext} from 'react';
 import StylesContext from './StylesContext';
 
-function useStyles() {
+function useThemeStyles() {
     const contextValue = useContext(StylesContext);
 
     if (contextValue == null) {
@@ -11,4 +11,4 @@ function useStyles() {
     return contextValue;
 }
 
-export default useStyles;
+export default useThemeStyles;
