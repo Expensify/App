@@ -165,7 +165,6 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
         // Only call the event callback if we've received the last packet and we don't have any holes in the complete
         // packet.
         if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === _.keys(chunkedEvent.chunks).length) {
-            eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
