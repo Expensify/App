@@ -160,6 +160,13 @@ function getLogFilePath(workflowName) {
     return path.resolve(logsDir, `${workflowName}.log`);
 }
 
+function removeMockRepoDir() {
+    const mockDirRepo = path.resolve(__dirname, '..', '..', 'repo');
+    if (fs.existsSync(mockDirRepo)) {
+        fs.rmSync(mockDirRepo, {recursive: true, force: true});
+    }
+}
+
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
         src: path.resolve(__dirname, '..', '..', '.github', 'actions'),
@@ -183,4 +190,5 @@ module.exports = {
     deepCopy,
     getLogFilePath,
     FILES_TO_COPY_INTO_TEST_REPO,
+    removeMockRepoDir,
 };
