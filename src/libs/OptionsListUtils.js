@@ -648,7 +648,6 @@ function getOptions(
     });
 
     if (includeRecentReports) {
-        console.log(allReportOptions);
         for (let i = 0; i < allReportOptions.length; i++) {
             const reportOption = allReportOptions[i];
 
