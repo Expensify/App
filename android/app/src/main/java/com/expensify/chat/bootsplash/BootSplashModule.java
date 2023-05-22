@@ -1,9 +1,13 @@
 package com.expensify.chat.bootsplash;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Build;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewTreeObserver;
 import android.window.SplashScreen;
 import android.window.SplashScreenView;
@@ -18,6 +22,9 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.common.ReactConstants;
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.uimanager.PixelUtil;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -25,6 +32,7 @@ import java.util.TimerTask;
 public class BootSplashModule extends ReactContextBaseJavaModule {
 
   public static final String NAME = "BootSplash";
+  private static final BootSplashQueue<Promise> mPromiseQueue = new BootSplashQueue<>();
   private static boolean mShouldKeepOnScreen = true;
 
   @Nullable
@@ -37,6 +45,24 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
   @Override
   public String getName() {
     return NAME;
+  }
+
+  @Override
+  public Map<String, Object> getConstants() {
+    final HashMap<String, Object> constants = new HashMap<>();
+    final Context context = getReactApplicationContext();
+    final Resources resources = context.getResources();
+
+    @SuppressLint({"DiscouragedApi", "InternalInsetResource"}) final int heightResId =
+        resources.getIdentifier("navigation_bar_height", "dimen", "android");
+
+    final float height =
+        heightResId > 0 && !ViewConfiguration.get(context).hasPermanentMenuKey()
+            ? Math.round(PixelUtil.toDIPFromPixel(resources.getDimensionPixelSize(heightResId)))
+            : 0;
+
+    constants.put("navigationBarHeight", height);
+    return constants;
   }
 
   protected static void init(@Nullable final Activity activity) {
@@ -68,13 +94,14 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
     });
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      // This is not called on Android 12 when activity is started using Android studio / notifications
+      // This is not called on Android 12 when activity is started using intent
+      // (Android studio / CLI / notification / widget…)
       activity
         .getSplashScreen()
         .setOnExitAnimationListener(new SplashScreen.OnExitAnimationListener() {
           @Override
           public void onSplashScreenExit(@NonNull SplashScreenView view) {
-            view.remove(); // Remove it without animation
+            view.remove(); // Remove it immediately, without animation
           }
         });
     }
@@ -96,35 +123,39 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
     });
   }
 
-  private void waitAndHide() {
-    final Timer timer = new Timer();
+  private void clearPromiseQueue() {
+    while (!mPromiseQueue.isEmpty()) {
+      Promise promise = mPromiseQueue.shift();
 
-    timer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        hide();
-        timer.cancel();
-      }
-    }, 250);
+      if (promise != null)
+        promise.resolve(true);
+    }
   }
 
-  @ReactMethod
-  public void hide() {
+  private void hideAndClearPromiseQueue() {
     UiThreadUtil.runOnUiThread(new Runnable() {
       @Override
       public void run() {
         final Activity activity = getReactApplicationContext().getCurrentActivity();
 
-        if (activity == null || activity.isFinishing()) {
-          waitAndHide();
-          return;
-        }
+        if (mShouldKeepOnScreen ||  activity == null || activity.isFinishing()) {
+          final Timer timer = new Timer();
 
-        if (mDialog != null) {
+          timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+              timer.cancel();
+              hideAndClearPromiseQueue();
+            }
+          }, 100);
+        } else if (mDialog == null) {
+          clearPromiseQueue();
+        } else {
           mDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
               mDialog = null;
+              clearPromiseQueue();
             }
           });
 
@@ -135,7 +166,13 @@ public class BootSplashModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void hide(final Promise promise) {
+    mPromiseQueue.push(promise);
+    hideAndClearPromiseQueue();
+  }
+
+  @ReactMethod
   public void getVisibilityStatus(final Promise promise) {
-    promise.resolve(mDialog != null ? "visible" : "hidden");
+    promise.resolve(mShouldKeepOnScreen || mDialog != null ? "visible" : "hidden");
   }
 }
