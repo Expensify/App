@@ -305,7 +305,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                 onChangeText={this.updateDraft} // Debounced saveDraftComment
                                 onKeyPress={this.triggerSaveOrCancel}
                                 value={this.state.draft}
-                                maxLines={16} // This is the same that slack has
+                                maxLines={this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                                 style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                                 onFocus={() => {
                                     this.setState({isFocused: true});
