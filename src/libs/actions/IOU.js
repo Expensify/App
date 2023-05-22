@@ -872,7 +872,10 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     };
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+    const optimisticCreatedActionInIOUReport = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+
+    const optimisticCreatedActionInRegularReport = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount,
@@ -882,6 +885,19 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         optimisticTransaction.transactionID,
         paymentMethodType,
         optimisticIOUReport.reportID,
+        false,
+        true,
+    );
+
+    const optimisticMainChatIOUReportAction = ReportUtils.buildOptimisticMainChatIOUReportAction(
+        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        amount,
+        currency,
+        comment,
+        [recipient],
+        optimisticTransaction.transactionID,
+        paymentMethodType,
+        chatReport.reportID,
         false,
         true,
     );
@@ -896,6 +912,19 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             lastVisibleActionCreated: optimisticIOUReportAction.created,
         },
     };
+
+    const optimisticReportActionsInRegularChatReportData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        value: {
+            [optimisticMainChatIOUReportAction.reportActionID]: {
+                ...optimisticMainChatIOUReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        },
+    };
+    
+
     const optimisticIOUReportData = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
@@ -983,15 +1012,21 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         });
 
-        // Add an optimistic created action to the optimistic reportActions data
-        optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+        optimisticReportActionsInRegularChatReportData.value[optimisticCreatedActionInRegularReport.reportActionID] = optimisticCreatedActionInRegularReport;
 
         // If we're going to fail to create the report itself, let's not have redundant error messages for the IOU
         failureData[0].value[optimisticIOUReportAction.reportActionID] = {pendingAction: null};
     }
 
-    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
+    // Add an optimistic created action to the optimistic reportActions data
+    optimisticReportActionsData.value[optimisticCreatedActionInIOUReport.reportActionID] = optimisticCreatedActionInIOUReport;
 
+    console.log('successData', successData);
+
+    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData, optimisticReportActionsInRegularChatReportData];
+
+
+    console.log('optimisticData', optimisticData);
     return {
         params: {
             iouReportID: optimisticIOUReport.reportID,
@@ -1000,7 +1035,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             paymentMethodType,
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
-            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
+            createdReportActionID: isNewChat ? optimisticCreatedActionInIOUReport.reportActionID : 0,
         },
         optimisticData,
         successData,
