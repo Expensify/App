@@ -194,6 +194,25 @@ function canEditReportAction(reportAction) {
 }
 
 /**
+ * Can only flag if:
+ *
+ * - It was written by someone else
+ * - It's an ADDCOMMENT that is not an attachment
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function canFlagReportAction(reportAction) {
+    return (
+        reportAction.actorEmail !== sessionEmail &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
+    );
+}
+
+/**
  * Whether the Money Request report is settled
  *
  * @param {String} reportID
@@ -2218,6 +2237,7 @@ export {
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
+    canFlagReportAction,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,

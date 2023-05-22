@@ -260,6 +260,7 @@ export default {
         deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
+        flagAsOffensive: 'Marcar como ofensivo',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',

@@ -41,6 +41,7 @@ import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import Expand from '../../../assets/images/expand.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
+import Flag from '../../../assets/images/flag.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Globe from '../../../assets/images/globe.svg';
@@ -162,6 +163,7 @@ export {
     EyeDisabled,
     FallbackAvatar,
     FallbackWorkspaceAvatar,
+    Flag,
     Gallery,
     Gear,
     Globe,
