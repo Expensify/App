@@ -22,7 +22,7 @@ Select **New Chat** to chat one-on-one or **New Group** to start a group chat.
 In addition to 1:1 and group chat, members of a Workspace or Policy will have access to two additional rooms; the #announce and #admins rooms.
 All workspace members are added to the #announce room by default. The #announce room lets you share important company announcements and have conversations between workspace members.
 
-All workspace admins can access the #admins room. Use the #admins room to collaborate with the other admins on your policy, and chat with your dedicated Expensify Onboarding Guide. If you have a subscription of 10 or more users, you're automatically assigned an Account Manager. You can ask for help and collaborate with your Account Manager in this same #admins room. Anytime your someone on your team, your dedicated setup specialist, or your dedicated account manager makes any changes to your Workspace settings, that update is logged in the #admins room.
+All workspace admins can access the #admins room. Use the #admins room to collaborate with the other admins on your policy, and chat with your dedicated Expensify Onboarding Guide. If you have a subscription of 10 or more users, you're automatically assigned an Account Manager. You can ask for help and collaborate with your Account Manager in this same #admins room. Anytime someone on your team, your dedicated setup specialist, or your dedicated account manager makes any changes to your Workspace settings, that update is logged in the #admins room.
 
 # FAQs
 ## How do I add more than one person to a chat?
