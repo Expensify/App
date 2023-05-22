@@ -142,6 +142,16 @@ const IOUDetailsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const SplitDetailsModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const DetailsPage = require('../../../pages/DetailsPage').default;
+            return DetailsPage;
+        },
+        name: 'Split_Details_Root',
+    },
+]);
+
 const DetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -704,6 +714,7 @@ export {
     IOURequestModalStackNavigator,
     IOUSendModalStackNavigator,
     IOUDetailsModalStackNavigator,
+    SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,

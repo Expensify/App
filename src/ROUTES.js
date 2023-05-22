@@ -117,6 +117,8 @@ export default {
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
+    SPLIT_DETAILS: 'r/:reportID/split/details',
+    getSplitDetailsRoute: (reportID) => `r/${reportID}/details`,
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
     REPORT_PARTICIPANT: 'r/:reportID/participants/details',

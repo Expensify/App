@@ -287,6 +287,12 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name="Split_Details"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.SplitDetailsModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name="Report_Details"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.ReportDetailsModalStackNavigator}

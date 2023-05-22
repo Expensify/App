@@ -256,6 +256,11 @@ export default {
                     Details_Root: ROUTES.DETAILS,
                 },
             },
+            SplitDetails: {
+                screens: {
+                    Details_Root: ROUTES.SPLIT_DETAILS,
+                },
+            },
             Participants: {
                 screens: {
                     ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,
