@@ -47,12 +47,18 @@ function FlagCommentPage(props) {
         },
     ];
 
+    const flagComment = (severity) => {
+        console.log(severity);
+        console.log(props.route.params.reportActionID);
+        console.log(props.route.params.reportID);
+    };
+
     const severityMenuItems = _.map(severities, (item, index) => (<MenuItem
             key={`${item.severity}_${index}`}
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={() => console.log(item.severity)}
+            onPress={() => flagComment(item.severity)}
             wrapperStyle={[styles.borderBottom]}
             // furtherDetails={this.props.translate('flags.sendAnonymousWarning')}
             // furtherDetailsIcon={Expensicons.CircleFlag}
@@ -82,9 +88,7 @@ function FlagCommentPage(props) {
                         <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>
                             {'Choose a reason below:'}
                         </Text>
-                        <View>
-                            {severityMenuItems}
-                        </View>
+                        {severityMenuItems}
                     </ScrollView>
                 </>
             )}
