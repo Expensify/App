@@ -463,18 +463,15 @@ class ReportActionCompose extends React.Component {
             });
         }
 
-        const searchRegex = new RegExp(searchValue, 'i');
-
         const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
-            if (searchValue && !searchRegex.test(`${detail.displayName} ${detail.login}`.trim())) {
+            if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
                 return false;
             }
             return true;
         });
 
         const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
-
-        _.each(sortedPersonalDetails, (detail) => {
+        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
             suggestions.push({
                 text: detail.displayName,
                 alternateText: detail.login,
@@ -488,7 +485,7 @@ class ReportActionCompose extends React.Component {
             });
         });
 
-        return suggestions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS);
+        return suggestions;
     }
 
     /**
