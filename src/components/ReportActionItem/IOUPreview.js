@@ -27,6 +27,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -43,7 +44,7 @@ const propTypes = {
     action: PropTypes.shape(reportActionPropTypes),
 
     /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
+    contextMenuAnchor: refPropTypes,
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
@@ -218,7 +219,10 @@ const IOUPreview = (props) => {
                             <View style={styles.iouPreviewBoxAvatar}>
                                 <MultipleAvatars
                                     icons={participantAvatars}
-                                    secondAvatarStyle={[styles.secondAvatarInline, props.isHovered ? styles.iouPreviewBoxAvatarHover : undefined]}
+                                    shouldStackHorizontally
+                                    size="small"
+                                    isHovered={props.isHovered}
+                                    shouldUseCardBackground
                                     avatarTooltips={participantEmails}
                                 />
                             </View>
