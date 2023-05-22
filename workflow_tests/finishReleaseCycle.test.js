@@ -76,7 +76,7 @@ describe('test workflow finishReleaseCycle', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
-                                logFile: utils.getLogFilePath('finishReleaseCycle'),
+                                logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                             });
                         assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234');
                         assertions.assertUpdateProductionJobExecuted(result);
@@ -128,7 +128,7 @@ describe('test workflow finishReleaseCycle', () => {
                                     workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                                     mockSteps: testMockSteps,
                                     actor: 'Dummy Author',
-                                    logFile: utils.getLogFilePath('finishReleaseCycle'),
+                                    logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                                 });
                             assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234');
                             assertions.assertUpdateProductionJobExecuted(result);
@@ -172,7 +172,7 @@ describe('test workflow finishReleaseCycle', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
-                                logFile: utils.getLogFilePath('finishReleaseCycle'),
+                                logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                             });
                         assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234', true, true, true);
                         assertions.assertUpdateProductionJobExecuted(result, false);
@@ -216,7 +216,7 @@ describe('test workflow finishReleaseCycle', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                             mockSteps: testMockSteps,
                             actor: 'Dummy Author',
-                            logFile: utils.getLogFilePath('finishReleaseCycle'),
+                            logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                         });
                     assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234', true, false, false);
                     assertions.assertUpdateProductionJobExecuted(result, false);
@@ -262,7 +262,7 @@ describe('test workflow finishReleaseCycle', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
                         mockSteps: testMockSteps,
                         actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('finishReleaseCycle'),
+                        logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                     });
                 assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234', false);
                 assertions.assertUpdateProductionJobExecuted(result, false);

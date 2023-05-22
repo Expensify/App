@@ -89,7 +89,7 @@ describe('test workflow testBuild', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('testBuild'),
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                 });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -133,7 +133,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -178,7 +178,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -223,7 +223,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -278,7 +278,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -333,7 +333,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -388,7 +388,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -443,7 +443,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -498,7 +498,7 @@ describe('test workflow testBuild', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('testBuild'),
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                 });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -541,7 +541,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -585,7 +585,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -629,7 +629,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -684,7 +684,7 @@ describe('test workflow testBuild', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('testBuild'),
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                 });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -727,7 +727,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -771,7 +771,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -815,7 +815,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -870,7 +870,7 @@ describe('test workflow testBuild', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('testBuild'),
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                 });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -913,7 +913,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -957,7 +957,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
@@ -1001,7 +1001,7 @@ describe('test workflow testBuild', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('testBuild'),
+                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
                     });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');

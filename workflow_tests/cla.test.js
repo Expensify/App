@@ -78,7 +78,7 @@ describe('test workflow cla', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('cla'),
+                        logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                     });
 
                 assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, false);
@@ -116,7 +116,7 @@ describe('test workflow cla', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('cla'),
+                        logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                     });
 
                 assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
@@ -154,7 +154,7 @@ describe('test workflow cla', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('cla'),
+                        logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                     });
 
                 assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
@@ -191,7 +191,7 @@ describe('test workflow cla', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('cla'),
+                        logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                     });
 
                 assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, true, true);
@@ -222,7 +222,7 @@ describe('test workflow cla', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'cla.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('cla'),
+                    logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                 });
 
             assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, false);

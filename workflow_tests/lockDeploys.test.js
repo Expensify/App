@@ -81,7 +81,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
-                                logFile: utils.getLogFilePath('lockDeploys'),
+                                logFile: utils.getLogFilePath('lockDeploys', expect.getState().currentTestName),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result);
@@ -136,7 +136,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
-                                logFile: utils.getLogFilePath('lockDeploys'),
+                                logFile: utils.getLogFilePath('lockDeploys', expect.getState().currentTestName),
                             });
 
                         assertions.assertlockStagingDeploysJobFailedAfterFirstStep(result);
@@ -183,7 +183,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
-                                logFile: utils.getLogFilePath('lockDeploys'),
+                                logFile: utils.getLogFilePath('lockDeploys', expect.getState().currentTestName),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -234,7 +234,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
-                                logFile: utils.getLogFilePath('lockDeploys'),
+                                logFile: utils.getLogFilePath('lockDeploys', expect.getState().currentTestName),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -283,7 +283,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
-                                logFile: utils.getLogFilePath('lockDeploys'),
+                                logFile: utils.getLogFilePath('lockDeploys', expect.getState().currentTestName),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -334,7 +334,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
-                                logFile: utils.getLogFilePath('lockDeploys'),
+                                logFile: utils.getLogFilePath('lockDeploys', expect.getState().currentTestName),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -381,7 +381,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
-                                logFile: utils.getLogFilePath('lockDeploys'),
+                                logFile: utils.getLogFilePath('lockDeploys', expect.getState().currentTestName),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -432,7 +432,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'Dummy Author',
-                                logFile: utils.getLogFilePath('lockDeploys'),
+                                logFile: utils.getLogFilePath('lockDeploys', expect.getState().currentTestName),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);
@@ -481,7 +481,7 @@ describe('test workflow lockDeploys', () => {
                                 workflowFile: path.join(repoPath, '.github', 'workflows', 'lockDeploys.yml'),
                                 mockSteps: testMockSteps,
                                 actor: 'OSBotify',
-                                logFile: utils.getLogFilePath('lockDeploys'),
+                                logFile: utils.getLogFilePath('lockDeploys', expect.getState().currentTestName),
                             });
 
                         assertions.assertlockStagingDeploysJobExecuted(result, false);

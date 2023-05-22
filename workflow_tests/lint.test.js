@@ -65,7 +65,7 @@ describe('test workflow lint', () => {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                     mockSteps: testMockSteps,
                     actor,
-                    logFile: utils.getLogFilePath('lint'),
+                    logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
                 });
 
             assertions.assertLintJobExecuted(result);
@@ -91,7 +91,7 @@ describe('test workflow lint', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                         mockSteps: testMockSteps,
                         actor: testActor,
-                        logFile: utils.getLogFilePath('lint'),
+                        logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
                     });
 
                 assertions.assertLintJobExecuted(result);
@@ -123,7 +123,7 @@ describe('test workflow lint', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('lint'),
+                        logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
                     });
 
                 assertions.assertLintJobExecuted(result);
@@ -149,7 +149,7 @@ describe('test workflow lint', () => {
                             workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                             mockSteps: testMockSteps,
                             actor: testActor,
-                            logFile: utils.getLogFilePath('lint'),
+                            logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
                         });
 
                     assertions.assertLintJobExecuted(result, false);
@@ -179,7 +179,7 @@ describe('test workflow lint', () => {
                         workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
                         mockSteps: testMockSteps,
                         actor,
-                        logFile: utils.getLogFilePath('lint'),
+                        logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
                     });
 
                 assertions.assertLintJobExecuted(result);
