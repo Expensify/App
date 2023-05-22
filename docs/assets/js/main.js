@@ -47,7 +47,7 @@ function isInRange(num, min, max) {
 
 function navigateBack() {
     const hubs = JSON.parse(document.getElementById('hubs-data').value);
-    const hubToNavigate = hubs.find(hub => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
+    const hubToNavigate = hubs.find((hub) => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
     if (hubToNavigate) {
         window.location.href = `/hubs/${hubToNavigate}`;
     } else {
@@ -68,7 +68,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (window.tocbot) {
         window.tocbot.init({
-        // Where to render the table of contents.
+            // Where to render the table of contents.
             tocSelector: '.article-toc',
 
             // Where to grab the headings to build the table of contents.
@@ -118,10 +118,7 @@ window.addEventListener('DOMContentLoaded', () => {
     lhnContent.addEventListener('wheel', (e) => {
         const scrollTop = lhnContent.scrollTop;
         const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;
-        const isScrollingPastLHNBottom = (
-            e.deltaY > 0
-            && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1)
-        );
+        const isScrollingPastLHNBottom = e.deltaY > 0 && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1);
         if (isScrollingPastLHNTop || isScrollingPastLHNBottom) {
             e.preventDefault();
         }

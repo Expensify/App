@@ -17,10 +17,7 @@ const propTypes = {
     initialRowHeight: PropTypes.number.isRequired,
 
     /** Passed via forwardRef so we can access the FlatList ref */
-    innerRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(FlatList)}),
-    ]).isRequired,
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(FlatList)})]).isRequired,
 
     /** Should we measure these items and call getItemLayout? */
     shouldMeasureItems: PropTypes.bool,
@@ -77,9 +74,7 @@ class BaseInvertedFlatList extends Component {
             // Offset will either be based on the lastMeasuredItem or the index +
             // initialRowHeight since we can only assume that all previous items
             // have not yet been measured
-            offset: _.isUndefined(lastMeasuredItem)
-                ? this.props.initialRowHeight * index
-                : lastMeasuredItem.offset + this.props.initialRowHeight,
+            offset: _.isUndefined(lastMeasuredItem) ? this.props.initialRowHeight * index : lastMeasuredItem.offset + this.props.initialRowHeight,
             index,
         };
     }
@@ -124,11 +119,7 @@ class BaseInvertedFlatList extends Component {
      */
     renderItem({item, index}) {
         if (this.props.shouldMeasureItems) {
-            return (
-                <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>
-                    {this.props.renderItem({item, index})}
-                </View>
-            );
+            return <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>{this.props.renderItem({item, index})}</View>;
         }
 
         return this.props.renderItem({item, index});
@@ -141,11 +132,9 @@ class BaseInvertedFlatList extends Component {
                 {...this.props}
                 ref={this.props.innerRef}
                 renderItem={this.renderItem}
-
                 // Native platforms do not need to measure items and work fine without this.
                 // Web requires that items be measured or else crazy things happen when scrolling.
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
-
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={1}
                 windowSize={15}
@@ -162,6 +151,9 @@ BaseInvertedFlatList.propTypes = propTypes;
 BaseInvertedFlatList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseInvertedFlatList {...props} innerRef={ref} />
+    <BaseInvertedFlatList
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
 ));

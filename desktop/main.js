@@ -1,12 +1,4 @@
-const {
-    app,
-    dialog,
-    BrowserWindow,
-    Menu,
-    MenuItem,
-    shell,
-    ipcMain,
-} = require('electron');
+const {app, dialog, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
 const _ = require('underscore');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
@@ -67,7 +59,7 @@ let expectedUpdateVersion;
 for (let i = 0; i < process.argv.length; i++) {
     const arg = process.argv[i];
     if (arg.startsWith(`${EXPECTED_UPDATE_VERSION_FLAG}=`)) {
-        expectedUpdateVersion = arg.substr((`${EXPECTED_UPDATE_VERSION_FLAG}=`).length);
+        expectedUpdateVersion = arg.substr(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
     }
 }
 
@@ -102,8 +94,9 @@ const manuallyCheckForUpdates = (menuItem, browserWindow) => {
     // eslint-disable-next-line no-param-reassign
     menuItem.enabled = false;
 
-    autoUpdater.checkForUpdates()
-        .catch(error => ({error}))
+    autoUpdater
+        .checkForUpdates()
+        .catch((error) => ({error}))
         .then((result) => {
             const downloadPromise = result && result.downloadPromise;
 
@@ -152,7 +145,7 @@ const showKeyboardShortcutsModal = (browserWindow) => {
 };
 
 // Actual auto-update listeners
-const electronUpdater = browserWindow => ({
+const electronUpdater = (browserWindow) => ({
     init: () => {
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             const systemMenu = Menu.getApplicationMenu();
@@ -175,26 +168,35 @@ const electronUpdater = browserWindow => ({
 });
 
 /*
-* @param {Menu} systemMenu
-*/
+ * @param {Menu} systemMenu
+ */
 const localizeMenuItems = (browserWindow, systemMenu) => {
     // List the Expensify Chat instance under the Window menu, even when it's hidden
-    systemMenu.insert(4, new MenuItem({
-        id: `historyMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.history'),
-        submenu: [{
-            id: `backMenuItem-${preferredLocale}`,
-            label: Localize.translate(preferredLocale, 'historyMenu.back'),
-            accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
-            click: () => { browserWindow.webContents.goBack(); },
-        },
-        {
-            id: `forwardMenuItem-${preferredLocale}`,
-            label: Localize.translate(preferredLocale, 'historyMenu.forward'),
-            accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-            click: () => { browserWindow.webContents.goForward(); },
-        }],
-    }));
+    systemMenu.insert(
+        4,
+        new MenuItem({
+            id: `historyMenuItem-${preferredLocale}`,
+            label: Localize.translate(preferredLocale, 'desktopApplicationMenu.history'),
+            submenu: [
+                {
+                    id: `backMenuItem-${preferredLocale}`,
+                    label: Localize.translate(preferredLocale, 'historyMenu.back'),
+                    accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+                    click: () => {
+                        browserWindow.webContents.goBack();
+                    },
+                },
+                {
+                    id: `forwardMenuItem-${preferredLocale}`,
+                    label: Localize.translate(preferredLocale, 'historyMenu.forward'),
+                    accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                    click: () => {
+                        browserWindow.webContents.goForward();
+                    },
+                },
+            ],
+        }),
+    );
 
     // Defines the system-level menu item to manually apply an update
     // This menu item should become visible after an update is downloaded and ready to be applied
@@ -223,19 +225,17 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
         },
     });
 
-    const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
+    const appMenu = _.find(systemMenu.items, (item) => item.role === 'appmenu');
     appMenu.submenu.insert(1, updateAppMenuItem);
     appMenu.submenu.insert(2, checkForUpdateMenuItem);
     appMenu.submenu.insert(3, keyboardShortcutsMenuItem);
 };
 
-const mainWindow = (() => {
+const mainWindow = () => {
     let deeplinkUrl;
     let browserWindow;
 
-    const loadURL = __DEV__
-        ? win => win.loadURL(`http://localhost:${port}`)
-        : serve({directory: `${__dirname}/www`});
+    const loadURL = __DEV__ ? (win) => win.loadURL(`http://localhost:${port}`) : serve({directory: `${__dirname}/www`});
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
@@ -258,260 +258,269 @@ const mainWindow = (() => {
     });
 
     /*
-    * Starting from Electron 20, it shall be required to set sandbox option to false explicitly.
-    * Running a preload script contextBridge.js require access to nodeJS modules from the javascript code.
-    * This was not a concern earlier as sandbox used to be false by default for Electron <= 20.
-    * Refer https://www.electronjs.org/docs/latest/tutorial/sandbox#disabling-the-sandbox-for-a-single-process
-    * */
-    return app.whenReady()
-        .then(() => {
-            /**
-             * We only want to register the scheme this way when in dev, since
-             * when the app is bundled electron-builder will take care of it.
-             */
-            if (__DEV__) {
-                app.setAsDefaultProtocolClient(appProtocol);
-            }
-
-            browserWindow = new BrowserWindow({
-                backgroundColor: '#FAFAFA',
-                width: 1200,
-                height: 900,
-                webPreferences: {
-                    preload: `${__dirname}/contextBridge.js`,
-                    contextIsolation: true,
-                    sandbox: false,
-                },
-                titleBarStyle: 'hidden',
-            });
-
-            ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
-
-            /*
-             * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
-             * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
-             * The same issue happens when using the web proxy to communicate with the staging or production API on dev.
-             *
-             * To fix this, we'll:
-             *
-             *   1. Modify headers on any outgoing requests to match the origin of our corresponding web environment (not necessary in case of web proxy, because it already does that)
-             *   2. Modify the Access-Control-Allow-Origin header of the response to match the "real" origin of our Electron app.
-             */
-            const webRequest = browserWindow.webContents.session.webRequest;
-            const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
-            /* eslint-disable no-param-reassign */
-            if (!__DEV__) {
-                // Modify the origin and referer for requests sent to our API
-                webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
-                    details.requestHeaders.origin = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
-                    details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
-                    callback({requestHeaders: details.requestHeaders});
-                });
-            }
-
-            // Modify access-control-allow-origin header and CSP for the response
-            webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
-                details.responseHeaders['access-control-allow-origin'] = [APP_DOMAIN];
-                if (details.responseHeaders['content-security-policy']) {
-                    details.responseHeaders['content-security-policy'] = _.map(
-                        details.responseHeaders['content-security-policy'],
-                        value => (value.startsWith('frame-ancestors') ? `${value} ${APP_DOMAIN}` : value),
-                    );
-                }
-                callback({responseHeaders: details.responseHeaders});
-            });
-            /* eslint-enable */
-
-            // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
-            if (__DEV__) {
-                browserWindow.setTitle('New Expensify');
-            }
-
-            const systemMenu = Menu.getApplicationMenu();
-
-            // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
-            const editMenu = _.find(systemMenu.items, item => item.role === 'editmenu');
-            editMenu.submenu.insert(6, new MenuItem({
-                role: 'pasteAndMatchStyle',
-                accelerator: 'CmdOrCtrl+Shift+V',
-            }));
-
-            // Append custom context menu items using the preferred language of the user.
-            localizeMenuItems(browserWindow, systemMenu);
-
-            // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
-            // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
-            const viewWindow = _.find(systemMenu.items, item => item.role === 'viewmenu');
-            viewWindow.submenu.append(new MenuItem({
-                role: 'zoomin',
-                accelerator: 'CommandOrControl+=',
-                visible: false,
-            }));
-            const windowMenu = _.find(systemMenu.items, item => item.role === 'windowmenu');
-            windowMenu.submenu.append(new MenuItem({type: 'separator'}));
-            windowMenu.submenu.append(new MenuItem({
-                label: 'New Expensify',
-                accelerator: 'CmdOrCtrl+1',
-                click: () => browserWindow.show(),
-            }));
-            Menu.setApplicationMenu(systemMenu);
-
-            // When the user clicks a link that has target="_blank" (which is all external links)
-            // open the default browser instead of a new electron window
-            browserWindow.webContents.setWindowOpenHandler(({url}) => {
-                const denial = {action: 'deny'};
-
-                // Make sure local urls stay in electron perimeter
-                if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
-                    return denial;
-                }
-
-                // Open every other protocol in the default browser, not Electron
-                shell.openExternal(url);
-                return denial;
-            });
-
-            // Flag to determine is user is trying to quit the whole application altogether
-            let quitting = false;
-
-            // Closing the chat window should just hide it (vs. fully quitting the application)
-            browserWindow.on('close', (evt) => {
-                if (quitting || hasUpdate) {
-                    return;
-                }
-
-                evt.preventDefault();
-
-                // Check if window is fullscreen and exit fullscreen before hiding
-                if (browserWindow.isFullScreen()) {
-                    browserWindow.once('leave-full-screen', () => browserWindow.hide());
-                    browserWindow.setFullScreen(false);
-                } else {
-                    browserWindow.hide();
-                }
-            });
-
-            // Initiating a browser-back or browser-forward with mouse buttons should navigate history.
-            browserWindow.on('app-command', (e, cmd) => {
-                if (cmd === 'browser-backward') {
-                    browserWindow.webContents.goBack();
-                }
-                if (cmd === 'browser-forward') {
-                    browserWindow.webContents.goForward();
-                }
-            });
-
-            browserWindow.on(ELECTRON_EVENTS.FOCUS, () => {
-                browserWindow.webContents.send(ELECTRON_EVENTS.FOCUS);
-            });
-            browserWindow.on(ELECTRON_EVENTS.BLUR, () => {
-                browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
-            });
-
-            app.on('before-quit', () => {
-                // Adding __DEV__ check because we want links to be handled by dev app only while it's running
-                // https://github.com/Expensify/App/issues/15965#issuecomment-1483182952
+     * Starting from Electron 20, it shall be required to set sandbox option to false explicitly.
+     * Running a preload script contextBridge.js require access to nodeJS modules from the javascript code.
+     * This was not a concern earlier as sandbox used to be false by default for Electron <= 20.
+     * Refer https://www.electronjs.org/docs/latest/tutorial/sandbox#disabling-the-sandbox-for-a-single-process
+     * */
+    return (
+        app
+            .whenReady()
+            .then(() => {
+                /**
+                 * We only want to register the scheme this way when in dev, since
+                 * when the app is bundled electron-builder will take care of it.
+                 */
                 if (__DEV__) {
-                    app.removeAsDefaultProtocolClient(appProtocol);
-                }
-                quitting = true;
-            });
-            app.on('activate', () => {
-                if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
-                    return;
+                    app.setAsDefaultProtocolClient(appProtocol);
                 }
 
-                browserWindow.show();
-            });
+                browserWindow = new BrowserWindow({
+                    backgroundColor: '#FAFAFA',
+                    width: 1200,
+                    height: 900,
+                    webPreferences: {
+                        preload: `${__dirname}/contextBridge.js`,
+                        contextIsolation: true,
+                        sandbox: false,
+                    },
+                    titleBarStyle: 'hidden',
+                });
 
-            // Hide the app if we expected to upgrade to a new version but never did.
-            if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
-                browserWindow.hide();
-                app.hide();
-            }
+                ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
 
-            ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
-                // Store the old locale so we can hide/remove these items after adding/showing the new ones.
-                const outdatedLocale = preferredLocale;
-                preferredLocale = updatedLocale;
-
-                const currentHistoryMenuItem = systemMenu.getMenuItemById(`historyMenuItem-${outdatedLocale}`);
-                const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${outdatedLocale}`);
-                const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${outdatedLocale}`);
-                const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${outdatedLocale}`);
-
-                // If we have previously added those languages, don't add new menu items, reshow them.
-                if (!systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
-                    // Update the labels and ids to use the translations.
-                    localizeMenuItems(browserWindow, systemMenu);
+                /*
+                 * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
+                 * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
+                 * The same issue happens when using the web proxy to communicate with the staging or production API on dev.
+                 *
+                 * To fix this, we'll:
+                 *
+                 *   1. Modify headers on any outgoing requests to match the origin of our corresponding web environment (not necessary in case of web proxy, because it already does that)
+                 *   2. Modify the Access-Control-Allow-Origin header of the response to match the "real" origin of our Electron app.
+                 */
+                const webRequest = browserWindow.webContents.session.webRequest;
+                const validDestinationFilters = {urls: ['https://*.expensify.com/*']};
+                /* eslint-disable no-param-reassign */
+                if (!__DEV__) {
+                    // Modify the origin and referer for requests sent to our API
+                    webRequest.onBeforeSendHeaders(validDestinationFilters, (details, callback) => {
+                        details.requestHeaders.origin = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+                        details.requestHeaders.referer = CONFIG.EXPENSIFY.URL_EXPENSIFY_CASH;
+                        callback({requestHeaders: details.requestHeaders});
+                    });
                 }
 
-                // Show the localized menu items if there were visible before we updated the locale.
-                systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = currentUpdateAppMenuItem.visible;
-                systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = currentCheckForUpdateMenuItem.visible;
-                systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = currentKeyboardShortcutsMenuItem.visible;
-                systemMenu.getMenuItemById(`historyMenuItem-${updatedLocale}`).visible = currentHistoryMenuItem.visible;
+                // Modify access-control-allow-origin header and CSP for the response
+                webRequest.onHeadersReceived(validDestinationFilters, (details, callback) => {
+                    details.responseHeaders['access-control-allow-origin'] = [APP_DOMAIN];
+                    if (details.responseHeaders['content-security-policy']) {
+                        details.responseHeaders['content-security-policy'] = _.map(details.responseHeaders['content-security-policy'], (value) =>
+                            value.startsWith('frame-ancestors') ? `${value} ${APP_DOMAIN}` : value,
+                        );
+                    }
+                    callback({responseHeaders: details.responseHeaders});
+                });
+                /* eslint-enable */
 
-                // Since we can't remove menu items, we hide the old ones.
-                currentUpdateAppMenuItem.visible = false;
-                currentCheckForUpdateMenuItem.visible = false;
-                currentKeyboardShortcutsMenuItem.visible = false;
-                currentHistoryMenuItem.visible = false;
+                // Prod and staging overwrite the app name in the electron-builder config, so only update it here for dev
+                if (__DEV__) {
+                    browserWindow.setTitle('New Expensify');
+                }
 
+                const systemMenu = Menu.getApplicationMenu();
+
+                // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
+                const editMenu = _.find(systemMenu.items, (item) => item.role === 'editmenu');
+                editMenu.submenu.insert(
+                    6,
+                    new MenuItem({
+                        role: 'pasteAndMatchStyle',
+                        accelerator: 'CmdOrCtrl+Shift+V',
+                    }),
+                );
+
+                // Append custom context menu items using the preferred language of the user.
+                localizeMenuItems(browserWindow, systemMenu);
+
+                // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
+                // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
+                const viewWindow = _.find(systemMenu.items, (item) => item.role === 'viewmenu');
+                viewWindow.submenu.append(
+                    new MenuItem({
+                        role: 'zoomin',
+                        accelerator: 'CommandOrControl+=',
+                        visible: false,
+                    }),
+                );
+                const windowMenu = _.find(systemMenu.items, (item) => item.role === 'windowmenu');
+                windowMenu.submenu.append(new MenuItem({type: 'separator'}));
+                windowMenu.submenu.append(
+                    new MenuItem({
+                        label: 'New Expensify',
+                        accelerator: 'CmdOrCtrl+1',
+                        click: () => browserWindow.show(),
+                    }),
+                );
                 Menu.setApplicationMenu(systemMenu);
-            });
 
-            ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
-                // This is how synchronous messages work in Electron
-                // eslint-disable-next-line no-param-reassign
-                event.returnValue = browserWindow && !browserWindow.isDestroyed() && browserWindow.isFocused();
-            });
+                // When the user clicks a link that has target="_blank" (which is all external links)
+                // open the default browser instead of a new electron window
+                browserWindow.webContents.setWindowOpenHandler(({url}) => {
+                    const denial = {action: 'deny'};
 
-            // This allows the renderer process to bring the app
-            // back into focus if it's minimized or hidden.
-            ipcMain.on(ELECTRON_EVENTS.REQUEST_FOCUS_APP, () => {
-                browserWindow.show();
-            });
+                    // Make sure local urls stay in electron perimeter
+                    if (url.substr(0, 'file://'.length).toLowerCase() === 'file://') {
+                        return denial;
+                    }
 
-            // Listen to badge updater event emitted by the render process
-            // and update the app badge count (MacOS only)
-            ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {
-                if (totalCount === -1) {
-                    // The electron docs say you should be able to update this and pass no parameters to set the badge
-                    // to a single red dot, but in practice it resulted in an error "TypeError: Insufficient number of
-                    // arguments." - Thus, setting to 1 instead.
-                    // See: https://www.electronjs.org/docs/api/app#appsetbadgecountcount-linux-macos
-                    app.setBadgeCount(1);
-                } else {
-                    app.setBadgeCount(totalCount);
+                    // Open every other protocol in the default browser, not Electron
+                    shell.openExternal(url);
+                    return denial;
+                });
+
+                // Flag to determine is user is trying to quit the whole application altogether
+                let quitting = false;
+
+                // Closing the chat window should just hide it (vs. fully quitting the application)
+                browserWindow.on('close', (evt) => {
+                    if (quitting || hasUpdate) {
+                        return;
+                    }
+
+                    evt.preventDefault();
+
+                    // Check if window is fullscreen and exit fullscreen before hiding
+                    if (browserWindow.isFullScreen()) {
+                        browserWindow.once('leave-full-screen', () => browserWindow.hide());
+                        browserWindow.setFullScreen(false);
+                    } else {
+                        browserWindow.hide();
+                    }
+                });
+
+                // Initiating a browser-back or browser-forward with mouse buttons should navigate history.
+                browserWindow.on('app-command', (e, cmd) => {
+                    if (cmd === 'browser-backward') {
+                        browserWindow.webContents.goBack();
+                    }
+                    if (cmd === 'browser-forward') {
+                        browserWindow.webContents.goForward();
+                    }
+                });
+
+                browserWindow.on(ELECTRON_EVENTS.FOCUS, () => {
+                    browserWindow.webContents.send(ELECTRON_EVENTS.FOCUS);
+                });
+                browserWindow.on(ELECTRON_EVENTS.BLUR, () => {
+                    browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
+                });
+
+                app.on('before-quit', () => {
+                    // Adding __DEV__ check because we want links to be handled by dev app only while it's running
+                    // https://github.com/Expensify/App/issues/15965#issuecomment-1483182952
+                    if (__DEV__) {
+                        app.removeAsDefaultProtocolClient(appProtocol);
+                    }
+                    quitting = true;
+                });
+                app.on('activate', () => {
+                    if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
+                        return;
+                    }
+
+                    browserWindow.show();
+                });
+
+                // Hide the app if we expected to upgrade to a new version but never did.
+                if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
+                    browserWindow.hide();
+                    app.hide();
                 }
-            });
 
-            return browserWindow;
-        })
+                ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
+                    // Store the old locale so we can hide/remove these items after adding/showing the new ones.
+                    const outdatedLocale = preferredLocale;
+                    preferredLocale = updatedLocale;
 
-        // After initializing and configuring the browser window, load the compiled JavaScript
-        .then((browserWindowRef) => {
-            loadURL(browserWindow).then(() => {
-                if (!deeplinkUrl) {
+                    const currentHistoryMenuItem = systemMenu.getMenuItemById(`historyMenuItem-${outdatedLocale}`);
+                    const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${outdatedLocale}`);
+                    const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${outdatedLocale}`);
+                    const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${outdatedLocale}`);
+
+                    // If we have previously added those languages, don't add new menu items, reshow them.
+                    if (!systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
+                        // Update the labels and ids to use the translations.
+                        localizeMenuItems(browserWindow, systemMenu);
+                    }
+
+                    // Show the localized menu items if there were visible before we updated the locale.
+                    systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = currentUpdateAppMenuItem.visible;
+                    systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = currentCheckForUpdateMenuItem.visible;
+                    systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = currentKeyboardShortcutsMenuItem.visible;
+                    systemMenu.getMenuItemById(`historyMenuItem-${updatedLocale}`).visible = currentHistoryMenuItem.visible;
+
+                    // Since we can't remove menu items, we hide the old ones.
+                    currentUpdateAppMenuItem.visible = false;
+                    currentCheckForUpdateMenuItem.visible = false;
+                    currentKeyboardShortcutsMenuItem.visible = false;
+                    currentHistoryMenuItem.visible = false;
+
+                    Menu.setApplicationMenu(systemMenu);
+                });
+
+                ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
+                    // This is how synchronous messages work in Electron
+                    // eslint-disable-next-line no-param-reassign
+                    event.returnValue = browserWindow && !browserWindow.isDestroyed() && browserWindow.isFocused();
+                });
+
+                // This allows the renderer process to bring the app
+                // back into focus if it's minimized or hidden.
+                ipcMain.on(ELECTRON_EVENTS.REQUEST_FOCUS_APP, () => {
+                    browserWindow.show();
+                });
+
+                // Listen to badge updater event emitted by the render process
+                // and update the app badge count (MacOS only)
+                ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {
+                    if (totalCount === -1) {
+                        // The electron docs say you should be able to update this and pass no parameters to set the badge
+                        // to a single red dot, but in practice it resulted in an error "TypeError: Insufficient number of
+                        // arguments." - Thus, setting to 1 instead.
+                        // See: https://www.electronjs.org/docs/api/app#appsetbadgecountcount-linux-macos
+                        app.setBadgeCount(1);
+                    } else {
+                        app.setBadgeCount(totalCount);
+                    }
+                });
+
+                return browserWindow;
+            })
+
+            // After initializing and configuring the browser window, load the compiled JavaScript
+            .then((browserWindowRef) => {
+                loadURL(browserWindow).then(() => {
+                    if (!deeplinkUrl) {
+                        return;
+                    }
+
+                    browserWindow.loadURL(deeplinkUrl);
+                    browserWindow.show();
+                });
+
+                return browserWindowRef;
+            })
+
+            // Start checking for JS updates
+            .then((browserWindowRef) => {
+                if (__DEV__) {
                     return;
                 }
 
-                browserWindow.loadURL(deeplinkUrl);
-                browserWindow.show();
-            });
+                checkForUpdates(electronUpdater(browserWindowRef));
+            })
+    );
+};
 
-            return browserWindowRef;
-        })
-
-        // Start checking for JS updates
-        .then((browserWindowRef) => {
-            if (__DEV__) {
-                return;
-            }
-
-            checkForUpdates(electronUpdater(browserWindowRef));
-        });
-});
-
-mainWindow().then(window => window);
+mainWindow().then((window) => window);

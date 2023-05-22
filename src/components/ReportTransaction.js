@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../styles/styles';
-import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
 import * as ReportActions from '../libs/actions/ReportActions';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
@@ -24,48 +23,35 @@ const propTypes = {
     /** The report action which we are displaying */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** Can this transaction be rejected? */
-    canBeRejected: PropTypes.bool,
+    /** Can this transaction be deleted? */
+    canBeDeleted: PropTypes.bool,
 
-    /** Type of the reject transaction button */
-    rejectButtonType: PropTypes.oneOf([CONST.IOU.REPORT_ACTION_TYPE.DECLINE, CONST.IOU.REPORT_ACTION_TYPE.CANCEL]).isRequired,
+    /** Indicates whether pressing the delete button should hide the details sidebar */
+    shouldCloseOnDelete: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    canBeRejected: false,
+    canBeDeleted: false,
+    shouldCloseOnDelete: false,
 };
 
 class ReportTransaction extends Component {
     constructor(props) {
         super(props);
 
-        this.cancelMoneyRequest = this.cancelMoneyRequest.bind(this);
+        this.deleteMoneyRequest = this.deleteMoneyRequest.bind(this);
     }
 
-    cancelMoneyRequest() {
-        IOU.cancelMoneyRequest(
-            this.props.chatReportID,
-            this.props.iouReportID,
-            this.props.rejectButtonType,
-            this.props.action,
-        );
+    deleteMoneyRequest() {
+        IOU.deleteMoneyRequest(this.props.chatReportID, this.props.iouReportID, this.props.action, this.props.shouldCloseOnDelete);
     }
 
     render() {
         return (
             <OfflineWithFeedback
-                onClose={() => {
-                    if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-                        ReportActions.clearSendMoneyErrors(this.props.chatReportID, this.props.action.reportActionID);
-                    }
-                    if (this.props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                        ReportActions.deleteOptimisticReportAction(this.props.chatReportID, this.props.action.reportActionID);
-                    } else {
-                        ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action.reportActionID);
-                    }
-                }}
+                onClose={() => ReportActions.clearReportActionErrors(this.props.chatReportID, this.props.action)}
                 pendingAction={this.props.action.pendingAction}
                 errors={this.props.action.errors}
                 errorRowStyles={[styles.ml10, styles.mr2]}
@@ -75,17 +61,15 @@ class ReportTransaction extends Component {
                         action={this.props.action}
                         wrapperStyles={[styles.reportTransactionWrapper]}
                     >
-                        <Text style={[styles.chatItemMessage]}>
-                            {this.props.action.message[0].text}
-                        </Text>
+                        <Text style={[styles.chatItemMessage]}>{this.props.action.message[0].text}</Text>
                     </ReportActionItemSingle>
-                    {this.props.canBeRejected && (
+                    {this.props.canBeDeleted && (
                         <View style={[styles.flexRow, styles.justifyContentStart]}>
                             <Button
                                 small
-                                text={this.props.translate(`common.${this.props.rejectButtonType}`)}
+                                text={this.props.translate('common.delete')}
                                 style={[styles.mb3, styles.chatItemComposeSecondaryRowOffset]}
-                                onPress={this.cancelMoneyRequest}
+                                onPress={this.deleteMoneyRequest}
                             />
                         </View>
                     )}

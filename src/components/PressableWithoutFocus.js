@@ -4,10 +4,7 @@ import PropTypes from 'prop-types';
 
 const propTypes = {
     /** Element that should be clickable  */
-    children: PropTypes.oneOfType([
-        PropTypes.node,
-        PropTypes.func,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 
     /** Callback for onPress event */
     onPress: PropTypes.func.isRequired,
@@ -48,7 +45,7 @@ class PressableWithoutFocus extends React.Component {
             <Pressable
                 onPress={this.pressAndBlur}
                 onLongPress={this.props.onLongPress}
-                ref={el => this.pressableRef = el}
+                ref={(el) => (this.pressableRef = el)}
                 style={this.props.styles}
             >
                 {this.props.children}

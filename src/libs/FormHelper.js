@@ -26,7 +26,7 @@ class FormHelper {
      */
     clearErrors(props, paths) {
         const errors = this.getErrors(props);
-        const pathsWithErrors = _.filter(paths, path => lodashGet(errors, path, false));
+        const pathsWithErrors = _.filter(paths, (path) => lodashGet(errors, path, false));
         if (_.size(pathsWithErrors) === 0) {
             // No error found for this path
             return;
@@ -34,7 +34,7 @@ class FormHelper {
 
         // Clear the existing errors
         const newErrors = lodashCloneDeep(errors);
-        _.forEach(pathsWithErrors, path => lodashUnset(newErrors, path));
+        _.forEach(pathsWithErrors, (path) => lodashUnset(newErrors, path));
         this.setErrors(newErrors);
     }
 

@@ -15,32 +15,31 @@ module.exports = (() => {
         console.warn('⚠️ Using mock API');
     }
 
-    return getDefaultConfig()
-        .then((config) => {
-            return {
-                resolver: {
-                    assetExts: _.filter(config.resolver.assetExts, ext => ext !== 'svg'),
-                    sourceExts: ['jsx', 'js', 'ts', 'tsx', 'json', 'svg'],
-                    resolveRequest: (context, moduleName, platform) => {
-                        const resolution = context.resolveRequest(context, moduleName, platform);
-                        if (isUsingMockAPI && moduleName.includes('/API')) {
-                            return {
-                                ...resolution,
-                                filePath: resolution.filePath.replace(/src\/libs\/API.js/, 'src/libs/E2E/API.mock.js'),
-                            };
-                        }
-                        return resolution;
+    return getDefaultConfig().then((config) => {
+        return {
+            resolver: {
+                assetExts: _.filter(config.resolver.assetExts, (ext) => ext !== 'svg'),
+                sourceExts: ['jsx', 'js', 'ts', 'tsx', 'json', 'svg'],
+                resolveRequest: (context, moduleName, platform) => {
+                    const resolution = context.resolveRequest(context, moduleName, platform);
+                    if (isUsingMockAPI && moduleName.includes('/API')) {
+                        return {
+                            ...resolution,
+                            filePath: resolution.filePath.replace(/src\/libs\/API.js/, 'src/libs/E2E/API.mock.js'),
+                        };
+                    }
+                    return resolution;
+                },
+            },
+            transformer: {
+                getTransformOptions: () => ({
+                    transform: {
+                        experimentalImportSupport: false,
+                        inlineRequires: true,
                     },
-                },
-                transformer: {
-                    getTransformOptions: () => ({
-                        transform: {
-                            experimentalImportSupport: false,
-                            inlineRequires: true,
-                        },
-                    }),
-                    babelTransformerPath: require.resolve('react-native-svg-transformer'),
-                },
-            };
-        });
+                }),
+                babelTransformerPath: require.resolve('react-native-svg-transformer'),
+            },
+        };
+    });
 })();

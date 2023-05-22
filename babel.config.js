@@ -51,18 +51,18 @@ const metro = {
  * To enable the <Profiler> for release builds we add these aliases */
 if (process.env.CAPTURE_METRICS === 'true') {
     const path = require('path');
-    const profilingRenderer = path.resolve(
-        __dirname,
-        './node_modules/react-native/Libraries/Renderer/implementations/ReactNativeRenderer-profiling',
-    );
+    const profilingRenderer = path.resolve(__dirname, './node_modules/react-native/Libraries/Renderer/implementations/ReactNativeRenderer-profiling');
 
-    metro.plugins.push(['module-resolver', {
-        root: ['./'],
-        alias: {
-            'ReactNativeRenderer-prod': profilingRenderer,
-            'scheduler/tracing': 'scheduler/tracing-profiling',
+    metro.plugins.push([
+        'module-resolver',
+        {
+            root: ['./'],
+            alias: {
+                'ReactNativeRenderer-prod': profilingRenderer,
+                'scheduler/tracing': 'scheduler/tracing-profiling',
+            },
         },
-    }]);
+    ]);
 }
 
 module.exports = ({caller}) => {

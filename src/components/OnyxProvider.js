@@ -6,7 +6,7 @@ import ComposeProviders from './ComposeProviders';
 
 // Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
 // the same key (e.g. FlatList renderItem components)
-const [withNetwork, NetworkProvider] = createOnyxContext(ONYXKEYS.NETWORK, {});
+const [withNetwork, NetworkProvider, NetworkContext] = createOnyxContext(ONYXKEYS.NETWORK, {});
 const [withPersonalDetails, PersonalDetailsProvider] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS);
 const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
 const [withReportActionsDrafts, ReportActionsDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
@@ -18,17 +18,8 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const OnyxProvider = props => (
-    <ComposeProviders
-        components={[
-            NetworkProvider,
-            PersonalDetailsProvider,
-            ReportActionsDraftsProvider,
-            CurrentDateProvider,
-            BlockedFromConciergeProvider,
-            BetasProvider,
-        ]}
-    >
+const OnyxProvider = (props) => (
+    <ComposeProviders components={[NetworkProvider, PersonalDetailsProvider, ReportActionsDraftsProvider, CurrentDateProvider, BlockedFromConciergeProvider, BetasProvider]}>
         {props.children}
     </ComposeProviders>
 );
@@ -38,11 +29,4 @@ OnyxProvider.propTypes = propTypes;
 
 export default OnyxProvider;
 
-export {
-    withNetwork,
-    withPersonalDetails,
-    withReportActionsDrafts,
-    withCurrentDate,
-    withBlockedFromConcierge,
-    withBetas,
-};
+export {withNetwork, withPersonalDetails, withReportActionsDrafts, withCurrentDate, withBlockedFromConcierge, withBetas, NetworkContext};

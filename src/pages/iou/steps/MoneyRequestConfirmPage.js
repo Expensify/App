@@ -15,7 +15,7 @@ const propTypes = {
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
     /** IOU amount */
-    iouAmount: PropTypes.string.isRequired,
+    iouAmount: PropTypes.number.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(optionPropTypes).isRequired,
@@ -28,6 +28,9 @@ const propTypes = {
 
     /** Function to navigate to a given step in the parent MoneyRequestModal */
     navigateToStep: PropTypes.func.isRequired,
+
+    /** The policyID of the request */
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -35,7 +38,7 @@ const defaultProps = {
     canModifyParticipants: false,
 };
 
-const MoneyRequestConfirmPage = props => (
+const MoneyRequestConfirmPage = (props) => (
     <MoneyRequestConfirmationList
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}
@@ -45,6 +48,7 @@ const MoneyRequestConfirmPage = props => (
         iouType={props.iouType}
         canModifyParticipants={props.canModifyParticipants}
         navigateToStep={props.navigateToStep}
+        policyID={props.policyID}
     />
 );
 
