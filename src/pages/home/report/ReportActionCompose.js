@@ -463,8 +463,9 @@ class ReportActionCompose extends React.Component {
             });
         }
         const sortedPersonalDetails = _.sortBy(_.values(personalDetails), (detail) => detail.displayName || detail.login);
+        const searchRegex = new RegExp(searchValue, 'i');
         _.each(sortedPersonalDetails, (detail) => {
-            if (searchValue && !`${detail.displayName} ${detail.login}`.trim().includes(searchValue)) {
+            if (searchValue && !searchRegex.test(`${detail.displayName} ${detail.login}`.trim())) {
                 return;
             }
 
