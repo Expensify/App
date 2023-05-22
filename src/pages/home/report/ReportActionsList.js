@@ -22,7 +22,7 @@ import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
-import DateUtils from "../../../libs/DateUtils";
+import DateUtils from '../../../libs/DateUtils';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -87,8 +87,8 @@ function ReportActionsList(props) {
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const currentUnreadMarker = useRef(null);
+    const messageManuallyMarked = useRef(false);
     const report = props.report;
-    const prevLastReadTimeRef = useRef(report.lastReadTime);
     const sortedReportActions = props.sortedReportActions;
     const [reportActionSize, setReportActionSize] = useState(sortedReportActions.lenght);
     const animatedStyles = useAnimatedStyle(() => ({
@@ -112,7 +112,7 @@ function ReportActionsList(props) {
             Report.readNewestAction(report.reportID);
         }
 
-        if (currentUnreadMarker.current || reportActionSize === sortedReportActions.length ) {
+        if (currentUnreadMarker.current || reportActionSize === sortedReportActions.length) {
             return;
         }
 
@@ -123,16 +123,16 @@ function ReportActionsList(props) {
     }, [sortedReportActions.length, report.reportID]);
 
     useEffect(() => {
-        console.log(`~~Monil in useEffect 2 ${JSON.stringify(userActiveSince)}`);
-        const didManuallyMarkReportAsUnread = prevLastReadTimeRef.current !== report.lastReadTime && ReportUtils.isUnread(report);
-        prevLastReadTimeRef.current = report.lastReadTime;
+        const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
 
         if (!didManuallyMarkReportAsUnread) {
+            messageManuallyMarked.current = false;
             return;
         }
 
         // Clearing the current unread marker so that it can be recalculated
         currentUnreadMarker.current = null;
+        messageManuallyMarked.current = true;
 
         // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -160,16 +160,18 @@ function ReportActionsList(props) {
      */
     const renderItem = useCallback(
         ({item: reportAction, index}) => {
-            console.log(`~~Monil in useCallback ${JSON.stringify(currentUnreadMarker)}`);
             let shouldDisplayNewMarker = false;
 
             if (!currentUnreadMarker.current) {
                 const nextMessage = sortedReportActions[index + 1];
                 const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
-                shouldDisplayNewMarker = isCurrentMessageUnread && reportAction.actorEmail !== Report.getCurrentUserEmail() && !isUnreadMsg(nextMessage, report.lastReadTime);
+                shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
+
+                if (!messageManuallyMarked.current) {
+                    shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorEmail !== Report.getCurrentUserEmail();
+                }
 
                 if (!currentUnreadMarker.current && shouldDisplayNewMarker && reportAction.created < userActiveSince.current) {
-                    console.log(`~~Monil setting new marker ${userActiveSince.current} and  ${JSON.stringify(reportAction)}`);
                     currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
                 }
             } else {
