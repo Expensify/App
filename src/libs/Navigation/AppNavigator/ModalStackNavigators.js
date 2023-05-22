@@ -145,8 +145,9 @@ const IOUDetailsModalStackNavigator = createModalStackNavigator([
 const SplitDetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const DetailsPage = require('../../../pages/DetailsPage').default;
-            return DetailsPage;
+            console.log('julessss');
+            const ReportParticipantsPage = require('../../../pages/ReportParticipantsPage').default;
+            return ReportParticipantsPage;
         },
         name: 'Split_Details_Root',
     },
