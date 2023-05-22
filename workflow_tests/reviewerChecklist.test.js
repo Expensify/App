@@ -18,6 +18,13 @@ const FILES_TO_COPY_INTO_TEST_REPO = [
 describe('test workflow reviewerChecklist', () => {
     const githubToken = 'dummy_github_token';
     const actor = 'Dummy Actor';
+
+    beforeAll(async () => {
+        // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
+        // which breaks the next test run, this removes any possible leftovers
+        utils.removeMockRepoDir();
+    });
+
     beforeEach(async () => {
         // create a local repository and copy required files
         mockGithub = new kieMockGithub.MockGithub({

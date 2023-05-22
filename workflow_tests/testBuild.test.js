@@ -29,6 +29,13 @@ describe('test workflow testBuild', () => {
         APPLE_ID_PASSWORD: 'dummy_apple_id_password',
         APPLE_ID: 'dummy_apple_id_value',
     };
+
+    beforeAll(async () => {
+        // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
+        // which breaks the next test run, this removes any possible leftovers
+        utils.removeMockRepoDir();
+    });
+
     beforeEach(async () => {
         // create a local repository and copy required files
         mockGithub = new kieMockGithub.MockGithub({

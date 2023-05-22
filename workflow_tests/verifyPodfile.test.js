@@ -19,6 +19,13 @@ describe('test workflow verifyPodfile', () => {
     const githubToken = 'dummy_github_token';
     const actor = 'Dummy Actor';
     const osbotifyActor = 'OSBotify';
+
+    beforeAll(async () => {
+        // in case of the tests being interrupted without cleanup the mock repo directory may be left behind
+        // which breaks the next test run, this removes any possible leftovers
+        utils.removeMockRepoDir();
+    });
+
     beforeEach(async () => {
         // create a local repository and copy required files
         mockGithub = new kieMockGithub.MockGithub({
