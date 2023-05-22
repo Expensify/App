@@ -4,6 +4,7 @@ import colors from '../colors';
 const darkTheme = {
     // Figma keys
     appBG: colors.greenAppBackground,
+    splashBG: colors.green,
     highlightBG: colors.greenHighlightBackground,
     border: colors.greenBorders,
     borderLighter: colors.greenBordersLighter,
@@ -66,7 +67,8 @@ const darkTheme = {
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,
     fallbackIconColor: colors.green700,
-    reactionActive: '#003C73',
+    reactionActiveBackground: colors.green600,
+    reactionActiveText: colors.green100,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
     mentionText: colors.blue100,

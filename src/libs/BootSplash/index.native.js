@@ -5,10 +5,11 @@ const BootSplash = NativeModules.BootSplash;
 
 function hide() {
     Log.info('[BootSplash] hiding splash screen', false);
-    BootSplash.hide();
+    return BootSplash.hide();
 }
 
 export default {
     hide,
     getVisibilityStatus: BootSplash.getVisibilityStatus,
+    navigationBarHeight: BootSplash.navigationBarHeight || 0,
 };

@@ -35,7 +35,62 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['webp', 'jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+        /* eslint-disable-next-line max-len */
+        UNALLOWED_EXTENSIONS: [
+            'ade',
+            'adp',
+            'apk',
+            'appx',
+            'appxbundle',
+            'bat',
+            'cab',
+            'chm',
+            'cmd',
+            'com',
+            'cpl',
+            'diagcab',
+            'diagcfg',
+            'diagpack',
+            'dll',
+            'dmg',
+            'ex',
+            'ex_',
+            'exe',
+            'hta',
+            'img',
+            'ins',
+            'iso',
+            'isp',
+            'jar',
+            'jnlp',
+            'js',
+            'jse',
+            'lib',
+            'lnk',
+            'mde',
+            'msc',
+            'msi',
+            'msix',
+            'msixbundle',
+            'msp',
+            'mst',
+            'nsh',
+            'pif',
+            'ps1',
+            'scr',
+            'sct',
+            'shb',
+            'sys',
+            'vb',
+            'vbe',
+            'vbs',
+            'vhd',
+            'vxd',
+            'wsc',
+            'wsf',
+            'wsh',
+            'xll',
+        ],
 
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -227,6 +282,7 @@ const CONST = {
         MX: 'MX',
         AU: 'AU',
         CA: 'CA',
+        GB: 'GB',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
@@ -408,11 +464,13 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
+                TASKCANCELED: 'TASKCANCELED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKREOPENED: 'TASKREOPENED',
+                REPORTPREVIEW: 'REPORTPREVIEW',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -502,6 +560,7 @@ const CONST = {
         },
         STATE: {
             SUBMITTED: 'SUBMITTED',
+            PROCESSING: 'PROCESSING',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -903,6 +962,7 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
+            VBBA: 'ACH',
         },
         MONEY_REQUEST_TYPE: {
             SEND: 'send',
@@ -1073,6 +1133,8 @@ const CONST = {
 
     // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
     MAX_MARKUP_LENGTH: 10000,
+
+    MAX_THREAD_REPLIES_PREVIEW: 99,
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
