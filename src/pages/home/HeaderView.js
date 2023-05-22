@@ -154,7 +154,10 @@ const HeaderView = (props) => {
                                     secondaryTooltip={subtitle}
                                 />
                             ) : (
-                                <MultipleAvatars icons={icons} />
+                                <MultipleAvatars
+                                    icons={icons}
+                                    shouldShowTooltip={!isChatRoom}
+                                />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
