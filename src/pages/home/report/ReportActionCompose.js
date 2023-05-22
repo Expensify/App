@@ -462,13 +462,19 @@ class ReportActionCompose extends React.Component {
                 ],
             });
         }
-        const sortedPersonalDetails = _.sortBy(_.values(personalDetails), (detail) => detail.displayName || detail.login);
-        const searchRegex = new RegExp(searchValue, 'i');
-        _.each(sortedPersonalDetails, (detail) => {
-            if (searchValue && !searchRegex.test(`${detail.displayName} ${detail.login}`.trim())) {
-                return;
-            }
 
+        const searchRegex = new RegExp(searchValue, 'i');
+
+        const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+            if (searchValue && !searchRegex.test(`${detail.displayName} ${detail.login}`.trim())) {
+                return false;
+            }
+            return true;
+        });
+
+        const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
+
+        _.each(sortedPersonalDetails, (detail) => {
             suggestions.push({
                 text: detail.displayName,
                 alternateText: detail.login,
@@ -481,6 +487,7 @@ class ReportActionCompose extends React.Component {
                 ],
             });
         });
+
         return suggestions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS);
     }
 
