@@ -74,6 +74,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             filename: 'index.html',
             splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`), 'utf-8'),
             usePolyfillIO: platform === 'web',
+            isStaging: envFile === '.env.staging',
         }),
         new FontPreloadPlugin({
             extensions: ['woff2'],
