@@ -216,8 +216,8 @@ function beginSignIn(login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
                 message: null,
+                loadingScreen: CONST.LOADING_SCREEN.LOGIN_SCREEN,
             },
         },
     ];
@@ -227,7 +227,7 @@ function beginSignIn(login) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false,
+                loadingScreen: null,
             },
         },
         {
@@ -244,7 +244,7 @@ function beginSignIn(login) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false,
+                loadingScreen: null,
                 errors: {
                     [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
                 },
@@ -334,7 +334,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
             key: ONYXKEYS.ACCOUNT,
             value: {
                 ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
+                loadingScreen: twoFactorAuthCode ? CONST.LOADING_SCREEN.TWO_FACE_AUTH_SCREEN : CONST.LOADING_SCREEN.VALIDATE_SCREEN,
             },
         },
     ];
@@ -344,7 +344,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false,
+                loadingScreen: null,
             },
         },
         {
@@ -361,7 +361,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false,
+                loadingScreen: null,
             },
         },
     ];

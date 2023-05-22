@@ -23,6 +23,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import Terms from './Terms';
+import * as SessionUtils from '../../libs/SessionUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -226,7 +227,7 @@ class PasswordForm extends React.Component {
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
-                        isLoading={this.props.account.isLoading}
+                        isLoading={SessionUtils.shouldShowLoadingIndicator(this.props.account.loadingScreen, this.props.account.requiresTwoFactorAuth, this.props.account.isLoading)}
                         onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
