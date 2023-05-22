@@ -88,7 +88,7 @@ const MoneyRequestAction = (props) => {
     const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
     const onIOUPreviewPressed = () => {
         if (lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && hasMultipleParticipants) {
-            Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
+            Navigation.navigate(ROUTES.getSplitDetailsRoute(props.chatReportID))
             return;
         }
 
