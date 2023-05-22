@@ -26,6 +26,7 @@ import Navigation from './libs/Navigation/Navigation';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
+import SplashScreenHider from './components/SplashScreenHider';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -85,9 +86,11 @@ function Expensify(props) {
     const appStateChangeListener = useRef(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
-    const [isSplashShown, setIsSplashShown] = useState(true);
+    const [isSplashHidden, setIsSplashHidden] = useState(false);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
+    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded);
+    const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -102,6 +105,10 @@ function Expensify(props) {
 
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
+    }, []);
+
+    const onSplashHide = useCallback(() => {
+        setIsSplashHidden(true);
     }, []);
 
     useLayoutEffect(() => {
@@ -157,20 +164,6 @@ function Expensify(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    useEffect(() => {
-        if (!isNavigationReady || !isSplashShown) {
-            return;
-        }
-
-        const shouldHideSplash = !isAuthenticated || props.isSidebarLoaded;
-
-        if (shouldHideSplash) {
-            BootSplash.hide();
-
-            setIsSplashShown(false);
-        }
-    }, [props.isSidebarLoaded, isNavigationReady, isSplashShown, isAuthenticated]);
-
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -178,7 +171,7 @@ function Expensify(props) {
 
     return (
         <DeeplinkWrapper>
-            {!isSplashShown && (
+            {shouldInit && (
                 <>
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
@@ -203,6 +196,8 @@ function Expensify(props) {
                 onReady={setNavigationReady}
                 authenticated={isAuthenticated}
             />
+
+            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
     );
 }

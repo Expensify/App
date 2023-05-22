@@ -248,7 +248,8 @@ class ReportScreen extends React.Component {
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const shouldAnimate = !shouldFreeze;
-
+        const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
+        const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
         return (
             <Reanimated.View style={styles.appContent}>
                 <ScreenWrapper style={screenWrapperStyle}>
@@ -286,11 +287,13 @@ class ReportScreen extends React.Component {
                                         errors={addWorkspaceRoomOrChatErrors}
                                         shouldShowErrorMessages={false}
                                     >
-                                        {ReportUtils.isMoneyRequestReport(this.props.report) ? (
+                                        {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
                                             <MoneyRequestHeader
                                                 report={this.props.report}
                                                 policies={this.props.policies}
                                                 personalDetails={this.props.personalDetails}
+                                                isSingleTransactionView={isSingleTransactionView}
+                                                parentReportAction={parentReportAction}
                                             />
                                         ) : (
                                             <HeaderView
@@ -346,7 +349,7 @@ class ReportScreen extends React.Component {
                                 )}
 
                                 {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
-                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                                we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
                                     <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
                                 )}

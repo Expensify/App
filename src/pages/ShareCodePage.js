@@ -16,6 +16,7 @@ import Clipboard from '../libs/Clipboard';
 import * as Expensicons from '../components/Icon/Expensicons';
 import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
+import ContextMenuItem from '../components/ContextMenuItem';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -36,8 +37,9 @@ class ShareCodePage extends React.Component {
 
     render() {
         const isReport = this.props.report != null && this.props.report.reportID != null;
+        const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
 
-        const url = isReport ? `${CONST.NEW_EXPENSIFY_URL}r/${this.props.report.reportID}` : `${CONST.NEW_EXPENSIFY_URL}details?login=${this.props.session.email}`;
+        const url = isReport ? `${CONST.NEW_EXPENSIFY_URL}r/${this.props.report.reportID}` : `${CONST.NEW_EXPENSIFY_URL}details?login=${encodeURIComponent(this.props.session.email)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
@@ -57,23 +59,24 @@ class ShareCodePage extends React.Component {
                             ref={this.qrCodeRef}
                             url={url}
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
-                            subtitle={isReport ? ReportUtils.getPolicyName(this.props.report) : this.props.session.email}
+                            subtitle={isReport ? subtitle : this.props.session.email}
                             logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
                         />
                     </View>
 
                     <View style={{marginTop: 36}}>
-                        <MenuItem
-                            title={this.props.translate('common.share')}
+                        <ContextMenuItem
+                            text={this.props.translate('qrCodes.copyUrlToClipboard')}
                             shouldShowRightIcon
-                            icon={Expensicons.Link}
+                            icon={Expensicons.Copy}
+                            successIcon={Expensicons.Checkmark}
+                            successText={this.props.translate('qrCodes.copied')}
                             onPress={() => Clipboard.setString(url)}
                         />
 
                         {isNative && (
                             <MenuItem
                                 title={this.props.translate('common.download')}
-                                shouldShowRightIcon
                                 icon={Expensicons.Download}
                                 // eslint-disable-next-line es/no-optional-chaining
                                 onPress={() => this.qrCodeRef.current?.download()}
