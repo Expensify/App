@@ -43,21 +43,21 @@ function CloseAccountPage (props) {
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [reasonForLeaving, setReasonForLeaving] = useState('');
 
-    const hideConfirmModal = useCallback(() => {
+    const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
-    });
+    };
 
-    const onConfirm = useCallback(() => {
+    const onConfirm = () => {
         User.closeAccount(reasonForLeaving);
         hideConfirmModal();
-    });
+    };
 
-    const showConfirmModal = useCallback((values) => {
+    const showConfirmModal = (values) => {
         setConfirmModalVisibility(true);
         setReasonForLeaving(values.reasonForLeaving);
-    });
+    };
 
-    const validate = useCallback((values) => {
+    const validate = (values) => {
         const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
         const errors = {};
 
@@ -65,7 +65,7 @@ function CloseAccountPage (props) {
             errors.phoneOrEmail = props.translate('closeAccountPage.enterYourDefaultContactMethod');
         }
         return errors;
-    });
+    };
 
     const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
 
