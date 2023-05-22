@@ -6,19 +6,6 @@ The workflow testing framework consists mainly of 3 components:
 - [Mock-github](https://github.com/kiegroup/mock-github) - package allowing for creation of local repositories, which can be used to make sure that the workflow tests have access only to these files that they should and that they won't modify the actual repository
 - [Act-js](https://github.com/kiegroup/act-js) - JS wrapper around [Act](https://github.com/nektos/act). Act is a tool that allows to run GitHub Actions workflows locally, and Act-js allows to configure and run Act from JS code, like Jest tests. It also provides additional tools like mocking workflow steps and retrieving the workflow output a JSON, which allows for comparison of the actual output with expected values
 
-## Limitations
-Not all workflows can always be tested this way, for example:
-- Act and Act-js do not support all the runner types available in GitHub Actions, like `macOS` runners or some specific version of `Ubuntu` runners like `ubuntu-20.04-64core`. In these cases the job will be omitted entirely and cannot be tested
-- Testing more complex workflows in their entirety can be extremely time-consuming and cumbersome. It is often optimal to mock most of the steps with expressions printing the input and output conditions
-- Due to the way `Act` and `Act-js` handle workflow output, not much can be checked in the test. What is available, namely whether the job/step executed or not, whether it was successful or not and what its printed output was, should be enough in most scenarios
-- `Act` does not seem to support the conditions set on event parameters when determining whether to run the workflow or not, namely for a workflow defined with:
-```yaml
-on:
-  pull_request:
-    types: [opened, edited, reopened]
-```
-running `act pull_request -e event_data.json` with `event_data.json` having `{"action": "opened"}` will execute the workflow (as expected), running for example `act push` will not execute it (as expected), but running `act pull_request -e event_data.json` with `event_data.json` having for example `{"action": "assigned"}` **will still execute the workflow** even though it should only be executed with `action` being `opened`, `edited` or `reopened`. This only applies to running the workflow with `Act`, in the GitHub environment it still works as expected
-
 ## Setup
 - Install dependencies from `package.json` file with `npm install`
 - Make sure you have fulfilled the [prerequisites](https://github.com/nektos/act#necessary-prerequisites-for-running-act) for running `Act`
@@ -39,6 +26,19 @@ running `act pull_request -e event_data.json` with `event_data.json` having `{"a
   - this will run only the tests having `<test_name_substring>` in their name/description
 - You can combine these like `npm run workflow-test -- -i workflow_tests/preDeploy.test.js -t "single specific test"`
 - You can also use all other options which are normally usable with `jest`
+
+## Limitations
+Not all workflows can always be tested this way, for example:
+- Act and Act-js do not support all the runner types available in GitHub Actions, like `macOS` runners or some specific version of `Ubuntu` runners like `ubuntu-20.04-64core`. In these cases the job will be omitted entirely and cannot be tested
+- Testing more complex workflows in their entirety can be extremely time-consuming and cumbersome. It is often optimal to mock most of the steps with expressions printing the input and output conditions
+- Due to the way `Act` and `Act-js` handle workflow output, not much can be checked in the test. What is available, namely whether the job/step executed or not, whether it was successful or not and what its printed output was, should be enough in most scenarios
+- `Act` does not seem to support the conditions set on event parameters when determining whether to run the workflow or not, namely for a workflow defined with:
+```yaml
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+```
+running `act pull_request -e event_data.json` with `event_data.json` having `{"action": "opened"}` will execute the workflow (as expected), running for example `act push` will not execute it (as expected), but running `act pull_request -e event_data.json` with `event_data.json` having for example `{"action": "assigned"}` **will still execute the workflow** even though it should only be executed with `action` being `opened`, `edited` or `reopened`. This only applies to running the workflow with `Act`, in the GitHub environment it still works as expected
 
 ## File structure
 The testing framework file structure within the repository is as follows:
