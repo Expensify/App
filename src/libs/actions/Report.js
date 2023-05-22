@@ -1635,6 +1635,79 @@ function leaveRoom(reportID) {
     navigateToConciergeChat();
 }
 
+/**
+ * Flag a comment as offensive
+ *
+ * @param {String} reportID
+ * @param {Object} reportAction
+ * @param {String} severity
+ */
+function flagComment(reportID, reportAction, severity) {
+    const newDecision = {
+        "decision": "pending",
+    };
+
+    const message = reportAction.message[0];
+    const reportActionID = reportAction.reportActionID;
+
+    const updatedDecisions = [...(message.moderationDecisions || []), newDecision];
+
+    const updatedMessage = {
+        ...message,
+        moderationDecisions: updatedDecisions,
+    };
+
+    const optimisticReportActions = {
+        [reportActionID]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            message: [updatedMessage],
+        },
+    };
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: optimisticReportActions,
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    ...reportAction,
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const timestamp = Date.now();
+
+    const parameters = {
+        reportID,
+        severity,
+        reportActionID,
+        timestamp,
+    };
+    
+    API.write('FlagComment', parameters, {optimisticData, successData, failureData});
+}
+
 export {
     addComment,
     addAttachment,
@@ -1677,4 +1750,5 @@ export {
     hasAccountIDReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    flagComment,
 };
