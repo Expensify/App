@@ -7,7 +7,8 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import Navigation from '../Navigation/Navigation';
+import * as Localize from '../Localize';
+import Navigation, {navigationRef} from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
@@ -1073,6 +1074,11 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         if (transitionFromOldDot) {
             Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
         }
+
+        // Get the reportID associated with the newly created #admins room and route the user to that chat
+        const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
+        Navigation.setParams({reportID: adminsChatReportID}, routeKey);
+
         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
     });
 }

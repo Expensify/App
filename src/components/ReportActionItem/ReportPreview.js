@@ -99,7 +99,7 @@ const ReportPreview = (props) => {
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     return (
-        <View style={[styles.chatItemMessage, styles.mt4]}>
+        <View style={[styles.chatItemMessage]}>
             {_.map(props.action.message, (message, index) => (
                 <Pressable
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
@@ -114,12 +114,14 @@ const ReportPreview = (props) => {
                 >
                     <View style={[styles.flexShrink1]}>
                         {props.iouReport.hasOutstandingIOU ? (
-                            <Text style={[styles.chatItemMessage, styles.cursorPointer]}>
+                            <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
                                 {lodashGet(message, 'html', props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount}))}
                             </Text>
                         ) : (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, styles.cursorPointer]}>{lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}</Text>
+                                <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
+                                    {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
+                                </Text>
                                 {!props.iouReport.hasOutstandingIOU && (
                                     <Icon
                                         style={[styles.ml10]}
