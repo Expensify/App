@@ -61,7 +61,7 @@ const ReportActionItemThread = (props) => {
                         <Text
                             selectable={false}
                             numberOfLines={1}
-                            style={[styles.ml2, styles.textMicroSupporting]}
+                            style={[styles.ml2, styles.textMicroSupporting, styles.flex1]}
                         >{`${props.translate('threads.lastReply')} ${timeStamp}`}</Text>
                     </View>
                 </View>

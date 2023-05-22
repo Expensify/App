@@ -43,6 +43,9 @@ const propTypes = {
 
     /** Whether to show the toolip text */
     shouldShowTooltip: PropTypes.bool,
+
+    /** Whether avatars are displayed within an IOUAction */
+    shouldUseCardBackground: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -56,6 +59,7 @@ const defaultProps = {
     isFocusMode: false,
     isInReportAction: false,
     shouldShowTooltip: true,
+    shouldUseCardBackground: false,
 };
 
 const MultipleAvatars = (props) => {
@@ -109,40 +113,50 @@ const MultipleAvatars = (props) => {
                 <>
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
                         <Tooltip
+                            key={`stackedAvatars-${index}`}
                             text={tooltipTexts[index]}
                             absolute
                         >
                             <View
-                                key={`stackedAvatars-${index}`}
-                                style={[
-                                    styles.justifyContentCenter,
-                                    styles.alignItemsCenter,
-                                    StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInReportAction),
-                                    StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
-                                    icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
-                                ]}
-                            >
-                                <Avatar
-                                    source={icon.source || props.fallbackIcon}
-                                    fill={themeColors.iconSuccessFill}
-                                    size={props.size}
-                                    name={icon.name}
-                                    type={icon.type}
-                                />
-                            </View>
+                                    style={[
+                                        styles.justifyContentCenter,
+                                        styles.alignItemsCenter,
+                                        StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                        isHovered: props.isHovered,
+                                        isPressed: props.isPressed,
+                                        isInReportAction: props.isInReportAction,
+                                        shouldUseCardBackground: props.shouldUseCardBackground,
+                                    }),
+                                        StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
+                                        icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
+                                    ]}
+                                >
+                                    <Avatar
+                                        source={icon.source || props.fallbackIcon}
+                                        fill={themeColors.iconSuccessFill}
+                                        size={props.size}
+                                        name={icon.name}
+                                        type={icon.type}
+                                    />
+                                </View>
                         </Tooltip>
                     ))}
                     {props.icons.length > 4 && (
-                        <Tooltip
+                            <Tooltip
                             // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
                             text={tooltipTexts.slice(3, 10).join(', ')}
                             absolute
                         >
                             <View
-                                style={[
-                                    styles.alignItemsCenter,
-                                    styles.justifyContentCenter,
-                                    StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInReportAction),
+                                    style={[
+                                        styles.alignItemsCenter,
+                                        styles.justifyContentCenter,
+                                        StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                        isHovered: props.isHovered,
+                                        isPressed: props.isPressed,
+                                        isInReportAction: props.isInReportAction,
+                                        shouldUseCardBackground: props.shouldUseCardBackground,
+                                    }),
 
                                     // Set overlay background color with RGBA value so that the text will not inherit opacity
                                     StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),

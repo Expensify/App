@@ -14,7 +14,6 @@ import CONST from '../../../CONST';
 import ChangeExpensifyLoginLink from '../ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import TextInput from '../../../components/TextInput';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
@@ -85,7 +84,7 @@ class BaseValidateCodeForm extends React.Component {
         this.inputValidateCode.focus();
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate(prevProps) {
         if (!prevProps.isVisible && this.props.isVisible) {
             this.inputValidateCode.focus();
         }
@@ -102,9 +101,6 @@ class BaseValidateCodeForm extends React.Component {
         }
         if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
             this.input2FA.focus();
-        }
-        if (prevState.twoFactorAuthCode !== this.state.twoFactorAuthCode && this.state.twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH) {
-            this.validateAndSubmitForm();
         }
     }
 
@@ -201,29 +197,26 @@ class BaseValidateCodeForm extends React.Component {
                 {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
                 {this.props.account.requiresTwoFactorAuth ? (
                     <View style={[styles.mv3]}>
-                        <TextInput
+                        <MagicCodeInput
+                            autoComplete={this.props.autoComplete}
                             ref={(el) => (this.input2FA = el)}
-                            label={this.props.translate('validateCodeForm.twoFactorCode')}
+                            label={this.props.translate('common.twoFactorCode')}
+                            name="twoFactorAuthCode"
                             value={this.state.twoFactorAuthCode}
-                            placeholder={this.props.translate('validateCodeForm.requiredWhen2FAEnabled')}
-                            placeholderTextColor={themeColors.placeholderText}
                             onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
-                            onSubmitEditing={this.validateAndSubmitForm}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            blurOnSubmit={false}
+                            onFulfill={this.validateAndSubmitForm}
                             maxLength={CONST.TFA_CODE_LENGTH}
                             errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ''}
                             hasError={hasError}
+                            autoFocus
                         />
                     </View>
                 ) : (
                     <View style={[styles.mv3]}>
                         <MagicCodeInput
                             autoComplete={this.props.autoComplete}
-                            textContentType="oneTimeCode"
                             ref={(el) => (this.inputValidateCode = el)}
                             label={this.props.translate('common.magicCode')}
-                            nativeID="validateCode"
                             name="validateCode"
                             value={this.state.validateCode}
                             onChangeText={(text) => this.onTextInput(text, 'validateCode')}
