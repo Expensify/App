@@ -88,6 +88,9 @@ const NewTaskDescriptionPage = (props) => {
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.description')}
                         ref={(el) => (inputRef.current = el)}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
                     />
                 </View>
             </Form>

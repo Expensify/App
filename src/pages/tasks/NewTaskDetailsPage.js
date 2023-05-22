@@ -86,6 +86,9 @@ const NewTaskPage = (props) => {
                     <TextInput
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
                     />
                 </View>
             </Form>

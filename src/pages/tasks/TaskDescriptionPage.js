@@ -92,6 +92,9 @@ function TaskDescriptionPage(props) {
                         label={props.translate('newTaskPage.description')}
                         defaultValue={(props.task.report && props.task.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
                     />
                 </View>
             </Form>
