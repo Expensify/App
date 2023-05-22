@@ -23,6 +23,7 @@ import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 import DateUtils from '../../../libs/DateUtils';
+import FloatingMessageCounter from './FloatingMessageCounter';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -47,7 +48,7 @@ const propTypes = {
     onLayout: PropTypes.func.isRequired,
 
     /** Callback executed on scroll */
-    onScroll: PropTypes.func.isRequired,
+    onScroll: PropTypes.func,
 
     /** Function to load more chats */
     loadMoreChats: PropTypes.func.isRequired,
@@ -62,6 +63,7 @@ const propTypes = {
 const defaultProps = {
     newMarkerReportActionID: '',
     personalDetails: {},
+    onScroll: () => {},
     mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
 };
@@ -87,9 +89,11 @@ function ReportActionsList(props) {
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const currentUnreadMarker = useRef(null);
-    const messageManuallyMarked = useRef(false);
+    const scrollingVerticalOffset = useRef(0);
+    const [messageManuallyMarked, setMessageManuallyMarked] = useState(false);
     const report = props.report;
     const sortedReportActions = props.sortedReportActions;
+    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [reportActionSize, setReportActionSize] = useState(sortedReportActions.lenght);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -108,7 +112,7 @@ function ReportActionsList(props) {
 
     useEffect(() => {
         console.log(`~~Monil in useEffect 1 ${JSON.stringify(userActiveSince)}`);
-        if (ReportUtils.isUnread(report)) {
+        if (ReportUtils.isUnread(report) && scrollingVerticalOffset.current < 250) {
             Report.readNewestAction(report.reportID);
         }
 
@@ -126,17 +130,38 @@ function ReportActionsList(props) {
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
 
         if (!didManuallyMarkReportAsUnread) {
-            messageManuallyMarked.current = false;
+            setMessageManuallyMarked(false);
             return;
         }
 
         // Clearing the current unread marker so that it can be recalculated
         currentUnreadMarker.current = null;
-        messageManuallyMarked.current = true;
+        setMessageManuallyMarked(true);
 
         // We only care when a new lastReadTime is set in the report
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.lastReadTime]);
+
+    const trackVerticalScrolling = (event) => {
+        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+
+        /**
+         * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
+         */
+        if (scrollingVerticalOffset.current > 200 && !isFloatingMessageCounterVisible) {
+            setIsFloatingMessageCounterVisible(true);
+        }
+
+        if (scrollingVerticalOffset.current < 200 && isFloatingMessageCounterVisible) {
+            setIsFloatingMessageCounterVisible(false);
+        }
+        props.onScroll(event);
+    };
+
+    const scrollToBottomAndMarkReportAsRead = () => {
+        ReportScrollManager.scrollToBottom();
+        Report.readNewestAction(report.reportID);
+    };
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
@@ -167,11 +192,12 @@ function ReportActionsList(props) {
                 const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
                 shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
 
-                if (!messageManuallyMarked.current) {
+                if (!messageManuallyMarked) {
                     shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorEmail !== Report.getCurrentUserEmail();
                 }
+                const canDisplayMarker = scrollingVerticalOffset.current < 250 ? reportAction.created < userActiveSince.current : true;
 
-                if (!currentUnreadMarker.current && shouldDisplayNewMarker && reportAction.created < userActiveSince.current) {
+                if (!currentUnreadMarker.current && shouldDisplayNewMarker && canDisplayMarker) {
                     currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
                 }
             } else {
@@ -197,7 +223,7 @@ function ReportActionsList(props) {
                 />
             );
         },
-        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID],
+        [report, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, messageManuallyMarked],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
@@ -206,47 +232,54 @@ function ReportActionsList(props) {
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
 
     return (
-        <Animated.View style={[animatedStyles, styles.flex1]}>
-            <InvertedFlatList
-                accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
-                ref={ReportScrollManager.flatListRef}
-                data={props.sortedReportActions}
-                renderItem={renderItem}
-                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
-                keyExtractor={keyExtractor}
-                initialRowHeight={32}
-                initialNumToRender={initialNumToRender}
-                onEndReached={props.loadMoreChats}
-                onEndReachedThreshold={0.75}
-                ListFooterComponent={() => {
-                    if (props.report.isLoadingMoreReportActions) {
-                        return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
-                    }
-
-                    // Make sure the oldest report action loaded is not the first. This is so we do not show the
-                    // skeleton view above the created action in a newly generated optimistic chat or one with not
-                    // that many comments.
-                    const lastReportAction = _.last(props.sortedReportActions) || {};
-                    if (props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                        return (
-                            <ReportActionsSkeletonView
-                                containerHeight={skeletonViewHeight}
-                                animate={!props.network.isOffline}
-                            />
-                        );
-                    }
-
-                    return null;
-                }}
-                keyboardShouldPersistTaps="handled"
-                onLayout={(event) => {
-                    setSkeletonViewHeight(event.nativeEvent.layout.height);
-                    props.onLayout(event);
-                }}
-                onScroll={props.onScroll}
-                extraData={extraData}
+        <>
+            <FloatingMessageCounter
+                isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker.current}
+                onClick={scrollToBottomAndMarkReportAsRead}
             />
-        </Animated.View>
+
+            <Animated.View style={[animatedStyles, styles.flex1]}>
+                <InvertedFlatList
+                    accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
+                    ref={ReportScrollManager.flatListRef}
+                    data={props.sortedReportActions}
+                    renderItem={renderItem}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
+                    keyExtractor={keyExtractor}
+                    initialRowHeight={32}
+                    initialNumToRender={initialNumToRender}
+                    onEndReached={props.loadMoreChats}
+                    onEndReachedThreshold={0.75}
+                    ListFooterComponent={() => {
+                        if (props.report.isLoadingMoreReportActions) {
+                            return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
+                        }
+
+                        // Make sure the oldest report action loaded is not the first. This is so we do not show the
+                        // skeleton view above the created action in a newly generated optimistic chat or one with not
+                        // that many comments.
+                        const lastReportAction = _.last(props.sortedReportActions) || {};
+                        if (props.report.isLoadingReportActions && lastReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                            return (
+                                <ReportActionsSkeletonView
+                                    containerHeight={skeletonViewHeight}
+                                    animate={!props.network.isOffline}
+                                />
+                            );
+                        }
+
+                        return null;
+                    }}
+                    keyboardShouldPersistTaps="handled"
+                    onLayout={(event) => {
+                        setSkeletonViewHeight(event.nativeEvent.layout.height);
+                        props.onLayout(event);
+                    }}
+                    onScroll={trackVerticalScrolling}
+                    extraData={extraData}
+                />
+            </Animated.View>
+        </>
     );
 }
 

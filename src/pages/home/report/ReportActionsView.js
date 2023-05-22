@@ -13,7 +13,6 @@ import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Performance from '../../../libs/Performance';
 import {withNetwork} from '../../../components/OnyxProvider';
-import FloatingMessageCounter from './FloatingMessageCounter';
 import networkPropTypes from '../../../components/networkPropTypes';
 import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
@@ -53,20 +52,10 @@ class ReportActionsView extends React.Component {
         this.didSubscribeToReportTypingEvents = false;
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
-
-        // console.log(`~~Monil In constructor`);
-        // console.log(this.props.reportActions);
-        this.state = {
-            isFloatingMessageCounterVisible: false,
-        };
-
-        this.currentScrollOffset = 0;
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions);
-        this.trackScroll = this.trackScroll.bind(this);
-        this.toggleFloatingMessageCounter = this.toggleFloatingMessageCounter.bind(this);
+
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
-        this.scrollToBottomAndMarkReportAsRead = this.scrollToBottomAndMarkReportAsRead.bind(this);
         this.openReportIfNecessary = this.openReportIfNecessary.bind(this);
     }
 
@@ -96,14 +85,6 @@ class ReportActionsView extends React.Component {
         }
 
         if (nextProps.report.lastReadTime !== this.props.report.lastReadTime) {
-            return true;
-        }
-
-        if (nextState.isFloatingMessageCounterVisible !== this.state.isFloatingMessageCounterVisible) {
-            return true;
-        }
-
-        if (nextState.newMarkerReportActionID !== this.state.newMarkerReportActionID) {
             return true;
         }
 
@@ -151,9 +132,6 @@ class ReportActionsView extends React.Component {
         const didScreenSizeIncrease = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
         const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
         if (didReportBecomeVisible) {
-            // this.setState({
-            //     newMarkerReportActionID: ReportUtils.isUnread(this.props.report) ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions) : '',
-            // });
             this.openReportIfNecessary();
         }
 
@@ -219,34 +197,6 @@ class ReportActionsView extends React.Component {
         Report.readOldestAction(this.props.report.reportID, oldestReportAction.reportActionID);
     }
 
-    scrollToBottomAndMarkReportAsRead() {
-        ReportScrollManager.scrollToBottom();
-        Report.readNewestAction(this.props.report.reportID);
-    }
-
-    /**
-     * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
-     */
-    toggleFloatingMessageCounter() {
-        if (this.currentScrollOffset < -200 && !this.state.isFloatingMessageCounterVisible) {
-            this.setState({isFloatingMessageCounterVisible: true});
-        }
-
-        if (this.currentScrollOffset > -200 && this.state.isFloatingMessageCounterVisible) {
-            this.setState({isFloatingMessageCounterVisible: false});
-        }
-    }
-
-    /**
-     * keeps track of the Scroll offset of the main messages list
-     *
-     * @param {Object} {nativeEvent}
-     */
-    trackScroll({nativeEvent}) {
-        this.currentScrollOffset = -nativeEvent.contentOffset.y;
-        this.toggleFloatingMessageCounter();
-    }
-
     /**
      * Runs when the FlatList finishes laying out
      */
@@ -272,13 +222,9 @@ class ReportActionsView extends React.Component {
         if (!_.size(this.props.reportActions)) {
             return null;
         }
-        // console.log(`REPORT VIEW render - ID(${this.props.report.reportID}):  `, this.props.reportActions);
+
         return (
             <>
-                <FloatingMessageCounter
-                    isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
-                    onClick={this.scrollToBottomAndMarkReportAsRead}
-                />
                 <ReportActionsList
                     report={this.props.report}
                     onScroll={this.trackScroll}
@@ -287,7 +233,6 @@ class ReportActionsView extends React.Component {
                     mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
                     isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                     loadMoreChats={this.loadMoreChats}
-                    newMarkerReportActionID={this.state.newMarkerReportActionID}
                 />
                 <PopoverReactionList
                     ref={ReactionList.reactionListRef}
