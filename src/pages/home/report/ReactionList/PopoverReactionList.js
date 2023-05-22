@@ -274,7 +274,6 @@ class PopoverReactionList extends React.Component {
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     disableAnimation={false}
-                    animationOutTiming={1}
                     shouldSetModalVisibility={false}
                     fullscreen
                 >

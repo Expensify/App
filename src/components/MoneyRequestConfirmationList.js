@@ -72,7 +72,7 @@ const propTypes = {
     navigateToStep: PropTypes.func.isRequired,
 
     /** The policyID of the request */
-    policyID: PropTypes.string.isRequired,
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -85,6 +85,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    policyID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 

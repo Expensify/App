@@ -30,12 +30,13 @@ const propTypes = {
     navigateToStep: PropTypes.func.isRequired,
 
     /** The policyID of the request */
-    policyID: PropTypes.string.isRequired,
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
+    policyID: '',
 };
 
 const MoneyRequestConfirmPage = (props) => (
