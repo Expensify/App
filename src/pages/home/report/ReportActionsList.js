@@ -22,6 +22,7 @@ import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
+import DateUtils from "../../../libs/DateUtils";
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -84,7 +85,7 @@ function isUnreadMsg(message, lastRead) {
 
 function ReportActionsList(props) {
     const opacity = useSharedValue(0);
-    const isUserActiveOnChat = useRef(false);
+    const userActiveSince = useRef(null);
     const currentUnreadMarker = useRef(null);
     const report = props.report;
     const prevLastReadTimeRef = useRef(report.lastReadTime);
@@ -93,6 +94,7 @@ function ReportActionsList(props) {
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
     }));
+
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
@@ -101,31 +103,27 @@ function ReportActionsList(props) {
     const windowHeight = props.windowHeight;
 
     useEffect(() => {
-        isUserActiveOnChat.current = true;
-        return () => {
-            isUserActiveOnChat.current = false;
-        }
+        userActiveSince.current = DateUtils.getDBTime();
     }, []);
 
     useEffect(() => {
+        console.log(`~~Monil in useEffect 1 ${JSON.stringify(userActiveSince)}`);
         if (ReportUtils.isUnread(report)) {
             Report.readNewestAction(report.reportID);
         }
 
-        if (currentUnreadMarker.current) {
+        if (currentUnreadMarker.current || reportActionSize === sortedReportActions.length ) {
             return;
         }
 
-        if (reportActionSize === sortedReportActions.length) {
-            return;
-        }
         setReportActionSize(sortedReportActions.length);
-        Report.readNewestAction(report.reportID);
+        // Report.readNewestAction(report.reportID);
         currentUnreadMarker.current = null;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sortedReportActions.length, report.reportID]);
 
     useEffect(() => {
+        console.log(`~~Monil in useEffect 2 ${JSON.stringify(userActiveSince)}`);
         const didManuallyMarkReportAsUnread = prevLastReadTimeRef.current !== report.lastReadTime && ReportUtils.isUnread(report);
         prevLastReadTimeRef.current = report.lastReadTime;
 
@@ -162,6 +160,7 @@ function ReportActionsList(props) {
      */
     const renderItem = useCallback(
         ({item: reportAction, index}) => {
+            console.log(`~~Monil in useCallback ${JSON.stringify(currentUnreadMarker)}`);
             let shouldDisplayNewMarker = false;
 
             if (!currentUnreadMarker.current) {
@@ -169,7 +168,7 @@ function ReportActionsList(props) {
                 const isCurrentMessageUnread = !!isUnreadMsg(reportAction, report.lastReadTime);
                 shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
 
-                if (!currentUnreadMarker.current && shouldDisplayNewMarker) {
+                if (!currentUnreadMarker.current && shouldDisplayNewMarker && reportAction.created < userActiveSince.current) {
                     currentUnreadMarker.current = {id: reportAction.reportActionID, index, created: reportAction.created};
                 }
             } else {
