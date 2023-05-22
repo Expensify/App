@@ -480,7 +480,7 @@ class ReportActionCompose extends React.Component {
                 ],
             });
         });
-        return suggestions.slice(0, 5);
+        return suggestions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS);
     }
 
     /**
