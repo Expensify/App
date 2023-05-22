@@ -588,10 +588,10 @@ describe('OptionsListUtils', () => {
         // When we only pass personal details
         let results = OptionsListUtils.getMemberInviteOptions(PERSONAL_DETAILS, [], '');
 
-        // We should expect personal details PERSONAL_DETAILS order
-        expect(results.personalDetails[0].text).toBe('Mister Fantastic');
-        expect(results.personalDetails[1].text).toBe('Spider-Man');
-        expect(results.personalDetails[2].text).toBe('Black Panther');
+        // We should expect personal details to be sorted alphabetically
+        expect(results.personalDetails[0].text).toBe('Black Panther');
+        expect(results.personalDetails[1].text).toBe('Black Widow');
+        expect(results.personalDetails[2].text).toBe('Captain America');
         expect(results.personalDetails[3].text).toBe('Invisible Woman');
 
         // When we provide a search value that does not match any personal details
