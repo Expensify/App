@@ -49,7 +49,7 @@ const DotIndicatorMessage = (props) => {
         // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
         // and can potentially pass the same error.
         .uniq()
-        .map((message) => Localize.translateError(message))
+        .map((message) => Localize.translateIfPhraseKey(message))
         .value();
 
     return (

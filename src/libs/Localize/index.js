@@ -97,16 +97,12 @@ function translateLocal(phrase, variables) {
  * @param {String} phrase
  * @returns {String}
  */
-function translateError(phrase) {
-    const desiredLanguage = BaseLocaleListener.getPreferredLocale();
-
-    const defaultLanguageDictionary = lodashGet(translations, desiredLanguage, {});
-    const translatedPhrase = lodashGet(defaultLanguageDictionary, phrase);
-    if (translatedPhrase) {
-        return Str.result(translatedPhrase, {});
+function translateIfPhraseKey(phrase) {
+    try {
+        return translateLocal(phrase);
+    } catch (error) {
+        return phrase;
     }
-
-    return phrase;
 }
 
 /**
@@ -132,4 +128,4 @@ function getDevicePreferredLocale() {
     return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
-export {translate, translateLocal, translateError, arrayToString, getDevicePreferredLocale};
+export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};

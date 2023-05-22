@@ -45,7 +45,6 @@ function getAuthenticateErrorMessage(response) {
  *
  */
 function getOptimisticErrors(error) {
-    // eslint-disable-next-line rulesdir/prefer-localization
     return {[DateUtils.getMicroseconds()]: error};
 }
 
