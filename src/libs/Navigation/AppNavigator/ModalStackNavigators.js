@@ -152,6 +152,16 @@ const DetailsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const MoneyRequestEditStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const MoneyRequestEditPage = require('../../../pages/iou/MoneyRequestEditPage').default;
+            return MoneyRequestEditPage;
+        },
+        name: 'Money_Request_Edit_Root',
+    }
+]);
+
 const ReportDetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -719,4 +729,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
     YearPickerStackNavigator,
+    MoneyRequestEditStackNavigator,
 };

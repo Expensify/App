@@ -180,14 +180,17 @@ const MoneyRequestHeader = (props) => {
                         title={formattedTransactionAmount}
                         description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}`}
                         titleStyle={styles.newKansasLarge}
+                        onPress={() => Navigation.navigate(ROUTES.getEditRequestDetails(moneyRequestReport.reportID, 'amount'))}
                     />
                     <MenuItemWithTopDescription
                         description={props.translate('common.description')}
                         title={transactionDescription}
+                        onPress={() => Navigation.navigate(ROUTES.getEditRequestDetails(moneyRequestReport.reportID, 'description'))}
                     />
                     <MenuItemWithTopDescription
                         description={props.translate('common.date')}
                         title={formattedTransactionDate}
+                        onPress={() => Navigation.navigate(ROUTES.getEditRequestDetails(moneyRequestReport.reportID, 'date'))}
                     />
                 </>
             )}

@@ -292,6 +292,11 @@ export default {
                     IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
                 },
             },
+            Money_Request_Edit: {
+                screens: {
+                    Money_Request_Edit: ROUTES.IOU_EDIT_REQUEST_DETAILS,
+                }
+            },
             Task_Details: {
                 screens: {
                     Task_Title: ROUTES.TASK_TITLE,

@@ -75,6 +75,8 @@ export default {
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
 
+    IOU_EDIT_REQUEST_DETAILS: `r/:threadReportID/edit/:field`,
+    getEditRequestDetails: (reportID, field) => `/r/:threadReportID/edit/${field}`,
     IOU_REQUEST,
     IOU_BILL,
     IOU_SEND,
