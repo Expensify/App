@@ -631,7 +631,7 @@ class ReportActionCompose extends React.Component {
     insertSelectedMention(highlightedMentionIndex) {
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
         const mentionObject = this.state.suggestedMentions[highlightedMentionIndex];
-        const mentionCode = `@${mentionObject.text === CONST.MENTION_SUGGESTER.HERE_TEXT ? CONST.MENTION_SUGGESTER.HERE_TEXT.replace('@', '') : mentionObject.alternateText}`;
+        const mentionCode = mentionObject.text === CONST.MENTION_SUGGESTER.HERE_TEXT ? CONST.MENTION_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
         const commentAfterAtSignWithMentionRemoved = this.state.value.slice(this.state.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
         this.updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
