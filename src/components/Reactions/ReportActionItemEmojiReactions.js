@@ -2,38 +2,16 @@ import React, {useRef} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import getPreferredEmojiCode from './getPreferredEmojiCode';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import * as Report from '../../libs/actions/Report';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
-
-/**
- * Given an emoji object and a list of senders it will return an
- * array of emoji codes, that represents all used variations of the
- * emoji.
- * @param {{ name: string, code: string, types: string[] }} emojiAsset
- * @param {Object} users
- * @return {string[]}
- * */
-const getUniqueEmojiCodes = (emojiAsset, users) => {
-    const uniqueEmojiCodes = [];
-    _.each(users, (userSkinTones) => {
-        _.each(lodashGet(userSkinTones, 'skinTones'), (createdAt, skinTone) => {
-            const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
-            if (emojiCode && !uniqueEmojiCodes.includes(emojiCode)) {
-                uniqueEmojiCodes.push(emojiCode);
-            }
-        });
-    });
-    return uniqueEmojiCodes;
-};
+import * as EmojiUtils from '../../libs/EmojiUtils';
 
 const propTypes = {
     /** All the emoji reactions for the report action. An object that looks like this:
@@ -123,7 +101,7 @@ const ReportActionItemEmojiReactions = (props) => {
                 }
                 totalReactionCount += reactionCount;
                 const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmojiName);
-                const emojiCodes = getUniqueEmojiCodes(emojiAsset, reaction.users);
+                const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emojiAsset, reaction.users);
                 const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
                 const reactionUsers = _.keys(reaction.users);
 
