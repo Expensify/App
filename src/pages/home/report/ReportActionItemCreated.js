@@ -15,9 +15,8 @@ import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
 import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import compose from '../../../libs/compose';
-import withLocalize from '../../../components/withLocalize';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
     /** The id of the report */
@@ -36,6 +35,7 @@ const defaultProps = {
 
 const ReportActionItemCreated = (props) => {
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
 
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
@@ -77,7 +77,7 @@ const ReportActionItemCreated = (props) => {
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
                 />
                 <View
-                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
+                    accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}
                 >
                     <Pressable
@@ -99,14 +99,11 @@ ReportActionItemCreated.defaultProps = defaultProps;
 ReportActionItemCreated.propTypes = propTypes;
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-    }),
-)(ReportActionItemCreated);
+export default withOnyx({
+    report: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
+    },
+})(ReportActionItemCreated);
