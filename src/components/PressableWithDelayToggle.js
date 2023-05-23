@@ -77,57 +77,48 @@ function PressableWithDelayToggle(props) {
         props.onPress();
     };
 
-    const children = (
-        <Tooltip
-            containerStyles={styles.flexRow}
-            text={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
-        >
-            <Text
-                suppressHighlighting
-                style={[...props.textStyles, styles.mr1]}
-            >
-                {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
-            </Text>
-            <Pressable
-                ref={props.innerRef}
-                focusable
-                accessibilityLabel={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
-                onPress={updatePressState}
-            >
-                {({hovered, pressed}) => (
-                    <>
-                        {props.icon && (
-                            <Icon
-                                src={props.isDelayButtonStateComplete ? props.iconChecked : props.icon}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, props.isDelayButtonStateComplete))}
-                                style={props.iconStyles}
-                                width={variables.iconSizeSmall}
-                                height={variables.iconSizeSmall}
-                            />
-                        )}
-                    </>
-                )}
-            </Pressable>
-        </Tooltip>
-    );
-
     // Due to limitations in RN regarding the vertical text alignment of non-Text elements,
     // for elements that are supposed to be inline, we need to use a Text element instead
     // of a Pressable
-    return props.inline ? (
-        <Text
+    const PressableView = props.inline ? Text : Pressable;
+
+    return (
+        <PressableView
             style={[...props.styles, styles.flexRow]}
             onPress={updatePressState}
         >
-            {children}
-        </Text>
-    ) : (
-        <Pressable
-            style={[...props.styles, styles.flexRow]}
-            onPress={updatePressState}
-        >
-            {children}
-        </Pressable>
+            <Tooltip
+                containerStyles={styles.flexRow}
+                text={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
+            >
+                <Text
+                    suppressHighlighting
+                    style={[...props.textStyles, styles.mr1]}
+                >
+                    {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
+                </Text>
+                <Pressable
+                    ref={props.innerRef}
+                    focusable
+                    accessibilityLabel={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
+                    onPress={updatePressState}
+                >
+                    {({hovered, pressed}) => (
+                        <>
+                            {props.icon && (
+                                <Icon
+                                    src={props.isDelayButtonStateComplete ? props.iconChecked : props.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, props.isDelayButtonStateComplete))}
+                                    style={props.iconStyles}
+                                    width={variables.iconSizeSmall}
+                                    height={variables.iconSizeSmall}
+                                />
+                            )}
+                        </>
+                    )}
+                </Pressable>
+            </Tooltip>
+        </PressableView>
     );
 }
 
