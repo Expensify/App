@@ -494,7 +494,7 @@ class ReportActionCompose extends React.Component {
 
     calculateMentionSuggestion() {
         const valueAfterTheCursor = this.state.value.substring(this.state.selection.end);
-        const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+        const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
 
         let indexOfLastNonWhitespaceCharAfterTheCursor;
         if (indexOfFirstWhitespaceCharOrEmojiAfterTheCursor === -1) {
@@ -505,7 +505,7 @@ class ReportActionCompose extends React.Component {
         }
 
         const leftString = this.state.value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
-        const words = leftString.split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+        const words = leftString.split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
         const lastWord = _.last(words);
 
         let atSignIndex;
@@ -542,7 +542,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Boolean}
      */
     isEmojiCode(str, pos) {
-        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+        const leftWords = str.slice(0, pos).split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
         const leftWord = _.last(leftWords);
 
         return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
