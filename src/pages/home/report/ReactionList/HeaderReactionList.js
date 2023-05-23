@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import Text from '../../../../components/Text';
-import withLocalize, { withLocalizePropTypes } from '../../../../components/withLocalize';
-import withWindowDimensions, { windowDimensionsPropTypes } from '../../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import compose from '../../../../libs/compose';
 import * as StyleUtils from '../../../../styles/StyleUtils';
 import styles from '../../../../styles/styles';
