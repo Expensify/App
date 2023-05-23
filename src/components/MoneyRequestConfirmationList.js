@@ -23,10 +23,10 @@ import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
-    onConfirm: PropTypes.func.isRequired,
+    onConfirm: PropTypes.func,
 
     /** Callback to parent modal to send money */
-    onSendMoney: PropTypes.func.isRequired,
+    onSendMoney: PropTypes.func,
 
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
@@ -69,13 +69,19 @@ const propTypes = {
     }),
 
     /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
-    navigateToStep: PropTypes.func.isRequired,
+    navigateToStep: PropTypes.func,
 
     /** The policyID of the request */
     policyID: PropTypes.string,
+
+    /** Whether we should show the footer button */
+    shouldShowFooter: PropTypes.bool,
 };
 
 const defaultProps = {
+    onConfirm: () => {},
+    onSendMoney: () => {},
+    navigateToStep: () => {},
     iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
@@ -85,6 +91,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    shouldShowFooter: true,
     policyID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -217,6 +224,36 @@ class MoneyRequestConfirmationList extends Component {
         }
         const selectedParticipants = this.getSelectedParticipants();
         return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.currentUserPersonalDetails)];
+    }
+
+    getFooterContent() {
+        if (!this.props.shouldShowFooter) {
+            return;
+        }
+
+        const selectedParticipants = this.getSelectedParticipants();
+        const shouldShowSettlementButton = this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+        const shouldDisableButton = selectedParticipants.length === 0;
+        const recipient = this.state.participants[0];
+
+        return shouldShowSettlementButton ? (
+            <SettlementButton
+                isDisabled={shouldDisableButton}
+                onPress={this.confirm}
+                shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                currency={this.props.iou.selectedCurrencyCode}
+                policyID={this.props.policyID}
+            />
+        ) : (
+            <ButtonWithDropdownMenu
+                isDisabled={shouldDisableButton}
+                onPress={(_event, value) => this.confirm(value)}
+                options={this.getSplitOrRequestOptions()}
+            />
+        );
     }
 
     /**

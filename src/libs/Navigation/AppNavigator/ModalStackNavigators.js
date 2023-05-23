@@ -140,6 +140,13 @@ const IOUDetailsModalStackNavigator = createModalStackNavigator([
         },
         name: 'IOU_Details_Enable_Payments',
     },
+    {
+        getComponent: () => {
+            const SplitBillDetailsPage = require('../../../pages/iou/SplitBillDetailsPage').default;
+            return SplitBillDetailsPage;
+        },
+        name: 'IOU_Details_Split_Bill',
+    },
 ]);
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator([
