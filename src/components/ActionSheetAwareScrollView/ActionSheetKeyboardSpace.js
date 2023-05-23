@@ -1,6 +1,6 @@
-import React, {useContext, useEffect, useState} from 'react';
-import {useWindowDimensions, Keyboard} from 'react-native';
-import Reanimated, {useWorkletCallback, KeyboardState, useAnimatedKeyboard, useAnimatedStyle, useDerivedValue, withSpring} from 'react-native-reanimated';
+import React, {useContext, useState} from 'react';
+import {useWindowDimensions} from 'react-native';
+import Reanimated, {useWorkletCallback, KeyboardState, useAnimatedKeyboard, useAnimatedStyle, useDerivedValue, withSpring, useAnimatedReaction, runOnJS} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../styles/styles';
 import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
@@ -23,46 +23,27 @@ function ActionSheetKeyboardSpace(props) {
     const {height: windowHeight} = useWindowDimensions();
     const {currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
 
-    useEffect(() => {
-        // Sometimes it triggers multiple times the same action
-        let lastAction = null;
-        const removeDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-            if (lastAction === 'keyboardDidShow') {
-                return;
-            }
+    useAnimatedReaction(
+        () => keyboard.state.value,
+        (lastState) => {
+          if (lastState === syncLocalWorkletState.lastState) {
+            return;
+          }
 
-            lastAction = 'keyboardDidShow';
+          syncLocalWorkletState.lastState = lastState;
 
-            transitionActionSheetState({
+          if (lastState === KeyboardState.OPEN) {
+            runOnJS(transitionActionSheetState)({
                 type: Actions.ON_KEYBOARD_OPEN,
             });
-        });
-
-        const removeDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-            if (lastAction === 'keyboardDidHide') {
-                return;
-            }
-
-            lastAction = 'keyboardDidHide';
-
-            transitionActionSheetState({
+          } else if (lastState === KeyboardState.CLOSED) {
+            runOnJS(transitionActionSheetState)({
                 type: Actions.ON_KEYBOARD_CLOSE,
             });
-        });
-
-        return () => {
-            resetStateMachine();
-
-            // we use try catch because when you do multiple hot reloads
-            // the keyboard listeners can be removed already
-            try {
-                removeDidShowListener();
-                removeDidHideListener();
-            } catch {
-                // noop
-            }
-        };
-    }, [resetStateMachine, transitionActionSheetState]);
+          }
+        },
+        []
+      );
 
     // We need this because of the bug in useAnimatedKeyboard.
     // It calls the same state twice which triggers this thing again.
