@@ -14,7 +14,7 @@ As a small to medium-sized business owner, your main aim is to achieve success a
 This playbook is built on best practices we’ve developed after processing expenses for tens of thousands of companies around the world. As such, use this playbook as your starting point, knowing that you can customize Expensify to suit your business needs. Every company is different, and your dedicated Setup Specialist is always one chat away with any questions you may have.
 
 ### Step 1: Create your Expensify account
-If you don't already have one, go to [Expensify.com](https://expensify.com) and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
+If you don't already have one, go to [new.expensify.com](https://new.expensify.com) and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
 
 > _Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical_
 >

@@ -15,7 +15,7 @@ As a VC-backed business focused on growth and efficiency, you are looking for a 
 This playbook is built based on best practices we’ve developed after processing expenses for tens of thousands of companies around the world. As such, use this playbook as your starting point, knowing that you can customize Expensify to suit your business needs. Every company is different, and we’re always one chat away with any questions you may have.
 
 ## Step 1: Create your Expensify account
-If you don't already have one, go to [Expensify.com](https://expensify.com) and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
+If you don't already have one, go to [new.expensify.com](https://new.expensify.com) and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
 
 ## Step 2: Create a Control Policy
 There are three policy types, but for your needs we recommend the Control Policy for the following reasons:
