@@ -267,6 +267,7 @@ function ReportActionItem(props) {
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
+            const hasBeenFlagged = moderationDecision !== 'approved';
             const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
@@ -278,7 +279,7 @@ function ReportActionItem(props) {
                     }}
                 >
                     {!props.draftMessage ? (
-                        <View style={props.displayAsGroup && moderationDecision !== 'approved' ? styles.blockquote : {}}>
+                        <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                             <ReportActionItemMessage
                                 action={props.action}
                                 isHidden={isHidden}
@@ -287,7 +288,7 @@ function ReportActionItem(props) {
                                     _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName) ? styles.colorMuted : undefined,
                                 ]}
                             />
-                            {props.displayAsGroup && moderationDecision !== 'approved' &&
+                            {props.displayAsGroup && hasBeenFlagged &&
                                 <Button
                                     small
                                     style={[styles.mt2, styles.alignSelfStart]}
@@ -312,7 +313,7 @@ function ReportActionItem(props) {
                             }
                         />
                     )}
-                    {!props.displayAsGroup && moderationDecision !== 'approved' &&
+                    {!props.displayAsGroup && hasBeenFlagged &&
                         <Button
                             small
                             style={[styles.mt2, styles.alignSelfStart]}
