@@ -91,7 +91,7 @@ const MenuItem = (props) => {
     return (
         <PressableWithSecondaryInteraction
             onPress={(e) => {
-                if (props.disabled) {
+                if (props.disabled || !props.interactive) {
                     return;
                 }
 
