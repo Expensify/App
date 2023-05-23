@@ -15,6 +15,7 @@ import CONST from '../../CONST';
 import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 class CalendarPicker extends React.PureComponent {
     constructor(props) {
@@ -105,8 +106,10 @@ class CalendarPicker extends React.PureComponent {
                     <PressableWithFeedback
                         onPress={this.onYearPickerPressed}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
+                        wrapperStyle={[styles.alignItemsCenter]}
                         // disable the opacity change on hover
                         hoverDimmingValue={1}
+                        accessibilityLabel={this.props.translate('common.currentYear')}
                     >
                         <Text
                             style={styles.sidebarLinkTextBold}
@@ -131,6 +134,7 @@ class CalendarPicker extends React.PureComponent {
                             onPress={this.moveToPrevMonth}
                             // disable the opacity change on hover
                             hoverDimmingValue={1}
+                            accessibilityLabel={this.props.translate('common.previous')}
                         >
                             <ArrowIcon
                                 disabled={!hasAvailableDatesPrevMonth}
@@ -143,6 +147,7 @@ class CalendarPicker extends React.PureComponent {
                             onPress={this.moveToNextMonth}
                             // disable the opacity change on hover
                             hoverDimmingValue={1}
+                            accessibilityLabel={this.props.translate('common.next')}
                         >
                             <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
                         </PressableWithFeedback>
@@ -171,25 +176,28 @@ class CalendarPicker extends React.PureComponent {
                             const isSelected = moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day');
 
                             return (
-                                <Pressable
+                                <PressableWithoutFeedback
                                     key={`${index}_day-${day}`}
                                     disabled={isDisabled}
                                     onPress={() => this.onDayPressed(day)}
                                     style={styles.calendarDayRoot}
                                     accessibilityLabel={day ? day.toString() : undefined}
+                                    // disable focus and accessibility  on empty fields
+                                    focusable={!!day}
+                                    accessible={!!day}
                                 >
                                     {({hovered, pressed}) => (
                                         <View
                                             style={[
                                                 styles.calendarDayContainer,
                                                 isSelected ? styles.calendarDayContainerSelected : {},
-                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+                                                !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >
                                             <Text style={isDisabled ? styles.buttonOpacityDisabled : styles.dayText}>{day}</Text>
                                         </View>
                                     )}
-                                </Pressable>
+                                </PressableWithoutFeedback>
                             );
                         })}
                     </View>
