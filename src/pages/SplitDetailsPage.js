@@ -103,12 +103,12 @@ const getAllParticipants = (report, personalDetails) => {
 const SplitDetailsPage = (props) => {
     const reportAction = props.reportActions[`${props.route.params.splitActionID.toString()}`];
     const participants = getAllParticipants(props.report, props.personalDetails);
-    const splitAmount = lodashGet(props.action, 'originalMessage.IOUDetails.amount', 0);
+    const splitAmount = lodashGet(reportAction, 'originalMessage.amount', 0);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {(
-                <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(props.action)}>
+                <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
                     <HeaderWithCloseButton
                         title={props.translate('common.details')}
                         onCloseButtonPress={Navigation.dismissModal}
