@@ -23,7 +23,7 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
-import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect';
+import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
