@@ -33,21 +33,23 @@ class Hoverable extends Component {
         document.addEventListener('touchmove', this.enableHover);
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.disabled === this.props.disabled) {
+            return;
+        }
+
+        this.setState({isHovered: false});
+
+        if (this.props.disabled) {
+            this.disableHover();
+        } else {
+            this.enableHover();
+        }
+    }
+
     componentWillUnmount() {
         document.removeEventListener('touchstart', this.disableHover);
         document.removeEventListener('touchmove', this.enableHover);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.disabled !== this.props.disabled) {
-            this.setState({isHovered: false});
-
-            if (this.props.disabled) {
-                this.disableHover();
-            } else {
-                this.enableHover();
-            }
-        }
     }
 
     /**
