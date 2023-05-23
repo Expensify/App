@@ -249,7 +249,7 @@ class BaseValidateCodeForm extends React.Component {
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
-                        isLoading={SessionUtils.shouldShowLoadingIndicator(this.props.account.loadingScreen, this.props.account.requiresTwoFactorAuth, this.props.account.isLoading)}
+                        isLoading={SessionUtils.shouldShowLoadingIndicatorForScreen(this.props.account.loadingScreen, this.props.account.requiresTwoFactorAuth, this.props.account.isLoading)}
                         onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />

@@ -36,7 +36,7 @@ function isLoggingInAsNewUser(transitionURL, sessionEmail) {
  * @param {Boolean} isLoading
  * @returns {Boolean}
  */
-function shouldShowLoadingIndicator(loadingScreen, requiresTwoFactorAuth, isLoading) {
+function shouldShowLoadingIndicatorForScreen(loadingScreen, requiresTwoFactorAuth, isLoading) {
     if (loadingScreen === CONST.LOADING_SCREEN.VALIDATE_SCREEN) {
         return !requiresTwoFactorAuth;
     }
@@ -51,5 +51,5 @@ function shouldShowLoadingIndicator(loadingScreen, requiresTwoFactorAuth, isLoad
 export {
     // eslint-disable-next-line import/prefer-default-export
     isLoggingInAsNewUser,
-    shouldShowLoadingIndicator,
+    shouldShowLoadingIndicatorForScreen,
 };
