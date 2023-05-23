@@ -5,21 +5,21 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
-import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import Navigation from '../libs/Navigation/Navigation';
-import ScreenWrapper from '../components/ScreenWrapper';
-import MoneyRequestConfirmationList from '../components/MoneyRequestConfirmationList';
-import personalDetailsPropType from './personalDetailsPropType';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import compose from '../libs/compose';
-import * as ReportUtils from '../libs/ReportUtils';
-import reportActionPropTypes from './home/report/reportActionPropTypes';
-import reportPropTypes from './reportPropTypes';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import CONST from '../CONST';
+import styles from '../../styles/styles';
+import ONYXKEYS from '../../ONYXKEYS';
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
+import personalDetailsPropType from '../personalDetailsPropType';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
+import * as ReportUtils from '../../libs/ReportUtils';
+import reportActionPropTypes from '../home/report/reportActionPropTypes';
+import reportPropTypes from '../reportPropTypes';
+import withReportOrNotFound from '../home/report/withReportOrNotFound';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -101,7 +101,7 @@ const getAllParticipants = (reportAction, personalDetails) => {
         .value();
 };
 
-const SplitDetailsPage = (props) => {
+const SplitBillDetailsPage = (props) => {
     const reportAction = props.reportActions[`${props.route.params.splitActionID.toString()}`];
     const participants = getAllParticipants(reportAction, props.personalDetails);
     const splitAmount = lodashGet(reportAction, 'originalMessage.amount', 0);
@@ -136,9 +136,9 @@ const SplitDetailsPage = (props) => {
     );
 };
 
-SplitDetailsPage.propTypes = propTypes;
-SplitDetailsPage.defaultProps = defaultProps;
-SplitDetailsPage.displayName = 'SplitDetailsPage';
+SplitBillDetailsPage.propTypes = propTypes;
+SplitBillDetailsPage.defaultProps = defaultProps;
+SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
 export default compose(
     withLocalize,
@@ -152,4 +152,4 @@ export default compose(
             canEvict: false,
         },
     }),
-)(SplitDetailsPage);
+)(SplitBillDetailsPage);
