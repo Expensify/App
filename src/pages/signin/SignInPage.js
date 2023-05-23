@@ -148,9 +148,10 @@ const SignInPage = ({account, credentials}) => {
         shouldShowResendValidationForm,
         account.requiresTwoFactorAuth,
         account.validated,
+        credentials.login,
+        isSmallScreenWidth,
         translate,
         formatPhoneNumber,
-        isSmallScreenWidth,
     ]);
 
     return (
