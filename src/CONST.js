@@ -701,10 +701,12 @@ const CONST = {
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
-    LOADING_SCREEN: {
-        LOGIN_SCREEN: 'LoginScreen',
-        VALIDATE_SCREEN: 'ValidateScreen',
-        TWO_FACE_AUTH_SCREEN: 'TwoFactorAuthScreen',
+    FORMS: {
+        LOGIN_FORM: 'LoginForm',
+        VALIDATE_CODE_FORM: 'ValidateCodeForm',
+        VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
+        RESEND_VALIDATION_FORM: 'ResendValidationForm',
+        UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
     },
     APP_STATE: {
         ACTIVE: 'active',

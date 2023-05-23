@@ -1,5 +1,4 @@
 import lodashGet from 'lodash/get';
-import CONST from '../CONST';
 
 /**
  * Determine if the transitioning user is logging in as a new user.
@@ -29,27 +28,7 @@ function isLoggingInAsNewUser(transitionURL, sessionEmail) {
     return linkedEmail !== sessionEmail;
 }
 
-/**
- * Indicates whether the button should show the loading indicator
- * @param {String} loadingScreen
- * @param {Boolean} requiresTwoFactorAuth
- * @param {Boolean} isLoading
- * @returns {Boolean}
- */
-function shouldShowLoadingIndicatorForScreen(loadingScreen, requiresTwoFactorAuth, isLoading) {
-    if (loadingScreen === CONST.LOADING_SCREEN.VALIDATE_SCREEN) {
-        return !requiresTwoFactorAuth;
-    }
-
-    if (loadingScreen === CONST.LOADING_SCREEN.TWO_FACE_AUTH_SCREEN) {
-        return requiresTwoFactorAuth;
-    }
-
-    return isLoading;
-}
-
 export {
     // eslint-disable-next-line import/prefer-default-export
     isLoggingInAsNewUser,
-    shouldShowLoadingIndicatorForScreen,
 };

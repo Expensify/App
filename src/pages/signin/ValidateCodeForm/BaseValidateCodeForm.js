@@ -24,7 +24,6 @@ import * as User from '../../../libs/actions/User';
 import FormHelpMessage from '../../../components/FormHelpMessage';
 import MagicCodeInput from '../../../components/MagicCodeInput';
 import Terms from '../Terms';
-import * as SessionUtils from '../../../libs/SessionUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -249,7 +248,10 @@ class BaseValidateCodeForm extends React.Component {
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
-                        isLoading={SessionUtils.shouldShowLoadingIndicatorForScreen(this.props.account.loadingScreen, this.props.account.requiresTwoFactorAuth, this.props.account.isLoading)}
+                        isLoading={
+                            this.props.account.isLoading &&
+                            this.props.account.loadingForm === (this.props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                        }
                         onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
