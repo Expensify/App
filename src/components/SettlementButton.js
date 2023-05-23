@@ -49,7 +49,7 @@ const propTypes = {
     nvp_lastPaymentMethod: PropTypes.objectOf(PropTypes.string),
 
     /** The policyID of the report we are paying */
-    policyID: PropTypes.string.isRequired,
+    policyID: PropTypes.string,
 
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -66,6 +66,7 @@ const defaultProps = {
     nvp_lastPaymentMethod: {},
     style: [],
     iouReport: {},
+    policyID: '',
 };
 
 class SettlementButton extends React.Component {
