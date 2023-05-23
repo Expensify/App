@@ -84,18 +84,19 @@ const MoneyRequestHeader = (props) => {
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(props.report) && lodashGet(props.session, 'email', null) === props.report.managerEmail);
+    const userEmail = lodashGet(props.session, 'email', null);
+    const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(props.report) && userEmail === props.report.managerEmail);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
                 shouldShowAvatarWithDisplay
-                shouldShowThreeDotsButton={!isSettled && props.isSingleTransactionView}
+                shouldShowThreeDotsButton={!isSettled && props.isSingleTransactionView && userEmail === props.parentReport.ownerEmail}
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,
                         text: props.translate('common.delete'),
-                        onSelected: () => IOU.deleteMoneyRequest(props.report.chatReportID, props.report, props.parentReportAction),
+                        onSelected: () => IOU.deleteMoneyRequest(props.parentReport.chatReportID, props.parentReport.reportID, props.parentReportAction),
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
