@@ -53,7 +53,6 @@ import * as ComposerActions from '../../../libs/actions/Composer';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -116,9 +115,6 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
-    /** Collection of recent reports, used to calculate the mention suggestions */
-    reports: PropTypes.objectOf(reportPropTypes),
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -137,7 +133,6 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     isComposerFullSize: false,
     pendingAction: null,
-    reports: {},
     shouldShowComposeInput: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -451,6 +446,53 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Build the suggestions for mentions
+     * @param {Object} personalDetails
+     * @param {String} [searchValue]
+     * @returns {Object}
+     */
+    getMentionOptions(personalDetails, searchValue = '') {
+        const suggestions = [];
+
+        if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue)) {
+            suggestions.push({
+                text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
+                alternateText: this.props.translate('mentionSuggestions.hereAlternateText'),
+                icons: [
+                    {
+                        source: Expensicons.Megaphone,
+                        type: 'avatar',
+                    },
+                ],
+            });
+        }
+
+        const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+            if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
+                return false;
+            }
+            return true;
+        });
+
+        const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
+        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
+            suggestions.push({
+                text: detail.displayName,
+                alternateText: detail.login,
+                icons: [
+                    {
+                        name: detail.login,
+                        source: detail.avatar,
+                        type: 'avatar',
+                    },
+                ],
+            });
+        });
+
+        return suggestions;
+    }
+
+    /**
      * Clean data related to EmojiSuggestions and MentionSuggestions
      */
     resetSuggestions() {
@@ -525,9 +567,7 @@ class ReportActionCompose extends React.Component {
         const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
 
         if (!isCursorBeforeTheMention && this.isMentionCode(lastWord)) {
-            const options = OptionsListUtils.getNewChatOptions(this.props.reports, this.props.personalDetails, this.props.betas, prefix);
-            const suggestions = _.filter([...options.recentReports, options.userToInvite], (x) => !!x);
-
+            const suggestions = this.getMentionOptions(this.props.personalDetails, prefix);
             nextState.suggestedMentions = suggestions;
             nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
         }
@@ -592,7 +632,7 @@ class ReportActionCompose extends React.Component {
     insertSelectedMention(highlightedMentionIndex) {
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
         const mentionObject = this.state.suggestedMentions[highlightedMentionIndex];
-        const mentionCode = `@${mentionObject.alternateText}`;
+        const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
         const commentAfterAtSignWithMentionRemoved = this.state.value.slice(this.state.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
         this.updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
@@ -1187,9 +1227,6 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             selector: EmojiUtils.getPreferredSkinToneIndex,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
