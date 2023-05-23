@@ -19,9 +19,9 @@ import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
-import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
+import * as ErrorUtils from '../ErrorUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -262,7 +262,7 @@ function addActions(reportID, text = '', file) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: _.mapObject(optimisticReportActions, (action) => ({
                 ...action,
-                errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')},
+                errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
             })),
         },
     ];
