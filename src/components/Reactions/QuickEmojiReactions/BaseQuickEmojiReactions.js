@@ -8,8 +8,8 @@ import AddReactionBubble from '../AddReactionBubble';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
-import getPreferredEmojiCode from '../getPreferredEmojiCode';
 import Tooltip from '../../Tooltip';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const baseQuickEmojiReactionsPropTypes = {
     /**
@@ -54,7 +54,7 @@ const BaseQuickEmojiReactions = (props) => (
             >
                 <View>
                     <EmojiReactionBubble
-                        emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
+                        emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                         isContextMenu
                         onPress={() => {
                             props.onEmojiSelected(emoji);
