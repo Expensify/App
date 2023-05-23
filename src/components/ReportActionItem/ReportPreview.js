@@ -99,7 +99,7 @@ const ReportPreview = (props) => {
     const managerEmail = props.iouReport.managerEmail || '';
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
-    const bankAccountRoute = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ROUTES.getBankAccountRoute('', props.iouReport.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
         <View style={[styles.chatItemMessage]}>
             {_.map(props.action.message, (message, index) => (

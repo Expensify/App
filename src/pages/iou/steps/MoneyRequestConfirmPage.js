@@ -32,8 +32,8 @@ const propTypes = {
     /** The policyID of the request */
     policyID: PropTypes.string,
 
-    /** If report is Expense report or IOU report */
-    isPolicyExpenseChat: PropTypes.bool.isRequired,
+    /** Depending on expense report or personal IOU report, respective bank account route */
+    bankAccountRoute: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -53,7 +53,7 @@ const MoneyRequestConfirmPage = (props) => (
         canModifyParticipants={props.canModifyParticipants}
         navigateToStep={props.navigateToStep}
         policyID={props.policyID}
-        isPolicyExpenseChat={props.isPolicyExpenseChat}
+        bankAccountRoute={props.bankAccountRoute}
     />
 );
 

@@ -86,7 +86,7 @@ const MoneyRequestHeader = (props) => {
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(props.report) && lodashGet(props.session, 'email', null) === props.report.managerEmail);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
-    const bankAccountRoute = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ROUTES.getBankAccountRoute('', props.report.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton

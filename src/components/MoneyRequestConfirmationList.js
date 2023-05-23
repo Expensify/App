@@ -43,8 +43,8 @@ const propTypes = {
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
 
-    /** If report is Expense report or IOU report */
-    isPolicyExpenseChat: PropTypes.bool.isRequired,
+    /** Depending on expense report or personal IOU report, respective bank account route */
+    bankAccountRoute: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -269,7 +269,6 @@ class MoneyRequestConfirmationList extends Component {
         const recipient = this.state.participants[0];
         const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
         const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode);
-        const bankAccountRoute = this.props.isPolicyExpenseChat ? ROUTES.getBankAccountRoute('', this.props.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
 
         return (
             <OptionsSelector
@@ -293,7 +292,7 @@ class MoneyRequestConfirmationList extends Component {
                             onPress={this.confirm}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountRoute={bankAccountRoute}
+                            addBankAccountRoute={this.props.bankAccountRoute}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
                             policyID={this.props.policyID}
