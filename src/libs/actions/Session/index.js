@@ -15,11 +15,11 @@ import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
-import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
 import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
+import * as ErrorUtils from '../../ErrorUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -245,9 +245,7 @@ function beginSignIn(login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
-                },
+                errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
             },
         },
     ];
@@ -383,7 +381,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
+function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
@@ -444,14 +442,15 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
             accountID,
             validateCode,
             twoFactorAuthCode,
+            preferredLocale,
             deviceInfo: getDeviceInfoForLogin(),
         },
         {optimisticData, successData, failureData},
     );
 }
 
-function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode) {
-    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode, preferredLocale);
     Navigation.navigate(ROUTES.HOME);
 }
 

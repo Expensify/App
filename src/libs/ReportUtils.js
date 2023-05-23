@@ -433,6 +433,26 @@ function getPolicyName(report) {
 }
 
 /**
+ * Checks if the current user is allowed to comment on the given report.
+ * @param {Object} report
+ * @param {String} [report.writeCapability]
+ * @returns {Boolean}
+ */
+function isAllowedToComment(report) {
+    // Default to allowing all users to post
+    const capability = lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL) || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+
+    if (capability === CONST.REPORT.WRITE_CAPABILITIES.ALL) {
+        return true;
+    }
+
+    // If we've made it here, commenting on this report is restricted.
+    // If the user is an admin, allow them to post.
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    return lodashGet(policy, 'role', '') === CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Checks if the current user is the admin of the policy given the policy expense chat.
  * @param {Object} report
  * @param {String} report.policyID
@@ -1383,9 +1403,10 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
  * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
+ * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false) {
+function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false) {
     const IOUReportID = iouReportID || generateReportID();
     const parser = new ExpensiMark();
     const commentText = getParsedComment(comment);
@@ -1401,7 +1422,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 
     // We store amount, comment, currency in IOUDetails when type = pay
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY && isSendMoneyFlow) {
         _.each(['amount', 'comment', 'currency'], (key) => {
             delete originalMessage[key];
         });
@@ -2302,5 +2323,6 @@ export {
     shouldReportShowSubscript,
     isReportDataReady,
     isSettled,
+    isAllowedToComment,
     getMoneyRequestAction,
 };

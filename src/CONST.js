@@ -579,6 +579,11 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        // Options for which room members can post
+        WRITE_CAPABILITIES: {
+            ALL: 'all',
+            ADMINS: 'admins',
+        },
         VISIBILITY: {
             PUBLIC: 'public',
             PUBLIC_ANNOUNCE: 'public_announce',
@@ -801,6 +806,7 @@ const CONST = {
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
         MIN_AMOUNT_OF_ITEMS: 3,
         MAX_AMOUNT_OF_ITEMS: 5,
+        HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
@@ -1080,14 +1086,17 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
-        // eslint-disable-next-line no-misleading-character-class
-        NEW_LINE_OR_WHITE_SPACE_OR_EMOJI: /[\n\s\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        SPECIAL_CHAR_OR_EMOJI:
+            // eslint-disable-next-line no-misleading-character-class
+            /[\n\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
         EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
 
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        MENTION_REPLACER: /^@[^\n\r]*?(?=$|\s)/,
+        MENTION_REPLACER:
+            // eslint-disable-next-line no-misleading-character-class
+            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
@@ -2381,6 +2390,7 @@ const CONST = {
         ACTIVE: 'active',
         DISABLED: 'disabled',
     },
+    SPACE_CHARACTER_WIDTH: 4,
 
     // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
     // div and then remove it from copied contents in the getHTMLOfSelection() method.
