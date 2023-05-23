@@ -98,6 +98,7 @@ const ReportPreview = (props) => {
     const managerEmail = props.iouReport.managerEmail || '';
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
+    const bankAccountRoute = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ROUTES.getBankAccountRoute('', props.iouReport.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
     return (
         <View style={[styles.chatItemMessage]}>
             {_.map(props.action.message, (message, index) => (
@@ -146,7 +147,7 @@ const ReportPreview = (props) => {
                     iouReport={props.iouReport}
                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                    addBankAccountRoute={ROUTES.getBankAccountRoute('', props.report.policyID)}
+                    addBankAccountRoute={bankAccountRoute}
                     style={[styles.requestPreviewBox]}
                 />
             )}
