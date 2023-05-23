@@ -198,6 +198,11 @@ const MoneyRequestModal = (props) => {
      * Navigate to the previous request step if possible
      */
     const navigateToPreviousStep = useCallback(() => {
+        if (currentStepIndex === 0) {
+            Navigation.dismissModal();
+            return;
+        }
+
         if (currentStepIndex <= 0 && previousStepIndex < 0) {
             return;
         }
@@ -287,7 +292,7 @@ const MoneyRequestModal = (props) => {
     const modalHeader = (
         <HeaderWithBackButton
             title={titleForStep}
-            onBackButtonPress={currentStepIndex === 0 ? Navigation.dismissModal : navigateBack}
+            onBackButtonPress={navigateBack}
         />
     );
     const amountButtonText = isEditingAmountAfterConfirm ? props.translate('common.save') : props.translate('common.next');
