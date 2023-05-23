@@ -242,6 +242,11 @@ class ReportScreen extends React.Component {
         Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
     }
 
+    getNavigationKey() {
+        const navigation = this.props.navigation.getState();
+        return lodashGet(navigation.routes, [navigation.index, 'key'])
+    }
+
     render() {
         // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
         // simply looking up the first truthy value for each case will get the relevant property if it's set.
@@ -269,6 +274,7 @@ class ReportScreen extends React.Component {
         const shouldAnimate = !shouldFreeze;
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
         const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
+
         return (
             <ScreenWrapper style={screenWrapperStyle}>
                 <Freeze
@@ -342,7 +348,7 @@ class ReportScreen extends React.Component {
                             </>
                         )}
                         <View
-                            nativeID={CONST.REPORT.DROP_NATIVE_ID + getReportID(this.props.route)}
+                            nativeID={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                             onLayout={(event) => {
                                 const skeletonViewContainerHeight = event.nativeEvent.layout.height;
