@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -114,7 +113,7 @@ const SignInPage = ({account, credentials}) => {
                 header = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
                 text = translate('validateCodeForm.enterAuthenticatorCode');
             } else {
-                const userLogin = Str.removeSMSDomain(lodashGet(props, 'credentials.login', ''));
+                const userLogin = Str.removeSMSDomain(credentials.login || '');
 
                 // replacing spaces with "hard spaces" to prevent breaking the number
                 const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
