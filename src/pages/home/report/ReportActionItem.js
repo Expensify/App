@@ -130,21 +130,19 @@ function ReportActionItem(props) {
         }
 
         const decisions = props.action.moderationDecisions;
+        let hasBeenRemoved = false;
+        let isPending = false;
         let lastDecision;
-        
-        decisions.foreach((decision) => {
+
+        _.forEach(decisions, (decision) => {
             // removed will always take precedence - there's no going back from that currently
             if (decision.decision === 'removed') {
-                setModerationDecision(decision.decision);
-                setIsHidden(true);
-                return;
+                hasBeenRemoved = true;
             }
 
             // pending will always be the most recent if it exists
             if (decision.decision === 'pending') {
-                setModerationDecision(decision.decision);
-                setIsHidden(true);
-                return;
+                isPending = true;
             }
 
             if (!lastDecision || lastDecision.timestamp < decision.timestamp) {
@@ -152,9 +150,16 @@ function ReportActionItem(props) {
             }
         })
 
-        setModerationDecision(lastDecision.decision);
-        setIsHidden(moderationDecision === 'pending' || moderationDecision === 'hidden');
-
+        if (hasBeenRemoved) {
+            setModerationDecision('removed');
+            setIsHidden(true);
+        } else if (isPending) {
+            setModerationDecision('pending');
+            setIsHidden(true);
+        } else {
+            setModerationDecision(lastDecision.decision);
+            setIsHidden(moderationDecision === 'hidden');
+        }
     }, [props.action, moderationDecision])
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
