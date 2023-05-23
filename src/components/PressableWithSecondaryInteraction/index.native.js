@@ -19,14 +19,17 @@ const PressableWithSecondaryInteraction = (props) => {
             ref={props.forwardedRef}
             onPress={props.onPress}
             onLongPress={(e) => {
+                if (!props.onSecondaryInteraction) {
+                    return;
+                }
                 e.preventDefault();
-                HapticFeedback.trigger();
+                HapticFeedback.longPress();
                 props.onSecondaryInteraction(e);
             }}
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...(_.omit(props, 'onLongPress'))}
+            {..._.omit(props, 'onLongPress')}
         >
             {props.children}
         </Node>
@@ -38,6 +41,9 @@ PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteracti
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
 export default forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />
+    <PressableWithSecondaryInteraction
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

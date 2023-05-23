@@ -27,25 +27,40 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** URL to the assigned guide's appointment booking calendar */
+        guideCalendarLink: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
-const GetAssistancePage = (props) => {
-    const menuItems = [{
-        title: props.translate('getAssistancePage.chatWithConcierge'),
-        onPress: () => Report.navigateToConciergeChat(),
-        icon: Expensicons.ChatBubble,
-        shouldShowRightIcon: true,
-        wrapperStyle: [styles.cardMenuItem],
+const defaultProps = {
+    account: {
+        guideCalendarLink: null,
     },
-    {
-        title: props.translate('getAssistancePage.exploreHelpDocs'),
-        onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
-        icon: Expensicons.QuestionMark,
-        shouldShowRightIcon: true,
-        iconRight: Expensicons.NewWindow,
-        wrapperStyle: [styles.cardMenuItem],
-    }];
+};
+
+const GetAssistancePage = (props) => {
+    const menuItems = [
+        {
+            title: props.translate('getAssistancePage.chatWithConcierge'),
+            onPress: () => Report.navigateToConciergeChat(),
+            icon: Expensicons.ChatBubble,
+            shouldShowRightIcon: true,
+            wrapperStyle: [styles.cardMenuItem],
+        },
+        {
+            title: props.translate('getAssistancePage.exploreHelpDocs'),
+            onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
+            icon: Expensicons.QuestionMark,
+            shouldShowRightIcon: true,
+            iconRight: Expensicons.NewWindow,
+            wrapperStyle: [styles.cardMenuItem],
+            link: CONST.NEWHELP_URL,
+        },
+    ];
 
     // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -84,6 +99,7 @@ const GetAssistancePage = (props) => {
 };
 
 GetAssistancePage.propTypes = propTypes;
+GetAssistancePage.defaultProps = defaultProps;
 GetAssistancePage.displayName = 'GetAssistancePage';
 
 export default compose(
@@ -91,7 +107,7 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+            selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
         },
     }),
 )(GetAssistancePage);

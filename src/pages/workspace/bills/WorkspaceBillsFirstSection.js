@@ -27,14 +27,22 @@ const propTypes = {
     session: PropTypes.shape({
         /** Email address */
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     /** Information about the logged in user's account */
-    user: userPropTypes.isRequired,
+    user: userPropTypes,
+};
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
+    user: {},
 };
 
 const WorkspaceBillsFirstSection = (props) => {
     const emailDomain = Str.extractEmailDomain(props.session.email);
+    const manageYourBillsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
     return (
         <Section
             title={props.translate('workspace.bills.manageYourBills')}
@@ -42,13 +50,12 @@ const WorkspaceBillsFirstSection = (props) => {
             menuItems={[
                 {
                     title: props.translate('workspace.bills.viewAllBills'),
-                    onPress: () => (
-                        Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`)
-                    ),
+                    onPress: () => Link.openOldDotLink(manageYourBillsUrl),
                     icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
                     wrapperStyle: [styles.cardMenuItem],
+                    link: () => Link.buildOldDotURL(manageYourBillsUrl),
                 },
             ]}
             containerStyles={[styles.cardSection]}
@@ -57,9 +64,7 @@ const WorkspaceBillsFirstSection = (props) => {
                 <Text>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
-                        <TextLink
-                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
-                        >
+                        <TextLink onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}>
                             example.com@expensify.cash
                         </TextLink>
                     ) : (
@@ -76,6 +81,7 @@ const WorkspaceBillsFirstSection = (props) => {
 };
 
 WorkspaceBillsFirstSection.propTypes = propTypes;
+WorkspaceBillsFirstSection.defaultProps = defaultProps;
 WorkspaceBillsFirstSection.displayName = 'WorkspaceBillsFirstSection';
 
 export default compose(

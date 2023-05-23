@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    TouchableOpacity, View,
-} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -38,6 +36,9 @@ const propTypes = {
         isLoading: PropTypes.bool,
     }),
 
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
@@ -47,6 +48,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class PasswordForm extends React.Component {
@@ -121,8 +123,8 @@ class PasswordForm extends React.Component {
     }
 
     /**
-    * Clears local and Onyx sign in states
-    */
+     * Clears local and Onyx sign in states
+     */
     clearSignInData() {
         this.setState({twoFactorAuthCode: '', formError: {}});
         Session.clearSignInData();
@@ -160,15 +162,21 @@ class PasswordForm extends React.Component {
             formError: {},
         });
 
-        Session.signIn(password, '', twoFactorCode);
+        Session.signIn(password, '', twoFactorCode, this.props.preferredLocale);
     }
 
     render() {
+        const isTwoFactorAuthRequired = Boolean(this.props.account.requiresTwoFactorAuth);
+        const hasServerError = Boolean(this.props.account) && !_.isEmpty(this.props.account.errors);
+
+        // When the 2FA required flag is set, user has already passed/completed the password field
+        const passwordFieldHasError = !isTwoFactorAuthRequired && hasServerError;
+        const twoFactorFieldHasError = isTwoFactorAuthRequired && hasServerError;
         return (
             <>
                 <View style={[styles.mv3]}>
                     <TextInput
-                        ref={el => this.inputPassword = el}
+                        ref={(el) => (this.inputPassword = el)}
                         label={this.props.translate('common.password')}
                         secureTextEntry
                         autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
@@ -176,44 +184,42 @@ class PasswordForm extends React.Component {
                         nativeID="password"
                         name="password"
                         value={this.state.password}
-                        onChangeText={text => this.onTextInput(text, 'password')}
+                        onChangeText={(text) => this.onTextInput(text, 'password')}
                         onSubmitEditing={this.validateAndSubmitForm}
                         blurOnSubmit={false}
                         errorText={this.state.formError.password ? this.props.translate(this.state.formError.password) : ''}
+                        hasError={passwordFieldHasError}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
                             onPress={this.resetPassword}
                         >
-                            <Text style={[styles.link]}>
-                                {this.props.translate('passwordForm.forgot')}
-                            </Text>
+                            <Text style={[styles.link]}>{this.props.translate('passwordForm.forgot')}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {this.props.account.requiresTwoFactorAuth && (
+                {isTwoFactorAuthRequired && (
                     <View style={[styles.mv3]}>
                         <TextInput
-                            ref={el => this.input2FA = el}
-                            label={this.props.translate('passwordForm.twoFactorCode')}
+                            ref={(el) => (this.input2FA = el)}
+                            label={this.props.translate('common.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={text => this.onTextInput(text, 'twoFactorAuthCode')}
+                            onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             blurOnSubmit={false}
                             maxLength={CONST.TFA_CODE_LENGTH}
                             errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ''}
+                            hasError={twoFactorFieldHasError}
                         />
                     </View>
                 )}
 
-                {this.props.account && !_.isEmpty(this.props.account.errors) && (
-                    <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />
-                )}
+                {hasServerError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />}
                 <View>
                     <Button
                         isDisabled={this.props.network.isOffline}
@@ -240,6 +246,7 @@ export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
     }),
     withToggleVisibilityView,
     withNetwork(),

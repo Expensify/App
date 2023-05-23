@@ -3,6 +3,13 @@
     border-style: none !important;
     width: 100% !important;
 }
+
+/* The Tips badge on the Onfido Mobile-notification-sent screen is currently positioned absolutely, causing it possibility to float when the screen is scrolled.
+ This css will make the Tips badge positioned relative to nearest wrapper html tag so that it keeps position of the Tips badge when Onfido screen is scrolled */
+.onfido-sdk-ui-Modal-inner div[data-page-id="MobileNotificationSent"] {
+    position: relative;
+}
+
 @media only screen and (max-width: 600px) {
     .onfido-sdk-ui-Modal-inner {
         /* This keeps the bottom of the Onfido window from being cut off on mobile web because the height was being

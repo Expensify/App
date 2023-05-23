@@ -4,6 +4,28 @@ import NetworkConnection from './NetworkConnection';
 import * as Pusher from './Pusher/pusher';
 import CONST from '../CONST';
 
+// Keeps track of all the callbacks that need triggered for each event type
+const multiEventCallbackMapping = {};
+
+/**
+ * @param {String} eventType
+ * @param {Function} callback
+ */
+function subscribeToMultiEvent(eventType, callback) {
+    multiEventCallbackMapping[eventType] = callback;
+}
+
+/**
+ * @param {String} eventType
+ * @param {Mixed} data
+ */
+function triggerMultiEventHandler(eventType, data) {
+    if (!multiEventCallbackMapping[eventType]) {
+        return;
+    }
+    multiEventCallbackMapping[eventType](data);
+}
+
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  *
@@ -39,10 +61,11 @@ function subscribeToPrivateUserChannelEvent(eventName, accountID, onEvent) {
     function onSubscriptionFailed(error) {
         Log.hmmm('Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName});
     }
-    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel)
-        .catch(onSubscriptionFailed);
+    Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
 }
 
 export default {
     subscribeToPrivateUserChannelEvent,
+    subscribeToMultiEvent,
+    triggerMultiEventHandler,
 };

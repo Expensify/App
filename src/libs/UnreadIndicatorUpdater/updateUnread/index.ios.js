@@ -1,4 +1,4 @@
-import {UrbanAirship} from 'urbanairship-react-native';
+import Airship from '@ua/react-native-airship';
 
 /**
  * Set the App Icon badge with the number of
@@ -7,7 +7,7 @@ import {UrbanAirship} from 'urbanairship-react-native';
  * @param {Number} totalCount
  */
 function updateUnread(totalCount) {
-    UrbanAirship.setBadgeNumber(totalCount);
+    Airship.push.iOS.setBadgeNumber(totalCount);
 }
 
 export default updateUnread;

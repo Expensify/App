@@ -12,10 +12,13 @@ const propTypes = {
     session: PropTypes.shape({
         /** Currently logged in user authToken */
         authToken: PropTypes.string,
+    }),
+};
 
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }).isRequired,
+const defaultProps = {
+    session: {
+        authToken: null,
+    },
 };
 
 /*
@@ -36,6 +39,7 @@ const ConciergePage = (props) => {
 };
 
 ConciergePage.propTypes = propTypes;
+ConciergePage.defaultProps = defaultProps;
 ConciergePage.displayName = 'ConciergePage';
 
 export default withOnyx({

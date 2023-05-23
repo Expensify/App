@@ -18,7 +18,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesNoVBAView = props => (
+const WorkspaceInvoicesNoVBAView = (props) => (
     <>
         <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
@@ -31,7 +31,7 @@ const WorkspaceInvoicesNoVBAView = props => (
                 <Text>{props.translate('workspace.invoices.unlockNoVBACopy')}</Text>
             </View>
             <Button
-                text={props.translate('workspace.common.bankAccount')}
+                text={props.translate('workspace.common.connectBankAccount')}
                 onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}

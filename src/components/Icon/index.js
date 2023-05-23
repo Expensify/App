@@ -45,14 +45,12 @@ class Icon extends PureComponent {
     render() {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute,
-            ...this.props.additionalStyles,
-        ];
+        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute, ...this.props.additionalStyles];
 
         if (this.props.inline) {
             return (
                 <View
-                    accessibilityHint={`${this.props.src.name} Icon`}
+                    testID={`${this.props.src.name} Icon`}
                     style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}
                 >
                     <View style={iconStyles}>
@@ -68,7 +66,7 @@ class Icon extends PureComponent {
 
         return (
             <View
-                accessibilityHint={`${this.props.src.name} Icon`}
+                testID={`${this.props.src.name} Icon`}
                 style={this.props.additionalStyles}
             >
                 <this.props.src

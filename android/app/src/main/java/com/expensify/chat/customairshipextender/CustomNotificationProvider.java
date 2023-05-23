@@ -8,23 +8,25 @@ import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.Bitmap.Config;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.WindowManager;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
+
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
@@ -32,12 +34,14 @@ import com.urbanairship.push.PushMessage;
 import com.urbanairship.push.notifications.NotificationArguments;
 import com.urbanairship.reactnative.ReactNotificationProvider;
 import com.urbanairship.util.ImageUtils;
+
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,8 +67,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     // Conversation JSON keys
     private static final String PAYLOAD_KEY = "payload";
-    private static final String TYPE_KEY = "type";
-    private static final String REPORT_COMMENT_TYPE = "reportComment";
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     public final HashMap<Integer, NotificationCache> cache = new HashMap<>();
@@ -92,16 +94,17 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             builder.setPriority(PRIORITY_MAX);
         }
 
+        // Attempt to parse data and apply custom notification styling
         if (message.containsKey(PAYLOAD_KEY)) {
             try {
                 JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
 
-                // Apply message style only for report comments
-                if (REPORT_COMMENT_TYPE.equals(payload.get(TYPE_KEY).getString())) {
+                // Apply message style using onyxData from the notification payload
+                if (payload.get("onyxData").getList().size() > 0) {
                         applyMessageStyle(context, builder, payload, arguments.getNotificationId());
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Failed to parse conversation. SendID=" + message.getSendId(), e);
+                Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
             }
         }
 
@@ -150,7 +153,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     /**
      * Applies the message style to the notification builder. It also takes advantage of the
-     * notification cache to build conversations.
+     * notification cache to build conversations style notifications.
      *
      * @param builder Notification builder that will receive the message style
      * @param payload Notification payload, which contains all the data we need to build the notifications.
@@ -163,57 +166,80 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         NotificationCache notificationCache = findOrCreateNotificationCache(reportID);
-        JsonMap reportAction = payload.get("reportAction").getMap();
-        String name = reportAction.get("person").getList().get(0).getMap().get("text").getString();
-        String avatar = reportAction.get("avatar").getString();
-        String accountID = Integer.toString(reportAction.get("actorAccountID").getInt(-1));
-        String message = reportAction.get("message").getList().get(0).getMap().get("text").getString();
-        long time = Timestamp.valueOf(reportAction.get("created").getString(Instant.now().toString())).getTime();
-        String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
-        String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
 
-        // Retrieve or create the Person object who sent the latest report comment
-        Person person = notificationCache.people.get(accountID);
-        if (person == null) {
-            IconCompat iconCompat = fetchIcon(context, avatar);
-            person = new Person.Builder()
-                .setIcon(iconCompat)
-                .setKey(accountID)
-                .setName(name)
-                .build();
+        try {
+            JsonMap reportMap = payload.get("onyxData").getList().get(1).getMap().get("value").getMap();
+            String reportId = reportMap.keySet().iterator().next();
+            JsonMap messageData = reportMap.get(reportId).getMap();
 
-            notificationCache.people.put(accountID, person);
+            String name = messageData.get("person").getList().get(0).getMap().get("text").getString();
+            String avatar = messageData.get("avatar").getString();
+            String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
+            String message = messageData.get("message").getList().get(0).getMap().get("text").getString();
+
+            String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
+
+            // Retrieve or create the Person object who sent the latest report comment
+            Person person = notificationCache.people.get(accountID);
+            if (person == null) {
+                IconCompat iconCompat = fetchIcon(context, avatar);
+                person = new Person.Builder()
+                    .setIcon(iconCompat)
+                    .setKey(accountID)
+                    .setName(name)
+                    .build();
+
+                notificationCache.people.put(accountID, person);
+            }
+
+            // Store the latest report comment in the local conversation history
+            long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
+            notificationCache.messages.add(new NotificationCache.Message(person, message, createdTimeInMillis));
+
+            // Create the messaging style notification builder for this notification, associating the
+            // notification with the person who sent the report comment.
+            NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
+                    .setGroupConversation(notificationCache.people.size() > 2 || !roomName.isEmpty())
+                    .setConversationTitle(conversationTitle);
+
+            // Add all conversation messages to the notification, including the last one we just received.
+            for (NotificationCache.Message cachedMessage : notificationCache.messages) {
+                messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
+            }
+
+            // Clear the previous notification associated to this conversation so it looks like we are
+            // replacing them with this new one we just built.
+            if (notificationCache.prevNotificationID != -1) {
+                NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationID);
+            }
+
+            // Apply the messaging style to the notification builder
+            builder.setStyle(messagingStyle);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        // Store the latest report comment in the local conversation history
-        notificationCache.messages.add(new NotificationCache.Message(person, message, time));
-
-        // Create the messaging style notification builder for this notification.
-        // Associate the notification with the person who sent the report comment.
-        // If this conversation has 2 participants or more and there's no room name, we should mark
-        // it as a group conversation.
-        // Also set the conversation title.
-        NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
-                .setGroupConversation(notificationCache.people.size() > 2 || !roomName.isEmpty())
-                .setConversationTitle(conversationTitle);
-
-        // Add all conversation messages to the notification, including the last one we just received.
-        for (NotificationCache.Message cachedMessage : notificationCache.messages) {
-            messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
-        }
-
-        // Clear the previous notification associated to this conversation so it looks like we are
-        // replacing them with this new one we just built.
-        if (notificationCache.prevNotificationID != -1) {
-            NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationID);
-        }
-
-        // Apply the messaging style to the notification builder
-        builder.setStyle(messagingStyle);
 
         // Store the new notification ID so we can replace the notification if this conversation
         // receives more messages
         notificationCache.prevNotificationID = notificationID;
+    }
+
+    /**
+     * Safely retrieve the message time in milliseconds
+     */
+    private long getMessageTimeInMillis(String createdTime) {
+        if (!createdTime.isEmpty()) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                return sdf.parse(createdTime).getTime();
+            } catch (Exception e) {
+                Log.e(TAG, "error parsing createdTime: " + createdTime);
+                e.printStackTrace();
+            }
+        }
+        return Calendar.getInstance().getTimeInMillis();
     }
 
     /**

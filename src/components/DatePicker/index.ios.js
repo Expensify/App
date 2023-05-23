@@ -110,14 +110,7 @@ class DatePicker extends React.Component {
                     isVisible={this.state.isPickerVisible}
                     onClose={this.selectDate}
                 >
-                    <View style={[
-                        styles.flexRow,
-                        styles.justifyContentBetween,
-                        styles.borderBottom,
-                        styles.pb1,
-                        styles.ph4,
-                    ]}
-                    >
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.borderBottom, styles.pb1, styles.ph4]}>
                         <Button
                             title={this.props.translate('common.reset')}
                             color={themeColors.textError}
@@ -136,8 +129,8 @@ class DatePicker extends React.Component {
                         themeVariant="dark"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
-                        maximumDate={new Date(CONST.DATE.MAX_DATE)}
-                        minimumDate={new Date(CONST.DATE.MIN_DATE)}
+                        maximumDate={this.props.maxDate}
+                        minimumDate={this.props.minDate}
                     />
                 </Popover>
             </>
@@ -157,7 +150,12 @@ DatePicker.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withKeyboardState,
-)(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        <DatePicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

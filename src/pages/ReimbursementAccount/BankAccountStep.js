@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    View, ScrollView, TouchableWithoutFeedback, Linking,
-} from 'react-native';
+import {View, ScrollView, TouchableWithoutFeedback, Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -44,12 +42,20 @@ const propTypes = {
         /** Is the user account validated? */
         validated: PropTypes.bool,
     }),
+
+    /** If the plaid button has been disabled */
+    isPlaidDisabled: PropTypes.bool,
+
+    /* The workspace name */
+    policyName: PropTypes.string,
 };
 
 const defaultProps = {
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
     user: {},
+    isPlaidDisabled: false,
+    policyName: '',
 };
 
 const BankAccountStep = (props) => {
@@ -87,7 +93,8 @@ const BankAccountStep = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={props.translate('workspace.common.bankAccount')}
+                    title={props.translate('workspace.common.connectBankAccount')}
+                    subtitle={props.policyName}
                     stepCounter={subStep ? {step: 1, total: 5} : undefined}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={props.onBackButtonPress}
@@ -103,11 +110,9 @@ const BankAccountStep = (props) => {
                         <View style={[styles.mv3]}>
                             <Text>{props.translate('bankAccount.toGetStarted')}</Text>
                         </View>
-                        {plaidDesktopMessage && (
+                        {Boolean(plaidDesktopMessage) && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink href={bankAccountRoute}>
-                                    {props.translate(plaidDesktopMessage)}
-                                </TextLink>
+                                <TextLink href={bankAccountRoute}>{props.translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
                         <Button
@@ -121,11 +126,7 @@ const BankAccountStep = (props) => {
                             success
                             large
                         />
-                        {props.error && (
-                            <Text style={[styles.formError, styles.mh5]}>
-                                {props.error}
-                            </Text>
-                        )}
+                        {Boolean(props.error) && <Text style={[styles.formError, styles.mh5]}>{props.error}</Text>}
                         <View style={[styles.mv3]}>
                             <MenuItem
                                 icon={Expensicons.Connect}
@@ -139,16 +140,15 @@ const BankAccountStep = (props) => {
                     </Section>
                     {!props.user.validated && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                            <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
-                                {props.translate('bankAccount.validateAccountError')}
-                            </Text>
+                            <Icon
+                                src={Expensicons.Exclamation}
+                                fill={colors.red}
+                            />
+                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href="https://use.expensify.com/privacy">
-                            {props.translate('common.privacy')}
-                        </TextLink>
+                        <TextLink href="https://use.expensify.com/privacy">{props.translate('common.privacy')}</TextLink>
                         <TouchableWithoutFeedback
                             // eslint-disable-next-line max-len
                             onPress={() => Linking.openURL('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
@@ -161,7 +161,10 @@ const BankAccountStep = (props) => {
                                     {props.translate('bankAccount.yourDataIsSecure')}
                                 </TextLink>
                                 <View style={[styles.ml1]}>
-                                    <Icon src={Expensicons.Lock} fill={colors.blue} />
+                                    <Icon
+                                        src={Expensicons.Lock}
+                                        fill={colors.blue}
+                                    />
                                 </View>
                             </View>
                         </TouchableWithoutFeedback>
@@ -169,7 +172,6 @@ const BankAccountStep = (props) => {
                 </ScrollView>
             </View>
         </ScreenWrapper>
-
     );
 };
 

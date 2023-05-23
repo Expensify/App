@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
@@ -13,7 +14,6 @@ import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
-import Header from '../../../components/Header';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
@@ -29,6 +29,11 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import Header from '../../../components/Header';
+import defaultTheme from '../../../styles/themes/default';
+import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
+import variables from '../../../styles/variables';
+import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -129,34 +134,32 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        // Wait until the personalDetails are actually loaded before displaying the LHN
-        if (_.isEmpty(this.props.personalDetails)) {
-            return null;
-        }
+        const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
+        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+
+        const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate={!shouldFreeze} />;
 
         return (
             <View
                 accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
-                accessibilityLabel="List of chats"
+                accessibilityLabel={this.props.translate('sidebarScreen.listOfChats')}
                 style={[styles.flex1, styles.h100]}
             >
                 <View
-                    style={[
-                        styles.flexRow,
-                        styles.ph5,
-                        styles.pv3,
-                        styles.justifyContentBetween,
-                        styles.alignItemsCenter,
-                    ]}
+                    style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                     nativeID="drag-area"
                 >
                     <Header
-                        title={this.props.translate('sidebarScreen.headerChat')}
-                        accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                        title={
+                            <LogoComponent
+                                fill={defaultTheme.textLight}
+                                width={variables.lhnLogoWidth}
+                                height={variables.lhnLogoHeight}
+                            />
+                        }
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
-                        textStyles={[styles.textHeadline]}
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <TouchableOpacity
@@ -173,9 +176,7 @@ class SidebarLinks extends React.Component {
                         accessibilityRole="button"
                         onPress={this.showSettingsPage}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
-                        >
+                        <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                             <AvatarWithIndicator
                                 source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                                 tooltipText={this.props.translate('common.settings')}
@@ -183,25 +184,27 @@ class SidebarLinks extends React.Component {
                         </OfflineWithFeedback>
                     </TouchableOpacity>
                 </View>
-                <Freeze freeze={this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded}>
-                    <LHNOptionsList
-                        contentContainerStyles={[
-                            styles.sidebarListContainer,
-                            {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
-                        ]}
-                        data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (
-                            option => option.toString() === this.props.reportIDFromRoute
-                        ))}
-                        onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
-                        onLayout={() => {
-                            this.props.onLayout();
-                            App.setSidebarLoaded();
-                            this.isSidebarLoaded = true;
-                        }}
-                    />
+                <Freeze
+                    freeze={shouldFreeze}
+                    placeholder={skeletonPlaceholder}
+                >
+                    {isLoading ? (
+                        skeletonPlaceholder
+                    ) : (
+                        <LHNOptionsList
+                            contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
+                            data={optionListItems}
+                            focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.reportIDFromRoute)}
+                            onSelectRow={this.showReportPage}
+                            shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                            optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                            onLayout={() => {
+                                this.props.onLayout();
+                                App.setSidebarLoaded();
+                                this.isSidebarLoaded = true;
+                            }}
+                        />
+                    )}
                 </Freeze>
             </View>
         );
@@ -221,59 +224,71 @@ const chatReportSelector = (report) => {
     if (ReportUtils.isIOUReport(report)) {
         return null;
     }
-    return report && ({
-        reportID: report.reportID,
-        participants: report.participants,
-        hasDraft: report.hasDraft,
-        isPinned: report.isPinned,
-        errorFields: {
-            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-        },
-        lastReadTime: report.lastReadTime,
-        lastMessageText: report.lastMessageText,
-        lastVisibleActionCreated: report.lastVisibleActionCreated,
-        iouReportID: report.iouReportID,
-        hasOutstandingIOU: report.hasOutstandingIOU,
-        statusNum: report.statusNum,
-        stateNum: report.stateNum,
-        chatType: report.chatType,
-        policyID: report.policyID,
-        reportName: report.reportName,
-    });
+    return (
+        report && {
+            reportID: report.reportID,
+            participants: report.participants,
+            hasDraft: report.hasDraft,
+            isPinned: report.isPinned,
+            errorFields: {
+                addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+            },
+            lastReadTime: report.lastReadTime,
+            lastMentionedTime: report.lastMentionedTime,
+            lastMessageText: report.lastMessageText,
+            lastVisibleActionCreated: report.lastVisibleActionCreated,
+            iouReportID: report.iouReportID,
+            hasOutstandingIOU: report.hasOutstandingIOU,
+            statusNum: report.statusNum,
+            stateNum: report.stateNum,
+            chatType: report.chatType,
+            policyID: report.policyID,
+            reportName: report.reportName,
+        }
+    );
 };
 
 /**
  * @param {Object} [personalDetails]
  * @returns {Object|undefined}
  */
-const personalDetailsSelector = personalDetails => _.reduce(personalDetails, (finalPersonalDetails, personalData, login) => {
-    // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-    // eslint-disable-next-line no-param-reassign
-    finalPersonalDetails[login] = {
-        login: personalData.login,
-        displayName: personalData.displayName,
-        firstName: personalData.firstName,
-        avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
-    };
-    return finalPersonalDetails;
-}, {});
+const personalDetailsSelector = (personalDetails) =>
+    _.reduce(
+        personalDetails,
+        (finalPersonalDetails, personalData, login) => {
+            // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
+            // eslint-disable-next-line no-param-reassign
+            finalPersonalDetails[login] = {
+                login: personalData.login,
+                displayName: personalData.displayName,
+                firstName: personalData.firstName,
+                avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
+            };
+            return finalPersonalDetails;
+        },
+        {},
+    );
 
 /**
  * @param {Object} [reportActions]
  * @returns {Object|undefined}
  */
-const reportActionsSelector = reportActions => reportActions && _.map(reportActions, reportAction => ({
-    errors: reportAction.errors,
-}));
+const reportActionsSelector = (reportActions) =>
+    reportActions &&
+    _.map(reportActions, (reportAction) => ({
+        errors: reportAction.errors,
+    }));
 
 /**
  * @param {Object} [policy]
  * @returns {Object|undefined}
  */
-const policySelector = policy => policy && ({
-    type: policy.type,
-    name: policy.name,
-});
+const policySelector = (policy) =>
+    policy && {
+        type: policy.type,
+        name: policy.name,
+        avatar: policy.avatar,
+    };
 
 export default compose(
     withLocalize,

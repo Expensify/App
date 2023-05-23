@@ -62,7 +62,7 @@ class AddPersonalBankAccountPage extends React.Component {
         };
     }
 
-    componentDidMount() {
+    componentWillUnmount() {
         BankAccounts.clearPersonalBankAccount();
     }
 
@@ -85,7 +85,10 @@ class AddPersonalBankAccountPage extends React.Component {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={shouldShowSuccess}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={shouldShowSuccess}
+                shouldEnablePickerAvoiding={false}
+            >
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -99,7 +102,6 @@ class AddPersonalBankAccountPage extends React.Component {
                         shouldShowButton
                         buttonText={this.props.translate('common.continue')}
                         onButtonPress={() => {
-                            BankAccounts.clearPersonalBankAccount();
                             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
                         }}
                     />

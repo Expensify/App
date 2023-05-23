@@ -4,9 +4,9 @@ import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
-import ConciergePage from '../../../pages/ConciergePage';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
+import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
 
 const RootStack = createStackNavigator();
 
@@ -28,14 +28,14 @@ const PublicScreens = () => (
             component={ValidateLoginPage}
         />
         <RootStack.Screen
+            name="UnlinkLogin"
+            options={defaultScreenOptions}
+            component={UnlinkLoginPage}
+        />
+        <RootStack.Screen
             name="SetPassword"
             options={defaultScreenOptions}
             component={SetPasswordPage}
-        />
-        <RootStack.Screen
-            name="Concierge"
-            options={defaultScreenOptions}
-            component={ConciergePage}
         />
     </RootStack.Navigator>
 );

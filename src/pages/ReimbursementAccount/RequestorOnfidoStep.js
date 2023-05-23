@@ -21,10 +21,12 @@ const propTypes = {
     ...StepPropTypes,
 
     /** The token required to initialize the Onfido SDK */
-    onfidoToken: PropTypes.string.isRequired,
+    onfidoToken: PropTypes.string,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    onfidoToken: null,
+};
 
 class RequestorOnfidoStep extends React.Component {
     constructor(props) {
@@ -33,10 +35,7 @@ class RequestorOnfidoStep extends React.Component {
     }
 
     submit(onfidoData) {
-        BankAccounts.verifyIdentityForBankAccount(
-            lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
-            onfidoData,
-        );
+        BankAccounts.verifyIdentityForBankAccount(lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0, onfidoData);
 
         BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
     }

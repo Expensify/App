@@ -23,10 +23,8 @@ import networkPropTypes from '../../components/networkPropTypes';
 const propTypes = {
     /** The route object passed to this page from the navigator */
     route: PropTypes.shape({
-
         /** Each parameter passed via the URL */
         params: PropTypes.shape({
-
             /** The statement year and month as one string, i.e. 202110 */
             yearMonth: PropTypes.string.isRequired,
         }).isRequired,
@@ -40,6 +38,9 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -47,6 +48,7 @@ const defaultProps = {
     walletStatement: {
         isGenerating: false,
     },
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 class WalletStatementPage extends React.Component {
@@ -83,7 +85,7 @@ class WalletStatementPage extends React.Component {
     }
 
     render() {
-        moment.locale(lodashGet(this.props, 'preferredLocale', 'en'));
+        moment.locale(this.props.preferredLocale);
         const year = this.yearMonth.substring(0, 4) || moment().year();
         const month = this.yearMonth.substring(4) || moment().month();
         const monthName = moment(month, 'M').format('MMMM');
@@ -99,9 +101,7 @@ class WalletStatementPage extends React.Component {
                     onDownloadButtonPress={() => this.processDownload(this.yearMonth)}
                 />
                 <FullPageOfflineBlockingView>
-                    <WalletStatementModal
-                        statementPageURL={url}
-                    />
+                    <WalletStatementModal statementPageURL={url} />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         );

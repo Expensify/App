@@ -1,20 +1,10 @@
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HttpsError from './Errors/HttpsError';
-import shouldUseStagingServer from './shouldUseStagingServer';
-import getPlatform from './getPlatform';
-
-// Desktop and web use staging config too so we we should default to staging API endpoint if on those platforms
-const shouldDefaultToStaging = _.contains([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP], getPlatform());
-let stagingServerToggleState = false;
-Onyx.connect({
-    key: ONYXKEYS.USER,
-    callback: val => stagingServerToggleState = lodashGet(val, 'shouldUseStagingServer', shouldDefaultToStaging),
-});
+import * as ApiUtils from './ApiUtils';
+import alert from '../components/Alert';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -32,6 +22,9 @@ Onyx.connect({
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
 let cancellationController = new AbortController();
 
+// To terminate pending ReconnectApp requests https://github.com/Expensify/App/issues/15627
+let reconnectAppCancellationController = new AbortController();
+
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -40,12 +33,18 @@ let cancellationController = new AbortController();
  * @param {String} [method]
  * @param {Object} [body]
  * @param {Boolean} [canCancel]
+ * @param {String} [command]
  * @returns {Promise}
  */
-function processHTTPRequest(url, method = 'get', body = null, canCancel = true) {
+function processHTTPRequest(url, method = 'get', body = null, canCancel = true, command = '') {
+    let signal;
+    if (canCancel) {
+        signal = command === CONST.NETWORK.COMMAND.RECONNECT_APP ? reconnectAppCancellationController.signal : cancellationController.signal;
+    }
+
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
-        signal: canCancel ? cancellationController.signal : undefined,
+        signal,
         method,
         body,
     })
@@ -88,6 +87,15 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
             return response.json();
         })
         .then((response) => {
+            // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
+            if (response.jsonCode === CONST.JSON_CODE.BAD_REQUEST && response.message === CONST.ERROR_TITLE.DUPLICATE_RECORD) {
+                throw new HttpsError({
+                    message: CONST.ERROR.DUPLICATE_RECORD,
+                    status: CONST.JSON_CODE.BAD_REQUEST,
+                    title: CONST.ERROR_TITLE.DUPLICATE_RECORD,
+                });
+            }
+
             // Auth is down or timed out while making a request
             if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR && response.title === CONST.ERROR_TITLE.SOCKET && response.type === CONST.ERROR_TYPE.SOCKET) {
                 throw new HttpsError({
@@ -95,6 +103,14 @@ function processHTTPRequest(url, method = 'get', body = null, canCancel = true) 
                     status: CONST.JSON_CODE.EXP_ERROR,
                     title: CONST.ERROR_TITLE.SOCKET,
                 });
+            }
+            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR) {
+                const {phpCommandName, authWriteCommands} = response.data;
+                // eslint-disable-next-line max-len
+                const message = `The API call (${phpCommandName}) did more Auth write requests than allowed. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
+                    ', ',
+                )}. Check the APIWriteCommands class in Web-Expensify`;
+                alert('Too many auth writes', message);
             }
             return response;
         });
@@ -119,13 +135,13 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         formData.append(key, val);
     });
 
-    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.URL_API_ROOT;
+    const url = ApiUtils.getCommandURL({shouldUseSecure, command});
+    return processHTTPRequest(url, type, formData, data.canCancel, command);
+}
 
-    if (shouldUseStagingServer(stagingServerToggleState)) {
-        apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.STAGING_EXPENSIFY_URL;
-    }
-
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, data.canCancel);
+function cancelPendingReconnectAppRequest() {
+    reconnectAppCancellationController.abort();
+    reconnectAppCancellationController = new AbortController();
 }
 
 function cancelPendingRequests() {
@@ -134,9 +150,11 @@ function cancelPendingRequests() {
     // We create a new instance because once `abort()` is called any future requests using the same controller would
     // automatically get rejected: https://dom.spec.whatwg.org/#abortcontroller-api-integration
     cancellationController = new AbortController();
+    cancelPendingReconnectAppRequest();
 }
 
 export default {
     xhr,
     cancelPendingRequests,
+    cancelPendingReconnectAppRequest,
 };

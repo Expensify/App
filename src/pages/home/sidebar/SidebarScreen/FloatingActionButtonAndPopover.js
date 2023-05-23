@@ -21,15 +21,17 @@ import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
 import withDrawerState from '../../../../components/withDrawerState';
+import * as TaskUtils from '../../../../libs/actions/Task';
 
 /**
  * @param {Object} [policy]
  * @returns {Object|undefined}
  */
-const policySelector = policy => policy && ({
-    type: policy.type,
-    role: policy.role,
-});
+const policySelector = (policy) =>
+    policy && {
+        type: policy.type,
+        role: policy.role,
+    };
 
 const propTypes = {
     /* Callback function when the menu is shown */
@@ -47,6 +49,9 @@ const propTypes = {
     /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Indicated whether the report data is loading */
+    isLoading: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 const defaultProps = {
@@ -54,6 +59,7 @@ const defaultProps = {
     onShowCreateMenu: () => {},
     allPolicies: {},
     betas: [],
+    isLoading: false,
 };
 
 /**
@@ -158,14 +164,14 @@ class FloatingActionButtonAndPopover extends React.Component {
 
     render() {
         // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
+        const workspaces = _.filter(this.props.allPolicies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE);
 
         return (
             <View>
                 <PopoverMenu
                     onClose={this.hideCreateMenu}
                     isVisible={this.state.isCreateMenuActive}
-                    anchorPosition={styles.createMenuPositionSidebar}
+                    anchorPosition={styles.createMenuPositionSidebar(this.props.windowHeight)}
                     onItemSelected={this.hideCreateMenu}
                     fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                     menuItems={[
@@ -179,44 +185,63 @@ class FloatingActionButtonAndPopover extends React.Component {
                             text: this.props.translate('sidebarScreen.newGroup'),
                             onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                         },
-                        ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length ? [
-                            {
-                                icon: Expensicons.Hashtag,
-                                text: this.props.translate('sidebarScreen.newRoom'),
-                                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseIOUSend(this.props.betas) ? [
-                            {
-                                icon: Expensicons.Send,
-                                text: this.props.translate('iou.sendMoney'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseIOU(this.props.betas) ? [
-                            {
-                                icon: Expensicons.MoneyCircle,
-                                text: this.props.translate('iou.requestMoney'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseIOU(this.props.betas) ? [
-                            {
-                                icon: Expensicons.Receipt,
-                                text: this.props.translate('iou.splitBill'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
-                            },
-                        ] : []),
-                        ...(!Policy.hasActiveFreePolicy(this.props.allPolicies) ? [
-                            {
-                                icon: Expensicons.NewWorkspace,
-                                iconWidth: 46,
-                                iconHeight: 40,
-                                text: this.props.translate('workspace.new.newWorkspace'),
-                                description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                onSelected: () => Policy.createWorkspace(),
-                            },
-                        ] : []),
+                        ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length
+                            ? [
+                                  {
+                                      icon: Expensicons.Hashtag,
+                                      text: this.props.translate('sidebarScreen.newRoom'),
+                                      onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseIOUSend(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.Send,
+                                      text: this.props.translate('iou.sendMoney'),
+                                      onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseIOU(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.MoneyCircle,
+                                      text: this.props.translate('iou.requestMoney'),
+                                      onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseIOU(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.Receipt,
+                                      text: this.props.translate('iou.splitBill'),
+                                      onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseTasks(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.Task,
+                                      text: this.props.translate('newTaskPage.assignTask'),
+                                      onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(),
+                                  },
+                              ]
+                            : []),
+                        ...(!this.props.isLoading && !Policy.hasActiveFreePolicy(this.props.allPolicies)
+                            ? [
+                                  {
+                                      icon: Expensicons.NewWorkspace,
+                                      iconWidth: 46,
+                                      iconHeight: 40,
+                                      text: this.props.translate('workspace.new.newWorkspace'),
+                                      description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                      onSelected: () => Policy.createWorkspace(),
+                                  },
+                              ]
+                            : []),
                     ]}
                 />
                 <FloatingActionButton
@@ -246,6 +271,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoading: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(FloatingActionButtonAndPopover);

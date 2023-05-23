@@ -19,6 +19,9 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
+    /** Icon to display in right side of text input */
+    icon: PropTypes.func,
+
     /** Customize the TextInput container */
     textInputContainerStyles: PropTypes.arrayOf(PropTypes.object),
 
@@ -37,14 +40,17 @@ const propTypes = {
     /** Disable the virtual keyboard  */
     disableKeyboard: PropTypes.bool,
 
-    /** Autogrow input container size based on the entered text  */
+    /** Autogrow input container length based on the entered text  */
     autoGrow: PropTypes.bool,
+
+    /** Autogrow input container height based on the entered text  */
+    autoGrowHeight: PropTypes.bool,
 
     /** Hide the focus styles on TextInput */
     hideFocusedState: PropTypes.bool,
 
     /** Forward the inner ref */
-    innerRef: PropTypes.func,
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** Maximum characters allowed */
     maxLength: PropTypes.number,
@@ -73,6 +79,12 @@ const propTypes = {
 
     /** Indicate whether pressing Enter on multiline input is allowed to submit the form. */
     submitOnEnter: PropTypes.bool,
+
+    /** Indicate whether input is multiline */
+    multiline: PropTypes.bool,
+
+    /** Set the default value to the input if there is a valid saved value */
+    shouldUseDefaultValue: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -96,6 +108,7 @@ const defaultProps = {
     forceActiveLabel: false,
     disableKeyboard: false,
     autoGrow: false,
+    autoGrowHeight: false,
     hideFocusedState: false,
     innerRef: () => {},
     shouldSaveDraft: false,
@@ -105,6 +118,9 @@ const defaultProps = {
     onInputChange: () => {},
     shouldDelayFocus: false,
     submitOnEnter: false,
+    icon: null,
+    shouldUseDefaultValue: false,
+    multiline: false,
 };
 
 export {propTypes, defaultProps};

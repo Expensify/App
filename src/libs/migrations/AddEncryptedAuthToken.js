@@ -29,11 +29,10 @@ export default function () {
 
                 // If there is an auth token but no encrypted auth token, reauthenticate.
                 if (session.authToken && _.isUndefined(session.encryptedAuthToken)) {
-                    return Authentication.reauthenticate('Onyx_Migration_AddEncryptedAuthToken')
-                        .then(() => {
-                            Log.info('[Migrate Onyx] Ran migration AddEncryptedAuthToken');
-                            return resolve();
-                        });
+                    return Authentication.reauthenticate('Onyx_Migration_AddEncryptedAuthToken').then(() => {
+                        Log.info('[Migrate Onyx] Ran migration AddEncryptedAuthToken');
+                        return resolve();
+                    });
                 }
 
                 return resolve();

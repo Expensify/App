@@ -8,10 +8,8 @@ import AddReactionBubble from '../AddReactionBubble';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
-import getPreferredEmojiCode from '../getPreferredEmojiCode';
 import Tooltip from '../../Tooltip';
-
-const EMOJI_BUBBLE_SCALE = 1.5;
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const baseQuickEmojiReactionsPropTypes = {
     /**
@@ -32,21 +30,33 @@ const baseQuickEmojiReactionsPropTypes = {
     onPressOpenPicker: PropTypes.func,
 };
 
-const propTypes = {
-    ...baseQuickEmojiReactionsPropTypes,
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+const baseQuickEmojiReactionsDefaultProps = {
+    onWillShowPicker: () => {},
+    onPressOpenPicker: () => {},
 };
 
-const BaseQuickEmojiReactions = props => (
-    <View style={styles.quickReactionsContainer}>
-        {_.map(CONST.QUICK_REACTIONS, emoji => (
+const propTypes = {
+    ...baseQuickEmojiReactionsPropTypes,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+};
 
+const defaultProps = {
+    ...baseQuickEmojiReactionsDefaultProps,
+    preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+};
+
+const BaseQuickEmojiReactions = (props) => (
+    <View style={styles.quickReactionsContainer}>
+        {_.map(CONST.QUICK_REACTIONS, (emoji) => (
             // Note: focus is handled by the Pressable component in EmojiReactionBubble
-            <Tooltip text={`:${emoji.name}:`} key={emoji.name} focusable={false}>
+            <Tooltip
+                text={`:${emoji.name}:`}
+                key={emoji.name}
+                focusable={false}
+            >
                 <EmojiReactionBubble
-                    emojiName={emoji.name}
-                    emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
-                    sizeScale={EMOJI_BUBBLE_SCALE}
+                    emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
+                    isContextMenu
                     onPress={() => {
                         props.onEmojiSelected(emoji);
                     }}
@@ -54,8 +64,7 @@ const BaseQuickEmojiReactions = props => (
             </Tooltip>
         ))}
         <AddReactionBubble
-            iconSizeScale={1.2}
-            sizeScale={EMOJI_BUBBLE_SCALE}
+            isContextMenu
             onPressOpenPicker={props.onPressOpenPicker}
             onWillShowPicker={props.onWillShowPicker}
             onSelectEmoji={props.onEmojiSelected}
@@ -65,12 +74,11 @@ const BaseQuickEmojiReactions = props => (
 
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;
+BaseQuickEmojiReactions.defaultProps = defaultProps;
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     },
 })(BaseQuickEmojiReactions);
 
-export {
-    baseQuickEmojiReactionsPropTypes,
-};
+export {baseQuickEmojiReactionsPropTypes};

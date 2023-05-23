@@ -19,6 +19,7 @@ import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_bac
 import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
+import withLocalize from '../../../components/withLocalize';
 
 const propTypes = {
     /** The id of the report */
@@ -30,22 +31,19 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
-
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     report: {},
     personalDetails: {},
-    policies: {},
 };
 
 const ReportActionItemCreated = (props) => {
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    if (!ReportUtils.isChatReport(props.report)) {
+        return null;
+    }
+
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
 
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
@@ -81,16 +79,14 @@ const ReportActionItemCreated = (props) => {
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth), animatedStyles]}
                 />
                 <View
-                    accessibilityLabel="Chat welcome message"
+                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
                     <Pressable
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                         style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
                     >
-                        <RoomHeaderAvatars
-                            icons={icons}
-                        />
+                        <RoomHeaderAvatars icons={icons} />
                     </Pressable>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText report={props.report} />
@@ -107,15 +103,13 @@ ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
 export default compose(
     withWindowDimensions,
+    withLocalize,
     withOnyx({
         report: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportActionItemCreated);

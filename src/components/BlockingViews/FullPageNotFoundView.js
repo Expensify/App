@@ -1,12 +1,12 @@
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import BlockingView from './BlockingView';
-import * as Expensicons from '../Icon/Expensicons';
+import * as Illustrations from '../Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import HeaderWithCloseButton from '../HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
+import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -31,14 +31,17 @@ const propTypes = {
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
-    /** Whether we should show a go back home link */
-    shouldShowBackHomeLink: PropTypes.bool,
+    /** Whether we should show a link to navigate elsewhere */
+    shouldShowLink: PropTypes.bool,
 
     /** The key in the translations file to use for the go back link */
     linkKey: PropTypes.string,
 
     /** Method to trigger when pressing the back button of the header */
     onBackButtonPress: PropTypes.func,
+
+    /** Function to call when pressing the navigation link */
+    onLinkPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -48,9 +51,10 @@ const defaultProps = {
     subtitleKey: 'notFound.pageNotFound',
     linkKey: 'notFound.goBackHome',
     shouldShowBackButton: true,
-    shouldShowBackHomeLink: false,
+    shouldShowLink: false,
     shouldShowCloseButton: true,
     onBackButtonPress: () => Navigation.dismissModal(),
+    onLinkPress: () => Navigation.dismissModal(true),
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -66,15 +70,17 @@ const FullPageNotFoundView = (props) => {
                 />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
-                        icon={Expensicons.QuestionMark}
+                        icon={Illustrations.ToddBehindCloud}
+                        iconWidth={variables.modalTopIconWidth}
+                        iconHeight={variables.modalTopIconHeight}
                         title={props.translate(props.titleKey)}
                         subtitle={props.translate(props.subtitleKey)}
                         link={props.translate(props.linkKey)}
-                        shouldShowBackHomeLink={props.shouldShowBackHomeLink}
+                        shouldShowLink={props.shouldShowLink}
+                        onLinkPress={props.onLinkPress}
                     />
                 </View>
             </>
-
         );
     }
 
