@@ -435,14 +435,12 @@ function getPolicyName(report) {
 /**
  * Checks if the current user is allowed to comment on the given report.
  * @param {Object} report
- * @param {String} report.writeCapability
- * @param {Object} policy
- * @param {String} policy.role
+ * @param {String} [report.writeCapability]
  * @returns {Boolean}
  */
-function isAllowedToComment(report, policy) {
+function isAllowedToComment(report) {
     // Default to allowing all users to post
-    const capability = lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    const capability = lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL) || CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
     if (capability === CONST.REPORT.WRITE_CAPABILITIES.ALL) {
         return true;
@@ -450,6 +448,7 @@ function isAllowedToComment(report, policy) {
 
     // If we've made it here, commenting on this report is restricted.
     // If the user is an admin, allow them to post.
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     return lodashGet(policy, 'role', '') === CONST.POLICY.ROLE.ADMIN;
 }
 

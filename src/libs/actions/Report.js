@@ -1119,32 +1119,32 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
 }
 
 /**
- * @param {String} reportID
- * @param {String} previousValue
+ * @param {Object} report
  * @param {String} newValue
  */
-function updateWriteCapabilityAndNavigate(reportID, previousValue, newValue) {
-    if (previousValue === newValue) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+function updateWriteCapabilityAndNavigate(report, newValue) {
+    if (report.writeCapability === newValue) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
         return;
     }
 
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {writeCapability: newValue},
         },
     ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {writeCapability: previousValue},
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {writeCapability: report.writeCapability},
         },
     ];
-    API.write('UpdateReportWriteCapability', {reportID, writeCapability: newValue}, {optimisticData, failureData});
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+    API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
+    // Return to the report settings page since this field utilizes push-to-page
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
 }
 
 /**

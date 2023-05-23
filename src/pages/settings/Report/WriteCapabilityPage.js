@@ -46,7 +46,7 @@ const WriteCapabilityPage = (props) => {
             />
             <OptionsList
                 sections={[{data: writeCapabilityOptions}]}
-                onSelectRow={(option) => Report.updateWriteCapabilityAndNavigate(props.report.reportID, props.report.writeCapability, option.value)}
+                onSelectRow={(option) => Report.updateWriteCapabilityAndNavigate(props.report, option.value)}
                 hideSectionHeaders
                 optionHoveredStyle={{
                     ...styles.hoveredComponentBG,
