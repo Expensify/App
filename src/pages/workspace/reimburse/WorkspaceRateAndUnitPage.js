@@ -63,11 +63,11 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     saveUnitAndRate(unit, rate) {
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), u => u.name === 'Distance');
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (u) => u.name === 'Distance');
         if (!distanceCustomUnit) {
             return;
         }
-        const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), r => r.name === 'Default Rate');
+        const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (r) => r.name === 'Default Rate');
         const unitID = lodashGet(distanceCustomUnit, 'customUnitID', '');
         const unitName = lodashGet(distanceCustomUnit, 'name', '');
         const rateNumValue = this.getNumericValue(rate);
@@ -103,8 +103,8 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     render() {
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
-        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance');
+        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
         return (
             <WorkspacePageWithSections
                 shouldUseScrollView
@@ -124,20 +124,16 @@ class WorkspaceRateAndUnitPage extends React.Component {
                         onSubmit={this.submit}
                         enabledWhenOffline
                     >
-                    <OfflineWithFeedback
-                        errors={{
-                            ...lodashGet(distanceCustomUnit, 'errors', {}),
-                            ...lodashGet(distanceCustomRate.errors, 'errors', {}),
-                        }}
-                        pendingAction={
-                            distanceCustomUnit.pendingAction || distanceCustomRate.pendingAction
-                        }
-                        onClose={() => Policy.clearCustomUnitErrors(
-                            this.props.policy.id,
-                            lodashGet(distanceCustomUnit, 'customUnitID', ''),
-                            lodashGet(distanceCustomRate, 'customUnitRateID', ''),
-                        )}
-                    >
+                        <OfflineWithFeedback
+                            errors={{
+                                ...lodashGet(distanceCustomUnit, 'errors', {}),
+                                ...lodashGet(distanceCustomRate.errors, 'errors', {}),
+                            }}
+                            pendingAction={distanceCustomUnit.pendingAction || distanceCustomRate.pendingAction}
+                            onClose={() =>
+                                Policy.clearCustomUnitErrors(this.props.policy.id, lodashGet(distanceCustomUnit, 'customUnitID', ''), lodashGet(distanceCustomRate, 'customUnitRateID', ''))
+                            }
+                        >
                             <TextInput
                                 inputID="rate"
                                 containerStyles={[styles.mt4]}
@@ -168,8 +164,4 @@ class WorkspaceRateAndUnitPage extends React.Component {
 WorkspaceRateAndUnitPage.propTypes = propTypes;
 WorkspaceRateAndUnitPage.defaultProps = defaultProps;
 
-export default compose(
-    withPolicy,
-    withLocalize,
-    withNetwork(),
-)(WorkspaceRateAndUnitPage);
+export default compose(withPolicy, withLocalize, withNetwork())(WorkspaceRateAndUnitPage);

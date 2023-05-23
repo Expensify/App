@@ -692,12 +692,16 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         },
     ];
 
-    API.write('UpdateWorkspaceCustomUnitAndRate', {
-        policyID,
-        lastModified,
-        customUnit: JSON.stringify(newCustomUnit),
-        customUnitRate: JSON.stringify(newCustomUnit.rates),
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'UpdateWorkspaceCustomUnitAndRate',
+        {
+            policyID,
+            lastModified,
+            customUnit: JSON.stringify(newCustomUnit),
+            customUnitRate: JSON.stringify(newCustomUnit.rates),
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**

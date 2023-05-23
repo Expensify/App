@@ -89,8 +89,8 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     getCurrentRatePerUnitLabel() {
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), unit => unit.name === 'Distance');
-        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), rate => rate.name === 'Default Rate');
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance');
+        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
         const currentUnit = this.getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'));
         const currentRate = this.getRateLabel(customUnitRate);
         const perWord = this.props.translate('common.per');
