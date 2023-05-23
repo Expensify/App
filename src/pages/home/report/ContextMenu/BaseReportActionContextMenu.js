@@ -75,7 +75,7 @@ class BaseReportActionContextMenu extends React.Component {
                             reportID: this.props.reportID,
                             draftMessage: this.props.draftMessage,
                             selection: this.props.selection,
-                            transitionactionsheetstate: this.context.transitionActionSheetState,
+                            transitionActionSheetState: this.context.transitionActionSheetState,
                             close: () => this.setState({shouldKeepOpen: false}),
                             openContextMenu: () => this.setState({shouldKeepOpen: true}),
                         };

@@ -131,7 +131,7 @@ function ReportActionItem(props) {
     }, [actionSheetAwareScrollViewContext, props.action.reportActionID]);
 
     const handlePressOpenPicker = useCallback((openPicker) => {
-        popoverAnchorRef.measureInWindow((_fx, fy, _width, height) => {
+        popoverAnchorRef.current.measureInWindow((_fx, fy, _width, height) => {
             actionSheetAwareScrollViewContext.transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.OPEN_EMOJI_PICKER_POPOVER,
                 payload: {
@@ -149,7 +149,7 @@ function ReportActionItem(props) {
     }, [actionSheetAwareScrollViewContext])
 
     const handleShowContextMenu = useCallback((callback) => {
-        popoverAnchorRef.measureInWindow((_fx, fy, _width, height) => {
+        popoverAnchorRef.current.measureInWindow((_fx, fy, _width, height) => {
             actionSheetAwareScrollViewContext.transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.POPOVER_OPEN,
                 payload: {
