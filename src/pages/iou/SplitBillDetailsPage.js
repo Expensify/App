@@ -49,7 +49,7 @@ const propTypes = {
 
 const defaultProps = {
     personalDetails: {},
-    action: {},
+    reportActions: {},
 };
 
 /**
@@ -108,7 +108,7 @@ const SplitBillDetailsPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {(
+            (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
                     <HeaderWithCloseButton
                         title={props.translate('common.details')}
@@ -131,7 +131,7 @@ const SplitBillDetailsPage = (props) => {
                         )}
                     </View>
                 </FullPageNotFoundView>
-            )}
+            )
         </ScreenWrapper>
     );
 };
