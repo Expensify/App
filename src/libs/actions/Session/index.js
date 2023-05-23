@@ -166,45 +166,6 @@ function resendValidateCode(login = credentials.login) {
 }
 
 /**
- * Request a new validate / magic code for user to sign in automatically with the link
- *
- * @param {String} [login]
- */
-function resendLinkWithValidateCode(login = credentials.login) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                message: null,
-            },
-        },
-    ];
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: Localize.translateLocal('validateCodeModal.successfulNewCodeRequest'),
-            },
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: null,
-            },
-        },
-    ];
-    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
-}
-
-/**
  * Checks the API to see if an account exists for the given login
  *
  * @param {String} login
@@ -717,7 +678,7 @@ function requestUnlinkValidationLink() {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: Localize.translateLocal('unlinkLoginForm.linkSent'),
+                message: 'unlinkLoginForm.linkSent',
             },
         },
     ];
@@ -872,7 +833,6 @@ export {
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resendValidateCode,
-    resendLinkWithValidateCode,
     resetPassword,
     resendResetPassword,
     requestUnlinkValidationLink,
