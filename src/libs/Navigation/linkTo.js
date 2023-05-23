@@ -1,4 +1,5 @@
 import {getStateFromPath, getActionFromState} from '@react-navigation/core';
+import {Platform} from 'react-native';
 import _ from 'lodash';
 import NAVIGATORS from '../../NAVIGATORS';
 import linkingConfig from './linkingConfig';
@@ -50,7 +51,8 @@ export default function linkTo(navigation, path, type) {
         root.reset(state);
     }
 
-    if (navigation.getState().index + 1 > 15) {
-        setTimeout(() => window.location.reload(false), 0) 
+    // Platform.OS === 'web' temporarily for testing purposes
+    if (navigation.getState().index + 1 > 15 && Platform.OS === 'web') {
+        setTimeout(() => window.location.reload(false), 0);
     }
 }
