@@ -14,6 +14,10 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
 
 const propTypes = {
+    ...withLocalizePropTypes,
+
+    ...withDelayToggleButtonStatePropTypes,
+
     /** The text to display */
     text: PropTypes.string,
 
@@ -49,10 +53,6 @@ const propTypes = {
 
     /** If the component should be inline with text or not */
     inline: PropTypes.bool,
-
-    ...withLocalizePropTypes,
-
-    ...withDelayToggleButtonStatePropTypes,
 };
 
 const defaultProps = {
@@ -84,7 +84,7 @@ function PressableWithDelayToggle(props) {
 
     return (
         <PressableView
-            style={[...props.styles, styles.flexRow]}
+            style={[styles.flexRow, ...props.styles]}
             onPress={updatePressState}
         >
             <Tooltip
@@ -93,7 +93,7 @@ function PressableWithDelayToggle(props) {
             >
                 <Text
                     suppressHighlighting
-                    style={[...props.textStyles, styles.mr1]}
+                    style={[styles.mr1, ...props.textStyles]}
                 >
                     {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
                 </Text>
