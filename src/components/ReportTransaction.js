@@ -45,7 +45,7 @@ class ReportTransaction extends Component {
     }
 
     deleteMoneyRequest() {
-        IOU.deleteMoneyRequest(this.props.chatReportID, this.props.iouReportID, this.props.action, this.props.shouldCloseOnDelete);
+        IOU.deleteMoneyRequest(this.props.iouReportID, this.props.action, this.props.shouldCloseOnDelete);
     }
 
     render() {

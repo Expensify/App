@@ -686,12 +686,11 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 }
 
 /**
- * @param {String} chatReportID
  * @param {String} iouReportID
  * @param {Object} moneyRequestAction - the money request reportAction we are deleting
  * @param {Boolean} shouldCloseOnDelete
  */
-function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shouldCloseOnDelete) {
+function deleteMoneyRequest(iouReportID, moneyRequestAction, shouldCloseOnDelete) {
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
     const amount = moneyRequestAction.originalMessage.amount;
@@ -784,7 +783,6 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         'DeleteMoneyRequest',
         {
             transactionID,
-            chatReportID,
             reportActionID: optimisticIOUAction.reportActionID,
             iouReportID: updatedIOUReport.reportID,
         },
