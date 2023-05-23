@@ -67,14 +67,15 @@ function getReportID(route) {
 /**
  * Returns all the participants in the active report
  *
- * @param {Object} report The active report object
+ * @param {Object} reportAction The IOU split reportAction, which contains the participants
  * @param {Object} personalDetails The personal details of the users
  * @return {Array}
  */
-const getAllParticipants = (report, personalDetails) => {
-    const {participants} = report;
+const getAllParticipants = (reportAction, personalDetails) => {
+    const participants = lodashGet(reportAction, 'originalMessage.participants', []);
+    const participantsExcludingOwner = _.filter(participants, (participant) => participant !== reportAction.actorEmail);
 
-    return _.chain(participants)
+    return _.chain(participantsExcludingOwner)
         .map((login) => {
             const userLogin = Str.removeSMSDomain(login);
             const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
@@ -102,7 +103,7 @@ const getAllParticipants = (report, personalDetails) => {
 
 const SplitDetailsPage = (props) => {
     const reportAction = props.reportActions[`${props.route.params.splitActionID.toString()}`];
-    const participants = getAllParticipants(props.report, props.personalDetails);
+    const participants = getAllParticipants(reportAction, props.personalDetails);
     const splitAmount = lodashGet(reportAction, 'originalMessage.amount', 0);
 
     return (
