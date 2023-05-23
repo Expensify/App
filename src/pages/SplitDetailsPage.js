@@ -30,8 +30,8 @@ const propTypes = {
     /** The active report */
     report: reportPropTypes.isRequired,
 
-    /** The report action which we are displaying */
-    action: PropTypes.shape(reportActionPropTypes),
+    /** Array of report actions for this report */
+    reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** Route params */
     route: PropTypes.shape({
@@ -40,7 +40,7 @@ const propTypes = {
             reportID: PropTypes.string,
 
             /** ReportActionID passed via route r/split/:reportActionID */
-            reportActionID: PropTypes.string,
+            splitActionID: PropTypes.string,
         }),
     }).isRequired,
 
@@ -57,10 +57,10 @@ const defaultProps = {
  *
  * @param {Object} route
  * @param {Object} route.params
- * @param {String} route.params.chatReportID
+ * @param {String} route.params.reportID
  * @returns {String}
  */
-function getChatReportID(route) {
+function getReportID(route) {
     return route.params.reportID.toString();
 }
 
@@ -101,6 +101,7 @@ const getAllParticipants = (report, personalDetails) => {
 };
 
 const SplitDetailsPage = (props) => {
+    const reportAction = props.reportActions[`${props.route.params.splitActionID.toString()}`];
     const participants = getAllParticipants(props.report, props.personalDetails);
     const splitAmount = lodashGet(props.action, 'originalMessage.IOUDetails.amount', 0);
 
@@ -146,7 +147,7 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
         reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getChatReportID(route)}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
             canEvict: false,
         },
     }),
