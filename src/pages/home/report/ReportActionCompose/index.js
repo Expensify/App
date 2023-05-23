@@ -660,7 +660,7 @@ class ReportActionCompose extends React.Component {
                     end: prevState.selection.start + text.length,
                 },
             }),
-            this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, text))
+            this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, text)),
         );
     }
 
