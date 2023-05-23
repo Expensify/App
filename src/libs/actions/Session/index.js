@@ -245,7 +245,7 @@ function beginSignIn(login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                errors: ErrorUtils.getOptimisticErrors('loginForm.cannotGetAccountDetails'),
+                errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
             },
         },
     ];

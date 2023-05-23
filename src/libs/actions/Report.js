@@ -262,7 +262,7 @@ function addActions(reportID, text = '', file) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: _.mapObject(optimisticReportActions, (action) => ({
                 ...action,
-                errors: ErrorUtils.getOptimisticErrors('report.genericAddCommentFailureMessage'),
+                errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
             })),
         },
     ];

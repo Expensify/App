@@ -165,7 +165,7 @@ function requestContactMethodValidateCode(contactMethod) {
                 [contactMethod]: {
                     validateCodeSent: false,
                     errorFields: {
-                        validateCodeSent: ErrorUtils.getOptimisticErrors('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                        validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
                     pendingFields: {
                         validateCodeSent: null,
@@ -264,7 +264,7 @@ function deleteContactMethod(contactMethod, loginList) {
                 [contactMethod]: {
                     ...oldLoginData,
                     errorFields: {
-                        deletedLogin: ErrorUtils.getOptimisticErrors('contacts.genericFailureMessages.deleteContactMethod'),
+                        deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
                         deletedLogin: null,
@@ -348,7 +348,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        addedLogin: ErrorUtils.getOptimisticErrors('contacts.genericFailureMessages.addContactMethod'),
+                        addedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.addContactMethod'),
                     },
                     pendingFields: {
                         addedLogin: null,
@@ -447,7 +447,7 @@ function validateSecondaryLogin(contactMethod, validateCode) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        validateLogin: ErrorUtils.getOptimisticErrors('contacts.genericFailureMessages.validateSecondaryLogin'),
+                        validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
                     },
                     pendingFields: {
                         validateLogin: null,
@@ -827,7 +827,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
                         defaultLogin: null,
                     },
                     errorFields: {
-                        defaultLogin: ErrorUtils.getOptimisticErrors('contacts.genericFailureMessages.setDefaultContactMethod'),
+                        defaultLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.setDefaultContactMethod'),
                     },
                 },
             },

@@ -39,12 +39,12 @@ function getAuthenticateErrorMessage(response) {
 }
 
 /**
- * Method used to generate errors object optimistically.
+ * Method used to get an error object with microsecond as the key.
  * @param {String} error - error key or message to be saved
- * @return {Object} - Object to be optimistically saved to Onyx
+ * @return {Object}
  *
  */
-function getOptimisticErrors(error) {
+function getMicroSecondOnyxError(error) {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
@@ -106,4 +106,4 @@ function addErrorMessage(errors, inputID, message) {
     }
 }
 
-export {getAuthenticateErrorMessage, getOptimisticErrors, getLatestErrorMessage, getLatestErrorField, addErrorMessage};
+export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getLatestErrorMessage, getLatestErrorField, addErrorMessage};

@@ -213,7 +213,7 @@ function removeMembers(members, policyID) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill({errors: ErrorUtils.getOptimisticErrors('workspace.people.error.genericRemove')})),
+            value: _.object(members, Array(members.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
     ];
     API.write(
@@ -368,7 +368,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
             value: _.object(
                 logins,
                 Array(logins.length).fill({
-                    errors: ErrorUtils.getOptimisticErrors('workspace.people.error.genericAdd'),
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
                 }),
             ),
         },
@@ -478,7 +478,7 @@ function deleteWorkspaceAvatar(policyID) {
                     avatar: null,
                 },
                 errorFields: {
-                    avatar: ErrorUtils.getOptimisticErrors('avatarWithImagePicker.deleteWorkspaceError'),
+                    avatar: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
                 },
             },
         },
@@ -548,7 +548,7 @@ function updateGeneralSettings(policyID, name, currency) {
                     generalSettings: null,
                 },
                 errorFields: {
-                    generalSettings: ErrorUtils.getOptimisticErrors('workspace.editor.genericFailureMessage'),
+                    generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
             },
         },
@@ -734,7 +734,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
                         rates: {
                             [currentCustomUnitRate.customUnitRateID]: {
                                 ...currentCustomUnitRate,
-                                errors: ErrorUtils.getOptimisticErrors('workspace.reimburse.updateCustomUnitError'),
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.reimburse.updateCustomUnitError'),
                             },
                         },
                     },
