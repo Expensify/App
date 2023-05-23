@@ -119,7 +119,7 @@ class WorkspaceReimburseSection extends React.Component {
                             <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                         </View>
                         <Button
-                            text={this.props.translate('workspace.common.bankAccount')}
+                            text={this.props.translate('workspace.common.connectBankAccount')}
                             onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
                             icon={Expensicons.Bank}
                             style={[styles.mt4]}
