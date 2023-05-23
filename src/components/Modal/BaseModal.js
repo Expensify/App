@@ -35,6 +35,8 @@ class BaseModal extends PureComponent {
             return;
         }
 
+        Modal.willAlertModalBecomeVisible(true);
+
         // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
         Modal.setCloseModal(this.props.onClose);
     }
@@ -51,6 +53,10 @@ class BaseModal extends PureComponent {
     componentWillUnmount() {
         // we don't want to call the onModalHide on unmount
         this.hideModal(this.props.isVisible);
+
+        if (this.props.isVisible) {
+            Modal.willAlertModalBecomeVisible(false);
+        }
 
         // To prevent closing any modal already unmounted when this modal still remains as visible state
         Modal.setCloseModal(null);
@@ -132,6 +138,7 @@ class BaseModal extends PureComponent {
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
                 statusBarTranslucent={this.props.statusBarTranslucent}
+                onLayout={this.props.onLayout}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {

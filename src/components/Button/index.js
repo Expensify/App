@@ -1,9 +1,8 @@
 import React, {Component} from 'react';
-import {Pressable, ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import OpacityView from '../OpacityView';
 import Text from '../Text';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import Icon from '../Icon';
@@ -15,6 +14,7 @@ import compose from '../../libs/compose';
 import * as Expensicons from '../Icon/Expensicons';
 import withNavigationFocus from '../withNavigationFocus';
 import validateSubmitShortcut from './validateSubmitShortcut';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** The text for the button label */
@@ -106,6 +106,13 @@ const propTypes = {
 
     /** Id to use for this button */
     nativeID: PropTypes.string,
+
+    /** Accessibility label for the component */
+    accessibilityLabel: PropTypes.string,
+
+    /** A ref to forward the button */
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 };
 
 const defaultProps = {
@@ -137,6 +144,8 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
     shouldEnableHapticFeedback: false,
     nativeID: '',
+    accessibilityLabel: '',
+    forwardedRef: undefined,
 };
 
 class Button extends Component {
@@ -235,7 +244,8 @@ class Button extends Component {
 
     render() {
         return (
-            <Pressable
+            <PressableWithFeedback
+                ref={this.props.forwardedRef}
                 onPress={(e) => {
                     if (e && e.type === 'click') {
                         e.currentTarget.blur();
@@ -244,7 +254,7 @@ class Button extends Component {
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.press();
                     }
-                    this.props.onPress(e);
+                    return this.props.onPress(e);
                 }}
                 onLongPress={(e) => {
                     if (this.props.shouldEnableHapticFeedback) {
@@ -256,47 +266,42 @@ class Button extends Component {
                 onPressOut={this.props.onPressOut}
                 onMouseDown={this.props.onMouseDown}
                 disabled={this.props.isLoading || this.props.isDisabled}
-                style={[
+                wrapperStyle={[
                     this.props.isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
                     this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     ...StyleUtils.parseStyleAsArray(this.props.style),
                 ]}
+                style={[
+                    styles.button,
+                    this.props.small ? styles.buttonSmall : undefined,
+                    this.props.medium ? styles.buttonMedium : undefined,
+                    this.props.large ? styles.buttonLarge : undefined,
+                    this.props.success ? styles.buttonSuccess : undefined,
+                    this.props.danger ? styles.buttonDanger : undefined,
+                    this.props.isDisabled && (this.props.success || this.props.danger) ? styles.buttonOpacityDisabled : undefined,
+                    this.props.isDisabled && !this.props.danger && !this.props.success ? styles.buttonDisabled : undefined,
+                    this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+                    this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+                    ...this.props.innerStyles,
+                ]}
+                hoverStyle={[
+                    this.props.success && !this.props.isDisabled ? styles.buttonSuccessHovered : undefined,
+                    this.props.danger && !this.props.isDisabled ? styles.buttonDangerHovered : undefined,
+                ]}
                 nativeID={this.props.nativeID}
+                accessibilityLabel={this.props.accessibilityLabel}
+                hoverDimmingValue={1}
             >
-                {({pressed, hovered}) => {
-                    const activeAndHovered = !this.props.isDisabled && hovered;
-                    return (
-                        <OpacityView
-                            shouldDim={pressed}
-                            style={[
-                                styles.button,
-                                this.props.small ? styles.buttonSmall : undefined,
-                                this.props.medium ? styles.buttonMedium : undefined,
-                                this.props.large ? styles.buttonLarge : undefined,
-                                this.props.success ? styles.buttonSuccess : undefined,
-                                this.props.danger ? styles.buttonDanger : undefined,
-                                this.props.isDisabled && (this.props.success || this.props.danger) ? styles.buttonOpacityDisabled : undefined,
-                                this.props.isDisabled && !this.props.danger && !this.props.success ? styles.buttonDisabled : undefined,
-                                this.props.success && activeAndHovered ? styles.buttonSuccessHovered : undefined,
-                                this.props.danger && activeAndHovered ? styles.buttonDangerHovered : undefined,
-                                this.props.shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                                this.props.shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                                ...this.props.innerStyles,
-                            ]}
-                        >
-                            {this.renderContent()}
-                            {this.props.isLoading && (
-                                <ActivityIndicator
-                                    color={this.props.success || this.props.danger ? themeColors.textLight : themeColors.text}
-                                    style={[styles.pAbsolute, styles.l0, styles.r0]}
-                                />
-                            )}
-                        </OpacityView>
-                    );
-                }}
-            </Pressable>
+                {this.renderContent()}
+                {this.props.isLoading && (
+                    <ActivityIndicator
+                        color={this.props.success || this.props.danger ? themeColors.textLight : themeColors.text}
+                        style={[styles.pAbsolute, styles.l0, styles.r0]}
+                    />
+                )}
+            </PressableWithFeedback>
         );
     }
 }
@@ -304,4 +309,15 @@ class Button extends Component {
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
 
-export default compose(withNavigationFallback, withNavigationFocus)(Button);
+export default compose(
+    withNavigationFallback,
+    withNavigationFocus,
+)(
+    React.forwardRef((props, ref) => (
+        <Button
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

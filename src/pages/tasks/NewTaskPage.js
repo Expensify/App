@@ -14,7 +14,6 @@ import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import TaskSelectorLink from '../../components/TaskSelectorLink';
 import reportPropTypes from '../reportPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
 import * as TaskUtils from '../../libs/actions/Task';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
@@ -64,37 +63,6 @@ const defaultProps = {
     session: {},
 };
 
-/**
- * Get the assignee data
- *
- * @param {Object} details
- * @returns {Object}
- */
-function constructAssignee(details) {
-    const source = ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
-    return {
-        icons: [{source, type: 'avatar', name: details.login}],
-        displayName: details.displayName,
-        subtitle: details.login,
-    };
-}
-
-/**
- * Get the share destination data
- * @param {Object} reportID
- * @param {Object} reports
- * @param {Object} personalDetails
- * @returns {Object}
- * */
-function constructShareDestination(reportID, reports, personalDetails) {
-    const report = lodashGet(reports, `report_${reportID}`, {});
-    return {
-        icons: ReportUtils.getIcons(report, personalDetails),
-        displayName: ReportUtils.getReportName(report),
-        subtitle: ReportUtils.getChatRoomSubtitle(report),
-    };
-}
-
 const NewTaskPage = (props) => {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
@@ -113,7 +81,7 @@ const NewTaskPage = (props) => {
                 setSubmitError(true);
                 return setErrorMessage(props.translate('newTaskPage.assigneeError'));
             }
-            const displayDetails = constructAssignee(assigneeDetails);
+            const displayDetails = TaskUtils.getAssignee(assigneeDetails);
             setAssignee(displayDetails);
         }
 
@@ -128,7 +96,7 @@ const NewTaskPage = (props) => {
         // the share destination data
         if (props.task.shareDestination) {
             setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
-            const displayDetails = constructShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
+            const displayDetails = TaskUtils.getShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
             setShareDestination(displayDetails);
         }
     }, [props]);
@@ -150,7 +118,7 @@ const NewTaskPage = (props) => {
     }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper>
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.confirmTask')}
                 onCloseButtonPress={() => Navigation.dismissModal()}

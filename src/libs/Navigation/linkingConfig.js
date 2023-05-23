@@ -30,6 +30,10 @@ export default {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
                     },
+                    Settings_Share_Code: {
+                        path: ROUTES.SETTINGS_SHARE_CODE,
+                        exact: true,
+                    },
                     Settings_Workspaces: {
                         path: ROUTES.SETTINGS_WORKSPACES,
                         exact: true,
@@ -141,6 +145,26 @@ export default {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                         exact: true,
                     },
+                    Settings_TwoFactorAuthIsEnabled: {
+                        path: ROUTES.SETTINGS_2FA_IS_ENABLED,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthDisable: {
+                        path: ROUTES.SETTINGS_2FA_DISABLE,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthCodes: {
+                        path: ROUTES.SETTINGS_2FA_CODES,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthVerify: {
+                        path: ROUTES.SETTINGS_2FA_VERIFY,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthSuccess: {
+                        path: ROUTES.SETTINGS_2FA_SUCCESS,
+                        exact: true,
+                    },
                     Workspace_Initial: {
                         path: ROUTES.WORKSPACE_INITIAL,
                     },
@@ -186,11 +210,20 @@ export default {
             Report_Details: {
                 screens: {
                     Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                    Report_Details_Share_Code: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE,
                 },
             },
             Report_Settings: {
                 screens: {
-                    Report_Settings_Root: ROUTES.REPORT_SETTINGS,
+                    Report_Settings_Root: {
+                        path: ROUTES.REPORT_SETTINGS,
+                    },
+                    Report_Settings_Room_Name: {
+                        path: ROUTES.REPORT_SETTINGS_ROOM_NAME,
+                    },
+                    Report_Settings_Notification_Preferences: {
+                        path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES,
+                    },
                 },
             },
             NewGroup: {
@@ -263,6 +296,7 @@ export default {
                 screens: {
                     Task_Title: ROUTES.TASK_TITLE,
                     Task_Description: ROUTES.TASK_DESCRIPTION,
+                    Task_Assignee: ROUTES.TASK_ASSIGNEE,
                 },
             },
             AddPersonalBankAccount: {

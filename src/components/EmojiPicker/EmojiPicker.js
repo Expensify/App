@@ -29,7 +29,6 @@ class EmojiPicker extends React.Component {
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
         this.measureEmojiPopoverAnchorPositionAndUpdateState = this.measureEmojiPopoverAnchorPositionAndUpdateState.bind(this);
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
-        this.measureContent = this.measureContent.bind(this);
         this.onModalHide = () => {};
         this.onEmojiSelected = () => {};
 
@@ -141,20 +140,6 @@ class EmojiPicker extends React.Component {
     }
 
     /**
-     * Used to calculate the EmojiPicker Dimensions
-     *
-     * @returns {JSX}
-     */
-    measureContent() {
-        return (
-            <EmojiPickerMenu
-                onEmojiSelected={this.selectEmoji}
-                ref={(el) => (this.emojiSearchInput = el)}
-            />
-        );
-    }
-
-    /**
      * Focus the search input in the emoji picker.
      */
     focusEmojiSearchInput() {
@@ -166,8 +151,6 @@ class EmojiPicker extends React.Component {
     }
 
     render() {
-        // There is no way to disable animations and they are really laggy, because there are so many
-        // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
         return (
             <PopoverWithMeasuredContent
                 isVisible={this.state.isEmojiPickerVisible}
@@ -176,8 +159,6 @@ class EmojiPicker extends React.Component {
                 onModalHide={this.onModalHide}
                 hideModalContentWhileAnimating
                 shouldSetModalVisibility={false}
-                animationInTiming={1}
-                animationOutTiming={1}
                 anchorPosition={{
                     vertical: this.state.emojiPopoverAnchorPosition.vertical,
                     horizontal: this.state.emojiPopoverAnchorPosition.horizontal,
@@ -186,9 +167,8 @@ class EmojiPicker extends React.Component {
                     width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                     height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
                 }}
-                anchorOrigin={this.state.emojiPopoverAnchorOrigin}
-                measureContent={this.measureContent}
                 outerStyle={Browser.isMobile() && {maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
+                anchorAlignment={this.state.emojiPopoverAnchorOrigin}
                 enableKeyboardAvoiding
             >
                 <EmojiPickerMenu

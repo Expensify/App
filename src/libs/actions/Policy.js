@@ -8,13 +8,12 @@ import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
-import Navigation from '../Navigation/Navigation';
+import Navigation, {navigationRef} from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
-import * as Report from './Report';
 import Permissions from '../Permissions';
 
 const allPolicies = {};
@@ -868,6 +867,7 @@ function generatePolicyID() {
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ * @returns {Promise}
  */
 function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
     const policyID = generatePolicyID();
@@ -1078,10 +1078,15 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         },
     );
 
-    Navigation.isNavigationReady().then(() => {
+    return Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
             Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
         }
+
+        // Get the reportID associated with the newly created #admins room and route the user to that chat
+        const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
+        Navigation.setParams({reportID: adminsChatReportID}, routeKey);
+
         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
     });
 }
@@ -1147,42 +1152,6 @@ function setWorkspaceInviteMembersDraft(policyID, memberEmails) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, memberEmails);
 }
 
-/**
- *
- * @param {String} reportID
- */
-function leaveRoom(reportID) {
-    API.write(
-        'LeaveRoom',
-        {
-            reportID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                        statusNum: CONST.REPORT.STATUS.CLOSED,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    value: {
-                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                        statusNum: CONST.REPORT.STATUS.OPEN,
-                    },
-                },
-            ],
-        },
-    );
-    Report.navigateToConciergeChat();
-}
-
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1212,5 +1181,4 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
-    leaveRoom,
 };
