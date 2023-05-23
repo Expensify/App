@@ -44,6 +44,11 @@ class Hoverable extends Component {
      * @param {Boolean} isHovered - Whether or not this component is hovered.
      */
     setIsHovered(isHovered) {
+        if (this.props.disabled) {
+            this.disableHover();
+            return;
+        }
+
         if (isHovered !== this.state.isHovered && !(isHovered && this.hoverDisabled)) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }
