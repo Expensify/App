@@ -332,6 +332,16 @@ function getPolicyType(report, policies) {
 }
 
 /**
+ * If the report is a policy expense, the route should be for adding bank account for that policy
+ * else since the report is a personal IOU, the route should be for personal bank account.
+ * @param {Object} report
+ * @returns {String}
+ */
+function getBankAccountRoute(report) {
+    return isPolicyExpenseChat(report) ? ROUTES.getBankAccountRoute('', report.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+}
+
+/**
  * Returns true if there are any guides accounts (team.expensify.com) in emails
  * @param {Array} emails
  * @returns {Boolean}
@@ -2325,4 +2335,5 @@ export {
     isSettled,
     isAllowedToComment,
     getMoneyRequestAction,
+    getBankAccountRoute,
 };
