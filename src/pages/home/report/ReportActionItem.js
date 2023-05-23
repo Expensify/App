@@ -106,7 +106,7 @@ const defaultProps = {
 
 function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
-    const [isHidden, setIsHidden] = useState(true);
+    const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState('approved');
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
@@ -381,7 +381,7 @@ function ReportActionItem(props) {
                     wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
-                    isHidden={isHidden}
+                    hasBeenFlagged={moderationDecision !== 'approved'}
                 >
                     {content}
                 </ReportActionItemSingle>

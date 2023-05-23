@@ -45,6 +45,9 @@ const propTypes = {
     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
     shouldShowSubscriptAvatar: PropTypes.bool,
 
+    /** If the message has been flagged for moderation */
+    hasBeenFlagged: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -53,6 +56,7 @@ const defaultProps = {
     wrapperStyles: [styles.chatItem],
     showHeader: true,
     shouldShowSubscriptAvatar: false,
+    hasBeenFlagged: false,
     report: undefined,
 };
 
@@ -127,7 +131,7 @@ const ReportActionItemSingle = (props) => {
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
-                <View style={props.isHidden ? styles.blockquote: {}}>
+                <View style={props.hasBeenFlagged ? styles.blockquote: {}}>
                     {props.children}
                 </View>
             </View>
