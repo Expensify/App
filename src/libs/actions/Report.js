@@ -2,7 +2,6 @@ import {InteractionManager} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import {URL_REGEX} from 'expensify-common/lib/Url';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -899,35 +898,6 @@ function deleteReportComment(reportID, reportAction) {
 }
 
 /**
- * @param {String} comment
- * @returns {Array}
- */
-const extractLinksInMarkdownComment = (comment) => {
-    const regex = new RegExp(
-        `\\[(?:[^\\][]*(?:\\[[^\\][]*][^\\][]*)*)]\\(${URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`,
-        'gm',
-    );
-    const matches = [...comment.matchAll(regex)];
-
-    // Element 1 from match is the regex group if it exists which contains the link URLs
-    const links = _.map(matches, (match) => Str.sanitizeURL(match[1]));
-    return links;
-};
-
-/**
- * Compares two markdown comments and returns a list of the links removed in a new comment.
- *
- * @param {String} oldComment
- * @param {String} newComment
- * @returns {Array}
- */
-const getRemovedMarkdownLinks = (oldComment, newComment) => {
-    const linksInOld = extractLinksInMarkdownComment(oldComment);
-    const linksInNew = extractLinksInMarkdownComment(newComment);
-    return _.difference(linksInOld, linksInNew);
-};
-
-/**
  * Removes the links in html of a comment.
  * example:
  *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">https://www.google.com</a> test"
@@ -962,7 +932,7 @@ const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     }
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
     const htmlForNewComment = parser.replace(newCommentText);
-    const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
+    const removedLinks = parser.getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 };
 
