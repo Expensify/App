@@ -48,6 +48,7 @@ const BaseAnchorForCommentsOnly = (props) => {
     return (
         <PressableWithSecondaryInteraction
             inline
+            style={[styles.dInline, styles.cursorDefault, {fontSize: props.style.fontSize}]}
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(
                     Str.isValidEmailMarkdown(props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
