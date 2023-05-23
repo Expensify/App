@@ -34,6 +34,9 @@ const propTypes = {
 
         /** Has the user pressed the forgot password button? */
         forgotPassword: PropTypes.bool,
+
+        /** Does this account require 2FA? */
+        requiresTwoFactorAuth: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */
@@ -41,6 +44,7 @@ const propTypes = {
         login: PropTypes.string,
         password: PropTypes.string,
         twoFactorAuthCode: PropTypes.string,
+        validateCode: PropTypes.string,
     }),
 };
 
@@ -49,7 +53,7 @@ const defaultProps = {
     credentials: {},
 };
 
-const SignInPage = (props) => {
+const SignInPage = ({account, credentials}) => {
     const {translate, formatPhoneNumber} = useLocalize();
     const {canUsePasswordlessLogins} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -64,7 +68,7 @@ const SignInPage = (props) => {
      *   - A login has not been entered yet
      *   - AND a validateCode has not been cached with the sign in link
      */
-    const shouldShowLoginForm = !props.credentials.login && !props.credentials.validateCode;
+    const shouldShowLoginForm = !credentials.login && !credentials.validateCode;
 
     /*
      * Show the unlink form if:
@@ -72,8 +76,8 @@ const SignInPage = (props) => {
      *   - AND the login is not the primary login for the account
      *   - AND the login is not validated
      */
-    const isUnvalidatedSecondaryLogin = props.account.primaryLogin && props.account.primaryLogin !== props.credentials.login && !props.account.validated;
-    const shouldShowUnlinkLoginForm = Boolean(props.credentials.login) && isUnvalidatedSecondaryLogin;
+    const isUnvalidatedSecondaryLogin = account.primaryLogin && account.primaryLogin !== credentials.login && !account.validated;
+    const shouldShowUnlinkLoginForm = Boolean(credentials.login) && isUnvalidatedSecondaryLogin;
 
     /* Show the old password form if
      *   - A login has been entered
@@ -84,19 +88,14 @@ const SignInPage = (props) => {
      *   - AND the user is NOT on the passwordless beta
      */
     const shouldShowPasswordForm =
-        Boolean(props.credentials.login) &&
-        props.account.validated &&
-        !props.credentials.password &&
-        !props.account.forgotPassword &&
-        !shouldShowUnlinkLoginForm &&
-        !canUsePasswordlessLogins;
+        Boolean(credentials.login) && account.validated && !credentials.password && !account.forgotPassword && !shouldShowUnlinkLoginForm && !canUsePasswordlessLogins;
 
     /* Show the new magic code / validate code form if
      *   - A login has been entered or a validateCode has been cached from sign in link
      *   - AND the login isn't an unvalidated secondary login
      *   - AND the user is on the 'passwordless' beta
      */
-    const shouldShowValidateCodeForm = (props.credentials.login || props.credentials.validateCode) && !shouldShowUnlinkLoginForm && canUsePasswordlessLogins;
+    const shouldShowValidateCodeForm = (credentials.login || credentials.validateCode) && !shouldShowUnlinkLoginForm && canUsePasswordlessLogins;
 
     /* Show the resend validation link form if
      *  - A login has been entered
@@ -104,55 +103,55 @@ const SignInPage = (props) => {
      *  - AND the login isn't an unvalidated secondary login
      *  - AND user is not on 'passwordless' beta
      */
-    const shouldShowResendValidationForm =
-        Boolean(props.credentials.login) && (!props.account.validated || props.account.forgotPassword) && !shouldShowUnlinkLoginForm && !canUsePasswordlessLogins;
+    const shouldShowResendValidationForm = Boolean(credentials.login) && (!account.validated || account.forgotPassword) && !shouldShowUnlinkLoginForm && !canUsePasswordlessLogins;
 
     const {welcomeHeader, welcomeText} = useMemo(() => {
-        let welcomeHeader = '';
-        let welcomeText = '';
+        let header = '';
+        let text = '';
         if (shouldShowValidateCodeForm) {
-            if (props.account.requiresTwoFactorAuth) {
+            if (account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
-                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-                welcomeText = translate('validateCodeForm.enterAuthenticatorCode');
+                header = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+                text = translate('validateCodeForm.enterAuthenticatorCode');
             } else {
                 const userLogin = Str.removeSMSDomain(lodashGet(props, 'credentials.login', ''));
 
                 // replacing spaces with "hard spaces" to prevent breaking the number
                 const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
-                if (props.account.validated) {
-                    welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-                    welcomeText = isSmallScreenWidth
+                if (account.validated) {
+                    header = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+                    text = isSmallScreenWidth
                         ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                         : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
                 } else {
-                    welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcome');
-                    welcomeText = isSmallScreenWidth
+                    header = isSmallScreenWidth ? '' : translate('welcomeText.welcome');
+                    text = isSmallScreenWidth
                         ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
                         : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
                 }
             }
         } else if (shouldShowPasswordForm) {
-            welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-            welcomeText = isSmallScreenWidth ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.enterPassword')}` : translate('welcomeText.enterPassword');
+            header = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+            text = isSmallScreenWidth ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.enterPassword')}` : translate('welcomeText.enterPassword');
         } else if (shouldShowUnlinkLoginForm) {
-            welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
+            header = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
         } else if (!shouldShowResendValidationForm) {
-            welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
-            welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+            header = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
+            text = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
         } else {
             Log.warn('SignInPage in unexpected state!');
         }
-        return {welcomeHeader, welcomeText};
+        return {welcomeHeader: header, welcomeText: text};
     }, [
         shouldShowValidateCodeForm,
         shouldShowPasswordForm,
         shouldShowUnlinkLoginForm,
         shouldShowResendValidationForm,
-        props.account.requiresTwoFactorAuth,
-        props.account.validated,
+        account.requiresTwoFactorAuth,
+        account.validated,
         translate,
         formatPhoneNumber,
+        isSmallScreenWidth,
     ]);
 
     return (
@@ -167,7 +166,7 @@ const SignInPage = (props) => {
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
                 <LoginForm
                     isVisible={shouldShowLoginForm}
-                    blurOnSubmit={this.props.account.validated === false}
+                    blurOnSubmit={account.validated === false}
                 />
                 {shouldShowValidateCodeForm ? <ValidateCodeForm isVisible={shouldShowValidateCodeForm} /> : <PasswordForm isVisible={shouldShowPasswordForm} />}
                 {shouldShowResendValidationForm && <ResendValidationForm />}
