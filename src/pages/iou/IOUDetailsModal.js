@@ -133,6 +133,16 @@ class IOUDetailsModal extends Component {
         return reportActionWithPendingAction ? reportActionWithPendingAction.pendingAction : undefined;
     }
 
+    onPressSettlementButton(paymentMethodType) {
+        // Payment via Expensify Wallet is handled differently for now so make sure we call the right API
+        if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            IOU.payMoneyRequestWithWallet(this.props.chatReport, this.props.iouReport, recipient);
+            return;
+        }
+
+        IOU.payMoneyRequest(paymentMethodType, this.props.chatReport, this.props.iouReport)
+    }
+
     render() {
         const sessionEmail = lodashGet(this.props.session, 'email', null);
         const pendingAction = this.findPendingAction();
@@ -175,7 +185,7 @@ class IOUDetailsModal extends Component {
                                 {hasOutstandingIOU && this.props.iouReport.managerEmail === sessionEmail && (
                                     <FixedFooter>
                                         <SettlementButton
-                                            onPress={(paymentMethodType) => IOU.payMoneyRequest(paymentMethodType, this.props.chatReport, this.props.iouReport)}
+                                            onPress={this.onPressSettlementButton}
                                             shouldShowPaypal={Boolean(lodashGet(this.props, 'iouReport.submitterPayPalMeAddress'))}
                                             currency={lodashGet(this.props, 'iouReport.currency')}
                                             enablePaymentsRoute={ROUTES.IOU_DETAILS_ENABLE_PAYMENTS}

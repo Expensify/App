@@ -1172,6 +1172,19 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     }
 }
 
+/**
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ * @param {Object} recipient
+ */
+function payMoneyRequestWithWallet(chatReport, iouReport, recipient) {
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+
+    API.write('PayMoneyRequestWithWallet', params, {optimisticData, successData, failureData});
+
+    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+}
+
 export {
     deleteMoneyRequest,
     splitBill,
@@ -1180,6 +1193,7 @@ export {
     sendMoneyElsewhere,
     sendMoneyViaPaypal,
     payMoneyRequest,
+    payMoneyRequestWithWallet,
     setIOUSelectedCurrency,
     setMoneyRequestDescription,
     sendMoneyWithWallet,
