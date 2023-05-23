@@ -224,6 +224,9 @@ export default {
                     Report_Settings_Notification_Preferences: {
                         path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES,
                     },
+                    Report_Settings_Write_Capability: {
+                        path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY,
+                    },
                 },
             },
             NewGroup: {

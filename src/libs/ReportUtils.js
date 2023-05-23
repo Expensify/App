@@ -433,6 +433,26 @@ function getPolicyName(report) {
 }
 
 /**
+ * Checks if the current user is allowed to comment on the given report.
+ * @param {Object} report
+ * @param {String} [report.writeCapability]
+ * @returns {Boolean}
+ */
+function isAllowedToComment(report) {
+    // Default to allowing all users to post
+    const capability = lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL) || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+
+    if (capability === CONST.REPORT.WRITE_CAPABILITIES.ALL) {
+        return true;
+    }
+
+    // If we've made it here, commenting on this report is restricted.
+    // If the user is an admin, allow them to post.
+    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    return lodashGet(policy, 'role', '') === CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Checks if the current user is the admin of the policy given the policy expense chat.
  * @param {Object} report
  * @param {String} report.policyID
@@ -2303,5 +2323,6 @@ export {
     shouldReportShowSubscript,
     isReportDataReady,
     isSettled,
+    isAllowedToComment,
     getMoneyRequestAction,
 };
