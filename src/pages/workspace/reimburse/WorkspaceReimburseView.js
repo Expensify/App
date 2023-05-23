@@ -76,7 +76,7 @@ class WorkspaceReimburseView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.policy.customUnits !== this.props.policy.customUnits) {
+        if (prevProps.policy.customUnits !== this.props.policy.customUnits || prevProps.preferredLocale !== this.props.preferredLocale) {
             this.setState({currentRatePerUnit: this.getCurrentRatePerUnitLabel()});
         }
 
