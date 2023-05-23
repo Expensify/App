@@ -146,7 +146,7 @@ const ReportPreview = (props) => {
                     iouReport={props.iouReport}
                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                    addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                    addBankAccountRoute={ROUTES.getBankAccountRoute('', props.report.policyID)}
                     style={[styles.requestPreviewBox]}
                 />
             )}

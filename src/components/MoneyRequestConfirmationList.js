@@ -288,7 +288,7 @@ class MoneyRequestConfirmationList extends Component {
                             onPress={this.confirm}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                            addBankAccountRoute={ROUTES.getBankAccountRoute('', this.props.report.policyID)}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
                             policyID={this.props.policyID}
