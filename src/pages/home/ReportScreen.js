@@ -342,7 +342,7 @@ class ReportScreen extends React.Component {
                             </>
                         )}
                         <View
-                            nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                            nativeID={CONST.REPORT.DROP_NATIVE_ID + getReportID(this.props.route)}
                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                             onLayout={(event) => {
                                 const skeletonViewContainerHeight = event.nativeEvent.layout.height;
