@@ -784,7 +784,6 @@ function deleteMoneyRequest(iouReportID, moneyRequestAction, shouldCloseOnDelete
         {
             transactionID,
             reportActionID: optimisticIOUAction.reportActionID,
-            iouReportID: updatedIOUReport.reportID,
         },
         {optimisticData, successData, failureData},
     );
