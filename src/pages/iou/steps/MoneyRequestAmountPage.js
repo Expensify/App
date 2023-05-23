@@ -66,6 +66,7 @@ class MoneyRequestAmountPage extends React.Component {
         const selectedAmountAsString = props.selectedAmount ? props.selectedAmount.toString() : '';
         this.state = {
             amount: selectedAmountAsString,
+            selectedCurrencyCode: props.iou.selectedCurrencyCode,
             shouldUpdateSelection: true,
             selection: {
                 start: selectedAmountAsString.length,
@@ -80,6 +81,7 @@ class MoneyRequestAmountPage extends React.Component {
         // Focus automatically after navigating back from currency selector
         this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
             this.focusTextInput();
+            this.getCurrencyFromRouteParams();
         });
     }
 
@@ -101,6 +103,13 @@ class MoneyRequestAmountPage extends React.Component {
         event.preventDefault();
         if (!this.textInput.isFocused()) {
             this.textInput.focus();
+        }
+    }
+
+    getCurrencyFromRouteParams() {
+        const selectedCurrencyCode = lodashGet(this.props.route.params, 'currency', '');
+        if (selectedCurrencyCode !== '') {
+            this.setState({selectedCurrencyCode});
         }
     }
 
@@ -289,13 +298,15 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     navigateToCurrencySelectionPage() {
+        // Remove query from the route and encode it.
+        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
         if (this.props.hasMultipleParticipants) {
-            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID));
+            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
         }
         if (this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
-            return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID));
+            return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
         }
-        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
+        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
     }
 
     render() {
@@ -314,7 +325,7 @@ class MoneyRequestAmountPage extends React.Component {
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
                         ref={(el) => (this.textInput = el)}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
+                        selectedCurrencyCode={this.state.selectedCurrencyCode}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
                             if (!this.state.shouldUpdateSelection) {
@@ -342,7 +353,7 @@ class MoneyRequestAmountPage extends React.Component {
                     <Button
                         success
                         style={[styles.w100, styles.mt5]}
-                        onPress={() => this.props.onStepComplete(this.state.amount)}
+                        onPress={() => this.props.onStepComplete(this.state.amount, this.state.selectedCurrencyCode)}
                         pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
                         text={this.props.buttonText}
