@@ -38,12 +38,28 @@ class Hoverable extends Component {
         document.removeEventListener('touchmove', this.enableHover);
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.disabled !== this.props.disabled) {
+            this.setState({isHovered: false});
+
+            if (this.props.disabled) {
+                this.disableHover();
+            } else {
+                this.enableHover();
+            }
+        }
+    }
+
     /**
      * Sets the hover state of this component to true and execute the onHoverIn callback.
      *
      * @param {Boolean} isHovered - Whether or not this component is hovered.
      */
     setIsHovered(isHovered) {
+        if (this.props.disabled) {
+            return;
+        }
+
         if (isHovered !== this.state.isHovered && !(isHovered && this.hoverDisabled)) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }
@@ -55,8 +71,6 @@ class Hoverable extends Component {
     }
 
     render() {
-        const isHovered = this.state.isHovered && !this.props.disabled;
-
         if (this.props.absolute && React.isValidElement(this.props.children)) {
             return React.cloneElement(React.Children.only(this.props.children), {
                 ref: (el) => {
@@ -108,7 +122,7 @@ class Hoverable extends Component {
             >
                 {
                     // If this.props.children is a function, call it to provide the hover state to the children.
-                    _.isFunction(this.props.children) ? this.props.children(isHovered) : this.props.children
+                    _.isFunction(this.props.children) ? this.props.children(this.state.isHovered) : this.props.children
                 }
             </View>
         );
