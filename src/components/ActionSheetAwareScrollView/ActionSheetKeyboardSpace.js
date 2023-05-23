@@ -98,7 +98,7 @@ function ActionSheetKeyboardSpace(props) {
         // either animation or just a value
         switch (current.state) {
             case States.KEYBOARD_OPEN: {
-                if (previous.state === States.KEYBOARD_CLOSING_POPOVER) {
+                if (previous.state === States.KEYBOARD_CLOSED_POPOVER) {
                     // return withSpring(0, config, () => {
                     //     transition({
                     //         type: Actions.END_TRANSITION,
@@ -124,7 +124,7 @@ function ActionSheetKeyboardSpace(props) {
                     });
                 });
 
-            case States.DELETE_MODAL:
+            case States.MODAL_DELETED:
             case States.EMOJI_PICKER_POPOVER_OPEN:
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
@@ -138,7 +138,7 @@ function ActionSheetKeyboardSpace(props) {
                 return 0;
             }
 
-            case States.DELETE_MODAL_WITH_KEYBOARD_OPEN:
+            case States.MODAL_WITH_KEYBOARD_OPEN_DELETED:
             case States.EMOJI_PICKER_POPOVER_WITH_KEYBOARD_OPEN: {
                 // when item is higher than keyboard and bottom sheet
                 // we should just stay in place
@@ -171,12 +171,12 @@ function ActionSheetKeyboardSpace(props) {
                 return lastKeyboardHeight;
             }
 
-            case States.CLOSING_KEYBOARD_POPOVER: {
+            case States.KEYBOARD_POPOVER_CLOSED: {
                 transition({type: Actions.END_TRANSITION});
                 return invertedKeyboardHeight;
             }
 
-            case States.KEYBOARD_CLOSING_POPOVER: {
+            case States.KEYBOARD_CLOSED_POPOVER: {
                 if (elementOffset < 0) {
                     transition({type: Actions.END_TRANSITION});
                     return invertedKeyboardHeight;
