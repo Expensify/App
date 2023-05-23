@@ -30,6 +30,7 @@ import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
 import SelectionScraper from '../../../libs/SelectionScraper';
+import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -113,13 +114,7 @@ function ReportActionItem(props) {
             return;
         }
 
-        // Focus the text input with a slight delay to make sure modals are closed first.
-        // Since in react-native-modal `onModalHide` is called before the modal is actually hidden.
-        // It results in the keyboard being dismissed right away on both iOS and Android.
-        // See this discussion for more details: https://github.com/Expensify/App/issues/18300
-        setTimeout(() => {
-            textInputRef.current.focus();
-        }, 100);
+        focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [isDraftEmpty]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
