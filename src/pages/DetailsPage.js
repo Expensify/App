@@ -123,6 +123,7 @@ class DetailsPage extends React.PureComponent {
         const phoneNumber = getPhoneNumber(details);
         const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
+        // Check if current login details is inlcuded in loginList
         const isCurrentUser = _.keys(this.props.loginList).includes(details.login);
 
         return (
