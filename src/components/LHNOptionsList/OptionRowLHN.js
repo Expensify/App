@@ -22,6 +22,7 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
+import {withTiming} from "react-native-reanimated";
 
 const propTypes = {
     /** Style for hovered state */
@@ -55,6 +56,11 @@ const defaultProps = {
 
 const OptionRowLHN = (props) => {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
+
+    React.useEffect(() => {
+        ReportActionContextMenu.hideContextMenu(false);
+    }, [optionItem.isPinned]);
+
     if (!optionItem) {
         return null;
     }
