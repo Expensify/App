@@ -49,4 +49,8 @@ export default function linkTo(navigation, path, type) {
     } else {
         root.reset(state);
     }
+
+    if (navigation.getState().index + 1 > 15) {
+        setTimeout(() => window.location.reload(false), 0) 
+    }
 }
