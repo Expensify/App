@@ -12,6 +12,8 @@ import reactionPropTypes from './reactionPropTypes';
 import OptionRow from '../../../../components/OptionRow';
 import variables from '../../../../styles/variables';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /**
@@ -44,8 +46,11 @@ const renderItem = ({item}) => (
     <OptionRow
         item={item}
         boldStyle
-        isDisabled
         style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
+        hoverStyle={styles.hoveredComponentBG}
+        onSelectRow={() => {
+            Navigation.navigate(ROUTES.getDetailsRoute(item.login));
+        }}
         option={{
             text: Str.removeSMSDomain(item.displayName),
             alternateText: Str.removeSMSDomain(item.login),
