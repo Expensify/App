@@ -3,7 +3,7 @@ import React, {useEffect, useMemo} from 'react';
 import {useSharedValue, interpolateColor, useDerivedValue, withSpring} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import ThemeContext from './ThemeContext';
-import useColorPreference from './useColorPreference';
+import useThemePreference from './useThemePreference';
 
 // Going to eventually import the light theme here too
 import darkTheme from './default';
@@ -21,7 +21,7 @@ const propTypes = {
 };
 
 function ThemeProvider(props) {
-    const colorPreference = useColorPreference();
+    const themePreference = useThemePreference();
     const themeAnimation = useSharedValue(0);
 
     const appBG = useAnimatedThemeColor(themeAnimation, lightTheme.appBG, darkTheme.appBG);
@@ -39,7 +39,7 @@ function ThemeProvider(props) {
 
     // Setting the correct theme initially
     useEffect(() => {
-        if (colorPreference === 'light') {
+        if (themePreference === 'light') {
             themeAnimation.value = 0;
         } else {
             themeAnimation.value = 1;
@@ -49,12 +49,12 @@ function ThemeProvider(props) {
 
     // Animating the color values based on the current theme
     useEffect(() => {
-        if (colorPreference === 'light' && themeAnimation.value > 0) {
+        if (themePreference === 'light' && themeAnimation.value > 0) {
             themeAnimation.value = withSpring(0);
-        } else if (colorPreference === 'dark' && themeAnimation.value < 1) {
+        } else if (themePreference === 'dark' && themeAnimation.value < 1) {
             themeAnimation.value = withSpring(1);
         }
-    }, [colorPreference, themeAnimation]);
+    }, [themePreference, themeAnimation]);
 
     return <ThemeContext.Provider value={theme}>{props.children}</ThemeContext.Provider>;
 }

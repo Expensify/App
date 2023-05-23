@@ -3,8 +3,8 @@ import {Appearance} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-function useColorPreference() {
-    const [colorPreference, setColorPreference] = useState('light');
+function useThemePreference() {
+    const [themePreference, setThemePreference] = useState('light');
     const [systemColorTheme, setSystemColorTheme] = useState();
 
     useEffect(() => {
@@ -16,13 +16,13 @@ function useColorPreference() {
         // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
         const connectionId = Onyx.connect({
             key: ONYXKEYS.COLOR_THEME,
-            callback: (newColorTheme) => (newColorTheme === 'system' ? setColorPreference(systemColorTheme) : setColorPreference(newColorTheme)),
+            callback: (newColorTheme) => (newColorTheme === 'system' ? setThemePreference(systemColorTheme) : setThemePreference(newColorTheme)),
         });
 
         return () => Onyx.disconnect(connectionId);
     }, [systemColorTheme]);
 
-    return colorPreference;
+    return themePreference;
 }
 
-export default useColorPreference;
+export default useThemePreference;
