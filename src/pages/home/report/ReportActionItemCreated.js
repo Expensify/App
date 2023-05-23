@@ -15,9 +15,9 @@ import * as Report from '../../../libs/actions/Report';
 import reportPropTypes from '../../reportPropTypes';
 import EmptyStateBackgroundImage from '../../../../assets/images/empty-state_background-fade.png';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** The id of the report */
@@ -28,8 +28,6 @@ const propTypes = {
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
-
-    ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     report: {},
@@ -37,6 +35,8 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
     const offsetX = useSharedValue(-props.windowWidth / 2);
@@ -45,7 +45,7 @@ const ReportActionItemCreated = (props) => {
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
         const {qx, qy} = animatedSensor.sensor.value;
-        if (props.isSmallScreenWidth) {
+        if (isSmallScreenWidth) {
             return {
                 transform: [
                     // The x vs y here seems wrong but is the way to make it feel right to the user
@@ -70,15 +70,15 @@ const ReportActionItemCreated = (props) => {
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
-            <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
+            <View style={StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)}>
                 <Animated.Image
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
-                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth), animatedStyles]}
+                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
                 />
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
-                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
+                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}
                 >
                     <Pressable
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
@@ -100,7 +100,6 @@ ReportActionItemCreated.propTypes = propTypes;
 ReportActionItemCreated.displayName = 'ReportActionItemCreated';
 
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withOnyx({
         report: {
