@@ -48,7 +48,6 @@ import MentionSuggestions from '../../../../components/MentionSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
-import KeyboardShortcut from '../../../../libs/KeyboardShortcut';
 import KeyDownAction from './keyDownAction';
 import * as EmojiPickerAction from '../../../../libs/actions/EmojiPickerAction';
 import Permissions from '../../../../libs/Permissions';
@@ -654,7 +653,6 @@ class ReportActionCompose extends React.Component {
      * @param {String} text
      */
     replaceSelectionWithInput(text) {
-        const newComment = this.comment.slice(0, this.state.selection.start) + text + this.comment.slice(this.state.selection.end, this.comment.length);
         this.setState(
             (prevState) => ({
                 selection: {
@@ -662,7 +660,7 @@ class ReportActionCompose extends React.Component {
                     end: prevState.selection.start + text.length,
                 },
             }),
-            this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
+            this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, text))
         );
     }
 
@@ -672,8 +670,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        const emojiWithSpace = `${emoji} `;
-        this.replaceSelectionWithInput(emojiWithSpace);
+        this.replaceSelectionWithInput(emoji);
     }
 
     /**
