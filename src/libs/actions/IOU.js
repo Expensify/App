@@ -20,7 +20,7 @@ let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: val => allReports = val,
+    callback: (val) => (allReports = val),
 });
 
 let transactions = {};
