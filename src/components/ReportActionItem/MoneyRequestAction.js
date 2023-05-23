@@ -95,7 +95,7 @@ const MoneyRequestAction = (props) => {
     const onIOUPreviewPressed = () => {
         if (lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && hasMultipleParticipants) {
             const reportActionID = lodashGet(props.action, 'reportActionID', '0');
-            Navigation.navigate(ROUTES.getSplitDetailsRoute(props.chatReportID, reportActionID))
+            Navigation.navigate(ROUTES.getSplitBillDetailsRoute(props.chatReportID, reportActionID))
             return;
         }
 
