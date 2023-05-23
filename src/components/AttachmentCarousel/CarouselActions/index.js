@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import {useCallback, useEffect} from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
@@ -22,6 +22,7 @@ const Carousel = (props) => {
         if (e.key === 'ArrowRight') {
             props.onCycleThroughAttachments(1);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -29,7 +30,8 @@ const Carousel = (props) => {
 
         return () => {
             document.removeEventListener('keydown', handleKeyPress);
-        }
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;

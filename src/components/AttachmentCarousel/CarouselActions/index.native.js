@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import CONST from '../../../CONST';
@@ -34,10 +34,11 @@ const Carousel = (props) => {
             unsubscribeLeftKey();
             unsubscribeRightKey();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return null;
-}
+};
 
 Carousel.propTypes = propTypes;
 
