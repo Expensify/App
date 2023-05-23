@@ -23,6 +23,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import Avatar from '../../components/Avatar';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
     // The currency list constant object from Onyx
@@ -34,6 +35,7 @@ const propTypes = {
     ),
     ...policyPropTypes,
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -43,6 +45,7 @@ const defaultProps = {
 
 function WorkspaceSettingsPage(props) {
     const nameIsRequiredError = props.translate('workspace.editor.nameIsRequiredError');
+    const nameIsTooLongError = props.translate('workspace.editor.nameIsTooLongError');
 
     const currencyItems = useMemo(() => {
         const currencyListKeys = _.keys(props.currencyList);
@@ -72,11 +75,15 @@ function WorkspaceSettingsPage(props) {
 
             if (!name || !name.length) {
                 errors.name = nameIsRequiredError;
+            } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
+                // code units.
+                errors.name = nameIsTooLongError;
             }
 
             return errors;
         },
-        [nameIsRequiredError],
+        [nameIsRequiredError, nameIsTooLongError],
     );
 
     const policyName = lodashGet(props.policy, 'name', '');
@@ -120,7 +127,8 @@ function WorkspaceSettingsPage(props) {
                             type={CONST.ICON_TYPE_WORKSPACE}
                             fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             style={[styles.mb3]}
-                            anchorPosition={{top: 172, right: 18}}
+                            anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
+                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             isUsingDefaultAvatar={!lodashGet(props.policy, 'avatar', null)}
                             onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(props.policy, 'id', ''), file)}
                             onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(props.policy, 'id', ''))}
@@ -158,6 +166,7 @@ WorkspaceSettingsPage.displayName = 'WorkspaceSettingsPage';
 
 export default compose(
     withPolicy,
+    withWindowDimensions,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),

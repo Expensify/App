@@ -215,7 +215,15 @@ export default {
             },
             Report_Settings: {
                 screens: {
-                    Report_Settings_Root: ROUTES.REPORT_SETTINGS,
+                    Report_Settings_Root: {
+                        path: ROUTES.REPORT_SETTINGS,
+                    },
+                    Report_Settings_Room_Name: {
+                        path: ROUTES.REPORT_SETTINGS_ROOM_NAME,
+                    },
+                    Report_Settings_Notification_Preferences: {
+                        path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES,
+                    },
                 },
             },
             NewGroup: {

@@ -18,7 +18,8 @@ import MultipleAvatars from '../../components/MultipleAvatars';
 import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ROUTES from '../../ROUTES';
 import * as Localize from '../../libs/Localize';
@@ -78,6 +79,17 @@ class WorkspaceInviteMessagePage extends React.Component {
         };
     }
 
+    componentDidMount() {
+        this.focusTimeout = setTimeout(() => {
+            this.welcomeMessageInputRef.focus();
+            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
+            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
+                const length = this.welcomeMessageInputRef.value.length;
+                this.welcomeMessageInputRef.setSelectionRange(length, length);
+            }
+        }, CONST.ANIMATED_TRANSITION);
+    }
+
     componentDidUpdate(prevProps) {
         if (
             !(
@@ -88,6 +100,13 @@ class WorkspaceInviteMessagePage extends React.Component {
             return;
         }
         this.setState({welcomeNote: this.getDefaultWelcomeNote()});
+    }
+
+    componentWillUnmount() {
+        if (!this.focusTimeout) {
+            return;
+        }
+        clearTimeout(this.focusTimeout);
     }
 
     getDefaultWelcomeNote() {
@@ -176,6 +195,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         </View>
                         <View style={[styles.mb3]}>
                             <TextInput
+                                ref={(el) => (this.welcomeMessageInputRef = el)}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
@@ -200,7 +220,7 @@ WorkspaceInviteMessagePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

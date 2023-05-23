@@ -122,6 +122,7 @@ export default {
         enterManually: 'Introducir manualmente',
         message: 'Chatear con ',
         leaveRoom: 'Salir de la sala de chat',
+        leaveThread: 'Salir del hilo',
         you: 'Tú',
         youAfterPreposition: 'ti',
         your: 'tu',
@@ -343,11 +344,14 @@ export default {
             genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
         },
     },
-    notificationPreferences: {
+    notificationPreferencesPage: {
+        header: 'Preferencias de avisos',
         label: 'Avisar sobre nuevos mensajes',
-        immediately: 'Inmediatamente',
-        daily: 'Cada día',
-        mute: 'Nunca',
+        notificationPreferences: {
+            always: 'Inmediatamente',
+            daily: 'Cada día',
+            mute: 'Nunca',
+        },
     },
     loginField: {
         numberHasNotBeenValidated: 'El número no está validado todavía. Haz click en el botón para reenviar el enlace de confirmación via SMS.',
@@ -1143,6 +1147,7 @@ export default {
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
+            nameIsTooLongError: `El nombre de su espacio de trabajo no puede tener más de ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} caracteres.`,
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',

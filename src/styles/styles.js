@@ -1209,20 +1209,20 @@ const styles = {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
-    createMenuPositionSidebar: {
-        left: 18,
-        bottom: 100,
-    },
+    createMenuPositionSidebar: (windowHeight) => ({
+        horizontal: 18,
+        vertical: windowHeight - 100,
+    }),
 
-    createMenuPositionProfile: {
-        right: 18,
-        top: 180,
-    },
+    createMenuPositionProfile: (windowWidth) => ({
+        horizontal: windowWidth - 355,
+        vertical: 250,
+    }),
 
-    createMenuPositionReportActionCompose: {
-        left: 18 + variables.sideBarWidth,
-        bottom: 75,
-    },
+    createMenuPositionReportActionCompose: (windowHeight) => ({
+        horizontal: 18 + variables.sideBarWidth,
+        vertical: windowHeight - 75,
+    }),
 
     createMenuPositionRightSidepane: {
         right: 18,
@@ -1547,27 +1547,8 @@ const styles = {
             // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
             paddingHorizontal: variables.avatarChatSpacing,
-            paddingTop: 9,
-            paddingBottom: 9,
-            alignSelf: 'center',
-            textAlignVertical: 'center',
-        },
-        0,
-    ),
-    textInputComposeMultiLines: addOutlineWidth(
-        {
-            backgroundColor: themeColors.componentBG,
-            borderColor: themeColors.border,
-            color: themeColors.text,
-            fontFamily: fontFamily.EMOJI_TEXT_FONT,
-            fontSize: variables.fontSizeNormal,
-            borderWidth: 0,
-            height: 'auto',
-            lineHeight: variables.lineHeightXLarge,
-            ...overflowXHidden,
-            paddingHorizontal: variables.avatarChatSpacing,
-            paddingTop: 5,
-            paddingBottom: 5,
+            paddingTop: 0,
+            paddingBottom: 0,
             alignSelf: 'center',
             textAlignVertical: 'center',
         },
@@ -1588,7 +1569,7 @@ const styles = {
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 0,
+        paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
     },
@@ -2456,7 +2437,6 @@ const styles = {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
-        marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
@@ -2475,12 +2455,7 @@ const styles = {
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
-        marginBottom: -10,
-    },
-
-    iouPreviewBoxAvatarHover: {
-        borderColor: themeColors.border,
-        backgroundColor: themeColors.border,
+        marginBottom: 0,
     },
 
     iouPreviewBoxCheckmark: {
@@ -2895,15 +2870,15 @@ const styles = {
         flex: 1,
     },
 
-    threeDotsPopoverOffset: {
-        top: 50,
-        right: 60,
-    },
+    threeDotsPopoverOffset: (windowWidth) => ({
+        vertical: 50,
+        horizontal: windowWidth - 60,
+    }),
 
-    threeDotsPopoverOffsetNoCloseButton: {
-        top: 50,
-        right: 10,
-    },
+    threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
+        vertical: 50,
+        horizontal: windowWidth - 10,
+    }),
 
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
@@ -3290,6 +3265,7 @@ const styles = {
     whisper: {
         backgroundColor: themeColors.cardBG,
     },
+
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
@@ -3313,6 +3289,12 @@ const styles = {
         borderColor: themeColors.borderFocus,
         borderWidth: 2,
         backgroundColor: themeColors.highlightBG,
+    },
+
+    splashScreenHider: {
+        backgroundColor: themeColors.splashBG,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     headerEnvBadge: {

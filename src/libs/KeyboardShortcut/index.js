@@ -18,7 +18,7 @@ const documentedShortcuts = {};
  * @returns {Array}
  */
 function getDocumentedShortcuts() {
-    return _.values(documentedShortcuts);
+    return _.sortBy(_.values(documentedShortcuts), 'displayName');
 }
 
 /**

@@ -18,7 +18,8 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import reportPropTypes from '../reportPropTypes';
 import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
@@ -28,6 +29,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import withWindowDimensions from '../../components/withWindowDimensions';
 
 const propTypes = {
     ...policyPropTypes,
@@ -149,7 +151,7 @@ const WorkspaceInitialPage = (props) => {
                                 onSelected: () => setIsDeleteModalOpen(true),
                             },
                         ]}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <OfflineWithFeedback
@@ -234,7 +236,8 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
+    withWindowDimensions,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
