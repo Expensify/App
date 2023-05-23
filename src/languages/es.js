@@ -600,6 +600,8 @@ export default {
         transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
         transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor, transfiere los fondos a una cuenta bancaria.',
+        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de pagos',
+        goToPayment: 'Ir a pagos',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',
@@ -750,7 +752,7 @@ export default {
         getMeOutOfHere: 'Sácame de aquí',
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
-        pageNotFound: 'La página que buscas no existe.',
+        pageNotFound: 'Ups, no deberías estar aquí',
         noAccess: 'No tienes acceso a este chat',
         goBackHome: 'Volver a la página principal',
     },
