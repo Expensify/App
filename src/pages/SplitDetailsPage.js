@@ -91,7 +91,7 @@ const SplitDetailsPage = (props) => {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {(
-                <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
+                <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(props.action)}>
                     <HeaderWithCloseButton
                         title={props.translate('common.details')}
                         onCloseButtonPress={Navigation.dismissModal}
