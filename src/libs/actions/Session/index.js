@@ -252,7 +252,7 @@ function beginSignIn(login) {
         },
     ];
 
-    API.read('BeginSignIn', {email: login, shouldUseNewBeginSignIn: true}, {optimisticData, successData, failureData});
+    API.read('BeginSignIn', {email: login, useNewBeginSignIn: true}, {optimisticData, successData, failureData});
 }
 
 /**
