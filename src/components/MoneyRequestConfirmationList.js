@@ -271,7 +271,7 @@ class MoneyRequestConfirmationList extends Component {
         const shouldShowSettlementButton = this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
         const recipient = this.state.participants[0];
-        const canModifyParticipants = !this.props.isReadOnly && (this.props.canModifyParticipants && this.props.hasMultipleParticipants);
+        const canModifyParticipants = !this.props.isReadOnly && this.props.canModifyParticipants && this.props.hasMultipleParticipants;
         const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode);
 
         return (
@@ -290,26 +290,25 @@ class MoneyRequestConfirmationList extends Component {
                 shouldUseStyleForChildren={false}
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
                 footerContent={
-                    !this.props.isReadOnly && (
-                        shouldShowSettlementButton ? (
-                            <SettlementButton
-                                isDisabled={shouldDisableButton}
-                                onPress={this.confirm}
-                                shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
-                                enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                                addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
-                                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                                currency={this.props.iou.selectedCurrencyCode}
-                                policyID={this.props.policyID}
-                            />
-                        ) : (
-                            <ButtonWithDropdownMenu
-                                isDisabled={shouldDisableButton}
-                                onPress={(_event, value) => this.confirm(value)}
-                                options={this.getSplitOrRequestOptions()}
-                            />
-                        )
-                    )
+                    !this.props.isReadOnly &&
+                    (shouldShowSettlementButton ? (
+                        <SettlementButton
+                            isDisabled={shouldDisableButton}
+                            onPress={this.confirm}
+                            shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                            currency={this.props.iou.selectedCurrencyCode}
+                            policyID={this.props.policyID}
+                        />
+                    ) : (
+                        <ButtonWithDropdownMenu
+                            isDisabled={shouldDisableButton}
+                            onPress={(_event, value) => this.confirm(value)}
+                            options={this.getSplitOrRequestOptions()}
+                        />
+                    ))
                 }
             >
                 <MenuItemWithTopDescription
@@ -327,7 +326,7 @@ class MoneyRequestConfirmationList extends Component {
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                     style={[styles.moneyRequestMenuItem, styles.mb2]}
-                    disabled={this.state.didConfirm|| this.props.isReadOnly}
+                    disabled={this.state.didConfirm || this.props.isReadOnly}
                 />
             </OptionsSelector>
         );

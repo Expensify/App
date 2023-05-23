@@ -40,7 +40,7 @@ const propTypes = {
             reportID: PropTypes.string,
 
             /** ReportActionID passed via route r/split/:reportActionID */
-            splitActionID: PropTypes.string,
+            reportActionID: PropTypes.string,
         }),
     }).isRequired,
 
@@ -102,35 +102,35 @@ const getAllParticipants = (reportAction, personalDetails) => {
 };
 
 const SplitBillDetailsPage = (props) => {
-    const reportAction = props.reportActions[`${props.route.params.splitActionID.toString()}`];
+    const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const participants = getAllParticipants(reportAction, props.personalDetails);
     const splitAmount = lodashGet(reportAction, 'originalMessage.amount', 0);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             (
-                <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
-                    <HeaderWithCloseButton
-                        title={props.translate('common.details')}
-                        onCloseButtonPress={Navigation.dismissModal}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report)}
-                    />
-                    <View
-                        pointerEvents="box-none"
-                        style={[styles.containerWithSpaceBetween]}
-                    >
-                        {Boolean(participants.length) && (
-                            <MoneyRequestConfirmationList
-                                hasMultipleParticipants
-                                participants={participants}
-                                iouAmount={splitAmount}
-                                iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                                isReadOnly
-                            />
-                        )}
-                    </View>
-                </FullPageNotFoundView>
+            <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
+                <HeaderWithCloseButton
+                    title={props.translate('common.details')}
+                    onCloseButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={Navigation.goBack}
+                    shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report)}
+                />
+                <View
+                    pointerEvents="box-none"
+                    style={[styles.containerWithSpaceBetween]}
+                >
+                    {Boolean(participants.length) && (
+                        <MoneyRequestConfirmationList
+                            hasMultipleParticipants
+                            participants={participants}
+                            iouAmount={splitAmount}
+                            iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                            isReadOnly
+                        />
+                    )}
+                </View>
+            </FullPageNotFoundView>
             )
         </ScreenWrapper>
     );
