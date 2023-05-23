@@ -303,6 +303,13 @@ export default {
             `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
+    writeCapabilityPage: {
+        label: 'Who can post',
+        writeCapability: {
+            all: 'All members',
+            admins: 'Admins only',
+        },
+    },
     sidebarScreen: {
         fabAction: 'New chat',
         newChat: 'New chat',
