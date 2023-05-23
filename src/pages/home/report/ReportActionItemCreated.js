@@ -35,12 +35,12 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
-    const offsetX = useSharedValue(-props.windowWidth / 2);
-    const offsetY = useSharedValue(50);
+    const backgroundImageOffsetX = useSharedValue(-windowWidth / 2);
+    const backgroundImageOffsetY = useSharedValue(50);
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
@@ -49,8 +49,8 @@ const ReportActionItemCreated = (props) => {
             return {
                 transform: [
                     // The x vs y here seems wrong but is the way to make it feel right to the user
-                    {translateX: withSpring(offsetX.value - qy * 65)},
-                    {translateY: withSpring(offsetY.value - qx * 65)},
+                    {translateX: withSpring(backgroundImageOffsetX.value - qy * 65)},
+                    {translateY: withSpring(backgroundImageOffsetY.value - qx * 65)},
                 ],
             };
         }
