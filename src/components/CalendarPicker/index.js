@@ -14,6 +14,7 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 class CalendarPicker extends React.PureComponent {
     constructor(props) {
@@ -101,9 +102,11 @@ class CalendarPicker extends React.PureComponent {
         return (
             <View>
                 <View style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}>
-                    <TouchableOpacity
+                    <PressableWithFeedback
                         onPress={this.onYearPickerPressed}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
+                        // disable the opacity change on hover
+                        hoverDimmingValue={1}
                     >
                         <Text
                             style={styles.sidebarLinkTextBold}
@@ -113,7 +116,7 @@ class CalendarPicker extends React.PureComponent {
                             {currentYearView}
                         </Text>
                         <ArrowIcon />
-                    </TouchableOpacity>
+                    </PressableWithFeedback>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
                         <Text
                             style={styles.sidebarLinkTextBold}
@@ -122,23 +125,27 @@ class CalendarPicker extends React.PureComponent {
                         >
                             {monthNames[currentMonthView]}
                         </Text>
-                        <TouchableOpacity
+                        <PressableWithFeedback
                             testID="prev-month-arrow"
                             disabled={!hasAvailableDatesPrevMonth}
                             onPress={this.moveToPrevMonth}
+                            // disable the opacity change on hover
+                            hoverDimmingValue={1}
                         >
                             <ArrowIcon
                                 disabled={!hasAvailableDatesPrevMonth}
                                 direction={CONST.DIRECTION.LEFT}
                             />
-                        </TouchableOpacity>
-                        <TouchableOpacity
+                        </PressableWithFeedback>
+                        <PressableWithFeedback
                             testID="next-month-arrow"
                             disabled={!hasAvailableDatesNextMonth}
                             onPress={this.moveToNextMonth}
+                            // disable the opacity change on hover
+                            hoverDimmingValue={1}
                         >
                             <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
-                        </TouchableOpacity>
+                        </PressableWithFeedback>
                     </View>
                 </View>
                 <View style={styles.flexRow}>
