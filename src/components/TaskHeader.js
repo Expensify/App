@@ -110,6 +110,7 @@ function TaskHeader(props) {
                 description={props.translate('newTaskPage.description')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 disabled={!isOpen}
+                shouldShowMultilineTitle
             />
         </View>
     );

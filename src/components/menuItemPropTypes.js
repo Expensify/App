@@ -101,6 +101,9 @@ const propTypes = {
 
     /** The ref to the menu item */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Flag to indicate whether or not the title should be displayed using multiple lines. */
+    shouldShowMultilineTitle: PropTypes.bool,
 };
 
 export default propTypes;

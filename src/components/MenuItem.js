@@ -59,6 +59,7 @@ const defaultProps = {
     shouldStackHorizontally: false,
     avatarSize: undefined,
     shouldBlockSelection: false,
+    shouldShowMultilineTitle: false,
 };
 
 const MenuItem = (props) => {
@@ -70,10 +71,11 @@ const MenuItem = (props) => {
             props.icon ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
             props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined,
-            styles.pre,
+            props.shouldShowMultilineTitle ? undefined : styles.pre,
             styles.ltr,
             props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
+            props.shouldShowMultilineTitle ? styles.flexWrap : undefined,
         ],
         props.titleStyle,
     );
@@ -159,7 +161,7 @@ const MenuItem = (props) => {
                             {Boolean(props.title) && (
                                 <Text
                                     style={titleTextStyle}
-                                    numberOfLines={1}
+                                    numberOfLines={props.shouldShowMultilineTitle ? 0 : 1}
                                 >
                                     {convertToLTR(props.title)}
                                 </Text>
