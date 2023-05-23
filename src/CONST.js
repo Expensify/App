@@ -801,8 +801,6 @@ const CONST = {
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
         MIN_AMOUNT_OF_ITEMS: 3,
         MAX_AMOUNT_OF_ITEMS: 5,
-    },
-    MENTION_SUGGESTER: {
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,

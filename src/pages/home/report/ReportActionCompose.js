@@ -450,9 +450,9 @@ class ReportActionCompose extends React.Component {
     getMentionOptions(personalDetails, searchValue = '') {
         const suggestions = [];
 
-        if (CONST.MENTION_SUGGESTER.HERE_TEXT.includes(searchValue)) {
+        if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue)) {
             suggestions.push({
-                text: CONST.MENTION_SUGGESTER.HERE_TEXT,
+                text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
                 alternateText: this.props.translate('mentionSuggestions.hereAlternateText'),
                 icons: [
                     {
@@ -636,7 +636,7 @@ class ReportActionCompose extends React.Component {
     insertSelectedMention(highlightedMentionIndex) {
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
         const mentionObject = this.state.suggestedMentions[highlightedMentionIndex];
-        const mentionCode = mentionObject.text === CONST.MENTION_SUGGESTER.HERE_TEXT ? CONST.MENTION_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
+        const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
         const commentAfterAtSignWithMentionRemoved = this.state.value.slice(this.state.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
         this.updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
