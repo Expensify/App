@@ -15,11 +15,11 @@ import * as Authentication from '../../Authentication';
 import * as Welcome from '../Welcome';
 import * as API from '../../API';
 import * as NetworkStore from '../../Network/NetworkStore';
-import DateUtils from '../../DateUtils';
 import Navigation from '../../Navigation/Navigation';
 import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
+import * as ErrorUtils from '../../ErrorUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -245,9 +245,7 @@ function beginSignIn(login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
-                },
+                errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
             },
         },
     ];
