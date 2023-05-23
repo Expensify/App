@@ -316,7 +316,7 @@ class MoneyRequestConfirmationList extends Component {
                     onPress={() => this.props.navigateToStep(0)}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={this.state.didConfirm}
+                    disabled={this.state.didConfirm || this.props.isReadOnly}
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
@@ -324,7 +324,7 @@ class MoneyRequestConfirmationList extends Component {
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                     style={[styles.moneyRequestMenuItem, styles.mb2]}
-                    disabled={this.state.didConfirm}
+                    disabled={this.state.didConfirm|| this.props.isReadOnly}
                 />
             </OptionsSelector>
         );
