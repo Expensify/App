@@ -14,7 +14,7 @@ As a bootstrapped startup, you have surrounded yourself with a small handful of 
 This playbook is built based on best practices we’ve developed after processing expenses for tens of thousands of companies around the world. As such, use this playbook as your starting point, knowing that you can customize Expensify to suit your business needs. Every company is different, and we’re always one chat away with any questions you may have.
 
 ## Step 1: Create your Expensify account
-If you don't already have one, go to *[new.expensify.com](https://new.expensifiy.com)* and sign up for an account with your business email address.
+If you don't already have one, go to *[new.expensify.com](https://new.expensify.com)* and sign up for an account with your business email address.
 
 ## Step 2: Create a Free Plan Workspace
 There are three plans (Free, Collect, and Control), but for your needs, we recommend the *Free Plan* for the following reasons:
@@ -25,7 +25,7 @@ There are three plans (Free, Collect, and Control), but for your needs, we recom
 
 To create your Free Plan Workspace:
 
-1. Go to *new.expensify.com*
+1. Go to *[new.expensify.com](https://new.expensify.com)*
 2. Select *New Workspace*
 3. Select the avatar in the top left corner
 4. Click on the workspace name and rename it
