@@ -43,6 +43,9 @@ const propTypes = {
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
 
+    /** Should the list be read only, and not editable? */
+    isReadOnly: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -71,9 +74,6 @@ const propTypes = {
     /** The policyID of the request */
     policyID: PropTypes.string,
 
-    /** Whether we can edit the amount and description details */
-    canEditDetails: PropTypes.bool,
-
     /** Whether we should show the footer button */
     shouldShowFooter: PropTypes.bool,
 };
@@ -87,10 +87,10 @@ const defaultProps = {
     },
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
+    isReadOnly: false,
     session: {
         email: null,
     },
-    canEditDetails: true,
     shouldShowFooter: true,
     policyID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -301,7 +301,11 @@ class MoneyRequestConfirmationList extends Component {
     }
 
     render() {
-        const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
+        const selectedParticipants = this.getSelectedParticipants();
+        const shouldShowSettlementButton = this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+        const shouldDisableButton = selectedParticipants.length === 0;
+        const recipient = this.state.participants[0];
+        const canModifyParticipants = !this.props.isReadOnly && (this.props.canModifyParticipants && this.props.hasMultipleParticipants);
         const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode);
 
         return (
@@ -319,24 +323,45 @@ class MoneyRequestConfirmationList extends Component {
                 shouldShowTextInput={false}
                 shouldUseStyleForChildren={false}
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-                footerContent={this.getFooterContent()}
+                footerContent={
+                    !this.props.isReadOnly && (
+                        shouldShowSettlementButton ? (
+                            <SettlementButton
+                                isDisabled={shouldDisableButton}
+                                onPress={this.confirm}
+                                shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                                enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                                addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                                currency={this.props.iou.selectedCurrencyCode}
+                                policyID={this.props.policyID}
+                            />
+                        ) : (
+                            <ButtonWithDropdownMenu
+                                isDisabled={shouldDisableButton}
+                                onPress={(_event, value) => this.confirm(value)}
+                                options={this.getSplitOrRequestOptions()}
+                            />
+                        )
+                    )
+                }
             >
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon={this.props.canEditDetails}
+                    shouldShowRightIcon={!this.props.isReadOnly}
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
                     onPress={() => this.props.navigateToStep(0)}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={this.state.didConfirm || !this.props.canEditDetails}
+                    disabled={this.state.didConfirm || this.props.isReadOnly}
                 />
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon={this.props.canEditDetails}
-                    title={this.props.iou.comment || ''}
+                    shouldShowRightIcon={!this.props.isReadOnly}
+                    title={this.props.iou.comment}
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                     style={[styles.moneyRequestMenuItem, styles.mb2]}
-                    disabled={this.state.didConfirm || !this.props.canEditDetails}
+                    disabled={this.state.didConfirm|| this.props.isReadOnly}
                 />
             </OptionsSelector>
         );
