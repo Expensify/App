@@ -1123,17 +1123,19 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat() {
-    // In order to avoid creating concierge repeatedly,
-    // we need to ensure that the server data has been successfully pulled
-    Welcome.serverDataIsReadyPromise().then(() => {
-        // If we don't have a chat with Concierge then create it
-        if (!conciergeChatReportID) {
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
-            return;
+    if (!conciergeChatReportID) {
+        // In order not to delay the report life cycle, we first navigate to the unknow report
+        if (Navigation.getReportIDFromRoute().length <= 0) {
+            Navigation.navigate(ROUTES.REPORT);
         }
-
+        // In order to avoid creating concierge repeatedly,
+        // we need to ensure that the server data has been successfully pulled
+        Welcome.serverDataIsReadyPromise().then(() => {
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
+        });
+    } else {
         Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
-    });
+    }
 }
 
 /**
