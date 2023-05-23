@@ -286,7 +286,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
     // Sometimes title is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = title.trim() || report.reportName;
+    const reportName = (title || report.reportName).trim();
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
@@ -307,7 +307,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 reportName,
-                description: description.trim() || report.description,
+                description: (description || report.description).trim(),
                 managerEmail: assignee || report.managerEmail,
             },
         },
@@ -362,7 +362,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             taskReportID: report.reportID,
             title: reportName,
-            description: description.trim() || report.description,
+            description: (description || report.description).trim(),
             assignee: assignee || report.assignee,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
