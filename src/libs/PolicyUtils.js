@@ -92,4 +92,12 @@ function isExpensifyTeam(email) {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
-export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam};
+/**
+ * Checks if the current user is an admin of the policy.
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+
+export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam, isPolicyAdmin};

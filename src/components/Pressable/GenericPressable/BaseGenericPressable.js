@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, forwardRef} from 'react';
+import React, {useCallback, useEffect, useState, useMemo, forwardRef} from 'react';
 import {Pressable} from 'react-native';
 import _ from 'underscore';
 import Accessibility from '../../../libs/Accessibility';
@@ -63,6 +63,8 @@ const GenericPressable = forwardRef((props, ref) => {
         return props.disabled || shouldBeDisabledByScreenReader;
     }, [isScreenReaderActive, enableInScreenReaderStates, props.disabled]);
 
+    const [shouldUseDisabledCursor, setShouldUseDisabledCursor] = useState(isDisabled);
+
     const onLongPressHandler = useCallback(
         (event) => {
             if (isDisabled) {
@@ -113,6 +115,14 @@ const GenericPressable = forwardRef((props, ref) => {
     );
 
     useEffect(() => {
+        if (isDisabled) {
+            const timer = setTimeout(() => setShouldUseDisabledCursor(true), 1000);
+            return () => clearTimeout(timer);
+        }
+        setShouldUseDisabledCursor(false);
+    }, [isDisabled]);
+
+    useEffect(() => {
         if (!keyboardShortcut) {
             return () => {};
         }
@@ -126,12 +136,12 @@ const GenericPressable = forwardRef((props, ref) => {
             onLayout={onLayout}
             ref={ref}
             onPress={!isDisabled ? onPressHandler : undefined}
-            onLongPress={!isDisabled ? onLongPressHandler : undefined}
+            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
-                getCursorStyle(isDisabled, [props.accessibilityRole, props.role].includes('text')),
+                getCursorStyle(shouldUseDisabledCursor, [props.accessibilityRole, props.role].includes('text')),
                 StyleUtils.parseStyleFromFunction(props.style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(props.screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(props.focusStyle, state),

@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -11,7 +10,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import CONST from '../CONST';
-import ButtonWithMenu from './ButtonWithMenu';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
@@ -68,6 +67,9 @@ const propTypes = {
 
     /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
     navigateToStep: PropTypes.func.isRequired,
+
+    /** The policyID of the request */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -79,6 +81,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    policyID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -105,13 +108,12 @@ class MoneyRequestConfirmationList extends Component {
      * @returns {Array}
      */
     getSplitOrRequestOptions() {
+        const text = this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
+            amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode),
+        });
         return [
             {
-                text: Str.recapitalize(
-                    this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-                        amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode),
-                    }),
-                ),
+                text: text[0].toUpperCase() + text.slice(1),
                 value: this.props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
@@ -290,9 +292,10 @@ class MoneyRequestConfirmationList extends Component {
                             addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
+                            policyID={this.props.policyID}
                         />
                     ) : (
-                        <ButtonWithMenu
+                        <ButtonWithDropdownMenu
                             isDisabled={shouldDisableButton}
                             onPress={(_event, value) => this.confirm(value)}
                             options={this.getSplitOrRequestOptions()}

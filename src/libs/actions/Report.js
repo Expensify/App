@@ -21,6 +21,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
+import * as EmojiUtils from '../EmojiUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -41,13 +42,7 @@ let preferredSkinTone;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     callback: (val) => {
-        // the preferred skin tone is sometimes still "default", although it
-        // was changed that "default" has become -1.
-        if (!_.isNull(val) && Number.isInteger(Number(val))) {
-            preferredSkinTone = val;
-        } else {
-            preferredSkinTone = -1;
-        }
+        preferredSkinTone = EmojiUtils.getPreferredSkinToneIndex(val);
     },
 });
 
@@ -218,7 +213,7 @@ function addActions(reportID, text = '', file) {
 
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
-        lastMessageText: Str.htmlDecode(lastCommentText),
+        lastMessageText: lastCommentText,
         lastActorEmail: currentUserEmail,
         lastReadTime: currentTime,
     };
@@ -403,6 +398,20 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
 
             // Add the createdReportActionID parameter to the API call
             params.createdReportActionID = optimisticCreatedAction.reportActionID;
+        }
+
+        // If we are creating a thread, ensure the report action has childReportID property added
+        if (newReportObject.parentReportID && parentReportActionID) {
+            onyxData.optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
+                value: {[parentReportActionID]: {childReportID: reportID}},
+            });
+            onyxData.failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
+                value: {[parentReportActionID]: {childReportID: '0'}},
+            });
         }
     }
 
@@ -897,7 +906,7 @@ const extractLinksInMarkdownComment = (comment) => {
     const matches = [...comment.matchAll(regex)];
 
     // Element 1 from match is the regex group if it exists which contains the link URLs
-    const links = _.map(matches, (match) => match[1]);
+    const links = _.map(matches, (match) => Str.sanitizeURL(match[1]));
     return links;
 };
 
@@ -1018,7 +1027,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         const reportComment = parser.htmlToText(htmlForNewComment);
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
-            lastMessageText: Str.htmlDecode(lastMessageText),
+            lastMessageText,
         };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1086,7 +1095,11 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} previousValue
  * @param {String} newValue
  */
-function updateNotificationPreference(reportID, previousValue, newValue) {
+function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
+    if (previousValue === newValue) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        return;
+    }
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1102,6 +1115,7 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1239,9 +1253,15 @@ function navigateToConciergeChatAndDeleteReport(reportID) {
  * @param {String} policyRoomReport.reportName
  * @param {String} policyRoomName The updated name for the policy room
  */
-function updatePolicyRoomName(policyRoomReport, policyRoomName) {
+function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
     const reportID = policyRoomReport.reportID;
     const previousName = policyRoomReport.reportName;
+
+    // No change needed, navigate back
+    if (previousName === policyRoomName) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        return;
+    }
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1278,6 +1298,7 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1369,6 +1390,7 @@ function showReportActionNotification(reportID, action) {
 
     Log.info('[LocalNotification] Creating notification');
     LocalNotification.showCommentNotification({
+        report: allReports[reportID],
         reportAction: action,
         onClick: () => {
             // Navigate to this report onClick
@@ -1576,11 +1598,48 @@ function openReportFromDeepLink(url) {
     });
 }
 
+/**
+ * Leave a report by setting the state to submitted and closed
+ *
+ * @param {String} reportID
+ */
+function leaveRoom(reportID) {
+    API.write(
+        'LeaveRoom',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS.CLOSED,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS.OPEN,
+                    },
+                },
+            ],
+        },
+    );
+    navigateToConciergeChat();
+}
+
 export {
     addComment,
     addAttachment,
     reconnect,
-    updateNotificationPreference,
+    updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
     saveReportComment,
@@ -1606,8 +1665,8 @@ export {
     navigateToAndOpenReport,
     navigateToAndOpenChildReport,
     openPaymentDetailsPage,
+    updatePolicyRoomNameAndNavigate,
     openMoneyRequestsReportPage,
-    updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
@@ -1617,4 +1676,5 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
+    leaveRoom,
 };

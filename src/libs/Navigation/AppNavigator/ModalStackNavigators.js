@@ -160,6 +160,37 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Report_Details_Root',
     },
+    {
+        getComponent: () => {
+            const ShareCodePage = require('../../../pages/home/report/ReportDetailsShareCodePage').default;
+            return ShareCodePage;
+        },
+        name: 'Report_Details_Share_Code',
+    },
+]);
+
+const ReportSettingsModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ReportSettingsPage = require('../../../pages/settings/Report/ReportSettingsPage').default;
+            return ReportSettingsPage;
+        },
+        name: 'Report_Settings_Root',
+    },
+    {
+        getComponent: () => {
+            const RoomNamePage = require('../../../pages/settings/Report/RoomNamePage').default;
+            return RoomNamePage;
+        },
+        name: 'Report_Settings_Room_Name',
+    },
+    {
+        getComponent: () => {
+            const NotificationPreferencesPage = require('../../../pages/settings/Report/NotificationPreferencePage').default;
+            return NotificationPreferencesPage;
+        },
+        name: 'Report_Settings_Notification_Preferences',
+    },
 ]);
 
 const TaskModalStackNavigator = createModalStackNavigator([
@@ -183,16 +214,6 @@ const TaskModalStackNavigator = createModalStackNavigator([
             return TaskAssigneeSelectorPage;
         },
         name: 'Task_Assignee',
-    },
-]);
-
-const ReportSettingsModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const ReportSettingsPage = require('../../../pages/ReportSettingsPage').default;
-            return ReportSettingsPage;
-        },
-        name: 'Report_Settings_Root',
     },
 ]);
 
@@ -295,6 +316,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return SettingsInitialPage;
         },
         name: 'Settings_Root',
+    },
+    {
+        getComponent: () => {
+            const ShareCodePage = require('../../../pages/ShareCodePage').default;
+            return ShareCodePage;
+        },
+        name: 'Settings_Share_Code',
     },
     {
         getComponent: () => {
@@ -583,6 +611,41 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return GetAssistancePage;
         },
         name: 'GetAssistance',
+    },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
+            return SettingsTwoFactorAuthIsEnabled;
+        },
+        name: 'Settings_TwoFactorAuthIsEnabled',
+    },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthDisable = require('../../../pages/settings/Security/TwoFactorAuth/DisablePage').default;
+            return SettingsTwoFactorAuthDisable;
+        },
+        name: 'Settings_TwoFactorAuthDisable',
+    },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthCodes = require('../../../pages/settings/Security/TwoFactorAuth/CodesPage').default;
+            return SettingsTwoFactorAuthCodes;
+        },
+        name: 'Settings_TwoFactorAuthCodes',
+    },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthVerify = require('../../../pages/settings/Security/TwoFactorAuth/VerifyPage').default;
+            return SettingsTwoFactorAuthVerify;
+        },
+        name: 'Settings_TwoFactorAuthVerify',
+    },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthSuccess = require('../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default;
+            return SettingsTwoFactorAuthSuccess;
+        },
+        name: 'Settings_TwoFactorAuthSuccess',
     },
 ]);
 
