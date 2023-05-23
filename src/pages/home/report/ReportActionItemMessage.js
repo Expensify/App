@@ -15,17 +15,20 @@ const propTypes = {
     /** Additional styles to add after local styles. */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    isHidden: PropTypes.bool,
+
     /** localization props */
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     style: [],
+    isHidden: false,
 };
 
 const ReportActionItemMessage = (props) => (
     <View style={[styles.chatItemMessage, ...props.style]}>
-        {_.map(_.compact(props.action.previousMessage || props.action.message), (fragment, index) => (
+        {!props.isHidden ? _.map(_.compact(props.action.previousMessage || props.action.message), (fragment, index) => (
             <ReportActionItemFragment
                 key={`actionFragment-${props.action.reportActionID}-${index}`}
                 fragment={fragment}
@@ -36,7 +39,7 @@ const ReportActionItemMessage = (props) => (
                 loading={props.action.isLoading}
                 style={props.style}
             />
-        ))}
+        )) : 'hi'}
     </View>
 );
 

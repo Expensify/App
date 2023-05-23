@@ -10,6 +10,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import Hoverable from '../../../components/Hoverable';
+import Button from '../../../components/Button';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import MoneyRequestAction from '../../../components/ReportActionItem/MoneyRequestAction';
@@ -105,6 +106,8 @@ const defaultProps = {
 
 function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
+    const [isHidden, setIsHidden] = useState(true);
+    const [moderationDecision, setModerationDecision] = useState('approved');
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
 
@@ -119,6 +122,40 @@ function ReportActionItem(props) {
         // if the input is given focus in the middle of that animation which can prevent the keyboard from opening.
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [isDraftEmpty]);
+
+    // hide the message if it is being moderated
+    useEffect(() => {
+        if (!props.action.moderationDecisions || _.isEmpty(props.action.moderationDecisions)) {
+            return;
+        }
+
+        const decisions = props.action.moderationDecisions;
+        let lastDecision;
+        
+        decisions.foreach((decision) => {
+            // removed will always take precedence - there's no going back from that currently
+            if (decision.decision === 'removed') {
+                setModerationDecision(decision.decision);
+                setIsHidden(true);
+                return;
+            }
+
+            // pending will always be the most recent if it exists
+            if (decision.decision === 'pending') {
+                setModerationDecision(decision.decision);
+                setIsHidden(true);
+                return;
+            }
+
+            if (!lastDecision || lastDecision.timestamp < decision.timestamp) {
+                lastDecision = decision;
+            }
+        })
+
+        setModerationDecision(lastDecision.decision);
+        setIsHidden(moderationDecision === 'pending' || moderationDecision === 'hidden');
+
+    }, [props.action, moderationDecision])
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -243,6 +280,7 @@ function ReportActionItem(props) {
                     {!props.draftMessage ? (
                         <ReportActionItemMessage
                             action={props.action}
+                            isHidden={isHidden}
                             style={[
                                 !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
                                 _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName) ? styles.colorMuted : undefined,
@@ -263,6 +301,14 @@ function ReportActionItem(props) {
                             }
                         />
                     )}
+                    {moderationDecision === 'approved' &&
+                        <Button
+                            onPress={() => {
+                                setIsHidden(!isHidden);
+                            }}
+                            text={isHidden ? 'true' : 'false'}
+                        />
+                    }
                 </ShowContextMenuContext.Provider>
             );
         }
