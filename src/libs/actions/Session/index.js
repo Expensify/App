@@ -466,7 +466,9 @@ function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAut
  */
 function initAutoAuthState(cachedAutoAuthState) {
     Onyx.merge(ONYXKEYS.SESSION, {
-        autoAuthState: cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN ? CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN : CONST.AUTO_AUTH_STATE.NOT_STARTED,
+        autoAuthState: _.contains([CONST.AUTO_AUTH_STATE.SIGNING_IN, CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN], cachedAutoAuthState)
+            ? CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN
+            : CONST.AUTO_AUTH_STATE.NOT_STARTED,
     });
 }
 
