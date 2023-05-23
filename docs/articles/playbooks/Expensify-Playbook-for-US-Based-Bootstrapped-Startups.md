@@ -31,7 +31,7 @@ To create your Free Plan Workspace:
 4. Click on the workspace name and rename it
 5. Express yourself by adding an avatar image, preferably an image of yourself
 
-The Free Plan also gives you direct access to lightning-fast 24/7 support via Concierge. Within new.expensify.com, you can start a direct message (DM) with Concierge anytime.
+The Free Plan also gives you direct access to lightning-fast 24/7 support via Concierge. Within [new.expensify.com](https://new.expensify.com/concierge), you can start a direct message (DM) with Concierge anytime.
 
 ## Step 3: Invite Your Team
 As a bootstrapped startup, you communicate with your team all day. Similarly, if you are a co-founder, you will have multiple people that will need to capture receipts for your project.
@@ -87,5 +87,5 @@ To view and pay bills:
 When you have bills to pay you can click *View all bills* under the *Manage your bills* box and we’ll keep a neatly organized list of all of the bills you can pay via ACH directly from your Expensify account.
 
 # You’re all set!
-Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Concierge directly in new.expensify.com, or email concierge@expensify.com. Create a Collect or Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you.
+Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Concierge directly in [new.expensify.com](https://new.expensify.com/concierge), or email concierge@expensify.com. Create a Collect or Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you.
 

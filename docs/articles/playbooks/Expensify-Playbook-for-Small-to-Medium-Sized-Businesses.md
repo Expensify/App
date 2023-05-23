@@ -280,4 +280,4 @@ Now that we’ve gone through all of the steps for setting up your account, let�
 4. Click *Accept Terms*
 
 ## You’re all set!
-Congrats, you are all set up! If you need any assistance with anything mentioned above or would like to understand other features available in Expensify, reach out to your Setup Specialist directly in new.expensify.com. Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you. 
+Congrats, you are all set up! If you need any assistance with anything mentioned above or would like to understand other features available in Expensify, reach out to your Setup Specialist directly in [new.expensify.com](https://new.expensify.com). Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you. 

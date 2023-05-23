@@ -29,7 +29,7 @@ To create your Control Policy:
 2. Select *Group* and click the button that says *New Policy*
 3. Click *Select* under Control
 
-The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's #admins room at new.expensify.com, and chatting with them there. The Control plan is bundled with the Expensify Card is $9 per user per month when you commit annually, which is a 75% discount off our standard unbundled price point. The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in [new.expensify.com](https://new.expensify.com), and chat with them there.
+The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's #admins room at [new.expensify.com](https://new.expensify.com), and chatting with them there. The Control plan is bundled with the Expensify Card is $9 per user per month when you commit annually, which is a 75% discount off our standard unbundled price point. The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in [new.expensify.com](https://new.expensify.com), and chat with them there.
 
 ## Step 3: Connect your accounting system
 As a VC-backed company, your investors will want to see that your books are managed properly. That means making sure that:
@@ -205,4 +205,4 @@ Now that we’ve gone through all of the steps for setting up your account, let�
 4. Click *Accept Terms*
 
 # You’re all set!
-Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Setup Specialist or your Account Manager directly in new.expensify.com. Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you.
+Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Setup Specialist or your Account Manager directly in [new.expensify.com](https://new.expensify.com). Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you.
