@@ -1,6 +1,6 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import {useWindowDimensions} from 'react-native';
-import Reanimated, {useWorkletCallback, KeyboardState, useAnimatedKeyboard, useAnimatedStyle, useDerivedValue, withSpring, useAnimatedReaction, runOnJS} from 'react-native-reanimated';
+import Reanimated, {useWorkletCallback, KeyboardState, useAnimatedKeyboard, useAnimatedStyle, useDerivedValue, withSpring, useAnimatedReaction, runOnJS, withSequence, withTiming} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import styles from '../../styles/styles';
 import {Actions, States, ActionSheetAwareScrollViewContext} from './ActionSheetAwareScrollViewContext';
@@ -18,10 +18,13 @@ function ActionSheetKeyboardSpace(props) {
     // similar to using `global` in worklet but it's just a local object
     const [syncLocalWorkletState] = useState({
         shouldRunAnimation: false,
-        keyboardValue: 0,
+        lastKeyboardHeight: 0,
     });
     const {height: windowHeight} = useWindowDimensions();
     const {currentActionSheetState, transitionActionSheetStateWorklet: transition, transitionActionSheetState, resetStateMachine} = useContext(ActionSheetAwareScrollViewContext);
+
+    // Reset state machine when component unmounts
+    useEffect(() => () => resetStateMachine(), [resetStateMachine])
 
     useAnimatedReaction(
         () => keyboard.state.value,
@@ -34,11 +37,11 @@ function ActionSheetKeyboardSpace(props) {
 
           if (lastState === KeyboardState.OPEN) {
             runOnJS(transitionActionSheetState)({
-                type: Actions.ON_KEYBOARD_OPEN,
+                type: Actions.OPEN_KEYBOARD,
             });
           } else if (lastState === KeyboardState.CLOSED) {
             runOnJS(transitionActionSheetState)({
-                type: Actions.ON_KEYBOARD_CLOSE,
+                type: Actions.CLOSE_KEYBOARD,
             });
           }
         },
@@ -75,13 +78,13 @@ function ActionSheetKeyboardSpace(props) {
 
         // sometimes we need to know the last keyboard height
         if (keyboard.state.value === KeyboardState.OPEN && keyboardHeight !== 0) {
-            syncLocalWorkletState.keyboardValue = keyboardHeight;
+            syncLocalWorkletState.lastKeyboardHeight = keyboardHeight;
         }
-        const lastKeyboardValue = syncLocalWorkletState.keyboardValue;
+        const lastKeyboardHeight = syncLocalWorkletState.lastKeyboardHeight;
 
         const {popoverHeight, fy, height} = current.payload || {};
 
-        const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardValue : 0;
+        const invertedKeyboardHeight = keyboard.state.value === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
 
         const elementOffset = fy + safeArea.top + height - (windowHeight - popoverHeight);
 
@@ -96,11 +99,19 @@ function ActionSheetKeyboardSpace(props) {
         switch (current.state) {
             case States.KEYBOARD_OPEN: {
                 if (previous.state === States.KEYBOARD_CLOSING_POPOVER) {
-                    return withSpring(0, config, () => {
-                        transition({
-                            type: Actions.END_TRANSITION,
-                        });
-                    });
+                    // return withSpring(0, config, () => {
+                    //     transition({
+                    //         type: Actions.END_TRANSITION,
+                    //     });
+                    // });
+                    return withSequence(
+                        withTiming(elementOffset + invertedKeyboardHeight, {
+                          duration: 0,
+                        }),
+                        withSpring(0, config, () => {
+                          transition({type: Actions.END_TRANSITION});
+                        })
+                      );
                 }
 
                 return 0;
@@ -157,15 +168,17 @@ function ActionSheetKeyboardSpace(props) {
                     return 0;
                 }
 
-                return lastKeyboardValue;
+                return lastKeyboardHeight;
             }
 
             case States.CLOSING_KEYBOARD_POPOVER: {
+                transition({type: Actions.END_TRANSITION});
                 return invertedKeyboardHeight;
             }
 
             case States.KEYBOARD_CLOSING_POPOVER: {
                 if (elementOffset < 0) {
+                    transition({type: Actions.END_TRANSITION});
                     return invertedKeyboardHeight;
                 }
 
@@ -173,7 +186,21 @@ function ActionSheetKeyboardSpace(props) {
                     return elementOffset + keyboardHeight;
                 }
 
-                return elementOffset;
+                // return elementOffset;
+                return withSequence(
+                    withTiming(elementOffset + lastKeyboardHeight, {
+                      duration: 0,
+                    }),
+                    withTiming(
+                      elementOffset,
+                      {
+                        duration: 0,
+                      },
+                      () => {
+                        transition({type: Actions.END_TRANSITION});
+                      }
+                    )
+                  );
             }
 
             case States.KEYBOARD_POPOVER_OPEN: {

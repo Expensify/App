@@ -151,7 +151,7 @@ function ReportActionItem(props) {
     const handleShowContextMenu = useCallback((callback) => {
         popoverAnchorRef.current.measureInWindow((_fx, fy, _width, height) => {
             actionSheetAwareScrollViewContext.transitionActionSheetState({
-                type: ActionSheetAwareScrollView.Actions.POPOVER_OPEN,
+                type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
                 payload: {
                     fy,
                     height,
@@ -169,6 +169,8 @@ function ReportActionItem(props) {
      */
     const showPopover = useCallback(
         (event) => {
+            console.log('show popover')
+
             // Block menu on the message being Edited or if the report action item has errors
             if (props.draftMessage || !_.isEmpty(props.action.errors)) {
                 return;
