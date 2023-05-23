@@ -111,6 +111,9 @@ class ReportActionItemMessageEdit extends React.Component {
     }
 
     componentDidMount() {
+        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
+        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
+        // so we need to ensure that it is only updated after focus.
         this.setState((prevState) => ({
             selection: {
                 start: prevState.draft.length,
