@@ -38,6 +38,9 @@ const propTypes = {
         params: PropTypes.shape({
             /** Report ID passed via route r/:reportID/split/details */
             reportID: PropTypes.string,
+
+            /** ReportActionID passed via route r/split/:reportActionID */
+            reportActionID: PropTypes.string,
         }),
     }).isRequired,
 
@@ -48,6 +51,18 @@ const defaultProps = {
     personalDetails: {},
     action: {},
 };
+
+/**
+ * Get the reportID for the associated chatReport
+ *
+ * @param {Object} route
+ * @param {Object} route.params
+ * @param {String} route.params.chatReportID
+ * @returns {String}
+ */
+function getChatReportID(route) {
+    return route.params.reportID.toString();
+}
 
 /**
  * Returns all the participants in the active report
@@ -87,6 +102,7 @@ const getAllParticipants = (report, personalDetails) => {
 
 const SplitDetailsPage = (props) => {
     const participants = getAllParticipants(props.report, props.personalDetails);
+    const splitAmount = lodashGet(props.action, 'originalMessage.IOUDetails.amount', 0);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -106,7 +122,7 @@ const SplitDetailsPage = (props) => {
                             <MoneyRequestConfirmationList
                                 hasMultipleParticipants
                                 participants={participants}
-                                iouAmount={9999} // todo
+                                iouAmount={splitAmount}
                                 iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                                 isReadOnly
                             />
@@ -128,6 +144,10 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getChatReportID(route)}`,
+            canEvict: false,
         },
     }),
 )(SplitDetailsPage);
