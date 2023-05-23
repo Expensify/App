@@ -383,7 +383,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     API.write('SigninUser', params, {optimisticData, successData, failureData});
 }
 
-function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
+function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
@@ -444,14 +444,15 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode) {
             accountID,
             validateCode,
             twoFactorAuthCode,
+            preferredLocale,
             deviceInfo: getDeviceInfoForLogin(),
         },
         {optimisticData, successData, failureData},
     );
 }
 
-function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode) {
-    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode);
+function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
+    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode, preferredLocale);
     Navigation.navigate(ROUTES.HOME);
 }
 
