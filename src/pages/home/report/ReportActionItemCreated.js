@@ -3,9 +3,7 @@ import {Pressable, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import Animated, {
-    useSharedValue, useAnimatedStyle, useAnimatedSensor, SensorType, withSpring,
-} from 'react-native-reanimated';
+import Animated, {useSharedValue, useAnimatedStyle, useAnimatedSensor, SensorType, withSpring} from 'react-native-reanimated';
 import ONYXKEYS from '../../../ONYXKEYS';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
@@ -39,15 +37,9 @@ const defaultProps = {
 };
 
 const ReportActionItemCreated = (props) => {
-    if (!ReportUtils.isChatReport(props.report)) {
-        return null;
-    }
-
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
-
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
-    const offsetX = useSharedValue((-props.windowWidth / 2));
+    const offsetX = useSharedValue(-props.windowWidth / 2);
     const offsetY = useSharedValue(50);
 
     // Apply data to create style object
@@ -57,13 +49,19 @@ const ReportActionItemCreated = (props) => {
             return {
                 transform: [
                     // The x vs y here seems wrong but is the way to make it feel right to the user
-                    {translateX: withSpring(offsetX.value - (qy * 65))},
-                    {translateY: withSpring(offsetY.value - (qx * 65))},
+                    {translateX: withSpring(offsetX.value - qy * 65)},
+                    {translateY: withSpring(offsetY.value - qx * 65)},
                 ],
             };
         }
         return {};
     });
+
+    if (!ReportUtils.isChatReport(props.report)) {
+        return null;
+    }
+
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
 
     return (
         <OfflineWithFeedback
