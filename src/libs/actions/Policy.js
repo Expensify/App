@@ -865,6 +865,7 @@ function generatePolicyID() {
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ * @returns {String}
  */
 function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(ownerEmail);
@@ -1073,6 +1074,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             ],
         },
     );
+    return adminsChatReportID;
 }
 
 /**

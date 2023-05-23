@@ -10,7 +10,7 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import * as Policy from './Policy';
-import Navigation from '../Navigation/Navigation';
+import Navigation, {navigationRef} from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
@@ -241,12 +241,17 @@ function endSignOnTransition() {
  */
 function createWorkspaceAndNavigateToIt(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
     const policyID = Policy.generatePolicyID();
-    Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, policyID);
+    const adminsChatReportID = Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, policyID);
     Navigation.isNavigationReady()
         .then(() => {
             if (transitionFromOldDot) {
                 Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
             }
+
+            // Get the reportID associated with the newly created #admins room and route the user to that chat
+            const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
+            Navigation.setParams({reportID: adminsChatReportID}, routeKey);
+
             Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
         })
         .then(endSignOnTransition);

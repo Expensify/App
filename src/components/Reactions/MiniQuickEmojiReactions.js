@@ -16,7 +16,7 @@ import {baseQuickEmojiReactionsPropTypes} from './QuickEmojiReactions/BaseQuickE
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import getPreferredEmojiCode from './getPreferredEmojiCode';
+import * as EmojiUtils from '../../libs/EmojiUtils';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
@@ -67,7 +67,7 @@ const MiniQuickEmojiReactions = (props) => {
                     tooltipText={`:${emoji.name}:`}
                     onPress={() => props.onEmojiSelected(emoji)}
                 >
-                    <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
+                    <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem

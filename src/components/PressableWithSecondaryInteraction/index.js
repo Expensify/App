@@ -17,8 +17,12 @@ class PressableWithSecondaryInteraction extends Component {
     }
 
     componentDidMount() {
-        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
-            this.props.forwardedRef(this.pressableRef);
+        if (this.props.forwardedRef) {
+            if (_.isFunction(this.props.forwardedRef)) {
+                this.props.forwardedRef(this.pressableRef);
+            } else if (_.isObject(this.props.forwardedRef)) {
+                this.props.forwardedRef.current = this.pressableRef;
+            }
         }
         this.pressableRef.addEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
     }
