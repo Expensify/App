@@ -334,7 +334,7 @@ function getPolicyType(report, policies) {
 /**
  * If the report is a policy expense, the route should be for adding bank account for that policy
  * else since the report is a personal IOU, the route should be for personal bank account.
- * @param {Object} report 
+ * @param {Object} report
  * @returns {String}
  */
 function getBankAccountRoute(report) {
