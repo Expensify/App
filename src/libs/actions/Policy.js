@@ -1075,9 +1075,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         }
 
         // Get the reportID associated with the newly created #admins room and route the user to that chat
-        const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
-        Navigation.setParams({reportID: adminsChatReportID}, routeKey);
-
+        Navigation.navigate(ROUTES.getReportRoute(adminsChatReportID));
         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
     });
 }
