@@ -44,7 +44,7 @@ const propTypes = {
     /** Whether to show the toolip text */
     shouldShowTooltip: PropTypes.bool,
 
-    /** Whether avatars are displayed within an IOUAction */
+    /** Whether avatars are displayed with the highlighted background color instead of the app background color. This is primarily the case for IOU previews. */
     shouldUseCardBackground: PropTypes.bool,
 };
 
