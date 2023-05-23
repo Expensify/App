@@ -44,13 +44,18 @@ const ReportActionItemCreated = (props) => {
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
-        const {qx, qy} = animatedSensor.sensor.value;
+        /*
+         * We use pitch and roll instead of x and y because Reanimated makes these consistent across iOS and Android by standardizing on the iOS convention.
+         * For a visualization of what these values mean: https://howthingsfly.si.edu/flight-dynamics/roll-pitch-and-yaw
+         * These values are in radians
+         */
+        const {pitch, roll} = animatedSensor.sensor.value;
         if (isSmallScreenWidth) {
             return {
                 transform: [
                     // The x vs y here seems wrong but is the way to make it feel right to the user
-                    {translateX: withSpring(backgroundImageOffsetX.value - qy * 65)},
-                    {translateY: withSpring(backgroundImageOffsetY.value - qx * 65)},
+                    {translateX: withSpring(backgroundImageOffsetX.value - roll * 65)},
+                    {translateY: withSpring(backgroundImageOffsetY.value - pitch * 65)},
                 ],
             };
         }
