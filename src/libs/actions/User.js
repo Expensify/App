@@ -596,6 +596,10 @@ function subscribeToUserEventsUsingMultipleEventType() {
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
+            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            if (!currentUserAccountID) {
+                return;
+            }
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
         });
@@ -612,6 +616,10 @@ function subscribeToUserDeprecatedEvents() {
     // Receive any relevant Onyx updates from the server
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
+            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            if (!currentUserAccountID) {
+                return;
+            }
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
         });

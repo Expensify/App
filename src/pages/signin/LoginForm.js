@@ -116,7 +116,7 @@ class LoginForm extends React.Component {
             formError: null,
         });
 
-        if (this.props.account.errors) {
+        if (this.props.account.errors || this.props.account.message) {
             Session.clearAccountMessages();
         }
 
