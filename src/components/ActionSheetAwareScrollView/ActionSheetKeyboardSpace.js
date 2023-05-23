@@ -176,6 +176,21 @@ function ActionSheetKeyboardSpace(props) {
                 return invertedKeyboardHeight;
             }
 
+
+            case States.KEYBOARD_POPOVER_OPEN: {
+                if (keyboard.state.value === KeyboardState.OPEN) {
+                    return 0;
+                }
+
+                const nextOffset = elementOffset + keyboardHeight;
+
+                if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
+                    return setAndTiming(keyboardHeight, nextOffset < 0 ? 0 : nextOffset);
+                }
+
+                return keyboardHeight;
+            }
+
             case States.KEYBOARD_CLOSED_POPOVER: {
                 if (elementOffset < 0) {
                     transition({type: Actions.END_TRANSITION});
@@ -201,20 +216,6 @@ function ActionSheetKeyboardSpace(props) {
                       }
                     )
                   );
-            }
-
-            case States.KEYBOARD_POPOVER_OPEN: {
-                if (keyboard.state.value === KeyboardState.OPEN) {
-                    return 0;
-                }
-
-                const nextOffset = elementOffset + keyboardHeight;
-
-                if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
-                    return setAndTiming(keyboardHeight, nextOffset < 0 ? 0 : nextOffset);
-                }
-
-                return keyboardHeight;
             }
 
             default:
