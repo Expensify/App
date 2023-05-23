@@ -124,11 +124,13 @@ const ReportPreview = (props) => {
                                     {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
                                 </Text>
                                 {!props.iouReport.hasOutstandingIOU && (
-                                    <Icon
-                                        style={[styles.ml10]}
-                                        src={Expensicons.Checkmark}
-                                        fill={themeColors.iconSuccessFill}
-                                    />
+                                    <View style={styles.iouPreviewBoxCheckmark}>
+                                        <Icon
+                                            style={[styles.ml10]}
+                                            src={Expensicons.Checkmark}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
+                                    </View>
                                 )}
                             </View>
                         )}
