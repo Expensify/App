@@ -310,7 +310,7 @@ class MoneyRequestConfirmationList extends Component {
                 }
             >
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!this.props.isReadOnly}
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
                     onPress={() => this.props.navigateToStep(0)}
@@ -319,7 +319,7 @@ class MoneyRequestConfirmationList extends Component {
                     disabled={this.state.didConfirm || this.props.isReadOnly}
                 />
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!this.props.isReadOnly}
                     title={this.props.iou.comment}
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
