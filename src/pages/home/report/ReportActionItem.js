@@ -37,7 +37,6 @@ import * as ReportActions from '../../../libs/actions/ReportActions';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
-import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
 import * as Report from '../../../libs/actions/Report';
@@ -114,10 +113,13 @@ function ReportActionItem(props) {
             return;
         }
 
-        // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
-        // There is an animation when the comment is hidden and the edit form is shown, and there can be bugs on different mobile platforms
-        // if the input is given focus in the middle of that animation which can prevent the keyboard from opening.
-        focusTextInputAfterAnimation(textInputRef.current, 100);
+        // Focus the text input with a slight delay to make sure modals are closed first.
+        // Since in react-native-modal `onModalHide` is called before the modal is actually hidden.
+        // It results in the keyboard being dismissed right away on both iOS and Android.
+        // See this discussion for more details: https://github.com/Expensify/App/issues/18300
+        setTimeout(() => {
+            textInputRef.current.focus();
+        }, 100);
     }, [isDraftEmpty]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
