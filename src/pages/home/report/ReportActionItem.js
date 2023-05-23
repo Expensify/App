@@ -278,14 +278,25 @@ function ReportActionItem(props) {
                     }}
                 >
                     {!props.draftMessage ? (
-                        <ReportActionItemMessage
-                            action={props.action}
-                            isHidden={isHidden}
-                            style={[
-                                !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
-                                _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName) ? styles.colorMuted : undefined,
-                            ]}
-                        />
+                        <View style={props.displayAsGroup && moderationDecision !== 'approved' ? styles.blockquote : {}}>
+                            <ReportActionItemMessage
+                                action={props.action}
+                                isHidden={isHidden}
+                                style={[
+                                    !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
+                                    _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName) ? styles.colorMuted : undefined,
+                                ]}
+                            />
+                            {props.displayAsGroup && moderationDecision !== 'approved' &&
+                                <Button
+                                    small
+                                    style={[styles.mt2, styles.alignSelfStart]}
+                                    onPress={() => setIsHidden(!isHidden)}
+                                >
+                                    <Text style={styles.buttonSmallText} selectable={false} >{isHidden ? 'Reveal message' : 'Hide message'}</Text>
+                                </Button>
+                            }
+                        </View>
                     ) : (
                         <ReportActionItemMessageEdit
                             action={props.action}
@@ -301,13 +312,14 @@ function ReportActionItem(props) {
                             }
                         />
                     )}
-                    {moderationDecision === 'approved' &&
+                    {!props.displayAsGroup && moderationDecision !== 'approved' &&
                         <Button
-                            onPress={() => {
-                                setIsHidden(!isHidden);
-                            }}
-                            text={isHidden ? 'true' : 'false'}
-                        />
+                            small
+                            style={[styles.mt2, styles.alignSelfStart]}
+                            onPress={() => setIsHidden(!isHidden)}
+                        >
+                            <Text style={styles.buttonSmallText} selectable={false} >{isHidden ? 'Reveal message' : 'Hide message'}</Text>
+                        </Button>
                     }
                 </ShowContextMenuContext.Provider>
             );
@@ -368,6 +380,7 @@ function ReportActionItem(props) {
                     wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
+                    isHidden={isHidden}
                 >
                     {content}
                 </ReportActionItemSingle>

@@ -127,7 +127,9 @@ const ReportActionItemSingle = (props) => {
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
-                {props.children}
+                <View style={styles.blockquote}>
+                    {props.children}
+                </View>
             </View>
         </View>
     );

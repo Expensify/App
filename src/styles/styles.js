@@ -1018,6 +1018,10 @@ const styles = {
         lineHeight: 16,
     },
 
+    lh20: {
+        lineHeight: 20,
+    },
+
     lh140Percent: {
         lineHeight: '140%',
     },

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -39,7 +39,7 @@ const ReportActionItemMessage = (props) => (
                 loading={props.action.isLoading}
                 style={props.style}
             />
-        )) : 'hi'}
+        )) : <Text style={[styles.textLabelSupporting, styles.lh20]}>This message has been flagged as violating our community rules and the content has been hidden.</Text>}
     </View>
 );
 
