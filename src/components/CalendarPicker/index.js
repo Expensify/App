@@ -19,7 +19,7 @@ class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        const currentSelection = moment(props.value, CONST.DATE.MOMENT_FORMAT_STRING);
+        let currentSelection = moment(props.value, CONST.DATE.MOMENT_FORMAT_STRING);
         let currentDateView = currentSelection.toDate();
 
         if (props.selectedYear) {
@@ -30,8 +30,10 @@ class CalendarPicker extends React.PureComponent {
         }
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
+            currentSelection = moment(props.maxDate);
         } else if (props.minDate > currentDateView) {
             currentDateView = props.minDate;
+            currentSelection = moment(props.minDate);
         }
 
         this.state = {
