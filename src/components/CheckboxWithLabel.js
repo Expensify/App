@@ -28,13 +28,6 @@ const requiredPropsCheck = (props) => {
     }
 };
 
-/**
- * Returns the checked state from props
- * @param {Object} props
- * @returns {Boolean}
- */
-const getCheckedStateFromProps = (props) => _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value));
-
 const propTypes = {
     /** Whether the checkbox is checked */
     isChecked: PropTypes.bool,
@@ -88,7 +81,7 @@ const defaultProps = {
 const CheckboxWithLabel = (props) => {
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
-    const [isChecked, setIsChecked] = useState(getCheckedStateFromProps(props));
+    const [isChecked, setIsChecked] = useState(_.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value)));
 
     const toggleCheckbox = () => {
         const newState = !isChecked;
