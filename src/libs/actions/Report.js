@@ -1480,7 +1480,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone || 'nothing']: createdAt,
+                                [skinTone || -1]: createdAt,
                             },
                         },
                     },
@@ -1547,7 +1547,7 @@ function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, p
     const reactionObject = lodashGet(existingReactions, [emoji.name]);
 
     // Only use skin tone if emoji supports it
-    const skinTone = emoji.types === undefined ? 'nothing' : paramSkinTone;
+    const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
     if (reactionObject && hasAccountIDEmojiReacted(currentUserAccountID, reactionObject.users, skinTone)) {
         removeEmojiReaction(reportID, reportAction.reportActionID, emoji);
