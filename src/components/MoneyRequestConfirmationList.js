@@ -95,9 +95,9 @@ function MoneyRequestConfirmationList(props) {
      * @returns {Array}
      */
     const getParticipantsWithAmount = useCallback(
-        (participants) => {
-            const iouAmount = IOUUtils.calculateAmount(participants.length, props.iouAmount);
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, props.iou.selectedCurrencyCode));
+        (participantsList) => {
+            const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount);
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(iouAmount, props.iou.selectedCurrencyCode));
         },
         [props.iouAmount, props.iou.selectedCurrencyCode],
     );
