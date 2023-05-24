@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -36,6 +37,8 @@ const defaultProps = {
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
+    shouldShowTitleRightIcon: false,
+    titleRightIcon: () => {},
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
@@ -156,14 +159,24 @@ const MenuItem = (props) => {
                                     {props.description}
                                 </Text>
                             )}
-                            {Boolean(props.title) && (
-                                <Text
-                                    style={titleTextStyle}
-                                    numberOfLines={1}
-                                >
-                                    {convertToLTR(props.title)}
-                                </Text>
-                            )}
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                {Boolean(props.title) && (
+                                    <Text
+                                        style={titleTextStyle}
+                                        numberOfLines={1}
+                                    >
+                                        {convertToLTR(props.title)}
+                                    </Text>
+                                )}
+                                {Boolean(props.shouldShowTitleRightIcon) && (
+                                    <View style={[styles.ml2]}>
+                                        <Icon
+                                            src={props.titleRightIcon}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
+                                    </View>
+                                )}
+                            </View>
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
                                 <Text
                                     style={descriptionTextStyle}
