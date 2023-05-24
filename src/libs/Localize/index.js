@@ -92,6 +92,20 @@ function translateLocal(phrase, variables) {
 }
 
 /**
+ * Return translated string for given error.
+ *
+ * @param {String} phrase
+ * @returns {String}
+ */
+function translateIfPhraseKey(phrase) {
+    try {
+        return translateLocal(phrase);
+    } catch (error) {
+        return phrase;
+    }
+}
+
+/**
  * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
  *
  * @param {Array} anArray
@@ -114,4 +128,4 @@ function getDevicePreferredLocale() {
     return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
-export {translate, translateLocal, arrayToString, getDevicePreferredLocale};
+export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};

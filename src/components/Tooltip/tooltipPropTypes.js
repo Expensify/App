@@ -4,7 +4,7 @@ import variables from '../../styles/variables';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** The text to display in the tooltip. */
+    /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
     text: PropTypes.string,
 
     /** Maximum number of lines to show in tooltip */

@@ -23,7 +23,7 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
-import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect';
+import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
@@ -292,6 +292,7 @@ const MoneyRequestModal = (props) => {
     );
     const amountButtonText = isEditingAmountAfterConfirm ? props.translate('common.save') : props.translate('common.next');
     const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.MoneyRequestParticipants;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.report);
 
     return (
         <ScreenWrapper
@@ -370,6 +371,7 @@ const MoneyRequestModal = (props) => {
                                             canModifyParticipants={!_.isEmpty(reportID)}
                                             navigateToStep={navigateToStep}
                                             policyID={props.report.policyID}
+                                            bankAccountRoute={bankAccountRoute}
                                         />
                                     </AnimatedStep>
                                 )}
