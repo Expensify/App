@@ -99,6 +99,7 @@ const ReportPreview = (props) => {
     const managerEmail = props.iouReport.managerEmail || '';
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
         <View style={[styles.chatItemMessage]}>
             {_.map(props.action.message, (message, index) => (
@@ -124,11 +125,13 @@ const ReportPreview = (props) => {
                                     {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
                                 </Text>
                                 {!props.iouReport.hasOutstandingIOU && (
-                                    <Icon
-                                        style={[styles.ml10]}
-                                        src={Expensicons.Checkmark}
-                                        fill={themeColors.iconSuccessFill}
-                                    />
+                                    <View style={styles.iouPreviewBoxCheckmark}>
+                                        <Icon
+                                            style={[styles.ml10]}
+                                            src={Expensicons.Checkmark}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
+                                    </View>
                                 )}
                             </View>
                         )}
@@ -147,7 +150,7 @@ const ReportPreview = (props) => {
                     iouReport={props.iouReport}
                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                    addBankAccountRoute={bankAccountRoute}
                     style={[styles.requestPreviewBox]}
                 />
             )}
