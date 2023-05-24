@@ -12,37 +12,10 @@ import ReactionTooltipContent from './ReactionTooltipContent';
 import * as Report from '../../libs/actions/Report';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import * as EmojiUtils from '../../libs/EmojiUtils';
+import * as EmojiReactionPropTypes from './EmojiReactionsPropTypes';
 
 const propTypes = {
-    /** All the emoji reactions for the report action. An object that looks like this:
-        "emojiReactions": {
-            "+1": { // The emoji added to the action
-                "createdAt": "2021-01-01 00:00:00",
-                "users": {
-                    2352342: { // The accountID of the user who added this emoji
-                        "skinTones": {
-                            "1": "2021-01-01 00:00:00",
-                            "2": "2021-01-01 00:00:00",
-                        },
-                    },
-                },
-            },
-        },
-    */
-    emojiReactions: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The time the emoji was added */
-            createdAt: PropTypes.string,
-
-            /** All the users who have added this emoji */
-            users: PropTypes.objectOf(
-                PropTypes.shape({
-                    /** The skin tone which was used and also the timestamp of when it was added */
-                    skinTones: PropTypes.objectOf(PropTypes.string),
-                }),
-            ),
-        }),
-    ),
+    ...EmojiReactionPropTypes.propTypes,
 
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: PropTypes.string.isRequired,
@@ -60,7 +33,7 @@ const propTypes = {
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 
-    emojiReactions: {},
+    ...EmojiReactionPropTypes.defaultProps,
 };
 
 const ReportActionItemEmojiReactions = (props) => {

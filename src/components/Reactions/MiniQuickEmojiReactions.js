@@ -17,8 +17,10 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as EmojiUtils from '../../libs/EmojiUtils';
+import * as EmojiReactionPropTypes from './EmojiReactionsPropTypes';
 
 const propTypes = {
+    ...EmojiReactionPropTypes.propTypes,
     ...baseQuickEmojiReactionsPropTypes,
 
     /**
@@ -32,6 +34,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    ...EmojiReactionPropTypes.defaultProps,
     onEmojiPickerClosed: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
@@ -65,7 +68,7 @@ const MiniQuickEmojiReactions = (props) => {
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
-                    onPress={() => props.onEmojiSelected(emoji, props.reactions)}
+                    onPress={() => props.onEmojiSelected(emoji, props.emojiReactions)}
                 >
                     <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
@@ -97,7 +100,7 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
-        reactions: {
+        emojiReactions: {
             key: ({reportID, reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
         },
     }),
