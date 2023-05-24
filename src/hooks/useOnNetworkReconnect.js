@@ -1,5 +1,5 @@
 import {useRef, useContext, useEffect} from 'react';
-import {NetworkContext} from '../OnyxProvider';
+import {NetworkContext} from '../components/OnyxProvider';
 
 /**
  * @param {Function} onNetworkReconnect

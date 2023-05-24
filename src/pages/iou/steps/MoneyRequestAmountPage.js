@@ -232,7 +232,7 @@ class MoneyRequestAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
-        if (!this.textInput.isFocused()) {
+        if (this.state.shouldUpdateSelection && !this.textInput.isFocused()) {
             this.textInput.focus();
         }
 
@@ -261,6 +261,9 @@ class MoneyRequestAmountPage extends React.Component {
      */
     updateLongPressHandlerState(value) {
         this.setState({shouldUpdateSelection: !value});
+        if (!value && !this.textInput.isFocused()) {
+            this.textInput.focus();
+        }
     }
 
     /**
