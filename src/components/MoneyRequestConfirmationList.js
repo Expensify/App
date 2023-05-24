@@ -130,28 +130,21 @@ function MoneyRequestConfirmationList(props) {
      * Get selected participants
      * @returns {Array}
      */
-    const getSelectedParticipants = useCallback(() => {
-        return _.filter(participants, (participant) => participant.selected);
-    }, [participants]);
+    const getSelectedParticipants = useCallback(() => _.filter(participants, (participant) => participant.selected), [participants]);
 
     /**
      * Get unselected participants
      * @returns {Array}
      */
-    const getUnselectedParticipants = useCallback(() => {
-        return _.filter(participants, (participant) => !participant.selected);
-    }, [participants]);
+    const getUnselectedParticipants = useCallback(() => _.filter(participants, (participant) => !participant.selected), [participants]);
 
     /**
-     * @TODO: should I use useCallback here???????????????????????????
      * Returns the participants without amount
      *
      * @param {Array} participants
      * @returns {Array}
      */
-    const getParticipantsWithoutAmount = (participants) => {
-        return _.map(participants, (option) => _.omit(option, 'descriptiveText'));
-    };
+    const getParticipantsWithoutAmount = useCallback((participantsList) => _.map(participantsList, (option) => _.omit(option, 'descriptiveText')), []);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -165,7 +158,7 @@ function MoneyRequestConfirmationList(props) {
 
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
             const formattedUnselectedParticipants = getParticipantsWithoutAmount(unselectedParticipants);
-            const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
+            const formattedParticipantsList = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, true);
             const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
@@ -183,16 +176,16 @@ function MoneyRequestConfirmationList(props) {
                 },
                 {
                     title: props.translate('moneyRequestConfirmationList.whoWasThere'),
-                    data: formattedParticipants,
+                    data: formattedParticipantsList,
                     shouldShow: true,
                     indexOffset: 1,
                 },
             );
         } else {
-            const formattedParticipants = getParticipantsWithoutAmount(props.participants);
+            const formattedParticipantsList = getParticipantsWithoutAmount(props.participants);
             sections.push({
                 title: props.translate('common.to'),
-                data: formattedParticipants,
+                data: formattedParticipantsList,
                 shouldShow: true,
                 indexOffset: 0,
             });
