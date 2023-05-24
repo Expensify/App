@@ -713,9 +713,9 @@ function getDefaultAvatarURL(login = '', isNewDot = false) {
     // We choose default avatar this user has based on a simple hash of their login.
     // Note that Avatar count starts at 1.
     const loginHashBucket = hashLogin(login, isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
-    const defaultAvatar = isNewDot ? `default-avatar_${loginHashBucket}` : `avatar_${loginHashBucket}`;
+    const avatarPrefix = isNewDot ? `default-avatar` : `avatar`;
 
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/${defaultAvatar}.png`;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${loginHashBucket}.png`;
 }
 
 /**
