@@ -1,18 +1,11 @@
 import _ from 'underscore';
-import {useMemo} from 'react';
-import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
+import {useContext, useMemo} from 'react';
 import Permissions from '../libs/Permissions';
-
-let betas = [];
-// eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (val) => (betas = val),
-});
+import {BetasContext} from '../components/OnyxProvider';
 
 export default function usePermissions() {
-    const result = useMemo(
+    const betas = useContext(BetasContext);
+    return useMemo(
         () =>
             _.reduce(
                 Permissions,
@@ -23,7 +16,6 @@ export default function usePermissions() {
                 },
                 {},
             ),
-        betas,
+        [betas],
     );
-    return result;
 }
