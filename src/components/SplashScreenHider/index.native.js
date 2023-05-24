@@ -64,7 +64,6 @@ const SplashScreenHider = (props) => {
                 opacityStyle,
                 {
                     // Apply negative margins to center the logo on window (instead of screen)
-                    marginTop: -(StatusBar.currentHeight || 0),
                     marginBottom: -(BootSplash.navigationBarHeight || 0),
                 },
             ]}
