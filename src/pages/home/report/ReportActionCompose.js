@@ -910,7 +910,7 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
         const operatingSystem = getOperatingSystem();
-        const isNativeSystem = operatingSystem === CONST.PLATFORM.ANDROID || operatingSystem === CONST.PLATFORM.IOS;
+        const isNativeSystem = operatingSystem === CONST.OS.ANDROID || operatingSystem === CONST.OS.IOS;
 
         return (
             <View
