@@ -1127,13 +1127,14 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
  */
 function navigateToConciergeChat() {
     if (!conciergeChatReportID) {
-        // In order not to delay the report life cycle, we first navigate to the unknow report
-        if (Navigation.getReportIDFromRoute().length <= 0) {
+        // In order not to delay the report life cycle, we first navigate to the unknown report
+        if (_.isEmpty(Navigation.getReportIDFromRoute())) {
             Navigation.navigate(ROUTES.REPORT);
         }
         // In order to avoid creating concierge repeatedly,
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
+            // If we don't have a chat with Concierge then create it
             navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
         });
     } else {
