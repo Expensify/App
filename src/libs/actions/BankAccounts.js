@@ -2,8 +2,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Localize from '../Localize';
-import DateUtils from '../DateUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropTypes';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -80,9 +79,7 @@ function getVBBADataForOnyx() {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
-                    },
+                    errors: ErrorUtils.getMicroSecondOnyxError('paymentsPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -159,9 +156,7 @@ function addPersonalBankAccount(account) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('paymentsPage.addBankAccountFailure'),
-                    },
+                    errors: ErrorUtils.getMicroSecondOnyxError('paymentsPage.addBankAccountFailure'),
                 },
             },
         ],

@@ -151,4 +151,8 @@ function resetReadyCheck() {
     });
 }
 
-export {show, resetReadyCheck};
+function serverDataIsReadyPromise() {
+    return isReadyPromise;
+}
+
+export {show, serverDataIsReadyPromise, resetReadyCheck};

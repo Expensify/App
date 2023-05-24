@@ -9,7 +9,6 @@ const REPORT = 'r';
 const IOU_REQUEST = 'request/new';
 const IOU_BILL = 'split/new';
 const IOU_SEND = 'send/new';
-const IOU_DETAILS = 'iou/details';
 const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
@@ -94,14 +93,8 @@ export default {
     getIouRequestCurrencyRoute: (reportID, currency, backTo) => `${IOU_REQUEST_CURRENCY}/${reportID}?currency=${currency}&backTo=${backTo}`,
     getIouBillCurrencyRoute: (reportID, currency, backTo) => `${IOU_BILL_CURRENCY}/${reportID}?currency=${currency}&backTo=${backTo}`,
     getIouSendCurrencyRoute: (reportID, currency, backTo) => `${IOU_SEND_CURRENCY}/${reportID}?currency=${currency}&backTo=${backTo}`,
-    IOU_DETAILS,
-    IOU_DETAILS_ADD_BANK_ACCOUNT: `${IOU_DETAILS}/add-bank-account`,
-    IOU_DETAILS_ADD_DEBIT_CARD: `${IOU_DETAILS}/add-debit-card`,
-    IOU_DETAILS_SPLIT_BILL: `${IOU_DETAILS}/split/:reportID/:reportActionID`,
-    getSplitBillDetailsRoute: (reportID, reportActionID) => `${IOU_DETAILS}/split/${reportID}/${reportActionID}`,
-    IOU_DETAILS_ENABLE_PAYMENTS: `${IOU_DETAILS}/enable-payments`,
-    IOU_DETAILS_WITH_IOU_REPORT_ID: `${IOU_DETAILS}/:chatReportID/:iouReportID/`,
-    getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
+    IOU_DETAILS_SPLIT_BILL: `/:reportID/split/:reportActionID`,
+    getSplitBillDetailsRoute: (reportID, reportActionID) => `/${reportID}/split/${reportActionID}`,
     getNewTaskRoute: (reportID) => `${NEW_TASK}/${reportID}`,
     NEW_TASK_WITH_REPORT_ID: `${NEW_TASK}/:reportID?`,
     TASK_TITLE: 'r/:reportID/title',
@@ -128,9 +121,11 @@ export default {
     REPORT_SETTINGS: 'r/:reportID/settings',
     REPORT_SETTINGS_ROOM_NAME: 'r/:reportID/settings/room-name',
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: 'r/:reportID/settings/notification-preferences',
+    REPORT_SETTINGS_WRITE_CAPABILITY: 'r/:reportID/settings/who-can-post',
     getReportSettingsRoute: (reportID) => `r/${reportID}/settings`,
     getReportSettingsRoomNameRoute: (reportID) => `r/${reportID}/settings/room-name`,
     getReportSettingsNotificationPreferencesRoute: (reportID) => `r/${reportID}/settings/notification-preferences`,
+    getReportSettingsWriteCapabilityRoute: (reportID) => `r/${reportID}/settings/who-can-post`,
     TRANSITION_FROM_OLD_DOT: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
