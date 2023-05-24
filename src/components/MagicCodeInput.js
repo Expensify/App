@@ -10,7 +10,7 @@ import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
-import useOnNetworkReconnect from './hooks/useOnNetworkReconnect';
+import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
 import * as Browser from '../libs/Browser';
 
 const propTypes = {
@@ -163,7 +163,6 @@ function MagicCodeInput(props) {
      */
     const onFocus = (event) => {
         event.preventDefault();
-        setInput('');
     };
 
     /**

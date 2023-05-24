@@ -93,7 +93,7 @@ const BankAccountStep = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={props.translate('workspace.common.bankAccount')}
+                    title={props.translate('workspace.common.connectBankAccount')}
                     subtitle={props.policyName}
                     stepCounter={subStep ? {step: 1, total: 5} : undefined}
                     onCloseButtonPress={Navigation.dismissModal}
