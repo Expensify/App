@@ -22,6 +22,11 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
+<<<<<<< HEAD
+=======
+import * as ErrorUtils from '../ErrorUtils';
+import * as Welcome from './Welcome';
+>>>>>>> b10f19d739 (Merge pull request #19294 from hellohublot/Fix_Duplicate_Concierge_Created)
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1151,13 +1156,20 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat() {
-    // If we don't have a chat with Concierge then create it
     if (!conciergeChatReportID) {
-        navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
-        return;
+        // In order not to delay the report life cycle, we first navigate to the unknown report
+        if (_.isEmpty(Navigation.getReportIDFromRoute())) {
+            Navigation.navigate(ROUTES.REPORT);
+        }
+        // In order to avoid creating concierge repeatedly,
+        // we need to ensure that the server data has been successfully pulled
+        Welcome.serverDataIsReadyPromise().then(() => {
+            // If we don't have a chat with Concierge then create it
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
+        });
+    } else {
+        Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
     }
-
-    Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
 }
 
 /**
