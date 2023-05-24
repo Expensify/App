@@ -191,7 +191,17 @@ function MoneyRequestConfirmationList(props) {
             });
         }
         return sections;
-    }, [getSelectedParticipants, getUnselectedParticipants, getParticipantsWithAmount, getParticipantsWithoutAmount, props.hasMultipleParticipants, props.iouAmount, props.currentUserPersonalDetails, props.iou.selectedCurrencyCode, props.participants]);
+    }, [
+        getSelectedParticipants,
+        getUnselectedParticipants,
+        getParticipantsWithAmount,
+        getParticipantsWithoutAmount,
+        props.hasMultipleParticipants,
+        props.iouAmount,
+        props.currentUserPersonalDetails,
+        props.iou.selectedCurrencyCode,
+        props.participants,
+    ]);
 
     /**
      * Returns selected options -- there is checkmark for every row in List for split flow
