@@ -60,7 +60,7 @@ class ShareCodePage extends React.Component {
                             url={url}
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
                             subtitle={isReport ? subtitle : this.props.session.email}
-                            logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
+                            logo={isReport ? roomAvatar : ReportUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                         />
                     </View>
 

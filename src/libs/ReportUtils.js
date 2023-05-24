@@ -717,6 +717,24 @@ function getOldDotDefaultAvatar(login = '') {
 }
 
 /**
+ * Helper method to return NewDot default avatar associated with login
+ *
+ * @param {String} [login]
+ * @returns {String}
+ */
+function getNewDotDefaultAvatar(login = '') {
+    if (login === CONST.EMAIL.CONCIERGE) {
+        return CONST.CONCIERGE_ICON_URL;
+    }
+
+    // There are 24 possible new dot default avatars, so we choose which one this user has based
+    // on a simple hash of their login. Note that Avatar count starts at 1.
+    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT) + 1;
+
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/default-avatar_${loginHashBucket}.png`;
+}
+
+/**
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
  * @param {String} [avatarURL] - the avatar source from user's personalDetails
  * @returns {Boolean}
@@ -747,6 +765,21 @@ function isDefaultAvatar(avatarURL) {
 function getAvatar(avatarURL, login) {
     if (isDefaultAvatar(avatarURL)) {
         return getDefaultAvatar(login);
+    }
+    return avatarURL;
+}
+
+/**
+ * Provided an avatar URL, if avatar is a default avatar, return NewDot default avatar.
+ * Otherwise, return the URL pointing to a user-uploaded avatar.
+ *
+ * @param {String} [avatarURL] - the avatar source from user's personalDetails
+ * @param {String} [login] - the email of the user
+ * @returns {String|Function}
+ */
+function getAvatarUrl(avatarURL, login) {
+    if (isDefaultAvatar(avatarURL)) {
+        return getNewDotDefaultAvatar(login);
     }
     return avatarURL;
 }
@@ -2313,6 +2346,7 @@ export {
     isMoneyRequestReport,
     chatIncludesChronos,
     getAvatar,
+    getAvatarUrl,
     isDefaultAvatar,
     getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
