@@ -18,6 +18,7 @@ import convertToLTR from '../../../libs/convertToLTR';
 import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
+import editedLabelStyles from '../../../styles/editedLabelStyles';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -124,8 +125,15 @@ const ReportActionItemFragment = (props) => {
                         <Text
                             fontSize={variables.fontSizeSmall}
                             color={themeColors.textSupporting}
+                            style={[styles.alignItemsBaseline, editedLabelStyles]}
                         >
-                            {` ${props.translate('reportActionCompose.edited')}`}
+                            <Text
+                                selectable={false}
+                                style={[styles.w1, styles.userSelectNone]}
+                            >
+                                {' '}
+                            </Text>
+                            {props.translate('reportActionCompose.edited')}
                         </Text>
                     )}
                 </Text>
