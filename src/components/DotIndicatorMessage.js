@@ -7,6 +7,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
 import Text from './Text';
+import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /**
@@ -48,6 +49,7 @@ const DotIndicatorMessage = (props) => {
         // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
         // and can potentially pass the same error.
         .uniq()
+        .map((message) => Localize.translateIfPhraseKey(message))
         .value();
 
     return (
