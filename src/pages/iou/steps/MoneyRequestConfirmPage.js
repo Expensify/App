@@ -45,6 +45,7 @@ const defaultProps = {
 const MoneyRequestConfirmPage = (props) => (
     <MoneyRequestConfirmationList
         hasMultipleParticipants={props.hasMultipleParticipants}
+        payee={props.participants[0]} // todo
         participants={props.participants}
         iouAmount={props.iouAmount}
         onConfirm={props.onConfirm}

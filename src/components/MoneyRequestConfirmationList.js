@@ -40,6 +40,9 @@ const propTypes = {
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
+    /** Payee of the money request with login */
+    payee: optionPropTypes.isRequired,
+
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
 
@@ -47,7 +50,7 @@ const propTypes = {
     isReadOnly: PropTypes.bool,
 
     /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute: PropTypes.string.isRequired,
+    bankAccountRoute: PropTypes.string,
 
     ...windowDimensionsPropTypes,
 
@@ -89,6 +92,7 @@ const defaultProps = {
     canModifyParticipants: false,
     shouldShowFooter: false,
     isReadOnly: false,
+    bankAccountRoute: '',
     session: {
         email: null,
     },
@@ -182,15 +186,16 @@ class MoneyRequestConfirmationList extends Component {
             const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.iouAmount, true);
-            const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
-                this.props.currentUserPersonalDetails,
+            const formattedPayeePersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
+                this.props.payee,
                 CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.iou.selectedCurrencyCode),
             );
+            const payeeWithAmount = this.props.payee['descriptiveText'] = myIOUAmount;
 
             sections.push(
                 {
                     title: this.props.translate('moneyRequestConfirmationList.whoPaid'),
-                    data: [formattedMyPersonalDetails],
+                    data: [formattedPayeePersonalDetails],
                     shouldShow: true,
                     indexOffset: 0,
                     isDisabled: true,
@@ -253,7 +258,7 @@ class MoneyRequestConfirmationList extends Component {
             return [];
         }
         const selectedParticipants = this.getSelectedParticipants();
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.currentUserPersonalDetails)];
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(this.props.payee)];
     }
 
     /**
