@@ -97,6 +97,9 @@ class ReportSettingsPage extends Component {
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
         const shouldDisableWelcomeMessage = this.shouldDisableRename(linkedWorkspace);
+        const writeCapability = this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+        const writeCapabilityText = this.props.translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
+        const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
 
         return (
             <ScreenWrapper>
@@ -143,6 +146,29 @@ class ReportSettingsPage extends Component {
                                 />
                             )}
                         </OfflineWithFeedback>
+                    )}
+                    {shouldAllowWriteCapabilityEditing ? (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={writeCapabilityText}
+                            description={this.props.translate('writeCapabilityPage.label')}
+                            onPress={() => Navigation.navigate(ROUTES.getReportSettingsWriteCapabilityRoute(this.props.report.reportID))}
+                        />
+                    ) : (
+                        <View style={[styles.ph5, styles.pv3]}>
+                            <Text
+                                style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                numberOfLines={1}
+                            >
+                                {this.props.translate('writeCapabilityPage.label')}
+                            </Text>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.optionAlternateText, styles.pre]}
+                            >
+                                {writeCapabilityText}
+                            </Text>
+                        </View>
                     )}
                     <View style={[styles.ph5]}>
                         {Boolean(linkedWorkspace) && (
