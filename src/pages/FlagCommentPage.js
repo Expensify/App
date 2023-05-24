@@ -7,6 +7,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import Text from '../components/Text';
+import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
 
 const propTypes = {
@@ -18,31 +19,37 @@ function FlagCommentPage(props) {
         {
             severity: 'spam',
             name: 'Spam',
+            icon: Expensicons.FlagLevelOne,
             description: 'Unsolicited off-topic promotion',
         },
         {
             severity: 'inconsiderate',
             name: 'Inconsiderate',
+            icon: Expensicons.FlagLevelOne,
             description: 'Phrased insultingly or disrespectfully, with questionable intentions',
         },
         {
             severity: 'intimidation',
             name: 'Intimidation',
+            icon: Expensicons.FlagLevelTwo,
             description: 'Aggressively pursuing an agenda over valid objections',
         },
         {
             severity: 'bullying',
             name: 'Bullying',
+            icon: Expensicons.FlagLevelTwo,
             description: 'Targeting an individual to obtain obedience',
         },
         {
             severity: 'harassment',
             name: 'Harassment',
+            icon: Expensicons.FlagLevelThree,
             description: 'Racist, misogynistic, or other broadly discriminatory behavior',
         },
         {
             severity: 'assault',
             name: 'Assault',
+            icon: Expensicons.FlagLevelThree,
             description: 'Specifically targeted emotional attack with the intention of harm',
         },
     ];
@@ -55,6 +62,7 @@ function FlagCommentPage(props) {
 
     const severityMenuItems = _.map(severities, (item, index) => (<MenuItem
             key={`${item.severity}_${index}`}
+            icon={item.icon}
             shouldShowRightIcon
             title={item.name}
             description={item.description}
