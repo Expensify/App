@@ -1644,7 +1644,7 @@ function leaveRoom(reportID) {
  */
 function flagComment(reportID, reportAction, severity) {
     const newDecision = {
-        "decision": "pending",
+        "decision": CONST.MODERATION.MODERATOR_DECISION_PENDING,
     };
 
     const message = reportAction.message[0];
@@ -1657,17 +1657,16 @@ function flagComment(reportID, reportAction, severity) {
         moderationDecisions: updatedDecisions,
     };
 
-    const optimisticReportActions = {
-        [reportActionID]: {
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            message: [updatedMessage],
-        },
-    };
-
     const optimisticData = [
         {
             onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: optimisticReportActions,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    message: [updatedMessage],
+                },
+            },
         },
     ];
 
@@ -1696,13 +1695,10 @@ function flagComment(reportID, reportAction, severity) {
         },
     ];
 
-    const timestamp = Date.now();
-
     const parameters = {
         reportID,
         severity,
         reportActionID,
-        timestamp,
     };
     
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
