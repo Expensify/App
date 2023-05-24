@@ -38,9 +38,8 @@ class Hoverable extends Component {
             return;
         }
 
-        this.setState({isHovered: false});
-
         if (this.props.disabled) {
+            this.setState({isHovered: false});
             this.disableHover();
         } else {
             this.enableHover();
