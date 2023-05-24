@@ -373,7 +373,7 @@ function updateAvatar(file) {
  */
 function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = ReportUtils.getOldDotDefaultAvatar(currentUserEmail);
+    const defaultAvatar = ReportUtils.getDefaultAvatarURL(currentUserEmail);
 
     API.write(
         'DeleteUserAvatar',

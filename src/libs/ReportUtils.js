@@ -699,39 +699,23 @@ function getWorkspaceAvatar(report) {
 }
 
 /**
- * Helper method to return old dot default avatar associated with login
+ * Helper method to return default avatar URL associated with login
  *
  * @param {String} [login]
+ * @param {Boolean} [isNewDot]
  * @returns {String}
  */
-function getOldDotDefaultAvatar(login = '') {
+function getDefaultAvatarURL(login = '', isNewDot = false) {
     if (login === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    // There are 8 possible old dot default avatars, so we choose which one this user has based
-    // on a simple hash of their login. Note that Avatar count starts at 1.
-    const loginHashBucket = hashLogin(login, CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
+    // We choose default avatar this user has based on a simple hash of their login.
+    // Note that Avatar count starts at 1.
+    const loginHashBucket = hashLogin(login, isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
+    const defaultAvatar = isNewDot ? `default-avatar_${loginHashBucket}` : `avatar_${loginHashBucket}`;
 
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
-}
-
-/**
- * Helper method to return NewDot default avatar associated with login
- *
- * @param {String} [login]
- * @returns {String}
- */
-function getNewDotDefaultAvatar(login = '') {
-    if (login === CONST.EMAIL.CONCIERGE) {
-        return CONST.CONCIERGE_ICON_URL;
-    }
-
-    // There are 24 possible new dot default avatars, so we choose which one this user has based
-    // on a simple hash of their login. Note that Avatar count starts at 1.
-    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT) + 1;
-
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/default-avatar_${loginHashBucket}.png`;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/${defaultAvatar}.png`;
 }
 
 /**
@@ -779,7 +763,7 @@ function getAvatar(avatarURL, login) {
  */
 function getAvatarUrl(avatarURL, login) {
     if (isDefaultAvatar(avatarURL)) {
-        return getNewDotDefaultAvatar(login);
+        return getDefaultAvatarURL(login, true);
     }
     return avatarURL;
 }
@@ -2348,7 +2332,7 @@ export {
     getAvatar,
     getAvatarUrl,
     isDefaultAvatar,
-    getOldDotDefaultAvatar,
+    getDefaultAvatarURL,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
     hashLogin,
