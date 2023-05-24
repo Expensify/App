@@ -68,6 +68,7 @@ class SignInPage extends Component {
         // Show the login form if
         // - A login has not been entered yet
         // - AND a validateCode has not been cached with sign in link
+        const showLoginForm = !Boolean(this.props.credentials.login) && !Boolean(this.props.credentials.validateCode);
 
         // Show the email delivery failure page if
         // - A login has been entered
@@ -79,7 +80,11 @@ class SignInPage extends Component {
         // - AND the login is not the primary login
         // - AND the login is not validated
         const showUnlinkLoginForm =
-            this.props.credentials.login && this.props.account.primaryLogin && this.props.account.primaryLogin !== this.props.credentials.login && !this.props.account.validated;
+            Boolean(this.props.credentials.login) &&
+            Boolean(this.props.account.primaryLogin) &&
+            this.props.account.primaryLogin !== this.props.credentials.login &&
+            !this.props.account.validated &&
+            !showEmailDeliveryFailurePage;
 
         // Show the old password form if
         // - A login has been entered
@@ -94,13 +99,18 @@ class SignInPage extends Component {
             !this.props.credentials.password &&
             !this.props.account.forgotPassword &&
             !showUnlinkLoginForm &&
-            !Permissions.canUsePasswordlessLogins(this.props.betas);
+            !Permissions.canUsePasswordlessLogins(this.props.betas) &&
+            !showEmailDeliveryFailurePage;
 
         // Show the new magic code / validate code form if
         // - A login has been entered or a validateCode has been cached from sign in link
         // - AND the login isn't an unvalidated secondary login
         // - AND the user is on the 'passwordless' beta
-        const showValidateCodeForm = (this.props.credentials.login || this.props.credentials.validateCode) && !showUnlinkLoginForm && Permissions.canUsePasswordlessLogins(this.props.betas);
+        const showValidateCodeForm =
+            (Boolean(this.props.credentials.login) || Boolean(this.props.credentials.validateCode)) &&
+            !showUnlinkLoginForm &&
+            Permissions.canUsePasswordlessLogins(this.props.betas) &&
+            !showEmailDeliveryFailurePage;
 
         // Show the resend validation link form if
         // - A login has been entered
@@ -111,7 +121,8 @@ class SignInPage extends Component {
             Boolean(this.props.credentials.login) &&
             (!this.props.account.validated || this.props.account.forgotPassword) &&
             !showUnlinkLoginForm &&
-            !Permissions.canUsePasswordlessLogins(this.props.betas);
+            !Permissions.canUsePasswordlessLogins(this.props.betas) &&
+            !showEmailDeliveryFailurePage;
 
         let welcomeHeader = '';
         let welcomeText = '';
