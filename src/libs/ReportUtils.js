@@ -1974,7 +1974,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     // Hide thread reports that haven't been commented on
-    if (isThread(report) && ReportActionsUtils.getParentReportAction(report) && !ReportActionsUtils.getParentReportAction(report).lastVisibleActionCreated) {
+    if (isThread(report) && ReportActionsUtils.getParentReportAction(report) && !ReportActionsUtils.getParentReportAction(report).childLastVisibleActionCreated) {
         return false;
     }
 
