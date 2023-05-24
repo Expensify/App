@@ -909,7 +909,7 @@ class ReportActionCompose extends React.Component {
         const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
-        const isNativeSystem = getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS ;
+        const isNativeSystem = getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS;
 
         return (
             <View
@@ -1035,7 +1035,7 @@ class ReportActionCompose extends React.Component {
                                             </>
                                         )}
                                     </AttachmentPicker>
-                                    <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder, !isNativeSystem && {paddingVertical: 0} ]}>
+                                    <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder, !isNativeSystem && {paddingVertical: 0}]}>
                                         <DragAndDrop
                                             dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}

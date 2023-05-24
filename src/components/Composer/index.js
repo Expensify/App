@@ -427,9 +427,9 @@ class Composer extends React.Component {
 
     render() {
         let paddingVertical = 5;
-        if(this.props.numberOfLines === 1) paddingVertical = 9;
+        if (this.props.numberOfLines === 1) paddingVertical = 9;
         // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
-        if(this.props.numberOfLines === 3) paddingVertical = 8;
+        if (this.props.numberOfLines === 3) paddingVertical = 8;
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
