@@ -70,8 +70,13 @@ class EmojiPickerMenu extends Component {
      * @param {Object} emojiObject
      */
     addToFrequentAndSelectEmoji(emoji, emojiObject) {
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
+        // const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+        // User.updateFrequentlyUsedEmojis(frequentEmojiList);
+
+        console.log('EmojiPickerMenu ==========');
+        console.log('emoji', emoji);
+        console.log('emojiObject', emojiObject);
+
         this.props.onEmojiSelected(emoji, emojiObject);
     }
 

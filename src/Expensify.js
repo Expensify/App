@@ -29,6 +29,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import SplashScreenHider from './components/SplashScreenHider';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import SignInModal from './pages/signin/SignInModal';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -70,6 +71,9 @@ const propTypes = {
         roomName: PropTypes.string,
     }),
 
+    /** Keeps track if sign in modal for anonymous user is open */
+    isSignInModalOpen: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -81,6 +85,7 @@ const defaultProps = {
     updateAvailable: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
+    isSignInModalOpen: false,
 };
 
 function Expensify(props) {
@@ -177,6 +182,7 @@ function Expensify(props) {
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
+                    <SignInModal isVisible={props.isSignInModalOpen} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {props.updateAvailable ? <UpdateAppModal /> : null}
                     {props.screenShareRequest ? (
@@ -220,6 +226,9 @@ export default compose(
         },
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
+        },
+        isSignInModalOpen: {
+            key: ONYXKEYS.IS_SIGN_IN_MODAL_OPEN,
         },
     }),
 )(Expensify);

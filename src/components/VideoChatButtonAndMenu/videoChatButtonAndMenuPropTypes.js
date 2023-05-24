@@ -11,6 +11,7 @@ const propTypes = {
 const defaultProps = {
     isConcierge: false,
     guideCalendarLink: null,
+    session: {},
 };
 
 export {propTypes, defaultProps};

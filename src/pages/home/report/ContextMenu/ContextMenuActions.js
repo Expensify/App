@@ -19,6 +19,8 @@ import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
+import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import * as User from '../../../../libs/actions/User';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -41,7 +43,7 @@ export default [
     {
         shouldKeepOpen: true,
         shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message'),
-        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
+        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, interceptAnonymousUser}) => {
             const isMini = !closePopover;
 
             const closeContextMenu = (onHideCallback) => {
@@ -55,9 +57,21 @@ export default [
                 }
             };
 
-            const onEmojiSelected = (emoji) => {
-                Report.toggleEmojiReaction(reportID, reportAction, emoji);
-                closeContextMenu();
+            const onEmojiSelected = (emoji, emojiObject) => {
+                console.log('ContextMenuActions ==========');
+                console.log('emoji', emoji);
+                console.log('emojiObject', emojiObject);
+
+                interceptAnonymousUser(() => {
+                    const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+
+                    console.log('frequentEmojiList', frequentEmojiList);
+
+                    User.updateFrequentlyUsedEmojis(frequentEmojiList);
+
+                    Report.toggleEmojiReaction(reportID, reportAction, emoji);
+                    closeContextMenu();
+                });
             };
 
             if (isMini) {
@@ -76,6 +90,7 @@ export default [
                     key="BaseQuickEmojiReactions"
                     closeContextMenu={closeContextMenu}
                     onEmojiSelected={onEmojiSelected}
+                    onPressOpenPicker={interceptAnonymousUser}
                 />
             );
         },

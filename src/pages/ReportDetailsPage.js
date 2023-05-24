@@ -17,6 +17,8 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as Report from '../libs/actions/Report';
+import * as SignInModalActions from '../libs/actions/SignInModalActions';
+import * as SessionUtils from '../libs/SessionUtils';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -49,11 +51,17 @@ const propTypes = {
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    session: PropTypes.shape({
+        /** Determines if user is anonymous or not */
+        authTokenType: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     policies: {},
     personalDetails: {},
+    session: {},
 };
 
 class ReportDetailsPage extends Component {
@@ -82,7 +90,11 @@ class ReportDetailsPage extends Component {
                 icon: Expensicons.Users,
                 subtitle: lodashGet(this.props.report, 'participants', []).length,
                 action: () => {
-                    Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID));
+                    if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+                        SignInModalActions.showSignInModal();
+                    } else {
+                        Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID));
+                    }
                 },
             });
         }
@@ -93,7 +105,11 @@ class ReportDetailsPage extends Component {
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
                 action: () => {
-                    Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID));
+                    if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+                        SignInModalActions.showSignInModal();
+                    } else {
+                        Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID));
+                    }
                 },
             });
         }
@@ -205,6 +221,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

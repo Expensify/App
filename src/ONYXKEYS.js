@@ -183,6 +183,9 @@ export default {
     // Is the test tools modal open?
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
+    // Is the sign in modal for anonymous user open?
+    IS_SIGN_IN_MODAL_OPEN: 'isSignInModalOpen',
+
     // Stores information about active wallet transfer amount, selectedAccountID, status, etc
     WALLET_TRANSFER: 'walletTransfer',
 

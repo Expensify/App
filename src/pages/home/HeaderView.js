@@ -28,6 +28,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
+import * as SessionUtils from '../../libs/SessionUtils';
+import * as SignInModalActions from '../../libs/actions/SignInModalActions';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -196,7 +198,13 @@ const HeaderView = (props) => {
                             )}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
-                                    onPress={() => Report.togglePinnedState(props.report)}
+                                    onPress={() => {
+                                        if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
+                                            SignInModalActions.showSignInModal();
+                                        } else {
+                                            Report.togglePinnedState(props.report);
+                                        }
+                                    }}
                                     style={[styles.touchableButtonImage]}
                                 >
                                     <Icon
@@ -240,6 +248,9 @@ export default compose(
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(HeaderView);

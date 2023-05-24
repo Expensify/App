@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {useState, useRef, useEffect, memo, useCallback} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../CONST';
@@ -52,8 +52,13 @@ import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import Permissions from '../../../libs/Permissions';
+import * as SessionUtils from '../../../libs/SessionUtils';
+import * as SignInModalActions from '../../../libs/actions/SignInModalActions';
+import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
+    ...windowDimensionsPropTypes,
+
     /** Report for this action */
     report: reportPropTypes.isRequired,
 
@@ -91,7 +96,10 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    ...windowDimensionsPropTypes,
+    session: PropTypes.shape({
+        /** Determines if user is anonymous or not */
+        authTokenType: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
@@ -101,6 +109,7 @@ const defaultProps = {
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
     betas: [],
+    session: {},
 };
 
 function ReportActionItem(props) {
@@ -284,7 +293,17 @@ function ReportActionItem(props) {
                         <ReportActionItemReactions
                             reportActionID={props.action.reportActionID}
                             reactions={reactions}
-                            toggleReaction={toggleReaction}
+                            toggleReaction={(emoji) => {
+                                if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
+                                    hideContextMenu(false);
+
+                                    InteractionManager.runAfterInteractions(() => {
+                                        SignInModalActions.showSignInModal();
+                                    });
+                                } else {
+                                    toggleReaction(emoji);
+                                }
+                            }}
                         />
                     </View>
                 )}
@@ -446,6 +465,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(
