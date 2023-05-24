@@ -1,4 +1,4 @@
-import React from 'react';
+import {useCallback, useEffect} from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
@@ -6,42 +6,36 @@ const propTypes = {
     onCycleThroughAttachments: PropTypes.func.isRequired,
 };
 
-class Carousel extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.handleKeyPress = this.handleKeyPress.bind(this);
-    }
-
-    componentDidMount() {
-        document.addEventListener('keydown', this.handleKeyPress);
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.handleKeyPress);
-    }
-
+const Carousel = (props) => {
     /**
      * Listens for keyboard shortcuts and applies the action
      *
      * @param {Object} e
      */
-    handleKeyPress(e) {
+    const handleKeyPress = useCallback((e) => {
         // prevents focus from highlighting around the modal
         e.target.blur();
+
         if (e.key === 'ArrowLeft') {
-            this.props.onCycleThroughAttachments(-1);
+            props.onCycleThroughAttachments(-1);
         }
         if (e.key === 'ArrowRight') {
-            this.props.onCycleThroughAttachments(1);
+            props.onCycleThroughAttachments(1);
         }
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    render() {
-        // This component is only used to listen for keyboard events
-        return null;
-    }
-}
+    useEffect(() => {
+        document.addEventListener('keydown', handleKeyPress);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyPress);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return null;
+};
 
 Carousel.propTypes = propTypes;
 

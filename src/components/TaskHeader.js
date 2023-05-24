@@ -101,13 +101,13 @@ function TaskHeader(props) {
             <MenuItemWithTopDescription
                 shouldShowHeaderTitle
                 title={props.report.reportName}
-                description="Task"
+                description={props.translate('newTaskPage.task')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
                 disabled={!isOpen}
             />
             <MenuItemWithTopDescription
                 title={lodashGet(props.report, 'description', '')}
-                description="Description"
+                description={props.translate('newTaskPage.description')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 disabled={!isOpen}
             />
