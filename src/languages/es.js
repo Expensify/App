@@ -284,6 +284,9 @@ export default {
         sayHello: '¡Saluda!',
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
     },
+    mentionSuggestions: {
+        hereAlternateText: 'Notificar a todos los que estén en linea de esta sala',
+    },
     newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
@@ -298,6 +301,13 @@ export default {
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) =>
             `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+    },
+    writeCapabilityPage: {
+        label: 'Quién puede postear',
+        writeCapability: {
+            all: 'Todos los miembros',
+            admins: 'Solo administradores',
+        },
     },
     sidebarScreen: {
         fabAction: 'Nuevo chat',
@@ -597,6 +607,8 @@ export default {
         transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
         transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor, transfiere los fondos a una cuenta bancaria.',
+        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de pagos',
+        goToPayment: 'Ir a pagos',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',
@@ -717,7 +729,7 @@ export default {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre solo puede contener letras y números.',
+            hasInvalidCharacter: 'El nombre solo puede contener números y caracteres latinos.',
         },
     },
     resendValidationForm: {
@@ -747,7 +759,7 @@ export default {
         getMeOutOfHere: 'Sácame de aquí',
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
-        pageNotFound: 'La página que buscas no existe.',
+        pageNotFound: 'Ups, no deberías estar aquí',
         noAccess: 'No tienes acceso a este chat',
         goBackHome: 'Volver a la página principal',
     },
@@ -1029,17 +1041,18 @@ export default {
     },
     workspace: {
         common: {
-            card: 'Emitir tarjetas',
+            card: 'Tarjetas',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             delete: 'Eliminar espacio de trabajo',
-            settings: 'Configuración general',
-            reimburse: 'Reembolsar gastos',
+            settings: 'Configuración',
+            reimburse: 'Reembolsos',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
-            travel: 'Reservar viaje',
-            members: 'Gestionar miembros',
-            bankAccount: 'Conectar cuenta bancaria',
+            travel: 'Viajes',
+            members: 'Miembros',
+            bankAccount: 'Cuenta bancaria',
+            connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
