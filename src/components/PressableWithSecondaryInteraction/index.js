@@ -2,7 +2,9 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
+import styles from '../../styles/styles';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
@@ -75,7 +77,6 @@ class PressableWithSecondaryInteraction extends Component {
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
             <Pressable
-                style={this.props.style}
                 onPressIn={this.props.onPressIn}
                 onLongPress={this.props.onSecondaryInteraction ? this.executeSecondaryInteraction : undefined}
                 onPressOut={this.props.onPressOut}
@@ -83,6 +84,7 @@ class PressableWithSecondaryInteraction extends Component {
                 ref={(el) => (this.pressableRef = el)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}
+                style={StyleUtils.combineStyles(this.props.style, this.props.inline && styles.dInline)}
             >
                 {this.props.children}
             </Pressable>
