@@ -52,6 +52,36 @@ const defaultProps = {
     credentials: {},
 };
 
+/**
+ * @param {Boolean} hasLogin
+ * @param {Boolean} hasPassword
+ * @param {Boolean} hasValidateCode
+ * @param {Boolean} isPrimaryLogin
+ * @param {Boolean} isAccountValidated
+ * @param {Boolean} didForgetPassword
+ * @param {Boolean} canUsePasswordlessLogins
+ * @returns {Object}
+ */
+function getRenderOptions({hasLogin, hasPassword, hasValidateCode, isPrimaryLogin, isAccountValidated, didForgetPassword, canUsePasswordlessLogins}) {
+    const isUnvalidatedSecondaryLogin = !isPrimaryLogin && !isAccountValidated;
+    const shouldShowLoginForm = !hasLogin && !hasValidateCode;
+    const shouldShowUnlinkLoginForm = hasLogin && isUnvalidatedSecondaryLogin;
+    const shouldShowPasswordForm = hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !shouldShowUnlinkLoginForm && !canUsePasswordlessLogins;
+    const shouldShowValidateCodeForm = (hasLogin || hasValidateCode) && !shouldShowUnlinkLoginForm && canUsePasswordlessLogins;
+    const shouldShowResendValidationForm = hasLogin && (!isAccountValidated || didForgetPassword) && !shouldShowUnlinkLoginForm && !canUsePasswordlessLogins;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || shouldShowUnlinkLoginForm;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm;
+    return {
+        shouldShowLoginForm,
+        shouldShowUnlinkLoginForm,
+        shouldShowPasswordForm,
+        shouldShowValidateCodeForm,
+        shouldShowResendValidationForm,
+        shouldShowWelcomeHeader,
+        shouldShowWelcomeText,
+    };
+}
+
 function SignInPage({account, credentials}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {canUsePasswordlessLogins} = usePermissions();
@@ -62,47 +92,23 @@ function SignInPage({account, credentials}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
 
-    /*
-     * Show the login form if:
-     *   - A login has not been entered yet
-     *   - AND a validateCode has not been cached with the sign in link
-     */
-    const shouldShowLoginForm = !credentials.login && !credentials.validateCode;
-
-    /*
-     * Show the unlink form if:
-     *   - A login has been entered
-     *   - AND the login is not the primary login for the account
-     *   - AND the login is not validated
-     */
-    const isUnvalidatedSecondaryLogin = account.primaryLogin && account.primaryLogin !== credentials.login && !account.validated;
-    const shouldShowUnlinkLoginForm = Boolean(credentials.login) && isUnvalidatedSecondaryLogin;
-
-    /* Show the old password form if
-     *   - A login has been entered
-     *   - AND an account exists and is validated for this login
-     *   - AND a password hasn't been entered yet
-     *   - AND haven't forgotten password
-     *   - AND the login isn't an unvalidated secondary login
-     *   - AND the user is NOT on the passwordless beta
-     */
-    const shouldShowPasswordForm =
-        Boolean(credentials.login) && account.validated && !credentials.password && !account.forgotPassword && !shouldShowUnlinkLoginForm && !canUsePasswordlessLogins;
-
-    /* Show the new magic code / validate code form if
-     *   - A login has been entered or a validateCode has been cached from sign in link
-     *   - AND the login isn't an unvalidated secondary login
-     *   - AND the user is on the 'passwordless' beta
-     */
-    const shouldShowValidateCodeForm = (credentials.login || credentials.validateCode) && !shouldShowUnlinkLoginForm && canUsePasswordlessLogins;
-
-    /* Show the resend validation link form if
-     *  - A login has been entered
-     *  - AND is not validated or password is forgotten
-     *  - AND the login isn't an unvalidated secondary login
-     *  - AND user is not on 'passwordless' beta
-     */
-    const shouldShowResendValidationForm = Boolean(credentials.login) && (!account.validated || account.forgotPassword) && !shouldShowUnlinkLoginForm && !canUsePasswordlessLogins;
+    const {
+        shouldShowLoginForm,
+        shouldShowUnlinkLoginForm,
+        shouldShowPasswordForm,
+        shouldShowValidateCodeForm,
+        shouldShowResendValidationForm,
+        shouldShowWelcomeHeader,
+        shouldShowWelcomeText,
+    } = getRenderOptions({
+        hasLogin: Boolean(credentials.login),
+        hasPassword: Boolean(credentials.password),
+        hasValidateCode: Boolean(credentials.validateCode),
+        isPrimaryLogin: account.primaryLogin && account.primaryLogin !== credentials.login,
+        isAccountValidated: account.validated,
+        didForgetPassword: account.forgotPassword,
+        canUsePasswordlessLogins,
+    });
 
     const {welcomeHeader, welcomeText} = useMemo(() => {
         let header = '';
@@ -159,8 +165,8 @@ function SignInPage({account, credentials}) {
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
-                shouldShowWelcomeHeader={shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || shouldShowUnlinkLoginForm || !isSmallScreenWidth}
-                shouldShowWelcomeText={shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
+                shouldShowWelcomeText={shouldShowWelcomeText}
             >
                 {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
