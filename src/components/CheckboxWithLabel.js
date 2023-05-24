@@ -33,8 +33,7 @@ const requiredPropsCheck = (props) => {
  * @param {Object} props
  * @returns {Boolean}
  */
-const getCheckedStateFromProps = (props) =>  _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value));
-
+const getCheckedStateFromProps = (props) => _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value));
 
 const propTypes = {
     /** Whether the checkbox is checked */
@@ -90,47 +89,47 @@ const CheckboxWithLabel = (props) => {
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
     const [isChecked, setIsChecked] = useState(getCheckedStateFromProps(props));
-  
+
     const toggleCheckbox = () => {
-    const newState = !isChecked;
-      props.onInputChange(newState);
-      setIsChecked(newState);
+        const newState = !isChecked;
+        props.onInputChange(newState);
+        setIsChecked(newState);
     };
-  
+
     useEffect(() => {
         setIsChecked(props.isChecked);
     }, [props.isChecked]);
 
     const LabelComponent = props.LabelComponent;
-  
+
     return (
-      <View style={props.style}>
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
-          <Checkbox
-            isChecked={isChecked}
-            onPress={toggleCheckbox}
-            label={props.label}
-            hasError={Boolean(props.errorText)}
-            forwardedRef={props.forwardedRef}
-          />
-          <PressableWithFeedback
-            focusable={false}
-            accessible={false}
-            onPress={toggleCheckbox}
-            pressDimmingValue={variables.checkboxLabelActiveOpacity}
-            // We want to disable hover dimming
-            hoverDimmingValue={variables.checkboxLabelHoverOpacity}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
-            wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
-          >
-            {props.label && <Text style={[styles.ml1]}>{props.label}</Text>}
-            {LabelComponent && <LabelComponent />}
-          </PressableWithFeedback>
+        <View style={props.style}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
+                <Checkbox
+                    isChecked={isChecked}
+                    onPress={toggleCheckbox}
+                    label={props.label}
+                    hasError={Boolean(props.errorText)}
+                    forwardedRef={props.forwardedRef}
+                />
+                <PressableWithFeedback
+                    focusable={false}
+                    accessible={false}
+                    onPress={toggleCheckbox}
+                    pressDimmingValue={variables.checkboxLabelActiveOpacity}
+                    // We want to disable hover dimming
+                    hoverDimmingValue={variables.checkboxLabelHoverOpacity}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
+                    wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
+                >
+                    {props.label && <Text style={[styles.ml1]}>{props.label}</Text>}
+                    {LabelComponent && <LabelComponent />}
+                </PressableWithFeedback>
+            </View>
+            <FormHelpMessage message={props.errorText} />
         </View>
-        <FormHelpMessage message={props.errorText} />
-      </View>
     );
-  };
+};
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
