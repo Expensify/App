@@ -62,7 +62,7 @@ class WalletStatementPage extends React.Component {
     componentDidMount() {
         const currentYearMonth = moment().format('YYYYMM');
         if (!this.yearMonth || this.yearMonth.length !== 6 || this.yearMonth > currentYearMonth) {
-            Navigation.dismissModal(true);
+            Navigation.dismissModal();
         }
     }
 

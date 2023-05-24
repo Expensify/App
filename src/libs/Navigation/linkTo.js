@@ -1,20 +1,14 @@
-import {getStateFromPath, getActionFromState} from '@react-navigation/core';
+import {getActionFromState} from '@react-navigation/core';
 import {Platform} from 'react-native';
 import _ from 'lodash';
 import NAVIGATORS from '../../NAVIGATORS';
 import linkingConfig from './linkingConfig';
 import getTopmostReportId from './getTopmostReportId';
+import getStateFromPath from './getStateFromPath';
 
 export default function linkTo(navigation, path, type) {
-    const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
     if (navigation === undefined) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
-    }
-
-    const state = linkingConfig.getStateFromPath ? linkingConfig.getStateFromPath(normalizedPath, linkingConfig.config) : getStateFromPath(normalizedPath, linkingConfig.config);
-
-    if (!state) {
-        throw new Error('Failed to parse the path to a navigation state.');
     }
 
     let root = navigation;
@@ -25,6 +19,8 @@ export default function linkTo(navigation, path, type) {
     while ((current = root.getParent())) {
         root = current;
     }
+
+    const state = getStateFromPath(path);
 
     const action = getActionFromState(state, linkingConfig.config);
 

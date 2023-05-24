@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {getActionFromState} from '@react-navigation/core';
 import Log from '../Log';
 import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
@@ -10,6 +11,7 @@ import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
 import dismissKeyboardGoingBack from './dismissKeyboardGoingBack';
+import getStateFromPath from './getStateFromPath';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -122,15 +124,26 @@ function setParams(params, routeKey) {
 
 /**
  * Dismisses the last modal stack if there is any
+ * 
+ * @param {String | undefined} targetReportID - The reportID to navigate to after dismissing the modal
  */
-function dismissModal() {
+function dismissModal(targetReportID) {
     if (!canNavigate('dismissModal')) {
         return;
     }
     const rootState = navigationRef.getRootState();
     const lastRoute = _.last(rootState.routes);
     if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
-        navigationRef.current.dispatch(StackActions.pop());
+        // if we are not in the target report, we need to navigate to it after dismissing the modal
+        if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
+            const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
+
+            const action = getActionFromState(state, linkingConfig.config);
+            action.type = 'REPLACE';
+            navigationRef.current.dispatch(action);
+        } else {
+            navigationRef.current.dispatch(StackActions.pop());
+        } 
     } else {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
     }

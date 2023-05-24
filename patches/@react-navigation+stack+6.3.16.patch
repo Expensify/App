@@ -74,7 +74,6 @@ index 6bbce10..7f2eed3 100644
 +      { route }: { route: Route<string> },
 +      state: StackNavigationState<ParamListBase>
 +    ) => {
-+    console.log(state)
      this.props.navigation.emit({
        type: 'gestureStart',
        target: route.key,

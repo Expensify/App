@@ -434,7 +434,7 @@ function navigateToAndOpenReport(userLogins) {
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(reportID, newChat.participants, newChat);
-    Navigation.navigate(ROUTES.getReportRoute(reportID));
+    Navigation.dismissModal(reportID);
 }
 
 /**
@@ -1208,7 +1208,7 @@ function addPolicyReport(policy, reportName, visibility) {
         },
         {optimisticData, successData},
     );
-    Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
+    Navigation.dismissModal(policyReport.reportID);
 }
 
 /**

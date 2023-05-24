@@ -377,7 +377,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+    Navigation.dismissModal(chatReport.reportID);
 }
 
 /**
@@ -691,7 +691,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
         onyxData,
     );
 
-    Navigation.navigate(ROUTES.getReportRoute(groupData.chatReportID));
+    Navigation.dismissModal(groupData.chatReportID);
 }
 
 /**
@@ -800,7 +800,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     );
 
     if (shouldCloseOnDelete) {
-        Navigation.navigate(ROUTES.getReportRoute(iouReportID));
+        Navigation.dismissModal(iouReportID);
     }
 }
 
@@ -1144,7 +1144,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
 
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+    Navigation.dismissModal(params.chatReportID);
 }
 
 /**
@@ -1160,7 +1160,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerEmail, re
 
     API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+    Navigation.dismissModal(params.chatReportID);
 }
 
 /**
@@ -1176,7 +1176,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
 
     API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+    Navigation.dismissModal(params.chatReportID);
 
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }
@@ -1195,7 +1195,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
     API.write('PayMoneyRequest', params, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+    Navigation.dismissModal(chatReport.reportID);
     if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
     }

@@ -75,7 +75,7 @@ function TaskDescriptionPage(props) {
                 title={props.translate('newTaskPage.task')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
