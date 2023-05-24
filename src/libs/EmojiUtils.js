@@ -301,6 +301,47 @@ const getPreferredSkinToneIndex = (val) => {
     return CONST.EMOJI_DEFAULT_SKIN_TONE;
 };
 
+/**
+ * Given an emoji object it returns the correct emoji code
+ * based on the users preferred skin tone.
+ * @param {Object} emoji
+ * @param {String | Number} preferredSkinTone
+ * @returns {String}
+ */
+const getPreferredEmojiCode = (emoji, preferredSkinTone) => {
+    if (emoji.types) {
+        const emojiCodeWithSkinTone = emoji.types[preferredSkinTone];
+
+        // Note: it can happen that preferredSkinTone has a outdated format,
+        // so it makes sense to check if we actually got a valid emoji code back
+        if (emojiCodeWithSkinTone) {
+            return emojiCodeWithSkinTone;
+        }
+    }
+
+    return emoji.code;
+};
+
+/**
+ * Given an emoji object and a list of senders it will return an
+ * array of emoji codes, that represents all used variations of the
+ * emoji.
+ * @param {{ name: string, code: string, types: string[] }} emoji
+ * @param {Array} users
+ * @return {string[]}
+ * */
+const getUniqueEmojiCodes = (emoji, users) => {
+    const emojiCodes = [];
+    _.forEach(users, (user) => {
+        const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
+
+        if (emojiCode && !emojiCodes.includes(emojiCode)) {
+            emojiCodes.push(emojiCode);
+        }
+    });
+    return emojiCodes;
+};
+
 export {
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
@@ -311,4 +352,6 @@ export {
     trimEmojiUnicode,
     getEmojiCodeWithSkinColor,
     getPreferredSkinToneIndex,
+    getPreferredEmojiCode,
+    getUniqueEmojiCodes,
 };
