@@ -285,6 +285,9 @@ export default {
         sayHello: 'Say hello!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
+    mentionSuggestions: {
+        hereAlternateText: 'Notify everyone online in this room',
+    },
     newMessages: 'New messages',
     reportTypingIndicator: {
         isTyping: 'is typing...',
@@ -299,6 +302,13 @@ export default {
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) =>
             `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
+    },
+    writeCapabilityPage: {
+        label: 'Who can post',
+        writeCapability: {
+            all: 'All members',
+            admins: 'Admins only',
+        },
     },
     sidebarScreen: {
         fabAction: 'New chat',
@@ -597,6 +607,8 @@ export default {
         transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
         transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
+        notHereSubTitle: 'Please transfer your balance from the payments page',
+        goToPayment: 'Go to Payments',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose account',
@@ -715,7 +727,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include letters and numbers.',
+            hasInvalidCharacter: 'Name can only include latin letters and numbers.',
             incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -746,7 +758,7 @@ export default {
         getMeOutOfHere: 'Get me out of here',
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
-        pageNotFound: 'That page is nowhere to be found.',
+        pageNotFound: 'Oops, this page cannot be found',
         noAccess: "You don't have access to this chat",
         goBackHome: 'Go back to Home page',
     },
@@ -1024,17 +1036,18 @@ export default {
     },
     workspace: {
         common: {
-            card: 'Issue cards',
+            card: 'Cards',
             workspace: 'Workspace',
             edit: 'Edit workspace',
             delete: 'Delete workspace',
-            settings: 'General settings',
-            reimburse: 'Reimburse expenses',
-            bills: 'Pay bills',
-            invoices: 'Send invoices',
-            travel: 'Book travel',
-            members: 'Manage members',
-            bankAccount: 'Connect bank account',
+            settings: 'Settings',
+            reimburse: 'Reimbursements',
+            bills: 'Bills',
+            invoices: 'Invoices',
+            travel: 'Travel',
+            members: 'Members',
+            bankAccount: 'Bank account',
+            connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',

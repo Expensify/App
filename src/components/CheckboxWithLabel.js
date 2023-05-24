@@ -9,6 +9,11 @@ import FormHelpMessage from './FormHelpMessage';
 import variables from '../styles/variables';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
+/**
+ * Returns an error if the required props are not provided
+ * @param {Object} props
+ * @returns {Error|null}
+ */
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
         return new Error('One of "label" or "LabelComponent" must be provided');
@@ -22,6 +27,14 @@ const requiredPropsCheck = (props) => {
         return new Error('Prop "LabelComponent" must be a function');
     }
 };
+
+/**
+ * Returns the checked state from props
+ * @param {Object} props
+ * @returns {Boolean}
+ */
+const getCheckedStateFromProps = (props) =>  _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value));
+
 
 const propTypes = {
     /** Whether the checkbox is checked */
@@ -74,11 +87,9 @@ const defaultProps = {
 };
 
 const CheckboxWithLabel = (props) => {
-    const [isChecked, setIsChecked] = useState(
-      _.find([props.value, props.defaultValue, props.isChecked], (value) =>
-        _.isBoolean(value)
-      )
-    );
+    // We need to pick the first value that is strictly a boolean
+    // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
+    const [isChecked, setIsChecked] = useState(getCheckedStateFromProps(props));
   
     const toggleCheckbox = () => {
     const newState = !isChecked;
@@ -87,8 +98,8 @@ const CheckboxWithLabel = (props) => {
     };
   
     useEffect(() => {
-        setIsChecked(props.isChecked);
-    }, [props.isChecked]);
+        setIsChecked(getCheckedStateFromProps(props));
+    }, [props.isChecked, props.value, props.defaultValue]);
 
     const LabelComponent = props.LabelComponent;
   
