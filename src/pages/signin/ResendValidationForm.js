@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -17,6 +17,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -90,9 +91,13 @@ const ResendValidationForm = (props) => {
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <TouchableOpacity onPress={() => redirectToSignIn()}>
+                <PressableWithoutFeedback
+                    onPress={() => redirectToSignIn()}
+                    accessibilityRole="button"
+                    accessibilityLabel={props.translate('common.back')}
+                >
                     <Text style={[styles.link]}>{props.translate('common.back')}</Text>
-                </TouchableOpacity>
+                </PressableWithoutFeedback>
                 <Button
                     medium
                     success
