@@ -1,4 +1,4 @@
-import React, {Component, useState, useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -191,7 +191,7 @@ function MoneyRequestConfirmationList(props) {
             });
         }
         return sections;
-    }, [props.hasMultipleParticipants, props.iouAmount, props.currentUserPersonalDetails, props.iou.selectedCurrencyCode, props.participants]);
+    }, [getSelectedParticipants, getUnselectedParticipants, getParticipantsWithAmount, getParticipantsWithoutAmount, props.hasMultipleParticipants, props.iouAmount, props.currentUserPersonalDetails, props.iou.selectedCurrencyCode, props.participants]);
 
     /**
      * Returns selected options -- there is checkmark for every row in List for split flow
@@ -203,7 +203,7 @@ function MoneyRequestConfirmationList(props) {
         }
         const selectedParticipants = getSelectedParticipants();
         return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(props.currentUserPersonalDetails)];
-    }, [props.hasMultipleParticipants, props.currentUserPersonalDetails]);
+    }, [getSelectedParticipants, props.hasMultipleParticipants, props.currentUserPersonalDetails]);
 
     /**
      * Toggle selected option's selected prop.
