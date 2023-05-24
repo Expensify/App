@@ -94,7 +94,7 @@ function MoneyRequestConfirmationList(props) {
      * @param {Array} participants
      * @returns {Array}
      */
-    const getParticipantsWithAmount = useMemo(
+    const getParticipantsWithAmount = useCallback(
         (participants) => {
             const iouAmount = IOUUtils.calculateAmount(participants.length, props.iouAmount);
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, props.iou.selectedCurrencyCode));
@@ -110,11 +110,7 @@ function MoneyRequestConfirmationList(props) {
     const [participants, setParticipants] = useState(formattedParticipants);
     const [didConfirm, setDidConfirm] = useState(false);
 
-    /**
-     * Get the confirmation button options
-     * @returns {Array}
-     */
-    const getSplitOrRequestOptions = useMemo(() => {
+    const splitOrRequestOptions = useMemo(() => {
         const text = props.translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
             amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iou.selectedCurrencyCode),
         });
@@ -126,17 +122,8 @@ function MoneyRequestConfirmationList(props) {
         ];
     }, [props.hasMultipleParticipants, props.iouAmount, props.iou.selectedCurrencyCode, props.translate]);
 
-    /**
-     * Get selected participants
-     * @returns {Array}
-     */
-    const getSelectedParticipants = useMemo(() => _.filter(participants, (participant) => participant.selected), [participants]);
-
-    /**
-     * Get unselected participants
-     * @returns {Array}
-     */
-    const getUnselectedParticipants = useMemo(() => _.filter(participants, (participant) => !participant.selected), [participants]);
+    const selectedParticipants = useMemo(() => _.filter(participants, (participant) => participant.selected), [participants]);
+    const unselectedParticipants = useMemo(() => _.filter(participants, (participant) => !participant.selected), [participants]);
 
     /**
      * Returns the participants without amount
@@ -144,18 +131,11 @@ function MoneyRequestConfirmationList(props) {
      * @param {Array} participants
      * @returns {Array}
      */
-    const getParticipantsWithoutAmount = useMemo((participantsList) => _.map(participantsList, (option) => _.omit(option, 'descriptiveText')), []);
+    const getParticipantsWithoutAmount = useCallback((participantsList) => _.map(participantsList, (option) => _.omit(option, 'descriptiveText')), []);
 
-    /**
-     * Returns the sections needed for the OptionsSelector
-     * @returns {Array}
-     */
-    const getSections = useMemo(() => {
+    const optionSelectorSections = useMemo(() => {
         const sections = [];
         if (props.hasMultipleParticipants) {
-            const selectedParticipants = getSelectedParticipants();
-            const unselectedParticipants = getUnselectedParticipants();
-
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
             const formattedUnselectedParticipants = getParticipantsWithoutAmount(unselectedParticipants);
             const formattedParticipantsList = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
@@ -192,8 +172,8 @@ function MoneyRequestConfirmationList(props) {
         }
         return sections;
     }, [
-        getSelectedParticipants,
-        getUnselectedParticipants,
+        selectedParticipants,
+        unselectedParticipants,
         getParticipantsWithAmount,
         getParticipantsWithoutAmount,
         props.hasMultipleParticipants,
@@ -204,17 +184,12 @@ function MoneyRequestConfirmationList(props) {
         props.translate,
     ]);
 
-    /**
-     * Returns selected options -- there is checkmark for every row in List for split flow
-     * @returns {Array}
-     */
-    const getSelectedOptions = useMemo(() => {
+    const selectedOptions = useMemo(() => {
         if (!props.hasMultipleParticipants) {
             return [];
         }
-        const selectedParticipants = getSelectedParticipants();
         return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(props.currentUserPersonalDetails)];
-    }, [getSelectedParticipants, props.hasMultipleParticipants, props.currentUserPersonalDetails]);
+    }, [selectedParticipants, props.hasMultipleParticipants, props.currentUserPersonalDetails]);
 
     /**
      * Toggle selected option's selected prop.
@@ -247,7 +222,6 @@ function MoneyRequestConfirmationList(props) {
         (paymentMethod) => {
             setDidConfirm(true);
 
-            const selectedParticipants = getSelectedParticipants();
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
@@ -263,10 +237,9 @@ function MoneyRequestConfirmationList(props) {
                 props.onConfirm(selectedParticipants);
             }
         },
-        [getSelectedParticipants, props.iouType, props.onSendMoney, props.onConfirm],
+        [selectedParticipants, props.iouType, props.onSendMoney, props.onConfirm],
     );
 
-    const selectedParticipants = getSelectedParticipants();
     const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
     const shouldDisableButton = selectedParticipants.length === 0;
     const recipient = participants[0];
@@ -275,11 +248,11 @@ function MoneyRequestConfirmationList(props) {
 
     return (
         <OptionsSelector
-            sections={getSections()}
+            sections={optionSelectorSections}
             value=""
             onSelectRow={canModifyParticipants ? toggleOption : undefined}
             onConfirmSelection={confirm}
-            selectedOptions={getSelectedOptions()}
+            selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
             disableArrowKeysActions={!canModifyParticipants}
             isDisabled={!canModifyParticipants}
@@ -304,7 +277,7 @@ function MoneyRequestConfirmationList(props) {
                     <ButtonWithDropdownMenu
                         isDisabled={shouldDisableButton}
                         onPress={(_event, value) => confirm(value)}
-                        options={getSplitOrRequestOptions()}
+                        options={splitOrRequestOptions}
                     />
                 )
             }
