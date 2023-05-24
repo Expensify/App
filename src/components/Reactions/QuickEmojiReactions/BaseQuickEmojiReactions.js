@@ -10,8 +10,10 @@ import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Tooltip from '../../Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as EmojiReactionsPropTypes from '../EmojiReactionsPropTypes';
 
 const baseQuickEmojiReactionsPropTypes = {
+    ...EmojiReactionsPropTypes.propTypes,
     /**
      * Callback to fire when an emoji is selected.
      */
@@ -31,6 +33,7 @@ const baseQuickEmojiReactionsPropTypes = {
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
+    ...EmojiReactionsPropTypes.defaultProps,
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
 };
@@ -58,7 +61,7 @@ const BaseQuickEmojiReactions = (props) => (
                     emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                     isContextMenu
                     onPress={() => {
-                        props.onEmojiSelected(emoji, props.reactions);
+                        props.onEmojiSelected(emoji, props.emojiReactions);
                     }}
                 />
             </Tooltip>
@@ -67,7 +70,7 @@ const BaseQuickEmojiReactions = (props) => (
             isContextMenu
             onPressOpenPicker={props.onPressOpenPicker}
             onWillShowPicker={props.onWillShowPicker}
-            onSelectEmoji={(emoji) => props.onEmojiSelected(emoji, props.reactions)}
+            onSelectEmoji={(emoji) => props.onEmojiSelected(emoji, props.emojiReactions)}
         />
     </View>
 );
@@ -79,7 +82,7 @@ export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     },
-    reactions: {
+    emojiReactions: {
         key: ({reportID, reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
     },
 })(BaseQuickEmojiReactions);
