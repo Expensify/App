@@ -287,9 +287,9 @@ export default {
                     IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                 },
             },
-            Split_Details: {
+            SplitDetails: {
                 screens: {
-                    IOU_Details_Root: ROUTES.IOU_DETAILS_SPLIT_BILL,
+                    SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS,
                 },
             },
             Task_Details: {
