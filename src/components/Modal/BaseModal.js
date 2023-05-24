@@ -10,6 +10,7 @@ import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './
 import * as Modal from '../../libs/actions/Modal';
 import getModalStyles from '../../styles/getModalStyles';
 import variables from '../../styles/variables';
+import navigationRef from '../../libs/Navigation/navigationRef';
 
 const propTypes = {
     ...modalPropTypes,
@@ -67,7 +68,7 @@ class BaseModal extends PureComponent {
      * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
      */
     hideModal(callHideCallback = true) {
-        if (this.props.shouldSetModalVisibility) {
+        if (this.props.shouldSetModalVisibility && !navigationRef.current.getState().index) {
             Modal.setModalVisibility(false);
         }
         if (callHideCallback) {
