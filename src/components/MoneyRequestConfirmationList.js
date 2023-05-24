@@ -89,7 +89,7 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmationList(props) {
-    const formattedParticipants = useCallback(_.map(this.getParticipantsWithAmount(props.participants), (participant) => ({
+    const formattedParticipants = useCallback(_.map(getParticipantsWithAmount(props.participants), (participant) => ({
         ...participant,
         selected: true,
     })), [props.participants]);
@@ -214,30 +214,30 @@ function MoneyRequestConfirmationList(props) {
      * Toggle selected option's selected prop.
      * @param {Object} option
      */
-    toggleOption(option) {
+    const toggleOption = useCallback((option) => {
         // Return early if selected option is currently logged in user.
         if (option.login === props.session.email) {
             return;
         }
 
-        this.setState((prevState) => {
-            const newParticipants = _.map(prevState.participants, (participant) => {
+        setParticipants((prevParticipants) => {
+            const newParticipants = _.map(prevParticipants, (participant) => {
                 if (participant.login === option.login) {
-                    return {...participant, selected: !participant.selected};
+                    return { ...participant, selected: !participant.selected };
                 }
                 return participant;
             });
-            return {participants: newParticipants};
+            return newParticipants;
         });
-    }
+    }, [props.session.email]);
 
     /**
      * @param {String} paymentMethod
      */
-    confirm(paymentMethod) {
-        this.setState({didConfirm: true});
+    const confirm = useCallback((paymentMethod) => {
+        setDidConfirm(true);
 
-        const selectedParticipants = this.getSelectedParticipants();
+        const selectedParticipants = getSelectedParticipants();
         if (_.isEmpty(selectedParticipants)) {
             return;
         }
@@ -252,9 +252,9 @@ function MoneyRequestConfirmationList(props) {
         } else {
             props.onConfirm(selectedParticipants);
         }
-    }
+    }, [getSelectedParticipants, props.iouType, props.onSendMoney, props.onConfirm]);
 
-    const selectedParticipants = this.getSelectedParticipants();
+    const selectedParticipants = getSelectedParticipants();
     const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
     const shouldDisableButton = selectedParticipants.length === 0;
     const recipient = participants[0];
@@ -263,11 +263,11 @@ function MoneyRequestConfirmationList(props) {
 
     return (
         <OptionsSelector
-            sections={this.getSections()}
+            sections={getSections()}
             value=""
-            onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
-            onConfirmSelection={this.confirm}
-            selectedOptions={this.getSelectedOptions()}
+            onSelectRow={canModifyParticipants ? toggleOption : undefined}
+            onConfirmSelection={confirm}
+            selectedOptions={getSelectedOptions()}
             canSelectMultipleOptions={canModifyParticipants}
             disableArrowKeysActions={!canModifyParticipants}
             isDisabled={!canModifyParticipants}
@@ -280,7 +280,7 @@ function MoneyRequestConfirmationList(props) {
                 shouldShowSettlementButton ? (
                     <SettlementButton
                         isDisabled={shouldDisableButton}
-                        onPress={this.confirm}
+                        onPress={confirm}
                         shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                         enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                         addBankAccountRoute={props.bankAccountRoute}
@@ -291,8 +291,8 @@ function MoneyRequestConfirmationList(props) {
                 ) : (
                     <ButtonWithDropdownMenu
                         isDisabled={shouldDisableButton}
-                        onPress={(_event, value) => this.confirm(value)}
-                        options={this.getSplitOrRequestOptions()}
+                        onPress={(_event, value) => confirm(value)}
+                        options={getSplitOrRequestOptions()}
                     />
                 )
             }
