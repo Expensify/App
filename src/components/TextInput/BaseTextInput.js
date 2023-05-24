@@ -219,7 +219,11 @@ class BaseTextInput extends Component {
                 this.props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
             ],
             (finalStyles, s) => ({...finalStyles, ...s}),
-            {},
+            {
+                '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,
+                '--active-label-scale': `${styleConst.ACTIVE_LABEL_SCALE}`,
+                '--label-transition-duration': '80ms',
+            },
         );
         const isMultiline = this.props.multiline || this.props.autoGrowHeight;
 
