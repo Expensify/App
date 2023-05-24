@@ -7,9 +7,8 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import * as Localize from '../Localize';
 import * as OptionsListUtils from '../OptionsListUtils';
-import DateUtils from '../DateUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
@@ -212,7 +211,7 @@ function removeMembers(members, policyID) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
+            value: _.object(members, Array(members.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
     ];
     API.write(
@@ -367,9 +366,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
             value: _.object(
                 logins,
                 Array(logins.length).fill({
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericAdd'),
-                    },
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
                 }),
             ),
         },
@@ -479,9 +476,7 @@ function deleteWorkspaceAvatar(policyID) {
                     avatar: null,
                 },
                 errorFields: {
-                    avatar: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
-                    },
+                    avatar: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
                 },
             },
         },
@@ -551,9 +546,7 @@ function updateGeneralSettings(policyID, name, currency) {
                     generalSettings: null,
                 },
                 errorFields: {
-                    generalSettings: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
-                    },
+                    generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
             },
         },
@@ -739,9 +732,7 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
                         rates: {
                             [currentCustomUnitRate.customUnitRateID]: {
                                 ...currentCustomUnitRate,
-                                errors: {
-                                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
-                                },
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.reimburse.updateCustomUnitError'),
                             },
                         },
                     },

@@ -163,7 +163,6 @@ function MagicCodeInput(props) {
      */
     const onFocus = (event) => {
         event.preventDefault();
-        setInput('');
     };
 
     /**

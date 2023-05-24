@@ -292,6 +292,7 @@ const MoneyRequestModal = (props) => {
     );
     const amountButtonText = isEditingAmountAfterConfirm ? props.translate('common.save') : props.translate('common.next');
     const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.MoneyRequestParticipants;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.report);
 
     return (
         <ScreenWrapper
@@ -370,6 +371,7 @@ const MoneyRequestModal = (props) => {
                                             canModifyParticipants={!_.isEmpty(reportID)}
                                             navigateToStep={navigateToStep}
                                             policyID={props.report.policyID}
+                                            bankAccountRoute={bankAccountRoute}
                                         />
                                     </AnimatedStep>
                                 )}

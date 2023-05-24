@@ -15,7 +15,7 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import DateUtils from '../DateUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 
@@ -165,9 +165,7 @@ function requestContactMethodValidateCode(contactMethod) {
                 [contactMethod]: {
                     validateCodeSent: false,
                     errorFields: {
-                        validateCodeSent: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                        },
+                        validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
                     pendingFields: {
                         validateCodeSent: null,
@@ -266,9 +264,7 @@ function deleteContactMethod(contactMethod, loginList) {
                 [contactMethod]: {
                     ...oldLoginData,
                     errorFields: {
-                        deletedLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.deleteContactMethod'),
-                        },
+                        deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
                         deletedLogin: null,
@@ -352,9 +348,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        addedLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
-                        },
+                        addedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.addContactMethod'),
                     },
                     pendingFields: {
                         addedLogin: null,
@@ -453,9 +447,7 @@ function validateSecondaryLogin(contactMethod, validateCode) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        validateLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'),
-                        },
+                        validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
                     },
                     pendingFields: {
                         validateLogin: null,
@@ -843,9 +835,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
                         defaultLogin: null,
                     },
                     errorFields: {
-                        defaultLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.setDefaultContactMethod'),
-                        },
+                        defaultLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.setDefaultContactMethod'),
                     },
                 },
             },
