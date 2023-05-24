@@ -1506,9 +1506,8 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
  * @param {String} reportID
  * @param {String} reportActionID
  * @param {{ name: string, code: string, types: string[] }} emoji
- * @param {Object} existingReactions
  */
-function removeEmojiReaction(reportID, reportActionID, emoji, existingReactions) {
+function removeEmojiReaction(reportID, reportActionID, emoji) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
