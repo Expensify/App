@@ -14,6 +14,7 @@ import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import TaskSelectorLink from '../../components/TaskSelectorLink';
 import reportPropTypes from '../reportPropTypes';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as TaskUtils from '../../libs/actions/Task';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
@@ -104,7 +105,7 @@ const NewTaskPage = (props) => {
     // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
-        if (!props.task.title || !props.task.shareDestination) {
+        if (!props.task.title || (!OptionsListUtils.isCurrentUser({login: props.task.assignee}) && !props.task.shareDestination)) {
             setSubmitError(true);
             return;
         }

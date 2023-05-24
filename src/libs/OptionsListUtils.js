@@ -558,6 +558,7 @@ function getOptions(
             recentReports: [],
             personalDetails: [],
             userToInvite: null,
+            currentUserOption: null,
         };
     }
 
@@ -699,8 +700,13 @@ function getOptions(
         });
     }
 
+    let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
+    if (searchValue && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
+        currentUserOption = null;
+    }
+
     let userToInvite = null;
-    const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0;
+    const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
 
     if (
@@ -757,6 +763,7 @@ function getOptions(
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         userToInvite,
+        currentUserOption,
     };
 }
 
