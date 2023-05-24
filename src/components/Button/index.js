@@ -111,7 +111,8 @@ const propTypes = {
     accessibilityLabel: PropTypes.string,
 
     /** A ref to forward the button */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.oneOfType([PropTypes.instanceOf(React.Component), PropTypes.func])})]),
+    // eslint-disable-next-line react/forbid-prop-types
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
 };
 
 const defaultProps = {
@@ -253,7 +254,7 @@ class Button extends Component {
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.press();
                     }
-                    this.props.onPress(e);
+                    return this.props.onPress(e);
                 }}
                 onLongPress={(e) => {
                     if (this.props.shouldEnableHapticFeedback) {

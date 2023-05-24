@@ -16,7 +16,7 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
-import withPolicy from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -153,6 +153,6 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
 )(WorkspacePageWithSections);
