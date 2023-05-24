@@ -30,6 +30,7 @@ import CONST from '../../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
@@ -48,7 +49,7 @@ const propTypes = {
     index: PropTypes.number.isRequired,
 
     /** A ref to forward to the text input */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** The report currently being looked at */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -252,7 +253,7 @@ class ReportActionItemMessageEdit extends React.Component {
         if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
             e.preventDefault();
             this.publishDraft();
-        } else if (e.key === 'Escape') {
+        } else if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
             e.preventDefault();
             this.deleteDraft();
         }
@@ -299,13 +300,13 @@ class ReportActionItemMessageEdit extends React.Component {
                                 multiline
                                 ref={(el) => {
                                     this.textInput = el;
-                                    this.props.forwardedRef(el);
+                                    this.props.forwardedRef.current = el;
                                 }}
                                 nativeID={this.messageEditInput}
                                 onChangeText={this.updateDraft} // Debounced saveDraftComment
                                 onKeyPress={this.triggerSaveOrCancel}
                                 value={this.state.draft}
-                                maxLines={16} // This is the same that slack has
+                                maxLines={this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                                 style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                                 onFocus={() => {
                                     this.setState({isFocused: true});

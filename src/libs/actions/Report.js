@@ -19,9 +19,10 @@ import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
-import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
+import * as ErrorUtils from '../ErrorUtils';
+import * as Welcome from './Welcome';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -262,7 +263,7 @@ function addActions(reportID, text = '', file) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: _.mapObject(optimisticReportActions, (action) => ({
                 ...action,
-                errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')},
+                errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
             })),
         },
     ];
@@ -898,32 +899,6 @@ function deleteReportComment(reportID, reportAction) {
 }
 
 /**
- * @param {String} comment
- * @returns {Array}
- */
-const extractLinksInMarkdownComment = (comment) => {
-    const regex = /\[[^[\]]*\]\(([^()]*)\)/gm;
-    const matches = [...comment.matchAll(regex)];
-
-    // Element 1 from match is the regex group if it exists which contains the link URLs
-    const links = _.map(matches, (match) => match[1]);
-    return links;
-};
-
-/**
- * Compares two markdown comments and returns a list of the links removed in a new comment.
- *
- * @param {String} oldComment
- * @param {String} newComment
- * @returns {Array}
- */
-const getRemovedMarkdownLinks = (oldComment, newComment) => {
-    const linksInOld = extractLinksInMarkdownComment(oldComment);
-    const linksInNew = extractLinksInMarkdownComment(newComment);
-    return _.difference(linksInOld, linksInNew);
-};
-
-/**
  * Removes the links in html of a comment.
  * example:
  *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">https://www.google.com</a> test"
@@ -958,7 +933,7 @@ const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     }
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
     const htmlForNewComment = parser.replace(newCommentText);
-    const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
+    const removedLinks = parser.getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 };
 
@@ -1095,7 +1070,11 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {String} previousValue
  * @param {String} newValue
  */
-function updateNotificationPreference(reportID, previousValue, newValue) {
+function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
+    if (previousValue === newValue) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        return;
+    }
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1111,19 +1090,56 @@ function updateNotificationPreference(reportID, previousValue, newValue) {
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+}
+
+/**
+ * @param {Object} report
+ * @param {String} newValue
+ */
+function updateWriteCapabilityAndNavigate(report, newValue) {
+    if (report.writeCapability === newValue) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
+        return;
+    }
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {writeCapability: newValue},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {writeCapability: report.writeCapability},
+        },
+    ];
+    API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
+    // Return to the report settings page since this field utilizes push-to-page
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
 }
 
 /**
  * Navigates to the 1:1 report with Concierge
  */
 function navigateToConciergeChat() {
-    // If we don't have a chat with Concierge then create it
     if (!conciergeChatReportID) {
-        navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
-        return;
+        // In order not to delay the report life cycle, we first navigate to the unknown report
+        if (_.isEmpty(Navigation.getReportIDFromRoute())) {
+            Navigation.navigate(ROUTES.REPORT);
+        }
+        // In order to avoid creating concierge repeatedly,
+        // we need to ensure that the server data has been successfully pulled
+        Welcome.serverDataIsReadyPromise().then(() => {
+            // If we don't have a chat with Concierge then create it
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
+        });
+    } else {
+        Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
     }
-
-    Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
 }
 
 /**
@@ -1248,9 +1264,15 @@ function navigateToConciergeChatAndDeleteReport(reportID) {
  * @param {String} policyRoomReport.reportName
  * @param {String} policyRoomName The updated name for the policy room
  */
-function updatePolicyRoomName(policyRoomReport, policyRoomName) {
+function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
     const reportID = policyRoomReport.reportID;
     const previousName = policyRoomReport.reportName;
+
+    // No change needed, navigate back
+    if (previousName === policyRoomName) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        return;
+    }
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1287,6 +1309,7 @@ function updatePolicyRoomName(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1378,6 +1401,7 @@ function showReportActionNotification(reportID, action) {
 
     Log.info('[LocalNotification] Creating notification');
     LocalNotification.showCommentNotification({
+        report: allReports[reportID],
         reportAction: action,
         onClick: () => {
             // Navigate to this report onClick
@@ -1585,11 +1609,49 @@ function openReportFromDeepLink(url) {
     });
 }
 
+/**
+ * Leave a report by setting the state to submitted and closed
+ *
+ * @param {String} reportID
+ */
+function leaveRoom(reportID) {
+    API.write(
+        'LeaveRoom',
+        {
+            reportID,
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS.CLOSED,
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS.OPEN,
+                    },
+                },
+            ],
+        },
+    );
+    navigateToConciergeChat();
+}
+
 export {
     addComment,
     addAttachment,
     reconnect,
-    updateNotificationPreference,
+    updateWriteCapabilityAndNavigate,
+    updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
     saveReportComment,
@@ -1615,8 +1677,8 @@ export {
     navigateToAndOpenReport,
     navigateToAndOpenChildReport,
     openPaymentDetailsPage,
+    updatePolicyRoomNameAndNavigate,
     openMoneyRequestsReportPage,
-    updatePolicyRoomName,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
@@ -1626,4 +1688,5 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
+    leaveRoom,
 };

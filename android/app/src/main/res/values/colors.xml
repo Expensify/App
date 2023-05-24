@@ -1,5 +1,6 @@
 <resources>
     <color name="bootsplash_background">#03D47C</color>
+    <color name="status_bar_background">#061B09</color>
     <color name="white">#FFFFFF</color>
     <color name="accent">#03D47C</color>
     <color name="dark">#0b1b34</color>

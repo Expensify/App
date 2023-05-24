@@ -7,7 +7,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
 import compose from '../../libs/compose';
-import ReportPreview from './ReportPreview';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import networkPropTypes from '../networkPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -20,7 +19,8 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -36,7 +36,7 @@ const propTypes = {
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
+    contextMenuAnchor: refPropTypes,
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
@@ -68,6 +68,10 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** Styles to be assigned to Container */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
@@ -83,12 +87,15 @@ const defaultProps = {
     session: {
         email: null,
     },
+    style: [],
 };
 
 const MoneyRequestAction = (props) => {
     const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
+    const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+
     const onIOUPreviewPressed = () => {
-        if (lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && hasMultipleParticipants) {
+        if (isSplitBillAction && hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
             return;
         }
@@ -100,8 +107,8 @@ const MoneyRequestAction = (props) => {
             const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
             const thread = ReportUtils.buildOptimisticChatReport(
                 formattedUserLogins,
-                props.translate('iou.threadReportName', {
-                    formattedAmount: CurrencyUtils.convertToDisplayString(lodashGet(props.action, 'originalMessage.amount', 0), lodashGet(props.action, 'originalMessage.currency', '')),
+                props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
+                    formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
                     comment: props.action.originalMessage.comment,
                 }),
                 '',
@@ -112,7 +119,7 @@ const MoneyRequestAction = (props) => {
                 undefined,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 props.action.reportActionID,
-                props.chatReportID, // Needs to be changed to iouReportID
+                props.requestReportID,
             );
 
             Report.openReport(thread.reportID, thread.participants, thread, props.action.reportActionID);
@@ -140,26 +147,15 @@ const MoneyRequestAction = (props) => {
             <IOUPreview
                 iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
-                isBillSplit={hasMultipleParticipants}
+                isBillSplit={isSplitBillAction}
                 action={props.action}
                 contextMenuAnchor={props.contextMenuAnchor}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
                 shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                 onPreviewPressed={onIOUPreviewPressed}
-                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
+                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
                 isHovered={props.isHovered}
             />
-            {props.isMostRecentIOUReportAction && !hasMultipleParticipants && (
-                <ReportPreview
-                    action={props.action}
-                    chatReportID={props.chatReportID}
-                    iouReportID={props.requestReportID}
-                    contextMenuAnchor={props.contextMenuAnchor}
-                    onViewDetailsPressed={onIOUPreviewPressed}
-                    checkIfContextMenuActive={props.checkIfContextMenuActive}
-                    isHovered={props.isHovered}
-                />
-            )}
         </>
     );
 };
