@@ -1419,29 +1419,6 @@ function clearIOUError(reportID) {
 }
 
 /**
- * Internal function to help with updating the onyx state of a message of a report action.
- * @param {Object} originalReportAction
- * @param {Object} message
- * @param {String} reportID
- * @return {Object[]}
- */
-function getOptimisticDataForReportActionUpdate(originalReportAction, message, reportID) {
-    const reportActionID = originalReportAction.reportActionID;
-
-    return [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [reportActionID]: {
-                    message: [message],
-                },
-            },
-        },
-    ];
-}
-
-/**
  * Returns true if the accountID has reacted to the report action (with the given skin tone).
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} accountID
