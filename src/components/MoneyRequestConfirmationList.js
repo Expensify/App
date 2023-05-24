@@ -41,7 +41,7 @@ const propTypes = {
     participants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
     /** Payee of the money request with login */
-    payee: optionPropTypes.isRequired,
+    payeePersonalDetails: optionPropTypes,
 
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
@@ -89,8 +89,9 @@ const defaultProps = {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+    payee: null,
     canModifyParticipants: false,
-    shouldShowFooter: false,
+    shouldShowFooter: true,
     isReadOnly: false,
     bankAccountRoute: '',
     session: {
@@ -171,6 +172,18 @@ class MoneyRequestConfirmationList extends Component {
     }
 
     /**
+     * Returns the payee personalDetails object
+     *
+     * @returns {Object} personalDetails
+     */
+    getRequestPayee() {
+        if (this.props.payeePersonalDetails) {
+            return this.props.payeePersonalDetails;
+        }
+        return this.props.currentUserPersonalDetails;
+    }
+
+    /**
      * Returns the sections needed for the OptionsSelector
      *
      * @returns {Array}
@@ -187,10 +200,9 @@ class MoneyRequestConfirmationList extends Component {
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.iouAmount, true);
             const formattedPayeePersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                this.props.payee,
+                this.getRequestPayee(),
                 CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.iou.selectedCurrencyCode),
             );
-            const payeeWithAmount = this.props.payee['descriptiveText'] = myIOUAmount;
 
             sections.push(
                 {
@@ -258,7 +270,7 @@ class MoneyRequestConfirmationList extends Component {
             return [];
         }
         const selectedParticipants = this.getSelectedParticipants();
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(this.props.payee)];
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(this.getRequestPayee())];
     }
 
     /**
