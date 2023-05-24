@@ -360,7 +360,7 @@ function ReportActionItem(props) {
             preventDefaultContextMenu={!props.draftMessage && !hasErrors}
             withoutFocusOnSecondaryInteraction
         >
-            <Hoverable>
+            <Hoverable disabled={Boolean(props.draftMessage)}>
                 {(hovered) => (
                     <View accessibilityLabel={props.translate('accessibilityHints.chatMessage')}>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}

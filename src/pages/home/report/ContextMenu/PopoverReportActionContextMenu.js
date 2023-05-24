@@ -95,7 +95,7 @@ class PopoverReportActionContextMenu extends React.Component {
     getContextMenuMeasuredLocation() {
         return new Promise((resolve) => {
             if (this.contextMenuAnchor) {
-                this.contextMenuAnchor.current.measureInWindow((x, y) => resolve({x, y}));
+                (this.contextMenuAnchor.current || this.contextMenuAnchor).measureInWindow((x, y) => resolve({x, y}));
             } else {
                 resolve({x: 0, y: 0});
             }
@@ -279,6 +279,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     disableAnimation={false}
+                    animationOutTiming={1}
                     shouldSetModalVisibility={false}
                     fullscreen
                 >
