@@ -24,6 +24,7 @@ import * as User from '../../../libs/actions/User';
 import FormHelpMessage from '../../../components/FormHelpMessage';
 import MagicCodeInput from '../../../components/MagicCodeInput';
 import Terms from '../Terms';
+import DotIndicatorMessage from '../../../components/DotIndicatorMessage';
 
 const propTypes = {
     /* Onyx Props */
@@ -235,10 +236,12 @@ class BaseValidateCodeForm extends React.Component {
                                     {this.props.translate('validateCodeForm.magicCodeNotReceived')}
                                 </Text>
                             </TouchableOpacity>
-                            {this.state.linkSent && !hasError && (
-                                <Text style={[styles.mt2]}>
-                                    {this.props.account.message ? this.props.translate(this.props.account.message) : ''}
-                                </Text>
+                            {this.state.linkSent && !hasError && !_.isEmpty(this.props.account.message) && (
+                                <DotIndicatorMessage 
+                                    type="success"
+                                    style={[styles.mt2]}
+                                    messages={{0: this.props.translate(this.props.account.message)}}
+                                />
                             )}
                         </View>
                     </View>
