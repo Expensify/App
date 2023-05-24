@@ -51,8 +51,8 @@ class NewDatePicker extends React.Component {
      */
     setDate(selectedDate) {
         this.setState({selectedDate}, () => {
+            this.props.onTouched();
             this.props.onInputChange(selectedDate);
-            this.props.onBlur(); // force validation on every date change
         });
     }
 
