@@ -124,7 +124,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
-    }, [props.hasMultipleParticipants, props.iouAmount, props.iou.selectedCurrencyCode]);
+    }, [props.hasMultipleParticipants, props.iouAmount, props.iou.selectedCurrencyCode, props.translate]);
 
     /**
      * Get selected participants
@@ -201,6 +201,7 @@ function MoneyRequestConfirmationList(props) {
         props.currentUserPersonalDetails,
         props.iou.selectedCurrencyCode,
         props.participants,
+        props.translate,
     ]);
 
     /**
