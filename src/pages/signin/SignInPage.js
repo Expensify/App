@@ -52,7 +52,7 @@ const defaultProps = {
     credentials: {},
 };
 
-const SignInPage = ({account, credentials}) => {
+function SignInPage({account, credentials}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {canUsePasswordlessLogins} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -174,7 +174,7 @@ const SignInPage = ({account, credentials}) => {
             </SignInPageLayout>
         </SafeAreaView>
     );
-};
+}
 
 SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
