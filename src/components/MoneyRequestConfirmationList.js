@@ -89,10 +89,23 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmationList(props) {
-    const formattedParticipants = useCallback(_.map(getParticipantsWithAmount(props.participants), (participant) => ({
+    /**
+     * Returns the participants with amount
+     * @param {Array} participants
+     * @returns {Array}
+     */
+    const getParticipantsWithAmount = useCallback(
+        (participants) => {
+            const iouAmount = IOUUtils.calculateAmount(participants.length, props.iouAmount);
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, props.iou.selectedCurrencyCode));
+        },
+        [props.iouAmount, props.iou.selectedCurrencyCode],
+    );
+
+    const formattedParticipants = _.map(getParticipantsWithAmount(props.participants), (participant) => ({
         ...participant,
         selected: true,
-    })), [props.participants]);
+    }));
 
     const [participants, setParticipants] = useState(formattedParticipants);
     const [didConfirm, setDidConfirm] = useState(false);
@@ -131,17 +144,6 @@ function MoneyRequestConfirmationList(props) {
 
     /**
      * @TODO: should I use useCallback here???????????????????????????
-     * Returns the participants with amount
-     * @param {Array} participants
-     * @returns {Array}
-     */
-    const getParticipantsWithAmount = (participants) => {
-        const iouAmount = IOUUtils.calculateAmount(participants.length, props.iouAmount);
-        return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, props.iou.selectedCurrencyCode));
-    }
-
-    /**
-     * @TODO: should I use useCallback here???????????????????????????
      * Returns the participants without amount
      *
      * @param {Array} participants
@@ -149,7 +151,7 @@ function MoneyRequestConfirmationList(props) {
      */
     const getParticipantsWithoutAmount = (participants) => {
         return _.map(participants, (option) => _.omit(option, 'descriptiveText'));
-    }
+    };
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -187,7 +189,7 @@ function MoneyRequestConfirmationList(props) {
                 },
             );
         } else {
-            const formattedParticipants = this.getParticipantsWithoutAmount(props.participants);
+            const formattedParticipants = getParticipantsWithoutAmount(props.participants);
             sections.push({
                 title: props.translate('common.to'),
                 data: formattedParticipants,
@@ -214,45 +216,51 @@ function MoneyRequestConfirmationList(props) {
      * Toggle selected option's selected prop.
      * @param {Object} option
      */
-    const toggleOption = useCallback((option) => {
-        // Return early if selected option is currently logged in user.
-        if (option.login === props.session.email) {
-            return;
-        }
+    const toggleOption = useCallback(
+        (option) => {
+            // Return early if selected option is currently logged in user.
+            if (option.login === props.session.email) {
+                return;
+            }
 
-        setParticipants((prevParticipants) => {
-            const newParticipants = _.map(prevParticipants, (participant) => {
-                if (participant.login === option.login) {
-                    return { ...participant, selected: !participant.selected };
-                }
-                return participant;
+            setParticipants((prevParticipants) => {
+                const newParticipants = _.map(prevParticipants, (participant) => {
+                    if (participant.login === option.login) {
+                        return {...participant, selected: !participant.selected};
+                    }
+                    return participant;
+                });
+                return newParticipants;
             });
-            return newParticipants;
-        });
-    }, [props.session.email]);
+        },
+        [props.session.email],
+    );
 
     /**
      * @param {String} paymentMethod
      */
-    const confirm = useCallback((paymentMethod) => {
-        setDidConfirm(true);
+    const confirm = useCallback(
+        (paymentMethod) => {
+            setDidConfirm(true);
 
-        const selectedParticipants = getSelectedParticipants();
-        if (_.isEmpty(selectedParticipants)) {
-            return;
-        }
-
-        if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
-            if (!paymentMethod) {
+            const selectedParticipants = getSelectedParticipants();
+            if (_.isEmpty(selectedParticipants)) {
                 return;
             }
 
-            Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-            props.onSendMoney(paymentMethod);
-        } else {
-            props.onConfirm(selectedParticipants);
-        }
-    }, [getSelectedParticipants, props.iouType, props.onSendMoney, props.onConfirm]);
+            if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+                if (!paymentMethod) {
+                    return;
+                }
+
+                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+                props.onSendMoney(paymentMethod);
+            } else {
+                props.onConfirm(selectedParticipants);
+            }
+        },
+        [getSelectedParticipants, props.iouType, props.onSendMoney, props.onConfirm],
+    );
 
     const selectedParticipants = getSelectedParticipants();
     const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
