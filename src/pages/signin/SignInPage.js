@@ -17,6 +17,7 @@ import Performance from '../../libs/Performance';
 import * as App from '../../libs/actions/App';
 import Permissions from '../../libs/Permissions';
 import UnlinkLoginForm from './UnlinkLoginForm';
+import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Localize from '../../libs/Localize';
 
@@ -67,7 +68,11 @@ class SignInPage extends Component {
         // Show the login form if
         // - A login has not been entered yet
         // - AND a validateCode has not been cached with sign in link
-        const showLoginForm = !this.props.credentials.login && !this.props.credentials.validateCode;
+
+        // Show the email delivery failure page if
+        // - A login has been entered
+        // - AND the response from the API shows that we've been unable to send emails to the user
+        const showEmailDeliveryFailurePage = Boolean(this.props.credentials.login) && this.props.account.hasEmailDeliveryFailure;
 
         // Show the unlink form if
         // - A login has been entered
@@ -161,6 +166,7 @@ class SignInPage extends Component {
                     {showValidateCodeForm ? <ValidateCodeForm isVisible={showValidateCodeForm} /> : <PasswordForm isVisible={showPasswordForm} />}
                     {showResendValidationForm && <ResendValidationForm />}
                     {showUnlinkLoginForm && <UnlinkLoginForm />}
+                    {showEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
                 </SignInPageLayout>
             </SafeAreaView>
         );
