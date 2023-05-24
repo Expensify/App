@@ -116,7 +116,6 @@ const HeaderView = (props) => {
     }
     const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
-    const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report) && !isTaskReport;
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -157,7 +156,7 @@ const HeaderView = (props) => {
                             ) : (
                                 <MultipleAvatars
                                     icons={icons}
-                                    avatarTooltips={avatarTooltip}
+                                    shouldShowTooltip={!isChatRoom}
                                 />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
