@@ -232,12 +232,10 @@ class BaseValidateCodeForm extends React.Component {
                                 onPress={this.resendValidateCode}
                                 underlayColor={themeColors.componentBG}
                             >
-                                <Text style={[styles.link]}>
-                                    {this.props.translate('validateCodeForm.magicCodeNotReceived')}
-                                </Text>
+                                <Text style={[styles.link]}>{this.props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                             </TouchableOpacity>
                             {this.state.linkSent && !hasError && !_.isEmpty(this.props.account.message) && (
-                                <DotIndicatorMessage 
+                                <DotIndicatorMessage
                                     type="success"
                                     style={[styles.mt2]}
                                     messages={{0: this.props.translate(this.props.account.message)}}
