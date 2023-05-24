@@ -1696,7 +1696,6 @@ function flagComment(reportID, reportAction, severity) {
     ];
 
     const parameters = {
-        reportID,
         severity,
         reportActionID,
     };
