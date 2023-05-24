@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, TouchableOpacity, Pressable} from 'react-native';
+import {View} from 'react-native';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import Text from '../Text';
