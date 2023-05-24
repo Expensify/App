@@ -3,18 +3,16 @@ import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import ModalHeader from './ModalHeader';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import * as ReportUtils from '../../libs/ReportUtils';
 import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import reportPropTypes from '../reportPropTypes';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
@@ -64,57 +62,19 @@ function getReportID(route) {
     return route.params.reportID.toString();
 }
 
-/**
- * Returns all the participants in the active report
- *
- * @param {Object} reportAction The IOU split reportAction, which contains the participants
- * @param {Object} personalDetails The personal details of the users
- * @return {Array}
- */
-const getAllParticipants = (reportAction, personalDetails) => {
-    const participants = lodashGet(reportAction, 'originalMessage.participants', []);
-    const participantsExcludingOwner = _.filter(participants, (participant) => participant !== reportAction.actorEmail);
-
-    return _.chain(participantsExcludingOwner)
-        .map((login) => {
-            const userLogin = Str.removeSMSDomain(login);
-            const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
-
-            return {
-                alternateText: userLogin,
-                displayName: userPersonalDetail.displayName,
-                icons: [
-                    {
-                        source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
-                        name: login,
-                        type: CONST.ICON_TYPE_AVATAR,
-                    },
-                ],
-                keyForList: userLogin,
-                login,
-                text: userPersonalDetail.displayName,
-                tooltipText: userLogin,
-                participantsList: [{login, displayName: userPersonalDetail.displayName}],
-            };
-        })
-        .sortBy((participant) => participant.displayName.toLowerCase())
-        .value();
-};
-
 const SplitBillDetailsPage = (props) => {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const participants = getAllParticipants(reportAction, props.personalDetails);
+    const personalDetails = OptionsListUtils.getPersonalDetailsForLogins(reportAction.originalMessage.participants, props.personalDetails);
+    const participants = OptionsListUtils.getParticipantsOptions(reportAction.originalMessage, personalDetails);
+    const participantsExcludingOwner = _.filter(participants, (participant) => participant.login !== reportAction.actorEmail);
     const splitAmount = lodashGet(reportAction, 'originalMessage.amount', 0);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            (
+        <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
-                <HeaderWithCloseButton
+                <ModalHeader
                     title={props.translate('common.details')}
-                    onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={Navigation.goBack}
-                    shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report)}
+                    shouldShowBackButton={false}
                 />
                 <View
                     pointerEvents="box-none"
@@ -123,15 +83,15 @@ const SplitBillDetailsPage = (props) => {
                     {Boolean(participants.length) && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
-                            participants={participants}
+                            participants={participantsExcludingOwner}
                             iouAmount={splitAmount}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
+                            shouldShowFooter={false}
                         />
                     )}
                 </View>
             </FullPageNotFoundView>
-            )
         </ScreenWrapper>
     );
 };
