@@ -18,7 +18,8 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import reportPropTypes from '../reportPropTypes';
 import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
@@ -28,6 +29,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import withWindowDimensions from '../../components/withWindowDimensions';
 
 const propTypes = {
     ...policyPropTypes,
@@ -70,7 +72,7 @@ const WorkspaceInitialPage = (props) => {
      * Call the delete policy and hide the modal
      */
     const confirmDeleteAndHideModal = useCallback(() => {
-        const policyReports = _.filter(props.reports, report => report && report.policyID === policy.id);
+        const policyReports = _.filter(props.reports, (report) => report && report.policyID === policy.id);
         Policy.deleteWorkspace(policy.id, policyReports, policy.name);
         setIsDeleteModalOpen(false);
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
@@ -78,8 +80,7 @@ const WorkspaceInitialPage = (props) => {
 
     const policyName = lodashGet(policy, 'name', '');
     const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
-    const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {}))
-        || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
+    const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
     const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
     const menuItems = [
         {
@@ -150,16 +151,9 @@ const WorkspaceInitialPage = (props) => {
                                 onSelected: () => setIsDeleteModalOpen(true),
                             },
                         ]}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                     />
-                    <ScrollView
-                        contentContainerStyle={[
-                            styles.flexGrow1,
-                            styles.flexColumn,
-                            styles.justifyContentBetween,
-                            safeAreaPaddingBottomStyle,
-                        ]}
-                    >
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <OfflineWithFeedback
                             pendingAction={policy.pendingAction}
                             onClose={() => dismissError(policy.id)}
@@ -189,21 +183,13 @@ const WorkspaceInitialPage = (props) => {
                                         {!_.isEmpty(policy.name) && (
                                             <Pressable
                                                 disabled={hasPolicyCreationError}
-                                                style={[
-                                                    styles.alignSelfCenter,
-                                                    styles.mt4,
-                                                    styles.w100,
-                                                ]}
+                                                style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
                                                 onPress={() => openEditor(policy.id)}
                                             >
                                                 <Tooltip text={props.translate('workspace.common.settings')}>
                                                     <Text
                                                         numberOfLines={1}
-                                                        style={[
-                                                            styles.textHeadline,
-                                                            styles.alignSelfCenter,
-                                                            styles.pre,
-                                                        ]}
+                                                        style={[styles.textHeadline, styles.alignSelfCenter, styles.pre]}
                                                     >
                                                         {policy.name}
                                                     </Text>
@@ -212,7 +198,7 @@ const WorkspaceInitialPage = (props) => {
                                         )}
                                     </View>
                                 </View>
-                                {_.map(menuItems, item => (
+                                {_.map(menuItems, (item) => (
                                     <MenuItem
                                         key={item.translationKey}
                                         disabled={hasPolicyCreationError}
@@ -250,7 +236,8 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
+    withWindowDimensions,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

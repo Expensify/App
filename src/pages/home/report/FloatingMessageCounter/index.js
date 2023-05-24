@@ -67,26 +67,21 @@ class FloatingMessageCounter extends PureComponent {
                 containerStyles={[styles.floatingMessageCounterTransformation(this.translateY)]}
             >
                 <View style={styles.floatingMessageCounter}>
-                    <View style={[
-                        styles.flexRow,
-                        styles.justifyContentBetween,
-                        styles.alignItemsCenter,
-                    ]}
-                    >
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                         <Button
                             success
                             small
                             onPress={this.props.onClick}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Icon small src={Expensicons.DownArrow} fill={themeColors.textLight} />
+                                <Icon
+                                    small
+                                    src={Expensicons.DownArrow}
+                                    fill={themeColors.textLight}
+                                />
                                 <Text
                                     selectable={false}
-                                    style={[
-                                        styles.ml2,
-                                        styles.buttonSmallText,
-                                        styles.textWhite,
-                                    ]}
+                                    style={[styles.ml2, styles.buttonSmallText, styles.textWhite]}
                                 >
                                     {this.props.translate('newMessages')}
                                 </Text>

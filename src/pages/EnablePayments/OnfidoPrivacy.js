@@ -55,28 +55,15 @@ class OnfidoPrivacy extends React.Component {
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 {!this.props.walletOnfidoData.hasAcceptedPrivacyPolicy ? (
                     <>
-                        <FormScrollView ref={el => this.form = el}>
+                        <FormScrollView ref={(el) => (this.form = el)}>
                             <View style={[styles.mh5, styles.justifyContentCenter]}>
                                 <Text style={[styles.mb5]}>
                                     {this.props.translate('onfidoStep.acceptTerms')}
-                                    <TextLink
-                                        href="https://onfido.com/facial-scan-policy-and-release/"
-                                    >
-                                        {this.props.translate('onfidoStep.facialScan')}
-                                    </TextLink>
+                                    <TextLink href="https://onfido.com/facial-scan-policy-and-release/">{this.props.translate('onfidoStep.facialScan')}</TextLink>
                                     {', '}
-                                    <TextLink
-                                        href="https://onfido.com/privacy/"
-                                    >
-                                        {this.props.translate('common.privacy')}
-                                    </TextLink>
+                                    <TextLink href="https://onfido.com/privacy/">{this.props.translate('common.privacy')}</TextLink>
                                     {` ${this.props.translate('common.and')} `}
-                                    <TextLink
-                                        href="https://onfido.com/terms-of-service/"
-                                    >
-                                        {this.props.translate('common.termsOfService')}
-                                    </TextLink>
-                                    .
+                                    <TextLink href="https://onfido.com/terms-of-service/">{this.props.translate('common.termsOfService')}</TextLink>.
                                 </Text>
                             </View>
                         </FormScrollView>

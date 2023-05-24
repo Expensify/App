@@ -9,12 +9,12 @@ const ScrollContext = React.createContext();
 const propTypes = ScrollView.propTypes;
 
 /*
-* <ScrollViewWithContext /> is a wrapper around <ScrollView /> that provides a ref to the <ScrollView />.
-* <ScrollViewWithContext /> can be used as a direct replacement for <ScrollView />
-* if it contains one or more <Picker /> / <RNPickerSelect /> components.
-* Using this wrapper will automatically handle scrolling to the picker's <TextInput />
-* when the picker modal is opened
-*/
+ * <ScrollViewWithContext /> is a wrapper around <ScrollView /> that provides a ref to the <ScrollView />.
+ * <ScrollViewWithContext /> can be used as a direct replacement for <ScrollView />
+ * if it contains one or more <Picker /> / <RNPickerSelect /> components.
+ * Using this wrapper will automatically handle scrolling to the picker's <TextInput />
+ * when the picker modal is opened
+ */
 class ScrollViewWithContext extends React.Component {
     constructor(props) {
         super(props);
@@ -58,10 +58,11 @@ class ScrollViewWithContext extends React.Component {
 ScrollViewWithContext.propTypes = propTypes;
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <ScrollViewWithContext {...props} innerRef={ref} />
+    <ScrollViewWithContext
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
 ));
 
-export {
-    ScrollContext,
-};
+export {ScrollContext};

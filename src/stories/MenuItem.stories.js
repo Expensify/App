@@ -14,7 +14,7 @@ const story = {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <MenuItem {...args} />;
+const Template = (args) => <MenuItem {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -116,15 +116,4 @@ BrickRoadIndicatorFailure.args = {
 };
 
 export default story;
-export {
-    Default,
-    Description,
-    RightIcon,
-    RightIconAndDescription,
-    Selected,
-    BadgeText,
-    Focused,
-    Disabled,
-    BrickRoadIndicatorSuccess,
-    BrickRoadIndicatorFailure,
-};
+export {Default, Description, RightIcon, RightIconAndDescription, Selected, BadgeText, Focused, Disabled, BrickRoadIndicatorSuccess, BrickRoadIndicatorFailure};

@@ -51,9 +51,4 @@ function getReimbursementAccountWorkspaceID() {
     return reimbursementAccountWorkspaceID;
 }
 
-export {
-    getReimbursementAccountInSetup,
-    getBankAccountList,
-    getCredentials,
-    getReimbursementAccountWorkspaceID,
-};
+export {getReimbursementAccountInSetup, getBankAccountList, getCredentials, getReimbursementAccountWorkspaceID};

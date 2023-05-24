@@ -11,7 +11,7 @@ function init() {
      * current valid token to generate the signed auth response
      * needed to subscribe to Pusher channels.
      */
-    Pusher.registerCustomAuthorizer(channel => ({
+    Pusher.registerCustomAuthorizer((channel) => ({
         authorize: (socketID, callback) => {
             Session.authenticatePusher(socketID, channel.name, callback);
         },

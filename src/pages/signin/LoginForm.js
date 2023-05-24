@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -107,7 +108,7 @@ class LoginForm extends React.Component {
             formError: null,
         });
 
-        if (this.props.account.errors) {
+        if (this.props.account.errors || this.props.account.message) {
             Session.clearAccountMessages();
         }
 
@@ -143,10 +144,10 @@ class LoginForm extends React.Component {
             return;
         }
 
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
-        const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
-        if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
+        if (!Str.isValidEmail(login) && !parsedPhoneNumber.possible) {
             if (ValidationUtils.isNumericWithSpecialChars(login)) {
                 this.setState({formError: 'common.error.phoneNumber'});
             } else {
@@ -160,7 +161,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);
+        Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login);
     }
 
     render() {
@@ -169,9 +170,12 @@ class LoginForm extends React.Component {
         const hasError = !_.isEmpty(serverErrorText);
         return (
             <>
-                <View accessibilityLabel={this.props.translate('loginForm.loginForm')} style={[styles.mt3]}>
+                <View
+                    accessibilityLabel={this.props.translate('loginForm.loginForm')}
+                    style={[styles.mt3]}
+                >
                     <TextInput
-                        ref={el => this.input = el}
+                        ref={(el) => (this.input = el)}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="username"
@@ -187,18 +191,18 @@ class LoginForm extends React.Component {
                         hasError={hasError}
                     />
                 </View>
-                {!_.isEmpty(this.props.account.success) && (
-                    <Text style={[styles.formSuccess]}>
-                        {this.props.account.success}
-                    </Text>
-                )}
-                {!_.isEmpty(this.props.closeAccount.success) && (
-
+                {!_.isEmpty(this.props.account.success) && <Text style={[styles.formSuccess]}>{this.props.account.success}</Text>}
+                {!_.isEmpty(this.props.closeAccount.success || this.props.account.message) && (
                     // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
-                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
+                    <DotIndicatorMessage
+                        style={[styles.mv2]}
+                        type="success"
+                        messages={{0: this.props.closeAccount.success || this.props.account.message}}
+                    />
                 )}
-                { // We need to unmount the submit button when the component is not visible so that the Enter button
-                  // key handler gets unsubscribed and does not conflict with the Password Form
+                {
+                    // We need to unmount the submit button when the component is not visible so that the Enter button
+                    // key handler gets unsubscribed and does not conflict with the Password Form
                     this.props.isVisible && (
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton

@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Pressable} from 'react-native';
 import lodashGet from 'lodash/get';
 import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
@@ -15,7 +15,8 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
-import * as Policy from '../libs/actions/Policy';
+import * as PolicyUtils from '../libs/PolicyUtils';
+import * as Report from '../libs/actions/Report';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -56,8 +57,19 @@ const defaultProps = {
 };
 
 class ReportDetailsPage extends Component {
+    getPolicy() {
+        return this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+    }
+
     getMenuItems() {
-        const menuItems = [];
+        const menuItems = [
+            {
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
+                translationKey: 'common.shareCode',
+                icon: Expensicons.QrCode,
+                action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(this.props.report.reportID)),
+            },
+        ];
 
         if (ReportUtils.isArchivedRoom(this.props.report)) {
             return [];
@@ -69,26 +81,31 @@ class ReportDetailsPage extends Component {
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
                 subtitle: lodashGet(this.props.report, 'participants', []).length,
-                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)); },
+                action: () => {
+                    Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID));
+                },
             });
         }
 
-        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report)) {
+        if (ReportUtils.isPolicyExpenseChat(this.props.report) || ReportUtils.isChatRoom(this.props.report) || ReportUtils.isThread(this.props.report)) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
-                action: () => { Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)); },
+                action: () => {
+                    Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID));
+                },
             });
         }
 
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
-        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy))) {
+        const policy = this.getPolicy();
+        const isThread = ReportUtils.isThread(this.props.report);
+        if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy)) || isThread) {
             menuItems.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: 'common.leaveRoom',
+                translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
                 icon: Expensicons.Exit,
-                action: () => Policy.leaveRoom(this.props.report.reportID),
+                action: () => Report.leaveRoom(this.props.report.reportID),
             });
         }
 
@@ -98,7 +115,8 @@ class ReportDetailsPage extends Component {
     render() {
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(this.props.report);
         const isChatRoom = ReportUtils.isChatRoom(this.props.report);
-        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report, this.props.policies);
+        const isThread = ReportUtils.isThread(this.props.report);
+        const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -106,6 +124,15 @@ class ReportDetailsPage extends Component {
             isMultipleParticipant,
         );
         const menuItems = this.getMenuItems();
+        const isPolicyAdmin = PolicyUtils.isPolicyAdmin(this.getPolicy());
+        const chatRoomSubtitleText = (
+            <Text
+                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
+                numberOfLines={1}
+            >
+                {chatRoomSubtitle}
+            </Text>
+        );
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
@@ -116,47 +143,38 @@ class ReportDetailsPage extends Component {
                     />
                     <ScrollView style={[styles.flex1]}>
                         <View style={[styles.m5]}>
-                            <View
-                                style={styles.reportDetailsTitleContainer}
-                            >
+                            <View style={styles.reportDetailsTitleContainer}>
                                 <View style={styles.mb4}>
-                                    <RoomHeaderAvatars
-                                        icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)}
-                                    />
+                                    <RoomHeaderAvatars icons={ReportUtils.getIcons(this.props.report, this.props.personalDetails, this.props.policies)} />
                                 </View>
                                 <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                                     <View style={[styles.alignSelfCenter, styles.w100]}>
                                         <DisplayNames
-                                            fullTitle={ReportUtils.getReportName(this.props.report, this.props.policies)}
+                                            fullTitle={ReportUtils.getReportName(this.props.report)}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={[styles.textHeadline, styles.mb2, styles.textAlignCenter, styles.pre]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread}
                                         />
                                     </View>
-                                    <Text
-                                        style={[
-                                            styles.sidebarLinkText,
-                                            styles.optionAlternateText,
-                                            styles.textLabelSupporting,
-                                            styles.mb2,
-                                            styles.pre,
-                                        ]}
-                                        numberOfLines={1}
-                                    >
-                                        {chatRoomSubtitle}
-                                    </Text>
+                                    {isPolicyAdmin ? (
+                                        <Pressable
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.report.policyID));
+                                            }}
+                                        >
+                                            {chatRoomSubtitleText}
+                                        </Pressable>
+                                    ) : (
+                                        chatRoomSubtitleText
+                                    )}
                                 </View>
                             </View>
                         </View>
                         {_.map(menuItems, (item) => {
-                            const brickRoadIndicator = (
-                                ReportUtils.hasReportNameError(this.props.report)
-                                && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS
-                            )
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : '';
+                            const brickRoadIndicator =
+                                ReportUtils.hasReportNameError(this.props.report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
                             return (
                                 <MenuItem
                                     key={item.key}

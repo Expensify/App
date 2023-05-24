@@ -56,10 +56,6 @@ export default {
         maxWidth: '100%',
     },
 
-    w1: {
-        width: 4,
-    },
-
     wAuto: {
         width: 'auto',
     },

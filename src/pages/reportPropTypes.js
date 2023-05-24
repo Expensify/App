@@ -4,7 +4,6 @@ import CONST from '../CONST';
 import avatarPropTypes from '../components/avatarPropTypes';
 
 export default PropTypes.shape({
-
     /** The specific type of chat */
     chatType: PropTypes.oneOf(['', ..._.values(CONST.REPORT.CHAT_TYPE)]),
 
@@ -68,4 +67,7 @@ export default PropTypes.shape({
 
     /** The status of the current report */
     statusNum: PropTypes.oneOf(_.values(CONST.REPORT.STATUS)),
+
+    /** Which user role is capable of posting messages on the report */
+    writeCapability: PropTypes.oneOf(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
 });
