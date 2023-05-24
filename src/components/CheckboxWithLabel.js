@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
@@ -73,60 +73,57 @@ const defaultProps = {
     forwardedRef: () => {},
 };
 
-class CheckboxWithLabel extends React.Component {
-    constructor(props) {
-        super(props);
+const CheckboxWithLabel = (props) => {
+    const [isChecked, setIsChecked] = useState(
+      _.find([props.value, props.defaultValue, props.isChecked], (value) =>
+        _.isBoolean(value)
+      )
+    );
+  
+    const toggleCheckbox = () => {
+    const newState = !isChecked;
+      props.onInputChange(newState);
+      setIsChecked(newState);
+    };
+  
+    useEffect(() => {
+        setIsChecked(props.isChecked);
+    }, [props.isChecked]);
 
-        this.state = {
-            // We need to pick the first value that is strictly a boolean
-            // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
-            isChecked: _.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value)),
-        };
-
-        this.LabelComponent = props.LabelComponent;
-
-        this.toggleCheckbox = this.toggleCheckbox.bind(this);
-    }
-
-    toggleCheckbox() {
-        this.props.onInputChange(!this.isChecked);
-        this.setState((prevState) => ({isChecked: !prevState.isChecked}));
-    }
-
-    render() {
-        return (
-            <View style={this.props.style}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
-                    <Checkbox
-                        isChecked={this.state.isChecked}
-                        onPress={this.toggleCheckbox}
-                        label={this.props.label}
-                        hasError={Boolean(this.props.errorText)}
-                        forwardedRef={this.props.forwardedRef}
-                    />
-                    <PressableWithFeedback
-                        focusable={false}
-                        accessible={false}
-                        onPress={this.toggleCheckbox}
-                        onLongPress={this.toggleCheckbox}
-                        pressDimmingValue={variables.checkboxLabelActiveOpacity}
-                        // We want to disable hover dimming
-                        hoverDimmingValue={variables.checkboxLabelHoverOpacity}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
-                        wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
-                    >
-                        {this.props.label && <Text style={[styles.ml1]}>{this.props.label}</Text>}
-                        {this.LabelComponent && <this.LabelComponent />}
-                    </PressableWithFeedback>
-                </View>
-                <FormHelpMessage message={this.props.errorText} />
-            </View>
-        );
-    }
-}
+    const LabelComponent = props.LabelComponent;
+  
+    return (
+      <View style={props.style}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.breakWord]}>
+          <Checkbox
+            isChecked={isChecked}
+            onPress={toggleCheckbox}
+            label={props.label}
+            hasError={Boolean(props.errorText)}
+            forwardedRef={props.forwardedRef}
+          />
+          <PressableWithFeedback
+            focusable={false}
+            accessible={false}
+            onPress={toggleCheckbox}
+            pressDimmingValue={variables.checkboxLabelActiveOpacity}
+            // We want to disable hover dimming
+            hoverDimmingValue={variables.checkboxLabelHoverOpacity}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
+            wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
+          >
+            {props.label && <Text style={[styles.ml1]}>{props.label}</Text>}
+            {LabelComponent && <LabelComponent />}
+          </PressableWithFeedback>
+        </View>
+        <FormHelpMessage message={props.errorText} />
+      </View>
+    );
+  };
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;
+CheckboxWithLabel.displayName = 'CheckboxWithLabel';
 
 export default React.forwardRef((props, ref) => (
     <CheckboxWithLabel
