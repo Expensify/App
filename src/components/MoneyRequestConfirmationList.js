@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -94,7 +94,7 @@ function MoneyRequestConfirmationList(props) {
      * @param {Array} participants
      * @returns {Array}
      */
-    const getParticipantsWithAmount = useCallback(
+    const getParticipantsWithAmount = useMemo(
         (participants) => {
             const iouAmount = IOUUtils.calculateAmount(participants.length, props.iouAmount);
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, props.iou.selectedCurrencyCode));
@@ -114,7 +114,7 @@ function MoneyRequestConfirmationList(props) {
      * Get the confirmation button options
      * @returns {Array}
      */
-    const getSplitOrRequestOptions = useCallback(() => {
+    const getSplitOrRequestOptions = useMemo(() => {
         const text = props.translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
             amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iou.selectedCurrencyCode),
         });
@@ -130,13 +130,13 @@ function MoneyRequestConfirmationList(props) {
      * Get selected participants
      * @returns {Array}
      */
-    const getSelectedParticipants = useCallback(() => _.filter(participants, (participant) => participant.selected), [participants]);
+    const getSelectedParticipants = useMemo(() => _.filter(participants, (participant) => participant.selected), [participants]);
 
     /**
      * Get unselected participants
      * @returns {Array}
      */
-    const getUnselectedParticipants = useCallback(() => _.filter(participants, (participant) => !participant.selected), [participants]);
+    const getUnselectedParticipants = useMemo(() => _.filter(participants, (participant) => !participant.selected), [participants]);
 
     /**
      * Returns the participants without amount
@@ -144,13 +144,13 @@ function MoneyRequestConfirmationList(props) {
      * @param {Array} participants
      * @returns {Array}
      */
-    const getParticipantsWithoutAmount = useCallback((participantsList) => _.map(participantsList, (option) => _.omit(option, 'descriptiveText')), []);
+    const getParticipantsWithoutAmount = useMemo((participantsList) => _.map(participantsList, (option) => _.omit(option, 'descriptiveText')), []);
 
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
      */
-    const getSections = useCallback(() => {
+    const getSections = useMemo(() => {
         const sections = [];
         if (props.hasMultipleParticipants) {
             const selectedParticipants = getSelectedParticipants();
@@ -208,7 +208,7 @@ function MoneyRequestConfirmationList(props) {
      * Returns selected options -- there is checkmark for every row in List for split flow
      * @returns {Array}
      */
-    const getSelectedOptions = useCallback(() => {
+    const getSelectedOptions = useMemo(() => {
         if (!props.hasMultipleParticipants) {
             return [];
         }
