@@ -7,7 +7,7 @@ const NotFoundPage = () => (
     <ScreenWrapper>
         <FullPageNotFoundView
             shouldShow
-            shouldShowBackHomeLink
+            shouldShowLink
         />
     </ScreenWrapper>
 );

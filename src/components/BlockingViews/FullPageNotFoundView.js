@@ -31,14 +31,17 @@ const propTypes = {
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
-    /** Whether we should show a go back home link */
-    shouldShowBackHomeLink: PropTypes.bool,
+    /** Whether we should show a link to navigate elsewhere */
+    shouldShowLink: PropTypes.bool,
 
     /** The key in the translations file to use for the go back link */
     linkKey: PropTypes.string,
 
     /** Method to trigger when pressing the back button of the header */
     onBackButtonPress: PropTypes.func,
+
+    /** Function to call when pressing the navigation link */
+    onLinkPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -48,9 +51,10 @@ const defaultProps = {
     subtitleKey: 'notFound.pageNotFound',
     linkKey: 'notFound.goBackHome',
     shouldShowBackButton: true,
-    shouldShowBackHomeLink: false,
+    shouldShowLink: false,
     shouldShowCloseButton: true,
     onBackButtonPress: () => Navigation.dismissModal(),
+    onLinkPress: () => Navigation.dismissModal(true),
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
@@ -72,7 +76,8 @@ const FullPageNotFoundView = (props) => {
                         title={props.translate(props.titleKey)}
                         subtitle={props.translate(props.subtitleKey)}
                         link={props.translate(props.linkKey)}
-                        shouldShowBackHomeLink={props.shouldShowBackHomeLink}
+                        shouldShowLink={props.shouldShowLink}
+                        onLinkPress={props.onLinkPress}
                     />
                 </View>
             </>
