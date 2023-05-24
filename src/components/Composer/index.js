@@ -426,6 +426,7 @@ class Composer extends React.Component {
     }
 
     render() {
+        const paddingVertical = this.state.numberOfLines === 1 ? 9 : 5;
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
@@ -471,6 +472,7 @@ class Composer extends React.Component {
                         // We are hiding the scrollbar to prevent it from reducing the text input width,
                         // so we can get the correct scroll height while calculating the number of lines.
                         this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                        {paddingTop: paddingVertical, paddingBottom: paddingVertical},
                     ]}
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...propsWithoutStyles}
