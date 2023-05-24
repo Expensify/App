@@ -111,37 +111,6 @@ const IOUSendModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
-const IOUDetailsModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const IOUDetailsModal = require('../../../pages/iou/IOUDetailsModal').default;
-            return IOUDetailsModal;
-        },
-        name: 'IOU_Details_Root',
-    },
-    {
-        getComponent: () => {
-            const AddPersonalBankAccountPage = require('../../../pages/AddPersonalBankAccountPage').default;
-            return AddPersonalBankAccountPage;
-        },
-        name: 'IOU_Details_Add_Bank_Account',
-    },
-    {
-        getComponent: () => {
-            const AddDebitCardPage = require('../../../pages/settings/Payments/AddDebitCardPage').default;
-            return AddDebitCardPage;
-        },
-        name: 'IOU_Details_Add_Debit_Card',
-    },
-    {
-        getComponent: () => {
-            const EnablePaymentsPage = require('../../../pages/EnablePayments/EnablePaymentsPage').default;
-            return EnablePaymentsPage;
-        },
-        name: 'IOU_Details_Enable_Payments',
-    },
-]);
-
 const DetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -169,6 +138,37 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const ReportSettingsModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ReportSettingsPage = require('../../../pages/settings/Report/ReportSettingsPage').default;
+            return ReportSettingsPage;
+        },
+        name: 'Report_Settings_Root',
+    },
+    {
+        getComponent: () => {
+            const RoomNamePage = require('../../../pages/settings/Report/RoomNamePage').default;
+            return RoomNamePage;
+        },
+        name: 'Report_Settings_Room_Name',
+    },
+    {
+        getComponent: () => {
+            const NotificationPreferencesPage = require('../../../pages/settings/Report/NotificationPreferencePage').default;
+            return NotificationPreferencesPage;
+        },
+        name: 'Report_Settings_Notification_Preferences',
+    },
+    {
+        getComponent: () => {
+            const WriteCapabilityPage = require('../../../pages/settings/Report/WriteCapabilityPage').default;
+            return WriteCapabilityPage;
+        },
+        name: 'Report_Settings_Write_Capability',
+    },
+]);
+
 const TaskModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -190,16 +190,6 @@ const TaskModalStackNavigator = createModalStackNavigator([
             return TaskAssigneeSelectorPage;
         },
         name: 'Task_Assignee',
-    },
-]);
-
-const ReportSettingsModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const ReportSettingsPage = require('../../../pages/ReportSettingsPage').default;
-            return ReportSettingsPage;
-        },
-        name: 'Report_Settings_Root',
     },
 ]);
 
@@ -598,6 +588,41 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'GetAssistance',
     },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
+            return SettingsTwoFactorAuthIsEnabled;
+        },
+        name: 'Settings_TwoFactorAuthIsEnabled',
+    },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthDisable = require('../../../pages/settings/Security/TwoFactorAuth/DisablePage').default;
+            return SettingsTwoFactorAuthDisable;
+        },
+        name: 'Settings_TwoFactorAuthDisable',
+    },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthCodes = require('../../../pages/settings/Security/TwoFactorAuth/CodesPage').default;
+            return SettingsTwoFactorAuthCodes;
+        },
+        name: 'Settings_TwoFactorAuthCodes',
+    },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthVerify = require('../../../pages/settings/Security/TwoFactorAuth/VerifyPage').default;
+            return SettingsTwoFactorAuthVerify;
+        },
+        name: 'Settings_TwoFactorAuthVerify',
+    },
+    {
+        getComponent: () => {
+            const SettingsTwoFactorAuthSuccess = require('../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default;
+            return SettingsTwoFactorAuthSuccess;
+        },
+        name: 'Settings_TwoFactorAuthSuccess',
+    },
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([
@@ -654,7 +679,6 @@ export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     IOUSendModalStackNavigator,
-    IOUDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,

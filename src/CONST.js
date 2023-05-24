@@ -22,6 +22,8 @@ const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInp
 const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
 const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
+const keyInputLeftArrow = lodashGet(KeyCommand, 'constants.keyInputLeftArrow', 'keyInputLeftArrow');
+const keyInputRightArrow = lodashGet(KeyCommand, 'constants.keyInputRightArrow', 'keyInputRightArrow');
 
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
@@ -35,7 +37,62 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['webp', 'jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+        /* eslint-disable-next-line max-len */
+        UNALLOWED_EXTENSIONS: [
+            'ade',
+            'adp',
+            'apk',
+            'appx',
+            'appxbundle',
+            'bat',
+            'cab',
+            'chm',
+            'cmd',
+            'com',
+            'cpl',
+            'diagcab',
+            'diagcfg',
+            'diagpack',
+            'dll',
+            'dmg',
+            'ex',
+            'ex_',
+            'exe',
+            'hta',
+            'img',
+            'ins',
+            'iso',
+            'isp',
+            'jar',
+            'jnlp',
+            'js',
+            'jse',
+            'lib',
+            'lnk',
+            'mde',
+            'msc',
+            'msi',
+            'msix',
+            'msixbundle',
+            'msp',
+            'mst',
+            'nsh',
+            'pif',
+            'ps1',
+            'scr',
+            'sct',
+            'shb',
+            'sys',
+            'vb',
+            'vbe',
+            'vbs',
+            'vhd',
+            'vxd',
+            'wsc',
+            'wsf',
+            'wsh',
+            'xll',
+        ],
 
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -227,6 +284,7 @@ const CONST = {
         MX: 'MX',
         AU: 'AU',
         CA: 'CA',
+        GB: 'GB',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
@@ -342,6 +400,26 @@ const CONST = {
                 [PLATFORM_IOS]: {input: keyInputDownArrow},
             },
         },
+        ARROW_LEFT: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowLeft',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputLeftArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputLeftArrow},
+                [PLATFORM_IOS]: {input: keyInputLeftArrow},
+            },
+        },
+        ARROW_RIGHT: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowRight',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputRightArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputRightArrow},
+                [PLATFORM_IOS]: {input: keyInputRightArrow},
+            },
+        },
         TAB: {
             descriptionKey: null,
             shortcutKey: 'Tab',
@@ -408,9 +486,13 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
+                TASKCANCELED: 'TASKCANCELED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKREOPENED: 'TASKREOPENED',
+                REPORTPREVIEW: 'REPORTPREVIEW',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -500,6 +582,7 @@ const CONST = {
         },
         STATE: {
             SUBMITTED: 'SUBMITTED',
+            PROCESSING: 'PROCESSING',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -517,6 +600,11 @@ const CONST = {
             MUTE: 'mute',
             DAILY: 'daily',
             ALWAYS: 'always',
+        },
+        // Options for which room members can post
+        WRITE_CAPABILITIES: {
+            ALL: 'all',
+            ADMINS: 'admins',
         },
         VISIBILITY: {
             PUBLIC: 'public',
@@ -740,6 +828,7 @@ const CONST = {
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
         MIN_AMOUNT_OF_ITEMS: 3,
         MAX_AMOUNT_OF_ITEMS: 5,
+        HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
@@ -901,6 +990,7 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
+            VBBA: 'ACH',
         },
         MONEY_REQUEST_TYPE: {
             SEND: 'send',
@@ -1018,14 +1108,17 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
-        // eslint-disable-next-line no-misleading-character-class
-        NEW_LINE_OR_WHITE_SPACE_OR_EMOJI: /[\n\s\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        SPECIAL_CHAR_OR_EMOJI:
+            // eslint-disable-next-line no-misleading-character-class
+            /[\n\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
         EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
 
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        MENTION_REPLACER: /^@[^\n\r]*?(?=$|\s)/,
+        MENTION_REPLACER:
+            // eslint-disable-next-line no-misleading-character-class
+            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
     },
@@ -1071,6 +1164,8 @@ const CONST = {
 
     // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
     MAX_MARKUP_LENGTH: 10000,
+
+    MAX_THREAD_REPLIES_PREVIEW: 99,
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
@@ -2317,6 +2412,7 @@ const CONST = {
         ACTIVE: 'active',
         DISABLED: 'disabled',
     },
+    SPACE_CHARACTER_WIDTH: 4,
 
     // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
     // div and then remove it from copied contents in the getHTMLOfSelection() method.

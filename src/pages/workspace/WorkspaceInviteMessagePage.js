@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {Pressable, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -18,7 +17,8 @@ import MultipleAvatars from '../../components/MultipleAvatars';
 import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ROUTES from '../../ROUTES';
 import * as Localize from '../../libs/Localize';
@@ -78,6 +78,17 @@ class WorkspaceInviteMessagePage extends React.Component {
         };
     }
 
+    componentDidMount() {
+        this.focusTimeout = setTimeout(() => {
+            this.welcomeMessageInputRef.focus();
+            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
+            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
+                const length = this.welcomeMessageInputRef.value.length;
+                this.welcomeMessageInputRef.setSelectionRange(length, length);
+            }
+        }, CONST.ANIMATED_TRANSITION);
+    }
+
     componentDidUpdate(prevProps) {
         if (
             !(
@@ -90,15 +101,17 @@ class WorkspaceInviteMessagePage extends React.Component {
         this.setState({welcomeNote: this.getDefaultWelcomeNote()});
     }
 
+    componentWillUnmount() {
+        if (!this.focusTimeout) {
+            return;
+        }
+        clearTimeout(this.focusTimeout);
+    }
+
     getDefaultWelcomeNote() {
         return this.props.translate('workspace.inviteMessage.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
-    }
-
-    getAvatarTooltips() {
-        const filteredPersonalDetails = _.pick(this.props.personalDetails, this.props.invitedMembersDraft);
-        return _.map(filteredPersonalDetails, (personalDetail) => Str.removeSMSDomain(personalDetail.login));
     }
 
     sendInvitation() {
@@ -168,7 +181,6 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft, this.props.personalDetails)}
                                 shouldStackHorizontally
                                 secondAvatarStyle={[styles.secondAvatarInline]}
-                                avatarTooltips={this.getAvatarTooltips()}
                             />
                         </View>
                         <View style={[styles.mb5]}>
@@ -176,6 +188,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         </View>
                         <View style={[styles.mb3]}>
                             <TextInput
+                                ref={(el) => (this.welcomeMessageInputRef = el)}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
@@ -200,7 +213,7 @@ WorkspaceInviteMessagePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity, InteractionManager, LayoutAnimation} from 'react-native';
+import {View, TouchableOpacity, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -48,13 +48,11 @@ import MentionSuggestions from '../../../components/MentionSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -117,9 +115,6 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
-    /** Collection of recent reports, used to calculate the mention suggestions */
-    reports: PropTypes.objectOf(reportPropTypes),
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -138,11 +133,11 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     isComposerFullSize: false,
     pendingAction: null,
-    reports: {},
     shouldShowComposeInput: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+const {RNTextInputReset} = NativeModules;
 /**
  * Return the max available index for arrow manager.
  * @param {Number} numRows
@@ -152,8 +147,8 @@ const defaultProps = {
 const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
     // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
     const emojiRowCount = isAutoSuggestionPickerLarge
-        ? Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.max(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
+        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return emojiRowCount - 1;
@@ -231,24 +226,6 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                const suggestionsExist = this.state.suggestedEmojis.length > 0 || this.state.suggestedMentions.length > 0;
-
-                if (!this.state.isFocused || this.comment.length === 0 || suggestionsExist) {
-                    return;
-                }
-
-                this.updateComment('', true);
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
         this.setMaxLines();
         this.updateComment(this.comment);
 
@@ -293,15 +270,15 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-
-        if (this.unsubscribeEscapeKey) {
-            this.unsubscribeEscapeKey();
-        }
     }
 
     onSelectionChange(e) {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         this.setState({selection: e.nativeEvent.selection});
+        if (!this.state.value || e.nativeEvent.selection.end < 1) {
+            this.resetSuggestions();
+            return;
+        }
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
     }
@@ -469,6 +446,53 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Build the suggestions for mentions
+     * @param {Object} personalDetails
+     * @param {String} [searchValue]
+     * @returns {Object}
+     */
+    getMentionOptions(personalDetails, searchValue = '') {
+        const suggestions = [];
+
+        if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue)) {
+            suggestions.push({
+                text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
+                alternateText: this.props.translate('mentionSuggestions.hereAlternateText'),
+                icons: [
+                    {
+                        source: Expensicons.Megaphone,
+                        type: 'avatar',
+                    },
+                ],
+            });
+        }
+
+        const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+            if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
+                return false;
+            }
+            return true;
+        });
+
+        const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
+        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
+            suggestions.push({
+                text: detail.displayName,
+                alternateText: detail.login,
+                icons: [
+                    {
+                        name: detail.login,
+                        source: detail.avatar,
+                        type: 'avatar',
+                    },
+                ],
+            });
+        });
+
+        return suggestions;
+    }
+
+    /**
      * Clean data related to EmojiSuggestions and MentionSuggestions
      */
     resetSuggestions() {
@@ -481,10 +505,6 @@ class ReportActionCompose extends React.Component {
      * Calculates and cares about the content of an Emoji Suggester
      */
     calculateEmojiSuggestion() {
-        if (!this.state.value) {
-            this.resetSuggestions();
-            return;
-        }
         if (this.state.shouldBlockEmojiCalc) {
             this.setState({shouldBlockEmojiCalc: false});
             return;
@@ -515,12 +535,8 @@ class ReportActionCompose extends React.Component {
     }
 
     calculateMentionSuggestion() {
-        if (this.state.selection.end < 1) {
-            return;
-        }
-
         const valueAfterTheCursor = this.state.value.substring(this.state.selection.end);
-        const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+        const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
 
         let indexOfLastNonWhitespaceCharAfterTheCursor;
         if (indexOfFirstWhitespaceCharOrEmojiAfterTheCursor === -1) {
@@ -531,7 +547,7 @@ class ReportActionCompose extends React.Component {
         }
 
         const leftString = this.state.value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
-        const words = leftString.split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+        const words = leftString.split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
         const lastWord = _.last(words);
 
         let atSignIndex;
@@ -543,6 +559,7 @@ class ReportActionCompose extends React.Component {
 
         const nextState = {
             suggestedMentions: [],
+            highlightedMentionIndex: 0,
             atSignIndex,
             mentionPrefix: prefix,
         };
@@ -550,9 +567,7 @@ class ReportActionCompose extends React.Component {
         const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
 
         if (!isCursorBeforeTheMention && this.isMentionCode(lastWord)) {
-            const options = OptionsListUtils.getNewChatOptions(this.props.reports, this.props.personalDetails, this.props.betas, prefix);
-            const suggestions = _.filter([...options.recentReports, options.userToInvite], (x) => !!x);
-
+            const suggestions = this.getMentionOptions(this.props.personalDetails, prefix);
             nextState.suggestedMentions = suggestions;
             nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
         }
@@ -567,7 +582,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Boolean}
      */
     isEmojiCode(str, pos) {
-        const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+        const leftWords = str.slice(0, pos).split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
         const leftWord = _.last(leftWords);
 
         return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
@@ -583,6 +598,15 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Trims first character of the string if it is a space
+     * @param {String} str
+     * @returns {String}
+     */
+    trimLeadingSpace(str) {
+        return str.slice(0, 1) === ' ' ? str.slice(1) : str;
+    }
+
+    /**
      * Replace the code of emoji and update selection
      * @param {Number} highlightedEmojiIndex
      */
@@ -592,7 +616,13 @@ class ReportActionCompose extends React.Component {
         const emojiCode = emojiObject.types && emojiObject.types[this.props.preferredSkinTone] ? emojiObject.types[this.props.preferredSkinTone] : emojiObject.code;
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
-        this.updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
+        this.updateComment(`${commentBeforeColon}${emojiCode} ${this.trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
+        // In some Android phones keyboard, the text to search for the emoji is not cleared
+        // will be added after the user starts typing again on the keyboard. This package is
+        // a workaround to reset the keyboard natively.
+        if (RNTextInputReset) {
+            RNTextInputReset.resetKeyboardInput(findNodeHandle(this.textInput));
+        }
         this.setState((prevState) => ({
             selection: {
                 start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
@@ -600,7 +630,8 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
+        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+        User.updateFrequentlyUsedEmojis(frequentEmojiList);
     }
 
     /**
@@ -610,10 +641,10 @@ class ReportActionCompose extends React.Component {
     insertSelectedMention(highlightedMentionIndex) {
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
         const mentionObject = this.state.suggestedMentions[highlightedMentionIndex];
-        const mentionCode = `@${mentionObject.alternateText}`;
+        const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
         const commentAfterAtSignWithMentionRemoved = this.state.value.slice(this.state.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
-        this.updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
+        this.updateComment(`${commentBeforeAtSign}${mentionCode} ${this.trimLeadingSpace(commentAfterAtSignWithMentionRemoved)}`, true);
         this.setState((prevState) => ({
             selection: {
                 start: prevState.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
@@ -633,13 +664,13 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
         this.setState((prevState) => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
                 end: prevState.selection.start + emoji.length,
             },
         }));
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
     }
 
     /**
@@ -692,7 +723,12 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const newComment = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+
+        if (!_.isEmpty(emojis)) {
+            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+        }
+
         this.setState((prevState) => {
             const newState = {
                 isCommentEmpty: !!newComment.match(/^(\s)*$/),
@@ -759,9 +795,13 @@ class ReportActionCompose extends React.Component {
             }
             return;
         }
-        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && suggestionsExist) {
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
             e.preventDefault();
-            this.resetSuggestions();
+            if (suggestionsExist) {
+                this.resetSuggestions();
+            } else if (this.comment.length > 0) {
+                this.updateComment('', true);
+            }
             return;
         }
 
@@ -867,6 +907,7 @@ class ReportActionCompose extends React.Component {
         const inputPlaceholder = this.getInputPlaceholder();
         const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
+        const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
 
         return (
             <View
@@ -908,7 +949,7 @@ class ReportActionCompose extends React.Component {
                                                     style={[
                                                         styles.dFlex,
                                                         styles.flexColumn,
-                                                        this.state.isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
                                                     ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
@@ -928,7 +969,7 @@ class ReportActionCompose extends React.Component {
                                                             </TouchableOpacity>
                                                         </Tooltip>
                                                     )}
-                                                    {!this.props.isComposerFullSize && this.state.isFullComposerAvailable && (
+                                                    {!this.props.isComposerFullSize && isFullComposerAvailable && (
                                                         <Tooltip text={this.props.translate('reportActionCompose.expand')}>
                                                             <TouchableOpacity
                                                                 onPress={(e) => {
@@ -967,7 +1008,8 @@ class ReportActionCompose extends React.Component {
                                                     isVisible={this.state.isMenuVisible}
                                                     onClose={() => this.setMenuVisibility(false)}
                                                     onItemSelected={() => this.setMenuVisibility(false)}
-                                                    anchorPosition={styles.createMenuPositionReportActionCompose}
+                                                    anchorPosition={styles.createMenuPositionReportActionCompose(this.props.windowHeight)}
+                                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                     menuItems={[
                                                         ...this.getMoneyRequestOptions(reportParticipants),
                                                         ...this.getTaskOption(reportParticipants),
@@ -1039,12 +1081,13 @@ class ReportActionCompose extends React.Component {
                                                 isDisabled={isComposeDisabled || isBlockedFromConcierge || this.props.disabled}
                                                 selection={this.state.selection}
                                                 onSelectionChange={this.onSelectionChange}
-                                                isFullComposerAvailable={this.state.isFullComposerAvailable}
+                                                isFullComposerAvailable={isFullComposerAvailable}
                                                 setIsFullComposerAvailable={this.setIsFullComposerAvailable}
                                                 isComposerFullSize={this.props.isComposerFullSize}
                                                 value={this.state.value}
                                                 numberOfLines={this.props.numberOfLines}
                                                 onNumberOfLinesChange={this.updateNumberOfLines}
+                                                shouldCalculateCaretPosition
                                                 onLayout={(e) => {
                                                     const composerHeight = e.nativeEvent.layout.height;
                                                     if (this.state.composerHeight === composerHeight) {
@@ -1193,9 +1236,7 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
+            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

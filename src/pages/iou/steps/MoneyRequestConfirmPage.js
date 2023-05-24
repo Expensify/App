@@ -28,11 +28,18 @@ const propTypes = {
 
     /** Function to navigate to a given step in the parent MoneyRequestModal */
     navigateToStep: PropTypes.func.isRequired,
+
+    /** The policyID of the request */
+    policyID: PropTypes.string,
+
+    /** Depending on expense report or personal IOU report, respective bank account route */
+    bankAccountRoute: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
+    policyID: '',
 };
 
 const MoneyRequestConfirmPage = (props) => (
@@ -45,6 +52,8 @@ const MoneyRequestConfirmPage = (props) => (
         iouType={props.iouType}
         canModifyParticipants={props.canModifyParticipants}
         navigateToStep={props.navigateToStep}
+        policyID={props.policyID}
+        bankAccountRoute={props.bankAccountRoute}
     />
 );
 

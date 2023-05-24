@@ -7,7 +7,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {withNetwork} from '../OnyxProvider';
 import compose from '../../libs/compose';
-import ReportPreview from './ReportPreview';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import networkPropTypes from '../networkPropTypes';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
@@ -16,6 +15,12 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import * as IOUUtils from '../../libs/IOUUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
+import * as Report from '../../libs/actions/Report';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -31,7 +36,7 @@ const propTypes = {
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
+    contextMenuAnchor: refPropTypes,
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
@@ -56,6 +61,18 @@ const propTypes = {
     isHovered: PropTypes.bool,
 
     network: networkPropTypes.isRequired,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
+    /** Styles to be assigned to Container */
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.arrayOf(PropTypes.object),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -67,15 +84,49 @@ const defaultProps = {
     iouReport: {},
     reportActions: {},
     isHovered: false,
+    session: {
+        email: null,
+    },
+    style: [],
 };
 
 const MoneyRequestAction = (props) => {
     const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
+    const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+
     const onIOUPreviewPressed = () => {
-        if (hasMultipleParticipants) {
+        if (isSplitBillAction && hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
+            return;
+        }
+
+        // If the childReportID is not present, we need to create a new thread
+        const childReportID = lodashGet(props.action, 'childReportID', '0');
+        if (childReportID === '0') {
+            const participants = _.uniq([props.session.email, props.action.actorEmail]);
+            const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+            const thread = ReportUtils.buildOptimisticChatReport(
+                formattedUserLogins,
+                props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
+                    formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
+                    comment: props.action.originalMessage.comment,
+                }),
+                '',
+                CONST.POLICY.OWNER_EMAIL_FAKE,
+                CONST.POLICY.OWNER_EMAIL_FAKE,
+                false,
+                '',
+                undefined,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                props.action.reportActionID,
+                props.requestReportID,
+            );
+
+            Report.openReport(thread.reportID, thread.participants, thread, props.action.reportActionID);
+            Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
         } else {
-            Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
+            Report.openReport(childReportID);
+            Navigation.navigate(ROUTES.getReportRoute(childReportID));
         }
     };
 
@@ -96,26 +147,15 @@ const MoneyRequestAction = (props) => {
             <IOUPreview
                 iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
-                isBillSplit={hasMultipleParticipants}
+                isBillSplit={isSplitBillAction}
                 action={props.action}
                 contextMenuAnchor={props.contextMenuAnchor}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
                 shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                 onPreviewPressed={onIOUPreviewPressed}
-                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined]}
+                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
                 isHovered={props.isHovered}
             />
-            {props.isMostRecentIOUReportAction && !hasMultipleParticipants && (
-                <ReportPreview
-                    action={props.action}
-                    chatReportID={props.chatReportID}
-                    iouReportID={props.requestReportID}
-                    contextMenuAnchor={props.contextMenuAnchor}
-                    onViewDetailsPressed={onIOUPreviewPressed}
-                    checkIfContextMenuActive={props.checkIfContextMenuActive}
-                    isHovered={props.isHovered}
-                />
-            )}
         </>
     );
 };
@@ -125,6 +165,7 @@ MoneyRequestAction.defaultProps = defaultProps;
 MoneyRequestAction.displayName = 'MoneyRequestAction';
 
 export default compose(
+    withLocalize,
     withOnyx({
         chatReport: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
@@ -135,6 +176,9 @@ export default compose(
         reportActions: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             canEvict: false,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
     withNetwork(),

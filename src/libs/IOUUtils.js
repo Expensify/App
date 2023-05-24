@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import CONST from '../CONST';
+import * as ReportActionsUtils from './ReportActionsUtils';
 
 /**
  * Calculates the amount per user given a list of participants
@@ -74,7 +75,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
  */
 function getIOUReportActions(reportActions, iouReport, type = '', pendingAction = '', filterRequestsInDifferentCurrency = false) {
     return _.chain(reportActions)
-        .filter((action) => action.originalMessage && action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && (!_.isEmpty(type) ? action.originalMessage.type === type : true))
+        .filter((action) => action.originalMessage && ReportActionsUtils.isMoneyRequestAction(action) && (!_.isEmpty(type) ? action.originalMessage.type === type : true))
         .filter((action) => action.originalMessage.IOUReportID.toString() === iouReport.reportID.toString())
         .filter((action) => (!_.isEmpty(pendingAction) ? action.pendingAction === pendingAction : true))
         .filter((action) => (filterRequestsInDifferentCurrency ? action.originalMessage.currency !== iouReport.currency : true))
