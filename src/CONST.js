@@ -2387,7 +2387,7 @@ const CONST = {
     UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
-    }
+    },
 };
 
 export default CONST;

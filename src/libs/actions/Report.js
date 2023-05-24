@@ -1644,7 +1644,7 @@ function leaveRoom(reportID) {
  */
 function flagComment(reportID, reportAction, severity) {
     const newDecision = {
-        "decision": CONST.MODERATION.MODERATOR_DECISION_PENDING,
+        decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
     };
 
     const message = reportAction.message[0];
@@ -1699,7 +1699,7 @@ function flagComment(reportID, reportAction, severity) {
         severity,
         reportActionID,
     };
-    
+
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
 }
 
