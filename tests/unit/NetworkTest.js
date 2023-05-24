@@ -258,9 +258,9 @@ describe('NetworkTests', () => {
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
             .then(() => {
                 // When network calls with `persist` are made
-                Network.post('mock command', {param1: 'value1', persist: true});
+                Network.post('mock command', {param1: 'value1', retry: true});
                 Network.post('mock command', {param2: 'value2'});
-                Network.post('mock command', {param3: 'value3', persist: true});
+                Network.post('mock command', {param3: 'value3', retry: true});
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -294,8 +294,8 @@ describe('NetworkTests', () => {
             })
                 .then(() => {
                     // When network calls with `persist` are made
-                    Network.post('mock command', {param1: 'value1', persist: true});
-                    Network.post('mock command', {param2: 'value2', persist: true});
+                    Network.post('mock command', {param1: 'value1', retry: true});
+                    Network.post('mock command', {param2: 'value2', retry: true});
                     return waitForPromisesToResolve();
                 })
                 .then(() => {
@@ -343,8 +343,8 @@ describe('NetworkTests', () => {
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
                 .then(() => {
                     // When network calls with `persist` are made
-                    Network.post('mock command', {param1: 'value1', persist: true});
-                    Network.post('mock command', {param2: 'value2', persist: true});
+                    Network.post('mock command', {param1: 'value1', retry: true});
+                    Network.post('mock command', {param2: 'value2', retry: true});
                     return waitForPromisesToResolve();
                 })
 
@@ -407,7 +407,7 @@ describe('NetworkTests', () => {
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
                 .then(() => {
                     // When network calls with `persist` are made
-                    Network.post('mock command', {param1: 'value1', persist: true});
+                    Network.post('mock command', {param1: 'value1', retry: true});
                     return waitForPromisesToResolve();
                 })
 
@@ -544,7 +544,7 @@ describe('NetworkTests', () => {
             waitForPromisesToResolve()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
                 .then(() => {
-                    Network.post('Mock', {param1: 'value1', persist: true, shouldRetry: true});
+                    Network.post('Mock', {param1: 'value1', retry: true, shouldRetry: true});
                     return waitForPromisesToResolve();
                 })
 
@@ -577,13 +577,13 @@ describe('NetworkTests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands and one not persistable
-                Network.post('MockCommand', {content: 'value1', persist: true});
-                Network.post('MockCommand', {content: 'value2', persist: true});
-                Network.post('MockCommand', {content: 'value3', persist: true});
+                Network.post('MockCommand', {content: 'value1', retry: true});
+                Network.post('MockCommand', {content: 'value2', retry: true});
+                Network.post('MockCommand', {content: 'value3', retry: true});
                 Network.post('MockCommand', {content: 'not-persisted'});
-                Network.post('MockCommand', {content: 'value4', persist: true});
-                Network.post('MockCommand', {content: 'value5', persist: true});
-                Network.post('MockCommand', {content: 'value6', persist: true});
+                Network.post('MockCommand', {content: 'value4', retry: true});
+                Network.post('MockCommand', {content: 'value5', retry: true});
+                Network.post('MockCommand', {content: 'value6', retry: true});
 
                 return waitForPromisesToResolve();
             })
@@ -613,12 +613,12 @@ describe('NetworkTests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands
-                Network.post('MockCommand', {content: 'value1', persist: true});
-                Network.post('MockCommand', {content: 'value2', persist: true});
-                Network.post('MockCommand', {content: 'value3', persist: true});
-                Network.post('MockCommand', {content: 'value4', persist: true});
-                Network.post('MockCommand', {content: 'value5', persist: true});
-                Network.post('MockCommand', {content: 'value6', persist: true});
+                Network.post('MockCommand', {content: 'value1', retry: true});
+                Network.post('MockCommand', {content: 'value2', retry: true});
+                Network.post('MockCommand', {content: 'value3', retry: true});
+                Network.post('MockCommand', {content: 'value4', retry: true});
+                Network.post('MockCommand', {content: 'value5', retry: true});
+                Network.post('MockCommand', {content: 'value6', retry: true});
                 return waitForPromisesToResolve();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
@@ -663,7 +663,7 @@ describe('NetworkTests', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                Network.post('MockCommand', {persist: true});
+                Network.post('MockCommand', {retry: true});
                 expect(PersistedRequests.getAll().length).toBe(1);
                 expect(NetworkStore.isOffline()).toBe(true);
                 expect(SequentialQueue.isRunning()).toBe(false);
@@ -730,7 +730,7 @@ describe('NetworkTests', () => {
                 NetworkStore.resetHasReadRequiredDataFromStorage();
 
                 // And queue a request while offline
-                Network.post('MockCommand', {content: 'value1', persist: true});
+                Network.post('MockCommand', {content: 'value1', retry: true});
 
                 // Then we should expect the request to get persisted
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -766,9 +766,9 @@ describe('NetworkTests', () => {
                 expect(NetworkStore.isOffline()).toBe(false);
 
                 // WHEN we make a request that should be retried, one that should not, and another that should
-                Network.post('MockCommandOne', {persist: true});
+                Network.post('MockCommandOne', {retry: true});
                 Network.post('MockCommandTwo');
-                Network.post('MockCommandThree', {persist: true});
+                Network.post('MockCommandThree', {retry: true});
 
                 // THEN the retryable requests should immediately be added to the persisted requests
                 expect(PersistedRequests.getAll().length).toBe(2);

@@ -15,7 +15,7 @@ test('Request.use() can register a middleware and it will run', () => {
     Request.use(testMiddleware);
     const request = {
         command: 'MockCommand',
-        data: {authToken: 'testToken', persist: true},
+        data: {authToken: 'testToken', retry: true},
     };
 
     Request.processWithMiddleware(request, true);

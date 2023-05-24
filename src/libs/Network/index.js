@@ -40,8 +40,8 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             appversion: pkg.version,
         };
 
-        const shouldPersist = lodashGet(request, 'data.persist', false);
-        if (shouldPersist) {
+        const shouldRetry = lodashGet(request, 'data.retry', false);
+        if (shouldRetry) {
             SequentialQueue.push(request);
             return;
         }
