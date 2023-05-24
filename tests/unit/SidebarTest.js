@@ -23,10 +23,12 @@ const ONYXKEYS = {
 };
 
 describe('Sidebar', () => {
-    beforeAll(() => Onyx.init({
-        keys: ONYXKEYS,
-        registerStorageEventListener: () => {},
-    }));
+    beforeAll(() =>
+        Onyx.init({
+            keys: ONYXKEYS,
+            registerStorageEventListener: () => {},
+        }),
+    );
 
     // Initialize the network key for OfflineWithFeedback
     beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
@@ -47,30 +49,29 @@ describe('Sidebar', () => {
             };
 
             // Given the user is in all betas
-            const betas = [
-                CONST.BETAS.DEFAULT_ROOMS,
-                CONST.BETAS.POLICY_ROOMS,
-                CONST.BETAS.POLICY_EXPENSE_CHAT,
-            ];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-            return waitForPromisesToResolve()
+            return (
+                waitForPromisesToResolve()
+                    // When Onyx is updated with the data and the sidebar re-renders
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.BETAS]: betas,
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                        }),
+                    )
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
 
-                // When Onyx is updated with the data and the sidebar re-renders
-                .then(() => Onyx.multiSet({
-                    [ONYXKEYS.BETAS]: betas,
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                }))
-                .then(() => {
-                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                    const displayNames = screen.queryAllByLabelText(hintText);
-                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
-
-                    const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
-                    const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
-                    expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe('This chat room has been archived.');
-                });
+                        const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                        const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
+                        expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe('This chat room has been archived.');
+                    })
+            );
         });
         it('renders the policy deleted archive reason as the preview message of the chat', () => {
             const report = {
@@ -90,33 +91,32 @@ describe('Sidebar', () => {
             };
 
             // Given the user is in all betas
-            const betas = [
-                CONST.BETAS.DEFAULT_ROOMS,
-                CONST.BETAS.POLICY_ROOMS,
-                CONST.BETAS.POLICY_EXPENSE_CHAT,
-            ];
+            const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
-            return waitForPromisesToResolve()
+            return (
+                waitForPromisesToResolve()
+                    // When Onyx is updated with the data and the sidebar re-renders
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.BETAS]: betas,
+                            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
+                        }),
+                    )
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
 
-                // When Onyx is updated with the data and the sidebar re-renders
-                .then(() => Onyx.multiSet({
-                    [ONYXKEYS.BETAS]: betas,
-                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
-                }))
-                .then(() => {
-                    const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                    const displayNames = screen.queryAllByLabelText(hintText);
-                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Report (archived)');
-
-                    const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
-                    const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
-                    expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe(
-                        'This workspace chat is no longer active because Vikings Policy is no longer an active workspace.',
-                    );
-                });
+                        const hintMessagePreviewText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
+                        const messagePreviewTexts = screen.queryAllByLabelText(hintMessagePreviewText);
+                        expect(lodashGet(messagePreviewTexts, [0, 'props', 'children'])).toBe(
+                            'This workspace chat is no longer active because Vikings Policy is no longer an active workspace.',
+                        );
+                    })
+            );
         });
     });
 });

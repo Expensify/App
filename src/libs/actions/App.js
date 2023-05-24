@@ -29,7 +29,7 @@ Onyx.connect({
 let isSidebarLoaded;
 Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
-    callback: val => isSidebarLoaded = val,
+    callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
 });
 
@@ -49,13 +49,13 @@ let allPolicies = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback: policies => allPolicies = policies,
+    callback: (policies) => (allPolicies = policies),
 });
 
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => preferredLocale = val,
+    callback: (val) => (preferredLocale = val),
 });
 
 let resolveIsReadyPromise;
@@ -70,18 +70,18 @@ function confirmReadyToOpenApp() {
 /**
  * @param {Array} policies
  * @return {Array<String>} array of policy ids
-*/
+ */
 function getNonOptimisticPolicyIDs(policies) {
     return _.chain(policies)
-        .reject(policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
         .pluck('id')
         .compact()
         .value();
 }
 
 /**
-* @param {String} locale
-*/
+ * @param {String} locale
+ */
 function setLocale(locale) {
     if (locale === preferredLocale) {
         return;
@@ -102,14 +102,18 @@ function setLocale(locale) {
         },
     ];
 
-    API.write('UpdatePreferredLocale', {
-        value: locale,
-    }, {optimisticData});
+    API.write(
+        'UpdatePreferredLocale',
+        {
+            value: locale,
+        },
+        {optimisticData},
+    );
 }
 
 /**
-* @param {String} locale
-*/
+ * @param {String} locale
+ */
 function setLocaleAndNavigate(locale) {
     setLocale(locale);
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
@@ -144,29 +148,33 @@ function openApp() {
             waitForCollectionCallback: true,
             callback: (policies) => {
                 Onyx.disconnect(connectionID);
-                API.read('OpenApp', {policyIDList: getNonOptimisticPolicyIDs(policies)}, {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: true,
-                        },
-                    ],
-                    successData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                    failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                });
+                API.read(
+                    'OpenApp',
+                    {policyIDList: getNonOptimisticPolicyIDs(policies)},
+                    {
+                        optimisticData: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                                value: true,
+                            },
+                        ],
+                        successData: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                                value: false,
+                            },
+                        ],
+                        failureData: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                                value: false,
+                            },
+                        ],
+                    },
+                );
             },
         });
     });
@@ -176,23 +184,33 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.write(CONST.NETWORK.COMMAND.RECONNECT_APP, {policyIDList: getNonOptimisticPolicyIDs(allPolicies)}, {
-        optimisticData: [{
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: true,
-        }],
-        successData: [{
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
-        failureData: [{
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
-    });
+    API.write(
+        CONST.NETWORK.COMMAND.RECONNECT_APP,
+        {policyIDList: getNonOptimisticPolicyIDs(allPolicies)},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                    value: true,
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                    value: false,
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                    value: false,
+                },
+            ],
+        },
+    );
 }
 
 /**
@@ -237,26 +255,22 @@ function setUpPoliciesAndNavigate(session) {
         Session.signOut();
     }
 
-    const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && isTransitioningFromOldDot
-                        && exitTo === ROUTES.WORKSPACE_NEW;
+    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioningFromOldDot && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
         Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.isNavigationReady()
-            .then(() => {
-                // The drawer navigation is only created after we have fetched reports from the server.
-                // Thus, if we use the standard navigation and try to navigate to a drawer route before
-                // the reports have been fetched, we will fail to navigate.
-                Navigation.isDrawerReady()
-                    .then(() => {
-                        // We must call dismissModal() to remove the /transition route from history
-                        Navigation.dismissModal();
-                        Navigation.navigate(exitTo);
-                    });
+        Navigation.isNavigationReady().then(() => {
+            // The drawer navigation is only created after we have fetched reports from the server.
+            // Thus, if we use the standard navigation and try to navigate to a drawer route before
+            // the reports have been fetched, we will fail to navigate.
+            Navigation.isDrawerReady().then(() => {
+                // We must call dismissModal() to remove the /transition route from history
+                Navigation.dismissModal();
+                Navigation.navigate(exitTo);
             });
+        });
     }
 }
 
@@ -271,39 +285,38 @@ function openProfile() {
         };
     }
 
-    API.write('OpenProfile', {
-        timezone: JSON.stringify(newTimezoneData),
-    }, {
-        optimisticData: [{
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    timezone: newTimezoneData,
+    API.write(
+        'OpenProfile',
+        {
+            timezone: JSON.stringify(newTimezoneData),
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    value: {
+                        [currentUserEmail]: {
+                            timezone: newTimezoneData,
+                        },
+                    },
                 },
-            },
-        }],
-        failureData: [{
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    timezone: oldTimezoneData,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    value: {
+                        [currentUserEmail]: {
+                            timezone: oldTimezoneData,
+                        },
+                    },
                 },
-            },
-        }],
-    });
+            ],
+        },
+    );
 
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-export {
-    setLocale,
-    setLocaleAndNavigate,
-    setSidebarLoaded,
-    setUpPoliciesAndNavigate,
-    openProfile,
-    openApp,
-    reconnectApp,
-    confirmReadyToOpenApp,
-};
+export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp, confirmReadyToOpenApp};

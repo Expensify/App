@@ -3,14 +3,7 @@ import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
 
 export default {
-    prefixes: [
-        'new-expensify://',
-        'https://www.expensify.cash',
-        'https://staging.expensify.cash',
-        'http://localhost',
-        CONST.NEW_EXPENSIFY_URL,
-        CONST.STAGING_NEW_EXPENSIFY_URL,
-    ],
+    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
@@ -36,6 +29,10 @@ export default {
                 screens: {
                     Settings_Root: {
                         path: ROUTES.SETTINGS,
+                    },
+                    Settings_Share_Code: {
+                        path: ROUTES.SETTINGS_SHARE_CODE,
+                        exact: true,
                     },
                     Settings_Workspaces: {
                         path: ROUTES.SETTINGS_WORKSPACES,
@@ -148,6 +145,26 @@ export default {
                         path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                         exact: true,
                     },
+                    Settings_TwoFactorAuthIsEnabled: {
+                        path: ROUTES.SETTINGS_2FA_IS_ENABLED,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthDisable: {
+                        path: ROUTES.SETTINGS_2FA_DISABLE,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthCodes: {
+                        path: ROUTES.SETTINGS_2FA_CODES,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthVerify: {
+                        path: ROUTES.SETTINGS_2FA_VERIFY,
+                        exact: true,
+                    },
+                    Settings_TwoFactorAuthSuccess: {
+                        path: ROUTES.SETTINGS_2FA_SUCCESS,
+                        exact: true,
+                    },
                     Workspace_Initial: {
                         path: ROUTES.WORKSPACE_INITIAL,
                     },
@@ -193,11 +210,23 @@ export default {
             Report_Details: {
                 screens: {
                     Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS,
+                    Report_Details_Share_Code: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE,
                 },
             },
             Report_Settings: {
                 screens: {
-                    Report_Settings_Root: ROUTES.REPORT_SETTINGS,
+                    Report_Settings_Root: {
+                        path: ROUTES.REPORT_SETTINGS,
+                    },
+                    Report_Settings_Room_Name: {
+                        path: ROUTES.REPORT_SETTINGS_ROOM_NAME,
+                    },
+                    Report_Settings_Notification_Preferences: {
+                        path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES,
+                    },
+                    Report_Settings_Write_Capability: {
+                        path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY,
+                    },
                 },
             },
             NewGroup: {
@@ -258,18 +287,11 @@ export default {
                     IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                 },
             },
-            IOU_Details: {
-                screens: {
-                    IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
-                    IOU_Details_Enable_Payments: ROUTES.IOU_DETAILS_ENABLE_PAYMENTS,
-                    IOU_Details_Add_Bank_Account: ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT,
-                    IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
-                },
-            },
             Task_Details: {
                 screens: {
                     Task_Title: ROUTES.TASK_TITLE,
                     Task_Description: ROUTES.TASK_DESCRIPTION,
+                    Task_Assignee: ROUTES.TASK_ASSIGNEE,
                 },
             },
             AddPersonalBankAccount: {

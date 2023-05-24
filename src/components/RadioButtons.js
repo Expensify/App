@@ -7,10 +7,12 @@ import styles from '../styles/styles';
 
 const propTypes = {
     /** List of choices to display via radio buttons */
-    items: PropTypes.arrayOf(PropTypes.shape({
-        label: PropTypes.string.isRequired,
-        value: PropTypes.string.isRequired,
-    })).isRequired,
+    items: PropTypes.arrayOf(
+        PropTypes.shape({
+            label: PropTypes.string.isRequired,
+            value: PropTypes.string.isRequired,
+        }),
+    ).isRequired,
 
     /** Callback to fire when selecting a radio button */
     onPress: PropTypes.func.isRequired,
@@ -28,7 +30,7 @@ class RadioButtons extends React.Component {
     render() {
         return (
             <View>
-                {_.map(this.props.items, item => (
+                {_.map(this.props.items, (item) => (
                     <RadioButtonWithLabel
                         isChecked={item.value === this.state.checkedValue}
                         style={[styles.mt4]}

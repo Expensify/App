@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -15,7 +15,9 @@ import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
+import Text from '../Text';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -74,6 +76,9 @@ const propTypes = {
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
+    /** Should we calculate the caret position */
+    shouldCalculateCaretPosition: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -100,6 +105,7 @@ const defaultProps = {
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
+    shouldCalculateCaretPosition: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -120,9 +126,7 @@ class Composer extends React.Component {
     constructor(props) {
         super(props);
 
-        const initialValue = props.defaultValue
-            ? `${props.defaultValue}`
-            : `${props.value || ''}`;
+        const initialValue = props.defaultValue ? `${props.defaultValue}` : `${props.value || ''}`;
 
         this.state = {
             numberOfLines: props.numberOfLines,
@@ -130,6 +134,7 @@ class Composer extends React.Component {
                 start: initialValue.length,
                 end: initialValue.length,
             },
+            valueBeforeCaret: '',
         };
 
         this.paste = this.paste.bind(this);
@@ -139,6 +144,8 @@ class Composer extends React.Component {
         this.handleWheel = this.handleWheel.bind(this);
         this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
+        this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
+        this.textRef = React.createRef(null);
     }
 
     componentDidMount() {
@@ -169,11 +176,13 @@ class Composer extends React.Component {
             this.props.onClear();
         }
 
-        if (prevProps.value !== this.props.value
-            || prevProps.defaultValue !== this.props.defaultValue
-            || prevProps.isComposerFullSize !== this.props.isComposerFullSize
-            || prevProps.windowWidth !== this.props.windowWidth
-            || prevProps.numberOfLines !== this.props.numberOfLines) {
+        if (
+            prevProps.value !== this.props.value ||
+            prevProps.defaultValue !== this.props.defaultValue ||
+            prevProps.isComposerFullSize !== this.props.isComposerFullSize ||
+            prevProps.windowWidth !== this.props.windowWidth ||
+            prevProps.numberOfLines !== this.props.numberOfLines
+        ) {
             this.updateNumberOfLines();
         }
 
@@ -190,6 +199,57 @@ class Composer extends React.Component {
 
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
+    }
+
+    // Get characters from the cursor to the next space or new line
+    getNextChars(str, cursorPos) {
+        // Get the substring starting from the cursor position
+        const substr = str.substring(cursorPos);
+
+        // Find the index of the next space or new line character
+        const spaceIndex = substr.search(/[ \n]/);
+
+        if (spaceIndex === -1) {
+            return substr;
+        }
+
+        // If there is a space or new line, return the substring up to the space or new line
+        return substr.substring(0, spaceIndex);
+    }
+
+    /**
+     *  Adds the cursor position to the selection change event.
+     *
+     * @param {Event} event
+     */
+    addCursorPositionToSelectionChange(event) {
+        if (this.props.shouldCalculateCaretPosition) {
+            const newValueBeforeCaret = event.target.value.slice(0, event.nativeEvent.selection.start);
+
+            this.setState(
+                {
+                    valueBeforeCaret: newValueBeforeCaret,
+                    caretContent: this.getNextChars(this.props.value, event.nativeEvent.selection.start),
+                },
+
+                () => {
+                    const customEvent = {
+                        nativeEvent: {
+                            selection: {
+                                start: event.nativeEvent.selection.start,
+                                end: event.nativeEvent.selection.end,
+                                positionX: this.textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
+                                positionY: this.textRef.current.offsetTop,
+                            },
+                        },
+                    };
+                    this.props.onSelectionChange(customEvent);
+                },
+            );
+            return;
+        }
+
+        this.props.onSelectionChange(event);
     }
 
     // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
@@ -212,7 +272,7 @@ class Composer extends React.Component {
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             this.textInput.blur();
             this.textInput.focus();
-        // eslint-disable-next-line no-empty
+            // eslint-disable-next-line no-empty
         } catch (e) {}
     }
 
@@ -262,7 +322,9 @@ class Composer extends React.Component {
                 }
                 fetch(embeddedImages[0].src)
                     .then((response) => {
-                        if (!response.ok) { throw Error(response.statusText); }
+                        if (!response.ok) {
+                            throw Error(response.statusText);
+                        }
                         return response.blob();
                     })
                     .then((x) => {
@@ -279,11 +341,11 @@ class Composer extends React.Component {
                         Growl.error(errorDesc);
 
                         /*
-                        * Since we intercepted the user-triggered paste event to check for attachments,
-                        * we need to manually set the value and call the `onChangeText` handler.
-                        * Synthetically-triggered paste events do not affect the document's contents.
-                        * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                        */
+                         * Since we intercepted the user-triggered paste event to check for attachments,
+                         * we need to manually set the value and call the `onChangeText` handler.
+                         * Synthetically-triggered paste events do not affect the document's contents.
+                         * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
+                         */
                         this.handlePastedHTML(pastedHTML);
                     });
                 return;
@@ -351,13 +413,13 @@ class Composer extends React.Component {
         this.setState({numberOfLines: 1}, () => {
             const computedStyle = window.getComputedStyle(this.textInput);
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
-            + parseInt(computedStyle.paddingTop, 10);
+            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
             const computedNumberOfLines = ComposerUtils.getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
             const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
+                width: computedStyle.width,
             });
             this.props.onNumberOfLinesChange(numberOfLines);
         });
@@ -368,29 +430,57 @@ class Composer extends React.Component {
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
 
+        // This code creates a hidden text component that helps track the caret position in the visible input.
+        const renderElementForCaretPosition = (
+            <View
+                style={{
+                    position: 'absolute',
+                    bottom: -2000,
+                    zIndex: -1,
+                    opacity: 0,
+                }}
+            >
+                <Text
+                    multiline
+                    style={[propStyles, this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {}, {maxWidth: this.state.width}]}
+                >
+                    {`${this.state.valueBeforeCaret} `}
+                    <Text
+                        numberOfLines={1}
+                        ref={this.textRef}
+                    >
+                        {`${this.state.caretContent}`}
+                    </Text>
+                </Text>
+            </View>
+        );
+
         // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
-            <RNTextInput
-                autoComplete="off"
-                autoCorrect={!Browser.isMobileSafari()}
-                placeholderTextColor={themeColors.placeholderText}
-                ref={el => this.textInput = el}
-                selection={this.state.selection}
-                onChange={this.shouldCallUpdateNumberOfLines}
-                onSelectionChange={this.onSelectionChange}
-                style={[
-                    propStyles,
+            <>
+                <RNTextInput
+                    autoComplete="off"
+                    autoCorrect={!Browser.isMobileSafari()}
+                    placeholderTextColor={themeColors.placeholderText}
+                    ref={(el) => (this.textInput = el)}
+                    selection={this.state.selection}
+                    onChange={this.shouldCallUpdateNumberOfLines}
+                    style={[
+                        propStyles,
 
-                    // We are hiding the scrollbar to prevent it from reducing the text input width,
-                    // so we can get the correct scroll height while calculating the number of lines.
-                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
-                ]}
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStyles}
-                numberOfLines={this.state.numberOfLines}
-                disabled={this.props.isDisabled}
-                onKeyPress={this.handleKeyPress}
-            />
+                        // We are hiding the scrollbar to prevent it from reducing the text input width,
+                        // so we can get the correct scroll height while calculating the number of lines.
+                        this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                    ]}
+                    /* eslint-disable-next-line react/jsx-props-no-spreading */
+                    {...propsWithoutStyles}
+                    onSelectionChange={this.addCursorPositionToSelectionChange}
+                    numberOfLines={this.state.numberOfLines}
+                    disabled={this.props.isDisabled}
+                    onKeyPress={this.handleKeyPress}
+                />
+                {this.props.shouldCalculateCaretPosition && renderElementForCaretPosition}
+            </>
         );
     }
 }
@@ -401,7 +491,12 @@ Composer.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-)(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Composer {...props} forwardedRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        <Composer
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

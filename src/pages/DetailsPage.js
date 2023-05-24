@@ -48,9 +48,13 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** Date login was validated, used to show info indicator status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     ...withLocalizePropTypes,
@@ -59,9 +63,7 @@ const propTypes = {
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
-    session: {
-        email: null,
-    },
+    loginList: {},
 };
 
 /**
@@ -113,6 +115,8 @@ class DetailsPage extends React.PureComponent {
         const phoneNumber = getPhoneNumber(details);
         const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
+        const isCurrentUser = _.keys(this.props.loginList).includes(details.login);
+
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
@@ -124,9 +128,7 @@ class DetailsPage extends React.PureComponent {
                     />
                     <View
                         pointerEvents="box-none"
-                        style={[
-                            styles.containerWithSpaceBetween,
-                        ]}
+                        style={[styles.containerWithSpaceBetween]}
                     >
                         {details ? (
                             <ScrollView>
@@ -142,9 +144,7 @@ class DetailsPage extends React.PureComponent {
                                                 style={styles.noOutline}
                                                 onPress={show}
                                             >
-                                                <OfflineWithFeedback
-                                                    pendingAction={lodashGet(details, 'pendingFields.avatar', null)}
-                                                >
+                                                <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                                     <Avatar
                                                         containerStyles={[styles.avatarLarge, styles.mb3]}
                                                         imageStyles={[styles.avatarLarge]}
@@ -156,43 +156,42 @@ class DetailsPage extends React.PureComponent {
                                         )}
                                     </AttachmentModal>
                                     {Boolean(details.displayName) && (
-                                        <Text style={[styles.textHeadline, styles.mb6, styles.pre]} numberOfLines={1}>
+                                        <Text
+                                            style={[styles.textHeadline, styles.mb6, styles.pre]}
+                                            numberOfLines={1}
+                                        >
                                             {details.displayName}
                                         </Text>
                                     )}
                                     {details.login ? (
                                         <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                            <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
-                                                {this.props.translate(isSMSLogin
-                                                    ? 'common.phoneNumber'
-                                                    : 'common.email')}
-                                            </Text>
-                                            <CommunicationsLink
-                                                value={phoneOrEmail}
+                                            <Text
+                                                style={[styles.textLabelSupporting, styles.mb1]}
+                                                numberOfLines={1}
                                             >
+                                                {this.props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                            </Text>
+                                            <CommunicationsLink value={phoneOrEmail}>
                                                 <Tooltip text={phoneOrEmail}>
-                                                    <Text numberOfLines={1}>
-                                                        {isSMSLogin
-                                                            ? this.props.formatPhoneNumber(phoneNumber)
-                                                            : details.login}
-                                                    </Text>
+                                                    <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
                                                 </Tooltip>
                                             </CommunicationsLink>
                                         </View>
                                     ) : null}
                                     {pronouns ? (
                                         <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                            <Text style={[styles.textLabelSupporting, styles.mb1]} numberOfLines={1}>
+                                            <Text
+                                                style={[styles.textLabelSupporting, styles.mb1]}
+                                                numberOfLines={1}
+                                            >
                                                 {this.props.translate('profilePage.preferredPronouns')}
                                             </Text>
-                                            <Text numberOfLines={1}>
-                                                {pronouns}
-                                            </Text>
+                                            <Text numberOfLines={1}>{pronouns}</Text>
                                         </View>
                                     ) : null}
                                     {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
                                 </View>
-                                {details.login !== this.props.session.email && (
+                                {!isCurrentUser && (
                                     <MenuItem
                                         title={`${this.props.translate('common.message')}${details.displayName}`}
                                         icon={Expensicons.ChatBubble}
@@ -216,11 +215,11 @@ DetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
     }),
 )(DetailsPage);

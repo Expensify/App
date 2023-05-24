@@ -15,7 +15,6 @@ if (useWDYR) {
         include: [
             // Uncomment to enable tracking in all components. Must also uncomment /^Screen/ in exclude.
             // /.*/,
-
             // Uncomment to enable tracking by displayName, e.g.:
             // /^Avatar/,
             // /^ReportActionItem/,

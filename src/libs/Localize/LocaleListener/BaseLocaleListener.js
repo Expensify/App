@@ -24,8 +24,8 @@ const connect = (callbackAfterChange = () => {}) => {
 };
 
 /*
-* @return {String}
-*/
+ * @return {String}
+ */
 function getPreferredLocale() {
     return preferredLocale;
 }

@@ -37,7 +37,7 @@ const defaultProps = {
     shouldShowButton: false,
 };
 
-const ConfirmationPage = props => (
+const ConfirmationPage = (props) => (
     <>
         <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
             <Lottie
@@ -46,12 +46,8 @@ const ConfirmationPage = props => (
                 loop
                 style={styles.confirmationAnimation}
             />
-            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>
-                {props.heading}
-            </Text>
-            <Text style={styles.textAlignCenter}>
-                {props.description}
-            </Text>
+            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{props.heading}</Text>
+            <Text style={styles.textAlignCenter}>{props.description}</Text>
         </View>
         {props.shouldShowButton && (
             <FixedFooter>

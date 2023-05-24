@@ -38,7 +38,4 @@ const Airship = {
 
 export default Airship;
 
-export {
-    EventType,
-    iOS,
-};
+export {EventType, iOS};

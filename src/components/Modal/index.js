@@ -26,10 +26,7 @@ class Modal extends Component {
     }
 
     closeOnOutsideClick(event) {
-        if (!this.props.isVisible
-            || !this.baseModalRef
-            || this.baseModalRef.contains(event.target)
-            || !this.props.shouldCloseOnOutsideClick) {
+        if (!this.props.isVisible || !this.baseModalRef || this.baseModalRef.contains(event.target) || !this.props.shouldCloseOnOutsideClick) {
             return;
         }
 
@@ -39,7 +36,7 @@ class Modal extends Component {
     render() {
         return (
             <BaseModal
-                ref={el => this.baseModalRef = el}
+                ref={(el) => (this.baseModalRef = el)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
             >

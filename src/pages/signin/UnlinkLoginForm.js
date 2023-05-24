@@ -55,28 +55,29 @@ const UnlinkLoginForm = (props) => {
     return (
         <>
             <View style={[styles.mt5]}>
-                <Text>
-                    {props.translate('unlinkLoginForm.toValidateLogin', {primaryLogin, secondaryLogin})}
-                </Text>
+                <Text>{props.translate('unlinkLoginForm.toValidateLogin', {primaryLogin, secondaryLogin})}</Text>
             </View>
             <View style={[styles.mv5]}>
-                <Text>
-                    {props.translate('unlinkLoginForm.noLongerHaveAccess', {primaryLogin})}
-                </Text>
+                <Text>{props.translate('unlinkLoginForm.noLongerHaveAccess', {primaryLogin})}</Text>
             </View>
             {!_.isEmpty(props.account.message) && (
-
-            // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-            <DotIndicatorMessage style={[styles.mb5, styles.flex0]} type="success" messages={{0: props.account.message}} />
+                // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
+                <DotIndicatorMessage
+                    style={[styles.mb5, styles.flex0]}
+                    type="success"
+                    messages={{0: props.account.message}}
+                />
             )}
             {!_.isEmpty(props.account.errors) && (
-                <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
+                <DotIndicatorMessage
+                    style={[styles.mb5]}
+                    type="error"
+                    messages={props.account.errors}
+                />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
-                    <Text style={[styles.link]}>
-                        {props.translate('common.back')}
-                    </Text>
+                    <Text style={[styles.link]}>{props.translate('common.back')}</Text>
                 </TouchableOpacity>
                 <Button
                     medium

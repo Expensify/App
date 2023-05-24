@@ -71,7 +71,7 @@ const PersonalDetailsInitialPage = (props) => {
      * @param {String} piece
      * @returns {String}
      */
-    const formatPiece = piece => (piece ? `${piece}, ` : '');
+    const formatPiece = (piece) => (piece ? `${piece}, ` : '');
 
     /**
      * Formats an address object into an easily readable string
@@ -80,12 +80,8 @@ const PersonalDetailsInitialPage = (props) => {
      */
     const getFormattedAddress = () => {
         const [street1, street2] = (address.street || '').split('\n');
-        const formattedAddress = formatPiece(street1)
-            + formatPiece(street2)
-            + formatPiece(address.city)
-            + formatPiece(address.state)
-            + formatPiece(address.zip)
-            + formatPiece(address.country);
+        const formattedAddress =
+            formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
 
         // Remove the last comma of the address
         return formattedAddress.trim().replace(/,$/, '');
@@ -102,9 +98,7 @@ const PersonalDetailsInitialPage = (props) => {
             <ScrollView>
                 <View style={styles.flex1}>
                     <View style={[styles.ph5, styles.mb5]}>
-                        <Text>
-                            {props.translate('privatePersonalDetails.privateDataMessage')}
-                        </Text>
+                        <Text>{props.translate('privatePersonalDetails.privateDataMessage')}</Text>
                     </View>
                     <MenuItemWithTopDescription
                         title={legalName}

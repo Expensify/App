@@ -2,13 +2,13 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashMerge from 'lodash/merge';
 import lodashFindLast from 'lodash/findLast';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
+import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
 const allReportActions = {};
@@ -27,7 +27,7 @@ Onyx.connect({
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: val => isNetworkOffline = lodashGet(val, 'isOffline', false),
+    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
 
 /**
@@ -38,6 +38,71 @@ function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = lodashGet(reportAction, 'message', []);
     return message.length === 0 || lodashGet(message, [0, 'html']) === '';
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isMoneyRequestAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
+
+/**
+ * Returns the parentReportAction if the given report is a thread.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getParentReportAction(report) {
+    if (!report || !report.parentReportID || !report.parentReportActionID) {
+        return {};
+    }
+    return lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
+}
+
+/**
+ * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isSentMoneyReportAction(reportAction) {
+    return (
+        reportAction &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+        lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
+        _.has(reportAction.originalMessage, 'IOUDetails')
+    );
+}
+
+/**
+ * Returns the formatted amount of a money request. The request and money sent (from send money flow) have
+ * currency and amount in IOUDetails object.
+ *
+ * @param {Object} reportAction
+ * @returns {Number}
+ */
+function getFormattedAmount(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.PAY && lodashGet(reportAction, 'originalMessage.IOUDetails', false)
+        ? CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.IOUDetails.amount', 0), lodashGet(reportAction, 'originalMessage.IOUDetails.currency', ''))
+        : CurrencyUtils.convertToDisplayString(lodashGet(reportAction, 'originalMessage.amount', 0), lodashGet(reportAction, 'originalMessage.currency', ''));
+}
+
+/**
+ * Returns whether the thread is a transaction thread, which is any thread with IOU parent
+ * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
+ *
+ * @param {Object} parentReportAction
+ * @returns {Boolean}
+ */
+function isTransactionThread(parentReportAction) {
+    const originalMessage = lodashGet(parentReportAction, 'originalMessage', {});
+    return (
+        parentReportAction &&
+        parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+        (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE || (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails')))
+    );
 }
 
 /**
@@ -64,7 +129,11 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
 
             // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
             if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
-                return ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ? -1 : 1) * invertedMultiplier;
+                return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
+            }
+            // Ensure that `REPORTPREVIEW` actions always come after if they have the same timestamp as another action type
+            if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) && first.actionName !== second.actionName) {
+                return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? 1 : -1) * invertedMultiplier;
             }
 
             // Then fallback on reportActionID as the final sorting criteria. It is a random number,
@@ -83,7 +152,7 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
  */
 function getMostRecentIOURequestActionID(reportActions) {
     const iouRequestTypes = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
-    const iouRequestActions = _.filter(reportActions, action => iouRequestTypes.includes(lodashGet(action, 'originalMessage.type')));
+    const iouRequestActions = _.filter(reportActions, (action) => iouRequestTypes.includes(lodashGet(action, 'originalMessage.type')));
 
     if (_.isEmpty(iouRequestActions)) {
         return null;
@@ -104,7 +173,7 @@ function getMostRecentIOURequestActionID(reportActions) {
 function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
     // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
-    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), action => isNetworkOffline || (action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
+    const previousAction = _.find(_.drop(reportActions, actionIndex + 1), (action) => isNetworkOffline || action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const currentAction = reportActions[actionIndex];
 
     // It's OK for there to be no previous action, and in that case, false will be returned
@@ -114,13 +183,17 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
     }
 
     // Comments are only grouped if they happen within 5 minutes of each other
-    if (moment(currentAction.created).unix() - moment(previousAction.created).unix() > 300) {
+    if (new Date(currentAction.created).getTime() - new Date(previousAction.created).getTime() > 300000) {
+        return false;
+    }
+
+    // Do not group if previous action was a created action
+    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return false;
     }
 
     // Do not group if previous or current action was a renamed action
-    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED
-        || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+    if (previousAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED || currentAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return false;
     }
 
@@ -134,13 +207,13 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, action => (!isDeletedAction(action)));
+    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action));
 
     if (_.isEmpty(visibleActions)) {
         return {};
     }
 
-    return _.max(visibleActions, action => moment.utc(action.created).valueOf());
+    return _.max(visibleActions, (action) => moment.utc(action.created).valueOf());
 }
 
 /**
@@ -156,12 +229,8 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
 
-    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
-    const parser = new ExpensiMark();
-    const messageText = parser.htmlToText(htmlText);
-    return String(messageText)
-        .replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '')
-        .substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH);
+    const messageText = lodashGet(message, 'text', '');
+    return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -199,8 +268,16 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED) {
+        return false;
+    }
+
     // Filter out any unsupported reportAction types
-    if (!_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName)) {
+    if (
+        !_.has(CONST.REPORT.ACTIONS.TYPE, reportAction.actionName) &&
+        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), reportAction.actionName) &&
+        !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.TASK), reportAction.actionName)
+    ) {
         return false;
     }
 
@@ -209,10 +286,11 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    // All other actions are displayed except deleted, non-pending actions
+    // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
-    return !isDeleted || isPending;
+    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
+    return !isDeleted || isPending || isDeletedParentAction;
 }
 
 /**
@@ -249,12 +327,12 @@ function getSortedReportActionsForDisplay(reportActions) {
  */
 function getLastClosedReportAction(reportActions) {
     // If closed report action is not present, return early
-    if (!_.some(reportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
+    if (!_.some(reportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED)) {
         return null;
     }
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
     const sortedReportActions = getSortedReportActions(filteredReportActions);
-    return lodashFindLast(sortedReportActions, action => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+    return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
 /**
@@ -262,7 +340,7 @@ function getLastClosedReportAction(reportActions) {
  * @returns {Object} The latest report action in the `onyxData` or `null` if one couldn't be found
  */
 function getLatestReportActionFromOnyxData(onyxData) {
-    const reportActionUpdate = _.find(onyxData, onyxUpdate => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
+    const reportActionUpdate = _.find(onyxData, (onyxUpdate) => onyxUpdate.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
 
     if (!reportActionUpdate) {
         return null;
@@ -288,6 +366,22 @@ function getLinkedTransactionID(reportID, reportActionID) {
     return reportAction.originalMessage.IOUTransactionID;
 }
 
+/**
+ * @param {*} chatReportID
+ * @param {*} iouReportID
+ * @returns {Object} The report preview action or `null` if one couldn't be found
+ */
+function getReportPreviewAction(chatReportID, iouReportID) {
+    return _.find(
+        allReportActions[chatReportID],
+        (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lodashGet(reportAction, 'originalMessage.linkedReportID') === iouReportID,
+    );
+}
+
+function isCreatedTaskReportAction(reportAction) {
+    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -300,5 +394,12 @@ export {
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
+    isMoneyRequestAction,
     getLinkedTransactionID,
+    getReportPreviewAction,
+    isCreatedTaskReportAction,
+    getParentReportAction,
+    isTransactionThread,
+    getFormattedAmount,
+    isSentMoneyReportAction,
 };

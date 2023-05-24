@@ -50,9 +50,7 @@ const WorkspaceBillsFirstSection = (props) => {
             menuItems={[
                 {
                     title: props.translate('workspace.bills.viewAllBills'),
-                    onPress: () => (
-                        Link.openOldDotLink(manageYourBillsUrl)
-                    ),
+                    onPress: () => Link.openOldDotLink(manageYourBillsUrl),
                     icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
@@ -66,9 +64,7 @@ const WorkspaceBillsFirstSection = (props) => {
                 <Text>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
-                        <TextLink
-                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
-                        >
+                        <TextLink onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}>
                             example.com@expensify.cash
                         </TextLink>
                     ) : (

@@ -28,7 +28,7 @@ let customAuthorizer;
  * @param {*} data
  */
 function callSocketEventCallbacks(eventName, data) {
-    _.each(socketEventCallbacks, cb => cb(eventName, data));
+    _.each(socketEventCallbacks, (cb) => cb(eventName, data));
 }
 
 /**
@@ -165,7 +165,6 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
         // Only call the event callback if we've received the last packet and we don't have any holes in the complete
         // packet.
         if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === _.keys(chunkedEvent.chunks).length) {
-            eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
@@ -194,12 +193,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
  *
  * @public
  */
-function subscribe(
-    channelName,
-    eventName,
-    eventCallback = () => {},
-    onResubscribe = () => {},
-) {
+function subscribe(channelName, eventName, eventCallback = () => {}, onResubscribe = () => {}) {
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {

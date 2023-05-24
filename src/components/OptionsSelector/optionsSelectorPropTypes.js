@@ -7,22 +7,24 @@ const propTypes = {
     onSelectRow: PropTypes.func,
 
     /** Sections for the section list */
-    sections: PropTypes.arrayOf(PropTypes.shape({
-        /** Title of the section */
-        title: PropTypes.string,
+    sections: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** Title of the section */
+            title: PropTypes.string,
 
-        /** The initial index of this section given the total number of options in each section's data array */
-        indexOffset: PropTypes.number,
+            /** The initial index of this section given the total number of options in each section's data array */
+            indexOffset: PropTypes.number,
 
-        /** Array of options */
-        data: PropTypes.arrayOf(optionPropTypes),
+            /** Array of options */
+            data: PropTypes.arrayOf(optionPropTypes),
 
-        /** Whether this section should show or not */
-        shouldShow: PropTypes.bool,
+            /** Whether this section should show or not */
+            shouldShow: PropTypes.bool,
 
-        /** Whether this section items disabled for selection */
-        isDisabled: PropTypes.bool,
-    })).isRequired,
+            /** Whether this section items disabled for selection */
+            isDisabled: PropTypes.bool,
+        }),
+    ).isRequired,
 
     /** Value in the search input field */
     value: PropTypes.string.isRequired,

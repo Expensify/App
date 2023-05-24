@@ -124,9 +124,7 @@ class Onfido extends React.Component {
     }
 
     render() {
-        return (
-            <div id={CONST.ONFIDO.CONTAINER_ID} />
-        );
+        return <div id={CONST.ONFIDO.CONTAINER_ID} />;
     }
 }
 

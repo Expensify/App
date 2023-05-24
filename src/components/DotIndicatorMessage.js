@@ -7,6 +7,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
 import Text from './Text';
+import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /**
@@ -43,21 +44,30 @@ const DotIndicatorMessage = (props) => {
     const sortedMessages = _.chain(props.messages)
         .keys()
         .sortBy()
-        .map(key => props.messages[key])
+        .map((key) => props.messages[key])
 
         // Using uniq here since some fields are wrapped by the same OfflineWithFeedback component (e.g. WorkspaceReimburseView)
         // and can potentially pass the same error.
         .uniq()
+        .map((message) => Localize.translateIfPhraseKey(message))
         .value();
 
     return (
         <View style={[styles.dotIndicatorMessage, ...props.style]}>
             <View style={styles.offlineFeedback.errorDot}>
-                <Icon src={Expensicons.DotIndicator} fill={props.type === 'error' ? colors.red : colors.green} />
+                <Icon
+                    src={Expensicons.DotIndicator}
+                    fill={props.type === 'error' ? colors.red : colors.green}
+                />
             </View>
             <View style={styles.offlineFeedback.textContainer}>
                 {_.map(sortedMessages, (message, i) => (
-                    <Text key={i} style={styles.offlineFeedback.text}>{message}</Text>
+                    <Text
+                        key={i}
+                        style={styles.offlineFeedback.text}
+                    >
+                        {message}
+                    </Text>
                 ))}
             </View>
         </View>
@@ -69,4 +79,3 @@ DotIndicatorMessage.defaultProps = defaultProps;
 DotIndicatorMessage.displayName = 'DotIndicatorMessage';
 
 export default DotIndicatorMessage;
-

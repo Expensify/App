@@ -21,7 +21,6 @@ import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
-
     /** Session of currently logged in user */
     session: PropTypes.shape({
         /** Email address */
@@ -112,12 +111,7 @@ class CloseAccountPage extends Component {
                             containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
                         />
                         <Text style={[styles.mt5]}>
-                            {this.props.translate('closeAccountPage.enterDefaultContactToConfirm')}
-                            {' '}
-                            <Text style={[styles.textStrong]}>
-                                {userEmailOrPhone}
-                            </Text>
-                            .
+                            {this.props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.
                         </Text>
                         <TextInput
                             inputID="phoneOrEmail"

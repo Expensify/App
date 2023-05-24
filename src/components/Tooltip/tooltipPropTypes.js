@@ -7,7 +7,7 @@ const propTypes = {
     /** Enable support for the absolute positioned native(View|Text) children. It will only work for single native child  */
     absolute: PropTypes.bool,
 
-    /** The text to display in the tooltip. */
+    /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
     text: PropTypes.string,
 
     /** Maximum number of lines to show in tooltip */
@@ -56,7 +56,4 @@ const defaultProps = {
     focusable: true,
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

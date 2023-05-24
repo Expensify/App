@@ -38,7 +38,7 @@ class WalletStatementModal extends React.Component {
 
         if (e.data.type === 'STATEMENT_NAVIGATE' && e.data.url) {
             const iouRoutes = [ROUTES.IOU_REQUEST, ROUTES.IOU_SEND, ROUTES.IOU_BILL];
-            const navigateToIOURoute = _.find(iouRoutes, iouRoute => e.data.url.includes(iouRoute));
+            const navigateToIOURoute = _.find(iouRoutes, (iouRoute) => e.data.url.includes(iouRoute));
             if (navigateToIOURoute) {
                 Navigation.navigate(navigateToIOURoute);
             }
@@ -63,7 +63,7 @@ class WalletStatementModal extends React.Component {
 
                             // We listen to a message sent from the iframe to the parent component when a link is clicked.
                             // This lets us handle navigation in the app, outside of the iframe.
-                            window.onmessage = e => this.navigate(e);
+                            window.onmessage = (e) => this.navigate(e);
                         }}
                     />
                 </View>

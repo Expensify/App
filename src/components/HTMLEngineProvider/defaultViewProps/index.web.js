@@ -6,4 +6,3 @@ export default {
     // This will affect elements like <a> which are inline by default.
     style: [styles.dBlock, styles.userSelectText],
 };
-

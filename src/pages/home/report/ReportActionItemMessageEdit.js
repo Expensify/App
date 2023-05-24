@@ -1,9 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {
-    InteractionManager, Keyboard, Pressable, TouchableOpacity, View,
-} from 'react-native';
+import {InteractionManager, Keyboard, Pressable, TouchableOpacity, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -15,7 +13,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
-import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
@@ -33,7 +30,10 @@ import CONST from '../../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
+import * as ComposerActions from '../../../libs/actions/Composer';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     /** All the data of the action */
@@ -49,7 +49,7 @@ const propTypes = {
     index: PropTypes.number.isRequired,
 
     /** A ref to forward to the text input */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** The report currently being looked at */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -118,7 +118,7 @@ class ReportActionItemMessageEdit extends React.Component {
 
         // Show the main composer when the focused message is deleted from another client
         // to prevent the main composer stays hidden until we swtich to another chat.
-        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+        ComposerActions.setShouldShowComposeInput(true);
     }
 
     /**
@@ -146,7 +146,12 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} draft
      */
     updateDraft(draft) {
-        const newDraft = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+
+        if (!_.isEmpty(emojis)) {
+            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+        }
+
         this.setState((prevState) => {
             const newState = {draft: newDraft};
             if (draft !== newDraft) {
@@ -175,7 +180,7 @@ class ReportActionItemMessageEdit extends React.Component {
     deleteDraft() {
         this.debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
-        toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
+        ComposerActions.setShouldShowComposeInput(true);
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -214,12 +219,8 @@ class ReportActionItemMessageEdit extends React.Component {
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
-            ReportActionContextMenu.showDeleteModal(
-                this.props.reportID,
-                this.props.action,
-                false,
-                this.deleteDraft,
-                () => InteractionManager.runAfterInteractions(() => this.textInput.focus()),
+            ReportActionContextMenu.showDeleteModal(this.props.reportID, this.props.action, false, this.deleteDraft, () =>
+                InteractionManager.runAfterInteractions(() => this.textInput.focus()),
             );
             return;
         }
@@ -231,7 +232,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        this.setState(prevState => ({
+        this.setState((prevState) => ({
             selection: {
                 start: prevState.selection.start + emoji.length,
                 end: prevState.selection.start + emoji.length,
@@ -252,7 +253,7 @@ class ReportActionItemMessageEdit extends React.Component {
         if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
             e.preventDefault();
             this.publishDraft();
-        } else if (e.key === 'Escape') {
+        } else if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
             e.preventDefault();
             this.deleteDraft();
         }
@@ -263,20 +264,24 @@ class ReportActionItemMessageEdit extends React.Component {
         return (
             <>
                 <View style={[styles.chatItemMessage, styles.flexRow]}>
-                    <View
-                        style={[styles.justifyContentEnd]}
-                    >
+                    <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.cancel')}>
                             <Pressable
-                                style={({hovered, pressed}) => ([styles.chatItemSubmitButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))])}
+                                style={({hovered, pressed}) => [styles.chatItemSubmitButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                                 nativeID={this.cancelButtonID}
                                 onPress={this.deleteDraft}
                                 hitSlop={{
-                                    top: 3, right: 3, bottom: 3, left: 3,
+                                    top: 3,
+                                    right: 3,
+                                    bottom: 3,
+                                    left: 3,
                                 }}
                             >
                                 {({hovered, pressed}) => (
-                                    <Icon src={Expensicons.Close} fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))} />
+                                    <Icon
+                                        src={Expensicons.Close}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                    />
                                 )}
                             </Pressable>
                         </Tooltip>
@@ -295,18 +300,18 @@ class ReportActionItemMessageEdit extends React.Component {
                                 multiline
                                 ref={(el) => {
                                     this.textInput = el;
-                                    this.props.forwardedRef(el);
+                                    this.props.forwardedRef.current = el;
                                 }}
                                 nativeID={this.messageEditInput}
                                 onChangeText={this.updateDraft} // Debounced saveDraftComment
                                 onKeyPress={this.triggerSaveOrCancel}
                                 value={this.state.draft}
-                                maxLines={16} // This is the same that slack has
+                                maxLines={this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                                 style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                                 onFocus={() => {
                                     this.setState({isFocused: true});
                                     ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                                    toggleReportActionComposeView(false, this.props.isSmallScreenWidth);
+                                    ComposerActions.setShouldShowComposeInput(false);
                                 }}
                                 onBlur={(event) => {
                                     this.setState({isFocused: false});
@@ -320,7 +325,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                     if (this.messageEditInput === relatedTargetId) {
                                         return;
                                     }
-                                    openReportActionComposeViewWhenClosingMessageEdit(this.props.isSmallScreenWidth);
+                                    openReportActionComposeViewWhenClosingMessageEdit();
                                 }}
                                 selection={this.state.selection}
                                 onSelectionChange={this.onSelectionChange}
@@ -338,25 +343,30 @@ class ReportActionItemMessageEdit extends React.Component {
                         <View style={styles.alignSelfEnd}>
                             <Tooltip text={this.props.translate('common.saveChanges')}>
                                 <TouchableOpacity
-                                    style={[styles.chatItemSubmitButton,
-                                        hasExceededMaxCommentLength ? {} : styles.buttonSuccess,
-                                    ]}
-
+                                    style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                     onPress={this.publishDraft}
                                     hitSlop={{
-                                        top: 3, right: 3, bottom: 3, left: 3,
+                                        top: 3,
+                                        right: 3,
+                                        bottom: 3,
+                                        left: 3,
                                     }}
                                     nativeID={this.saveButtonID}
                                     disabled={hasExceededMaxCommentLength}
                                 >
-                                    <Icon src={Expensicons.Checkmark} fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight} />
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
+                                    />
                                 </TouchableOpacity>
                             </Tooltip>
                         </View>
                     </View>
-
                 </View>
-                <ExceededCommentLength comment={this.state.draft} onExceededMaxCommentLength={this.setExceededMaxCommentLength} />
+                <ExceededCommentLength
+                    comment={this.state.draft}
+                    onExceededMaxCommentLength={this.setExceededMaxCommentLength}
+                />
             </>
         );
     }
@@ -368,7 +378,12 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withKeyboardState,
-)(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <ReportActionItemMessageEdit {...props} forwardedRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        <ReportActionItemMessageEdit
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);
