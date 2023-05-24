@@ -226,7 +226,7 @@ class BaseValidateCodeForm extends React.Component {
                             hasError={hasError}
                             autoFocus
                         />
-                        <View style={[styles.changeExpensifyLoginLinkContainer]}>
+                        <View>
                             <TouchableOpacity
                                 style={[styles.mt2]}
                                 onPress={this.resendValidateCode}
