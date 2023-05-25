@@ -175,6 +175,9 @@ export default {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
+        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
+        youCanAlso: 'También puedes',
+        openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
