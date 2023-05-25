@@ -92,54 +92,57 @@ const Form = (props) => {
     const [inputValues, setInputValues] = useState({...props.draftValues});
     const formRef = React.createRef(null);
     const formContentRef = React.createRef(null);
-    const inputRefs = {};
+    const inputRefs = useMemo(() => {}, []);
     const touchedInputs = useMemo(() => {}, []);
 
-    const {validate, translate, onSubmit} = props;
+    const {validate, translate, onSubmit, children} = props;
 
     /**
      * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
-    const onValidate = useCallback((values) => {
-        const trimmedStringValues = {};
-        _.each(values, (inputValue, inputID) => {
-            if (_.isString(inputValue)) {
-                trimmedStringValues[inputID] = inputValue.trim();
-            } else {
-                trimmedStringValues[inputID] = inputValue;
+    const onValidate = useCallback(
+        (values) => {
+            const trimmedStringValues = {};
+            _.each(values, (inputValue, inputID) => {
+                if (_.isString(inputValue)) {
+                    trimmedStringValues[inputID] = inputValue.trim();
+                } else {
+                    trimmedStringValues[inputID] = inputValue;
+                }
+            });
+
+            FormActions.setErrors(props.formID, null);
+            FormActions.setErrorFields(props.formID, null);
+
+            // Run any validations passed as a prop
+            const validationErrors = validate(trimmedStringValues);
+
+            // Validate the input for html tags. It should supercede any other error
+            _.each(trimmedStringValues, (inputValue, inputID) => {
+                // Return early if there is no value OR the value is not a string OR there are no HTML characters
+                if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
+                    return;
+                }
+
+                // Add a validation error here because it is a string value that contains HTML characters
+                validationErrors[inputID] = translate('common.error.invalidCharacter');
+            });
+
+            if (!_.isObject(validationErrors)) {
+                throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
             }
-        });
 
-        FormActions.setErrors(props.formID, null);
-        FormActions.setErrorFields(props.formID, null);
+            const touchedInputErrors = _.pick(validationErrors, (inputValue, inputID) => Boolean(touchedInputs[inputID]));
 
-        // Run any validations passed as a prop
-        const validationErrors = validate(trimmedStringValues);
-
-        // Validate the input for html tags. It should supercede any other error
-        _.each(trimmedStringValues, (inputValue, inputID) => {
-            // Return early if there is no value OR the value is not a string OR there are no HTML characters
-            if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
-                return;
+            if (!_.isEqual(errors, touchedInputErrors)) {
+                setErrors(touchedInputErrors);
             }
 
-            // Add a validation error here because it is a string value that contains HTML characters
-            validationErrors[inputID] = translate('common.error.invalidCharacter');
-        });
-
-        if (!_.isObject(validationErrors)) {
-            throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
-        }
-
-        const touchedInputErrors = _.pick(validationErrors, (inputValue, inputID) => Boolean(touchedInputs[inputID]));
-
-        if (!_.isEqual(errors, touchedInputErrors)) {
-            setErrors(touchedInputErrors);
-        }
-
-        return errors;
-    }, [errors, touchedInputs, props.formID, validate, translate]);
+            return errors;
+        },
+        [errors, touchedInputs, props.formID, validate, translate],
+    );
 
     useEffect(() => {
         onValidate(inputValues);
@@ -153,9 +156,12 @@ const Form = (props) => {
     /**
      * @param {String} inputID - The inputID of the input being touched
      */
-    const setTouchedInput = useCallback((inputID) => {
-        touchedInputs[inputID] = true;
-    }, [touchedInputs]);
+    const setTouchedInput = useCallback(
+        (inputID) => {
+            touchedInputs[inputID] = true;
+        },
+        [touchedInputs],
+    );
 
     const submit = useCallback(() => {
         // Return early if the form is already submitting to avoid duplicate submission
@@ -182,8 +188,8 @@ const Form = (props) => {
      * @returns {React.Component}
      */
     const childrenWrapperWithProps = useCallback(
-        (children) =>
-            React.Children.map(children, (child) => {
+        (childNodes) =>
+            React.Children.map(childNodes, (child) => {
                 // Just render the child if it is not a valid React element, e.g. text within a <Text> component
                 if (!React.isValidElement(child)) {
                     return child;
@@ -289,7 +295,7 @@ const Form = (props) => {
                             };
                             onValidate(newState);
                             return newState;
-                        })
+                        });
 
                         if (child.props.shouldSaveDraft) {
                             FormActions.setDraftValues(props.formID, {[inputKey]: value});
@@ -311,7 +317,7 @@ const Form = (props) => {
                 style={StyleSheet.flatten([props.style, safeAreaPaddingBottomStyle])}
                 onSubmit={submit}
             >
-                {childrenWrapperWithProps(_.isFunction(props.children) ? props.children(inputValues) : props.children)}
+                {childrenWrapperWithProps(_.isFunction(children) ? children(inputValues) : children)}
                 {props.isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={props.submitButtonText}
@@ -321,12 +327,9 @@ const Form = (props) => {
                         onSubmit={submit}
                         footerContent={props.footerContent}
                         onFixTheErrorsLinkPressed={() => {
-                            const errors = !_.isEmpty(errors) ? errors : props.formState.errorFields;
-                            const focusKey = _.find(_.keys(inputRefs), (key) => _.keys(errors).includes(key));
+                            const errorFields = !_.isEmpty(errors) ? errors : props.formState.errorFields;
+                            const focusKey = _.find(_.keys(inputRefs), (key) => _.keys(errorFields).includes(key));
                             const focusInput = inputRefs[focusKey];
-
-                            const formRef = formRef.current;
-                            const formContentRef = formContentRef.current;
 
                             // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
                             Keyboard.dismiss();
@@ -335,7 +338,7 @@ const Form = (props) => {
                             if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
                                 // We measure relative to the content root, not the scroll view, as that gives
                                 // consistent results across mobile and web
-                                focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
+                                focusInput.measureLayout(formContentRef.current, (x, y) => formRef.current.scrollTo({y: y - 10, animated: false}));
                             }
 
                             // Focus the input after scrolling, as on the Web it gives a slightly better visual result
@@ -351,7 +354,24 @@ const Form = (props) => {
                 )}
             </FormSubmit>
         ),
-        [],
+        [
+            childrenWrapperWithProps,
+            errors,
+            formContentRef,
+            formRef,
+            getErrorMessage,
+            inputRefs,
+            inputValues,
+            submit,
+            props.style,
+            children,
+            props.formState,
+            props.footerContent,
+            props.enabledWhenOffline,
+            props.isSubmitActionDangerous,
+            props.isSubmitButtonVisible,
+            props.submitButtonText,
+        ],
     );
 
     return (
