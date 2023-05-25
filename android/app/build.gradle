@@ -119,16 +119,14 @@ android {
     flavorDimensions "default"
     productFlavors {
         production {
-            applicationId "com.expensify.chat"
         }
-        staging {
-            applicationId "com.expensify.chat"
+        e2e {
         }
         adhoc {
-            applicationId "com.expensify.chat.adhoc"
+            applicationIdSuffix ".adhoc"
         }
         development {
-            applicationId "com.expensify.chat.dev"
+            applicationIdSuffix ".dev"
         }
     }
 
@@ -162,14 +160,9 @@ android {
         }
         release {
             signingConfig signingConfigs.release
+            productFlavors.e2e.signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-        }
-        // We need a custom build type, so we can allow http clear text traffic in a release build:
-        e2eRelease {
-            initWith release
-            matchingFallbacks = ['release']
-            signingConfig signingConfigs.debug
         }
     }
 
