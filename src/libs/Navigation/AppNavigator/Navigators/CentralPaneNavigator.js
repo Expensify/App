@@ -38,7 +38,10 @@ function CentralPaneNavigator() {
     }, [isFocused, isScreenBlurred, navigation, screenIndex]);
 
     return (
-        <Freeze freeze={!isFocused && isScreenBlurred} placeholder={null}>
+        <Freeze
+            freeze={!isFocused && isScreenBlurred}
+            placeholder={null}
+        >
             <Stack.Navigator>
                 <Stack.Screen
                     name={SCREENS.REPORT}
