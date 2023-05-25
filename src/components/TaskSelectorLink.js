@@ -56,15 +56,15 @@ const TaskSelectorLink = (props) => {
     const alternateTextStyle = StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre);
     return (
         <TouchableOpacity
-            style={[styles.taskSelectorLink, styles.mb1]}
+            style={[styles.flexRow, styles.taskSelectorLink, styles.mb1]}
             onPress={props.onPress}
             disabled={props.disabled}
         >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.alignItemsCenter]}>
                 {props.icons.length !== 0 || props.text !== '' ? (
-                    <View style={[styles.flex1]}>
+                    <View style={[styles.flex1, styles.alignItemsStart]}>
                         <Text style={[styles.label, styles.textWhite, styles.mb2]}>{props.translate(props.label)}</Text>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.w100, styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 icons={props.icons}
                                 size={CONST.AVATAR_SIZE.DEFAULT}
