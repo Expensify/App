@@ -1,7 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -34,6 +34,7 @@ import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -162,16 +163,16 @@ class SidebarLinks extends React.Component {
                         shouldShowEnvironmentBadge
                     />
                     <Tooltip text={this.props.translate('common.search')}>
-                        <TouchableOpacity
+                        <PressableWithoutFeedback
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
-                        </TouchableOpacity>
+                        </PressableWithoutFeedback>
                     </Tooltip>
-                    <TouchableOpacity
+                    <PressableWithoutFeedback
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
                         onPress={this.showSettingsPage}
@@ -182,7 +183,7 @@ class SidebarLinks extends React.Component {
                                 tooltipText={this.props.translate('common.settings')}
                             />
                         </OfflineWithFeedback>
-                    </TouchableOpacity>
+                    </PressableWithoutFeedback>
                 </View>
                 <Freeze
                     freeze={shouldFreeze}
