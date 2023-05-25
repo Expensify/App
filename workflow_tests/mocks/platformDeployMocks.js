@@ -172,6 +172,12 @@ const PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK = utils.createMockStep(
     'IOS',
     ['ruby-version', 'bundler-cache'],
 );
+const PLATFORM_DEPLOY__IOS__CACHE__STEP_MOCK = utils.createMockStep(
+    'Cache',
+    'Caching',
+    'IOS',
+    ['path', 'key', 'restore-keys'],
+);
 const PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK = utils.createMockStep(
     'Install cocoapods',
     'Installing cocoapods',
@@ -246,6 +252,7 @@ const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
     PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__CACHE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_PROFILE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,

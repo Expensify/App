@@ -81,7 +81,7 @@ describe('test workflow cla', () => {
                         logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                     });
 
-                assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true);
+                assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, false);
             });
         });
         describe('check regex matches', () => {
@@ -119,7 +119,7 @@ describe('test workflow cla', () => {
                         logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                     });
 
-                assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true);
+                assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
             });
         });
         describe('re-check regex matches', () => {
@@ -157,7 +157,7 @@ describe('test workflow cla', () => {
                         logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                     });
 
-                assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true);
+                assertions.assertCLAJobExecuted(result, commentBody, `${repoPath}/remote/origin`, true, true);
             });
         });
     });
@@ -194,7 +194,7 @@ describe('test workflow cla', () => {
                         logFile: utils.getLogFilePath('cla', expect.getState().currentTestName),
                     });
 
-                assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, true);
+                assertions.assertCLAJobExecuted(result, '', `${repoPath}/remote/origin`, true, true);
             });
         });
     });

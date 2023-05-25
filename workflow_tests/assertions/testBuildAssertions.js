@@ -150,7 +150,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
         ),
     ];
 
-    steps.entries.forEach(([i, expectedStep]) => {
+    steps.forEach((expectedStep, i) => {
         if (didExecute) {
             if (failsAt === -1 || i < failsAt) {
                 // either whole job is successful, or steps up to this point are successful
@@ -205,6 +205,14 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             'Setup Ruby',
             [{key: 'ruby-version', value: '2.7'}, {key: 'bundler-cache', value: true}],
             [],
+        ),
+        utils.createStepAssertion(
+            'Cache',
+            true,
+            null,
+            'IOS',
+            'Caching',
+            [{key: 'path', value: 'ios/Pods'}, {key: 'key', value: 'Linux-pods-'}, {key: 'restore-keys', value: 'Linux-pods-'}],
         ),
         utils.createStepAssertion(
             'Install cocoapods',
@@ -271,7 +279,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
         ),
     ];
 
-    steps.entries().forEach(([i, expectedStep]) => {
+    steps.forEach((expectedStep, i) => {
         if (didExecute) {
             if (failsAt === -1 || i < failsAt) {
                 // either whole job is successful, or steps up to this point are successful
@@ -354,7 +362,7 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
         ),
     ];
 
-    steps.entries().forEach(([i, expectedStep]) => {
+    steps.forEach((expectedStep, i) => {
         if (didExecute) {
             if (failsAt === -1 || i < failsAt) {
                 // either whole job is successful, or steps up to this point are successful
@@ -439,7 +447,7 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
         ),
     ];
 
-    steps.entries().forEach(([i, expectedStep]) => {
+    steps.forEach((expectedStep, i) => {
         if (didExecute) {
             if (failsAt === -1 || i < failsAt) {
                 // either whole job is successful, or steps up to this point are successful
