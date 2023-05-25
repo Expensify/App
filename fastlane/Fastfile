@@ -22,7 +22,9 @@ platform :android do
 
     gradle(
       project_dir: './android',
-      task: ':app:assembleE2eRelease',
+      task: ':app:assemble',
+      flavor: 'e2e',
+      build_type: 'Release',
     )
   end
 
