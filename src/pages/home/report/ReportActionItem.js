@@ -123,43 +123,19 @@ function ReportActionItem(props) {
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [isDraftEmpty]);
 
-    // hide the message if it is being moderated
+    // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
+    // Removed messages should not be shown anyway and should not need this flow
     useEffect(() => {
         if (!props.action.moderationDecisions || _.isEmpty(props.action.moderationDecisions)) {
             return;
         }
 
-        const decisions = props.action.moderationDecisions;
-        let hasBeenRemoved = false;
-        let isPending = false;
-        let lastDecision;
-
-        _.forEach(decisions, (decision) => {
-            // removed will always take precedence - there's no going back from that currently
-            if (decision.decision === 'removed') {
-                hasBeenRemoved = true;
-            }
-
-            // pending will always be the most recent if it exists
-            if (decision.decision === 'pending') {
-                isPending = true;
-            }
-
-            if (!lastDecision || lastDecision.timestamp < decision.timestamp) {
-                lastDecision = decision;
-            }
-        })
-
-        if (hasBeenRemoved) {
-            setModerationDecision('removed');
+        // Right now we are only sending the latest moderationDecision to the frontend even though it is an array
+        const latestDecision = props.action.moderationDecisions[0];
+        if (latestDecision.decision === 'pendingHide' || latestDecision.decision === 'hidden') {
             setIsHidden(true);
-        } else if (isPending) {
-            setModerationDecision('pending');
-            setIsHidden(true);
-        } else {
-            setModerationDecision(lastDecision.decision);
-            setIsHidden(moderationDecision === 'hidden');
         }
+        setModerationDecision(latestDecision.decision);
     }, [props.action, moderationDecision])
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
