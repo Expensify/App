@@ -1,7 +1,7 @@
 import React from 'react';
-import {useWindowDimensions} from 'react-native';
 import PropTypes from 'prop-types';
 import {RenderHTMLSource} from 'react-native-render-html';
+import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** HTML string to render */
@@ -13,10 +13,10 @@ const propTypes = {
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
 const RenderHTML = (props) => {
-    const {width} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     return (
         <RenderHTMLSource
-            contentWidth={width * 0.8}
+            contentWidth={windowWidth * 0.8}
             source={{html: props.html}}
         />
     );

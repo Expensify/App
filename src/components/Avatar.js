@@ -11,7 +11,7 @@ import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
-import useOnNetworkReconnect from './hooks/useOnNetworkReconnect';
+import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
