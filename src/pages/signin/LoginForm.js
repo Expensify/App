@@ -207,7 +207,7 @@ class LoginForm extends React.Component {
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton
                                 buttonText={this.props.translate('common.continue')}
-                                isLoading={this.props.account.isLoading}
+                                isLoading={this.props.account.isLoading && this.props.account.loadingForm === CONST.FORMS.LOGIN_FORM}
                                 onSubmit={this.validateAndSubmitForm}
                                 message={serverErrorText}
                                 isAlertVisible={!_.isEmpty(serverErrorText)}

@@ -18,6 +18,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -105,7 +106,7 @@ const ResendValidationForm = (props) => {
                     medium
                     success
                     text={props.translate('resendValidationForm.resendLink')}
-                    isLoading={props.account.isLoading}
+                    isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.RESEND_VALIDATION_FORM}
                     onPress={() => (props.account.validated ? Session.resendResetPassword() : Session.resendValidationLink())}
                     isDisabled={props.network.isOffline}
                 />

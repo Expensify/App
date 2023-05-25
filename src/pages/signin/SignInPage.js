@@ -1,9 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -19,6 +20,7 @@ import Permissions from '../../libs/Permissions';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Localize from '../../libs/Localize';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -145,7 +147,9 @@ class SignInPage extends Component {
         }
 
         return (
-            <SafeAreaView style={[styles.signInPage]}>
+            // There is an issue SafeAreaView on Android where wrong insets flicker on app start.
+            // Can be removed once https://github.com/th3rdwave/react-native-safe-area-context/issues/364 is resolved.
+            <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(this.props.insets, 1)]}>
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
@@ -162,7 +166,7 @@ class SignInPage extends Component {
                     {showResendValidationForm && <ResendValidationForm />}
                     {showUnlinkLoginForm && <UnlinkLoginForm />}
                 </SignInPageLayout>
-            </SafeAreaView>
+            </View>
         );
     }
 }
@@ -171,6 +175,7 @@ SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
 export default compose(
+    withSafeAreaInsets,
     withLocalize,
     withWindowDimensions,
     withOnyx({
