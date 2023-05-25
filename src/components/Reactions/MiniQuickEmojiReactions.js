@@ -52,7 +52,7 @@ const MiniQuickEmojiReactions = (props) => {
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
-                props.onEmojiSelected(emojiCode, emojiObject);
+                props.onEmojiSelected(emojiObject);
             },
             ref.current,
         );
@@ -60,14 +60,14 @@ const MiniQuickEmojiReactions = (props) => {
 
     return (
         <View style={styles.flexRow}>
-            {_.map(CONST.QUICK_REACTIONS, (emojiObject) => (
+            {_.map(CONST.QUICK_REACTIONS, (emoji) => (
                 <BaseMiniContextMenuItem
-                    key={emojiObject.name}
+                    key={emoji.name}
                     isDelayButtonStateComplete={false}
-                    tooltipText={`:${emojiObject.name}:`}
-                    onPress={() => props.onEmojiSelected(emojiObject.code, emojiObject)}
+                    tooltipText={`:${emoji.name}:`}
+                    onPress={() => props.onEmojiSelected(emoji)}
                 >
-                    <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emojiObject, props.preferredSkinTone)}</Text>
+                    <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem

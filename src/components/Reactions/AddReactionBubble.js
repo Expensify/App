@@ -50,7 +50,7 @@ const AddReactionBubble = (props) => {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
                 (emojiCode, emojiObject) => {
-                    props.onSelectEmoji(emojiCode, emojiObject);
+                    props.onSelectEmoji(emojiObject);
                 },
                 refParam || ref.current,
                 anchorOrigin,

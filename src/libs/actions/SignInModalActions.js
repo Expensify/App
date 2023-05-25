@@ -5,7 +5,6 @@ let isSignInModalOpen;
 Onyx.connect({
     key: ONYXKEYS.IS_SIGN_IN_MODAL_OPEN,
     callback: (flag) => (isSignInModalOpen = flag),
-    // initWithStoredValues: false,
 });
 
 /**

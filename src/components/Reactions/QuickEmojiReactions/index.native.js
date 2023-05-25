@@ -16,12 +16,7 @@ const propTypes = {
 
 const QuickEmojiReactions = (props) => {
     const onPressOpenPicker = (openPicker) => {
-        // TODO: Remove?
-        // `props.onPressOpenPicker` will first check if the user is anonymous.
-        // If true, a modal to sign in will be shown. Else, this callback is executed.
-        // props.onPressOpenPicker(() => {
-
-        // We then need to close the menu as it's a popover.
+        // We first need to close the menu as it's a popover.
         // The picker is a popover as well and on mobile there can only
         // be one active popover at a time.
         props.closeContextMenu(() => {
@@ -30,8 +25,6 @@ const QuickEmojiReactions = (props) => {
             // ref as anchor for the emoji picker popover.
             openPicker(ReportActionComposeFocusManager.composerRef.current);
         });
-
-        // });
     };
 
     return (

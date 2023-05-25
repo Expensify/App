@@ -57,18 +57,8 @@ export default [
                 }
             };
 
-            const onEmojiSelected = (emoji, emojiObject) => {
-                console.log('ContextMenuActions ==========');
-                console.log('emoji', emoji);
-                console.log('emojiObject', emojiObject);
-
+            const onEmojiSelected = (emoji) => {
                 interceptAnonymousUser(() => {
-                    const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-
-                    console.log('frequentEmojiList', frequentEmojiList);
-
-                    User.updateFrequentlyUsedEmojis(frequentEmojiList);
-
                     Report.toggleEmojiReaction(reportID, reportAction, emoji);
                     closeContextMenu();
                 });

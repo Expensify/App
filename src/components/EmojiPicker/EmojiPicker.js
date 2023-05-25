@@ -73,10 +73,6 @@ class EmojiPicker extends React.Component {
 
         this.hideEmojiPicker();
         if (_.isFunction(this.onEmojiSelected)) {
-            console.log('EmojiPicker ==========');
-            console.log('emoji', emoji);
-            console.log('emojiObject', emojiObject);
-
             this.onEmojiSelected(emoji, emojiObject);
         }
     }
