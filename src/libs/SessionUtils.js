@@ -37,7 +37,7 @@ function isLoggingInAsNewUser(transitionURL, sessionEmail) {
 function isAnonymousUser(authTokenType) {
     // TODO: Activate once backend is returning `session.authTokenType`
     // return authTokenType === 'anonymousAccount';
-    return false;
+    return true;
 }
 
 export {
