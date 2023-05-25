@@ -2387,6 +2387,9 @@ const CONST = {
     UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
+        MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        FLAG_SEVERITY_SPAM: 'spam',
+        FLAG_SEVERITY_INCONSIDERATE: 'inconsiderate',
     },
 };
 
