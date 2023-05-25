@@ -585,10 +585,10 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Expect the reaction to no longer exist
+                // Expect the reaction to have null where the users reaction used to be
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
-                expect(reportActionReaction).not.toHaveProperty(EMOJI.name);
+                expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
             })
             .then(() => {
                 // Add the same reaction to the same report action with a different skintone
@@ -621,10 +621,10 @@ describe('actions/Report', () => {
                         return waitForPromisesToResolve();
                     })
                     .then(() => {
-                        // Expect the reaction to no longer exist
+                        // Expect the reaction to have null where the users reaction used to be
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
-                        expect(reportActionReaction).not.toHaveProperty(EMOJI.name);
+                        expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
                     });
             });
     });
@@ -685,10 +685,10 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Expect the reaction to no longer exist
+                // Expect the reaction to have null where the users reaction used to be
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
-                expect(reportActionReaction).not.toHaveProperty(EMOJI.name);
+                expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
             });
     });
 });
