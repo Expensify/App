@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const propTypes = {
+const EmojiReactionsPropTypes = {
     /** All the emoji reactions for the report action. An object that looks like this:
         "emojiReactions": {
             "+1": { // The emoji added to the action
@@ -31,5 +31,4 @@ const propTypes = {
         }),
     ),
 };
-const defaultProps = {};
-export {propTypes, defaultProps};
+export default EmojiReactionsPropTypes;

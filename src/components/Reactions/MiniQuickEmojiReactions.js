@@ -12,15 +12,13 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import {baseQuickEmojiReactionsPropTypes} from './QuickEmojiReactions/BaseQuickEmojiReactions';
+import {baseQuickEmojiReactionsPropTypes, baseQuickEmojiReactionsDefaultProps} from './QuickEmojiReactions/BaseQuickEmojiReactions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as EmojiUtils from '../../libs/EmojiUtils';
-import * as EmojiReactionPropTypes from './EmojiReactionsPropTypes';
 
 const propTypes = {
-    ...EmojiReactionPropTypes.propTypes,
     ...baseQuickEmojiReactionsPropTypes,
 
     /**
@@ -34,7 +32,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...EmojiReactionPropTypes.defaultProps,
+    ...baseQuickEmojiReactionsDefaultProps,
     onEmojiPickerClosed: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };

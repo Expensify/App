@@ -10,10 +10,11 @@ import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Tooltip from '../../Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import * as EmojiReactionsPropTypes from '../EmojiReactionsPropTypes';
+import EmojiReactionsPropTypes from '../EmojiReactionsPropTypes';
 
 const baseQuickEmojiReactionsPropTypes = {
-    ...EmojiReactionsPropTypes.propTypes,
+    ...EmojiReactionsPropTypes,
+
     /**
      * Callback to fire when an emoji is selected.
      */
@@ -33,7 +34,7 @@ const baseQuickEmojiReactionsPropTypes = {
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
-    ...EmojiReactionsPropTypes.defaultProps,
+    emojiReactions: {},
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
 };
@@ -78,6 +79,9 @@ const BaseQuickEmojiReactions = (props) => (
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;
 BaseQuickEmojiReactions.defaultProps = defaultProps;
+// ESLint throws an error because it can't see that emojiReactions is defined in props. It is defined in props, but
+// because of a couple spread operators, I think that's why ESLint struggles to see it
+// eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
@@ -87,4 +91,4 @@ export default withOnyx({
     },
 })(BaseQuickEmojiReactions);
 
-export {baseQuickEmojiReactionsPropTypes};
+export {baseQuickEmojiReactionsPropTypes, baseQuickEmojiReactionsDefaultProps};

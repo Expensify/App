@@ -12,10 +12,10 @@ import ReactionTooltipContent from './ReactionTooltipContent';
 import * as Report from '../../libs/actions/Report';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import * as EmojiUtils from '../../libs/EmojiUtils';
-import * as EmojiReactionPropTypes from './EmojiReactionsPropTypes';
+import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
 
 const propTypes = {
-    ...EmojiReactionPropTypes.propTypes,
+    ...EmojiReactionsPropTypes,
 
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: PropTypes.string.isRequired,
@@ -33,7 +33,7 @@ const propTypes = {
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 
-    ...EmojiReactionPropTypes.defaultProps,
+    emojiReactions: {},
 };
 
 const ReportActionItemEmojiReactions = (props) => {
