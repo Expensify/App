@@ -1,15 +1,13 @@
-import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import React from 'react';
+import {View} from 'react-native';
 import Text from '../../../../components/Text';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import * as StyleUtils from '../../../../styles/StyleUtils';
-import reactionPropTypes from './reactionPropTypes';
-import compose from '../../../../libs/compose';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
+import compose from '../../../../libs/compose';
+import * as StyleUtils from '../../../../styles/StyleUtils';
+import styles from '../../../../styles/styles';
+import reactionPropTypes from './reactionPropTypes';
 
 const propTypes = {
     ...reactionPropTypes,
@@ -35,16 +33,6 @@ const HeaderReactionList = (props) => (
             </View>
             <Text style={styles.reactionListHeaderText}>{`:${props.emojiName}:`}</Text>
         </View>
-
-        {props.isSmallScreenWidth && (
-            <TouchableOpacity
-                onPress={props.onClose}
-                accessibilityRole="button"
-                accessibilityLabel={props.translate('common.close')}
-            >
-                <Icon src={Expensicons.Close} />
-            </TouchableOpacity>
-        )}
     </View>
 );
 

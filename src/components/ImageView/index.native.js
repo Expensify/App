@@ -1,11 +1,11 @@
-import React, { PureComponent } from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import { View, InteractionManager, PanResponder } from 'react-native';
+import {View, InteractionManager, PanResponder} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
-import withWindowDimensions, { windowDimensionsPropTypes } from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import Image from '../Image';
 
@@ -27,7 +27,7 @@ const propTypes = {
 
 const defaultProps = {
     isAuthTokenRequired: false,
-    onPress: () => { },
+    onPress: () => {},
 };
 
 class ImageView extends PureComponent {
@@ -99,7 +99,7 @@ class ImageView extends PureComponent {
      *
      * @param {Object} nativeEvent
      */
-    configureImageZoom({ nativeEvent }) {
+    configureImageZoom({nativeEvent}) {
         // Wait till animations are over to prevent stutter in navigation animation
         this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
             let imageWidth = nativeEvent.width;
@@ -116,7 +116,7 @@ class ImageView extends PureComponent {
             const maxDimensionsScale = 11;
             imageWidth = Math.min(imageWidth, containerWidth * maxDimensionsScale);
             imageHeight = Math.min(imageHeight, containerHeight * maxDimensionsScale);
-            this.setState({ imageHeight, imageWidth, isLoading: false });
+            this.setState({imageHeight, imageWidth, isLoading: false});
         });
     }
 
@@ -144,7 +144,7 @@ class ImageView extends PureComponent {
             return;
         }
         this.resetImageZoom();
-        this.setState({ imageHeight: 0, imageWidth: 0, isLoading: true });
+        this.setState({imageHeight: 0, imageWidth: 0, isLoading: true});
     }
 
     render() {
@@ -195,7 +195,7 @@ class ImageView extends PureComponent {
                             // We must be either swiping down or double tapping since we are at zoom scale 1
                             return false;
                         }}
-                        onMove={({ scale }) => {
+                        onMove={({scale}) => {
                             this.imageZoomScale = scale;
                         }}
                     >
@@ -210,8 +210,7 @@ class ImageView extends PureComponent {
                                 // due to ImageZoom
                                 shouldShowLoadingIndicator ? styles.opacity0 : styles.opacity1,
                             ]}
-                            disableTransformation
-                            source={{ uri: this.props.url }}
+                            source={{uri: this.props.url}}
                             isAuthTokenRequired={this.props.isAuthTokenRequired}
                             resizeMode={Image.resizeMode.contain}
                             onLoadStart={this.imageLoadingStart}
