@@ -17,7 +17,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -91,13 +91,16 @@ const ResendValidationForm = (props) => {
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <PressableWithoutFeedback
+                <PressableWithFeedback
                     onPress={() => redirectToSignIn()}
                     accessibilityRole="button"
                     accessibilityLabel={props.translate('common.back')}
+                    // disable hover dim for switch
+                    hoverDimmingValue={1}
+                    pressDimmingValue={0.2}
                 >
                     <Text style={[styles.link]}>{props.translate('common.back')}</Text>
-                </PressableWithoutFeedback>
+                </PressableWithFeedback>
                 <Button
                     medium
                     success
