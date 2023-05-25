@@ -322,7 +322,7 @@ function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
     return {
         ...styles.pr0,
         ...styles.overflowHidden,
-        height: maxHeight,
+        height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
     };
 }
 
