@@ -66,12 +66,12 @@ function createMockStep(
     }
     mockWithCommand += ` ${message}`;
     if (inputs) {
-        Object.entries(inputs).forEach((input) => {
+        inputs.forEach((input) => {
             mockWithCommand += `, ${input}="\${{ inputs.${input} && inputs.${input} || github.event.inputs.${input} }}"`;
         });
     }
     if (in_envs) {
-        Object.entries(in_envs).forEach((env) => {
+        in_envs.forEach((env) => {
             mockWithCommand += `, ${env}="\${{ env.${env} }}"`;
         });
     }
@@ -117,12 +117,12 @@ function createStepAssertion(
             stepOutput += ` ${message}`;
         }
         if (inputs) {
-            Object.entries(inputs).forEach((input) => {
+            inputs.forEach((input) => {
                 stepOutput += `, ${input.key}=${input.value}`;
             });
         }
         if (envs) {
-            Object.entries(envs).forEach((env) => {
+            envs.forEach((env) => {
                 stepOutput += `, ${env.key}=${env.value}`;
             });
         }
@@ -161,7 +161,8 @@ function getLogFilePath(workflowName, testName) {
     if (!fs.existsSync(workflowTestsLogDir)) {
         fs.mkdirSync(workflowTestsLogDir);
     }
-    return path.resolve(workflowTestsLogDir, `${testName}.log`);
+    const cleanTestName = testName.replace(' ', '_').replace('-', '_').substr(0, 240);
+    return path.resolve(workflowTestsLogDir, `${cleanTestName}.log`);
 }
 
 function removeMockRepoDir() {

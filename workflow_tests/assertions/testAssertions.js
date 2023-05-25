@@ -55,9 +55,9 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
             let cnt = 0;
             workflowResult.forEach((executedStep) => {
                 if (
-                    !executedStep.name === expectedStep.name
-                    || !executedStep.output === expectedStep.output
-                    || !executedStep.status === expectedStep.status
+                    executedStep.name !== expectedStep.name
+                    || executedStep.output !== expectedStep.output
+                    || executedStep.status !== expectedStep.status
                 ) {
                     return;
                 }
