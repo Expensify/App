@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import lodashGet from 'lodash/get';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
@@ -96,21 +96,20 @@ const Form = (props) => {
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState({...props.draftValues});
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.preferredLocale === props.preferredLocale) {
-            return;
-        }
-
-        // Update the error messages if the language changes
+    useEffect(() => {
+        // @TODO: DO WE NEED THIS???
+        // if (prevProps.preferredLocale === props.preferredLocale) {
+        //     return;
+        // }
         validate(inputValues);
-    }
+    }, [props.preferredLocale]);
 
-    getErrorMessage() {
+    const getErrorMessage = useCallback(() => {
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
         return props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
-    }
+    }, [props.formState]);
 
-    getFirstErroredInput() {
+    const getFirstErroredInput = () => {
         const hasStateErrors = !_.isEmpty(errors);
         const hasErrorFields = !_.isEmpty(props.formState.errorFields);
 
