@@ -127,7 +127,6 @@ function MoneyRequestConfirmationList(props) {
     }, [props.hasMultipleParticipants, props.iouAmount, props.iou.selectedCurrencyCode, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(participants, (participant) => participant.selected), [participants]);
-    const unselectedParticipants = useMemo(() => _.filter(participants, (participant) => !participant.selected), [participants]);
 
     /**
      * Returns the participants without amount
@@ -139,6 +138,7 @@ function MoneyRequestConfirmationList(props) {
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
+        const unselectedParticipants = _.filter(participants, (participant) => !participant.selected);
         if (props.hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
             const formattedUnselectedParticipants = getParticipantsWithoutAmount(unselectedParticipants);
@@ -177,7 +177,6 @@ function MoneyRequestConfirmationList(props) {
         return sections;
     }, [
         selectedParticipants,
-        unselectedParticipants,
         getParticipantsWithAmount,
         getParticipantsWithoutAmount,
         props.hasMultipleParticipants,
@@ -185,6 +184,7 @@ function MoneyRequestConfirmationList(props) {
         props.currentUserPersonalDetails,
         props.iou.selectedCurrencyCode,
         props.participants,
+        participants,
         translate,
     ]);
 
