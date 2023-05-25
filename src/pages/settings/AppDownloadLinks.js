@@ -62,15 +62,15 @@ const AppDownloadLinksPage = (props) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView style={[styles.mt5]}>
-                {_.map(menuItems, item => (
+                {_.map(menuItems, (item) => (
                     <MenuItem
                         key={item.translationKey}
                         onPress={() => item.action()}
-                        onSecondaryInteraction={e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
+                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
                         onKeyDown={(event) => {
                             event.target.blur();
                         }}
-                        ref={el => popoverAnchor = el}
+                        ref={(el) => (popoverAnchor = el)}
                         title={props.translate(item.translationKey)}
                         icon={item.icon}
                         iconRight={item.iconRight}
@@ -86,7 +86,4 @@ const AppDownloadLinksPage = (props) => {
 AppDownloadLinksPage.propTypes = propTypes;
 AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(AppDownloadLinksPage);
+export default compose(withWindowDimensions, withLocalize)(AppDownloadLinksPage);

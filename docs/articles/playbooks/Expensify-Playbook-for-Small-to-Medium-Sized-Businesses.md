@@ -51,7 +51,6 @@ You do this by synchronizing Expensify and your accounting package as follows:
 1. Click *Settings > Policies*
 2. Navigate to the *Connections* tab
 3. Select your accounting system
-   - If you don’t see your accounting solution in the list of integrations we support, you can review an alternative solution in the Feature Deep Dives section below.
 4. Follow the prompts to connect your accounting package
 
 Check out the links below for more information on how to connect to your accounting solution:
@@ -59,6 +58,7 @@ Check out the links below for more information on how to connect to your account
 - *[Xero](https://community.expensify.com/discussion/5282/how-to-connect-your-policy-to-xero)*
 - *[NetSuite](https://community.expensify.com/discussion/5212/how-to-connect-your-policy-to-netsuite-token-based-authentication)*
 - *[Sage Intacct](https://community.expensify.com/discussion/4777/how-to-connect-to-sage-intacct-user-based-permissions-expense-reports)*
+- *[Other Accounting System](https://community.expensify.com/discussion/5271/how-to-set-up-an-indirect-accounting-integration)
 
 
 *“Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical.”*

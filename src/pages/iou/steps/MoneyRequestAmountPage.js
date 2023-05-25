@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    View,
-    InteractionManager,
-} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -30,7 +27,7 @@ const propTypes = {
     onStepComplete: PropTypes.func.isRequired,
 
     /** Previously selected amount to show if the user comes back to this screen */
-    selectedAmount: PropTypes.string.isRequired,
+    selectedAmount: PropTypes.number.isRequired,
 
     /** Text to display on the button that "saves" the amount */
     buttonText: PropTypes.string.isRequired,
@@ -47,9 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
-    },
+    iou: {},
 };
 class MoneyRequestAmountPage extends React.Component {
     constructor(props) {
@@ -66,12 +61,14 @@ class MoneyRequestAmountPage extends React.Component {
         this.numPadContainerViewID = 'numPadContainerView';
         this.numPadViewID = 'numPadView';
 
+        const selectedAmountAsString = props.selectedAmount ? props.selectedAmount.toString() : '';
         this.state = {
-            amount: props.selectedAmount,
+            amount: selectedAmountAsString,
+            selectedCurrencyCode: _.isUndefined(props.iou.selectedCurrencyCode) ? CONST.CURRENCY.USD : props.iou.selectedCurrencyCode,
             shouldUpdateSelection: true,
             selection: {
-                start: props.selectedAmount.length,
-                end: props.selectedAmount.length,
+                start: selectedAmountAsString.length,
+                end: selectedAmountAsString.length,
             },
         };
     }
@@ -82,7 +79,16 @@ class MoneyRequestAmountPage extends React.Component {
         // Focus automatically after navigating back from currency selector
         this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
             this.focusTextInput();
+            this.getCurrencyFromRouteParams();
         });
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.iou.selectedCurrencyCode === this.props.iou.selectedCurrencyCode) {
+            return;
+        }
+
+        this.setState({selectedCurrencyCode: this.props.iou.selectedCurrencyCode});
     }
 
     componentWillUnmount() {
@@ -103,6 +109,13 @@ class MoneyRequestAmountPage extends React.Component {
         event.preventDefault();
         if (!this.textInput.isFocused()) {
             this.textInput.focus();
+        }
+    }
+
+    getCurrencyFromRouteParams() {
+        const selectedCurrencyCode = lodashGet(this.props.route.params, 'currency', '');
+        if (selectedCurrencyCode !== '') {
+            this.setState({selectedCurrencyCode});
         }
     }
 
@@ -225,7 +238,7 @@ class MoneyRequestAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
-        if (!this.textInput.isFocused()) {
+        if (this.state.shouldUpdateSelection && !this.textInput.isFocused()) {
             this.textInput.focus();
         }
 
@@ -254,6 +267,9 @@ class MoneyRequestAmountPage extends React.Component {
      */
     updateLongPressHandlerState(value) {
         this.setState({shouldUpdateSelection: !value});
+        if (!value && !this.textInput.isFocused()) {
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -291,13 +307,15 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     navigateToCurrencySelectionPage() {
+        // Remove query from the route and encode it.
+        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
         if (this.props.hasMultipleParticipants) {
-            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID));
+            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
         }
         if (this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
-            return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID));
+            return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
         }
-        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID));
+        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
     }
 
     render() {
@@ -307,23 +325,16 @@ class MoneyRequestAmountPage extends React.Component {
             <>
                 <View
                     nativeID={this.amountViewID}
-                    onMouseDown={event => this.onMouseDown(event, [this.amountViewID])}
-                    style={[
-                        styles.flex1,
-                        styles.flexRow,
-                        styles.w100,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                    ]}
+                    onMouseDown={(event) => this.onMouseDown(event, [this.amountViewID])}
+                    style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                 >
                     <TextInputWithCurrencySymbol
                         formattedAmount={formattedAmount}
                         onChangeAmount={this.updateAmount}
                         onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
                         placeholder={this.props.numberFormat(0)}
-                        preferredLocale={this.props.preferredLocale}
-                        ref={el => this.textInput = el}
-                        selectedCurrencyCode={this.props.iou.selectedCurrencyCode}
+                        ref={(el) => (this.textInput = el)}
+                        selectedCurrencyCode={this.state.selectedCurrencyCode}
                         selection={this.state.selection}
                         onSelectionChange={(e) => {
                             if (!this.state.shouldUpdateSelection) {
@@ -334,23 +345,24 @@ class MoneyRequestAmountPage extends React.Component {
                     />
                 </View>
                 <View
-                    onMouseDown={event => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
+                    onMouseDown={(event) => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
                     style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
                     nativeID={this.numPadContainerViewID}
                 >
-                    {DeviceCapabilities.canUseTouchScreen()
-                        ? (
-                            <BigNumberPad
-                                nativeID={this.numPadViewID}
-                                numberPressed={this.updateAmountNumberPad}
-                                longPressHandlerStateChanged={this.updateLongPressHandlerState}
-                            />
-                        ) : <View />}
+                    {DeviceCapabilities.canUseTouchScreen() ? (
+                        <BigNumberPad
+                            nativeID={this.numPadViewID}
+                            numberPressed={this.updateAmountNumberPad}
+                            longPressHandlerStateChanged={this.updateLongPressHandlerState}
+                        />
+                    ) : (
+                        <View />
+                    )}
 
                     <Button
                         success
                         style={[styles.w100, styles.mt5]}
-                        onPress={() => this.props.onStepComplete(this.state.amount)}
+                        onPress={() => this.props.onStepComplete(this.state.amount, this.state.selectedCurrencyCode)}
                         pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
                         text={this.props.buttonText}

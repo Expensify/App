@@ -10,6 +10,15 @@ function isVisible() {
 }
 
 /**
+ * Whether the app is focused.
+ *
+ * @returns {Boolean}
+ */
+function hasFocus() {
+    return document.hasFocus();
+}
+
+/**
  * Adds event listener for changes in visibility state
  *
  * @param {Function} callback
@@ -25,5 +34,6 @@ function onVisibilityChange(callback) {
 
 export default {
     isVisible,
+    hasFocus,
     onVisibilityChange,
 };

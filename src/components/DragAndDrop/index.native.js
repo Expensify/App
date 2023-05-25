@@ -1,4 +1,4 @@
-const DragAndDrop = props => props.children;
+const DragAndDrop = (props) => props.children;
 
 DragAndDrop.displayName = 'DragAndDrop';
 

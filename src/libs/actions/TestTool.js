@@ -6,7 +6,7 @@ import CONST from '../../CONST';
 let isTestToolsModalOpen = false;
 Onyx.connect({
     key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
-    callback: val => isTestToolsModalOpen = val || false,
+    callback: (val) => (isTestToolsModalOpen = val || false),
 });
 
 /**

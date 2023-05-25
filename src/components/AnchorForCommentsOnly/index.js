@@ -4,7 +4,7 @@ import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import ControlSelection from '../../libs/ControlSelection';
 
-const AnchorForCommentsOnly = props => (
+const AnchorForCommentsOnly = (props) => (
     <BaseAnchorForCommentsOnly
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}

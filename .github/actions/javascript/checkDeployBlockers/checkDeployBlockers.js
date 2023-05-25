@@ -7,11 +7,12 @@ const run = function () {
 
     console.log(`Fetching issue number ${issueNumber}`);
 
-    return GithubUtils.octokit.issues.get({
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.APP_REPO,
-        issue_number: issueNumber,
-    })
+    return GithubUtils.octokit.issues
+        .get({
+            owner: GithubUtils.GITHUB_OWNER,
+            repo: GithubUtils.APP_REPO,
+            issue_number: issueNumber,
+        })
         .then(({data}) => {
             console.log('Checking for unverified PRs or unresolved deploy blockers', data);
 

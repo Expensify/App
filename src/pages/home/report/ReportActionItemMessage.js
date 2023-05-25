@@ -13,10 +13,7 @@ const propTypes = {
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Additional styles to add after local styles. */
-    style: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** localization props */
     ...withLocalizePropTypes,
@@ -26,7 +23,7 @@ const defaultProps = {
     style: [],
 };
 
-const ReportActionItemMessage = props => (
+const ReportActionItemMessage = (props) => (
     <View style={[styles.chatItemMessage, ...props.style]}>
         {_.map(_.compact(props.action.previousMessage || props.action.message), (fragment, index) => (
             <ReportActionItemFragment

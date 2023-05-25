@@ -16,7 +16,7 @@ const defaultTypes = {
     shouldAnimate: true,
 };
 
-const SkeletonViewLines = props => (
+const SkeletonViewLines = (props) => (
     <SkeletonViewContentLoader
         animate={props.shouldAnimate}
         height={CONST.CHAT_SKELETON_VIEW.HEIGHT_FOR_ROW_COUNT[props.numberOfRows]}
@@ -24,11 +24,39 @@ const SkeletonViewLines = props => (
         foregroundColor={themeColors.border}
         style={styles.mr5}
     >
-        <Circle cx="40" cy="26" r="20" />
-        <Rect x="67" y="11" width="20%" height="8" />
-        <Rect x="67" y="31" width="100%" height="8" />
-        {props.numberOfRows > 1 && <Rect x="67" y="51" width="50%" height="8" />}
-        {props.numberOfRows > 2 && <Rect x="67" y="71" width="50%" height="8" />}
+        <Circle
+            cx="40"
+            cy="26"
+            r="20"
+        />
+        <Rect
+            x="67"
+            y="11"
+            width="20%"
+            height="8"
+        />
+        <Rect
+            x="67"
+            y="31"
+            width="100%"
+            height="8"
+        />
+        {props.numberOfRows > 1 && (
+            <Rect
+                x="67"
+                y="51"
+                width="50%"
+                height="8"
+            />
+        )}
+        {props.numberOfRows > 2 && (
+            <Rect
+                x="67"
+                y="71"
+                width="50%"
+                height="8"
+            />
+        )}
     </SkeletonViewContentLoader>
 );
 

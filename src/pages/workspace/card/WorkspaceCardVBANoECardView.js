@@ -10,7 +10,6 @@ import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import Section from '../../../components/Section';
 import * as Link from '../../../libs/actions/Link';
-import * as User from '../../../libs/actions/User';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import CONST from '../../../CONST';
@@ -27,7 +26,7 @@ const defaultProps = {
     user: {},
 };
 
-const WorkspaceCardVBANoECardView = props => (
+const WorkspaceCardVBANoECardView = (props) => (
     <>
         <Section
             title={props.translate('workspace.card.header')}
@@ -47,7 +46,6 @@ const WorkspaceCardVBANoECardView = props => (
                 text={props.translate('workspace.card.addWorkEmail')}
                 onPress={() => {
                     Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
-                    User.subscribeToExpensifyCardUpdates();
                 }}
                 icon={Expensicons.Mail}
                 style={[styles.mt4]}
@@ -57,11 +55,7 @@ const WorkspaceCardVBANoECardView = props => (
                 success
             />
         </Section>
-        {Boolean(props.user.isCheckingDomain) && (
-            <Text style={[styles.m5, styles.formError]}>
-                {props.translate('workspace.card.checkingDomain')}
-            </Text>
-        )}
+        {Boolean(props.user.isCheckingDomain) && <Text style={[styles.m5, styles.formError]}>{props.translate('workspace.card.checkingDomain')}</Text>}
     </>
 );
 

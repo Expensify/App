@@ -23,11 +23,10 @@ export default function () {
                 Onyx.multiSet({
                     activeClients2: null,
                     [ONYXKEYS.ACTIVE_CLIENTS]: oldActiveClients,
-                })
-                    .then(() => {
-                        Log.info('[Migrate Onyx] Ran migration RenameActiveClientsKey');
-                        resolve();
-                    });
+                }).then(() => {
+                    Log.info('[Migrate Onyx] Ran migration RenameActiveClientsKey');
+                    resolve();
+                });
             },
         });
     });

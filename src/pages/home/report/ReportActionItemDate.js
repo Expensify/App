@@ -12,11 +12,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ReportActionItemDate = props => (
-    <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-        {props.datetimeToCalendarTime(props.created)}
-    </Text>
-);
+const ReportActionItemDate = (props) => <Text style={[styles.chatItemMessageHeaderTimestamp]}>{props.datetimeToCalendarTime(props.created)}</Text>;
 
 ReportActionItemDate.propTypes = propTypes;
 ReportActionItemDate.displayName = 'ReportActionItemDate';
