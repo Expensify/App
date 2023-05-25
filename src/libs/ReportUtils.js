@@ -762,10 +762,7 @@ function getAvatar(avatarURL, login) {
  * @returns {String|Function}
  */
 function getAvatarUrl(avatarURL, login) {
-    if (isDefaultAvatar(avatarURL)) {
-        return getDefaultAvatarURL(login, true);
-    }
-    return avatarURL;
+    return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(login, true) : avatarURL;
 }
 
 /**
