@@ -92,11 +92,11 @@ const MiniQuickEmojiReactions = (props) => {
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 MiniQuickEmojiReactions.propTypes = propTypes;
 MiniQuickEmojiReactions.defaultProps = defaultProps;
-// ESLint throws an error because it can't see that emojiReactions is defined in props. It is defined in props, but
-// because of a couple spread operators, I think that's why ESLint struggles to see it
-// eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default compose(
     withLocalize,
+    // ESLint throws an error because it can't see that emojiReactions is defined in props. It is defined in props, but
+    // because of a couple spread operators, I think that's why ESLint struggles to see it
+    // eslint-disable-next-line rulesdir/onyx-props-must-have-default
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
