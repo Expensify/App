@@ -65,11 +65,6 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.EnablePaymentsStackNavigator}
             />
             <Stack.Screen
-                name="IOU_Details"
-                options={defaultModalScreenOptions}
-                component={ModalStackNavigators.IOUDetailsModalStackNavigator}
-            />
-            <Stack.Screen
                 name="AddPersonalBankAccount"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
