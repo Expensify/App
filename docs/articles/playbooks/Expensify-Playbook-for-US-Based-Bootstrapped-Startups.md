@@ -39,7 +39,7 @@ As a bootstrapped startup, you communicate with your team all day. Similarly, if
 1. Click on your avatar
 2. Select *Workspaces*
 3. Click on your workspace
-4. Select *Manage Members*
+4. Select *Members*
 5. Click *Invite*, and enter each team member’s email address
 
 By inviting your team, all members of your team will have access to unlimited receipt capture via SmartScan, and you’ll all have access to our free chat tool, which makes it easy to chat about your project and the expenses you’ve captured to help accelerate your project.
@@ -52,7 +52,7 @@ Here’s how to set it up:
 1. Click on your *avatar*
 2. Select *Workspaces*
 3. Click on your workspace name
-4. At the bottom, select *Connect bank account*
+4. At the bottom, select *Bank account*
 5. Select your bank and enter your online login credentials
 
 Once this is done, you are all set to begin the process of enabling the Expensify Card. Not just for you, but if you have a co-founder, you can also issue them a card.
@@ -65,7 +65,7 @@ Here’s how to enable the Expensify Card:
 1. Click on your *avatar*
 2. Select *Workspaces*
 3. Click on your workspace
-4. Select *Issue Cards*
+4. Select *Cards*
 5. Next, you’ll be redirected to expensify.com
 6. Set a SmartLimit > $0
 7. We’ll also ask you for your mailing address to send you a physical Expensify Card
@@ -82,7 +82,7 @@ To view and pay bills:
 1. Click on your *avatar*
 2. Select *Workspaces*
 3. Click on your workspace
-4. Select *Pay bills*
+4. Select *Bills*
 
 When you have bills to pay you can click *View all bills* under the *Manage your bills* box and we’ll keep a neatly organized list of all of the bills you can pay via ACH directly from your Expensify account.
 
