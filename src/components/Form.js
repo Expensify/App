@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import lodashGet from 'lodash/get';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
@@ -92,8 +92,8 @@ const Form = (props) => {
     const [inputValues, setInputValues] = useState({...props.draftValues});
     const formRef = useRef(null);
     const formContentRef = useRef(null);
-    const inputRefs = useMemo(() => {}, []);
-    const touchedInputs = useMemo(() => {}, []);
+    const inputRefs = useRef({});
+    const touchedInputs = useRef({});
 
     const {validate, translate, onSubmit, children} = props;
 
@@ -133,7 +133,7 @@ const Form = (props) => {
                 throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
             }
 
-            const touchedInputErrors = _.pick(validationErrors, (inputValue, inputID) => Boolean(touchedInputs[inputID]));
+            const touchedInputErrors = _.pick(validationErrors, (inputValue, inputID) => Boolean(touchedInputs.current[inputID]));
 
             if (!_.isEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
@@ -158,7 +158,7 @@ const Form = (props) => {
      */
     const setTouchedInput = useCallback(
         (inputID) => {
-            touchedInputs[inputID] = true;
+            touchedInputs.current[inputID] = true;
         },
         [touchedInputs],
     );
@@ -170,7 +170,7 @@ const Form = (props) => {
         }
 
         // Touches all form inputs so we can validate the entire form
-        _.each(inputRefs, (inputRef, inputID) => (touchedInputs[inputID] = true));
+        _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
         if (!_.isEmpty(onValidate(inputValues))) {
@@ -264,7 +264,7 @@ const Form = (props) => {
 
                 return React.cloneElement(child, {
                     ref: (node) => {
-                        inputRefs[inputID] = node;
+                        inputRefs.current[inputID] = node;
 
                         const {ref} = child;
                         if (_.isFunction(ref)) {
@@ -328,8 +328,8 @@ const Form = (props) => {
                         footerContent={props.footerContent}
                         onFixTheErrorsLinkPressed={() => {
                             const errorFields = !_.isEmpty(errors) ? errors : props.formState.errorFields;
-                            const focusKey = _.find(_.keys(inputRefs), (key) => _.keys(errorFields).includes(key));
-                            const focusInput = inputRefs[focusKey];
+                            const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
+                            const focusInput = inputRefs.current[focusKey];
 
                             // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
                             Keyboard.dismiss();
