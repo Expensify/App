@@ -84,7 +84,7 @@ class PressableWithSecondaryInteraction extends Component {
                 ref={(el) => (this.pressableRef = el)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}
-                style={StyleUtils.combineStyles(this.props.style, this.props.inline && styles.dInline)}
+                style={(state) => [StyleUtils.parseStyleFromFunction(this.props.style, state), ...[this.props.inline && styles.dInline]]}
             >
                 {this.props.children}
             </Pressable>
