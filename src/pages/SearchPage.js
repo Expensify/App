@@ -157,7 +157,7 @@ class SearchPage extends Component {
                     searchValue: '',
                 },
                 () => {
-                    Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                    Navigation.dismissModal(option.reportID)
                 },
             );
         } else {
