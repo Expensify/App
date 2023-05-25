@@ -1,6 +1,5 @@
 import React from 'react';
 import _ from 'underscore';
-import {View} from 'react-native';
 import styles from '../../styles/styles';
 import * as styleConst from './styleConst';
 import BaseTextInput from './BaseTextInput';
@@ -26,26 +25,25 @@ class TextInput extends React.Component {
         };
 
         return (
-            <View style={labelAnimationStyle}>
-                <BaseTextInput
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    innerRef={(el) => {
-                        this.textInput = el;
-                        if (!this.props.innerRef) {
-                            return;
-                        }
+            <BaseTextInput
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+                innerRef={(el) => {
+                    this.textInput = el;
+                    if (!this.props.innerRef) {
+                        return;
+                    }
 
-                        if (_.isFunction(this.props.innerRef)) {
-                            this.props.innerRef(el);
-                            return;
-                        }
+                    if (_.isFunction(this.props.innerRef)) {
+                        this.props.innerRef(el);
+                        return;
+                    }
 
-                        this.props.innerRef.current = el;
-                    }}
-                    inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...this.props.inputStyle]}
-                />
-            </View>
+                    this.props.innerRef.current = el;
+                }}
+                inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...this.props.inputStyle]}
+                textInputContainerStyles={[labelAnimationStyle, ...this.props.textInputContainerStyles]}
+            />
         );
     }
 }
