@@ -30,6 +30,7 @@ import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
 import SelectionScraper from '../../../libs/SelectionScraper';
+import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -37,7 +38,6 @@ import * as ReportActions from '../../../libs/actions/ReportActions';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
-import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
 import ReportActionItemEmojiReactions from '../../../components/Reactions/ReportActionItemEmojiReactions';
 import * as Report from '../../../libs/actions/Report';
@@ -127,9 +127,6 @@ function ReportActionItem(props) {
             return;
         }
 
-        // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
-        // There is an animation when the comment is hidden and the edit form is shown, and there can be bugs on different mobile platforms
-        // if the input is given focus in the middle of that animation which can prevent the keyboard from opening.
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [isDraftEmpty]);
 
@@ -372,7 +369,7 @@ function ReportActionItem(props) {
             preventDefaultContextMenu={!props.draftMessage && !hasErrors}
             withoutFocusOnSecondaryInteraction
         >
-            <Hoverable>
+            <Hoverable disabled={Boolean(props.draftMessage)}>
                 {(hovered) => (
                     <View accessibilityLabel={props.translate('accessibilityHints.chatMessage')}>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}

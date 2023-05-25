@@ -97,14 +97,17 @@ const ReportActionItemEmojiReactions = (props) => {
                         )}
                         key={reactionEmojiName}
                     >
-                        <EmojiReactionBubble
-                            count={reactionCount}
-                            emojiCodes={emojiCodes}
-                            onPress={onPress}
-                            reactionUsers={reactionUsers}
-                            hasUserReacted={hasUserReacted}
-                            onReactionListOpen={onReactionListOpen}
-                        />
+                        <View>
+                            <EmojiReactionBubble
+                                ref={props.forwardedRef}
+                                count={reactionCount}
+                                emojiCodes={emojiCodes}
+                                onPress={onPress}
+                                reactionUsers={reactionUsers}
+                                hasUserReacted={hasUserReacted}
+                                onReactionListOpen={onReactionListOpen}
+                            />
+                        </View>
                     </Tooltip>
                 );
             })}
