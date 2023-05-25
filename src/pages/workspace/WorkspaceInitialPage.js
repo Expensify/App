@@ -163,12 +163,12 @@ const WorkspaceInitialPage = (props) => {
                             <View style={[styles.flex1]}>
                                 <View style={styles.avatarSectionWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                        <Pressable
-                                            disabled={hasPolicyCreationError}
-                                            style={[styles.pRelative, styles.avatarLarge]}
-                                            onPress={() => openEditor(policy.id)}
-                                        >
-                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                        <Tooltip text={props.translate('workspace.common.settings')}>
+                                            <Pressable
+                                                disabled={hasPolicyCreationError}
+                                                style={[styles.pRelative, styles.avatarLarge]}
+                                                onPress={() => openEditor(policy.id)}
+                                            >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
@@ -178,23 +178,23 @@ const WorkspaceInitialPage = (props) => {
                                                     name={policyName}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
                                                 />
-                                            </Tooltip>
-                                        </Pressable>
+                                            </Pressable>
+                                        </Tooltip>
                                         {!_.isEmpty(policy.name) && (
-                                            <Pressable
-                                                disabled={hasPolicyCreationError}
-                                                style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
-                                                onPress={() => openEditor(policy.id)}
-                                            >
-                                                <Tooltip text={props.translate('workspace.common.settings')}>
+                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                                <Pressable
+                                                    disabled={hasPolicyCreationError}
+                                                    style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
+                                                    onPress={() => openEditor(policy.id)}
+                                                >
                                                     <Text
                                                         numberOfLines={1}
                                                         style={[styles.textHeadline, styles.alignSelfCenter, styles.pre]}
                                                     >
                                                         {policy.name}
                                                     </Text>
-                                                </Tooltip>
-                                            </Pressable>
+                                                </Pressable>
+                                            </Tooltip>
                                         )}
                                     </View>
                                 </View>
