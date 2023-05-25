@@ -1,7 +1,6 @@
 import React from 'react';
 import {View, Pressable, Text} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import styles from '../../../styles/styles';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -49,7 +48,6 @@ const ReportActionItemThread = (props) => {
                         size={CONST.AVATAR_SIZE.SMALL}
                         icons={props.icons}
                         shouldStackHorizontally
-                        avatarTooltips={_.map(props.icons, (icon) => icon.name)}
                         isHovered={props.isHovered}
                         isInReportAction
                     />
