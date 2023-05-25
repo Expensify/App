@@ -90,7 +90,7 @@ const MoneyRequestHeader = (props) => {
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
                 shouldShowAvatarWithDisplay
-                shouldShowThreeDotsButton={!isSettled}
+                shouldShowThreeDotsButton={!isSettled && props.isSingleTransactionView}
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,

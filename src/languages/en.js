@@ -300,6 +300,13 @@ export default {
             `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
+    writeCapabilityPage: {
+        label: 'Who can post',
+        writeCapability: {
+            all: 'All members',
+            admins: 'Admins only',
+        },
+    },
     sidebarScreen: {
         fabAction: 'New chat',
         newChat: 'New chat',
@@ -1141,6 +1148,7 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameIsTooLongError: `Your workspace name can be at most ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} characters long.`,
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             currencyInputDisabledText: "The default currency can't be changed because this workspace is linked to a USD bank account.",
