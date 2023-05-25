@@ -31,7 +31,7 @@ const WorkspaceBillsNoVBAView = (props) => (
                 <Text>{props.translate('workspace.bills.unlockNoVBACopy')}</Text>
             </View>
             <Button
-                text={props.translate('workspace.common.bankAccount')}
+                text={props.translate('workspace.common.connectBankAccount')}
                 onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
                 icon={Expensicons.Bank}
                 style={[styles.mt4]}
