@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import lodashGet from 'lodash/get';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
@@ -90,8 +90,8 @@ const defaultProps = {
 const Form = (props) => {
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState({...props.draftValues});
-    const formRef = React.createRef(null);
-    const formContentRef = React.createRef(null);
+    const formRef = useRef(null);
+    const formContentRef = useRef(null);
     const inputRefs = useMemo(() => {}, []);
     const touchedInputs = useMemo(() => {}, []);
 
