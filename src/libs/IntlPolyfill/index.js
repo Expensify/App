@@ -1,4 +1,3 @@
-import shouldPolyfill from './shouldPolyfill';
 import polyfillNumberFormat from './polyfillNumberFormat';
 
 /**
@@ -6,10 +5,6 @@ import polyfillNumberFormat from './polyfillNumberFormat';
  * This ensures that the currency data is consistent across platforms and browsers.
  */
 export default function intlPolyfill() {
-    if (!shouldPolyfill()) {
-        return;
-    }
-
     // Just need to polyfill Intl.NumberFormat for web based platforms
     polyfillNumberFormat();
 }

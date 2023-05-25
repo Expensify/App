@@ -1,7 +1,7 @@
-import {View} from 'react-native';
 import React from 'react';
+import Lottie from 'lottie-react-native';
+import hands from '../../../assets/animations/Hands.json';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import * as Illustrations from '../../components/Icon/Illustrations';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 
@@ -29,12 +29,12 @@ const SignInHeroImage = (props) => {
     }
 
     return (
-        <View style={[styles.alignSelfCenter, imageSize]}>
-            <Illustrations.Hands
-                width="100%"
-                height="100%"
-            />
-        </View>
+        <Lottie
+            source={hands}
+            loop
+            autoPlay
+            style={[styles.alignSelfCenter, imageSize]}
+        />
     );
 };
 

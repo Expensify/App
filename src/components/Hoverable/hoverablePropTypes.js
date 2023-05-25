@@ -1,18 +1,11 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    /** Whether to disable additional wrapper around the children. It will only work for single native(View|Text) child.  */
-    absolute: PropTypes.bool,
+    /** Whether to disable the hover action */
+    disabled: PropTypes.bool,
 
     /** Children to wrap with Hoverable. */
-    children: PropTypes.oneOfType([
-        PropTypes.node,
-        PropTypes.func,
-    ]).isRequired,
-
-    /** Styles to be assigned to the Hoverable Container */
-    // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+    children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 
     /** Function that executes when the mouse moves over the children. */
     onHoverIn: PropTypes.func,
@@ -22,13 +15,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    absolute: false,
-    containerStyles: [],
+    disabled: false,
     onHoverIn: () => {},
     onHoverOut: () => {},
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

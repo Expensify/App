@@ -19,7 +19,7 @@ const defaultProps = {
     shouldAnimate: true,
 };
 
-const ReportHeaderSkeletonView = props => (
+const ReportHeaderSkeletonView = (props) => (
     <View style={[styles.appContentHeader]}>
         <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
             {props.isSmallScreenWidth && (
@@ -37,9 +37,23 @@ const ReportHeaderSkeletonView = props => (
                 backgroundColor={themeColors.highlightBG}
                 foregroundColor={themeColors.border}
             >
-                <Circle cx="20" cy="33" r="20" />
-                <Rect x="55" y="20" width="30%" height="8" />
-                <Rect x="55" y="40" width="40%" height="8" />
+                <Circle
+                    cx="20"
+                    cy="33"
+                    r="20"
+                />
+                <Rect
+                    x="55"
+                    y="20"
+                    width="30%"
+                    height="8"
+                />
+                <Rect
+                    x="55"
+                    y="40"
+                    width="40%"
+                    height="8"
+                />
             </SkeletonViewContentLoader>
         </View>
     </View>

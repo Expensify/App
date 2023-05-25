@@ -1,7 +1,7 @@
 import React from 'react';
 import {FlatList, Keyboard} from 'react-native';
 
-const KeyboardDismissingFlatList = props => (
+const KeyboardDismissingFlatList = (props) => (
     <FlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}

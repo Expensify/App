@@ -17,6 +17,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -51,9 +52,7 @@ const ResendValidationForm = (props) => {
     const isSMSLogin = Str.isSMSLogin(props.credentials.login);
 
     // replacing spaces with "hard spaces" to prevent breaking the number
-    const login = isSMSLogin
-        ? props.formatPhoneNumber(props.credentials.login).replace(/ /g, '\u00A0')
-        : props.credentials.login;
+    const login = isSMSLogin ? props.formatPhoneNumber(props.credentials.login).replace(/ /g, '\u00A0') : props.credentials.login;
 
     const loginType = (isSMSLogin ? props.translate('common.phone') : props.translate('common.email')).toLowerCase();
 
@@ -65,35 +64,41 @@ const ResendValidationForm = (props) => {
                     imageStyles={[styles.mr2]}
                 />
                 <View style={[styles.flex1]}>
-                    <Text textBreakStrategy="simple" style={[styles.textStrong]}>
+                    <Text
+                        textBreakStrategy="simple"
+                        style={[styles.textStrong]}
+                    >
                         {login}
                     </Text>
                 </View>
             </View>
             <View style={[styles.mv5]}>
-                <Text>
-                    {props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}
-                </Text>
+                <Text>{props.translate('resendValidationForm.weSentYouMagicSignInLink', {login, loginType})}</Text>
             </View>
             {!_.isEmpty(props.account.message) && (
-
                 // DotIndicatorMessage mostly expects onyxData errors so we need to mock an object so that the messages looks similar to prop.account.errors
-                <DotIndicatorMessage style={[styles.mb5, styles.flex0]} type="success" messages={{0: props.translate(props.account.message)}} />
+                <DotIndicatorMessage
+                    style={[styles.mb5, styles.flex0]}
+                    type="success"
+                    messages={{0: props.translate(props.account.message)}}
+                />
             )}
             {!_.isEmpty(props.account.errors) && (
-                <DotIndicatorMessage style={[styles.mb5]} type="error" messages={props.account.errors} />
+                <DotIndicatorMessage
+                    style={[styles.mb5]}
+                    type="error"
+                    messages={props.account.errors}
+                />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <TouchableOpacity onPress={() => redirectToSignIn()}>
-                    <Text style={[styles.link]}>
-                        {props.translate('common.back')}
-                    </Text>
+                    <Text style={[styles.link]}>{props.translate('common.back')}</Text>
                 </TouchableOpacity>
                 <Button
                     medium
                     success
                     text={props.translate('resendValidationForm.resendLink')}
-                    isLoading={props.account.isLoading}
+                    isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.RESEND_VALIDATION_FORM}
                     onPress={() => (props.account.validated ? Session.resendResetPassword() : Session.resendValidationLink())}
                     isDisabled={props.network.isOffline}
                 />

@@ -14,28 +14,30 @@ const plaidDataPropTypes = PropTypes.shape({
     plaidAccessToken: PropTypes.string,
 
     /** List of plaid bank accounts */
-    bankAccounts: PropTypes.arrayOf(PropTypes.shape({
-        /** Masked account number */
-        accountNumber: PropTypes.string,
+    bankAccounts: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** Masked account number */
+            accountNumber: PropTypes.string,
 
-        /** Name of account */
-        addressName: PropTypes.string,
+            /** Name of account */
+            addressName: PropTypes.string,
 
-        /** Is the account a savings account? */
-        isSavings: PropTypes.bool,
+            /** Is the account a savings account? */
+            isSavings: PropTypes.bool,
 
-        /** Unique identifier for this account in Plaid */
-        plaidAccountID: PropTypes.string,
+            /** Unique identifier for this account in Plaid */
+            plaidAccountID: PropTypes.string,
 
-        /** Routing number for the account */
-        routingNumber: PropTypes.string,
+            /** Routing number for the account */
+            routingNumber: PropTypes.string,
 
-        /** last 4 digits of the account number */
-        mask: PropTypes.string,
+            /** last 4 digits of the account number */
+            mask: PropTypes.string,
 
-        /** Plaid access token, used to then retrieve Assets and Balances */
-        plaidAccessToken: PropTypes.string,
-    })),
+            /** Plaid access token, used to then retrieve Assets and Balances */
+            plaidAccessToken: PropTypes.string,
+        }),
+    ),
 });
 
 const plaidDataDefaultProps = {

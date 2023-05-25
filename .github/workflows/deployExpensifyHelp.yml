@@ -1,0 +1,58 @@
+# Deploying the ExpensifyHelp Jekyll site by dynamically generating routes file
+name: Deploy ExpensifyHelp
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - name: Setup NodeJS
+        uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Pages
+        uses: actions/configure-pages@f156874f8191504dae5b037505266ed5dda6c382
+      - name: Create docs routes file
+        run: ./.github/scripts/createDocsRoutes.sh
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@0143c158f4fa0c5dcd99499a5d00859d79f70b0e
+        with:
+          source: ./docs/
+          destination: ./docs/_site
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@64bcae551a7b18bcb9a09042ddf1960979799187
+        with:
+          path: ./docs/_site
+
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@af48cf94a42f2c634308b1c9dc0151830b6f190a

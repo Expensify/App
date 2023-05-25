@@ -13,25 +13,22 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const SignInHeroCopy = props => (
+const SignInHeroCopy = (props) => (
     <View style={[styles.flex1, styles.alignSelfCenter, styles.gap7]}>
-        <Text style={[styles.loginHeroHeader,
-            props.isMediumScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroMedium),
-            props.isLargeScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge),
-        ]}
+        <Text
+            style={[
+                styles.loginHeroHeader,
+                props.isMediumScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroMedium),
+                props.isLargeScreenWidth && StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroLarge),
+            ]}
         >
             {props.translate('login.hero.header')}
         </Text>
-        <Text style={[styles.loginHeroBody]}>
-            {props.translate('login.hero.body')}
-        </Text>
+        <Text style={[styles.loginHeroBody]}>{props.translate('login.hero.body')}</Text>
     </View>
 );
 
 SignInHeroCopy.displayName = 'SignInHeroCopy';
 SignInHeroCopy.propTypes = propTypes;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(SignInHeroCopy);
+export default compose(withWindowDimensions, withLocalize)(SignInHeroCopy);

@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -12,13 +13,13 @@ import * as API from '../API';
 const removeEvent = (reportID, reportActionID, eventID, events) => {
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     originalMessage: {
-                        events: _.reject(events, event => event.id === eventID),
+                        events: _.reject(events, (event) => event.id === eventID),
                     },
                 },
             },
@@ -27,7 +28,7 @@ const removeEvent = (reportID, reportActionID, eventID, events) => {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -39,7 +40,7 @@ const removeEvent = (reportID, reportActionID, eventID, events) => {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -50,10 +51,14 @@ const removeEvent = (reportID, reportActionID, eventID, events) => {
         },
     ];
 
-    API.write('Chronos_RemoveOOOEvent', {
-        googleEventID: eventID,
-        reportActionID,
-    }, {optimisticData, successData, failureData});
+    API.write(
+        'Chronos_RemoveOOOEvent',
+        {
+            googleEventID: eventID,
+            reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
 };
 
 export {

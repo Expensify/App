@@ -4,7 +4,6 @@ import {Keyboard} from 'react-native';
 import {CommonActions, DrawerActions, getPathFromState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
-import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import DeprecatedCustomActions from './DeprecatedCustomActions';
@@ -34,7 +33,7 @@ let pendingRoute = null;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => isLoggedIn = Boolean(val && val.authToken),
+    callback: (val) => (isLoggedIn = Boolean(val && val.authToken)),
 });
 
 // This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
@@ -145,11 +144,6 @@ function navigate(route = ROUTES.HOME) {
         return;
     }
 
-    // A pressed navigation button will remain focused, keeping its tooltip visible, even if it's supposed to be out of view.
-    // To prevent that we blur the button manually (especially for Safari, where the mouse leave event is missing).
-    // More info: https://github.com/Expensify/App/issues/13146
-    DomUtils.blurActiveElement();
-
     if (route === ROUTES.HOME) {
         if (isLoggedIn && pendingRoute === null) {
             openDrawer();
@@ -194,9 +188,7 @@ function dismissModal(shouldOpenDrawer = false) {
         return;
     }
 
-    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
-        ? shouldOpenDrawer
-        : false;
+    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer) ? shouldOpenDrawer : false;
 
     DeprecatedCustomActions.navigateBackToRootDrawer();
     if (normalizedShouldOpenDrawer) {
@@ -209,9 +201,23 @@ function dismissModal(shouldOpenDrawer = false) {
  * @returns {String}
  */
 function getActiveRoute() {
-    return navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
-        : '';
+    const currentRouteHasName = navigationRef.current && navigationRef.current.getCurrentRoute().name;
+    if (!currentRouteHasName) {
+        return '';
+    }
+
+    const routeState = navigationRef.current.getState();
+    const currentRoute = routeState.routes[routeState.index];
+
+    if (currentRoute.state) {
+        return getPathFromState(routeState, linkingConfig.config);
+    }
+
+    if (currentRoute.params && currentRoute.params.path) {
+        return currentRoute.params.path;
+    }
+
+    return '';
 }
 
 /**
@@ -337,6 +343,4 @@ export default {
     drawerGoBack,
 };
 
-export {
-    navigationRef,
-};
+export {navigationRef};

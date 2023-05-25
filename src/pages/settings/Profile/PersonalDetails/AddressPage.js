@@ -64,7 +64,7 @@ class AddressPage extends Component {
         const currentCountryISO = PersonalDetails.getCountryISO(currentCountry) || CONST.COUNTRY.US;
         const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountryISO, 'samples'], '');
         this.state = {
-            isUsaForm: (currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME),
+            isUsaForm: currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME,
             zipFormat: this.props.translate('common.zipCodeExampleFormat', {zipSampleFormat}),
         };
     }
@@ -85,14 +85,7 @@ class AddressPage extends Component {
      * @param {Object} values - form input values
      */
     updateAddress(values) {
-        PersonalDetails.updateAddress(
-            values.addressLine1.trim(),
-            values.addressLine2.trim(),
-            values.city.trim(),
-            values.state.trim(),
-            values.zipPostCode.trim(),
-            values.country,
-        );
+        PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim(), values.country);
     }
 
     /**
@@ -102,12 +95,7 @@ class AddressPage extends Component {
     validate(values) {
         const errors = {};
 
-        const requiredFields = [
-            'addressLine1',
-            'city',
-            'country',
-            'state',
-        ];
+        const requiredFields = ['addressLine1', 'city', 'country', 'state'];
 
         // Check "State" dropdown is a valid state if selected Country is USA.
         if (this.state.isUsaForm && !COMMON_CONST.STATES[values.state]) {

@@ -59,17 +59,19 @@ const PreferencesPage = (props) => {
             />
             <ScrollView style={[styles.flex1, styles.mt3]}>
                 <View style={styles.mb6}>
-                    <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]} numberOfLines={1}>
+                    <Text
+                        style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]}
+                        numberOfLines={1}
+                    >
                         {props.translate('common.notifications')}
                     </Text>
                     <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
                         <View style={styles.flex4}>
-                            <Text>
-                                {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                            </Text>
+                            <Text>{props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
+                                accessibilityLabel={props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                                 isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
                                 onToggle={User.updateNewsletterSubscription}
                             />
@@ -87,7 +89,11 @@ const PreferencesPage = (props) => {
                         description={props.translate('languagePage.language')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                     />
-                    {shouldShowTestToolMenu && <View style={[styles.ml5, styles.mr8, styles.mt6]}><TestToolMenu /></View>}
+                    {shouldShowTestToolMenu && (
+                        <View style={[styles.ml5, styles.mr8, styles.mt6]}>
+                            <TestToolMenu />
+                        </View>
+                    )}
                 </View>
             </ScrollView>
         </ScreenWrapper>

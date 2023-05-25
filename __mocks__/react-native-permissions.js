@@ -4,7 +4,7 @@ const _ = require('underscore');
 
 export {PERMISSIONS, RESULTS};
 
-const openLimitedPhotoLibraryPicker = jest.fn((() => {}));
+const openLimitedPhotoLibraryPicker = jest.fn(() => {});
 const openSettings = jest.fn(() => {});
 const check = jest.fn(() => RESULTS.GRANTED);
 const request = jest.fn(() => RESULTS.GRANTED);
@@ -29,10 +29,10 @@ const checkNotifications = jest.fn(() => ({
     settings: notificationSettings,
 }));
 
-const requestNotifications = jest.fn(options => ({
+const requestNotifications = jest.fn((options) => ({
     status: RESULTS.GRANTED,
     settings: _.chain(options)
-        .filter(option => _.contains(notificationOptions, option))
+        .filter((option) => _.contains(notificationOptions, option))
         .reduce((acc, option) => ({...acc, [option]: true}), {
             lockScreen: true,
             notificationCenter: true,
@@ -40,15 +40,19 @@ const requestNotifications = jest.fn(options => ({
         .value(),
 }));
 
-const checkMultiple = jest.fn(permissions => _.reduce(permissions, (acc, permission) => ({
-    ...acc,
-    [permission]: RESULTS.GRANTED,
-})));
+const checkMultiple = jest.fn((permissions) =>
+    _.reduce(permissions, (acc, permission) => ({
+        ...acc,
+        [permission]: RESULTS.GRANTED,
+    })),
+);
 
-const requestMultiple = jest.fn(permissions => _.reduce(permissions, (acc, permission) => ({
-    ...acc,
-    [permission]: RESULTS.GRANTED,
-})));
+const requestMultiple = jest.fn((permissions) =>
+    _.reduce(permissions, (acc, permission) => ({
+        ...acc,
+        [permission]: RESULTS.GRANTED,
+    })),
+);
 
 export default {
     PERMISSIONS,
