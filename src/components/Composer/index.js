@@ -11,6 +11,7 @@ import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
+import * as StyleUtils from '../../styles/StyleUtils';
 import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
@@ -426,10 +427,6 @@ class Composer extends React.Component {
     }
 
     render() {
-        let paddingValue = 5;
-        if (this.props.numberOfLines === 1) paddingValue = 9;
-        // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
-        if (this.props.numberOfLines === 3) paddingValue = 8;
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
@@ -475,7 +472,7 @@ class Composer extends React.Component {
                         // We are hiding the scrollbar to prevent it from reducing the text input width,
                         // so we can get the correct scroll height while calculating the number of lines.
                         this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
-                        {paddingTop: paddingValue, paddingBottom: paddingValue},
+                        StyleUtils.getComposeTextAreaPadding(this.props.numberOfLines),
                     ]}
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...propsWithoutStyles}
