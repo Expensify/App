@@ -1165,7 +1165,11 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     };
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
-    API.write('PayMoneyRequest', params, {optimisticData, successData, failureData});
+    // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
+    // Expensify Wallets.
+    const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'PayMoneyRequestWithWallet' : 'PayMoneyRequest';
+
+    API.write(apiCommand, params, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
     if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
