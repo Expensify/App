@@ -787,7 +787,7 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 /**
  * Build the IOUConfirmation options for showing the payee personalDetail
  *
- * @param {Object} myPersonalDetail
+ * @param {Object} personalDetail
  * @param {String} amountText
  * @returns {Object}
  */

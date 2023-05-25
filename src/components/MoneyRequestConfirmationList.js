@@ -91,7 +91,6 @@ const defaultProps = {
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     payee: null,
     canModifyParticipants: false,
-    shouldShowFooter: true,
     isReadOnly: false,
     bankAccountRoute: '',
     session: {
@@ -172,11 +171,11 @@ class MoneyRequestConfirmationList extends Component {
     }
 
     /**
-     * Returns the payee personalDetails object
+     * Returns the personalDetails object for the requester
      *
      * @returns {Object} personalDetails
      */
-    getRequestPayee() {
+    getRequestorPersonalDetails() {
         if (this.props.payeePersonalDetails) {
             return this.props.payeePersonalDetails;
         }
@@ -200,7 +199,7 @@ class MoneyRequestConfirmationList extends Component {
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.iouAmount, true);
             const formattedPayeePersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                this.getRequestPayee(),
+                this.getRequestorPersonalDetails(),
                 CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.iou.selectedCurrencyCode),
             );
 
@@ -232,7 +231,7 @@ class MoneyRequestConfirmationList extends Component {
     }
 
     getFooterContent() {
-        if (!this.props.shouldShowFooter) {
+        if (this.props.isReadOnly) {
             return;
         }
 
@@ -270,7 +269,7 @@ class MoneyRequestConfirmationList extends Component {
             return [];
         }
         const selectedParticipants = this.getSelectedParticipants();
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(this.getRequestPayee())];
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(this.getRequestorPersonalDetails())];
     }
 
     /**

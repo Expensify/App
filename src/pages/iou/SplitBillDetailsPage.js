@@ -84,7 +84,7 @@ const SplitBillDetailsPage = (props) => {
                     {Boolean(participants.length) && (
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
-                            payee={payeePersonalDetails}
+                            payeePersonalDetails={payeePersonalDetails}
                             participants={participantsExcludingPayee}
                             iouAmount={splitAmount}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
