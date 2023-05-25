@@ -401,10 +401,12 @@ class BaseTextInput extends Component {
                             styles.hiddenElementOutsideOfWindow,
                             styles.visibilityHidden,
                         ]}
-                        onLayout={(e) => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height}, () => {
-                            if (!this.props.shouldWaitWidthCalculation) return;
-                                this.setState((prevState) => ({value: prevState.hiddenInputValue, selection: this.props.selection}))
-                        })}
+                        onLayout={(e) =>
+                            this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height}, () => {
+                                if (!this.props.shouldWaitWidthCalculation) return;
+                                this.setState((prevState) => ({value: prevState.hiddenInputValue, selection: this.props.selection}));
+                            })
+                        }
                     >
                         {this.props.autoGrowHeight || !this.props.shouldWaitWidthCalculation ? inputValue : hiddenInputValue}
                     </Text>
