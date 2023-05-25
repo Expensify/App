@@ -4,6 +4,9 @@ const propTypes = {
     /** Whether to disable additional wrapper around the children. It will only work for single native(View|Text) child.  */
     absolute: PropTypes.bool,
 
+    /** Whether to disable the hover action */
+    disabled: PropTypes.bool,
+
     /** Children to wrap with Hoverable. */
     children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 
@@ -20,6 +23,7 @@ const propTypes = {
 
 const defaultProps = {
     absolute: false,
+    disabled: false,
     containerStyles: [],
     onHoverIn: () => {},
     onHoverOut: () => {},
