@@ -71,10 +71,7 @@ class FloatingActionButton extends PureComponent {
         });
 
         return (
-            <Tooltip
-                absolute
-                text={this.props.translate('common.new')}
-            >
+            <Tooltip text={this.props.translate('common.new')}>
                 <View style={styles.floatingActionButtonContainer}>
                     <AnimatedPressable
                         ref={(el) => (this.fabPressable = el)}
