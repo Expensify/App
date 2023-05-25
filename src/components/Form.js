@@ -131,7 +131,7 @@ const Form = (props) => {
 
         // Call submit handler
         props.onSubmit(inputValues);
-    }, [props.formState, ]);
+    }, [props.formState]);
 
     /**
      * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
@@ -183,173 +183,179 @@ const Form = (props) => {
      * @param {Array | Function | Node} children - An array containing all Form children
      * @returns {React.Component}
      */
-    const childrenWrapperWithProps = useCallback((children) => React.Children.map(children, (child) => {
-            // Just render the child if it is not a valid React element, e.g. text within a <Text> component
-            if (!React.isValidElement(child)) {
-                return child;
-            }
-
-            // Depth first traversal of the render tree as the input element is likely to be the last node
-            if (child.props.children) {
-                return React.cloneElement(child, {
-                    children: childrenWrapperWithProps(child.props.children),
-                });
-            }
-
-            // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
-            if (_.isFunction(child.type)) {
-                const childNode = new child.type(child.props);
-
-                // If the custom component has a render method, use it to get the nested children
-                const nestedChildren = _.isFunction(childNode.render) ? childNode.render() : childNode;
-
-                // Render the custom component if it's a valid React element
-                // If the custom component has nested children, Loop over them and supply From props
-                if (React.isValidElement(nestedChildren) || lodashGet(nestedChildren, 'props.children')) {
-                    return childrenWrapperWithProps(nestedChildren);
+    const childrenWrapperWithProps = useCallback(
+        (children) =>
+            React.Children.map(children, (child) => {
+                // Just render the child if it is not a valid React element, e.g. text within a <Text> component
+                if (!React.isValidElement(child)) {
+                    return child;
                 }
 
-                // Just render the child if it's custom component not a valid React element, or if it hasn't children
-                return child;
-            }
+                // Depth first traversal of the render tree as the input element is likely to be the last node
+                if (child.props.children) {
+                    return React.cloneElement(child, {
+                        children: childrenWrapperWithProps(child.props.children),
+                    });
+                }
 
-            // We check if the child has the inputID prop.
-            // We don't want to pass form props to non form components, e.g. View, Text, etc
-            if (!child.props.inputID) {
-                return child;
-            }
+                // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
+                if (_.isFunction(child.type)) {
+                    const childNode = new child.type(child.props);
 
-            // We clone the child passing down all form props
-            const inputID = child.props.inputID;
-            let defaultValue;
+                    // If the custom component has a render method, use it to get the nested children
+                    const nestedChildren = _.isFunction(childNode.render) ? childNode.render() : childNode;
 
-            // We need to make sure that checkboxes have correct
-            // value assigned from the list of draft values
-            // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
-            if (_.isBoolean(props.draftValues[inputID])) {
-                defaultValue = props.draftValues[inputID];
-            } else {
-                defaultValue = props.draftValues[inputID] || child.props.defaultValue;
-            }
-
-            // We want to initialize the input value if it's undefined
-            if (_.isUndefined(inputValues[inputID])) {
-                inputValues[inputID] = defaultValue;
-            }
-
-            // We force the form to set the input value from the defaultValue props if there is a saved valid value
-            if (child.props.shouldUseDefaultValue) {
-                inputValues[inputID] = child.props.defaultValue;
-            }
-
-            if (!_.isUndefined(child.props.value)) {
-                inputValues[inputID] = child.props.value;
-            }
-
-            const errorFields = lodashGet(props.formState, 'errorFields', {});
-            const fieldErrorMessage =
-                _.chain(errorFields[inputID])
-                    .keys()
-                    .sortBy()
-                    .reverse()
-                    .map((key) => errorFields[inputID][key])
-                    .first()
-                    .value() || '';
-
-            return React.cloneElement(child, {
-                ref: (node) => {
-                    inputRefs[inputID] = node;
-
-                    const {ref} = child;
-                    if (_.isFunction(ref)) {
-                        ref(node);
-                    }
-                },
-                value: inputValues[inputID],
-                errorText: errors[inputID] || fieldErrorMessage,
-                onBlur: (event) => {
-                    // We delay the validation in order to prevent Checkbox loss of focus when
-                    // the user are focusing a TextInput and proceeds to toggle a CheckBox in
-                    // web and mobile web platforms.
-                    setTimeout(() => {
-                        setTouchedInput(inputID);
-                        validate(inputValues);
-                    }, 200);
-
-                    if (_.isFunction(child.props.onBlur)) {
-                        child.props.onBlur(event);
-                    }
-                },
-                onInputChange: (value, key) => {
-                    const inputKey = key || inputID;
-                    setState(
-                        (prevState) => ({
-                            inputValues: {
-                                ...prevState.inputValues,
-                                [inputKey]: value,
-                            },
-                        }),
-                        () => validate(inputValues),
-                    );
-
-                    if (child.props.shouldSaveDraft) {
-                        FormActions.setDraftValues(props.formID, {[inputKey]: value});
+                    // Render the custom component if it's a valid React element
+                    // If the custom component has nested children, Loop over them and supply From props
+                    if (React.isValidElement(nestedChildren) || lodashGet(nestedChildren, 'props.children')) {
+                        return childrenWrapperWithProps(nestedChildren);
                     }
 
-                    if (child.props.onValueChange) {
-                        child.props.onValueChange(value);
-                    }
-                },
-            });
-        });
-    }, []);
+                    // Just render the child if it's custom component not a valid React element, or if it hasn't children
+                    return child;
+                }
 
-    const scrollViewContent = useCallback((safeAreaPaddingBottomStyle) => (
-        <FormSubmit
-            ref={formContentRef}
-            style={StyleSheet.flatten([props.style, safeAreaPaddingBottomStyle])}
-            onSubmit={submit}
-        >
-            {childrenWrapperWithProps(_.isFunction(props.children) ? props.children({inputValues: inputValues}) : props.children)}
-            {props.isSubmitButtonVisible && (
-                <FormAlertWithSubmitButton
-                    buttonText={props.submitButtonText}
-                    isAlertVisible={_.size(errors) > 0 || Boolean(getErrorMessage()) || !_.isEmpty(props.formState.errorFields)}
-                    isLoading={props.formState.isLoading}
-                    message={_.isEmpty(props.formState.errorFields) ? getErrorMessage() : null}
-                    onSubmit={submit}
-                    footerContent={props.footerContent}
-                    onFixTheErrorsLinkPressed={() => {
-                        const errors = !_.isEmpty(errors) ? errors : props.formState.errorFields;
-                        const focusKey = _.find(_.keys(inputRefs), (key) => _.keys(errors).includes(key));
-                        const focusInput = inputRefs[focusKey];
+                // We check if the child has the inputID prop.
+                // We don't want to pass form props to non form components, e.g. View, Text, etc
+                if (!child.props.inputID) {
+                    return child;
+                }
 
-                        const formRef = formRef.current;
-                        const formContentRef = formContentRef.current;
+                // We clone the child passing down all form props
+                const inputID = child.props.inputID;
+                let defaultValue;
 
-                        // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
-                        Keyboard.dismiss();
+                // We need to make sure that checkboxes have correct
+                // value assigned from the list of draft values
+                // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
+                if (_.isBoolean(props.draftValues[inputID])) {
+                    defaultValue = props.draftValues[inputID];
+                } else {
+                    defaultValue = props.draftValues[inputID] || child.props.defaultValue;
+                }
 
-                        // We subtract 10 to scroll slightly above the input
-                        if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                            // We measure relative to the content root, not the scroll view, as that gives
-                            // consistent results across mobile and web
-                            focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
+                // We want to initialize the input value if it's undefined
+                if (_.isUndefined(inputValues[inputID])) {
+                    inputValues[inputID] = defaultValue;
+                }
+
+                // We force the form to set the input value from the defaultValue props if there is a saved valid value
+                if (child.props.shouldUseDefaultValue) {
+                    inputValues[inputID] = child.props.defaultValue;
+                }
+
+                if (!_.isUndefined(child.props.value)) {
+                    inputValues[inputID] = child.props.value;
+                }
+
+                const errorFields = lodashGet(props.formState, 'errorFields', {});
+                const fieldErrorMessage =
+                    _.chain(errorFields[inputID])
+                        .keys()
+                        .sortBy()
+                        .reverse()
+                        .map((key) => errorFields[inputID][key])
+                        .first()
+                        .value() || '';
+
+                return React.cloneElement(child, {
+                    ref: (node) => {
+                        inputRefs[inputID] = node;
+
+                        const {ref} = child;
+                        if (_.isFunction(ref)) {
+                            ref(node);
+                        }
+                    },
+                    value: inputValues[inputID],
+                    errorText: errors[inputID] || fieldErrorMessage,
+                    onBlur: (event) => {
+                        // We delay the validation in order to prevent Checkbox loss of focus when
+                        // the user are focusing a TextInput and proceeds to toggle a CheckBox in
+                        // web and mobile web platforms.
+                        setTimeout(() => {
+                            setTouchedInput(inputID);
+                            validate(inputValues);
+                        }, 200);
+
+                        if (_.isFunction(child.props.onBlur)) {
+                            child.props.onBlur(event);
+                        }
+                    },
+                    onInputChange: (value, key) => {
+                        const inputKey = key || inputID;
+                        setState(
+                            (prevState) => ({
+                                inputValues: {
+                                    ...prevState.inputValues,
+                                    [inputKey]: value,
+                                },
+                            }),
+                            () => validate(inputValues),
+                        );
+
+                        if (child.props.shouldSaveDraft) {
+                            FormActions.setDraftValues(props.formID, {[inputKey]: value});
                         }
 
-                        // Focus the input after scrolling, as on the Web it gives a slightly better visual result
-                        if (focusInput.focus && typeof focusInput.focus === 'function') {
-                            focusInput.focus();
+                        if (child.props.onValueChange) {
+                            child.props.onValueChange(value);
                         }
-                    }}
-                    containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
-                    enabledWhenOffline={props.enabledWhenOffline}
-                    isSubmitActionDangerous={props.isSubmitActionDangerous}
-                    disablePressOnEnter
-                />
-            )}
-        </FormSubmit>
-    ), []);
+                    },
+                });
+            }),
+        [],
+    );
+
+    const scrollViewContent = useCallback(
+        (safeAreaPaddingBottomStyle) => (
+            <FormSubmit
+                ref={formContentRef}
+                style={StyleSheet.flatten([props.style, safeAreaPaddingBottomStyle])}
+                onSubmit={submit}
+            >
+                {childrenWrapperWithProps(_.isFunction(props.children) ? props.children({inputValues: inputValues}) : props.children)}
+                {props.isSubmitButtonVisible && (
+                    <FormAlertWithSubmitButton
+                        buttonText={props.submitButtonText}
+                        isAlertVisible={_.size(errors) > 0 || Boolean(getErrorMessage()) || !_.isEmpty(props.formState.errorFields)}
+                        isLoading={props.formState.isLoading}
+                        message={_.isEmpty(props.formState.errorFields) ? getErrorMessage() : null}
+                        onSubmit={submit}
+                        footerContent={props.footerContent}
+                        onFixTheErrorsLinkPressed={() => {
+                            const errors = !_.isEmpty(errors) ? errors : props.formState.errorFields;
+                            const focusKey = _.find(_.keys(inputRefs), (key) => _.keys(errors).includes(key));
+                            const focusInput = inputRefs[focusKey];
+
+                            const formRef = formRef.current;
+                            const formContentRef = formContentRef.current;
+
+                            // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
+                            Keyboard.dismiss();
+
+                            // We subtract 10 to scroll slightly above the input
+                            if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                                // We measure relative to the content root, not the scroll view, as that gives
+                                // consistent results across mobile and web
+                                focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
+                            }
+
+                            // Focus the input after scrolling, as on the Web it gives a slightly better visual result
+                            if (focusInput.focus && typeof focusInput.focus === 'function') {
+                                focusInput.focus();
+                            }
+                        }}
+                        containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                        enabledWhenOffline={props.enabledWhenOffline}
+                        isSubmitActionDangerous={props.isSubmitActionDangerous}
+                        disablePressOnEnter
+                    />
+                )}
+            </FormSubmit>
+        ),
+        [],
+    );
 
     return (
         <SafeAreaConsumer>
@@ -376,7 +382,7 @@ const Form = (props) => {
             }
         </SafeAreaConsumer>
     );
-}
+};
 
 Form.displayName = 'Form';
 Form.propTypes = propTypes;
