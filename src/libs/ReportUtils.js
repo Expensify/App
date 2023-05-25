@@ -332,6 +332,16 @@ function getPolicyType(report, policies) {
 }
 
 /**
+ * If the report is a policy expense, the route should be for adding bank account for that policy
+ * else since the report is a personal IOU, the route should be for personal bank account.
+ * @param {Object} report
+ * @returns {String}
+ */
+function getBankAccountRoute(report) {
+    return isPolicyExpenseChat(report) ? ROUTES.getBankAccountRoute('', report.policyID) : ROUTES.SETTINGS_ADD_BANK_ACCOUNT;
+}
+
+/**
  * Returns true if there are any guides accounts (team.expensify.com) in emails
  * @param {Array} emails
  * @returns {Boolean}
@@ -826,9 +836,10 @@ function getIconsForParticipants(participants, personalDetails) {
  * @param {Object} report
  * @param {Object} personalDetails
  * @param {*} [defaultIcon]
+ * @param {Boolean} [isPayer]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null) {
+function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
@@ -914,10 +925,11 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         return [adminIcon, workspaceIcon];
     }
     if (isIOUReport(report)) {
+        const email = isPayer ? report.managerEmail : report.ownerEmail;
         return [
             {
-                source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
-                name: report.ownerEmail,
+                source: getAvatar(lodashGet(personalDetails, [email, 'avatar']), email),
+                name: email,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ];
@@ -1104,6 +1116,11 @@ function getReportName(report) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
+        }
+
+        const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
+        if (isAttachment) {
+            return `[${Localize.translateLocal('common.attachment')}]`;
         }
         const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
@@ -2325,4 +2342,5 @@ export {
     isSettled,
     isAllowedToComment,
     getMoneyRequestAction,
+    getBankAccountRoute,
 };
