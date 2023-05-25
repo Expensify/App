@@ -29,23 +29,10 @@ index 1e9ee0e..d85c7b4 100644
  
    const handleGestureCanceled = () => {
 diff --git a/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx b/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx
-index 6bbce10..7f2eed3 100644
+index 6bbce10..73594d3 100644
 --- a/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx
 +++ b/node_modules/@react-navigation/stack/src/views/Stack/StackView.tsx
-@@ -375,29 +375,51 @@ export default class StackView extends React.Component<Props, State> {
- 
-   private handleTransitionStart = (
-     { route }: { route: Route<string> },
--    closing: boolean
--  ) =>
-+    closing: boolean,
-+  ) => {
-     this.props.navigation.emit({
-       type: 'transitionStart',
-       data: { closing },
-       target: route.key,
-     });
-+  }
+@@ -385,19 +385,47 @@ export default class StackView extends React.Component<Props, State> {
  
    private handleTransitionEnd = (
      { route }: { route: Route<string> },
@@ -65,6 +52,14 @@ index 6bbce10..7f2eed3 100644
 +        type: 'transitionEnd',
 +        data: { closing: !closing },
 +        target: state.routes[state.index - 2].key,
++      });
++    }
++    // We want the screen behind the closing screen to not be frozen
++    if (state?.index > 0) {
++      this.props.navigation.emit({
++        type: 'transitionEnd',
++        data: { closing: false },
++        target: state.routes[state.index - 1].key,
 +      });
 +    }
 +  }
