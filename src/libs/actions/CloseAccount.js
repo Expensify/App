@@ -9,6 +9,6 @@ function setDefaultData() {
     Onyx.merge(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {...CONST.DEFAULT_CLOSE_ACCOUNT_DATA});
 }
 
-export {
+export default {
     setDefaultData,
 };

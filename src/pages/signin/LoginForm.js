@@ -22,7 +22,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
-import * as CloseAccount from '../../libs/actions/CloseAccount';
+import setDefaultData from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -114,7 +114,7 @@ class LoginForm extends React.Component {
 
         // Clear the "Account successfully closed" message when the user starts typing
         if (this.props.closeAccount.success) {
-            CloseAccount.setDefaultData();
+            setDefaultData();
         }
     }
 
@@ -135,7 +135,7 @@ class LoginForm extends React.Component {
 
         // If account was closed and have success message in Onyx, we clear it here
         if (!_.isEmpty(this.props.closeAccount.success)) {
-            CloseAccount.setDefaultData();
+            setDefaultData();
         }
 
         const login = this.state.login.trim();
