@@ -179,6 +179,7 @@ const styles = {
         position: 'absolute',
         left: 0,
         right: 0,
+        paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING
     },
 
     autoCompleteSuggestionContainer: {

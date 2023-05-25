@@ -94,7 +94,7 @@ const MentionSuggestions = (props) => {
                     {_.map(styledHandle, ({text, isColored}, i) => (
                         <Text
                             key={`${text}${i}`}
-                            style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
+                            style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle, {...(isColored && {color: styles.text})}]}
                         >
                             {text}
                         </Text>
