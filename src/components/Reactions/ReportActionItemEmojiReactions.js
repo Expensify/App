@@ -46,19 +46,24 @@ const ReportActionItemEmojiReactions = (props) => {
         // keys are lost. To keep from losing the emojiName, it's copied to the emojiReaction object.
         // eslint-disable-next-line no-param-reassign
         emojiReaction.emojiName = emojiName;
-        return _.chain(emojiReaction.users)
-            .reduce((allTimestampsArray, userData) => {
-                if (!userData) {
+        return (
+            _.chain(emojiReaction.users)
+                .reduce((allTimestampsArray, userData) => {
+                    if (!userData) {
+                        return allTimestampsArray;
+                    }
+                    _.each(userData.skinTones, (createdAt) => {
+                        allTimestampsArray.push(createdAt);
+                    });
                     return allTimestampsArray;
-                }
-                _.each(userData.skinTones, (createdAt) => {
-                    allTimestampsArray.push(createdAt);
-                });
-                return allTimestampsArray;
-            }, [])
-            .sort()
-            .first()
-            .value();
+                }, [])
+                .sort()
+                .first()
+                // Just in case two emojis have the same timestamp, also combine the timestamp with the
+                // emojiName so that the order will always be the same. Without this, the order can be pretty random
+                // and shift around a little bit.
+                .value() + emojiName
+        );
     });
     return (
         <View
