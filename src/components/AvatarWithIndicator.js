@@ -101,12 +101,12 @@ const AvatarWithIndicator = (props) => {
     const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];
 
     return (
-        <View style={[styles.sidebarAvatar]}>
-            <Tooltip text={props.tooltipText}>
+        <Tooltip text={props.tooltipText}>
+            <View style={[styles.sidebarAvatar]}>
                 <Avatar source={ReportUtils.getSmallSizeAvatar(props.source)} />
                 {(shouldShowErrorIndicator || shouldShowInfoIndicator) && <View style={StyleSheet.flatten(indicatorStyles)} />}
-            </Tooltip>
-        </View>
+            </View>
+        </Tooltip>
     );
 };
 
