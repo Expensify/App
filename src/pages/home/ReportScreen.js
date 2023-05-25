@@ -279,21 +279,7 @@ class ReportScreen extends React.Component {
             <ScreenWrapper style={screenWrapperStyle}>
                 <Freeze
                     freeze={shouldFreeze}
-                    placeholder={
-                        <>
-                            <ReportHeaderSkeletonView shouldAnimate={shouldAnimate} />
-                            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                                <ReportActionsSkeletonView
-                                    shouldAnimate={shouldAnimate}
-                                    containerHeight={this.state.skeletonViewContainerHeight}
-                                />
-                                <ReportFooter
-                                    shouldDisableCompose
-                                    isOffline={this.props.network.isOffline}
-                                />
-                            </View>
-                        </>
-                    }
+                    placeholder={null}
                 >
                     <FullPageNotFoundView
                         shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}

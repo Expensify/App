@@ -217,7 +217,7 @@ class SidebarLinks extends React.Component {
                 </View>
                 <Freeze
                     freeze={shouldFreeze}
-                    placeholder={skeletonPlaceholder}
+                    placeholder={null}
                 >
                     {isLoading ? (
                         skeletonPlaceholder
