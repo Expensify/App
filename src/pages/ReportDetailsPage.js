@@ -58,6 +58,12 @@ const defaultProps = {
 
 const ReportDetailsPage = (props) => {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
+    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(props.report), [props.report]);
+    const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
+    const isThread = useMemo(() => ReportUtils.isThread(props.report), [props.report]);
+    const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report]);
+
     const menuItems = useMemo(() => {
         const items = [
             {
@@ -95,7 +101,6 @@ const ReportDetailsPage = (props) => {
             });
         }
 
-        const isThread = ReportUtils.isThread(props.report);
         if (ReportUtils.isUserCreatedPolicyRoom(props.report) || ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)) || isThread) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
@@ -106,18 +111,14 @@ const ReportDetailsPage = (props) => {
         }
 
         return items;
-    }, [props.report, policy]);
+    }, [props.report, policy, isThread]);
 
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(props.report), [props.report]);
-    const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
-    const isThread = useMemo(() => ReportUtils.isThread(props.report), [props.report]);
     const displayNamesWithTooltips = useMemo(() => {
         const participants = lodashGet(props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), isMultipleParticipant);
     }, [props.report, props.personalDetails]);
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(props.report);
+
     const chatRoomSubtitleText = (
         <Text
             style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
