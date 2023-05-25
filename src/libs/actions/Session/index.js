@@ -458,7 +458,6 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
     const params = {
         accountID,
         validateCode,
-        twoFactorAuthCode,
         preferredLocale,
         deviceInfo: getDeviceInfoForLogin(),
     };
