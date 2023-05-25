@@ -1,13 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
 import variables from '../styles/variables';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const requiredPropsCheck = (props) => {
     if (!props.label && !props.LabelComponent) {
@@ -102,17 +101,16 @@ class CheckboxWithLabel extends React.Component {
                         hasError={Boolean(this.props.errorText)}
                         forwardedRef={this.props.forwardedRef}
                     />
-                    <PressableWithFeedback
+                    <TouchableOpacity
                         focusable={false}
                         wrapperStyle={[styles.flex1]}
                         onPress={this.toggleCheckbox}
-                        pressDimmingValue={variables.checkboxLabelActiveOpacity}
-                        hoverDimmingValue={variables.checkboxLabelHoverOpacity}
+                        activeOpacity={variables.checkboxLabelActiveOpacity}
                         style={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter, styles.noSelect]}
                     >
                         {this.props.label && <Text style={[styles.ml1]}>{this.props.label}</Text>}
                         {this.LabelComponent && <this.LabelComponent />}
-                    </PressableWithFeedback>
+                    </TouchableOpacity>
                 </View>
                 <FormHelpMessage message={this.props.errorText} />
             </View>
