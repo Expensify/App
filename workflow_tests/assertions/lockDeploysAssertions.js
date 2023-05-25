@@ -31,13 +31,13 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const failProdSteps = [
         utils.createStepAssertion(
@@ -51,13 +51,13 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
         ),
     ];
 
-    for (const expectedStep of failProdSteps) {
+    failProdSteps.forEach((expectedStep) => {
         if (didExecute && !isSuccessful) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
@@ -91,9 +91,9 @@ const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
-    }
+    });
 };
 
 module.exports = {

@@ -268,6 +268,7 @@ const GET_MERGED_PULL_REQUEST_MOCK_STEP__WELCOME_MESSAGE__OSBOTIFY = utils.creat
     {number: '12345', author: 'OSBotify'},
 );
 const GET_PR_COUNT_MOCK_STEP__1 = utils.createMockStep(
+    // eslint-disable-next-line no-template-curly-in-string
     'Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}',
     'Getting PR count',
     'NEW_CONTRIBUTOR_WELCOME_MESSAGE',
@@ -277,6 +278,7 @@ const GET_PR_COUNT_MOCK_STEP__1 = utils.createMockStep(
     {PR_COUNT: '1'},
 );
 const GET_PR_COUNT_MOCK_STEP__10 = utils.createMockStep(
+    // eslint-disable-next-line no-template-curly-in-string
     'Get PR count for ${{ steps.getMergedPullRequest.outputs.author }}',
     'Getting PR count',
     'NEW_CONTRIBUTOR_WELCOME_MESSAGE',
@@ -286,6 +288,7 @@ const GET_PR_COUNT_MOCK_STEP__10 = utils.createMockStep(
     {PR_COUNT: '10'},
 );
 const COMMENT_ON_FIRST_PULL_REQUEST_MOCK_STEP = utils.createMockStep(
+    // eslint-disable-next-line no-template-curly-in-string
     'Comment on ${{ steps.getMergedPullRequest.outputs.author }}\\\'s first pull request!',
     'Creating comment',
     'NEW_CONTRIBUTOR_WELCOME_MESSAGE',

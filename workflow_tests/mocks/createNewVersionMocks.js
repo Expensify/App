@@ -64,6 +64,7 @@ const CREATENEWVERSION__CREATENEWVERSION__CREATE_NEW_BRANCH__STEP_MOCK = utils.c
     [],
     [],
     [],
+    // eslint-disable-next-line no-template-curly-in-string
     {VERSION_BRANCH: 'version-${{ github.event.inputs.SEMVER_LEVEL }}-abcdef'},
 );
 const CREATENEWVERSION__CREATENEWVERSION__GENERATE_VERSION__STEP_MOCK = utils.createMockStep(

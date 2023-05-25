@@ -2,7 +2,7 @@ module.exports = {
     extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier'],
     plugins: ['react-hooks'],
     parser: 'babel-eslint',
-    ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', '.git/**', 'workflow_tests/**/*.js'],
+    ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', '.git/**'],
     env: {
         jest: true,
     },
@@ -13,6 +13,14 @@ module.exports = {
             },
         },
     },
+    overrides: [
+        {
+            files: ['workflow_tests/**/*.js'],
+            rules: {
+                '@lwc/lwc/no-async-await': 'off',
+            },
+        },
+    ],
     globals: {
         __DEV__: 'readonly',
     },

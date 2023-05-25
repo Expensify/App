@@ -22,13 +22,13 @@ const assertValidateActorJobExecuted = (workflowResult, actor = 'Dummy Actor', p
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 const assertGetBranchRefJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
@@ -52,13 +52,13 @@ const assertGetBranchRefJobExecuted = (workflowResult, didExecute = true) => {
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
@@ -150,14 +150,14 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
         ),
     ];
 
-    for (const [i, expectedStep] of steps.entries()) {
+    steps.entries.forEach(([i, expectedStep]) => {
         if (didExecute) {
             if (failsAt === -1 || i < failsAt) {
                 // either whole job is successful, or steps up to this point are successful
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             } else if (i === failsAt) {
                 // this is the failing step
-                expectedStep.status = 1;
+                steps[i].status = 1;
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             } else {
                 // steps after failed one do not execute
@@ -166,7 +166,7 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
@@ -271,14 +271,14 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
         ),
     ];
 
-    for (const [i, expectedStep] of steps.entries()) {
+    steps.entries().forEach(([i, expectedStep]) => {
         if (didExecute) {
             if (failsAt === -1 || i < failsAt) {
                 // either whole job is successful, or steps up to this point are successful
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             } else if (i === failsAt) {
                 // this is the failing step
-                expectedStep.status = 1;
+                steps[i].status = 1;
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             } else {
                 // steps after failed one do not execute
@@ -287,7 +287,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
@@ -354,14 +354,14 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
         ),
     ];
 
-    for (const [i, expectedStep] of steps.entries()) {
+    steps.entries().forEach(([i, expectedStep]) => {
         if (didExecute) {
             if (failsAt === -1 || i < failsAt) {
                 // either whole job is successful, or steps up to this point are successful
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             } else if (i === failsAt) {
                 // this is the failing step
-                expectedStep.status = 1;
+                steps[i].status = 1;
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             } else {
                 // steps after failed one do not execute
@@ -370,7 +370,7 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
@@ -439,14 +439,14 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
         ),
     ];
 
-    for (const [i, expectedStep] of steps.entries()) {
+    steps.entries().forEach(([i, expectedStep]) => {
         if (didExecute) {
             if (failsAt === -1 || i < failsAt) {
                 // either whole job is successful, or steps up to this point are successful
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             } else if (i === failsAt) {
                 // this is the failing step
-                expectedStep.status = 1;
+                steps[i].status = 1;
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             } else {
                 // steps after failed one do not execute
@@ -455,9 +455,18 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
-const assertPostGithubCommentJobExecuted = (workflowResult, ref = '', pullRequestNumber = '1234', didExecute = true, androidStatus = 'success', iOSStatus = 'success', desktopStatus = 'success', webStatus = 'success') => {
+
+const assertPostGithubCommentJobExecuted = (
+    workflowResult, ref = '',
+    pullRequestNumber = '1234',
+    didExecute = true,
+    androidStatus = 'success',
+    iOSStatus = 'success',
+    desktopStatus = 'success',
+    webStatus = 'success',
+) => {
     const steps = [
         utils.createStepAssertion(
             'Checkout',
@@ -541,13 +550,13 @@ const assertPostGithubCommentJobExecuted = (workflowResult, ref = '', pullReques
         ),
     );
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 module.exports = {

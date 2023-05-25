@@ -13,13 +13,13 @@ const assertValidateActorJobExecuted = (workflowResult, username = 'Dummy Author
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) => {
@@ -35,13 +35,13 @@ const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) =>
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertCherryPickJobExecuted = (
@@ -164,13 +164,13 @@ const assertCherryPickJobExecuted = (
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const conflictsSteps = [
         utils.createStepAssertion(
@@ -184,13 +184,13 @@ const assertCherryPickJobExecuted = (
         ),
     ];
 
-    for (const step of conflictsSteps) {
+    conflictsSteps.forEach((step) => {
         if (didExecute && mergeConflictsOrVersionMismatch) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 
     const manualMergeSteps = [
         utils.createStepAssertion(
@@ -213,13 +213,13 @@ const assertCherryPickJobExecuted = (
         ),
     ];
 
-    for (const step of manualMergeSteps) {
+    manualMergeSteps.forEach((step) => {
         if (didExecute && !shouldAutomerge) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 
     const autoMergeSteps = [
         utils.createStepAssertion(
@@ -233,13 +233,13 @@ const assertCherryPickJobExecuted = (
         ),
     ];
 
-    for (const step of autoMergeSteps) {
+    autoMergeSteps.forEach((step) => {
         if (didExecute && shouldAutomerge) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 
     const versionMismatchSteps = [
         utils.createStepAssertion(
@@ -253,13 +253,13 @@ const assertCherryPickJobExecuted = (
         ),
     ];
 
-    for (const step of versionMismatchSteps) {
+    versionMismatchSteps.forEach((step) => {
         if (didExecute && !versionsMatch) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 
     const failedSteps = [
         utils.createStepAssertion(
@@ -273,13 +273,13 @@ const assertCherryPickJobExecuted = (
         ),
     ];
 
-    for (const step of failedSteps) {
+    failedSteps.forEach((step) => {
         if (didExecute && (!isSuccessful || !prIsMergeable)) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 
     const autoMergeableSteps = [
         utils.createStepAssertion(
@@ -293,13 +293,13 @@ const assertCherryPickJobExecuted = (
         ),
     ];
 
-    for (const step of autoMergeableSteps) {
+    autoMergeableSteps.forEach((step) => {
         if (didExecute && shouldAutomerge && prIsMergeable) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 };
 
 module.exports = {

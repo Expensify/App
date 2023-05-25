@@ -13,13 +13,13 @@ const assertValidateActorJobExecuted = (workflowResult, didExecute = true) => {
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD', didExecute = true, isSuccessful = true) => {
     const steps = [
@@ -93,7 +93,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             if (isSuccessful) {
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
@@ -101,7 +101,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const failedSteps = [
         utils.createStepAssertion(
@@ -115,13 +115,13 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
         ),
     ];
 
-    for (const step of failedSteps) {
+    failedSteps.forEach((step) => {
         if (didExecute && !isSuccessful) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 };
 
 module.exports = {

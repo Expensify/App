@@ -1,6 +1,6 @@
 const utils = require('../utils/utils');
 
-const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository = '', didExecute = true, runAssitant = true) => {
+const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository = '', didExecute = true) => {
     const steps = [
         utils.createStepAssertion(
             'CLA comment check',
@@ -22,13 +22,13 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const assistantSteps = [
         utils.createStepAssertion(
@@ -50,13 +50,13 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
         ),
     ];
 
-    for (const step of assistantSteps) {
-        if (didExecute && runAssitant) {
+    assistantSteps.forEach((step) => {
+        if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 };
 
 module.exports = {
