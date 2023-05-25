@@ -22,7 +22,7 @@ class TextInput extends React.Component {
         const labelAnimationStyle = {
             '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,
             '--active-label-scale': `${styleConst.ACTIVE_LABEL_SCALE}`,
-            '--label-transition-duration': '80ms',
+            '--label-transition-duration': `${styleConst.LABEL_ANIMATION_DURATION}ms`,
         };
 
         return (
