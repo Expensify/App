@@ -9,7 +9,6 @@ import * as ReportUtils from '../libs/ReportUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import * as Report from '../libs/actions/Report';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -157,7 +156,7 @@ class SearchPage extends Component {
                     searchValue: '',
                 },
                 () => {
-                    Navigation.dismissModal(option.reportID)
+                    Navigation.dismissModal(option.reportID);
                 },
             );
         } else {
