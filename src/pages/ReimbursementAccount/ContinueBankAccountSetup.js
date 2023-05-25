@@ -49,7 +49,7 @@ const ContinueBankAccountSetup = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
                 <HeaderWithBackButton
-                    title={props.translate('workspace.common.bankAccount')}
+                    title={props.translate('workspace.common.connectBankAccount')}
                     subtitle={props.policyName}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}

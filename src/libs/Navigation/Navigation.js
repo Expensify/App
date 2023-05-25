@@ -124,7 +124,7 @@ function setParams(params, routeKey) {
 
 /**
  * Dismisses the last modal stack if there is any
- * 
+ *
  * @param {String | undefined} targetReportID - The reportID to navigate to after dismissing the modal
  */
 function dismissModal(targetReportID) {
@@ -143,7 +143,7 @@ function dismissModal(targetReportID) {
             navigationRef.current.dispatch(action);
         } else {
             navigationRef.current.dispatch(StackActions.pop());
-        } 
+        }
     } else {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
     }

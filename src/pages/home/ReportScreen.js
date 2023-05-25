@@ -202,6 +202,11 @@ class ReportScreen extends React.Component {
         Report.addComment(getReportID(this.props.route), text);
     }
 
+    getNavigationKey() {
+        const navigation = this.props.navigation.getState();
+        return lodashGet(navigation.routes, [navigation.index, 'key']);
+    }
+
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
      *
@@ -240,11 +245,6 @@ class ReportScreen extends React.Component {
 
     chatWithAccountManager() {
         Navigation.navigate(ROUTES.getReportRoute(this.props.accountManagerReportID));
-    }
-
-    getNavigationKey() {
-        const navigation = this.props.navigation.getState();
-        return lodashGet(navigation.routes, [navigation.index, 'key'])
     }
 
     render() {
@@ -387,6 +387,7 @@ class ReportScreen extends React.Component {
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
+                                        policies={this.props.policies}
                                     />
                                 </>
                             )}

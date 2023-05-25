@@ -250,7 +250,7 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const source = this.state.source;
+        const source = this.props.source || this.state.source;
         return (
             <>
                 <Modal
@@ -274,7 +274,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.downloadAttachment(source)}
+                        onDownloadButtonPress={() => this.downloadAttachment(this.state.source)}
                         shouldShowCloseButton={!this.props.isSmallScreenWidth}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
                         onBackButtonPress={() => this.setState({isModalOpen: false})}
@@ -289,7 +289,7 @@ class AttachmentModal extends PureComponent {
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
                         ) : (
-                            Boolean(this.state.source) &&
+                            Boolean(source) &&
                             this.state.shouldLoadAttachment && (
                                 <AttachmentView
                                     containerStyles={[styles.mh5]}

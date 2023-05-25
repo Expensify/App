@@ -49,9 +49,13 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** Date login was validated, used to show info indicator status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     ...withLocalizePropTypes,
@@ -60,9 +64,7 @@ const propTypes = {
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
-    session: {
-        email: null,
-    },
+    loginList: {},
 };
 
 /**
@@ -109,6 +111,8 @@ class DetailsPage extends React.PureComponent {
 
         const phoneNumber = getPhoneNumber(details);
         const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
+
+        const isCurrentUser = _.keys(this.props.loginList).includes(details.login);
 
         return (
             <ScreenWrapper>
@@ -182,7 +186,7 @@ class DetailsPage extends React.PureComponent {
                                     ) : null}
                                     {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
                                 </View>
-                                {details.login !== this.props.session.email && (
+                                {!isCurrentUser && (
                                     <MenuItem
                                         title={`${this.props.translate('common.message')}${details.displayName}`}
                                         icon={Expensicons.ChatBubble}
@@ -206,11 +210,11 @@ DetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
     }),
 )(DetailsPage);

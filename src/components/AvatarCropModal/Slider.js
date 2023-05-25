@@ -49,10 +49,7 @@ const Slider = (props) => {
             >
                 <Animated.View style={[styles.sliderKnob, rSliderStyle]}>
                     {tooltipIsVisible && (
-                        <Tooltip
-                            text={props.translate('common.zoom')}
-                            shiftVertical={-2}
-                        >
+                        <Tooltip text={props.translate('common.zoom')}>
                             <View style={[styles.sliderKnobTooltipView]} />
                         </Tooltip>
                     )}

@@ -33,21 +33,16 @@ class CategoryShortcutButton extends PureComponent {
 
     render() {
         return (
-            <Pressable
-                onPress={this.props.onPress}
-                onHoverIn={() => this.setState({isHighlighted: true})}
-                onHoverOut={() => this.setState({isHighlighted: false})}
-                style={({pressed}) => [
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                    styles.categoryShortcutButton,
-                    this.state.isHighlighted && styles.emojiItemHighlighted,
-                ]}
-            >
-                <Tooltip
-                    focusable={false}
-                    containerStyles={[styles.flex1, styles.alignSelfStretch, styles.alignItemsCenter, styles.justifyContentCenter]}
-                    text={this.props.translate(`emojiPicker.headers.${this.props.code}`)}
-                    shiftVertical={-4}
+            <Tooltip text={this.props.translate(`emojiPicker.headers.${this.props.code}`)}>
+                <Pressable
+                    onPress={this.props.onPress}
+                    onHoverIn={() => this.setState({isHighlighted: true})}
+                    onHoverOut={() => this.setState({isHighlighted: false})}
+                    style={({pressed}) => [
+                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                        styles.categoryShortcutButton,
+                        this.state.isHighlighted && styles.emojiItemHighlighted,
+                    ]}
                 >
                     <Icon
                         fill={themeColors.icon}
@@ -55,8 +50,8 @@ class CategoryShortcutButton extends PureComponent {
                         height={variables.iconSizeNormal}
                         width={variables.iconSizeNormal}
                     />
-                </Tooltip>
-            </Pressable>
+                </Pressable>
+            </Tooltip>
         );
     }
 }

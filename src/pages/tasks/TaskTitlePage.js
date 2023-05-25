@@ -47,7 +47,7 @@ function TaskTitlePage(props) {
             const errors = {};
 
             if (_.isEmpty(values.title)) {
-                errors.title = props.translate('common.error.fieldRequired');
+                errors.title = props.translate('newTaskPage.pleaseEnterTaskName');
             }
 
             return errors;

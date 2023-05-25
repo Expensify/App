@@ -156,10 +156,10 @@ const TaskAssigneeSelectorModal = (props) => {
 
         // Check to see if we're creating a new task
         // If there's no route params, we're creating a new task
-        if (!props.route.params && option.alternateText) {
+        if (!props.route.params && option.login) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setAssigneeValue(option.alternateText, props.task.shareDestination);
+            TaskUtils.setAssigneeValue(option.login, props.task.shareDestination);
             return Navigation.goBack();
         }
 
@@ -167,9 +167,9 @@ const TaskAssigneeSelectorModal = (props) => {
         if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
             // There was an issue where sometimes a new assignee didn't have a DM thread
             // This would cause the app to crash, so we need to make sure we have a DM thread
-            TaskUtils.setAssigneeValue(option.alternateText, props.task.shareDestination);
+            TaskUtils.setAssigneeValue(option.login, props.task.shareDestination);
             // Pass through the selected assignee
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', '', option.alternateText);
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', '', option.login);
         }
     };
 

@@ -58,7 +58,7 @@ const EnableStep = (props) => {
             includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
-                title={props.translate('workspace.common.bankAccount')}
+                title={props.translate('workspace.common.connectBankAccount')}
                 subtitle={props.policyName}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
