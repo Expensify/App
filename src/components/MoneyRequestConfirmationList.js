@@ -106,12 +106,12 @@ function MoneyRequestConfirmationList(props) {
         [props.iouAmount, props.iou.selectedCurrencyCode],
     );
 
-    const formattedParticipants = _.map(getParticipantsWithAmount(props.participants), (participant) => ({
+    const getFormattedParticipants = () => _.map(getParticipantsWithAmount(props.participants), (participant) => ({
         ...participant,
         selected: true,
     }));
 
-    const [participants, setParticipants] = useState(formattedParticipants);
+    const [participants, setParticipants] = useState(getFormattedParticipants);
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
