@@ -63,17 +63,16 @@ const defaultProps = {
  * @returns {Object}
  */
 function getRenderOptions({hasLogin, hasPassword, hasValidateCode, isPrimaryLogin, isAccountValidated, didForgetPassword, canUsePasswordlessLogins}) {
-    const isUnvalidatedSecondaryLogin = !isPrimaryLogin && !isAccountValidated;
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
-    const shouldShowUnlinkLoginForm = hasLogin && isUnvalidatedSecondaryLogin;
-    const shouldShowPasswordForm = hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !shouldShowUnlinkLoginForm && !canUsePasswordlessLogins;
-    const shouldShowValidateCodeForm = (hasLogin || hasValidateCode) && !shouldShowUnlinkLoginForm && canUsePasswordlessLogins;
-    const shouldShowResendValidationForm = hasLogin && (!isAccountValidated || didForgetPassword) && !shouldShowUnlinkLoginForm && !canUsePasswordlessLogins;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || shouldShowUnlinkLoginForm;
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated;
+    const shouldShowPasswordForm = hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins;
+    const shouldShowValidateCodeForm = (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && canUsePasswordlessLogins;
+    const shouldShowResendValidationForm = hasLogin && (!isAccountValidated || didForgetPassword) && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm;
     return {
         shouldShowLoginForm,
-        shouldShowUnlinkLoginForm,
+        shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
         shouldShowPasswordForm,
         shouldShowValidateCodeForm,
         shouldShowResendValidationForm,
@@ -105,8 +104,8 @@ function SignInPage({account, credentials}) {
         hasPassword: Boolean(credentials.password),
         hasValidateCode: Boolean(credentials.validateCode),
         isPrimaryLogin: account.primaryLogin && account.primaryLogin !== credentials.login,
-        isAccountValidated: account.validated,
-        didForgetPassword: account.forgotPassword,
+        isAccountValidated: Boolean(account.validated),
+        didForgetPassword: Boolean(account.forgotPassword),
         canUsePasswordlessLogins,
     });
 
