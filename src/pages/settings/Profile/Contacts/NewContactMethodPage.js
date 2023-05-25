@@ -103,7 +103,7 @@ function NewContactMethodPage(props) {
     const addNewContactMethod = (values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
         const validateIfnumber = validateNumber(phoneLogin);
-        const submitDetail = (validateIfnumber || values.phoneOrEmail).trim();
+        const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
 
         User.addNewContactMethodAndNavigate(submitDetail, values.password);
     };

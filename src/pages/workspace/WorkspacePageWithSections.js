@@ -56,6 +56,9 @@ const propTypes = {
     /** The guides call task ID to associate with the workspace page being shown */
     guidesCallTaskID: PropTypes.string,
 
+    /** The route where we navigate when the user press the back button */
+    backButtonRoute: PropTypes.string,
+
     /** Policy values needed in the component */
     policy: PropTypes.shape({
         name: PropTypes.string,
@@ -75,6 +78,7 @@ const defaultProps = {
     guidesCallTaskID: '',
     shouldUseScrollView: false,
     shouldSkipVBBACall: false,
+    backButtonRoute: '',
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -119,7 +123,7 @@ class WorkspacePageWithSections extends React.Component {
                         subtitle={policyName}
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={this.props.guidesCallTaskID}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        onBackButtonPress={() => Navigation.goBack(this.props.backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
                     />
                     {this.props.shouldUseScrollView ? (
                         <ScrollViewWithContext

@@ -140,6 +140,9 @@ export default {
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
+        per: 'per',
+        mi: 'mile',
+        km: 'kilometer',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -1107,6 +1110,7 @@ export default {
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: "You're all set to reimburse receipts from your bank account!",
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
+            invalidRateError: 'Please enter a valid rate',
         },
         bills: {
             manageYourBills: 'Manage your bills',
