@@ -60,7 +60,7 @@ const TaskSelectorLink = (props) => {
             onPress={props.onPress}
             disabled={props.disabled}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.alignItemsCenter]}>
                 {props.icons.length !== 0 || props.text !== '' ? (
                     <View style={[styles.flex1]}>
                         <Text style={[styles.label, styles.textWhite, styles.mb2]}>{props.translate(props.label)}</Text>
