@@ -8,7 +8,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as Expensicons from '../components/Icon/Expensicons';
-import hashLogin from './hashLogin';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
@@ -2189,7 +2188,6 @@ export {
     chatIncludesChronos,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
-    hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
     getParsedComment,

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import CONST from '../CONST';
-import hashLogin from './hashLogin';
+import hashCode from './hashCode';
 import * as Expensicons from '../components/Icon/Expensicons';
 import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 
@@ -62,6 +62,16 @@ function getLoginListBrickRoadIndicator(loginList) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
     return '';
+}
+
+/**
+ * Hashes provided string and returns a value between [0, range)
+ * @param {String} login
+ * @param {Number} range
+ * @returns {Number}
+ */
+function hashLogin(login, range) {
+    return Math.abs(hashCode(login.toLowerCase())) % range;
 }
 
 /**
@@ -192,6 +202,7 @@ function getSmallSizeAvatar(avatarURL, login) {
 }
 
 export {
+    hashLogin,
     hasLoginListError,
     hasLoginListInfo,
     getLoginListBrickRoadIndicator,
