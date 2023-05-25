@@ -311,7 +311,7 @@ const Form = (props) => {
                 style={StyleSheet.flatten([props.style, safeAreaPaddingBottomStyle])}
                 onSubmit={submit}
             >
-                {childrenWrapperWithProps(_.isFunction(props.children) ? props.children({inputValues: inputValues}) : props.children)}
+                {childrenWrapperWithProps(_.isFunction(props.children) ? props.children(inputValues) : props.children)}
                 {props.isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={props.submitButtonText}
