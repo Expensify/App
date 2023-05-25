@@ -39,7 +39,7 @@ const ReportActionItemMessage = (props) => (
                 loading={props.action.isLoading}
                 style={props.style}
             />
-        )) : <Text style={[styles.textLabelSupporting, styles.lh20]}>This message has been flagged as violating our community rules and the content has been hidden.</Text>}
+        )) : <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>}
     </View>
 );
 

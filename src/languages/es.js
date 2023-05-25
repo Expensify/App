@@ -1842,4 +1842,9 @@ export default {
         copyUrlToClipboard: 'Copiar URL al portapapeles',
         copied: '¡Copiado!',
     },
+    moderation: {
+        flaggedContent: 'Este mensaje ha sido marcado por violar las reglas de nuestra comunidad y el contenido se ha ocultado.',
+        hideMessage: 'Ocultar mensaje',
+        revealMessage: 'Revelar mensaje',
+    },
 };
