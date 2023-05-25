@@ -106,10 +106,11 @@ function MoneyRequestConfirmationList(props) {
         [props.iouAmount, props.iou.selectedCurrencyCode],
     );
 
-    const getFormattedParticipants = () => _.map(getParticipantsWithAmount(props.participants), (participant) => ({
-        ...participant,
-        selected: true,
-    }));
+    const getFormattedParticipants = () =>
+        _.map(getParticipantsWithAmount(props.participants), (participant) => ({
+            ...participant,
+            selected: true,
+        }));
 
     const [participants, setParticipants] = useState(getFormattedParticipants);
     const [didConfirm, setDidConfirm] = useState(false);
