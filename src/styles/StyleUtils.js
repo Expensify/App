@@ -1008,6 +1008,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
     return {
         overflow: 'hidden',
         top: -(itemsHeight + padding),
+        height: itemsHeight,
     };
 }
 

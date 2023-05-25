@@ -44,7 +44,8 @@ const BaseAutoCompleteSuggestions = (props) => {
     );
 
     const rowHeight = measureHeightOfSuggestionRows(props.suggestions.length, props.isSuggestionPickerLarge);
-
+    const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT*props.suggestions.length;
+    
     return (
         <View
             ref={props.forwardedRef}
@@ -56,7 +57,8 @@ const BaseAutoCompleteSuggestions = (props) => {
                 renderItem={renderSuggestionMenuItem}
                 keyExtractor={props.keyExtractor}
                 removeClippedSubviews={false}
-                style={{height: rowHeight}}
+                showsVerticalScrollIndicator={ innerHeight > rowHeight}
+                style={{flex:1}}
             />
         </View>
     );
