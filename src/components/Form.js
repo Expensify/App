@@ -139,7 +139,7 @@ const Form = (props) => {
                 setErrors(touchedInputErrors);
             }
 
-            return errors;
+            return touchedInputErrors;
         },
         [errors, touchedInputs, props.formID, validate, translate],
     );
