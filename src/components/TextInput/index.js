@@ -1,6 +1,8 @@
 import React from 'react';
 import _ from 'underscore';
+import { View } from 'react-native';
 import styles from '../../styles/styles';
+import * as styleConst from './styleConst';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 
@@ -17,26 +19,33 @@ class TextInput extends React.Component {
 
     render() {
         const isLabeledMultiline = Boolean(this.props.label.length) && this.props.multiline;
+        const labelAnimationStyle = {
+            '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,
+            '--active-label-scale': `${styleConst.ACTIVE_LABEL_SCALE}`,
+            '--label-transition-duration': '80ms',
+        };
 
         return (
-            <BaseTextInput
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                innerRef={(el) => {
-                    this.textInput = el;
-                    if (!this.props.innerRef) {
-                        return;
-                    }
+            <View style={labelAnimationStyle}>
+                <BaseTextInput
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...this.props}
+                    innerRef={(el) => {
+                        this.textInput = el;
+                        if (!this.props.innerRef) {
+                            return;
+                        }
 
-                    if (_.isFunction(this.props.innerRef)) {
-                        this.props.innerRef(el);
-                        return;
-                    }
+                        if (_.isFunction(this.props.innerRef)) {
+                            this.props.innerRef(el);
+                            return;
+                        }
 
-                    this.props.innerRef.current = el;
-                }}
-                inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...this.props.inputStyle]}
-            />
+                        this.props.innerRef.current = el;
+                    }}
+                    inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...this.props.inputStyle]}
+                />
+            </View>
         );
     }
 }
