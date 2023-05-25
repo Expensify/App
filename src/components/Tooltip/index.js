@@ -9,8 +9,10 @@ import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
-// A "target" for the tooltip, i.e. an element that, when hovered over, triggers the tooltip to appear. The tooltip will
-// point towards this target.
+/**
+ * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
+ * wrapped element, which, upon hover, triggers the tooltip to be shown.
+ */
 class Tooltip extends PureComponent {
     constructor(props) {
         super(props);
@@ -118,7 +120,7 @@ class Tooltip extends PureComponent {
             throw Error('Children is not a valid element.');
         }
 
-        const child = React.cloneElement(React.Children.only(this.props.children), {
+        const target = React.cloneElement(React.Children.only(this.props.children), {
             ref: (el) => {
                 this.wrapperView = el;
 
@@ -159,7 +161,7 @@ class Tooltip extends PureComponent {
                         onHoverIn={this.showTooltip}
                         onHoverOut={this.hideTooltip}
                     >
-                        {child}
+                        {target}
                     </Hoverable>
                 </BoundsObserver>
             </>

@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
+    /** Whether to disable the hover action */
+    disabled: PropTypes.bool,
+
     /** Children to wrap with Hoverable. */
     children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]).isRequired,
 
@@ -12,6 +15,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    disabled: false,
     onHoverIn: () => {},
     onHoverOut: () => {},
 };

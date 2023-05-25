@@ -47,7 +47,7 @@ const SubscriptAvatar = (props) => {
     const containerStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar;
 
     // Default the margin style to what is normal for small or normal sized avatars
-    let marginStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarMargin : styles.emptyAvatarMarginSmall;
+    let marginStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
 
     // Some views like the chat view require that there be no margins
     if (props.noMargin) {
