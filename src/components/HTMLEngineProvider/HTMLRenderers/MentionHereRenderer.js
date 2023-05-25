@@ -9,7 +9,7 @@ const MentionHereRenderer = (props) => (
         <Text
             // Passing the true value to the function as here mention is always for the current user
             color={StyleUtils.getMentionTextColor(true)}
-            style={StyleUtils.getMentionStyle(true)}
+            style={[props.style, StyleUtils.getMentionStyle(true)]}
         >
             <TNodeChildrenRenderer tnode={props.tnode} />
         </Text>
