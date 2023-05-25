@@ -22,6 +22,8 @@ const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInp
 const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
 const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
+const keyInputLeftArrow = lodashGet(KeyCommand, 'constants.keyInputLeftArrow', 'keyInputLeftArrow');
+const keyInputRightArrow = lodashGet(KeyCommand, 'constants.keyInputRightArrow', 'keyInputRightArrow');
 
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
@@ -398,6 +400,26 @@ const CONST = {
                 [PLATFORM_IOS]: {input: keyInputDownArrow},
             },
         },
+        ARROW_LEFT: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowLeft',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputLeftArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputLeftArrow},
+                [PLATFORM_IOS]: {input: keyInputLeftArrow},
+            },
+        },
+        ARROW_RIGHT: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowRight',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputRightArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputRightArrow},
+                [PLATFORM_IOS]: {input: keyInputRightArrow},
+            },
+        },
         TAB: {
             descriptionKey: null,
             shortcutKey: 'Tab',
@@ -579,6 +601,11 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        // Options for which room members can post
+        WRITE_CAPABILITIES: {
+            ALL: 'all',
+            ADMINS: 'admins',
+        },
         VISIBILITY: {
             PUBLIC: 'public',
             PUBLIC_ANNOUNCE: 'public_announce',
@@ -701,6 +728,13 @@ const CONST = {
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
+    FORMS: {
+        LOGIN_FORM: 'LoginForm',
+        VALIDATE_CODE_FORM: 'ValidateCodeForm',
+        VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
+        RESEND_VALIDATION_FORM: 'ResendValidationForm',
+        UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
+    },
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -1050,7 +1084,7 @@ const CONST = {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
-        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
+        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -2385,6 +2419,7 @@ const CONST = {
         ACTIVE: 'active',
         DISABLED: 'disabled',
     },
+    SPACE_CHARACTER_WIDTH: 4,
 
     // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
     // div and then remove it from copied contents in the getHTMLOfSelection() method.
