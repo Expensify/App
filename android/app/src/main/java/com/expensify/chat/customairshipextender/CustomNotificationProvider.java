@@ -28,6 +28,7 @@ import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
 import com.urbanairship.AirshipConfigOptions;
+import com.urbanairship.json.JsonList;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
 import com.urbanairship.push.PushMessage;
@@ -43,6 +44,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -67,6 +69,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     // Conversation JSON keys
     private static final String PAYLOAD_KEY = "payload";
+
+    private static final String ONYX_DATA_KEY = "onyxData";
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     public final HashMap<Integer, NotificationCache> cache = new HashMap<>();
@@ -99,9 +103,10 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             try {
                 JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
 
-                // Apply message style using onyxData from the notification payload
-                if (payload.get("onyxData").getList().size() > 0) {
-                        applyMessageStyle(context, builder, payload, arguments.getNotificationId());
+                if (payload.containsKey(ONYX_DATA_KEY)) {
+                    Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
+
+                    applyMessageStyle(context, builder, payload, arguments.getNotificationId());
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Failed to parse conversation, falling back to default notification style. SendID=" + message.getSendId(), e);
