@@ -287,7 +287,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
     // Sometimes title is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = title || report.reportName;
+    const reportName = (title || report.reportName).trim();
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
@@ -308,7 +308,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 reportName,
-                description: description || report.description,
+                description: (description || report.description).trim(),
                 managerEmail: assignee || report.managerEmail,
             },
         },
@@ -363,7 +363,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             taskReportID: report.reportID,
             title: reportName,
-            description: description || report.description,
+            description: (description || report.description).trim(),
             assignee: assignee || report.assignee,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
@@ -391,7 +391,7 @@ function setTaskReport(report) {
 
 function setDetailsValue(title, description) {
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {title, description});
+    Onyx.merge(ONYXKEYS.TASK, {title: title.trim(), description: description.trim()});
 }
 
 /**
@@ -399,7 +399,7 @@ function setDetailsValue(title, description) {
  * @param {string} title
  */
 function setTitleValue(title) {
-    Onyx.merge(ONYXKEYS.TASK, {title});
+    Onyx.merge(ONYXKEYS.TASK, {title: title.trim()});
 }
 
 /**
@@ -407,7 +407,7 @@ function setTitleValue(title) {
  * @param {string} description
  */
 function setDescriptionValue(description) {
-    Onyx.merge(ONYXKEYS.TASK, {description});
+    Onyx.merge(ONYXKEYS.TASK, {description: description.trim()});
 }
 
 /**

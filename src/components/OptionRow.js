@@ -144,7 +144,7 @@ class OptionRow extends Component {
                 errors={this.props.option.allReportErrors}
                 shouldShowErrorMessages={false}
             >
-                <Hoverable containerStyles={[this.props.isDisabled ? styles.userSelectNone : null]}>
+                <Hoverable>
                     {(hovered) => (
                         <TouchableOpacity
                             ref={(el) => (touchableRef = el)}

@@ -53,6 +53,7 @@ import * as ComposerActions from '../../../libs/actions/Composer';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
+import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** Beta features list */
@@ -192,6 +193,13 @@ class ReportActionCompose extends React.Component {
         // prevent auto focus on existing chat for mobile device
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
+        this.shouldAutoFocus = !props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat()) && props.shouldShowComposeInput;
+
+        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
+        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
+        // so we need to ensure that it is only updated after focus.
+        const isMobileSafari = Browser.isMobileSafari();
+
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible && this.props.shouldShowComposeInput,
             isFullComposerAvailable: props.isComposerFullSize,
@@ -200,8 +208,8 @@ class ReportActionCompose extends React.Component {
             isMenuVisible: false,
             isDraggingOver: false,
             selection: {
-                start: props.comment.length,
-                end: props.comment.length,
+                start: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
+                end: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
             },
             maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             value: props.comment,
@@ -1059,7 +1067,7 @@ class ReportActionCompose extends React.Component {
                                             disabled={this.props.disabled}
                                         >
                                             <Composer
-                                                autoFocus={!this.props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat()) && this.props.shouldShowComposeInput}
+                                                autoFocus={this.shouldAutoFocus}
                                                 multiline
                                                 ref={this.setTextInputRef}
                                                 textAlignVertical="top"

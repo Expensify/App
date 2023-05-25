@@ -333,7 +333,7 @@ function getOptionData(reportID) {
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, policies, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login));
+    result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login), true);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     return result;
