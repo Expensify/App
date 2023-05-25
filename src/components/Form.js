@@ -1,5 +1,5 @@
+import React, {useState} from 'react';
 import lodashGet from 'lodash/get';
-import React from 'react';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -87,75 +87,63 @@ const defaultProps = {
     style: [],
 };
 
-class Form extends React.Component {
-    constructor(props) {
-        super(props);
+const Form = (props) => {
+    const formRef = React.createRef(null);
+    const formContentRef = React.createRef(null);
+    const inputRefs = {};
+    const touchedInputs = {};
 
-        this.state = {
-            errors: {},
-            inputValues: {
-                ...props.draftValues,
-            },
-        };
-
-        this.formRef = React.createRef(null);
-        this.formContentRef = React.createRef(null);
-        this.inputRefs = {};
-        this.touchedInputs = {};
-
-        this.setTouchedInput = this.setTouchedInput.bind(this);
-        this.validate = this.validate.bind(this);
-        this.submit = this.submit.bind(this);
-    }
+    const [errors, setErrors] = useState({});
+    const [inputValues, setInputValues] = useState({...props.draftValues});
 
     componentDidUpdate(prevProps) {
-        if (prevProps.preferredLocale === this.props.preferredLocale) {
+        if (prevProps.preferredLocale === props.preferredLocale) {
             return;
         }
 
         // Update the error messages if the language changes
-        this.validate(this.state.inputValues);
+        validate(inputValues);
     }
 
     getErrorMessage() {
-        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.formState);
-        return this.props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
+        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
+        return props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
     }
 
     getFirstErroredInput() {
-        const hasStateErrors = !_.isEmpty(this.state.errors);
-        const hasErrorFields = !_.isEmpty(this.props.formState.errorFields);
+        const hasStateErrors = !_.isEmpty(errors);
+        const hasErrorFields = !_.isEmpty(props.formState.errorFields);
 
         if (!hasStateErrors && !hasErrorFields) {
             return;
         }
 
-        return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
+        return _.first(_.keys(hasStateErrors ? erorrs : props.formState.errorFields));
     }
 
     /**
      * @param {String} inputID - The inputID of the input being touched
      */
     setTouchedInput(inputID) {
-        this.touchedInputs[inputID] = true;
+        touchedInputs[inputID] = true;
     }
 
     submit() {
         // Return early if the form is already submitting to avoid duplicate submission
-        if (this.props.formState.isLoading) {
+        if (props.formState.isLoading) {
             return;
         }
 
         // Touches all form inputs so we can validate the entire form
-        _.each(this.inputRefs, (inputRef, inputID) => (this.touchedInputs[inputID] = true));
+        _.each(inputRefs, (inputRef, inputID) => (touchedInputs[inputID] = true));
 
         // Validate form and return early if any errors are found
-        if (!_.isEmpty(this.validate(this.state.inputValues))) {
+        if (!_.isEmpty(validate(inputValues))) {
             return;
         }
 
         // Call submit handler
-        this.props.onSubmit(this.state.inputValues);
+        props.onSubmit(inputValues);
     }
 
     /**
@@ -172,11 +160,11 @@ class Form extends React.Component {
             }
         });
 
-        FormActions.setErrors(this.props.formID, null);
-        FormActions.setErrorFields(this.props.formID, null);
+        FormActions.setErrors(props.formID, null);
+        FormActions.setErrorFields(props.formID, null);
 
         // Run any validations passed as a prop
-        const validationErrors = this.props.validate(trimmedStringValues);
+        const validationErrors = props.validate(trimmedStringValues);
 
         // Validate the input for html tags. It should supercede any other error
         _.each(trimmedStringValues, (inputValue, inputID) => {
@@ -186,17 +174,17 @@ class Form extends React.Component {
             }
 
             // Add a validation error here because it is a string value that contains HTML characters
-            validationErrors[inputID] = this.props.translate('common.error.invalidCharacter');
+            validationErrors[inputID] = props.translate('common.error.invalidCharacter');
         });
 
         if (!_.isObject(validationErrors)) {
             throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
         }
 
-        const errors = _.pick(validationErrors, (inputValue, inputID) => Boolean(this.touchedInputs[inputID]));
+        const errors = _.pick(validationErrors, (inputValue, inputID) => Boolean(touchedInputs[inputID]));
 
-        if (!_.isEqual(errors, this.state.errors)) {
-            this.setState({errors});
+        if (!_.isEqual(errors, errors)) {
+            setState({errors});
         }
 
         return errors;
@@ -218,7 +206,7 @@ class Form extends React.Component {
             // Depth first traversal of the render tree as the input element is likely to be the last node
             if (child.props.children) {
                 return React.cloneElement(child, {
-                    children: this.childrenWrapperWithProps(child.props.children),
+                    children: childrenWrapperWithProps(child.props.children),
                 });
             }
 
@@ -232,7 +220,7 @@ class Form extends React.Component {
                 // Render the custom component if it's a valid React element
                 // If the custom component has nested children, Loop over them and supply From props
                 if (React.isValidElement(nestedChildren) || lodashGet(nestedChildren, 'props.children')) {
-                    return this.childrenWrapperWithProps(nestedChildren);
+                    return childrenWrapperWithProps(nestedChildren);
                 }
 
                 // Just render the child if it's custom component not a valid React element, or if it hasn't children
@@ -252,27 +240,27 @@ class Form extends React.Component {
             // We need to make sure that checkboxes have correct
             // value assigned from the list of draft values
             // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
-            if (_.isBoolean(this.props.draftValues[inputID])) {
-                defaultValue = this.props.draftValues[inputID];
+            if (_.isBoolean(props.draftValues[inputID])) {
+                defaultValue = props.draftValues[inputID];
             } else {
-                defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
+                defaultValue = props.draftValues[inputID] || child.props.defaultValue;
             }
 
             // We want to initialize the input value if it's undefined
-            if (_.isUndefined(this.state.inputValues[inputID])) {
-                this.state.inputValues[inputID] = defaultValue;
+            if (_.isUndefined(inputValues[inputID])) {
+                inputValues[inputID] = defaultValue;
             }
 
             // We force the form to set the input value from the defaultValue props if there is a saved valid value
             if (child.props.shouldUseDefaultValue) {
-                this.state.inputValues[inputID] = child.props.defaultValue;
+                inputValues[inputID] = child.props.defaultValue;
             }
 
             if (!_.isUndefined(child.props.value)) {
-                this.state.inputValues[inputID] = child.props.value;
+                inputValues[inputID] = child.props.value;
             }
 
-            const errorFields = lodashGet(this.props.formState, 'errorFields', {});
+            const errorFields = lodashGet(props.formState, 'errorFields', {});
             const fieldErrorMessage =
                 _.chain(errorFields[inputID])
                     .keys()
@@ -284,22 +272,22 @@ class Form extends React.Component {
 
             return React.cloneElement(child, {
                 ref: (node) => {
-                    this.inputRefs[inputID] = node;
+                    inputRefs[inputID] = node;
 
                     const {ref} = child;
                     if (_.isFunction(ref)) {
                         ref(node);
                     }
                 },
-                value: this.state.inputValues[inputID],
-                errorText: this.state.errors[inputID] || fieldErrorMessage,
+                value: inputValues[inputID],
+                errorText: errors[inputID] || fieldErrorMessage,
                 onBlur: (event) => {
                     // We delay the validation in order to prevent Checkbox loss of focus when
                     // the user are focusing a TextInput and proceeds to toggle a CheckBox in
                     // web and mobile web platforms.
                     setTimeout(() => {
-                        this.setTouchedInput(inputID);
-                        this.validate(this.state.inputValues);
+                        setTouchedInput(inputID);
+                        validate(inputValues);
                     }, 200);
 
                     if (_.isFunction(child.props.onBlur)) {
@@ -308,18 +296,18 @@ class Form extends React.Component {
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
-                    this.setState(
+                    setState(
                         (prevState) => ({
                             inputValues: {
                                 ...prevState.inputValues,
                                 [inputKey]: value,
                             },
                         }),
-                        () => this.validate(this.state.inputValues),
+                        () => validate(inputValues),
                     );
 
                     if (child.props.shouldSaveDraft) {
-                        FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
+                        FormActions.setDraftValues(props.formID, {[inputKey]: value});
                     }
 
                     if (child.props.onValueChange) {
@@ -333,26 +321,26 @@ class Form extends React.Component {
     render() {
         const scrollViewContent = (safeAreaPaddingBottomStyle) => (
             <FormSubmit
-                ref={this.formContentRef}
-                style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])}
-                onSubmit={this.submit}
+                ref={formContentRef}
+                style={StyleSheet.flatten([props.style, safeAreaPaddingBottomStyle])}
+                onSubmit={submit}
             >
-                {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
-                {this.props.isSubmitButtonVisible && (
+                {childrenWrapperWithProps(_.isFunction(props.children) ? props.children({inputValues: inputValues}) : props.children)}
+                {props.isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
-                        buttonText={this.props.submitButtonText}
-                        isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
-                        isLoading={this.props.formState.isLoading}
-                        message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
-                        onSubmit={this.submit}
-                        footerContent={this.props.footerContent}
+                        buttonText={props.submitButtonText}
+                        isAlertVisible={_.size(errors) > 0 || Boolean(getErrorMessage()) || !_.isEmpty(props.formState.errorFields)}
+                        isLoading={props.formState.isLoading}
+                        message={_.isEmpty(props.formState.errorFields) ? getErrorMessage() : null}
+                        onSubmit={submit}
+                        footerContent={props.footerContent}
                         onFixTheErrorsLinkPressed={() => {
-                            const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                            const focusKey = _.find(_.keys(this.inputRefs), (key) => _.keys(errors).includes(key));
-                            const focusInput = this.inputRefs[focusKey];
+                            const errors = !_.isEmpty(errors) ? errors : props.formState.errorFields;
+                            const focusKey = _.find(_.keys(inputRefs), (key) => _.keys(errors).includes(key));
+                            const focusInput = inputRefs[focusKey];
 
-                            const formRef = this.formRef.current;
-                            const formContentRef = this.formContentRef.current;
+                            const formRef = formRef.current;
+                            const formContentRef = formContentRef.current;
 
                             // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
                             Keyboard.dismiss();
@@ -370,8 +358,8 @@ class Form extends React.Component {
                             }
                         }}
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
-                        enabledWhenOffline={this.props.enabledWhenOffline}
-                        isSubmitActionDangerous={this.props.isSubmitActionDangerous}
+                        enabledWhenOffline={props.enabledWhenOffline}
+                        isSubmitActionDangerous={props.isSubmitActionDangerous}
                         disablePressOnEnter
                     />
                 )}
@@ -381,12 +369,12 @@ class Form extends React.Component {
         return (
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) =>
-                    this.props.scrollContextEnabled ? (
+                    props.scrollContextEnabled ? (
                         <ScrollViewWithContext
                             style={[styles.w100, styles.flex1]}
                             contentContainerStyle={styles.flexGrow1}
                             keyboardShouldPersistTaps="handled"
-                            ref={this.formRef}
+                            ref={formRef}
                         >
                             {scrollViewContent(safeAreaPaddingBottomStyle)}
                         </ScrollViewWithContext>
@@ -395,7 +383,7 @@ class Form extends React.Component {
                             style={[styles.w100, styles.flex1]}
                             contentContainerStyle={styles.flexGrow1}
                             keyboardShouldPersistTaps="handled"
-                            ref={this.formRef}
+                            ref={formRef}
                         >
                             {scrollViewContent(safeAreaPaddingBottomStyle)}
                         </ScrollView>
