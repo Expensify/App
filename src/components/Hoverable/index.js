@@ -33,6 +33,16 @@ class Hoverable extends Component {
         document.addEventListener('touchmove', this.enableHover);
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.disabled === this.props.disabled) {
+            return;
+        }
+
+        if (this.props.disabled && this.state.isHovered) {
+            this.setState({isHovered: false});
+        }
+    }
+
     componentWillUnmount() {
         document.removeEventListener('touchstart', this.disableHover);
         document.removeEventListener('touchmove', this.enableHover);
@@ -44,6 +54,10 @@ class Hoverable extends Component {
      * @param {Boolean} isHovered - Whether or not this component is hovered.
      */
     setIsHovered(isHovered) {
+        if (this.props.disabled) {
+            return;
+        }
+
         if (isHovered !== this.state.isHovered && !(isHovered && this.hoverDisabled)) {
             this.setState({isHovered}, isHovered ? this.props.onHoverIn : this.props.onHoverOut);
         }

@@ -209,7 +209,6 @@ const IOUPreview = (props) => {
                                     size="small"
                                     isHovered={props.isHovered}
                                     shouldUseCardBackground
-                                    avatarTooltips={participantEmails}
                                 />
                             </View>
                         )}
