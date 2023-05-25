@@ -273,14 +273,14 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
-        if (this.state.shouldBlockSuggestionsCalc) {
-            this.setShouldBlockSuggestionsCalcToFalse();
-            return;
-        }
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         this.setState({selection: e.nativeEvent.selection});
         if (!this.state.value || e.nativeEvent.selection.end < 1) {
             this.resetSuggestions();
+            return;
+        }
+        if (this.state.shouldBlockSuggestionsCalc) {
+            this.setShouldBlockSuggestionsCalcToFalse();
             return;
         }
         this.calculateEmojiSuggestion();
@@ -297,6 +297,7 @@ class ReportActionCompose extends React.Component {
             atSignIndex: -1,
             shouldShowEmojiSuggestionMenu: false,
             shouldShowMentionSuggestionMenu: false,
+            shouldBlockSuggestionsCalc: false,
             mentionPrefix: '',
             isAutoSuggestionPickerLarge: false,
         };
