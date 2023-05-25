@@ -455,17 +455,19 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
         },
     ];
 
-    API.write(
-        'SigninUserWithLink',
-        {
-            accountID,
-            validateCode,
-            twoFactorAuthCode,
-            preferredLocale,
-            deviceInfo: getDeviceInfoForLogin(),
-        },
-        {optimisticData, successData, failureData},
-    );
+    const params = {
+        accountID,
+        validateCode,
+        twoFactorAuthCode,
+        preferredLocale,
+        deviceInfo: getDeviceInfoForLogin(),
+    };
+
+    // Pass twoFactorAuthCode to sever only if it has a valid value, otherwise php might convert it to "null" as a string.
+    if (twoFactorAuthCode) {
+        params.twoFactorAuthCode = twoFactorAuthCode;
+    }
+    API.write('SigninUserWithLink', params, {optimisticData, successData, failureData});
 }
 
 function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
