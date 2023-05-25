@@ -4,16 +4,17 @@ import Log from '../../../libs/Log';
 import ButtonBase from '../ButtonBase';
 import AppleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
 import * as Session from '../../../libs/actions/Session';
-import APPLE_CONFIG from './AppleConfig';
 
-function appleSignInRequest() {
-    appleAuthAndroid.configure({
-        clientId: APPLE_CONFIG.CLIENT_ID,
-        redirectUri: APPLE_CONFIG.REDIRECT_URI,
-        responseType: appleAuthAndroid.ResponseType.ALL,
-        scope: appleAuthAndroid.Scope.ALL,
-    });
-    return appleAuthAndroid
+const config = {
+    clientId: 'com.chat.expensify.chat.AppleSignIn',
+    redirectUri: 'https://new.expensify.com/appleauth',
+    responseType: appleAuthAndroid.ResponseType.ALL,
+    scope: appleAuthAndroid.Scope.ALL,
+};
+
+function signInWithApple() {
+    appleAuthAndroid.configure(config);
+    appleAuthAndroid
         .signIn()
         .then((response) => response.id_token)
         .catch((e) => {
