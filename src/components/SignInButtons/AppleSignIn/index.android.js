@@ -12,9 +12,9 @@ const config = {
     scope: appleAuthAndroid.Scope.ALL,
 };
 
-function signInWithApple() {
+function appleSignInRequest() {
     appleAuthAndroid.configure(config);
-    appleAuthAndroid
+    return appleAuthAndroid
         .signIn()
         .then((response) => response.id_token)
         .catch((e) => {
