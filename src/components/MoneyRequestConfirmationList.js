@@ -89,6 +89,10 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmationList(props) {
+    // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
+    // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
+    const {translate, onSendMoney, onConfirm} = props;
+
     /**
      * Returns the participants with amount
      * @param {Array} participants
@@ -111,7 +115,7 @@ function MoneyRequestConfirmationList(props) {
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
-        const text = props.translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
+        const text = translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
             amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iou.selectedCurrencyCode),
         });
         return [
@@ -120,7 +124,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
-    }, [props.hasMultipleParticipants, props.iouAmount, props.iou.selectedCurrencyCode, props.translate]);
+    }, [props.hasMultipleParticipants, props.iouAmount, props.iou.selectedCurrencyCode, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(participants, (participant) => participant.selected), [participants]);
     const unselectedParticipants = useMemo(() => _.filter(participants, (participant) => !participant.selected), [participants]);
@@ -148,14 +152,14 @@ function MoneyRequestConfirmationList(props) {
 
             sections.push(
                 {
-                    title: props.translate('moneyRequestConfirmationList.whoPaid'),
+                    title: translate('moneyRequestConfirmationList.whoPaid'),
                     data: [formattedMyPersonalDetails],
                     shouldShow: true,
                     indexOffset: 0,
                     isDisabled: true,
                 },
                 {
-                    title: props.translate('moneyRequestConfirmationList.whoWasThere'),
+                    title: translate('moneyRequestConfirmationList.whoWasThere'),
                     data: formattedParticipantsList,
                     shouldShow: true,
                     indexOffset: 1,
@@ -164,7 +168,7 @@ function MoneyRequestConfirmationList(props) {
         } else {
             const formattedParticipantsList = getParticipantsWithoutAmount(props.participants);
             sections.push({
-                title: props.translate('common.to'),
+                title: translate('common.to'),
                 data: formattedParticipantsList,
                 shouldShow: true,
                 indexOffset: 0,
@@ -181,7 +185,7 @@ function MoneyRequestConfirmationList(props) {
         props.currentUserPersonalDetails,
         props.iou.selectedCurrencyCode,
         props.participants,
-        props.translate,
+        translate,
     ]);
 
     const selectedOptions = useMemo(() => {
@@ -232,12 +236,12 @@ function MoneyRequestConfirmationList(props) {
                 }
 
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                props.onSendMoney(paymentMethod);
+                onSendMoney(paymentMethod);
             } else {
-                props.onConfirm(selectedParticipants);
+                onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipants, props.iouType, props.onSendMoney, props.onConfirm],
+        [selectedParticipants, onSendMoney, onConfirm, props.iouType],
     );
 
     const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
@@ -285,7 +289,7 @@ function MoneyRequestConfirmationList(props) {
             <MenuItemWithTopDescription
                 shouldShowRightIcon
                 title={formattedAmount}
-                description={props.translate('iou.amount')}
+                description={translate('iou.amount')}
                 onPress={() => props.navigateToStep(0)}
                 style={[styles.moneyRequestMenuItem, styles.mt2]}
                 titleStyle={styles.moneyRequestConfirmationAmount}
@@ -294,7 +298,7 @@ function MoneyRequestConfirmationList(props) {
             <MenuItemWithTopDescription
                 shouldShowRightIcon
                 title={props.iou.comment}
-                description={props.translate('common.description')}
+                description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 disabled={didConfirm}
