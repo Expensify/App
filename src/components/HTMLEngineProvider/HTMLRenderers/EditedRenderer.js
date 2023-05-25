@@ -15,8 +15,7 @@ const propTypes = {
 
 const EditedRenderer = (props) => {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
-    const isPendingDelete = !!props.tnode.attributes.deleted;
-
+    const isPendingDelete = Boolean(props.tnode.attributes.deleted !== undefined);
     return (
         <Text
             // eslint-disable-next-line react/jsx-props-no-spreading
