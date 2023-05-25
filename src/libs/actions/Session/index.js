@@ -462,7 +462,7 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
         deviceInfo: getDeviceInfoForLogin(),
     };
 
-    // Pass twoFactorAuthCode to sever only if it has a valid value, otherwise php might convert it to "null" as a string.
+    // Pass twoFactorAuthCode to server only if it has a valid value, otherwise php might convert it to "null" as a string.
     if (twoFactorAuthCode) {
         params.twoFactorAuthCode = twoFactorAuthCode;
     }
