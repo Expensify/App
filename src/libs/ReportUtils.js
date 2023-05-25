@@ -710,8 +710,8 @@ function getDefaultAvatarURL(login = '', isNewDot = false) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    // We choose default avatar this user has based on a simple hash of their login.
-    // Note that Avatar count starts at 1.
+    // The default avatar for a user is based on a simple hash of their login.
+    // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
     const loginHashBucket = hashLogin(login, isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
     const avatarPrefix = isNewDot ? `default-avatar` : `avatar`;
 
