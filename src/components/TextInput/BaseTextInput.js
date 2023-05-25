@@ -235,8 +235,8 @@ class BaseTextInput extends Component {
             {},
         );
         const isMultiline = this.props.multiline || this.props.autoGrowHeight;
-        const defaultInputValue = this.state.value || this.props.placeholder;
-        const defaultHiddenInputValue = this.state.hiddenInputValue || this.props.placeholder;
+        const inputValue = this.state.value || this.props.placeholder;
+        const hiddenInputValue = this.state.hiddenInputValue || this.props.placeholder;
 
         return (
             <>
@@ -401,9 +401,12 @@ class BaseTextInput extends Component {
                             styles.hiddenElementOutsideOfWindow,
                             styles.visibilityHidden,
                         ]}
-                        onLayout={(e) => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height})}
+                        onLayout={(e) => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height}, () => {
+                            if (!this.props.shouldWaitWidthCalculation) return;
+                                this.setState((prevState) => ({value: prevState.hiddenInputValue, selection: this.props.selection}))
+                        })}
                     >
-                        {this.props.autoGrowHeight || !this.props.shouldWaitWidthCalculation ? defaultInputValue : defaultHiddenInputValue}
+                        {this.props.autoGrowHeight || !this.props.shouldWaitWidthCalculation ? inputValue : hiddenInputValue}
                     </Text>
                 )}
             </>
