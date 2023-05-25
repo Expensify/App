@@ -55,14 +55,12 @@ react {
 }
 
 project.ext.envConfigFiles = [
-    productiondebug: ".env.production",
-    productionrelease: ".env.production",
-    stagingrelease: ".env.staging",
-    stagingdebug: ".env.staging",
-    adhocrelease: ".env.adhoc",
-    adhocdebug: ".env.adhoc",
-    developmentrelease: ".env",
-    developmentdebug: ".env"
+    productionDebug: ".env.production",
+    productionRelease: ".env.production",
+    adhocRelease: ".env.staging",
+    adhocDebug: ".env.staging",
+    developmentRelease: ".env",
+    developmentDebug: ".env"
 ]
 
 /**
