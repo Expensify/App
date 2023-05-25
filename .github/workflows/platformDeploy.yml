@@ -158,13 +158,13 @@ jobs:
           bundler-cache: true
 
       - uses: actions/cache@v3
-        id: cache-pods
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
 
       - name: Install cocoapods
-        if: ${{ !fromJSON(steps.cache-pods.outputs.cache-hit) }}
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
         with:
           timeout_minutes: 10
