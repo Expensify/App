@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity, View, StyleSheet, InteractionManager} from 'react-native';
+import {View, StyleSheet, InteractionManager} from 'react-native';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import optionPropTypes from './optionPropTypes';
@@ -19,6 +19,7 @@ import SubscriptAvatar from './SubscriptAvatar';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Style for hovered state */
@@ -146,7 +147,7 @@ class OptionRow extends Component {
             >
                 <Hoverable>
                     {(hovered) => (
-                        <TouchableOpacity
+                        <PressableWithFeedback
                             ref={(el) => (touchableRef = el)}
                             onPress={(e) => {
                                 this.setState({isDisabled: true});
@@ -174,6 +175,8 @@ class OptionRow extends Component {
                                 this.props.isDisabled && styles.cursorDisabled,
                                 this.props.shouldHaveOptionSeparator && styles.borderTop,
                             ]}
+                            accessibilityLabel={this.props.option.text}
+                            accessibilityRole="button"
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -246,7 +249,7 @@ class OptionRow extends Component {
                                     </View>
                                 </View>
                             )}
-                        </TouchableOpacity>
+                        </PressableWithFeedback>
                     )}
                 </Hoverable>
             </OfflineWithFeedback>
