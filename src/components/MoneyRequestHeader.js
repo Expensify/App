@@ -18,6 +18,7 @@ import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import Icon from './Icon';
 import SettlementButton from './SettlementButton';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
@@ -135,6 +136,14 @@ const MoneyRequestHeader = (props) => {
                     </View>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
+                        {!props.isSingleTransactionView && isSettled && (
+                            <View style={styles.moneyRequestHeaderCheckmark}>
+                                <Icon
+                                    src={Expensicons.Checkmark}
+                                    fill={themeColors.iconSuccessFill}
+                                />
+                            </View>
+                        )}
                         {shouldShowSettlementButton && !props.isSmallScreenWidth && (
                             <View style={[styles.ml4]}>
                                 <SettlementButton
