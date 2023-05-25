@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import styles from '../../styles/styles';
 import * as styleConst from './styleConst';
 import BaseTextInput from './BaseTextInput';
