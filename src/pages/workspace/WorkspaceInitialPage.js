@@ -18,7 +18,8 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import reportPropTypes from '../reportPropTypes';
 import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
@@ -28,6 +29,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import withWindowDimensions from '../../components/withWindowDimensions';
 
 const propTypes = {
     ...policyPropTypes,
@@ -149,7 +151,7 @@ const WorkspaceInitialPage = (props) => {
                                 onSelected: () => setIsDeleteModalOpen(true),
                             },
                         ]}
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
+                        threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <OfflineWithFeedback
@@ -161,12 +163,12 @@ const WorkspaceInitialPage = (props) => {
                             <View style={[styles.flex1]}>
                                 <View style={styles.avatarSectionWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                        <Pressable
-                                            disabled={hasPolicyCreationError}
-                                            style={[styles.pRelative, styles.avatarLarge]}
-                                            onPress={() => openEditor(policy.id)}
-                                        >
-                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                        <Tooltip text={props.translate('workspace.common.settings')}>
+                                            <Pressable
+                                                disabled={hasPolicyCreationError}
+                                                style={[styles.pRelative, styles.avatarLarge]}
+                                                onPress={() => openEditor(policy.id)}
+                                            >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
@@ -176,23 +178,23 @@ const WorkspaceInitialPage = (props) => {
                                                     name={policyName}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
                                                 />
-                                            </Tooltip>
-                                        </Pressable>
+                                            </Pressable>
+                                        </Tooltip>
                                         {!_.isEmpty(policy.name) && (
-                                            <Pressable
-                                                disabled={hasPolicyCreationError}
-                                                style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
-                                                onPress={() => openEditor(policy.id)}
-                                            >
-                                                <Tooltip text={props.translate('workspace.common.settings')}>
+                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                                <Pressable
+                                                    disabled={hasPolicyCreationError}
+                                                    style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
+                                                    onPress={() => openEditor(policy.id)}
+                                                >
                                                     <Text
                                                         numberOfLines={1}
                                                         style={[styles.textHeadline, styles.alignSelfCenter, styles.pre]}
                                                     >
                                                         {policy.name}
                                                     </Text>
-                                                </Tooltip>
-                                            </Pressable>
+                                                </Pressable>
+                                            </Tooltip>
                                         )}
                                     </View>
                                 </View>
@@ -234,7 +236,8 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
+    withWindowDimensions,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

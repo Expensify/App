@@ -26,12 +26,13 @@ const defaultProps = {
 
 // This component can't be written using class since reanimated API uses hooks.
 const Slider = (props) => {
+    const sliderValue = props.sliderValue;
     const [tooltipIsVisible, setTooltipIsVisible] = useState(true);
 
     // A reanimated memoized style, which tracks
     // a translateX shared value and updates the slider position.
     const rSliderStyle = useAnimatedStyle(() => ({
-        transform: [{translateX: props.sliderValue.value}],
+        transform: [{translateX: sliderValue.value}],
     }));
 
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
@@ -48,10 +49,7 @@ const Slider = (props) => {
             >
                 <Animated.View style={[styles.sliderKnob, rSliderStyle]}>
                     {tooltipIsVisible && (
-                        <Tooltip
-                            text={props.translate('common.zoom')}
-                            shiftVertical={-2}
-                        >
+                        <Tooltip text={props.translate('common.zoom')}>
                             <View style={[styles.sliderKnobTooltipView]} />
                         </Tooltip>
                     )}

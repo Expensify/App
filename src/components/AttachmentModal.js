@@ -167,8 +167,8 @@ class AttachmentModal extends PureComponent {
      */
     isValidFile(file) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = this.props.translate('attachmentPicker.notAllowedExtension');
             this.setState({
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
@@ -250,7 +250,7 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const source = this.state.source;
+        const source = this.props.source || this.state.source;
         return (
             <>
                 <Modal
@@ -274,7 +274,7 @@ class AttachmentModal extends PureComponent {
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.downloadAttachment(source)}
+                        onDownloadButtonPress={() => this.downloadAttachment(this.state.source)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
@@ -286,7 +286,7 @@ class AttachmentModal extends PureComponent {
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
                         ) : (
-                            Boolean(this.state.source) &&
+                            Boolean(source) &&
                             this.state.shouldLoadAttachment && (
                                 <AttachmentView
                                     containerStyles={[styles.mh5]}

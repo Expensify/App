@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity, InteractionManager, LayoutAnimation} from 'react-native';
+import {View, TouchableOpacity, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -48,13 +48,15 @@ import MentionSuggestions from '../../../components/MentionSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
+import * as Browser from '../../../libs/Browser';
+import * as KeyboardShortcut from '../../../libs/KeyboardShortcut'
+
+const {RNTextInputReset} = NativeModules;
 
 const propTypes = {
     /** Beta features list */
@@ -114,9 +116,6 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** Collection of recent reports, used to calculate the mention suggestions */
-    reports: PropTypes.objectOf(reportPropTypes),
-
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
@@ -138,7 +137,6 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     isComposerFullSize: false,
     pendingAction: null,
-    reports: {},
     shouldShowComposeInput: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -173,7 +171,11 @@ const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
 };
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+
+// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+// prevent auto focus on existing chat for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
 
 /**
  * Save draft report comment. Debounced to happen at most once per second.
@@ -199,7 +201,7 @@ const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
  * @returns {Boolean}
  */
 const isEmojiCode = (str, pos) => {
-    const leftWords = str.slice(0, pos).split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+    const leftWords = str.slice(0, pos).split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
     const leftWord = _.last(leftWords);
     return CONST.REGEX.HAS_COLON_ONLY_AT_THE_BEGINNING.test(leftWord) && leftWord.length > 2;
 };
@@ -211,12 +213,28 @@ const isEmojiCode = (str, pos) => {
  */
 const isMentionCode = (str) => CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str);
 
+/**
+     * Trims first character of the string if it is a space
+     * @param {String} str
+     * @returns {String}
+     */
+const trimLeadingSpace = (str) => str.slice(0, 1) === ' ' ? str.slice(1) : str
+
+// For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
+// and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
+// so we need to ensure that it is only updated after focus.
+const isMobileSafari = Browser.isMobileSafari();
+
 function ReportActionCompose(props) {
     /**
      * Updates the Highlight state of the composer
      */
     const [isFocused, setIsFocused] = useState(shouldFocusInputOnScreenFocus && !props.modal.isVisible && !props.modal.willAlertModalBecomeVisible && props.shouldShowComposeInput);
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(props.isComposerFullSize);
+
+    const isEmptyChat = useMemo(() => _.size(props.reportActions) === 1, [props.reportActions]);
+
+    const shouldAutoFocus = !props.modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat()) && props.shouldShowComposeInput;
 
     /**
      * Updates the should clear state of the composer
@@ -229,7 +247,10 @@ function ReportActionCompose(props) {
      */
     const [isMenuVisible, setMenuVisibility] = useState(false);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const [selection, setSelection] = useState({start: props.comment.length, end: props.comment.length});
+    const [selection, setSelection] = useState({
+        start: isMobileSafari && !shouldAutoFocus ? 0 : props.comment.length,
+        end: isMobileSafari && !shouldAutoFocus ? 0 : props.comment.length,
+    });
     const [maxLines, setMaxLines] = useState(props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES);
     const [value, setValue] = useState(props.comment);
 
@@ -256,6 +277,7 @@ function ReportActionCompose(props) {
         [props.report, props.currentUserPersonalDetails.login],
     );
     const participantsWithoutExpensifyEmails = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS), [reportParticipants]);
+
     const shouldShowReportRecipientLocalTime = useMemo(
         () => ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report) && !props.isComposerFullSize,
         [props.personalDetails, props.report, props.isComposerFullSize],
@@ -269,7 +291,7 @@ function ReportActionCompose(props) {
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
         () => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
-        [props.isSmallScreenWidth, props.translate],
+        [props],
     );
 
     // Placeholder to display in the chat input.
@@ -283,9 +305,7 @@ function ReportActionCompose(props) {
         }
 
         return props.translate('reportActionCompose.writeSomething');
-    }, [props.translate, props.report, props.blockedFromConcierge, conciergePlaceholderRandomIndex]);
-
-    const isEmptyChat = useMemo(() => _.size(props.reportActions) === 1, [props.reportActions]);
+    }, [props, conciergePlaceholderRandomIndex]);
 
     /**
      * Focus the composer text input
@@ -320,7 +340,11 @@ function ReportActionCompose(props) {
      */
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
-            const newComment = EmojiUtils.replaceEmojis(commentValue, props.isSmallScreenWidth, props.preferredSkinTone);
+            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, props.isSmallScreenWidth, props.preferredSkinTone);
+
+            if (!_.isEmpty(emojis)) {
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+            }
 
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
@@ -420,7 +444,7 @@ function ReportActionCompose(props) {
                 unsubscribeEscapeKey.current();
             }
         };
-    }, []);
+    }, [focus, isFocused, props.disabled, props.isFocused, props.navigation, showPopoverMenu, updateComment, updateMaxLines]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -431,7 +455,7 @@ function ReportActionCompose(props) {
 
     useEffect(() => {
         updateMaxLines();
-    }, [props.isComposerFullSize]);
+    }, [props.isComposerFullSize, updateMaxLines]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -441,14 +465,14 @@ function ReportActionCompose(props) {
         if (willBlurTextInputOnTapOutside && props.isFocused && !props.modal.isVisible) {
             focus();
         }
-    }, [props.isFocused, props.modal.isVisible]);
+    }, [focus, props.isFocused, props.modal.isVisible]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (value !== props.comment) {
             updateComment(comment.current);
         }
-    }, [props.report.reportID]);
+    }, [props.comment, props.report.reportID, updateComment, value]);
 
     /**
      * Clean data related to EmojiSuggestions
@@ -497,6 +521,47 @@ function ReportActionCompose(props) {
         [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestions, shouldBlockEmojiCalc],
     );
 
+    const getMentionOptions = useCallback((personalDetails, searchValue = '') => {
+        const suggestions = [];
+
+        if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue)) {
+            suggestions.push({
+                text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
+                alternateText: props.translate('mentionSuggestions.hereAlternateText'),
+                icons: [
+                    {
+                        source: Expensicons.Megaphone,
+                        type: 'avatar',
+                    },
+                ],
+            });
+        }
+
+        const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+            if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
+                return false;
+            }
+            return true;
+        });
+
+        const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
+        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
+            suggestions.push({
+                text: detail.displayName,
+                alternateText: detail.login,
+                icons: [
+                    {
+                        name: detail.login,
+                        source: detail.avatar,
+                        type: 'avatar',
+                    },
+                ],
+            });
+        });
+
+        return suggestions;
+    }, [props])
+
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
             if (selectionEnd < 1) {
@@ -527,14 +592,15 @@ function ReportActionCompose(props) {
 
             const nextState = {
                 suggestedMentions: [],
+                highlightedmentionindex: 0,
                 atSignIndex,
                 mentionPrefix: prefix,
             };
 
             const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
+
             if (!isCursorBeforeTheMention && isMentionCode(lastWord)) {
-                const options = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, prefix);
-                const suggestions = _.filter([...options.recentReports, options.userToInvite], (x) => !!x);
+                const suggestions = getMentionOptions(props.personalDetails, prefix);
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
             }
@@ -544,12 +610,18 @@ function ReportActionCompose(props) {
                 ...nextState,
             }));
         },
-        [props.betas, props.personalDetails, props.reports, value],
+        [getMentionOptions, props.personalDetails, value],
     );
 
     const onSelectionChange = useCallback(
         (e) => {
             LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
+
+            if (!value || e.nativeEvent.selection.end < 1) {
+                resetSuggestions();
+                return;
+            }
+
             setSelection(e.nativeEvent.selection);
 
             /**
@@ -560,7 +632,7 @@ function ReportActionCompose(props) {
             calculateEmojiSuggestion(e.nativeEvent.selection.end);
             calculateMentionSuggestion(e.nativeEvent.selection.end);
         },
-        [calculateEmojiSuggestion],
+        [calculateEmojiSuggestion, calculateMentionSuggestion, resetSuggestions, value],
     );
 
     /**
@@ -598,7 +670,7 @@ function ReportActionCompose(props) {
         };
 
         return _.map(ReportUtils.getMoneyRequestOptions(props.report, reportParticipants, props.betas), (option) => options[option]);
-    }, [reportParticipants, props.report, props.betas, props.translate, props.reportID]);
+    }, [props, reportParticipants]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -637,7 +709,7 @@ function ReportActionCompose(props) {
                 onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(props.reportID),
             },
         ];
-    }, [props.betas, props.report, reportParticipants, props.translate, props.reportID]);
+    }, [props, reportParticipants]);
 
     /**
      * Replace the code of emoji and update selection
@@ -650,14 +722,23 @@ function ReportActionCompose(props) {
             const emojiCode = emojiObject.types && emojiObject.types[props.preferredSkinTone] ? emojiObject.types[props.preferredSkinTone] : emojiObject.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
-            updateComment(`${commentBeforeColon}${emojiCode} ${commentAfterColonWithEmojiNameRemoved}`, true);
+            updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace( commentAfterColonWithEmojiNameRemoved)}`, true);
+
+            // In some Android phones keyboard, the text to search for the emoji is not cleared
+            // will be added after the user starts typing again on the keyboard. This package is
+            // a workaround to reset the keyboard natively.
+            if (RNTextInputReset) {
+                RNTextInputReset.resetKeyboardInput(findNodeHandle(textInput));
+            }
+
             setSelection({
                 start: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
                 end: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
 
-            EmojiUtils.addToFrequentlyUsedEmojis(emojiObject);
+            const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
+            User.updateFrequentlyUsedEmojis(frequentEmojiList);
         },
         [suggestionValues.colonIndex, suggestionValues.suggestedEmojis, value, props.preferredSkinTone, selection, updateComment],
     );
@@ -670,10 +751,10 @@ function ReportActionCompose(props) {
         (highlightedMentionIndex) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndex];
-            const mentionCode = `@${mentionObject.alternateText}`;
+            const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
             const commentAfterAtSignWithMentionRemoved = value.slice(suggestionValues.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
-            updateComment(`${commentBeforeAtSign}${mentionCode} ${commentAfterAtSignWithMentionRemoved}`, true);
+            updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterAtSignWithMentionRemoved)}`, true);
             setSelection({
                 start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
                 end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
@@ -756,7 +837,7 @@ function ReportActionCompose(props) {
 
             props.onSubmit(newComment);
         },
-        [prepareCommentAndResetComposer, props.onSubmit],
+        [prepareCommentAndResetComposer, props],
     );
 
     /**
@@ -782,9 +863,15 @@ function ReportActionCompose(props) {
                 }
                 return;
             }
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && suggestionsExist) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
                 e.preventDefault();
-                resetSuggestions();
+
+                if (suggestionsExist) {
+                    resetSuggestions();
+                } else if (comment.current.length > 0) {
+                    updateComment('', true);
+                }
+
                 return;
             }
 
@@ -795,7 +882,10 @@ function ReportActionCompose(props) {
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.current.selectionStart === 0 && isCommentEmpty && !ReportUtils.chatIncludesChronos(props.report)) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
+                textInput.selectionStart === 0 &&
+                isCommentEmpty &&
+                !ReportUtils.chatIncludesChronos(props.report)) {
                 e.preventDefault();
 
                 const lastReportAction = _.find(props.reportActions, (action) => ReportUtils.canEditReportAction(action));
@@ -805,22 +895,7 @@ function ReportActionCompose(props) {
                 }
             }
         },
-        [
-            isCommentEmpty,
-            props.isSmallScreenWidth,
-            props.report,
-            props.reportActions,
-            props.reportID,
-            resetSuggestions,
-            submitForm,
-            props.isKeyboardShown,
-            insertSelectedEmoji,
-            insertSelectedMention,
-            suggestionValues.highlightedEmojiIndex,
-            suggestionValues.highlightedMentionIndex,
-            suggestionValues.suggestedEmojis.length,
-            suggestionValues.suggestedMentions.length,
-        ],
+        [props.isSmallScreenWidth, props.isKeyboardShown, props.report, props.reportActions, props.reportID, suggestionValues.suggestedEmojis.length, suggestionValues.suggestedMentions.length, suggestionValues.highlightedEmojiIndex, suggestionValues.highlightedMentionIndex, isCommentEmpty, insertSelectedEmoji, insertSelectedMention, resetSuggestions, updateComment, submitForm],
     );
 
     /**
@@ -966,7 +1041,8 @@ function ReportActionCompose(props) {
                                                 isVisible={isMenuVisible}
                                                 onClose={() => setMenuVisibility(false)}
                                                 onItemSelected={() => setMenuVisibility(false)}
-                                                anchorPosition={styles.createMenuPositionReportActionCompose}
+                                                anchorPosition={styles.createMenuPositionReportActionCompose(props.windowHeight)}
+                                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                                                 menuItems={[
                                                     ...moneyRequestOptions,
                                                     ...taskOption,
@@ -1000,7 +1076,7 @@ function ReportActionCompose(props) {
                                         disabled={props.disabled}
                                     >
                                         <Composer
-                                            autoFocus={!props.modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && props.shouldShowComposeInput}
+                                            autoFocus={shouldAutoFocus}
                                             multiline
                                             ref={setTextInputRef}
                                             textAlignVertical="top"
@@ -1028,6 +1104,7 @@ function ReportActionCompose(props) {
                                             value={value}
                                             numberOfLines={props.numberOfLines}
                                             onNumberOfLinesChange={updateNumberOfLines}
+                                            shouldCalculateCaretPosition
                                             onLayout={(e) => {
                                                 const composerLayoutHeight = e.nativeEvent.layout.height;
                                                 if (composerHeight === composerLayoutHeight) {
@@ -1091,7 +1168,7 @@ function ReportActionCompose(props) {
                 </View>
             </OfflineWithFeedback>
             {isDraggingOver && <ReportDropUI />}
-            {!_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu && (
+            {!_.isEmpty(suggestionValues.suggestedEmojis) && (
                 <ArrowKeyFocusManager
                     focusedIndex={suggestionValues.highlightedEmojiIndex}
                     maxIndex={getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge)}
@@ -1173,9 +1250,7 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
+            selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

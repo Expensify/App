@@ -1,6 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {Dimensions} from 'react-native';
+import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import Navigation from '../../libs/Navigation/Navigation';
 import AddPaymentMethodMenu from '../AddPaymentMethodMenu';
@@ -11,6 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Log from '../../libs/Log';
 import {propTypes, defaultProps} from './kycWallPropTypes';
 import * as Wallet from '../../libs/actions/Wallet';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
@@ -24,8 +26,8 @@ class KYCWall extends React.Component {
 
         this.state = {
             shouldShowAddPaymentMenu: false,
-            anchorPositionTop: 0,
-            anchorPositionLeft: 0,
+            anchorPositionVertical: 0,
+            anchorPositionHorizontal: 0,
             transferBalanceButton: null,
         };
     }
@@ -61,14 +63,14 @@ class KYCWall extends React.Component {
     getAnchorPosition(domRect) {
         if (this.props.popoverPlacement === 'bottom') {
             return {
-                anchorPositionTop: domRect.top + (domRect.height - 2),
-                anchorPositionLeft: domRect.left + 20,
+                anchorPositionVertical: domRect.top + (domRect.height - 2),
+                anchorPositionHorizontal: domRect.left + 20,
             };
         }
 
         return {
-            anchorPositionTop: domRect.top - 150,
-            anchorPositionLeft: domRect.left,
+            anchorPositionVertical: domRect.top - 150,
+            anchorPositionHorizontal: domRect.left,
         };
     }
 
@@ -79,8 +81,8 @@ class KYCWall extends React.Component {
      */
     setPositionAddPaymentMenu(position) {
         this.setState({
-            anchorPositionTop: position.anchorPositionTop,
-            anchorPositionLeft: position.anchorPositionLeft,
+            anchorPositionVertical: position.anchorPositionVertical,
+            anchorPositionHorizontal: position.anchorPositionHorizontal,
         });
     }
 
@@ -90,14 +92,17 @@ class KYCWall extends React.Component {
      * If they are already KYC'd we will continue whatever action is gated behind the KYC wall.
      *
      * @param {Event} event
+     * @param {String} iouPaymentType
      */
-    continue(event) {
-        this.setState({
-            transferBalanceButton: event.nativeEvent.target,
-        });
+    continue(event, iouPaymentType) {
+        this.setState({transferBalanceButton: event.nativeEvent.target});
+        const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-        if (!PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
+        if (
+            (isExpenseReport && lodashGet(this.props.reimbursementAccount, 'achData.state', '') !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
+            (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList))
+        ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
             const clickedElementLocation = getClickedTargetLocation(event.nativeEvent.target);
             const position = this.getAnchorPosition(clickedElementLocation);
@@ -108,16 +113,18 @@ class KYCWall extends React.Component {
             return;
         }
 
-        // Ask the user to upgrade to a gold wallet as this means they have not yet went through our Know Your Customer (KYC) checks
-        const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
-        if (!hasGoldWallet) {
-            Log.info('[KYC Wallet] User does not have gold wallet');
-            Navigation.navigate(this.props.enablePaymentsRoute);
-            return;
+        if (!isExpenseReport) {
+            // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
+            const hasGoldWallet = this.props.userWallet.tierName && this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+            if (!hasGoldWallet) {
+                Log.info('[KYC Wallet] User does not have gold wallet');
+                Navigation.navigate(this.props.enablePaymentsRoute);
+                return;
+            }
         }
 
-        Log.info('[KYC Wallet] User has valid payment method and passed KYC checks');
-        this.props.onSuccessfulKYC();
+        Log.info('[KYC Wallet] User has valid payment method and passed KYC checks or did not need them');
+        this.props.onSuccessfulKYC(iouPaymentType);
     }
 
     render() {
@@ -127,8 +134,8 @@ class KYCWall extends React.Component {
                     isVisible={this.state.shouldShowAddPaymentMenu}
                     onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
                     anchorPosition={{
-                        top: this.state.anchorPositionTop,
-                        left: this.state.anchorPositionLeft,
+                        vertical: this.state.anchorPositionVertical,
+                        horizontal: this.state.anchorPositionHorizontal,
                     }}
                     shouldShowPaypal={false}
                     onItemSelected={(item) => {
@@ -158,5 +165,11 @@ export default withOnyx({
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    },
+    reimbursementAccount: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    chatReport: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },
 })(KYCWall);

@@ -136,11 +136,11 @@ const AttachmentView = (props) => {
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
             {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
-                <View style={styles.ml2}>
-                    <Tooltip text={props.translate('common.download')}>
+                <Tooltip text={props.translate('common.download')}>
+                    <View style={styles.ml2}>
                         <Icon src={Expensicons.Download} />
-                    </Tooltip>
-                </View>
+                    </View>
+                </Tooltip>
             )}
             {props.shouldShowLoadingSpinnerIcon && (
                 <View style={styles.ml2}>
