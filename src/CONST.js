@@ -2426,8 +2426,8 @@ const CONST = {
     },
     SPACE_CHARACTER_WIDTH: 4,
 
-    // This attribute is used in SelectionScraper.js to query the DOM elements
-    // and then remove them from copied contents in the getHTMLOfSelection() method.
+    // The attribute used in the SelectionScraper.js helper to query all the DOM elements
+    // that should be removed from the copied contents in the getHTMLOfSelection() method
     SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
