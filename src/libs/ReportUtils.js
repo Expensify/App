@@ -742,8 +742,8 @@ function isDefaultAvatar(avatarURL) {
  * Provided a source URL, if source is a default avatar, return the associated SVG.
  * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
- * @param {String} [avatarURL] - the avatar source from user's personalDetails
- * @param {String} [login] - the email of the user
+ * @param {String} avatarURL - the avatar source from user's personalDetails
+ * @param {String} login - the email of the user
  * @returns {String|Function}
  */
 function getAvatar(avatarURL, login) {
@@ -759,7 +759,7 @@ function getAvatar(avatarURL, login) {
  *
  * @param {String} avatarURL - the avatar source from user's personalDetails
  * @param {String} login - the email of the user
- * @returns {String|Function}
+ * @returns {String}
  */
 function getAvatarUrl(avatarURL, login) {
     return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(login, true) : avatarURL;
