@@ -1643,9 +1643,16 @@ function leaveRoom(reportID) {
  * @param {String} severity
  */
 function flagComment(reportID, reportAction, severity) {
-    const newDecision = {
-        decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
-    };
+    let newDecision;
+    if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
+        newDecision = {
+            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
+        };
+    } else {
+        newDecision = {
+            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+        };
+    }
 
     const message = reportAction.message[0];
     const reportActionID = reportAction.reportActionID;
