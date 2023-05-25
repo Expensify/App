@@ -232,6 +232,11 @@ export default {
                     },
                 },
             },
+            Report_WelcomeMessage: {
+                screens: {
+                    Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE,
+                },
+            },
             NewGroup: {
                 screens: {
                     NewGroup_Root: ROUTES.NEW_GROUP,

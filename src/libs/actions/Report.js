@@ -1094,6 +1094,37 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
 }
 
 /**
+ * @param {String} reportID
+ * @param {String} previousValue
+ * @param {String} newValue
+ */
+function updateWelcomeMessage(reportID, previousValue, newValue) {
+    // No change needed, navigate back
+    if (previousValue === newValue) {
+        Navigation.goBack();
+        return;
+    }
+
+    const parsedWelcomeMessage = ReportUtils.getParsedComment(newValue);
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {welcomeMessage: newValue},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {welcomeMessage: previousValue},
+        },
+    ];
+    API.write('UpdateWelcomeMessage', {reportID, welcomeMessage: parsedWelcomeMessage}, {optimisticData, failureData});
+    Navigation.goBack();
+}
+
+/**
  * @param {Object} report
  * @param {String} newValue
  */
@@ -1650,6 +1681,7 @@ export {
     addComment,
     addAttachment,
     reconnect,
+    updateWelcomeMessage,
     updateWriteCapabilityAndNavigate,
     updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
