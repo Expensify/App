@@ -1128,6 +1128,10 @@ const CONST = {
             /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
+
+        ROUTES: {
+            VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+        },
     },
 
     PRONOUNS: {
@@ -1203,6 +1207,7 @@ const CONST = {
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
+        WELCOME_MESSAGE: 'welcomeMessage',
     },
 
     FOOTER: {
