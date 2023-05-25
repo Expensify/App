@@ -22,6 +22,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
+import * as Welcome from './Welcome';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1119,16 +1120,52 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
 }
 
 /**
- * Navigates to the 1:1 report with Concierge
+ * @param {Object} report
+ * @param {String} newValue
  */
-function navigateToConciergeChat() {
-    // If we don't have a chat with Concierge then create it
-    if (!conciergeChatReportID) {
-        navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
+function updateWriteCapabilityAndNavigate(report, newValue) {
+    if (report.writeCapability === newValue) {
+        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
         return;
     }
 
-    Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {writeCapability: newValue},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {writeCapability: report.writeCapability},
+        },
+    ];
+    API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
+    // Return to the report settings page since this field utilizes push-to-page
+    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
+}
+
+/**
+ * Navigates to the 1:1 report with Concierge
+ */
+function navigateToConciergeChat() {
+    if (!conciergeChatReportID) {
+        // In order not to delay the report life cycle, we first navigate to the unknown report
+        if (_.isEmpty(Navigation.getReportIDFromRoute())) {
+            Navigation.navigate(ROUTES.REPORT);
+        }
+        // In order to avoid creating concierge repeatedly,
+        // we need to ensure that the server data has been successfully pulled
+        Welcome.serverDataIsReadyPromise().then(() => {
+            // If we don't have a chat with Concierge then create it
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
+        });
+    } else {
+        Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
+    }
 }
 
 /**
@@ -1639,6 +1676,7 @@ export {
     addComment,
     addAttachment,
     reconnect,
+    updateWriteCapabilityAndNavigate,
     updateNotificationPreferenceAndNavigate,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,

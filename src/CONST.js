@@ -282,6 +282,7 @@ const CONST = {
         MX: 'MX',
         AU: 'AU',
         CA: 'CA',
+        GB: 'GB',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
@@ -577,6 +578,11 @@ const CONST = {
             MUTE: 'mute',
             DAILY: 'daily',
             ALWAYS: 'always',
+        },
+        // Options for which room members can post
+        WRITE_CAPABILITIES: {
+            ALL: 'all',
+            ADMINS: 'admins',
         },
         VISIBILITY: {
             PUBLIC: 'public',
