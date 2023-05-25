@@ -757,8 +757,8 @@ function getAvatar(avatarURL, login) {
  * Provided an avatar URL, if avatar is a default avatar, return NewDot default avatar URL.
  * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
- * @param {String} [avatarURL] - the avatar source from user's personalDetails
- * @param {String} [login] - the email of the user
+ * @param {String} avatarURL - the avatar source from user's personalDetails
+ * @param {String} login - the email of the user
  * @returns {String|Function}
  */
 function getAvatarUrl(avatarURL, login) {
