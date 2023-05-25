@@ -4,10 +4,11 @@ import Log from '../../../libs/Log';
 import ButtonBase from '../ButtonBase';
 import AppleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
 import * as Session from '../../../libs/actions/Session';
+import CONST from '../../../CONST';
 
 const config = {
-    clientId: 'com.chat.expensify.chat.AppleSignIn',
-    redirectUri: 'https://new.expensify.com/appleauth',
+    clientId: CONST.APPLE_SIGN_IN_SERVICE_ID,
+    redirectUri: CONST.APPLE_SIGN_IN_REDIRECT_URI,
     responseType: appleAuthAndroid.ResponseType.ALL,
     scope: appleAuthAndroid.Scope.ALL,
 };

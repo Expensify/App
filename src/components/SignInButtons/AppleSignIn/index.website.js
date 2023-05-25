@@ -25,8 +25,10 @@ const defaultProps = {
 };
 
 // TODO: move to appropriate consts file
-const defaultClientId = 'com.chat.expensify.chat.AppleSignIn';
-const defaultRedirectURI = 'https://new.expensify.com/appleauth';
+const defaultClientId = 'com.expensify.expensifylite.AppleSignIn';
+// const defaultClientId = 'com.chat.expensify.chat.AppleSignIn';
+const defaultRedirectURI = 'https://www.expensify.com/partners/apple/loginCallback';
+// const defaultRedirectURI = 'https://new.expensify.com/appleauth';
 
 const config = {
     clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', defaultClientId),
