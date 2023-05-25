@@ -13,7 +13,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as UserUtils from '../../libs/UserUtils';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
@@ -59,7 +59,7 @@ const ResendValidationForm = (props) => {
         <>
             <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <Avatar
-                    source={ReportUtils.getDefaultAvatar(props.credentials.login)}
+                    source={UserUtils.getDefaultAvatar(props.credentials.login)}
                     imageStyles={[styles.mr2]}
                 />
                 <View style={[styles.flex1]}>

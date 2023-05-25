@@ -8,7 +8,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as Expensicons from '../components/Icon/Expensicons';
-import hashCode from './hashCode';
+import hashLogin from './hashLogin';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
@@ -17,11 +17,11 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
-import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
+import * as UserUtils from './UserUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -645,36 +645,6 @@ function formatReportLastMessageText(lastMessageText) {
 }
 
 /**
- * Hashes provided string and returns a value between [0, range)
- * @param {String} login
- * @param {Number} range
- * @returns {Number}
- */
-function hashLogin(login, range) {
-    return Math.abs(hashCode(login.toLowerCase())) % range;
-}
-
-/**
- * Helper method to return the default avatar associated with the given login
- * @param {String} [login]
- * @returns {String}
- */
-function getDefaultAvatar(login = '') {
-    if (!login) {
-        return Expensicons.FallbackAvatar;
-    }
-    if (login === CONST.EMAIL.CONCIERGE) {
-        return Expensicons.ConciergeAvatar;
-    }
-
-    // There are 24 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login. Note that Avatar count starts at 1.
-    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT) + 1;
-
-    return defaultAvatars[`Avatar${loginHashBucket}`];
-}
-
-/**
  * Helper method to return the default avatar associated with the given login
  * @param {String} [workspaceName]
  * @returns {String}
@@ -699,116 +669,6 @@ function getWorkspaceAvatar(report) {
 }
 
 /**
- * Helper method to return default avatar URL associated with login
- *
- * @param {String} [login]
- * @param {Boolean} [isNewDot]
- * @returns {String}
- */
-function getDefaultAvatarURL(login = '', isNewDot = false) {
-    if (login === CONST.EMAIL.CONCIERGE) {
-        return CONST.CONCIERGE_ICON_URL;
-    }
-
-    // The default avatar for a user is based on a simple hash of their login.
-    // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
-    const loginHashBucket = hashLogin(login, isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
-    const avatarPrefix = isNewDot ? `default-avatar` : `avatar`;
-
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${loginHashBucket}.png`;
-}
-
-/**
- * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
- * @param {String} [avatarURL] - the avatar source from user's personalDetails
- * @returns {Boolean}
- */
-function isDefaultAvatar(avatarURL) {
-    if (
-        _.isString(avatarURL) &&
-        (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default'))
-    ) {
-        return true;
-    }
-
-    // If null URL, we should also use a default avatar
-    if (!avatarURL) {
-        return true;
-    }
-    return false;
-}
-
-/**
- * Provided a source URL, if source is a default avatar, return the associated SVG.
- * Otherwise, return the URL pointing to a user-uploaded avatar.
- *
- * @param {String} avatarURL - the avatar source from user's personalDetails
- * @param {String} login - the email of the user
- * @returns {String|Function}
- */
-function getAvatar(avatarURL, login) {
-    if (isDefaultAvatar(avatarURL)) {
-        return getDefaultAvatar(login);
-    }
-    return avatarURL;
-}
-
-/**
- * Provided an avatar URL, if avatar is a default avatar, return NewDot default avatar URL.
- * Otherwise, return the URL pointing to a user-uploaded avatar.
- *
- * @param {String} avatarURL - the avatar source from user's personalDetails
- * @param {String} login - the email of the user
- * @returns {String}
- */
-function getAvatarUrl(avatarURL, login) {
-    return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(login, true) : avatarURL;
-}
-
-/**
- * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
- * This removes that part of the URL so the full version of the image can load.
- *
- * @param {String} [avatarURL]
- * @param {String} [login]
- * @returns {String|Function}
- */
-function getFullSizeAvatar(avatarURL, login) {
-    const source = getAvatar(avatarURL, login);
-    if (!_.isString(source)) {
-        return source;
-    }
-    return source.replace('_128', '');
-}
-
-/**
- * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
- * source URL (before the file type) if it doesn't exist there already.
- *
- * @param {String} avatarURL
- * @param {String} login
- * @returns {String|Function}
- */
-function getSmallSizeAvatar(avatarURL, login) {
-    const source = getAvatar(avatarURL, login);
-    if (!_.isString(source)) {
-        return source;
-    }
-
-    // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
-    if (!CONST.CLOUDFRONT_DOMAIN_REGEX.test(source)) {
-        return source;
-    }
-
-    // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
-    const lastPeriodIndex = source.lastIndexOf('.');
-    if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
-        return source;
-    }
-    return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
-}
-
-/**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
@@ -822,7 +682,7 @@ function getIconsForParticipants(participants, personalDetails) {
 
     for (let i = 0; i < participantsList.length; i++) {
         const login = participantsList[i];
-        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
+        const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
         participantDetails.push([login, lodashGet(personalDetails, [login, 'firstName'], ''), avatarSource]);
     }
 
@@ -888,7 +748,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         }
 
         const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
-        result.source = getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail);
+        result.source = UserUtils.getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail);
         result.name = actorEmail;
         return [result];
     }
@@ -922,7 +782,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         }
 
         const adminIcon = {
-            source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
             name: report.ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
         };
@@ -940,7 +800,7 @@ function getIcons(report, personalDetails, defaultIcon = null) {
     if (isIOUReport(report)) {
         return [
             {
-                source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+                source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
                 name: report.ownerEmail,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -964,7 +824,7 @@ function getPersonalDetailsForLogin(login) {
         (allPersonalDetails && allPersonalDetails[login]) || {
             login,
             displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            avatar: getDefaultAvatar(login),
+            avatar: UserUtils.getDefaultAvatar(login),
         }
     );
 }
@@ -1243,7 +1103,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
                 },
             ],
             automatic: false,
-            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
             created: DateUtils.getDBTime(),
             message: [
                 {
@@ -1465,7 +1325,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(type, amount, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
@@ -1518,7 +1378,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
         message: [
@@ -1631,7 +1491,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
         shouldShow: true,
     };
@@ -1671,7 +1531,7 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -1690,7 +1550,7 @@ function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONS
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -2288,7 +2148,6 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
-    getDefaultAvatar,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
@@ -2326,18 +2185,12 @@ export {
     isTaskReport,
     isMoneyRequestReport,
     chatIncludesChronos,
-    getAvatar,
-    getAvatarUrl,
-    isDefaultAvatar,
-    getDefaultAvatarURL,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
     hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
     getParsedComment,
-    getFullSizeAvatar,
-    getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
     getWhisperDisplayNames,
