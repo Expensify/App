@@ -37,8 +37,8 @@ const defaultProps = {
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
-    shouldShowTitleRightIcon: false,
-    titleRightIcon: () => {},
+    shouldShowTitleIcon: false,
+    titleIcon: () => {},
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
@@ -168,10 +168,10 @@ const MenuItem = (props) => {
                                         {convertToLTR(props.title)}
                                     </Text>
                                 )}
-                                {Boolean(props.shouldShowTitleRightIcon) && (
+                                {Boolean(props.shouldShowTitleIcon) && (
                                     <View style={[styles.ml2]}>
                                         <Icon
-                                            src={props.titleRightIcon}
+                                            src={props.titleIcon}
                                             fill={themeColors.iconSuccessFill}
                                         />
                                     </View>

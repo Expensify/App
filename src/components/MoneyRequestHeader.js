@@ -179,8 +179,8 @@ const MoneyRequestHeader = (props) => {
                 <>
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount}
-                        shouldShowTitleRightIcon={isSettled}
-                        titleRightIcon={Expensicons.Checkmark}
+                        shouldShowTitleIcon={isSettled}
+                        titleIcon={Expensicons.Checkmark}
                         description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
                         titleStyle={styles.newKansasLarge}
                     />
