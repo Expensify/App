@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import lodashGet from 'lodash/get';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
@@ -93,51 +93,15 @@ const Form = (props) => {
     const formRef = React.createRef(null);
     const formContentRef = React.createRef(null);
     const inputRefs = {};
-    const touchedInputs = {};
+    const touchedInputs = useMemo(() => {}, []);
 
-    useEffect(() => {
-        // @TODO: DO WE NEED THIS???
-        // if (prevProps.preferredLocale === props.preferredLocale) {
-        //     return;
-        // }
-        validate(inputValues);
-    }, [props.preferredLocale]);
-
-    const getErrorMessage = useCallback(() => {
-        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
-        return props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
-    }, [props.formState]);
-
-    /**
-     * @param {String} inputID - The inputID of the input being touched
-     */
-    const setTouchedInput = useCallback((inputID) => {
-        touchedInputs[inputID] = true;
-    }, []);
-
-    const submit = useCallback(() => {
-        // Return early if the form is already submitting to avoid duplicate submission
-        if (props.formState.isLoading) {
-            return;
-        }
-
-        // Touches all form inputs so we can validate the entire form
-        _.each(inputRefs, (inputRef, inputID) => (touchedInputs[inputID] = true));
-
-        // Validate form and return early if any errors are found
-        if (!_.isEmpty(validate(inputValues))) {
-            return;
-        }
-
-        // Call submit handler
-        props.onSubmit(inputValues);
-    }, [props.formState]);
+    const {validate, translate, onSubmit} = props;
 
     /**
      * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
-    const validate = useCallback((values) => {
+    const onValidate = useCallback((values) => {
         const trimmedStringValues = {};
         _.each(values, (inputValue, inputID) => {
             if (_.isString(inputValue)) {
@@ -151,7 +115,7 @@ const Form = (props) => {
         FormActions.setErrorFields(props.formID, null);
 
         // Run any validations passed as a prop
-        const validationErrors = props.validate(trimmedStringValues);
+        const validationErrors = validate(trimmedStringValues);
 
         // Validate the input for html tags. It should supercede any other error
         _.each(trimmedStringValues, (inputValue, inputID) => {
@@ -161,21 +125,55 @@ const Form = (props) => {
             }
 
             // Add a validation error here because it is a string value that contains HTML characters
-            validationErrors[inputID] = props.translate('common.error.invalidCharacter');
+            validationErrors[inputID] = translate('common.error.invalidCharacter');
         });
 
         if (!_.isObject(validationErrors)) {
             throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
         }
 
-        const errors = _.pick(validationErrors, (inputValue, inputID) => Boolean(touchedInputs[inputID]));
+        const touchedInputErrors = _.pick(validationErrors, (inputValue, inputID) => Boolean(touchedInputs[inputID]));
 
-        if (!_.isEqual(errors, errors)) {
-            setState({errors});
+        if (!_.isEqual(errors, touchedInputErrors)) {
+            setErrors(touchedInputErrors);
         }
 
         return errors;
-    }, []);
+    }, [errors, touchedInputs, props.formID, validate, translate]);
+
+    useEffect(() => {
+        onValidate(inputValues);
+    }, [onValidate, inputValues]);
+
+    const getErrorMessage = useCallback(() => {
+        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
+        return props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
+    }, [props.formState]);
+
+    /**
+     * @param {String} inputID - The inputID of the input being touched
+     */
+    const setTouchedInput = useCallback((inputID) => {
+        touchedInputs[inputID] = true;
+    }, [touchedInputs]);
+
+    const submit = useCallback(() => {
+        // Return early if the form is already submitting to avoid duplicate submission
+        if (props.formState.isLoading) {
+            return;
+        }
+
+        // Touches all form inputs so we can validate the entire form
+        _.each(inputRefs, (inputRef, inputID) => (touchedInputs[inputID] = true));
+
+        // Validate form and return early if any errors are found
+        if (!_.isEmpty(onValidate(inputValues))) {
+            return;
+        }
+
+        // Call submit handler
+        onSubmit(inputValues);
+    }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs]);
 
     /**
      * Loops over Form's children and automatically supplies Form props to them
@@ -275,7 +273,7 @@ const Form = (props) => {
                         // web and mobile web platforms.
                         setTimeout(() => {
                             setTouchedInput(inputID);
-                            validate(inputValues);
+                            onValidate(inputValues);
                         }, 200);
 
                         if (_.isFunction(child.props.onBlur)) {
@@ -284,15 +282,14 @@ const Form = (props) => {
                     },
                     onInputChange: (value, key) => {
                         const inputKey = key || inputID;
-                        setState(
-                            (prevState) => ({
-                                inputValues: {
-                                    ...prevState.inputValues,
-                                    [inputKey]: value,
-                                },
-                            }),
-                            () => validate(inputValues),
-                        );
+                        setInputValues((prevState) => {
+                            const newState = {
+                                ...prevState,
+                                [inputKey]: value,
+                            };
+                            onValidate(newState);
+                            return newState;
+                        })
 
                         if (child.props.shouldSaveDraft) {
                             FormActions.setDraftValues(props.formID, {[inputKey]: value});
@@ -304,7 +301,7 @@ const Form = (props) => {
                     },
                 });
             }),
-        [],
+        [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput],
     );
 
     const scrollViewContent = useCallback(
