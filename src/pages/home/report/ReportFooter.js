@@ -65,7 +65,8 @@ class ReportFooter extends React.Component {
 
     render() {
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || ReportUtils.isTaskReport(this.props.report);
+        const isAllowedToComment = ReportUtils.isAllowedToComment(this.props.report);
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || !isAllowedToComment;
 
         return (
             <>

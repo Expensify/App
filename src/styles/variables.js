@@ -83,7 +83,7 @@ export default {
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
-    optionsListSectionHeaderHeight: getValueUsingPixelRatio(54, 60),
+    optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.6,
     lineHeightSmall: getValueUsingPixelRatio(14, 16),
     lineHeightNormal: getValueUsingPixelRatio(16, 21),
@@ -99,6 +99,7 @@ export default {
     sliderBarHeight: 8,
     sliderKnobSize: 26,
     checkboxLabelActiveOpacity: 0.7,
+    checkboxLabelHoverOpacity: 1,
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
@@ -126,10 +127,14 @@ export default {
     signInLogoWidth: 120,
     signInLogoWidthLargeScreen: 144,
     signInLogoWidthPill: 132,
+    lhnLogoWidth: 108,
+    lhnLogoHeight: 28,
     signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,
     popoverWidth: 375,
+    addPaymentPopoverTopSpacing: 8,
+    addPaymentPopoverRightSpacing: 13,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility

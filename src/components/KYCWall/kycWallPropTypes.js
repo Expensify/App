@@ -2,13 +2,15 @@ import PropTypes from 'prop-types';
 import userWalletPropTypes from '../../pages/EnablePayments/userWalletPropTypes';
 import bankAccountPropTypes from '../bankAccountPropTypes';
 import cardPropTypes from '../cardPropTypes';
+import iouReportPropTypes from '../../pages/iouReportPropTypes';
+import reimbursementAccountPropTypes from '../../pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 
 const propTypes = {
     /** Route for the Add Bank Account screen for a given navigation stack */
     addBankAccountRoute: PropTypes.string.isRequired,
 
     /** Route for the Add Debit Card screen for a given navigation stack */
-    addDebitCardRoute: PropTypes.string.isRequired,
+    addDebitCardRoute: PropTypes.string,
 
     /** Route for the KYC enable payments screen for a given navigation stack */
     enablePaymentsRoute: PropTypes.string.isRequired,
@@ -33,6 +35,15 @@ const propTypes = {
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
+
+    /** The chat report this report is linked to */
+    chatReport: iouReportPropTypes,
+
+    /** The IOU/Expense report we are paying */
+    iouReport: iouReportPropTypes,
+
+    /** The reimbursement account linked to the Workspace */
+    reimbursementAccount: reimbursementAccountPropTypes,
 };
 
 const defaultProps = {
@@ -43,6 +54,10 @@ const defaultProps = {
     chatReportID: '',
     bankAccountList: {},
     cardList: {},
+    chatReport: null,
+    reimbursementAccount: {},
+    addDebitCardRoute: '',
+    iouReport: {},
 };
 
 export {propTypes, defaultProps};
