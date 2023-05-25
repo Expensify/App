@@ -33,13 +33,13 @@ const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', is
         );
     }
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const notTeamMemberSteps = [
@@ -58,13 +58,13 @@ const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', is
         ),
     ];
 
-    for (const expectedStep of notTeamMemberSteps) {
+    notTeamMemberSteps.forEach((expectedStep) => {
         if (didExecute && !isTeamMember) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const blockerSteps = [
         utils.createStepAssertion(
@@ -81,13 +81,13 @@ const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', is
         ),
     ];
 
-    for (const expectedStep of blockerSteps) {
+    blockerSteps.forEach((expectedStep) => {
         if (didExecute && hasBlockers) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true) => {
@@ -107,13 +107,13 @@ const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true) =>
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertCreateNewPatchVersionJobExecuted = (workflowResult, didExecute = true) => {
@@ -129,13 +129,13 @@ const assertCreateNewPatchVersionJobExecuted = (workflowResult, didExecute = tru
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion = '', didExecute = true, isSuccessful = true) => {
@@ -180,13 +180,13 @@ const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion 
         steps[2].status = 1;
     }
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const failProdSteps = [
         utils.createStepAssertion(
@@ -200,13 +200,13 @@ const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion 
         ),
     ];
 
-    for (const expectedStep of failProdSteps) {
+    failProdSteps.forEach((expectedStep) => {
         if (didExecute && !isSuccessful) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 module.exports = {

@@ -40,13 +40,13 @@ const assertVerifyJobExecuted = (workflowResult, didExecute = true) => {
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 module.exports = {

@@ -49,24 +49,25 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             let cnt = 0;
-            for (const executedStep of workflowResult) {
+            workflowResult.forEach((executedStep) => {
                 if (
-                    executedStep.name === expectedStep.name
-                    && executedStep.output === expectedStep.output
-                    && executedStep.status === expectedStep.status
+                    !executedStep.name === expectedStep.name
+                    || !executedStep.output === expectedStep.output
+                    || !executedStep.status === expectedStep.status
                 ) {
-                    cnt += 1;
+                    return;
                 }
-            }
+                cnt += 1;
+            });
             expect(cnt).toEqual(timesExecuted);
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
@@ -99,13 +100,13 @@ const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 module.exports = {

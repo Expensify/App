@@ -16,8 +16,11 @@ const DEPLOYBLOCKER__DEPLOYBLOCKER__GET_URL_TITLE_AND_NUMBER_OF_NEW_DEPLOY_BLOCK
     ['TITLE'],
     {},
     {
+        // eslint-disable-next-line no-template-curly-in-string
         DEPLOY_BLOCKER_URL: '${{ github.event.issue.html_url }}',
+        // eslint-disable-next-line no-template-curly-in-string
         DEPLOY_BLOCKER_NUMBER: '${{ github.event.issue.number }}',
+        // eslint-disable-next-line no-template-curly-in-string
         DEPLOY_BLOCKER_TITLE: '${{ github.event.issue.title }}',
     },
 );

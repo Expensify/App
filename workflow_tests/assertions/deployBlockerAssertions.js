@@ -49,7 +49,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             if (isSuccessful) {
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
@@ -57,7 +57,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const successSteps = [
         utils.createStepAssertion(
@@ -71,13 +71,13 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
         ),
     ];
 
-    for (const step of successSteps) {
+    successSteps.forEach((step) => {
         if (didExecute && isSuccessful) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 
     const failedSteps = [
         utils.createStepAssertion(
@@ -91,13 +91,13 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
         ),
     ];
 
-    for (const step of failedSteps) {
+    failedSteps.forEach((step) => {
         if (didExecute && !isSuccessful) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 };
 
 module.exports = {

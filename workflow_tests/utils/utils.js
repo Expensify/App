@@ -25,9 +25,9 @@ function setUpActParams(
     }
 
     if (secrets) {
-        for (const [key, value] of Object.entries(secrets)) {
+        Object.entries(secrets).forEach(([key, value]) => {
             updated_act = updated_act.setSecret(key, value);
-        }
+        });
     }
 
     if (githubToken) {
@@ -35,15 +35,15 @@ function setUpActParams(
     }
 
     if (envVars) {
-        for (const [key, value] of Object.entries(envVars)) {
+        Object.entries(envVars).forEach(([key, value]) => {
             updated_act = updated_act.setEnv(key, value);
-        }
+        });
     }
 
     if (inputs) {
-        for (const [key, value] of Object.entries(inputs)) {
+        Object.entries(inputs).forEach(([key, value]) => {
             updated_act = updated_act.setInput(key, value);
-        }
+        });
     }
 
     return updated_act;
@@ -66,24 +66,24 @@ function createMockStep(
     }
     mockWithCommand += ` ${message}`;
     if (inputs) {
-        for (const input of inputs) {
+        Object.entries(inputs).forEach((input) => {
             mockWithCommand += `, ${input}="\${{ inputs.${input} && inputs.${input} || github.event.inputs.${input} }}"`;
-        }
+        });
     }
     if (in_envs) {
-        for (const env of in_envs) {
+        Object.entries(in_envs).forEach((env) => {
             mockWithCommand += `, ${env}="\${{ env.${env} }}"`;
-        }
+        });
     }
     if (outputs) {
-        for (const [key, value] of Object.entries(outputs)) {
+        Object.entries(outputs).forEach(([key, value]) => {
             mockWithCommand += `\necho "${key}=${value}" >> "$GITHUB_OUTPUT"`;
-        }
+        });
     }
     if (out_envs) {
-        for (const [key, value] of Object.entries(out_envs)) {
+        Object.entries(out_envs).forEach(([key, value]) => {
             mockWithCommand += `\necho "${key}=${value}" >> "$GITHUB_ENV"`;
-        }
+        });
     }
     if (!isSuccessful) {
         mockWithCommand += '\nexit 1';
@@ -117,14 +117,14 @@ function createStepAssertion(
             stepOutput += ` ${message}`;
         }
         if (inputs) {
-            for (const input of inputs) {
+            Object.entries(inputs).forEach((input) => {
                 stepOutput += `, ${input.key}=${input.value}`;
-            }
+            });
         }
         if (envs) {
-            for (const env of envs) {
+            Object.entries(envs).forEach((env) => {
                 stepOutput += `, ${env.key}=${env.value}`;
-            }
+            });
         }
     }
     return {
@@ -140,10 +140,10 @@ function setJobRunners(act, jobs, workflowPath) {
     }
 
     const workflow = yaml.parse(fs.readFileSync(workflowPath, 'utf8'));
-    for (const [jobId, runner] of Object.entries(jobs)) {
+    Object.entries(jobs).forEach(([jobId, runner]) => {
         const job = workflow.jobs[jobId];
         job['runs-on'] = runner;
-    }
+    });
     fs.writeFileSync(workflowPath, yaml.stringify(workflow), 'utf8');
     return act;
 }

@@ -13,7 +13,7 @@ const assertWarnCPLabelJobExecuted = (workflowResult, didExecute = true, isSucce
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             if (isSuccessful) {
                 expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
@@ -21,7 +21,7 @@ const assertWarnCPLabelJobExecuted = (workflowResult, didExecute = true, isSucce
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const failedSteps = [
         utils.createStepAssertion(
@@ -35,13 +35,13 @@ const assertWarnCPLabelJobExecuted = (workflowResult, didExecute = true, isSucce
         ),
     ];
 
-    for (const step of failedSteps) {
+    failedSteps.forEach((step) => {
         if (didExecute && !isSuccessful) {
             expect(workflowResult).toEqual(expect.arrayContaining([step]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([step]));
         }
-    }
+    });
 };
 
 module.exports = {

@@ -1,7 +1,9 @@
+/* eslint no-console: ["error", { allow: ["warn", "log"] }] */
 const path = require('path');
-const {exit} = require("process");
+const {exit} = require('process');
 const fs = require('fs');
 const yaml = require('yaml');
+const _ = require('underscore');
 
 const workflowsDirectory = path.resolve(__dirname, '..', '..', '.github', 'workflows');
 const workflowTestsDirectory = path.resolve(__dirname, '..');
@@ -19,7 +21,7 @@ const assertionFileTemplate = (jobAssertions, exports) => `const utils = require
 ${jobAssertions}
 ${exports}
 `;
-const testFileTemplate = (workflowName) => `const path = require('path');
+const testFileTemplate = workflowName => `const path = require('path');
 const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/${workflowName}Assertions');
@@ -109,11 +111,11 @@ const stepAssertionTemplate = (step_name, job_id, step_message, inputs, envs) =>
             null,
             '${job_id}',
             '${step_message}',
-            [${inputs.map((input) => `{key: '${input}', value: '[FILL_IN]'}`)}],
-            [${envs.map((env) => `{key: '${env}', value: '[FILL_IN]'}`)}],
+            [${_(inputs).map(input => `{key: '${input}', value: '[FILL_IN]'}`)}],
+            [${_(envs).map(env => `{key: '${env}', value: '[FILL_IN]'}`)}],
         ),`;
 const jobMocksTemplate = (jobMocksName, stepMocks) => `
-const ${jobMocksName} = [${stepMocks.map((stepMock) => `
+const ${jobMocksName} = [${_(stepMocks).map(stepMock => `
     ${stepMock}`)}
 ];`;
 const jobAssertionTemplate = (jobAssertionName, stepAssertions) => `
@@ -129,108 +131,113 @@ const ${jobAssertionName} = (workflowResult, didExecute = true) => {
         }
     }
 };`;
-const mocksExportsTemplate = (jobMocks) => `
+const mocksExportsTemplate = jobMocks => `
 module.exports = {
-    ${jobMocks.map((jobMock) => `${jobMock}`)}
+    ${_(jobMocks).map(jobMock => `${jobMock}`)}
 };`;
-const assertionsExportsTemplate = (jobAssertions) => `
+const assertionsExportsTemplate = jobAssertions => `
 module.exports = {
-    ${jobAssertions.map((jobAssertion) => `${jobAssertion}`)}
+    ${_(jobAssertions).map(jobAssertion => `${jobAssertion}`)}
 };`;
 
 const checkArguments = (args) => {
-    if (args.length === 0 || !args[0]) {
-        console.warn('Please provide workflow file name');
-        exit(1);
+    if (args.length > 0 && args[0]) {
+        return;
     }
+    console.warn('Please provide workflow file name');
+    exit(1);
 };
 const checkWorkflowFileName = (fileName) => {
-    if (!workflowFileRegex.test(fileName)) {
-        console.warn(`Please provide a valid workflow file name ([workflow].yml) instead of ${fileName}`);
-        exit(1);
+    if (workflowFileRegex.test(fileName)) {
+        return;
     }
+    console.warn(`Please provide a valid workflow file name ([workflow].yml) instead of ${fileName}`);
+    exit(1);
 };
 const checkWorkflowFilePath = (filePath) => {
-    if (!fs.existsSync(filePath)) {
-        console.warn(`Provided workflow file does not exist: ${filePath}`);
-        exit(1);
+    if (fs.existsSync(filePath)) {
+        return;
     }
+    console.warn(`Provided workflow file does not exist: ${filePath}`);
+    exit(1);
 };
-const checkIfTestFileDoesNotExist = (testsDirectory, testFileName) => {
-    if (fs.existsSync(path.join(testsDirectory, testFileName))) {
-        console.warn(`The test file ${testFileName} already exists, exiting`);
-        exit(1);
+const checkIfTestFileExists = (testsDirectory, testFileName) => {
+    if (!fs.existsSync(path.join(testsDirectory, testFileName))) {
+        return;
     }
-}
-const checkIfMocksFileDoesNotExist = (mocksDirectory, mocksFileName) => {
-    if (fs.existsSync(path.join(mocksDirectory, mocksFileName))) {
-        console.warn(`The mocks file ${mocksFileName} already exists, exiting`);
-        exit(1);
+    console.warn(`The test file ${testFileName} already exists, exiting`);
+    exit(1);
+};
+const checkIfMocksFileExists = (mocksDirectory, mocksFileName) => {
+    if (!fs.existsSync(path.join(mocksDirectory, mocksFileName))) {
+        return;
     }
-}
-const checkIfAssertionsFileDoesNotExist = (assertionsDirectory, assertionsFileName) => {
-    if (fs.existsSync(path.join(assertionsDirectory, assertionsFileName))) {
-        console.warn(`The assertions file ${assertionsFileName} already exists, exiting`);
-        exit(1);
+    console.warn(`The mocks file ${mocksFileName} already exists, exiting`);
+    exit(1);
+};
+const checkIfAssertionsFileExists = (assertionsDirectory, assertionsFileName) => {
+    if (!fs.existsSync(path.join(assertionsDirectory, assertionsFileName))) {
+        return;
     }
-}
+    console.warn(`The assertions file ${assertionsFileName} already exists, exiting`);
+    exit(1);
+};
 const parseWorkflowFile = (workflow) => {
     const workflowJobs = {};
-    for (const [jobId, job] of Object.entries(workflow.jobs)) {
+    Object.entries(workflow.jobs).forEach(([jobId, job]) => {
         workflowJobs[jobId] = {
             steps: [],
         };
-        for (const step of job.steps) {
+        job.steps.forEach((step) => {
             const workflowStep = {
                 name: step.name || '',
-                inputs: Object.keys(step.with || {}) || [],
-                envs: Object.keys(step.env || {}) || [],
-            }
+                inputs: _.keys(step.with || {}) || [],
+                envs: _.keys(step.env || {}) || [],
+            };
             workflowJobs[jobId].steps.push(workflowStep);
-        }
-    }
+        });
+    });
     return workflowJobs;
 };
 const getMockFileContent = (workflowName, jobs) => {
     let content = '';
     const jobMocks = [];
-    for (const [jobId, job] of Object.entries(jobs)) {
+    Object.entries(jobs).forEach(([jobId, job]) => {
         let mockStepsContent = `\n// ${jobId.toLowerCase()}`;
         const stepMocks = [];
-        for (const step of job.steps) {
-            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${step.name.replaceAll(' ', '_').replaceAll('-', '_').replaceAll(',', '').replaceAll('#', '').toUpperCase()}__STEP_MOCK`;
+        job.steps.forEach((step) => {
+            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${step.name.replaceAll(' ', '_').replaceAll('-', '_').replaceAll(',', '').replaceAll('#', '')
+                .toUpperCase()}__STEP_MOCK`;
             stepMocks.push(stepMockName);
             mockStepsContent += mockStepTemplate(stepMockName, step, jobId);
-        }
+        });
         const jobMocksName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__STEP_MOCKS`;
         jobMocks.push(jobMocksName);
         mockStepsContent += jobMocksTemplate(jobMocksName, stepMocks);
         content += mockStepsContent;
-    }
+    });
     return mockFileTemplate(content, mocksExportsTemplate(jobMocks));
 };
 const getAssertionsFileContent = (workflowName, jobs) => {
     let content = '';
     const jobAssertions = [];
-    for (const [jobId, job] of Object.entries(jobs)) {
+    Object.entries(jobs).forEach(([jobId, job]) => {
         let stepAssertionsContent = '';
-        for (const step of job.steps) {
+        job.steps.forEach((step) => {
             stepAssertionsContent += stepAssertionTemplate(step.name, jobId.toUpperCase(), step.name, step.inputs, step.envs);
-        }
+        });
         const jobAssertionName = `assert${jobId.charAt(0).toUpperCase() + jobId.slice(1)}JobExecuted`;
         jobAssertions.push(jobAssertionName);
         content += jobAssertionTemplate(jobAssertionName, stepAssertionsContent);
-    }
+    });
     return assertionFileTemplate(content, assertionsExportsTemplate(jobAssertions));
 };
-const getTestFileContent = (workflowName) => {
-    return testFileTemplate(workflowName);
-};
+const getTestFileContent = workflowName => testFileTemplate(workflowName);
 
-const arguments = process.argv.slice(2);
-checkArguments(arguments);
+const call_args = process.argv.slice(2);
+checkArguments(call_args);
 
-const workflowFileName = arguments[0];
+const workflowFileName = call_args[0];
 checkWorkflowFileName(workflowFileName);
 
 const workflowName = workflowFileName.slice(0, -4);
@@ -238,13 +245,13 @@ const workflowFilePath = path.join(workflowsDirectory, workflowFileName);
 checkWorkflowFilePath(workflowFilePath);
 
 const workflowTestFileName = `${workflowName}.test.js`;
-checkIfTestFileDoesNotExist(workflowTestsDirectory, workflowTestFileName);
+checkIfTestFileExists(workflowTestsDirectory, workflowTestFileName);
 
 const workflowTestMocksFileName = `${workflowName}Mocks.js`;
-checkIfMocksFileDoesNotExist(workflowTestMocksDirectory, workflowTestMocksFileName);
+checkIfMocksFileExists(workflowTestMocksDirectory, workflowTestMocksFileName);
 
 const workflowTestAssertionsFileName = `${workflowName}Assertions.js`;
-checkIfAssertionsFileDoesNotExist(workflowTestAssertionsDirectory, workflowTestAssertionsFileName);
+checkIfAssertionsFileExists(workflowTestAssertionsDirectory, workflowTestAssertionsFileName);
 
 const workflow = yaml.parse(fs.readFileSync(workflowFilePath, 'utf8'));
 const workflowJobs = parseWorkflowFile(workflow);

@@ -12,13 +12,13 @@ const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = tru
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProduction = true, isSuccessful = true) => {
@@ -121,13 +121,13 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
         );
     }
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const failProdSteps = [
         utils.createStepAssertion(
@@ -141,13 +141,13 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
         ),
     ];
 
-    for (const expectedStep of failProdSteps) {
+    failProdSteps.forEach((expectedStep) => {
         if (didExecute && isProduction && !isSuccessful) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProduction = true) => {
@@ -186,7 +186,14 @@ const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProductio
                 'DESKTOP',
                 'Building production desktop app',
                 null,
-                [{key: 'CSC_LINK', value: '***'}, {key: 'CSC_KEY_PASSWORD', value: '***'}, {key: 'APPLE_ID', value: '***'}, {key: 'APPLE_ID_PASSWORD', value: '***'}, {key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
+                [
+                    {key: 'CSC_LINK', value: '***'},
+                    {key: 'CSC_KEY_PASSWORD', value: '***'},
+                    {key: 'APPLE_ID', value: '***'},
+                    {key: 'APPLE_ID_PASSWORD', value: '***'},
+                    {key: 'AWS_ACCESS_KEY_ID', value: '***'},
+                    {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+                ],
             ),
         );
     } else {
@@ -198,18 +205,25 @@ const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProductio
                 'DESKTOP',
                 'Building staging desktop app',
                 null,
-                [{key: 'CSC_LINK', value: '***'}, {key: 'CSC_KEY_PASSWORD', value: '***'}, {key: 'APPLE_ID', value: '***'}, {key: 'APPLE_ID_PASSWORD', value: '***'}, {key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
+                [
+                    {key: 'CSC_LINK', value: '***'},
+                    {key: 'CSC_KEY_PASSWORD', value: '***'},
+                    {key: 'APPLE_ID', value: '***'},
+                    {key: 'APPLE_ID_PASSWORD', value: '***'},
+                    {key: 'AWS_ACCESS_KEY_ID', value: '***'},
+                    {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+                ],
             ),
         );
     }
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = true, isSuccessful = true) => {
@@ -329,13 +343,13 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
         );
     }
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 
     const failProdSteps = [
         utils.createStepAssertion(
@@ -349,13 +363,13 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
         ),
     ];
 
-    for (const expectedStep of failProdSteps) {
+    failProdSteps.forEach((expectedStep) => {
         if (didExecute && isProduction && !isSuccessful) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = true) => {
@@ -461,13 +475,13 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
         );
     }
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertPostSlackOnFailureJobExecuted = (workflowResult, didExecute = true) => {
@@ -482,13 +496,13 @@ const assertPostSlackOnFailureJobExecuted = (workflowResult, didExecute = true) 
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, isProduction = true) => {
@@ -540,13 +554,13 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
         );
     }
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, isProduction = true, didDeploy = true) => {
@@ -587,17 +601,26 @@ const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, i
             null,
             'POST_GITHUB_COMMENT',
             'Commenting on issues',
-            [{key: 'PR_LIST', value: '[1.2.1, 1.2.2]'}, {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'}, {key: 'DEPLOY_VERSION', value: '1.2.3'}, {key: 'GITHUB_TOKEN', value: '***'}, {key: 'ANDROID', value: didDeploy ? 'success' : ''}, {key: 'DESKTOP', value: didDeploy ? 'success' : ''}, {key: 'IOS', value: didDeploy ? 'success' : ''}, {key: 'WEB', value: didDeploy ? 'success' : ''}],
+            [
+                {key: 'PR_LIST', value: '[1.2.1, 1.2.2]'},
+                {key: 'IS_PRODUCTION_DEPLOY', value: isProduction ? 'true' : 'false'},
+                {key: 'DEPLOY_VERSION', value: '1.2.3'},
+                {key: 'GITHUB_TOKEN', value: '***'},
+                {key: 'ANDROID', value: didDeploy ? 'success' : ''},
+                {key: 'DESKTOP', value: didDeploy ? 'success' : ''},
+                {key: 'IOS', value: didDeploy ? 'success' : ''},
+                {key: 'WEB', value: didDeploy ? 'success' : ''},
+            ],
         ),
     ];
 
-    for (const expectedStep of steps) {
+    steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
-    }
+    });
 };
 
 module.exports = {
