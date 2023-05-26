@@ -65,6 +65,7 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetHeight) {
         return false;
     }
 
+    // Use the vertical center of the target to prevent wrong element returned by elementFromPoint in case the target has a border radius.
     const centerY = yOffset + tooltipTargetHeight / 2;
     const element = document.elementFromPoint(xOffset, centerY);
     const tooltipRef = (tooltip && tooltip.current) || tooltip;
