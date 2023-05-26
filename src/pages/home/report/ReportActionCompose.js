@@ -192,6 +192,9 @@ class ReportActionCompose extends React.Component {
         // prevent auto focus on existing chat for mobile device
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
+        // This variable is used to decide whether to block the suggestions list from showing to prevent flickering
+        this.shouldBlockSuggestionsCalc = false;
+
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible && this.props.shouldShowComposeInput,
             isFullComposerAvailable: props.isComposerFullSize,
@@ -273,14 +276,14 @@ class ReportActionCompose extends React.Component {
     }
 
     onSelectionChange(e) {
+        if (this.shouldBlockSuggestionsCalc) {
+            this.setShouldBlockSuggestionsCalcToFalse();
+            return;
+        }
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         this.setState({selection: e.nativeEvent.selection});
         if (!this.state.value || e.nativeEvent.selection.end < 1) {
             this.resetSuggestions();
-            return;
-        }
-        if (this.state.shouldBlockSuggestionsCalc) {
-            this.setShouldBlockSuggestionsCalcToFalse();
             return;
         }
         this.calculateEmojiSuggestion();
@@ -297,7 +300,6 @@ class ReportActionCompose extends React.Component {
             atSignIndex: -1,
             shouldShowEmojiSuggestionMenu: false,
             shouldShowMentionSuggestionMenu: false,
-            shouldBlockSuggestionsCalc: false,
             mentionPrefix: '',
             isAutoSuggestionPickerLarge: false,
         };
@@ -422,9 +424,7 @@ class ReportActionCompose extends React.Component {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     setShouldBlockSuggestionsCalcToFalse() {
-        if (this.state && this.state.shouldBlockSuggestionsCalc) {
-            this.setState({shouldBlockSuggestionsCalc: false});
-        }
+        this.shouldBlockSuggestionsCalc = false;
     }
 
     /**
@@ -1021,7 +1021,7 @@ class ReportActionCompose extends React.Component {
                                                                 // Set a flag to block emoji calculation until we're finished using the file picker,
                                                                 // which will stop any flickering as the file picker opens on non-native devices.
                                                                 if (this.willBlurTextInputOnTapOutside) {
-                                                                    this.setState({shouldBlockSuggestionsCalc: true});
+                                                                    this.shouldBlockSuggestionsCalc = true;
                                                                 }
 
                                                                 openPicker({
