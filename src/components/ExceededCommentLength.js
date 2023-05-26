@@ -19,26 +19,22 @@ function ExceededCommentLength(props) {
     const updateCommentLength = useMemo(
         () =>
             debounce((comment, onExceededMaxCommentLength) => {
-                const commentLength = ReportUtils.getCommentLength(comment);
-                setCommentLength(commentLength);
-                onExceededMaxCommentLength(commentLength > CONST.MAX_COMMENT_LENGTH);
+                const newCommentLength = ReportUtils.getCommentLength(comment);
+                setCommentLength(newCommentLength);
+                onExceededMaxCommentLength(newCommentLength > CONST.MAX_COMMENT_LENGTH);
             }, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME),
         [],
     );
-    
+
     useEffect(() => {
         updateCommentLength(props.comment, props.onExceededMaxCommentLength);
-    }, [props.comment, props.onExceededMaxCommentLength])
+    }, [props.comment, props.onExceededMaxCommentLength, updateCommentLength]);
 
     if (commentLength <= CONST.MAX_COMMENT_LENGTH) {
         return null;
     }
 
-    return (
-        <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>
-            {`${commentLength}/${CONST.MAX_COMMENT_LENGTH}`}
-        </Text>
-    );
+    return <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>{`${commentLength}/${CONST.MAX_COMMENT_LENGTH}`}</Text>;
 }
 
 ExceededCommentLength.propTypes = propTypes;
