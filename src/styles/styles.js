@@ -204,6 +204,7 @@ const styles = {
     },
 
     mentionSuggestionsDisplayName: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
     },
 
