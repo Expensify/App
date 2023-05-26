@@ -75,7 +75,6 @@ function canUseCommentLinking(betas) {
  * @returns {Boolean}
  */
 function canUsePolicyRooms(betas) {
-    return false;
     return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || _.contains(betas, CONST.BETAS.ALL);
 }
 
