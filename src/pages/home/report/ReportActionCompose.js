@@ -183,7 +183,6 @@ class ReportActionCompose extends React.Component {
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
-        this.setShouldBlockSuggestionsCalcToFalse = this.setShouldBlockSuggestionsCalcToFalse.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -290,13 +289,13 @@ class ReportActionCompose extends React.Component {
             this.setState({selection: e.nativeEvent.selection});
             if (!this.state.value || e.nativeEvent.selection.end < 1) {
                 this.resetSuggestions();
-                this.setShouldBlockSuggestionsCalcToFalse();
+                this.shouldBlockSuggestionsCalc = false;
                 return;
             }
         }
 
         if (this.shouldBlockSuggestionsCalc) {
-            this.setShouldBlockSuggestionsCalcToFalse();
+            this.shouldBlockSuggestionsCalc = false;
             return;
         }
 
@@ -434,11 +433,6 @@ class ReportActionCompose extends React.Component {
         if (this.state && this.state.shouldShowMentionSuggestionMenu) {
             this.setState({shouldShowMentionSuggestionMenu: false});
         }
-    }
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    setShouldBlockSuggestionsCalcToFalse() {
-        this.shouldBlockSuggestionsCalc = false;
     }
 
     /**
@@ -951,7 +945,7 @@ class ReportActionCompose extends React.Component {
                             onConfirm={this.addAttachment}
                             onModalShow={() => this.setState({isAttachmentPreviewActive: true})}
                             onModalHide={() => {
-                                this.setShouldBlockSuggestionsCalcToFalse();
+                                this.shouldBlockSuggestionsCalc = false;
                                 this.setState({isAttachmentPreviewActive: false});
                             }}
                         >
@@ -1090,7 +1084,7 @@ class ReportActionCompose extends React.Component {
                                                     this.resetSuggestions();
                                                 }}
                                                 onClick={() => {
-                                                    this.setShouldBlockSuggestionsCalcToFalse();
+                                                    this.shouldBlockSuggestionsCalc = false;
                                                     this.onSelectionChange();
                                                 }}
                                                 onPasteFile={displayFileInModal}
