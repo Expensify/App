@@ -39,13 +39,6 @@ const MoneyRequestProvider = (props) => {
     const [participants, setParticipants] = useState([]);
     const [comment, setComment] = useState('');
 
-    useEffect(() => {
-        PersonalDetails.openMoneyRequestModalPage();
-    }, []);
-
-    // User came back online, so let's refetch the currency details based on location
-    useOnNetworkReconnect(PersonalDetails.openMoneyRequestModalPage);
-
     const value = {
         moneyRequest: {
             amount,
