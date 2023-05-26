@@ -1,9 +1,17 @@
 import React, {useEffect, useState} from 'react';
 import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import Config from 'react-native-config';
+import get from 'lodash/get';
 import getUserLanguage from '../GetUserLanguage';
-import {beginAppleSignIn} from '../../../libs/actions/Session';
+import * as Session from '../../../libs/actions/Session';
 import Log from '../../../libs/Log';
+import * as Environment from '../../../libs/Environment/Environment';
+
+// TODO: copied from CONFIG.js, refactor
+// react-native-config doesn't trim whitespace on iOS for some reason so we
+// add a trim() call to lodashGet here to prevent headaches
+const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).trim();
 
 const requiredPropTypes = {
     isDesktopFlow: PropTypes.bool.isRequired,
@@ -16,20 +24,23 @@ const defaultProps = {
     isDesktopFlow: false,
 };
 
-// TODO: env vars for config and token override
+// TODO: move to appropriate consts file
+const defaultClientId = 'com.chat.expensify.chat.AppleSignIn';
+const defaultRedirectURI = 'https://new.expensify.com/appleauth';
 
 const config = {
-    clientId: 'com.chat.expensify.chat.AppleSignIn',
+    clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', defaultClientId),
     scope: 'name email',
     // never used, but required for configuration
-    redirectURI: 'https://new.expensify.com/appleauth',
+    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', defaultRedirectURI),
     state: '',
     nonce: '',
     usePopup: true,
 };
 
 const successListener = (event) => {
-    beginAppleSignIn({token: event.detail.id_token});
+    const token = !Environment.isDevelopment() ? event.detail.id_token : lodashGet(Config, 'ASI_TOKEN_OVERRIDE', event.detail.id_token);
+    Session.beginAppleSignIn({token});
 };
 
 const failureListener = (event) => {
