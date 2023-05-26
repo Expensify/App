@@ -163,6 +163,16 @@ function getMostRecentIOURequestActionID(reportActions) {
 }
 
 /**
+  * Returns true when the report action contains a link
+  *
+  * @param {reportAction} reportAction
+  * @returns {Boolean}
+  */
+function containsLink(reportAction) {
+    return !_.isEmpty(lodashGet(reportAction, ['message', 0, 'html']));
+}
+
+/**
  * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
@@ -387,6 +397,7 @@ export {
     getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
+    containsLink,
     isDeletedAction,
     shouldReportActionBeVisible,
     isReportActionDeprecated,

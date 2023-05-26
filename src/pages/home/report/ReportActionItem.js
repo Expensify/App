@@ -18,6 +18,7 @@ import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemThread from './ReportActionItemThread';
+import LinkPreviewer from './LinkPreviewer';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
@@ -116,6 +117,14 @@ function ReportActionItem(props) {
 
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [isDraftEmpty]);
+
+    useEffect(() => {
+        if (!ReportActionsUtils.containsLink(props.action)) {
+            return;
+        }
+
+        Report.expandURLPreview(props.report.reportID, props.action.reportActionID);
+    }, [props.action, props.report.reportID]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -276,6 +285,11 @@ function ReportActionItem(props) {
         return (
             <>
                 {children}
+                {!_.isEmpty(props.action.linkMetadata) && (
+                    <LinkPreviewer
+                        linkMetadata={props.action.linkMetadata}
+                    />
+                )}
                 {hasReactions && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions
