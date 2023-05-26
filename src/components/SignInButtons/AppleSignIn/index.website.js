@@ -46,6 +46,7 @@ const successListener = (event) => {
 };
 
 const failureListener = (event) => {
+    if (event.detail?.error === 'popup_closed_by_user') return null;
     Log.warn(`Apple sign-in failed: ${event.detail}`);
 };
 

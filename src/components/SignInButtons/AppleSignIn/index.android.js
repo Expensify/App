@@ -19,7 +19,6 @@ function appleSignInRequest() {
         .signIn()
         .then((response) => response.id_token)
         .catch((e) => {
-            Log.error('Request to sign in with Apple failed. Error: ', e);
             throw e;
         });
 }
@@ -29,6 +28,7 @@ const AppleSignIn = () => {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
             .catch((e) => {
+                if (e.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) return null;
                 Log.error('Apple authentication failed', e);
             });
     };
