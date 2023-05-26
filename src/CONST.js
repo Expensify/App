@@ -108,8 +108,6 @@ const CONST = {
         FAILED: 'failed',
     },
 
-    
-
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
     AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
