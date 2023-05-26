@@ -176,10 +176,6 @@ function Expensify(props) {
         return null;
     }
 
-    const handleCredentialRevoked = () => {
-        Session.signOut();
-    };
-
     return (
         <>
             {!isSplashShown && (
