@@ -22,6 +22,8 @@ import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ROUTES from '../../../ROUTES';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
     /** Route params */
@@ -79,11 +81,25 @@ class ReportSettingsPage extends Component {
         return !Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
     }
 
+    /**
+     * We only want policy owners and admins to be able to modify the welcome message.
+     *
+     * @param {Object|null} linkedWorkspace - the workspace the report is on, null if the user isn't a member of the workspace
+     * @returns {Boolean}
+     */
+    shouldDisableWelcomeMessage(linkedWorkspace) {
+        return !ReportUtils.isArchivedRoom(this.props.report) && !_.isEmpty(linkedWorkspace) && Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role === CONST.POLICY.ROLE.ADMIN;
+    }
+
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report) && !ReportUtils.isThread(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
+        const shouldDisableWelcomeMessage = this.shouldDisableRename(linkedWorkspace);
+        const writeCapability = this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+        const writeCapabilityText = this.props.translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
+        const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
 
         return (
             <ScreenWrapper>
@@ -131,6 +147,29 @@ class ReportSettingsPage extends Component {
                             )}
                         </OfflineWithFeedback>
                     )}
+                    {shouldAllowWriteCapabilityEditing ? (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={writeCapabilityText}
+                            description={this.props.translate('writeCapabilityPage.label')}
+                            onPress={() => Navigation.navigate(ROUTES.getReportSettingsWriteCapabilityRoute(this.props.report.reportID))}
+                        />
+                    ) : (
+                        <View style={[styles.ph5, styles.pv3]}>
+                            <Text
+                                style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                numberOfLines={1}
+                            >
+                                {this.props.translate('writeCapabilityPage.label')}
+                            </Text>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.optionAlternateText, styles.pre]}
+                            >
+                                {writeCapabilityText}
+                            </Text>
+                        </View>
+                    )}
                     <View style={[styles.ph5]}>
                         {Boolean(linkedWorkspace) && (
                             <View style={[styles.pv3]}>
@@ -170,6 +209,14 @@ class ReportSettingsPage extends Component {
                             </View>
                         )}
                     </View>
+                    {!shouldDisableWelcomeMessage && (
+                        <MenuItem
+                            title={this.props.translate('welcomeMessagePage.welcomeMessage')}
+                            icon={Expensicons.ChatBubble}
+                            onPress={() => Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(this.props.report.reportID))}
+                            shouldShowRightIcon
+                        />
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );

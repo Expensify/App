@@ -343,8 +343,8 @@ class ReportScreen extends React.Component {
                                         reportActions={this.props.reportActions}
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
-                                        isDrawerOpen={this.props.isDrawerOpen}
-                                        parentViewHeight={this.state.skeletonViewContainerHeight}
+                                        onSubmitComment={this.onSubmitComment}
+                                        policies={this.props.policies}
                                     />
                                 )}
 

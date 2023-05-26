@@ -69,7 +69,7 @@ class BankAccountManualStep extends React.Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.bankAccount')}
+                    title={this.props.translate('workspace.common.connectBankAccount')}
                     stepCounter={{step: 1, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
