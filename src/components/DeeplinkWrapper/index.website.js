@@ -53,11 +53,7 @@ class DeeplinkWrapper extends PureComponent {
         const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
         const params = new URLSearchParams();
         params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
-        if (!this.props.session.authToken) {
-            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
-            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
-            return;
-        }
+
         Authentication.getShortLivedAuthToken()
             .then((shortLivedAuthToken) => {
                 params.set('email', this.props.session.email);

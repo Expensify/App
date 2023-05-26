@@ -24,7 +24,6 @@ import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
-import DeeplinkWrapper from './components/DeeplinkWrapper';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
@@ -178,7 +177,7 @@ function Expensify(props) {
     }
 
     return (
-        <DeeplinkWrapper>
+        <>
             {!isSplashShown && (
                 <>
                     <KeyboardShortcutsModal />
@@ -204,7 +203,7 @@ function Expensify(props) {
                 onReady={setNavigationReady}
                 authenticated={isAuthenticated}
             />
-        </DeeplinkWrapper>
+        </>
     );
 }
 
