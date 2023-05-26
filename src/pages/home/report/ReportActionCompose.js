@@ -54,7 +54,7 @@ import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
-import * as KeyboardShortcut from '../../../libs/KeyboardShortcut'
+import KeyboardShortcut from '../../../libs/KeyboardShortcut'
 
 const {RNTextInputReset} = NativeModules;
 
