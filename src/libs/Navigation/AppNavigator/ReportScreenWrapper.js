@@ -72,7 +72,7 @@ class ReportScreenWrapper extends Component {
     constructor(props) {
         super(props);
 
-        // If there is no ReportID in route, try to find last accessed and use it for setParams
+        // If there is no reportID in route, try to find last accessed and use it for setParams
         if (!lodashGet(this.props.route, 'params.reportID', null)) {
             const reportID = getLastAccessedReportID(this.props.reports, !Permissions.canUseDefaultRooms(this.props.betas), this.props.policies, this.props.route.params.openOnAdminRoom);
 

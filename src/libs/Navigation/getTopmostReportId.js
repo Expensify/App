@@ -4,8 +4,10 @@ import lodashGet from 'lodash/get';
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
 
 /**
+ * Find the last visited report screen in the navigation state and get the id of it.
+ * 
  * @param {Object} state - The react-navigation state
- * @returns {String | undefined} - It's possible that there is no any report screen
+ * @returns {String | undefined} - It's possible that there is no report screen
  */
 function getTopmostReportId(state) {
     const topmostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');

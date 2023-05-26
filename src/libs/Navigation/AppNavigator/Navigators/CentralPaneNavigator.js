@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {Freeze} from 'react-freeze';
-
 import SCREENS from '../../../../SCREENS';
 import ReportScreenWrapper from '../ReportScreenWrapper';
 import getCurrentUrl from '../../currentUrl';
@@ -15,6 +14,7 @@ const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') :
 
 function CentralPaneNavigator() {
     const [isScreenBlurred, setIsScreenBlurred] = useState(false);
+    // we need to know the screen index to determine if the screen can be frozen
     const [screenIndex, setScreenIndex] = useState(null);
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -28,6 +28,9 @@ function CentralPaneNavigator() {
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('state', () => {
+            // if the screen is more than 2 screens away from the current screen, freeze it,
+            // we don't want to freeze the screen if it's only 1 screen away because the freeze placeholder
+            // would be visible at the beginning of the back animation then
             if (navigation.getState().index - screenIndex > 2) {
                 setIsScreenBlurred(true);
             } else {

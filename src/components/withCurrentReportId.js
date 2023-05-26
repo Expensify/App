@@ -22,7 +22,7 @@ class CurrentReportIdContextProvider extends React.Component {
 
     /**
      * The context this component exposes to child components
-     * @returns {object} currentReportId to share between central pane and drawer
+     * @returns {Object} currentReportId to share between central pane and LHN
      */
     getContextValue() {
         return {
