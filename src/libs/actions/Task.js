@@ -201,10 +201,12 @@ function completeTask(taskReportID, parentReportID, reportActionID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[reportActionID]: {
-                childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                childStatusNum: CONST.REPORT.STATUS.APPROVED,
-            }},
+            value: {
+                [reportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    childStatusNum: CONST.REPORT.STATUS.APPROVED,
+                },
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -217,10 +219,12 @@ function completeTask(taskReportID, parentReportID, reportActionID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[reportActionID]: {
-                childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                childStatusNum: CONST.REPORT.STATUS.APPROVED,
-            }},
+            value: {
+                [reportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    childStatusNum: CONST.REPORT.STATUS.APPROVED,
+                },
+            },
         },
     ];
     const failureData = [
@@ -281,10 +285,12 @@ function reopenTask(taskReportID, parentReportID, reportActionID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[reportActionID]: {
-                childStateNum: CONST.REPORT.STATE_NUM.OPEN,
-                childStatusNum: CONST.REPORT.STATUS.OPEN,
-            }},
+            value: {
+                [reportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    childStatusNum: CONST.REPORT.STATUS.OPEN,
+                },
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -297,10 +303,12 @@ function reopenTask(taskReportID, parentReportID, reportActionID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[reportActionID]: {
-                childStateNum: CONST.REPORT.STATUS.OPEN,
-                childStatusNum: CONST.REPORT.STATUS.OPEN,
-            }},
+            value: {
+                [reportActionID]: {
+                    childStateNum: CONST.REPORT.STATUS.OPEN,
+                    childStatusNum: CONST.REPORT.STATUS.OPEN,
+                },
+            },
         },
     ];
     const failureData = [
