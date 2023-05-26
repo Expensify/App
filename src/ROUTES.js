@@ -65,6 +65,9 @@ export default {
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
+    APPLEOAUTH: 'signinwithapple',
+    GOOGLEOAUTH: 'signinwithgoogle',
+    APPLEOAUTHRECEIVER: 'siwa/:token',
 
     IOU_REQUEST,
     IOU_BILL,
