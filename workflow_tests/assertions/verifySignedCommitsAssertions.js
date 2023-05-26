@@ -1,17 +1,7 @@
 const utils = require('../utils/utils');
 
 const assertVerifySignedCommitsJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [
-        utils.createStepAssertion(
-            'Verify signed commits',
-            true,
-            null,
-            'VERIFYSIGNEDCOMMITS',
-            'Verify signed commits',
-            [{key: 'GITHUB_TOKEN', value: '***'}],
-            [],
-        ),
-    ];
+    const steps = [utils.createStepAssertion('Verify signed commits', true, null, 'VERIFYSIGNEDCOMMITS', 'Verify signed commits', [{key: 'GITHUB_TOKEN', value: '***'}], [])];
 
     steps.forEach((expectedStep) => {
         if (didExecute) {

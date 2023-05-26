@@ -2,51 +2,22 @@ const utils = require('../utils/utils');
 
 const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted = 3) => {
     const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'JEST',
-            'Checkout',
-            [],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Setup Node',
-            true,
-            null,
-            'JEST',
-            'Setup Node',
-            [],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Get number of CPU cores',
-            true,
-            null,
-            'JEST',
-            'Get number of CPU cores',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Checkout', true, null, 'JEST', 'Checkout', [], []),
+        utils.createStepAssertion('Setup Node', true, null, 'JEST', 'Setup Node', [], []),
+        utils.createStepAssertion('Get number of CPU cores', true, null, 'JEST', 'Get number of CPU cores', [], []),
         utils.createStepAssertion(
             'Cache Jest cache',
             true,
             null,
             'JEST',
             'Cache Jest cache',
-            [{key: 'path', value: '.jest-cache'}, {key: 'key', value: 'Linux-jest'}],
+            [
+                {key: 'path', value: '.jest-cache'},
+                {key: 'key', value: 'Linux-jest'},
+            ],
             [],
         ),
-        utils.createStepAssertion(
-            'Jest tests',
-            true,
-            null,
-            'JEST',
-            'Jest tests',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Jest tests', true, null, 'JEST', 'Jest tests', [], []),
     ];
 
     steps.forEach((expectedStep) => {
@@ -54,11 +25,7 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
             let cnt = 0;
             workflowResult.forEach((executedStep) => {
-                if (
-                    executedStep.name !== expectedStep.name
-                    || executedStep.output !== expectedStep.output
-                    || executedStep.status !== expectedStep.status
-                ) {
+                if (executedStep.name !== expectedStep.name || executedStep.output !== expectedStep.output || executedStep.status !== expectedStep.status) {
                     return;
                 }
                 cnt += 1;
@@ -71,33 +38,9 @@ const assertJestJobExecuted = (workflowResult, didExecute = true, timesExecuted 
 };
 const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'SHELLTESTS',
-            'Checkout',
-            [],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Setup Node',
-            true,
-            null,
-            'SHELLTESTS',
-            'Setup Node',
-            [],
-            [],
-        ),
-        utils.createStepAssertion(
-            'getPullRequestsMergedBetween',
-            true,
-            null,
-            'SHELLTESTS',
-            'getPullRequestsMergedBetween',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Checkout', true, null, 'SHELLTESTS', 'Checkout', [], []),
+        utils.createStepAssertion('Setup Node', true, null, 'SHELLTESTS', 'Setup Node', [], []),
+        utils.createStepAssertion('getPullRequestsMergedBetween', true, null, 'SHELLTESTS', 'getPullRequestsMergedBetween', [], []),
     ];
 
     steps.forEach((expectedStep) => {
@@ -110,5 +53,6 @@ const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
 };
 
 module.exports = {
-    assertJestJobExecuted, assertShellTestsJobExecuted,
+    assertJestJobExecuted,
+    assertShellTestsJobExecuted,
 };

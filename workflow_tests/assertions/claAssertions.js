@@ -8,7 +8,10 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
             null,
             'CLA',
             'CLA comment check',
-            [{key: 'text', value: commentBody}, {key: 'regex', value: '\\s*I have read the CLA Document and I hereby sign the CLA\\s*'}],
+            [
+                {key: 'text', value: commentBody},
+                {key: 'regex', value: '\\s*I have read the CLA Document and I hereby sign the CLA\\s*'},
+            ],
             [],
         ),
         utils.createStepAssertion(
@@ -17,7 +20,10 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
             null,
             'CLA',
             'CLA comment re-check',
-            [{key: 'text', value: commentBody}, {key: 'regex', value: '\\s*recheck\\s*'}],
+            [
+                {key: 'text', value: commentBody},
+                {key: 'regex', value: '\\s*recheck\\s*'},
+            ],
             [],
         ),
     ];
@@ -46,7 +52,10 @@ const assertCLAJobExecuted = (workflowResult, commentBody = '', githubRepository
                 {key: 'lock-pullrequest-aftermerge', value: false},
                 {key: 'allowlist', value: 'OSBotify,snyk-bot'},
             ],
-            [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'PERSONAL_ACCESS_TOKEN', value: '***'}],
+            [
+                {key: 'GITHUB_TOKEN', value: '***'},
+                {key: 'PERSONAL_ACCESS_TOKEN', value: '***'},
+            ],
         ),
     ];
 

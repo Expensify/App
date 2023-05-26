@@ -96,13 +96,12 @@ describe('test workflow platformDeploy', () => {
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent('push', {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
+                });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');
                 assertions.assertAndroidJobExecuted(result, true, false, true);
@@ -169,13 +168,12 @@ describe('test workflow platformDeploy', () => {
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'OSBotify',
-                        logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent('push', {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'OSBotify',
+                    logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
+                });
 
                 assertions.assertVerifyActorJobExecuted(result, 'OSBotify');
                 assertions.assertAndroidJobExecuted(result, true, false, true);
@@ -242,13 +240,12 @@ describe('test workflow platformDeploy', () => {
                     postSlackMessageOnSuccess: mocks.PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS,
                     postGithubComment: mocks.PLATFORM_DEPLOY__POST_GITHUB_COMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent('push', {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'platformDeploy.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('platformDeploy', expect.getState().currentTestName),
+                });
 
                 assertions.assertVerifyActorJobExecuted(result, 'Dummy Author');
                 assertions.assertAndroidJobExecuted(result, false);

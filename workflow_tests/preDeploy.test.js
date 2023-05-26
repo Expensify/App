@@ -55,7 +55,9 @@ describe('test workflow preDeploy', () => {
             'push',
             {ref: 'refs/heads/main'},
             {
-                OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                OS_BOTIFY_TOKEN: 'dummy_token',
+                SLACK_WEBHOOK: 'dummy_slack_webhook',
+                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
             },
             'dummy_github_token',
         );
@@ -75,13 +77,12 @@ describe('test workflow preDeploy', () => {
         };
 
         // run an event and get the result
-        const result = await act
-            .runEvent('push', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Tester',
-                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-            });
+        const result = await act.runEvent('push', {
+            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+            mockSteps: testMockSteps,
+            actor: 'Dummy Tester',
+            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+        });
 
         // assert results (some steps can run in parallel to each other so the order is not assured
         // therefore we can check which steps have been executed, but not the set job order
@@ -117,17 +118,18 @@ describe('test workflow preDeploy', () => {
             'pull_request',
             {head: {ref: 'main'}},
             {
-                OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                OS_BOTIFY_TOKEN: 'dummy_token',
+                SLACK_WEBHOOK: 'dummy_slack_webhook',
+                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
             },
             'dummy_github_token',
         );
-        let result = await act
-            .runEvent('pull_request', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Tester',
-                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-            });
+        let result = await act.runEvent('pull_request', {
+            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+            mockSteps: testMockSteps,
+            actor: 'Dummy Tester',
+            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+        });
         assertions.assertLintJobExecuted(result, false);
         assertions.assertTestJobExecuted(result, false);
         assertions.assertIsExpensifyEmployeeJobExecuted(result, false);
@@ -142,17 +144,18 @@ describe('test workflow preDeploy', () => {
             'workflow_dispatch',
             {},
             {
-                OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                OS_BOTIFY_TOKEN: 'dummy_token',
+                SLACK_WEBHOOK: 'dummy_slack_webhook',
+                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
             },
             'dummy_github_token',
         );
-        result = await act
-            .runEvent('workflow_dispatch', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Tester',
-                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-            });
+        result = await act.runEvent('workflow_dispatch', {
+            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+            mockSteps: testMockSteps,
+            actor: 'Dummy Tester',
+            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+        });
         assertions.assertLintJobExecuted(result, false);
         assertions.assertTestJobExecuted(result, false);
         assertions.assertIsExpensifyEmployeeJobExecuted(result, false);
@@ -172,23 +175,14 @@ describe('test workflow preDeploy', () => {
                 'push',
                 {ref: 'refs/heads/main'},
                 {
-                    OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                    OS_BOTIFY_TOKEN: 'dummy_token',
+                    SLACK_WEBHOOK: 'dummy_slack_webhook',
+                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
             const testMockSteps = {
-                lint: [
-                    utils.createMockStep(
-                        'Run lint workflow',
-                        'Running lint workflow - Lint workflow failed',
-                        'LINT',
-                        null,
-                        null,
-                        null,
-                        null,
-                        false,
-                    ),
-                ],
+                lint: [utils.createMockStep('Run lint workflow', 'Running lint workflow - Lint workflow failed', 'LINT', null, null, null, null, false)],
                 test: mocks.TEST_JOB_MOCK_STEPS,
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
@@ -199,43 +193,23 @@ describe('test workflow preDeploy', () => {
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                 e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                });
-            expect(result).toEqual(expect.arrayContaining(
-                [
-                    utils.createStepAssertion(
-                        'Run lint workflow',
-                        false,
-                        null,
-                        'LINT',
-                        'Running lint workflow - Lint workflow failed',
-                    ),
-                ],
-            ));
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Tester',
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+            });
+            expect(result).toEqual(expect.arrayContaining([utils.createStepAssertion('Run lint workflow', false, null, 'LINT', 'Running lint workflow - Lint workflow failed')]));
             assertions.assertTestJobExecuted(result);
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
-            expect(result).toEqual(expect.arrayContaining(
-                [
-                    utils.createStepAssertion(
-                        'Announce failed workflow in Slack',
-                        true,
-                        null,
-                        'CONFIRM_PASSING_BUILD',
-                        'Announcing failed workflow in slack',
-                        [{key: 'SLACK_WEBHOOK', value: '***'}],
-                    ),
-                    utils.createStepAssertion(
-                        'Exit failed workflow',
-                        false,
-                        '',
-                    ),
-                ],
-            ));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
+                        {key: 'SLACK_WEBHOOK', value: '***'},
+                    ]),
+                    utils.createStepAssertion('Exit failed workflow', false, ''),
+                ]),
+            );
             assertions.assertChooseDeployActionsJobExecuted(result, false);
             assertions.assertSkipDeployJobExecuted(result, false);
             assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -251,24 +225,15 @@ describe('test workflow preDeploy', () => {
                 'push',
                 {ref: 'refs/heads/main'},
                 {
-                    OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                    OS_BOTIFY_TOKEN: 'dummy_token',
+                    SLACK_WEBHOOK: 'dummy_slack_webhook',
+                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
             const testMockSteps = {
                 lint: mocks.LINT_JOB_MOCK_STEPS,
-                test: [
-                    utils.createMockStep(
-                        'Run test workflow',
-                        'Running test workflow - Test workflow failed',
-                        'TEST',
-                        null,
-                        null,
-                        null,
-                        null,
-                        false,
-                    ),
-                ],
+                test: [utils.createMockStep('Run test workflow', 'Running test workflow - Test workflow failed', 'TEST', null, null, null, null, false)],
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
                 chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
@@ -278,43 +243,23 @@ describe('test workflow preDeploy', () => {
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                 e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Tester',
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+            });
             assertions.assertLintJobExecuted(result);
-            expect(result).toEqual(expect.arrayContaining(
-                [
-                    utils.createStepAssertion(
-                        'Run test workflow',
-                        false,
-                        null,
-                        'TEST',
-                        'Running test workflow - Test workflow failed',
-                    ),
-                ],
-            ));
+            expect(result).toEqual(expect.arrayContaining([utils.createStepAssertion('Run test workflow', false, null, 'TEST', 'Running test workflow - Test workflow failed')]));
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
-            expect(result).toEqual(expect.arrayContaining(
-                [
-                    utils.createStepAssertion(
-                        'Announce failed workflow in Slack',
-                        true,
-                        null,
-                        'CONFIRM_PASSING_BUILD',
-                        'Announcing failed workflow in slack',
-                        [{key: 'SLACK_WEBHOOK', value: '***'}],
-                    ),
-                    utils.createStepAssertion(
-                        'Exit failed workflow',
-                        false,
-                        '',
-                    ),
-                ],
-            ));
+            expect(result).toEqual(
+                expect.arrayContaining([
+                    utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CONFIRM_PASSING_BUILD', 'Announcing failed workflow in slack', [
+                        {key: 'SLACK_WEBHOOK', value: '***'},
+                    ]),
+                    utils.createStepAssertion('Exit failed workflow', false, ''),
+                ]),
+            );
             assertions.assertChooseDeployActionsJobExecuted(result, false);
             assertions.assertSkipDeployJobExecuted(result, false);
             assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -330,7 +275,9 @@ describe('test workflow preDeploy', () => {
                 'push',
                 {ref: 'refs/heads/main'},
                 {
-                    OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                    OS_BOTIFY_TOKEN: 'dummy_token',
+                    SLACK_WEBHOOK: 'dummy_slack_webhook',
+                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
@@ -346,13 +293,12 @@ describe('test workflow preDeploy', () => {
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                 e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Tester',
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+            });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -373,7 +319,9 @@ describe('test workflow preDeploy', () => {
                 'push',
                 {ref: 'refs/heads/main'},
                 {
-                    OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                    OS_BOTIFY_TOKEN: 'dummy_token',
+                    SLACK_WEBHOOK: 'dummy_slack_webhook',
+                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
@@ -389,13 +337,12 @@ describe('test workflow preDeploy', () => {
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
                 e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'OSBotify',
-                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'OSBotify',
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+            });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -412,7 +359,9 @@ describe('test workflow preDeploy', () => {
                 'push',
                 {ref: 'refs/heads/main'},
                 {
-                    OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                    OS_BOTIFY_TOKEN: 'dummy_token',
+                    SLACK_WEBHOOK: 'dummy_slack_webhook',
+                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
@@ -428,13 +377,12 @@ describe('test workflow preDeploy', () => {
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                 e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Tester',
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+            });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -451,7 +399,9 @@ describe('test workflow preDeploy', () => {
                 'push',
                 {ref: 'refs/heads/main'},
                 {
-                    OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                    OS_BOTIFY_TOKEN: 'dummy_token',
+                    SLACK_WEBHOOK: 'dummy_slack_webhook',
+                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
@@ -467,13 +417,12 @@ describe('test workflow preDeploy', () => {
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                 e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Tester',
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+            });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -490,7 +439,9 @@ describe('test workflow preDeploy', () => {
                 'push',
                 {ref: 'refs/heads/main'},
                 {
-                    OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                    OS_BOTIFY_TOKEN: 'dummy_token',
+                    SLACK_WEBHOOK: 'dummy_slack_webhook',
+                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
@@ -506,13 +457,12 @@ describe('test workflow preDeploy', () => {
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR,
                 e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Tester',
-                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Tester',
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+            });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
             assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -528,13 +478,7 @@ describe('test workflow preDeploy', () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        'push',
-                        {ref: 'refs/heads/main'},
-                        {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'},
-                        'dummy_github_token',
-                    );
+                    act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
                     const testMockSteps = {
                         lint: mocks.LINT_JOB_MOCK_STEPS,
                         test: mocks.TEST_JOB_MOCK_STEPS,
@@ -547,13 +491,12 @@ describe('test workflow preDeploy', () => {
                         newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                         e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
                     };
-                    const result = await act
-                        .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                            mockSteps: testMockSteps,
-                            actor: 'Dummy Tester',
-                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent('push', {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                        mockSteps: testMockSteps,
+                        actor: 'Dummy Tester',
+                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
                     assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -568,13 +511,7 @@ describe('test workflow preDeploy', () => {
                     const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        'push',
-                        {ref: 'refs/heads/main'},
-                        {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'},
-                        'dummy_github_token',
-                    );
+                    act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
                     const testMockSteps = {
                         lint: mocks.LINT_JOB_MOCK_STEPS,
                         test: mocks.TEST_JOB_MOCK_STEPS,
@@ -587,13 +524,12 @@ describe('test workflow preDeploy', () => {
                         newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
                         e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
                     };
-                    const result = await act
-                        .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                            mockSteps: testMockSteps,
-                            actor: 'OSBotify',
-                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent('push', {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                        mockSteps: testMockSteps,
+                        actor: 'OSBotify',
+                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
                     assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -633,13 +569,12 @@ describe('test workflow preDeploy', () => {
                         newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                         e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
                     };
-                    const result = await act
-                        .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                            mockSteps: testMockSteps,
-                            actor: 'Dummy Tester',
-                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent('push', {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                        mockSteps: testMockSteps,
+                        actor: 'Dummy Tester',
+                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
                     assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -676,13 +611,12 @@ describe('test workflow preDeploy', () => {
                         newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
                         e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
                     };
-                    const result = await act
-                        .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                            mockSteps: testMockSteps,
-                            actor: 'OSBotify',
-                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent('push', {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                        mockSteps: testMockSteps,
+                        actor: 'OSBotify',
+                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
                     assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -724,13 +658,12 @@ describe('test workflow preDeploy', () => {
                         newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                         e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
                     };
-                    const result = await act
-                        .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                            mockSteps: testMockSteps,
-                            actor: 'Dummy Tester',
-                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent('push', {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                        mockSteps: testMockSteps,
+                        actor: 'Dummy Tester',
+                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
                     assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -768,13 +701,12 @@ describe('test workflow preDeploy', () => {
                         newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                         e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
                     };
-                    const result = await act
-                        .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                            mockSteps: testMockSteps,
-                            actor: 'OSBotify',
-                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent('push', {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                        mockSteps: testMockSteps,
+                        actor: 'OSBotify',
+                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
                     assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -814,13 +746,12 @@ describe('test workflow preDeploy', () => {
                         newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                         e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
                     };
-                    const result = await act
-                        .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                            mockSteps: testMockSteps,
-                            actor: 'Dummy Tester',
-                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent('push', {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                        mockSteps: testMockSteps,
+                        actor: 'Dummy Tester',
+                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
                     assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -858,13 +789,12 @@ describe('test workflow preDeploy', () => {
                         newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
                         e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
                     };
-                    const result = await act
-                        .runEvent('push', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                            mockSteps: testMockSteps,
-                            actor: 'OSBotify',
-                            logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent('push', {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                        mockSteps: testMockSteps,
+                        actor: 'OSBotify',
+                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    });
                     assertions.assertLintJobExecuted(result);
                     assertions.assertTestJobExecuted(result);
                     assertions.assertIsExpensifyEmployeeJobExecuted(result);
@@ -886,7 +816,9 @@ describe('test workflow preDeploy', () => {
                 'push',
                 {ref: 'refs/heads/main'},
                 {
-                    OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook', LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                    OS_BOTIFY_TOKEN: 'dummy_token',
+                    SLACK_WEBHOOK: 'dummy_slack_webhook',
+                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
                 },
                 'dummy_github_token',
             );
@@ -903,13 +835,12 @@ describe('test workflow preDeploy', () => {
                 e2ePerformanceTests: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
             };
             testMockSteps.updateStaging[3].mockWith = 'exit 1';
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'OSBotify',
-                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'OSBotify',
+                logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+            });
             assertions.assertLintJobExecuted(result);
             assertions.assertTestJobExecuted(result);
             assertions.assertIsExpensifyEmployeeJobExecuted(result);

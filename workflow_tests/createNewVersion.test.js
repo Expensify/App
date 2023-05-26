@@ -57,27 +57,18 @@ describe('test workflow createNewVersion', () => {
                 const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
                 act = utils.setJobRunners(act, {createNewVersion: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: validateActorMockSteps,
                     createNewVersion: mocks.CREATENEWVERSION__CREATENEWVERSION__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
+                });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result);
             });
@@ -89,27 +80,18 @@ describe('test workflow createNewVersion', () => {
                 const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
                 act = utils.setJobRunners(act, {createNewVersion: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: validateActorMockSteps,
                     createNewVersion: mocks.CREATENEWVERSION__CREATENEWVERSION__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
+                });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result);
             });
@@ -121,27 +103,18 @@ describe('test workflow createNewVersion', () => {
                 const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
                 act = utils.setJobRunners(act, {createNewVersion: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: validateActorMockSteps,
                     createNewVersion: mocks.CREATENEWVERSION__CREATENEWVERSION__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
+                });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result, 'BUILD', false);
             });
@@ -152,37 +125,19 @@ describe('test workflow createNewVersion', () => {
                 const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
                 act = utils.setJobRunners(act, {createNewVersion: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.CREATENEWVERSION__VALIDATEACTOR__ADMIN__STEP_MOCKS,
                     createNewVersion: utils.deepCopy(mocks.CREATENEWVERSION__CREATENEWVERSION__STEP_MOCKS),
                 };
-                testMockSteps.createNewVersion[5] = utils.createMockStep(
-                    'Commit new version',
-                    'Commit new version',
-                    'CREATENEWVERSION',
-                    [],
-                    [],
-                    [],
-                    [],
-                    false,
-                );
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
-                    });
+                testMockSteps.createNewVersion[5] = utils.createMockStep('Commit new version', 'Commit new version', 'CREATENEWVERSION', [], [], [], [], false);
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
+                });
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result, 'BUILD', true, false);
             });
@@ -192,27 +147,18 @@ describe('test workflow createNewVersion', () => {
             const repoPath = mockGithub.repo.getPath('testCreateNewVersionWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                {},
-                secrets,
-                githubToken,
-                {},
-                {SEMVER_LEVEL: 'MAJOR'},
-            );
+            act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, {SEMVER_LEVEL: 'MAJOR'});
             act = utils.setJobRunners(act, {createNewVersion: 'ubuntu-latest'}, workflowPath);
             const testMockSteps = {
                 validateActor: mocks.CREATENEWVERSION__VALIDATEACTOR__ADMIN__STEP_MOCKS,
                 createNewVersion: mocks.CREATENEWVERSION__CREATENEWVERSION__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Author',
-                    logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'createNewVersion.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Author',
+                logFile: utils.getLogFilePath('createNewVersion', expect.getState().currentTestName),
+            });
             assertions.assertValidateActorJobExecuted(result);
             assertions.assertCreateNewVersionJobExecuted(result, 'MAJOR');
         });

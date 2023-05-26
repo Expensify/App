@@ -12,7 +12,7 @@ const workflowTestAssertionsDirectory = path.join(workflowTestsDirectory, 'asser
 const workflowFilePattern = '\\w+\\.yml';
 const workflowFileRegex = new RegExp(workflowFilePattern, 'g');
 
-const capitalize = s => (s && s.charAt(0).toUpperCase() + s.slice(1)) || '';
+const capitalize = (s) => (s && s.charAt(0).toUpperCase() + s.slice(1)) || '';
 const mockFileTemplate = (mockSteps, exports) => `const utils = require('../utils/utils');
 ${mockSteps}
 ${exports}
@@ -21,7 +21,7 @@ const assertionFileTemplate = (jobAssertions, exports) => `const utils = require
 ${jobAssertions}
 ${exports}
 `;
-const testFileTemplate = workflowName => `const path = require('path');
+const testFileTemplate = (workflowName) => `const path = require('path');
 const kieMockGithub = require('@kie/mock-github');
 const utils = require('./utils/utils');
 const assertions = require('./assertions/${workflowName}Assertions');
@@ -111,12 +111,14 @@ const stepAssertionTemplate = (step_name, job_id, step_message, inputs, envs) =>
             null,
             '${job_id}',
             '${step_message}',
-            [${_(inputs).map(input => `{key: '${input}', value: '[FILL_IN]'}`)}],
-            [${_(envs).map(env => `{key: '${env}', value: '[FILL_IN]'}`)}],
+            [${_(inputs).map((input) => `{key: '${input}', value: '[FILL_IN]'}`)}],
+            [${_(envs).map((env) => `{key: '${env}', value: '[FILL_IN]'}`)}],
         ),`;
 const jobMocksTemplate = (jobMocksName, stepMocks) => `
-const ${jobMocksName} = [${_(stepMocks).map(stepMock => `
-    ${stepMock}`)}
+const ${jobMocksName} = [${_(stepMocks).map(
+    (stepMock) => `
+    ${stepMock}`,
+)}
 ];`;
 const jobAssertionTemplate = (jobAssertionName, stepAssertions) => `
 const ${jobAssertionName} = (workflowResult, didExecute = true) => {
@@ -131,13 +133,13 @@ const ${jobAssertionName} = (workflowResult, didExecute = true) => {
         }
     }
 };`;
-const mocksExportsTemplate = jobMocks => `
+const mocksExportsTemplate = (jobMocks) => `
 module.exports = {
-    ${_(jobMocks).map(jobMock => `${jobMock}`)}
+    ${_(jobMocks).map((jobMock) => `${jobMock}`)}
 };`;
-const assertionsExportsTemplate = jobAssertions => `
+const assertionsExportsTemplate = (jobAssertions) => `
 module.exports = {
-    ${_(jobAssertions).map(jobAssertion => `${jobAssertion}`)}
+    ${_(jobAssertions).map((jobAssertion) => `${jobAssertion}`)}
 };`;
 
 const checkArguments = (args) => {
@@ -206,7 +208,11 @@ const getMockFileContent = (workflowName, jobs) => {
         let mockStepsContent = `\n// ${jobId.toLowerCase()}`;
         const stepMocks = [];
         job.steps.forEach((step) => {
-            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${step.name.replaceAll(' ', '_').replaceAll('-', '_').replaceAll(',', '').replaceAll('#', '')
+            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${step.name
+                .replaceAll(' ', '_')
+                .replaceAll('-', '_')
+                .replaceAll(',', '')
+                .replaceAll('#', '')
                 .toUpperCase()}__STEP_MOCK`;
             stepMocks.push(stepMockName);
             mockStepsContent += mockStepTemplate(stepMockName, step, jobId);
@@ -232,7 +238,7 @@ const getAssertionsFileContent = (workflowName, jobs) => {
     });
     return assertionFileTemplate(content, assertionsExportsTemplate(jobAssertions));
 };
-const getTestFileContent = workflowName => testFileTemplate(workflowName);
+const getTestFileContent = (workflowName) => testFileTemplate(workflowName);
 
 const call_args = process.argv.slice(2);
 checkArguments(call_args);

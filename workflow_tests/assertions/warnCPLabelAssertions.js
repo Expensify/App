@@ -24,15 +24,7 @@ const assertWarnCPLabelJobExecuted = (workflowResult, didExecute = true, isSucce
     });
 
     const failedSteps = [
-        utils.createStepAssertion(
-            'Announce failed workflow in Slack',
-            true,
-            null,
-            'WARNCPLABEL',
-            'Announce failed workflow in Slack',
-            [{key: 'SLACK_WEBHOOK', value: '***'}],
-            [],
-        ),
+        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'WARNCPLABEL', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
     ];
 
     failedSteps.forEach((step) => {

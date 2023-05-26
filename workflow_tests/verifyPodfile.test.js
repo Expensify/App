@@ -51,28 +51,17 @@ describe('test workflow verifyPodfile', () => {
             const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                {},
-                githubToken,
-            );
-            act = utils.setJobRunners(
-                act,
-                {verify: 'ubuntu-latest'},
-                workflowPath,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
+            act = utils.setJobRunners(act, {verify: 'ubuntu-latest'}, workflowPath);
             const testMockSteps = {
                 verify: mocks.VERIFYPODFILE__VERIFY__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
+            });
 
             assertions.assertVerifyJobExecuted(result);
         });
@@ -81,28 +70,17 @@ describe('test workflow verifyPodfile', () => {
                 const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {verify: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
+                act = utils.setJobRunners(act, {verify: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     verify: mocks.VERIFYPODFILE__VERIFY__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
-                        mockSteps: testMockSteps,
-                        actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
+                    mockSteps: testMockSteps,
+                    actor: osbotifyActor,
+                    logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
+                });
 
                 assertions.assertVerifyJobExecuted(result, false);
             });
@@ -117,28 +95,17 @@ describe('test workflow verifyPodfile', () => {
             const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                {},
-                githubToken,
-            );
-            act = utils.setJobRunners(
-                act,
-                {verify: 'ubuntu-latest'},
-                workflowPath,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
+            act = utils.setJobRunners(act, {verify: 'ubuntu-latest'}, workflowPath);
             const testMockSteps = {
                 verify: mocks.VERIFYPODFILE__VERIFY__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
+            });
 
             assertions.assertVerifyJobExecuted(result);
         });
@@ -147,28 +114,17 @@ describe('test workflow verifyPodfile', () => {
                 const repoPath = mockGithub.repo.getPath('testVerifyPodfileWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {verify: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
+                act = utils.setJobRunners(act, {verify: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     verify: mocks.VERIFYPODFILE__VERIFY__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
-                        mockSteps: testMockSteps,
-                        actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'verifyPodfile.yml'),
+                    mockSteps: testMockSteps,
+                    actor: osbotifyActor,
+                    logFile: utils.getLogFilePath('verifyPodfile', expect.getState().currentTestName),
+                });
 
                 assertions.assertVerifyJobExecuted(result, false);
             });

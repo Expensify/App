@@ -8,18 +8,14 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
             null,
             'LOCKSTAGINGDEPLOYS',
             'Checking out',
-            [{key: 'ref', value: 'main'}, {key: 'fetch-depth', value: '0'}, {key: 'token', value: '***'}],
+            [
+                {key: 'ref', value: 'main'},
+                {key: 'fetch-depth', value: '0'},
+                {key: 'token', value: '***'},
+            ],
             [],
         ),
-        utils.createStepAssertion(
-            'Wait for staging deploys to finish',
-            true,
-            null,
-            'LOCKSTAGINGDEPLOYS',
-            'Waiting for staging deploys to finish',
-            [{key: 'GITHUB_TOKEN', value: '***'}],
-            [],
-        ),
+        utils.createStepAssertion('Wait for staging deploys to finish', true, null, 'LOCKSTAGINGDEPLOYS', 'Waiting for staging deploys to finish', [{key: 'GITHUB_TOKEN', value: '***'}], []),
         utils.createStepAssertion(
             'Comment in StagingDeployCash to give Applause the 🟢 to begin QA',
             true,
@@ -40,15 +36,7 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
     });
 
     const failProdSteps = [
-        utils.createStepAssertion(
-            'Announce failed workflow',
-            true,
-            null,
-            'LOCKSTAGINGDEPLOYS',
-            'Announcing failed workflow in Slack',
-            [{key: 'SLACK_WEBHOOK', value: '***'}],
-            [],
-        ),
+        utils.createStepAssertion('Announce failed workflow', true, null, 'LOCKSTAGINGDEPLOYS', 'Announcing failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
     ];
 
     failProdSteps.forEach((expectedStep) => {
@@ -68,7 +56,11 @@ const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
             null,
             'LOCKSTAGINGDEPLOYS',
             'Checking out',
-            [{key: 'ref', value: 'main'}, {key: 'fetch-depth', value: '0'}, {key: 'token', value: '***'}],
+            [
+                {key: 'ref', value: 'main'},
+                {key: 'fetch-depth', value: '0'},
+                {key: 'token', value: '***'},
+            ],
             [],
         ),
         utils.createStepAssertion(
@@ -80,15 +72,7 @@ const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
             [{key: 'GITHUB_TOKEN', value: '***'}],
             [],
         ),
-        utils.createStepAssertion(
-            'Announce failed workflow',
-            true,
-            null,
-            'LOCKSTAGINGDEPLOYS',
-            'Announcing failed workflow in Slack',
-            [{key: 'SLACK_WEBHOOK', value: '***'}],
-            [],
-        ),
+        utils.createStepAssertion('Announce failed workflow', true, null, 'LOCKSTAGINGDEPLOYS', 'Announcing failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
     ];
 
     steps.forEach((expectedStep) => {

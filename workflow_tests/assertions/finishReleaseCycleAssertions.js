@@ -117,17 +117,7 @@ const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true) =>
 };
 
 const assertCreateNewPatchVersionJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [
-        utils.createStepAssertion(
-            'Create new version',
-            true,
-            null,
-            'CREATENEWPATCHVERSION',
-            'Creating new version',
-            [{key: 'SEMVER_LEVEL', value: 'PATCH'}],
-            [],
-        ),
-    ];
+    const steps = [utils.createStepAssertion('Create new version', true, null, 'CREATENEWPATCHVERSION', 'Creating new version', [{key: 'SEMVER_LEVEL', value: 'PATCH'}], [])];
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -153,15 +143,7 @@ const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion 
             ],
             [],
         ),
-        utils.createStepAssertion(
-            'Tag version',
-            true,
-            null,
-            'CREATENEWSTAGINGDEPLOYCASH',
-            'Tagging version',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Tag version', true, null, 'CREATENEWSTAGINGDEPLOYCASH', 'Tagging version', [], []),
         utils.createStepAssertion(
             'Create new StagingDeployCash',
             true,
@@ -189,15 +171,7 @@ const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion 
     });
 
     const failProdSteps = [
-        utils.createStepAssertion(
-            'Announce failed workflow in Slack',
-            true,
-            null,
-            'CREATENEWSTAGINGDEPLOYCASH',
-            'Announcing failed workflow',
-            [{key: 'SLACK_WEBHOOK', value: '***'}],
-            [],
-        ),
+        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'CREATENEWSTAGINGDEPLOYCASH', 'Announcing failed workflow', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
     ];
 
     failProdSteps.forEach((expectedStep) => {

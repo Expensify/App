@@ -61,13 +61,12 @@ describe('test workflow deploy', () => {
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'OSBotify',
-                    logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'OSBotify',
+                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
+            });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result, false);
@@ -94,13 +93,12 @@ describe('test workflow deploy', () => {
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'OSBotify',
-                    logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'OSBotify',
+                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
+            });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result);
             assertions.assertDeployProductionJobExecuted(result, false);
@@ -127,13 +125,12 @@ describe('test workflow deploy', () => {
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'OSBotify',
-                    logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'OSBotify',
+                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
+            });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result);
@@ -161,13 +158,12 @@ describe('test workflow deploy', () => {
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Author',
-                    logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Author',
+                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
+            });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result, false);
@@ -194,13 +190,12 @@ describe('test workflow deploy', () => {
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Author',
-                    logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Author',
+                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
+            });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result, false);
@@ -227,13 +222,12 @@ describe('test workflow deploy', () => {
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
-            const result = await act
-                .runEvent('push', {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Author',
-                    logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent('push', {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Author',
+                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
+            });
             assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result, false);
@@ -261,13 +255,12 @@ describe('test workflow deploy', () => {
             },
             'dummy_github_token',
         );
-        let result = await act
-            .runEvent('pull_request', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Author',
-                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-            });
+        let result = await act.runEvent('pull_request', {
+            workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
+            mockSteps: testMockSteps,
+            actor: 'Dummy Author',
+            logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
+        });
         assertions.assertValidateJobExecuted(result, false);
         assertions.assertDeployStagingJobExecuted(result, false);
         assertions.assertDeployProductionJobExecuted(result, false);
@@ -283,13 +276,12 @@ describe('test workflow deploy', () => {
             },
             'dummy_github_token',
         );
-        result = await act
-            .runEvent('workflow_dispatch', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Author',
-                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-            });
+        result = await act.runEvent('workflow_dispatch', {
+            workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
+            mockSteps: testMockSteps,
+            actor: 'Dummy Author',
+            logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
+        });
         assertions.assertValidateJobExecuted(result, false);
         assertions.assertDeployStagingJobExecuted(result, false);
         assertions.assertDeployProductionJobExecuted(result, false);
