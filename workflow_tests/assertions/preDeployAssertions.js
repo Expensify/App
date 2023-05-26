@@ -124,7 +124,7 @@ const assertChooseDeployActionsJobExecuted = (workflowResult, didExecute = true)
 };
 
 const assertSkipDeployJobExecuted = (workflowResult, didExecute = true) => {
-    const body = ':hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically ' + 'deployed to staging after the next production release.';
+    const body = ':hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.';
     const steps = [
         utils.createStepAssertion('Comment on deferred PR', true, null, 'SKIP_DEPLOY', 'Skipping deploy', [
             {key: 'github_token', value: '***'},
