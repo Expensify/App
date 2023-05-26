@@ -1092,8 +1092,8 @@ const styles = {
     },
 
     signInPageLeftContainer: {
-        paddingLeft: 40,
-        paddingRight: 40,
+        paddingLeft: 48,
+        paddingRight: 48,
     },
 
     signInPageLeftContainerWide: {
@@ -1101,11 +1101,11 @@ const styles = {
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: 300,
+        maxWidth: 279,
     },
 
     signInPageWelcomeTextContainer: {
-        width: 300,
+        width: 279,
     },
 
     changeExpensifyLoginLinkContainer: {
