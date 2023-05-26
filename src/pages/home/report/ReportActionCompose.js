@@ -1089,7 +1089,7 @@ class ReportActionCompose extends React.Component {
                                                     this.resetSuggestions();
                                                 }}
                                                 onClick={() => {
-                                                    this.shouldBlockEmojiCalc = false
+                                                    this.shouldBlockEmojiCalc = false;
                                                     this.shouldBlockMentionCalc = false;
                                                 }}
                                                 onPasteFile={displayFileInModal}
