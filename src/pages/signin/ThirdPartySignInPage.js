@@ -7,21 +7,17 @@ import SignInPageLayout from './SignInPageLayout';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
-import Button from '../../components/Button';
+import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
-    signInProvider: PropTypes.oneOf(['google', 'apple']),
+    signInProvider: PropTypes.oneOf(['google', 'apple']).isRequired,
 
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    signInProvider: 'google',
 };
 
 const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1);
@@ -41,14 +37,7 @@ function ThirdPartySignInPage(props) {
                 welcomeHeader={props.translate('welcomeText.getStarted')}
                 shouldShowWelcomeHeader
             >
-                {props.signInProvider === 'google' && (
-                    <Button
-                        large
-                        text="Continue with Google"
-                        style={[styles.mb5]}
-                        onPress={() => {}}
-                    />
-                )}
+                {props.signInProvider === 'apple' ? <AppleSignIn isDesktopFlow /> : null}
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.goBackMessage', {provider: capitalize(props.signInProvider)})}</Text>
                 <TextLink
@@ -80,7 +69,6 @@ function ThirdPartySignInPage(props) {
 }
 
 ThirdPartySignInPage.propTypes = propTypes;
-ThirdPartySignInPage.defaultProps = defaultProps;
 ThirdPartySignInPage.displayName = 'ThirdPartySignInPage';
 
 export default compose(withLocalize, withWindowDimensions)(ThirdPartySignInPage);
