@@ -194,8 +194,9 @@ class ReportActionCompose extends React.Component {
 
         this.shouldAutoFocus = !props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat()) && props.shouldShowComposeInput;
 
-        // This variable is used to decide whether to block the suggestions list from showing to prevent flickering
-        this.shouldBlockSuggestionsCalc = false;
+        // These variables are used to decide whether to block the suggestions list from showing to prevent flickering
+        this.shouldBlockEmojiCalc = false;
+        this.shouldBlockMentionCalc = false;
 
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
@@ -284,21 +285,13 @@ class ReportActionCompose extends React.Component {
 
     onSelectionChange(e) {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-
-        if (e) {
-            this.setState({selection: e.nativeEvent.selection});
-            if (!this.state.value || e.nativeEvent.selection.end < 1) {
-                this.resetSuggestions();
-                this.shouldBlockSuggestionsCalc = false;
-                return;
-            }
-        }
-
-        if (this.shouldBlockSuggestionsCalc) {
-            this.shouldBlockSuggestionsCalc = false;
+        this.setState({selection: e.nativeEvent.selection});
+        if (!this.state.value || e.nativeEvent.selection.end < 1) {
+            this.resetSuggestions();
+            this.shouldBlockEmojiCalc = false;
+            this.shouldBlockMentionCalc = false;
             return;
         }
-
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
     }
@@ -518,6 +511,11 @@ class ReportActionCompose extends React.Component {
      * Calculates and cares about the content of an Emoji Suggester
      */
     calculateEmojiSuggestion() {
+        if (this.shouldBlockEmojiCalc) {
+            this.shouldBlockEmojiCalc = false;
+            return;
+        }
+
         const leftString = this.state.value.substring(0, this.state.selection.end);
         const colonIndex = leftString.lastIndexOf(':');
         const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
@@ -544,6 +542,11 @@ class ReportActionCompose extends React.Component {
     }
 
     calculateMentionSuggestion() {
+        if (this.shouldBlockMentionCalc) {
+            this.shouldBlockMentionCalc = false;
+            return;
+        }
+
         const valueAfterTheCursor = this.state.value.substring(this.state.selection.end);
         const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
 
@@ -945,7 +948,8 @@ class ReportActionCompose extends React.Component {
                             onConfirm={this.addAttachment}
                             onModalShow={() => this.setState({isAttachmentPreviewActive: true})}
                             onModalHide={() => {
-                                this.shouldBlockSuggestionsCalc = false;
+                                this.shouldBlockEmojiCalc = false;
+                                this.shouldBlockMentionCalc = false;
                                 this.setState({isAttachmentPreviewActive: false});
                             }}
                         >
@@ -1026,10 +1030,11 @@ class ReportActionCompose extends React.Component {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
                                                             onSelected: () => {
-                                                                // Set a flag to block emoji calculation until we're finished using the file picker,
+                                                                // Set a flag to block suggestion calculation until we're finished using the file picker,
                                                                 // which will stop any flickering as the file picker opens on non-native devices.
                                                                 if (this.willBlurTextInputOnTapOutside) {
-                                                                    this.shouldBlockSuggestionsCalc = true;
+                                                                    this.shouldBlockEmojiCalc = true;
+                                                                    this.shouldBlockMentionCalc = true;
                                                                 }
 
                                                                 openPicker({
@@ -1084,8 +1089,8 @@ class ReportActionCompose extends React.Component {
                                                     this.resetSuggestions();
                                                 }}
                                                 onClick={() => {
-                                                    this.shouldBlockSuggestionsCalc = false;
-                                                    this.onSelectionChange();
+                                                    this.shouldBlockEmojiCalc = false
+                                                    this.shouldBlockMentionCalc = false;
                                                 }}
                                                 onPasteFile={displayFileInModal}
                                                 shouldClear={this.state.textInputShouldClear}
