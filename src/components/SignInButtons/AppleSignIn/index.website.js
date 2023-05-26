@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import getUserLanguage from './getUserLanguage';
-import {beginAppleSignIn} from '../../libs/actions/Session';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
+import getUserLanguage from '../GetUserLanguage';
+import {beginAppleSignIn} from '../../../libs/actions/Session';
 
 const propTypes = {...withLocalizePropTypes};
 

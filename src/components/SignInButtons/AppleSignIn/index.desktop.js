@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import ButtonBase from './ButtonBase';
-import AppleLogoIcon from '../../../assets/images/signIn/apple-logo.svg';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
+import ButtonBase from '../ButtonBase';
+import AppleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
 
 const propTypes = {...withLocalizePropTypes};
 

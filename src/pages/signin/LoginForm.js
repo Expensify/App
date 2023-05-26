@@ -24,7 +24,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
-import AppleSignIn from '../../components/SignInButtons/Apple';
+import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
