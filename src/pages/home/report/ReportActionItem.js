@@ -107,7 +107,7 @@ const defaultProps = {
 function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
-    const [moderationDecision, setModerationDecision] = useState('approved');
+    const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
 
@@ -129,7 +129,7 @@ function ReportActionItem(props) {
 
         // Right now we are only sending the latest moderationDecision to the frontend even though it is an array
         const latestDecision = props.action.moderationDecisions[0];
-        if (latestDecision.decision === 'pendingHide' || latestDecision.decision === 'hidden') {
+        if (latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision.decision);
@@ -245,7 +245,7 @@ function ReportActionItem(props) {
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
-            const hasBeenFlagged = moderationDecision !== 'approved';
+            const hasBeenFlagged = moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_APPROVED;
             const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
@@ -359,7 +359,7 @@ function ReportActionItem(props) {
                     wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
-                    hasBeenFlagged={moderationDecision !== 'approved'}
+                    hasBeenFlagged={moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_APPROVED}
                 >
                     {content}
                 </ReportActionItemSingle>
