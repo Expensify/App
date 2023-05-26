@@ -123,17 +123,17 @@ function ReportActionItem(props) {
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
     useEffect(() => {
-        if (_.isEmpty(props.action.moderationDecisions)) {
+        if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(props.action.message[0].moderationDecisions)) {
             return;
         }
 
         // Right now we are only sending the latest moderationDecision to the frontend even though it is an array
-        const latestDecision = props.action.moderationDecisions[0];
+        const latestDecision = props.action.message[0].moderationDecisions[0];
         if (latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision.decision);
-    }, [props.action, moderationDecision]);
+    }, [props.action.message, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -245,8 +245,7 @@ function ReportActionItem(props) {
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
-            const hasBeenFlagged = moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_APPROVED && moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_PENDING;
-            const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
+            const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);            const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
