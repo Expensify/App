@@ -411,7 +411,6 @@ export default compose(
     withOnyx({
         lastOpenedPublicRoomID: {
             key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-            initWithStoredValues: false,
         },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,

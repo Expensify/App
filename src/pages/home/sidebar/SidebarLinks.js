@@ -187,7 +187,7 @@ class SidebarLinks extends React.Component {
                                     medium
                                     success
                                     text={this.props.translate('common.signIn')}
-                                    onPress={() => Session.signOutAndRedirectToSignIn(this.props.authTokenType)}
+                                    onPress={() => Session.signOutAndRedirectToSignIn(this.props.session.authTokenType)}
                                 />
                             </View>
                         ) : (
