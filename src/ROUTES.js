@@ -93,7 +93,7 @@ export default {
     getIouRequestCurrencyRoute: (reportID, currency, backTo) => `${IOU_REQUEST_CURRENCY}/${reportID}?currency=${currency}&backTo=${backTo}`,
     getIouBillCurrencyRoute: (reportID, currency, backTo) => `${IOU_BILL_CURRENCY}/${reportID}?currency=${currency}&backTo=${backTo}`,
     getIouSendCurrencyRoute: (reportID, currency, backTo) => `${IOU_SEND_CURRENCY}/${reportID}?currency=${currency}&backTo=${backTo}`,
-    SPLIT_BILL_DETAILS: `/:reportID/split/:reportActionID`,
+    SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
     getSplitBillDetailsRoute: (reportID, reportActionID) => `r/${reportID}/split/${reportActionID}`,
     getNewTaskRoute: (reportID) => `${NEW_TASK}/${reportID}`,
     NEW_TASK_WITH_REPORT_ID: `${NEW_TASK}/:reportID?`,
