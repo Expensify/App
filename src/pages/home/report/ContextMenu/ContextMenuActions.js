@@ -274,7 +274,8 @@ export default [
             ReportUtils.canFlagReportAction(reportAction, reportID) &&
             !isArchivedRoom &&
             !isChronosReport &&
-            !ReportUtils.isConciergeChatReport(reportID),
+            !ReportUtils.isConciergeChatReport(reportID) &&
+            reportAction.actorEmail !== CONST.EMAIL.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));
