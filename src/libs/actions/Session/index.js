@@ -204,8 +204,7 @@ function resendLinkWithValidateCode(login = credentials.login) {
     API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
 }
 
-function generateResponseData() {
-    const errorMessage = Localize.translateLocal('loginForm.cannotGetAccountDetails');
+function signInAttemptState() {
     return {
         optimisticData: [
             {
@@ -242,7 +241,7 @@ function generateResponseData() {
                     isLoading: false,
                     // eslint-disable-next-line rulesdir/prefer-localization
                     errors: {
-                        [DateUtils.getMicroseconds()]: errorMessage,
+                        [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
                     },
                 },
             },
@@ -257,31 +256,20 @@ function generateResponseData() {
  */
 
 function beginSignIn(login) {
-    const {optimisticData, successData, failureData} = generateResponseData();
+    const {optimisticData, successData, failureData} = signInAttemptState();
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
 }
 
-function handleAppleAuthApiResponse(idToken) {
-    const {optimisticData, successData, failureData} = generateResponseData();
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('SignInWithApple', {idToken}, {optimisticData, successData, failureData})
-        .then((apiResponse) => Log.info('API response: ', apiResponse))
-        .catch((apiError) => Log.error('API Callback error: ', apiError));
-}
-
 /**
- * Obtains the token from apple authentication and passes the token on to
- * the Expensify API to sign in with
+ * Given an idToken from Sign in with Apple, check sthe API to see if an account
+ * exists for that email address and signs the user in if so
  *
- * @param {String} login
+ * @param {String} idToken
  */
 
-function beginAppleSignIn(token) {
-    try {
-        handleAppleAuthApiResponse(token);
-    } catch (error) {
-        Log.error('Request to sign in with Apple failed. Error: ', error);
-    }
+function beginAppleSignIn(idToken) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithApple', {idToken}, {optimisticData, successData, failureData});
 }
 
 /**
