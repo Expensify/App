@@ -52,17 +52,17 @@ const propTypes = {
         }),
     ),
 
-    /** Maximum amount of visible link previews. */
+    /** Maximum amount of visible link previews. -1 means unlimited amount of previews */
     maxAmountOfPreviews: PropTypes.number,
 };
 
 const defaultProps = {
     linkMetadata: [],
-    maxAmountOfPreviews: undefined
+    maxAmountOfPreviews: -1
 };
 
 const LinkPreviewer = props => (
-    _.map(_.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews > 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length), (linkData) => {
+    _.map(_.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length), (linkData) => {
         const {
             description, image, title, logo, publisher, url,
         } = linkData;
