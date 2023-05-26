@@ -105,7 +105,7 @@ const NewTaskPage = (props) => {
     // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
-        if (!props.task.title || (!OptionsListUtils.isCurrentUser({login: props.task.assignee}) && !props.task.shareDestination)) {
+        if (!props.task.title || !props.task.shareDestination) {
             setSubmitError(true);
             return;
         }
