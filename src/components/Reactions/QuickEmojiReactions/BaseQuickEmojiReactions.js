@@ -10,6 +10,8 @@ import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Tooltip from '../../Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as SessionUtils from '../../../libs/SessionUtils';
+import * as Session from "../../../libs/actions/Session";
 
 const baseQuickEmojiReactionsPropTypes = {
     /**
@@ -28,9 +30,16 @@ const baseQuickEmojiReactionsPropTypes = {
      * to actually open the emoji picker.
      */
     onPressOpenPicker: PropTypes.func,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
+    session: {},
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
 };
@@ -57,7 +66,11 @@ const BaseQuickEmojiReactions = (props) => (
                         emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                         isContextMenu
                         onPress={() => {
-                            props.onEmojiSelected(emoji);
+                            if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
+                                Session.signOutAndRedirectToSignIn();
+                            } else {
+                                props.onEmojiSelected(emoji);
+                            }
                         }}
                     />
                 </View>
@@ -76,6 +89,9 @@ BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;
 BaseQuickEmojiReactions.defaultProps = defaultProps;
 export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     },

@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import Tooltip from '../Tooltip';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -11,6 +12,10 @@ import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as SessionUtils from '../../libs/SessionUtils';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -33,10 +38,17 @@ const propTypes = {
      */
     onSelectEmoji: PropTypes.func.isRequired,
 
+     /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    session: {},
     isContextMenu: false,
     onWillShowPicker: () => {},
     onPressOpenPicker: undefined,
@@ -46,6 +58,11 @@ const AddReactionBubble = (props) => {
     const ref = useRef();
 
     const onPress = () => {
+        if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
+
         const openPicker = (refParam, anchorOrigin) => {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
@@ -99,4 +116,11 @@ AddReactionBubble.propTypes = propTypes;
 AddReactionBubble.defaultProps = defaultProps;
 AddReactionBubble.displayName = 'AddReactionBubble';
 
-export default withLocalize(AddReactionBubble);
+export default compose(
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    })
+)(AddReactionBubble);

@@ -17,6 +17,8 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as EmojiUtils from '../../libs/EmojiUtils';
+import * as SessionUtils from '../../libs/SessionUtils';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
@@ -29,9 +31,16 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
+    session: {},
     onEmojiPickerClosed: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
@@ -48,6 +57,11 @@ const MiniQuickEmojiReactions = (props) => {
     const ref = useRef();
 
     const openEmojiPicker = () => {
+        if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
+
         props.onPressOpenPicker();
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
@@ -65,14 +79,26 @@ const MiniQuickEmojiReactions = (props) => {
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
-                    onPress={() => props.onEmojiSelected(emoji)}
+                    onPress={() => {
+                        if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
+                            Session.signOutAndRedirectToSignIn();
+                        } else {
+                            props.onEmojiSelected(emoji);
+                        }
+                    }}
                 >
                     <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={openEmojiPicker}
+                onPress={() => {
+                    if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
+                        Session.signOutAndRedirectToSignIn();
+                    } else {
+                        openEmojiPicker();
+                    }
+                }}
                 isDelayButtonStateComplete={false}
                 tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >
@@ -94,6 +120,9 @@ MiniQuickEmojiReactions.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
