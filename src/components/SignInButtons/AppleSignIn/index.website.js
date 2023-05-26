@@ -49,6 +49,8 @@ const failureListener = (event) => {
 
 function AppleSignInDiv({isDesktopFlow}) {
     useEffect(() => {
+        // `init` renders the button, so it must be called after the div is
+        // first mounted
         window.AppleID.auth.init(config);
     }, []);
     //  Result listeners need to live within the focused item to avoid duplicate
