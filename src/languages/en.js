@@ -1401,4 +1401,20 @@ export default {
         copyUrlToClipboard: 'Copy URL to clipboard',
         copied: 'Copied!',
     },
+    moderation: {
+        flagDescription: 'All flagged messages will be sent to a moderator for review. If a message is flagged at a level above Spam or Inconsiderate, it will immediately be hidden. Users may, however, choose to reveal the message while it is being reviewed if they choose. Dependent on the decision of the moderator, the message may or may not be permanently hidden or deleted, and the sender may be banned from posting temporarily or permanently.',
+        chooseAReason: 'Choose a reason below:',
+        spam: 'Spam',
+        spamDescription: 'Unsolicited off-topic promotion',
+        inconsiderate: 'Inconsiderate',
+        inconsiderateDescription: 'Insulting or disrespectful phrasing, with questionable intentions',
+        intimidation: 'Intimidation',
+        intimidationDescription: 'Aggressively pursuing an agenda over valid objections',
+        bullying: 'Bullying',
+        bullyingDescription: 'Targeting an individual to obtain obedience',
+        harassment: 'Harassment',
+        harassmentDescription: 'Racist, misogynistic, or other broadly discriminatory behavior',
+        assault: 'Assault',
+        assaultDescription: 'Specifically targeted emotional attack with the intention of harm',
+    }
 };

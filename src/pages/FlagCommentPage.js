@@ -18,39 +18,39 @@ function FlagCommentPage(props) {
     const severities = [
         {
             severity: 'spam',
-            name: 'Spam',
+            name: props.translate('moderation.spam'),
             icon: Expensicons.FlagLevelOne,
-            description: 'Unsolicited off-topic promotion',
+            description: props.translate('moderation.spamDescription'),
         },
         {
             severity: 'inconsiderate',
-            name: 'Inconsiderate',
+            name: props.translate('moderation.inconsiderate'),
             icon: Expensicons.FlagLevelOne,
-            description: 'Phrased insultingly or disrespectfully, with questionable intentions',
+            description: props.translate('moderation.inconsiderateDescription'),
         },
         {
             severity: 'intimidation',
-            name: 'Intimidation',
+            name: props.translate('moderation.intimidation'),
             icon: Expensicons.FlagLevelTwo,
-            description: 'Aggressively pursuing an agenda over valid objections',
+            description: props.translate('moderation.intimidationDescription'),
         },
         {
             severity: 'bullying',
-            name: 'Bullying',
+            name: props.translate('moderation.bullying'),
             icon: Expensicons.FlagLevelTwo,
-            description: 'Targeting an individual to obtain obedience',
+            description: props.translate('moderation.bullyingDescription'),
         },
         {
             severity: 'harassment',
-            name: 'Harassment',
+            name: props.translate('moderation.harassment'),
             icon: Expensicons.FlagLevelThree,
-            description: 'Racist, misogynistic, or other broadly discriminatory behavior',
+            description: props.translate('moderation.harassmentDescription'),
         },
         {
             severity: 'assault',
-            name: 'Assault',
+            name: props.translate('moderation.assault'),
             icon: Expensicons.FlagLevelThree,
-            description: 'Specifically targeted emotional attack with the intention of harm',
+            description: props.translate('moderation.assaultDescription'),
         },
     ];
 
@@ -68,9 +68,6 @@ function FlagCommentPage(props) {
             description={item.description}
             onPress={() => flagComment(item.severity)}
             wrapperStyle={[styles.borderBottom]}
-            // furtherDetails={this.props.translate('flags.sendAnonymousWarning')}
-            // furtherDetailsIcon={Expensicons.CircleFlag}
-            // furtherDetailsIconFill={colors.yellow}
         />)
     )
 
@@ -79,7 +76,7 @@ function FlagCommentPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithCloseButton
-                        title={'Flag as Offensive'}
+                        title={props.translate('reportActionContextMenu.flagAsOffensive')}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView
@@ -89,12 +86,12 @@ function FlagCommentPage(props) {
                         <View style={styles.pageWrapper}>
                             <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                 <Text style={[styles.baseFontStyle]}>
-                                    {'Description of stuff lorem ipsum Description of stuff lorem ipsum Description of stuff lorem ipsum Description of stuff lorem ipsum Description of stuff lorem ipsum Description of stuff lorem ipsum Description of stuff lorem ipsum '}
+                                    {props.translate('moderation.flagDescription')}
                                 </Text>
                             </View>
                         </View>
                         <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>
-                            {'Choose a reason below:'}
+                            {props.translate('moderation.chooseAReason')}
                         </Text>
                         {severityMenuItems}
                     </ScrollView>

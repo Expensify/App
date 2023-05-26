@@ -1867,4 +1867,20 @@ export default {
         copyUrlToClipboard: 'Copiar URL al portapapeles',
         copied: '¡Copiado!',
     },
+    moderation: {
+        flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión. Si un mensaje se marca en un nivel superior a Spam o Desconsiderado, se ocultará de inmediato. Sin embargo, los usuarios pueden optar por revelar el mensaje mientras se revisa si así lo desean. Dependiendo de la decisión del moderador, el mensaje puede ocultarse o eliminarse permanentemente o no, y el remitente puede tener prohibido enviar mensajes de forma temporal o permanente.',
+        chooseAReason: 'Elige un motivo de abajo',
+        spam: 'Spam',
+        spamDescription: 'Promoción fuera de tema no solicitada',
+        inconsiderate: 'Desconsiderado',
+        inconsiderateDescription: 'Frase insultante o irrespetuosa, con intenciones cuestionables',
+        intimidation: 'Intimidación',
+        intimidationDescription: 'Persigue agresivamente una agenda sobre objeciones válidas',
+        bullying: 'Bullying',
+        bullyingDescription: 'Apunta a un individuo para obtener obediencia.',
+        harassment: 'Acoso',
+        harassmentDescription: 'Comportamiento racista, misógino u otro comportamiento ampliamente discriminatorio',
+        assault: 'Agresion',
+        assaultDescription: 'Ataque emocional específicamente dirigido con la intención de hacer daño',
+    }
 };
