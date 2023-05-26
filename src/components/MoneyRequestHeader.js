@@ -137,7 +137,7 @@ const MoneyRequestHeader = (props) => {
                     </View>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
-                        {isSettled && (
+                        {!props.isSingleTransactionView && isSettled && (
                             <View style={styles.moneyRequestHeaderCheckmark}>
                                 <Icon
                                     src={Expensicons.Checkmark}
@@ -180,7 +180,9 @@ const MoneyRequestHeader = (props) => {
                 <>
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount}
-                        description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}`}
+                        shouldShowTitleIcon={isSettled}
+                        titleIcon={Expensicons.Checkmark}
+                        description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
                         titleStyle={styles.newKansasLarge}
                     />
                     <MenuItemWithTopDescription
