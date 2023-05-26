@@ -1868,6 +1868,16 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarMedium: {
+        height: variables.avatarSizeMedium,
+        width: variables.avatarSizeMedium,
+    },
+
+    emptyAvatarLarge: {
+        height: variables.avatarSizeLarge,
+        width: variables.avatarSizeLarge,
+    },
+
     emptyAvatarMargin: {
         marginRight: variables.avatarChatSpacing,
     },
@@ -2158,6 +2168,27 @@ const styles = {
 
     twoFactorAuthFooter: {
         marginTop: 'auto',
+    },
+
+    anonymousRoomFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 20,
+        backgroundColor: themeColors.activeComponentBG,
+        flexWrap: 'wrap',
+        gap: 4,
+        borderRadius: variables.componentBorderRadius,
+    },
+
+    anonymousRoomFooterLogo: {
+        width: 88,
+        height: 'auto',
+        margin: 0,
+    },
+
+    anonymousRoomFooterSignInButton: {
+        width: 125,
     },
 
     roomHeaderAvatarSize: {
