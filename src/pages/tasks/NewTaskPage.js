@@ -14,7 +14,6 @@ import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import TaskSelectorLink from '../../components/TaskSelectorLink';
 import reportPropTypes from '../reportPropTypes';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as TaskUtils from '../../libs/actions/Task';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
