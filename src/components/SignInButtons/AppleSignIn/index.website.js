@@ -1,27 +1,18 @@
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import getUserLanguage from '../GetUserLanguage';
 import {beginAppleSignIn} from '../../../libs/actions/Session';
 
-const basePropTypes = {
-    isFullWidth: PropTypes.bool.isRequired,
+const requiredPropTypes = {
+    isDesktopFlow: PropTypes.bool.isRequired,
 };
 
 const propTypes = {
-    isFullWidth: PropTypes.bool,
-    ...withLocalizePropTypes,
+    isDesktopFlow: PropTypes.bool,
 };
 const defaultProps = {
-    isFullWidth: false,
-};
-
-const $appleButtonContainerStyle = {
-    width: 40,
-    height: 40,
-    marginRight: 20,
+    isDesktopFlow: false,
 };
 
 const config = {
@@ -42,7 +33,7 @@ const failureListener = (event) => {
     console.log(event.detail);
 };
 
-function AppleSignInDiv({isFullWidth}) {
+function AppleSignInDiv({isDesktopFlow}) {
     useEffect(() => {
         window.AppleID.auth.init(config);
     }, []);
@@ -57,50 +48,46 @@ function AppleSignInDiv({isFullWidth}) {
         };
     }, []);
 
-    return isFullWidth ? (
+    return isDesktopFlow ? (
         <div
-            style={{fontSize: '0'}}
             id="appleid-signin"
-            data-type="sign in"
-            data-mode="left-align"
-            data-logo-size="medium"
-            data-border="false"
-            data-color="white"
-            data-width="140"
-            data-height="30"
-        />
-    ) : (
-        <div
-            style={{fontSize: '0'}}
-            id="appleid-signin"
-            data-type="sign in"
-            data-mode="logo-only"
-            data-logo-size="medium"
+            data-mode="center-align"
+            data-type="continue"
             data-color="white"
             data-border="false"
             data-border-radius="50"
-            data-width="40"
-            data-height="40"
+            data-width="279"
+            data-height="52"
+        />
+    ) : (
+        <div
+            id="appleid-signin"
+            data-mode="logo-only"
+            data-type="sign in"
+            data-color="white"
+            data-border="false"
+            data-border-radius="50"
+            data-size="40"
         />
     );
 }
 
-AppleSignInDiv.propTypes = basePropTypes;
+AppleSignInDiv.propTypes = requiredPropTypes;
 
 // The Sign in with Apple script may fail to render button if there are multiple
 // of these divs present in the app, as it matches based on div id. So we'll
 // only mount the div when it should be visible.
-function SingletonAppleSignInButton({isFullWidth}) {
+function SingletonAppleSignInButton({isDesktopFlow}) {
     const isFocused = useIsFocused();
     if (!isFocused) {
         return null;
     }
-    return <AppleSignInDiv isFullWidth={isFullWidth} />;
+    return <AppleSignInDiv isDesktopFlow={isDesktopFlow} />;
 }
 
-SingletonAppleSignInButton.propTypes = basePropTypes;
+SingletonAppleSignInButton.propTypes = requiredPropTypes;
 
-const AppleSignIn = ({isFullWidth, translate}) => {
+const AppleSignIn = ({isDesktopFlow}) => {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     useEffect(() => {
         if (window.appleAuthScriptLoaded) return;
@@ -118,19 +105,11 @@ const AppleSignIn = ({isFullWidth, translate}) => {
         return null;
     }
 
-    return (
-        <View
-            style={$appleButtonContainerStyle}
-            accessibilityRole="button"
-            accessibilityLabel={translate('common.signInWithApple')}
-        >
-            <SingletonAppleSignInButton isFullWidth={isFullWidth} />
-        </View>
-    );
+    return <SingletonAppleSignInButton isDesktopFlow={isDesktopFlow} />;
 };
 
 AppleSignIn.displayName = 'AppleSignIn';
 AppleSignIn.propTypes = propTypes;
 AppleSignIn.defaultProps = defaultProps;
 
-export default withLocalize(AppleSignIn);
+export default AppleSignIn;

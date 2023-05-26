@@ -23,7 +23,7 @@ function AppleSignInDesktopPage() {
                     justifyContent: 'center',
                 }}
             >
-                <AppleSignIn isFullWidth />
+                <AppleSignIn isDesktopFlow />
             </View>
         </View>
     );
