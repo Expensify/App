@@ -203,6 +203,16 @@ const TaskModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ReportWelcomeMessagePage = require('../../../pages/ReportWelcomeMessagePage').default;
+            return ReportWelcomeMessagePage;
+        },
+        name: 'Report_WelcomeMessage_Root',
+    },
+]);
+
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -536,6 +546,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const WorkspaceRateAndUnitPage = require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default;
+            return WorkspaceRateAndUnitPage;
+        },
+        name: 'Workspace_RateAndUnit',
+    },
+    {
+        getComponent: () => {
             const WorkspaceBillsPage = require('../../../pages/workspace/bills/WorkspaceBillsPage').default;
             return WorkspaceBillsPage;
         },
@@ -694,6 +711,7 @@ export {
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,
+    ReportWelcomeMessageModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,

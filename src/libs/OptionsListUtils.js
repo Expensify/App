@@ -291,9 +291,10 @@ function uniqFast(items) {
  * @param {String} reportName
  * @param {Array} personalDetailList
  * @param {Boolean} isChatRoomOrPolicyExpenseChat
+ * @param {Boolean} isThread
  * @return {String}
  */
-function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolicyExpenseChat) {
+function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolicyExpenseChat, isThread) {
     let searchTerms = [];
 
     if (!isChatRoomOrPolicyExpenseChat) {
@@ -309,7 +310,13 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
-        if (isChatRoomOrPolicyExpenseChat) {
+        if (isThread) {
+            const title = ReportUtils.getReportName(report);
+            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
+
+            Array.prototype.push.apply(searchTerms, title.split(/[,\s]/));
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
+        } else if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
@@ -474,7 +481,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
     }
 
     result.text = reportName;
-    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.icons = ReportUtils.getIcons(report, personalDetails, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.subtitle = subtitle;
 
@@ -650,16 +657,17 @@ function getOptions(
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             const reportOption = allReportOptions[i];
-            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow =
-                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
             }
 
+            const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
+                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
+
             // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && !includeMultipleParticipantReports && !reportOption.login) {
+            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
                 continue;
             }
 
@@ -781,6 +789,7 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
+        includeThreads: true,
     });
 }
 
