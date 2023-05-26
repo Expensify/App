@@ -929,7 +929,7 @@ class ReportActionCompose extends React.Component {
                     style={this.props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                     contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
                 >
-                    {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
+                    {shouldShowReportRecipientLocalTime && !!reportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
                     <View
                         style={[
                             shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
