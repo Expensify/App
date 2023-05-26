@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text} from 'react-native';
+import PropTypes from 'prop-types';
 import Button from './Button';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import ExpensifyWordmark from './ExpensifyWordmark';
@@ -9,10 +10,14 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import reportPropTypes from '../pages/reportPropTypes';
 import CONST from '../CONST';
 import styles from '../styles/styles';
+import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
+
+    /** Type of authToken for the logged in user */
+    authTokenType: PropTypes.string,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -20,6 +25,7 @@ const propTypes = {
 
 const defaultProps = {
     report: null,
+    authTokenType: '',
 };
 
 const AnonymousReportFooter = (props) => (
@@ -42,6 +48,7 @@ const AnonymousReportFooter = (props) => (
                     medium
                     success
                     text={props.translate('common.signIn')}
+                    onPress={() => Session.signOutAndRedirectToSignIn(props.authTokenType)}
                 />
             </View>
         </View>
