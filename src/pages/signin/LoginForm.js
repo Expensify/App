@@ -166,7 +166,7 @@ class LoginForm extends React.Component {
     }
 
     getSignInWithStyles() {
-        return this.props.isSmallScreenWidth ? styles.mt1 : styles.mt5;
+        return this.props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
     }
 
     render() {
@@ -218,8 +218,10 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
-                            <View style={[styles.mt8, this.getSignInWithStyles()]}>
-                                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{this.props.translate('common.signInWith')}</Text>
+                            <View style={[this.getSignInWithStyles()]}>
+                                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, this.props.isSmallScreenWidth ? '' : styles.mb3, styles.mt2]}>
+                                    {this.props.translate('common.signInWith')}
+                                </Text>
                                 <View style={styles.loginButtonRow}>
                                     <AppleSignIn />
                                 </View>
