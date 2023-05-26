@@ -3,6 +3,7 @@ import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import getUserLanguage from '../GetUserLanguage';
 import {beginAppleSignIn} from '../../../libs/actions/Session';
+import Log from '../../../libs/Log';
 
 const requiredPropTypes = {
     isDesktopFlow: PropTypes.bool.isRequired,
@@ -15,22 +16,24 @@ const defaultProps = {
     isDesktopFlow: false,
 };
 
+// TODO: env vars for config and token override
+
 const config = {
-    clientId: 'com.infinitered.expensify.test',
+    clientId: 'com.chat.expensify.chat.AppleSignIn',
     scope: 'name email',
-    redirectURI: 'https://exptest.ngrok.io/appleauth',
+    // never used, but required for configuration
+    redirectURI: 'https://new.expensify.com/appleauth',
     state: '',
     nonce: '',
     usePopup: true,
 };
 
-const hardcodedToken = '';
 const successListener = (event) => {
-    beginAppleSignIn({token: ''});
+    beginAppleSignIn({token: event.detail.id_token});
 };
 
 const failureListener = (event) => {
-    console.log(event.detail);
+    Log.warn(`Apple sign-in failed: ${event.detail}`);
 };
 
 function AppleSignInDiv({isDesktopFlow}) {
