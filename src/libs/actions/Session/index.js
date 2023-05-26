@@ -261,10 +261,10 @@ function beginSignIn(login) {
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
 }
 
-function handleAppleAuthApiResponse(token) {
+function handleAppleAuthApiResponse(idToken) {
     const {optimisticData, successData, failureData} = generateResponseData();
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('AuthenticateApple', {token}, {optimisticData, successData, failureData})
+    API.makeRequestWithSideEffects('AuthenticateApple', {idToken}, {optimisticData, successData, failureData})
         .then((apiResponse) => Log.info('API response: ', apiResponse))
         .catch((apiError) => Log.error('API Callback error: ', apiError));
 }
