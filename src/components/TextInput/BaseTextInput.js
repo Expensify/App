@@ -182,12 +182,12 @@ class BaseTextInput extends Component {
         Animated.parallel([
             Animated.spring(this.state.labelTranslateY, {
                 toValue: translateY,
-                duration: 80,
+                duration: styleConst.LABEL_ANIMATION_DURATION,
                 useNativeDriver: true,
             }),
             Animated.spring(this.state.labelScale, {
                 toValue: scale,
-                duration: 80,
+                duration: styleConst.LABEL_ANIMATION_DURATION,
                 useNativeDriver: true,
             }),
         ]).start();

@@ -44,7 +44,7 @@
         #no-drag-area {
             -webkit-app-region: no-drag;
         }
-        input::placeholder, textarea::placeholder {
+        input::placeholder {
             user-select: none;
             -webkit-user-select: none
         }
@@ -81,6 +81,12 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: #ffffff;
             caret-color: #ffffff;
+        }
+
+        /* Prevent autofill from overlapping with the input label in Chrome */
+        div:has(input:-webkit-autofill) > label {
+            transform: translateY(var(--active-label-translate-y)) scale(var(--active-label-scale)) !important;
+            transition: transform var(--label-transition-duration);
         }
 
         @media screen and (min-width: 480px) { 

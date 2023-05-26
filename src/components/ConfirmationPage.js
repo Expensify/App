@@ -10,7 +10,8 @@ import FixedFooter from './FixedFooter';
 
 const propTypes = {
     /** The asset to render */
-    animation: PropTypes.string,
+    // eslint-disable-next-line react/forbid-prop-types
+    animation: PropTypes.object,
 
     /** Heading of the confirmation page */
     heading: PropTypes.string,

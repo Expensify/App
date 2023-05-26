@@ -133,8 +133,6 @@ class OptionRow extends Component {
 
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((this.props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
-        const avatarTooltips = this.props.showTitleTooltip && !this.props.option.isChatRoom && !this.props.option.isArchivedRoom ? _.pluck(displayNamesWithTooltips, 'tooltip') : undefined;
-
         let subscriptColor = themeColors.appBG;
         if (this.props.optionIsFocused) {
             subscriptColor = focusedBackgroundColor;
@@ -146,7 +144,7 @@ class OptionRow extends Component {
                 errors={this.props.option.allReportErrors}
                 shouldShowErrorMessages={false}
             >
-                <Hoverable containerStyles={[this.props.isDisabled ? styles.userSelectNone : null]}>
+                <Hoverable>
                     {(hovered) => (
                         <TouchableOpacity
                             ref={(el) => (touchableRef = el)}
@@ -197,7 +195,7 @@ class OptionRow extends Component {
                                                     this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                     hovered && !this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                                 ]}
-                                                avatarTooltips={this.props.option.isPolicyExpenseChat ? [this.props.option.subtitle] : avatarTooltips}
+                                                shouldShowTooltip={this.props.showTitleTooltip && !this.props.option.isChatRoom && !this.props.option.isArchivedRoom}
                                             />
                                         ))}
                                     <View style={contentContainerStyles}>
@@ -208,7 +206,9 @@ class OptionRow extends Component {
                                             tooltipEnabled={this.props.showTitleTooltip}
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
-                                            shouldUseFullTitle={this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport}
+                                            shouldUseFullTitle={
+                                                this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport || this.props.option.isThread
+                                            }
                                         />
                                         {this.props.option.alternateText ? (
                                             <Text

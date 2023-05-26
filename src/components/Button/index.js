@@ -254,7 +254,7 @@ class Button extends Component {
                     if (this.props.shouldEnableHapticFeedback) {
                         HapticFeedback.press();
                     }
-                    this.props.onPress(e);
+                    return this.props.onPress(e);
                 }}
                 onLongPress={(e) => {
                     if (this.props.shouldEnableHapticFeedback) {
