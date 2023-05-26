@@ -3224,12 +3224,11 @@ const styles = {
     },
 
     datePickerPopover: {
-        position: 'absolute',
         backgroundColor: themeColors.appBG,
         width: '100%',
         alignSelf: 'center',
-        top: 60,
         zIndex: 100,
+        marginTop: 8,
     },
 
     loginHeroHeader: {
