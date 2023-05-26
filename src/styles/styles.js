@@ -3311,7 +3311,7 @@ const styles = {
         fontWeight: fontWeightBold,
         lineHeight: undefined,
     },
-    
+
     expensifyQrLogo: {
         alignSelf: 'stretch',
         height: 27,
