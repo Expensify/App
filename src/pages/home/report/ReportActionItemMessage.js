@@ -15,6 +15,7 @@ const propTypes = {
     /** Additional styles to add after local styles. */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Whether or not the message is hidden by moderation */
     isHidden: PropTypes.bool,
 
     /** localization props */
