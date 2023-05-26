@@ -119,6 +119,10 @@ class LoginForm extends React.Component {
         }
     }
 
+    getSignInWithStyles() {
+        return this.props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
+    }
+
     /**
      * Clear Login from the state
      */
@@ -163,10 +167,6 @@ class LoginForm extends React.Component {
 
         // Check if this login has an account associated with it or not
         Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login);
-    }
-
-    getSignInWithStyles() {
-        return this.props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
     }
 
     render() {
