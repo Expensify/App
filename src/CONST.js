@@ -2434,6 +2434,10 @@ const CONST = {
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
         FLAG_SEVERITY_SPAM: 'spam',
         FLAG_SEVERITY_INCONSIDERATE: 'inconsiderate',
+        FLAG_SEVERITY_INTIMIDATION: 'intimidation',
+        FLAG_SEVERITY_BULLYING: 'bullying',
+        FLAG_SEVERITY_HARASSMENT: 'harassment',
+        FLAG_SEVERITY_ASSAULT: 'assault',
     },
 };
 

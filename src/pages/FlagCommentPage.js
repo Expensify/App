@@ -15,6 +15,7 @@ import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
 import * as Report from '../libs/actions/Report';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Array of report actions for this report */
@@ -54,37 +55,37 @@ function FlagCommentPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const severities = [
         {
-            severity: 'spam',
+            severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
             name: props.translate('moderation.spam'),
             icon: Expensicons.FlagLevelOne,
             description: props.translate('moderation.spamDescription'),
         },
         {
-            severity: 'inconsiderate',
+            severity: CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE,
             name: props.translate('moderation.inconsiderate'),
             icon: Expensicons.FlagLevelOne,
             description: props.translate('moderation.inconsiderateDescription'),
         },
         {
-            severity: 'intimidation',
+            severity: CONST.MODERATION.FLAG_SEVERITY_INTIMIDATION,
             name: props.translate('moderation.intimidation'),
             icon: Expensicons.FlagLevelTwo,
             description: props.translate('moderation.intimidationDescription'),
         },
         {
-            severity: 'bullying',
+            severity: CONST.MODERATION.FLAG_SEVERITY_BULLYING,
             name: props.translate('moderation.bullying'),
             icon: Expensicons.FlagLevelTwo,
             description: props.translate('moderation.bullyingDescription'),
         },
         {
-            severity: 'harassment',
+            severity: CONST.MODERATION.FLAG_SEVERITY_HARASSMENT,
             name: props.translate('moderation.harassment'),
             icon: Expensicons.FlagLevelThree,
             description: props.translate('moderation.harassmentDescription'),
         },
         {
-            severity: 'assault',
+            severity: CONST.MODERATION.FLAG_SEVERITY_ASSAULT,
             name: props.translate('moderation.assault'),
             icon: Expensicons.FlagLevelThree,
             description: props.translate('moderation.assaultDescription'),
