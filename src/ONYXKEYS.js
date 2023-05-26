@@ -194,6 +194,7 @@ export default {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',

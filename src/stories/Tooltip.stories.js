@@ -45,7 +45,6 @@ Default.args = {
     text: 'Tooltip',
     numberOfLines: 1,
     maxWidth: 0,
-    absolute: false,
 };
 
 const RenderContent = () => {

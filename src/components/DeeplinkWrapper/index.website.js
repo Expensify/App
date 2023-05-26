@@ -8,6 +8,7 @@ import CONFIG from '../../CONFIG';
 import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Authentication from '../../libs/Authentication';
+import DeeplinkRedirectLoadingIndicator from './DeeplinkRedirectLoadingIndicator';
 
 const propTypes = {
     /** Children to render. */
@@ -37,8 +38,10 @@ class DeeplinkWrapper extends PureComponent {
         this.state = {
             appInstallationCheckStatus:
                 this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
+            shouldOpenLinkInBrowser: false,
         };
         this.focused = true;
+        this.openLinkInBrowser = this.openLinkInBrowser.bind(this);
     }
 
     componentDidMount() {
@@ -118,9 +121,22 @@ class DeeplinkWrapper extends PureComponent {
         return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
     }
 
+    openLinkInBrowser() {
+        this.setState({shouldOpenLinkInBrowser: true});
+    }
+
+    shouldShowDeeplinkLoadingIndicator() {
+        const routeRegex = new RegExp(CONST.REGEX.ROUTES.VALIDATE_LOGIN);
+        return routeRegex.test(window.location.pathname);
+    }
+
     render() {
         if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING) {
             return <FullScreenLoadingIndicator style={styles.flex1} />;
+        }
+
+        if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED && this.shouldShowDeeplinkLoadingIndicator() && !this.state.shouldOpenLinkInBrowser) {
+            return <DeeplinkRedirectLoadingIndicator openLinkInBrowser={this.openLinkInBrowser} />;
         }
 
         return this.props.children;

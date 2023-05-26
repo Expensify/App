@@ -91,7 +91,7 @@ const MenuItem = (props) => {
     return (
         <PressableWithSecondaryInteraction
             onPress={(e) => {
-                if (props.disabled) {
+                if (props.disabled || !props.interactive) {
                     return;
                 }
 
@@ -106,6 +106,7 @@ const MenuItem = (props) => {
             onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => [
                 props.style,
+                !props.interactive && styles.cursorDefault,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
             ]}
