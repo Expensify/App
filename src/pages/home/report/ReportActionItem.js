@@ -245,7 +245,7 @@ function ReportActionItem(props) {
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
-            const hasBeenFlagged = moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_APPROVED;
+            const hasBeenFlagged = moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_APPROVED && moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_PENDING;
             const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
@@ -371,7 +371,7 @@ function ReportActionItem(props) {
                     wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
-                    hasBeenFlagged={moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_APPROVED}
+                    hasBeenFlagged={moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_APPROVED && moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_PENDING}
                 >
                     {content}
                 </ReportActionItemSingle>
