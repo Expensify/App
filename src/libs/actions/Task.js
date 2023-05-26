@@ -62,7 +62,13 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: optimisticTaskReport,
+            value: {
+                ...optimisticTaskReport,
+                pendingFields: {
+                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                isOptimisticReport: true,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -81,7 +87,18 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        },
+    ];
 
     const failureData = [
         {
