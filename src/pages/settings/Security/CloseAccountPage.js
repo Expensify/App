@@ -1,5 +1,5 @@
 import React, {
-    useState,
+    useCallback, useState,
 } from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -16,6 +16,7 @@ import TextInput from '../../../components/TextInput';
 import Text from '../../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import * as CloseAccount from '../../../libs/actions/CloseAccount';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
 import CONST from '../../../CONST';
