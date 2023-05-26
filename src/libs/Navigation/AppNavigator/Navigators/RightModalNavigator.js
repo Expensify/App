@@ -60,6 +60,16 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.IOURequestModalStackNavigator}
             />
             <Stack.Screen
+                name="NewTask"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.NewTaskModalStackNavigator}
+            />
+            <Stack.Screen
+                name="Task_Details"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.TaskModalStackNavigator}
+            />
+            <Stack.Screen
                 name="IOU_Bill"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.IOUBillStackNavigator}
@@ -88,11 +98,6 @@ function RigthModalNavigator() {
                 name="Wallet_Statement"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.WalletStatementStackNavigator}
-            />
-            <Stack.Screen
-                name="NewTask"
-                options={defaultModalScreenOptions}
-                component={ModalStackNavigators.NewTaskModalStackNavigator}
             />
         </Stack.Navigator>
     );
