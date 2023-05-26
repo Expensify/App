@@ -108,6 +108,8 @@ const CONST = {
         FAILED: 'failed',
     },
 
+    
+
     AVATAR_MAX_ATTACHMENT_SIZE: 6291456,
 
     AVATAR_ALLOWED_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
@@ -799,6 +801,8 @@ const CONST = {
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    // This is a placeholder for attachment which is uploading
+    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
