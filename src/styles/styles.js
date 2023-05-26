@@ -726,6 +726,12 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    headerAnonymousFooter: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontSize: variables.fontSizeXLarge,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -2186,6 +2192,10 @@ const styles = {
         width: 88,
         height: 'auto',
         margin: 0,
+    },
+
+    signInButtonAvatar: {
+        width: 80,
     },
 
     anonymousRoomFooterSignInButton: {

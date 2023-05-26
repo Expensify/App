@@ -35,6 +35,8 @@ import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 import * as Session from '../../../libs/actions/Session';
+import * as SessionUtils from '../../../libs/SessionUtils';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -179,12 +181,22 @@ class SidebarLinks extends React.Component {
                         accessibilityRole="button"
                         onPress={Session.checkIfActionIsAllowed(this.props.session.authTokenType, this.showSettingsPage)}
                     >
-                        <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                            <AvatarWithIndicator
-                                source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
-                                tooltipText={this.props.translate('common.settings')}
-                            />
-                        </OfflineWithFeedback>
+                        {SessionUtils.isAnonymousUser(this.props.session.authTokenType) ?
+                            <View style={styles.signInButtonAvatar}>
+                                <Button
+                                    medium
+                                    success
+                                    text={this.props.translate('common.signIn')}
+                                    onPress={() => Session.signOutAndRedirectToSignIn(this.props.authTokenType)}
+                                />
+                            </View> :
+                            <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                                <AvatarWithIndicator
+                                    source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                                    tooltipText={this.props.translate('common.settings')}
+                                />
+                            </OfflineWithFeedback>
+                        }
                     </TouchableOpacity>
                 </View>
                 <Freeze

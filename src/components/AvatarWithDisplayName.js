@@ -98,7 +98,7 @@ const AvatarWithDisplayName = (props) => {
                             displayNamesWithTooltips={displayNamesWithTooltips}
                             tooltipEnabled
                             numberOfLines={1}
-                            textStyles={[styles.headerText, styles.pre]}
+                            textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
                             shouldUseFullTitle={isExpenseReport || props.isAnonymous}
                         />
                         {!_.isEmpty(subtitle) && (

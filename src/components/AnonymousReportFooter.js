@@ -38,7 +38,7 @@ const AnonymousReportFooter = (props) => (
             />
         </View>
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <View style={styles.mr2}>
+            <View style={styles.mr4}>
                 <View style={[props.isSmallScreenWidth ? styles.alignItemsStart : styles.alignItemsEnd]}>
                     <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
                 </View>
