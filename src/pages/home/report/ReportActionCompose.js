@@ -54,7 +54,8 @@ import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut'
+import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager'
+import useKeyboardShortcut from '../../../hooks/useKeyboardShortcut'
 
 const {RNTextInputReset} = NativeModules;
 
@@ -144,7 +145,6 @@ const defaultProps = {
 const defaultSuggestionsValues = {
     suggestedEmojis: [],
     suggestedMentions: [],
-    highlightedEmojiIndex: 0,
     highlightedMentionIndex: 0,
     colonIndex: -1,
     atSignIndex: -1,
@@ -231,6 +231,7 @@ function ReportActionCompose(props) {
      */
     const [isFocused, setIsFocused] = useState(shouldFocusInputOnScreenFocus && !props.modal.isVisible && !props.modal.willAlertModalBecomeVisible && props.shouldShowComposeInput);
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(props.isComposerFullSize);
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager()
 
     const isEmptyChat = useMemo(() => _.size(props.reportActions) === 1, [props.reportActions]);
 
@@ -399,6 +400,21 @@ function ReportActionCompose(props) {
         return true;
     }, []);
 
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
+        () => {
+            if (!isFocused || comment.current.length === 0) {
+                return;
+            }
+
+            updateComment('', true);
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: true,
+        }
+    )
+
     useEffect(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
@@ -409,22 +425,6 @@ function ReportActionCompose(props) {
 
             focus(false);
         });
-
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        unsubscribeEscapeKey.current = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                if (!isFocused || comment.current.length === 0) {
-                    return;
-                }
-
-                updateComment('', true);
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
 
         updateMaxLines();
         updateComment(comment.current);
@@ -439,10 +439,6 @@ function ReportActionCompose(props) {
 
         return () => {
             ReportActionComposeFocusManager.clear();
-
-            if (unsubscribeEscapeKey) {
-                unsubscribeEscapeKey.current();
-            }
         };
     }, [focus, isFocused, props.disabled, props.isFocused, props.navigation, showPopoverMenu, updateComment, updateMaxLines]);
 
@@ -504,7 +500,6 @@ function ReportActionCompose(props) {
 
             const nextState = {
                 suggestedEmojis: [],
-                highlightedEmojiIndex: 0,
                 colonIndex,
                 shouldShowEmojiSuggestionMenu: false,
                 isAutoSuggestionPickerLarge,
@@ -713,7 +708,7 @@ function ReportActionCompose(props) {
 
     /**
      * Replace the code of emoji and update selection
-     * @param {Number} highlightedEmojiIndex
+     * @param {Number} selectedEmoji
      */
     const insertSelectedEmoji = useCallback(
         (selectedEmoji) => {
