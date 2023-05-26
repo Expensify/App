@@ -1,5 +1,6 @@
 import React, {
-    useCallback, useState,
+    useState,
+    useEffect,
 } from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -42,6 +43,13 @@ const defaultProps = {
 function CloseAccountPage (props) {
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [reasonForLeaving, setReasonForLeaving] = useState('');
+
+    useEffect(() => {
+        CloseAccount.setDefaultData();
+        return () => {
+            CloseAccount.clearError();
+        };
+    });
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
