@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -10,7 +10,6 @@ import MoneyRequestConfirmPage from './steps/MoneyRequestConfirmPage';
 import ModalHeader from './ModalHeader';
 import styles from '../../styles/styles';
 import * as IOU from '../../libs/actions/IOU';
-import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -24,7 +23,7 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
-import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect';
+import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
@@ -44,9 +43,6 @@ const propTypes = {
 
     // Holds data related to request view state, rather than the underlying request data.
     iou: PropTypes.shape({
-        /** Whether or not transaction creation has started */
-        creatingIOUTransaction: PropTypes.bool,
-
         /** Whether or not transaction creation has resulted to error */
         error: PropTypes.bool,
 
@@ -86,7 +82,6 @@ const defaultProps = {
     },
     personalDetails: {},
     iou: {
-        creatingIOUTransaction: false,
         error: false,
         selectedCurrencyCode: null,
     },
@@ -106,7 +101,6 @@ const MoneyRequestModal = (props) => {
         () => (reportParticipants.length ? [Steps.MoneyRequestAmount, Steps.MoneyRequestConfirm] : [Steps.MoneyRequestAmount, Steps.MoneyRequestParticipants, Steps.MoneyRequestConfirm]),
         [reportParticipants.length],
     );
-    const prevCreatingIOUTransactionStatusRef = useRef(lodashGet(props.iou, 'creatingIOUTransaction'));
 
     const [previousStepIndex, setPreviousStepIndex] = useState(-1);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -119,32 +113,20 @@ const MoneyRequestModal = (props) => {
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
-        IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
         IOU.setMoneyRequestDescription('');
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
     }, []);
 
+    // We update selected currency when PersonalDetails.openMoneyRequestModalPage finishes
+    // props.currentUserPersonalDetails might be stale data or might not exist if user is signing in
     useEffect(() => {
-        // We only want to check if we just finished creating an IOU transaction
-        // We check it within this effect because we're sending the request optimistically but if an error occurs from the API, we will update the iou state with the error later
-        if (!prevCreatingIOUTransactionStatusRef.current || lodashGet(props.iou, 'creatingIOUTransaction')) {
+        if (_.isUndefined(props.currentUserPersonalDetails.localCurrencyCode)) {
             return;
         }
-
-        if (lodashGet(props.iou, 'error') === true) {
-            setCurrentStepIndex(0);
-        } else {
-            Navigation.dismissModal();
-        }
-    }, [props.iou]);
+        IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
+    }, [props.currentUserPersonalDetails.localCurrencyCode]);
 
     // User came back online, so let's refetch the currency details based on location
     useOnNetworkReconnect(PersonalDetails.openMoneyRequestModalPage);
-
-    useEffect(() => {
-        // Used to store previous prop values to compare on next render
-        prevCreatingIOUTransactionStatusRef.current = lodashGet(props.iou, 'creatingIOUTransaction');
-    });
 
     /**
      * Decides our animation type based on whether we're increasing or decreasing
@@ -317,6 +299,7 @@ const MoneyRequestModal = (props) => {
     );
     const amountButtonText = isEditingAmountAfterConfirm ? props.translate('common.save') : props.translate('common.next');
     const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.MoneyRequestParticipants;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.report);
 
     return (
         <ScreenWrapper
@@ -336,8 +319,9 @@ const MoneyRequestModal = (props) => {
                                     >
                                         {modalHeader}
                                         <MoneyRequestAmountPage
-                                            onStepComplete={(value) => {
-                                                const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(value));
+                                            onStepComplete={(value, selectedCurrencyCode) => {
+                                                const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(selectedCurrencyCode, Number.parseFloat(value));
+                                                IOU.setIOUSelectedCurrency(selectedCurrencyCode);
                                                 setAmount(amountInSmallestCurrencyUnits);
                                                 navigateToNextStep();
                                             }}
@@ -345,6 +329,7 @@ const MoneyRequestModal = (props) => {
                                             hasMultipleParticipants={props.hasMultipleParticipants}
                                             selectedAmount={CurrencyUtils.convertToWholeUnit(props.iou.selectedCurrencyCode, amount)}
                                             navigation={props.navigation}
+                                            route={props.route}
                                             iouType={props.iouType}
                                             buttonText={amountButtonText}
                                         />
@@ -374,12 +359,10 @@ const MoneyRequestModal = (props) => {
                                         {modalHeader}
                                         <MoneyRequestConfirmPage
                                             onConfirm={(selectedParticipants) => {
-                                                // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
                                                 createTransaction(selectedParticipants);
                                                 ReportScrollManager.scrollToBottom();
                                             }}
                                             onSendMoney={(paymentMethodType) => {
-                                                // TODO: ADD HANDLING TO DISABLE BUTTON FUNCTIONALITY WHILE REQUEST IS IN FLIGHT
                                                 sendMoney(paymentMethodType);
                                                 ReportScrollManager.scrollToBottom();
                                             }}
@@ -394,6 +377,8 @@ const MoneyRequestModal = (props) => {
                                             // the floating-action-button (since it is something that exists outside the context of a report).
                                             canModifyParticipants={!_.isEmpty(reportID)}
                                             navigateToStep={navigateToStep}
+                                            policyID={props.report.policyID}
+                                            bankAccountRoute={bankAccountRoute}
                                         />
                                     </AnimatedStep>
                                 )}

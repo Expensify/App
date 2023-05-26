@@ -7,32 +7,11 @@ import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import getPreferredEmojiCode from './getPreferredEmojiCode';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import * as Report from '../../libs/actions/Report';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
-
-/**
- * Given an emoji object and a list of senders it will return an
- * array of emoji codes, that represents all used variations of the
- * emoji.
- * @param {{ name: string, code: string, types: string[] }} emoji
- * @param {Array} users
- * @return {string[]}
- * */
-const getUniqueEmojiCodes = (emoji, users) => {
-    const emojiCodes = [];
-    _.forEach(users, (user) => {
-        const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
-
-        if (emojiCode && !emojiCodes.includes(emojiCode)) {
-            emojiCodes.push(emojiCode);
-        }
-    });
-    return emojiCodes;
-};
+import * as EmojiUtils from '../../libs/EmojiUtils';
 
 const propTypes = {
     /**
@@ -49,6 +28,9 @@ const propTypes = {
      */
     // eslint-disable-next-line react/forbid-prop-types
     reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+
+    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
+    reportActionID: PropTypes.string.isRequired,
 
     /**
      * Function to call when the user presses on an emoji.
@@ -77,15 +59,15 @@ const ReportActionItemReactions = (props) => {
                 const reactionCount = reaction.users.length;
                 const reactionUsers = _.map(reaction.users, (sender) => sender.accountID.toString());
                 const emoji = _.find(emojis, (e) => e.name === reaction.emoji);
-                const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
+                const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
                 const onPress = () => {
                     props.toggleReaction(emoji);
                 };
+
                 const onReactionListOpen = (event) => {
-                    const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers, props.currentUserPersonalDetails.accountID);
-                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, users, reaction.emoji, emojiCodes, reactionCount, hasUserReacted);
+                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
                 };
 
                 return (
@@ -101,15 +83,17 @@ const ReportActionItemReactions = (props) => {
                         renderTooltipContentKey={[...reactionUsers, ...emojiCodes]}
                         key={reaction.emoji}
                     >
-                        <EmojiReactionBubble
-                            ref={props.forwardedRef}
-                            count={reactionCount}
-                            emojiCodes={emojiCodes}
-                            onPress={onPress}
-                            reactionUsers={reactionUsers}
-                            hasUserReacted={hasUserReacted}
-                            onReactionListOpen={onReactionListOpen}
-                        />
+                        <View>
+                            <EmojiReactionBubble
+                                ref={props.forwardedRef}
+                                count={reactionCount}
+                                emojiCodes={emojiCodes}
+                                onPress={onPress}
+                                reactionUsers={reactionUsers}
+                                hasUserReacted={hasUserReacted}
+                                onReactionListOpen={onReactionListOpen}
+                            />
+                        </View>
                     </Tooltip>
                 );
             })}

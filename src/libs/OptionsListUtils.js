@@ -72,12 +72,14 @@ Onyx.connect({
 });
 
 const lastReportActions = {};
+const allReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
         if (!key || !actions) {
             return;
         }
+        allReportActions[key] = actions;
         const reportID = CollectionUtils.extractCollectionItemID(key);
         lastReportActions[reportID] = _.last(_.toArray(actions));
     },
@@ -103,7 +105,10 @@ function getPolicyExpenseReportOptions(report) {
     if (!ReportUtils.isPolicyExpenseChat(report)) {
         return [];
     }
-    const filteredPolicyExpenseReports = _.filter(policyExpenseReports, (policyExpenseReport) => policyExpenseReport.policyID === report.policyID);
+    const filteredPolicyExpenseReports = _.filter(
+        policyExpenseReports,
+        (policyExpenseReport) => policyExpenseReport.policyID === report.policyID && policyExpenseReport.isOwnPolicyExpenseChat,
+    );
     return _.map(filteredPolicyExpenseReports, (expenseReport) => {
         const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
         return {
@@ -192,10 +197,10 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
  * @param {Object} personalDetails
- * @returns {boolean}
+ * @returns {Boolean}
  */
 function isPersonalDetailsReady(personalDetails) {
-    return !_.isEmpty(personalDetails) && !_.some(_.keys(personalDetails), (key) => !personalDetails[key].login);
+    return !_.isEmpty(personalDetails) && _.some(_.keys(personalDetails), (key) => personalDetails[key].login);
 }
 
 /**
@@ -286,9 +291,10 @@ function uniqFast(items) {
  * @param {String} reportName
  * @param {Array} personalDetailList
  * @param {Boolean} isChatRoomOrPolicyExpenseChat
+ * @param {Boolean} isThread
  * @return {String}
  */
-function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolicyExpenseChat) {
+function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolicyExpenseChat, isThread) {
     let searchTerms = [];
 
     if (!isChatRoomOrPolicyExpenseChat) {
@@ -304,7 +310,13 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
-        if (isChatRoomOrPolicyExpenseChat) {
+        if (isThread) {
+            const title = ReportUtils.getReportName(report);
+            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
+
+            Array.prototype.push.apply(searchTerms, title.split(/[,\s]/));
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
+        } else if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
@@ -403,6 +415,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+        result.isThread = ReportUtils.isThread(report);
+        result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -424,7 +439,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
             lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
         } else {
-            lastMessageTextFromReport = report ? report.lastMessageText : '';
+            lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
         }
 
         const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
@@ -443,6 +458,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
 
         if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
+        } else if (result.isMoneyRequestReport) {
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
@@ -455,7 +472,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
-    result.iouReportAmount = ReportUtils.getIOUTotal(result, iouReports);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -464,7 +481,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
     }
 
     result.text = reportName;
-    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.icons = ReportUtils.getIcons(report, personalDetails, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.subtitle = subtitle;
 
@@ -539,6 +556,8 @@ function getOptions(
         sortPersonalDetailsByAlphaAsc = true,
         forcePolicyNamePreview = false,
         includeOwnedWorkspaceChats = false,
+        includeThreads = false,
+        includeTasks = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -578,11 +597,21 @@ function getOptions(
             return;
         }
 
+        const isThread = ReportUtils.isThread(report);
         const isChatRoom = ReportUtils.isChatRoom(report);
+        const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const logins = report.participants || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+            return;
+        }
+
+        if (isThread && !includeThreads) {
+            return;
+        }
+
+        if (isTaskReport && !includeTasks) {
             return;
         }
 
@@ -628,16 +657,17 @@ function getOptions(
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             const reportOption = allReportOptions[i];
-            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow =
-                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
             }
 
+            const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
+                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
+
             // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && !includeMultipleParticipantReports && !reportOption.login) {
+            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
                 continue;
             }
 
@@ -759,29 +789,30 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         includePersonalDetails: true,
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
+        includeThreads: true,
     });
 }
 
 /**
- * Build the IOUConfirmation options for showing MyPersonalDetail
+ * Build the IOUConfirmation options for showing the payee personalDetail
  *
- * @param {Object} myPersonalDetail
+ * @param {Object} personalDetail
  * @param {String} amountText
  * @returns {Object}
  */
-function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountText) {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     return {
-        text: myPersonalDetail.displayName,
-        alternateText: myPersonalDetail.login,
+        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
+        alternateText: personalDetail.login,
         icons: [
             {
-                source: ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login),
-                name: myPersonalDetail.login,
+                source: ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login),
+                name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ],
         descriptiveText: amountText,
-        login: myPersonalDetail.login,
+        login: personalDetail.login,
     };
 }
 
@@ -839,7 +870,9 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  */
 
 function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
-    return getOptions(reports, personalDetails, {
+    // We want to filter out any IOUs or expense reports
+    const filteredReports = _.filter(reports, (report) => !ReportUtils.isMoneyRequestReport(report));
+    return getOptions(filteredReports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,
@@ -867,7 +900,7 @@ function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', e
         searchInputValue: searchValue.trim(),
         includePersonalDetails: true,
         excludeLogins,
-        sortPersonalDetailsByAlphaAsc: false,
+        sortPersonalDetailsByAlphaAsc: true,
     });
 }
 
@@ -920,7 +953,7 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
-    getIOUConfirmationOptionsFromMyPersonalDetail,
+    getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,

@@ -7,7 +7,6 @@ import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
-import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -33,7 +32,7 @@ const workspaceColorOptions = [
 const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: variables.componentBorderRadiusSmall,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: variables.componentBorderRadiusSmall,
-    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusSmall,
+    [CONST.AVATAR_SIZE.SUBSCRIPT]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALLER]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.HEADER]: variables.componentBorderRadiusMedium,
@@ -85,7 +84,7 @@ function getAvatarStyle(size) {
 /**
  * Get Font size of '+1' text on avatar overlay
  * @param {String} size
- * @returns {Number}
+ * @returns {Object}
  */
 function getAvatarExtraFontSizeStyle(size) {
     const AVATAR_SIZES = {
@@ -107,21 +106,23 @@ function getAvatarExtraFontSizeStyle(size) {
 /**
  * Get Bordersize of Avatar based on avatar size
  * @param {String} size
- * @returns {Number}
+ * @returns {Object}
  */
 function getAvatarBorderWidth(size) {
     const AVATAR_SIZES = {
         [CONST.AVATAR_SIZE.DEFAULT]: 3,
-        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
+        [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
         [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
         [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
-        [CONST.AVATAR_SIZE.SMALL]: 3,
+        [CONST.AVATAR_SIZE.SMALL]: 2,
         [CONST.AVATAR_SIZE.SMALLER]: 2,
         [CONST.AVATAR_SIZE.LARGE]: 4,
         [CONST.AVATAR_SIZE.MEDIUM]: 3,
         [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
     };
-    return AVATAR_SIZES[size];
+    return {
+        borderWidth: AVATAR_SIZES[size],
+    };
 }
 
 /**
@@ -170,15 +171,15 @@ function getDefaultWorkspaceAvatarColor(workspaceName) {
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
- * @param {Boolean} statusBarTranslucent
+ * @param {Number} [insetsPercentage] - Percentage of the insets to use for sides and bottom padding
  * @returns {Object}
  */
-function getSafeAreaPadding(insets, statusBarTranslucent) {
+function getSafeAreaPadding(insets, insetsPercentage = variables.safeInsertPercentage) {
     return {
-        paddingTop: getSafeAreaPaddingTop(insets, statusBarTranslucent),
-        paddingBottom: insets.bottom * variables.safeInsertPercentage,
-        paddingLeft: insets.left * variables.safeInsertPercentage,
-        paddingRight: insets.right * variables.safeInsertPercentage,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom * insetsPercentage,
+        paddingLeft: insets.left * insetsPercentage,
+        paddingRight: insets.right * insetsPercentage,
     };
 }
 
@@ -320,7 +321,9 @@ function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
     return {
         ...styles.pr0,
         ...styles.overflowHidden,
-        height: maxHeight,
+        // maxHeight is not of the input only but the of the whole input container
+        // which also includes the top padding and bottom border
+        height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
     };
 }
 
@@ -346,6 +349,18 @@ function getBackgroundAndBorderStyle(backgroundColor) {
 function getBackgroundColorStyle(backgroundColor) {
     return {
         backgroundColor,
+    };
+}
+
+/**
+ * Returns a style with the specified borderColor
+ *
+ * @param {String} borderColor
+ * @returns {Object}
+ */
+function getBorderColorStyle(borderColor) {
+    return {
+        borderColor,
     };
 }
 
@@ -735,16 +750,6 @@ function getPaddingLeft(paddingLeft) {
 }
 
 /**
- * Android only - convert RTL text to a LTR text using Unicode controls.
- * https://www.w3.org/International/questions/qa-bidi-unicode-controls
- * @param {String} text
- * @returns {String}
- */
-function convertToLTR(text) {
-    return `\u2066${text}`;
-}
-
-/**
  * Checks to see if the iOS device has safe areas or not
  *
  * @param {Number} windowWidth
@@ -815,19 +820,22 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
 }
 
 /**
- * @param {Boolean} isHovered
- * @param {Boolean} isPressed
+ * @param {Object} params
+ * @param {Boolean} params.isHovered
+ * @param {Boolean} params.isPressed
+ * @param {Boolean} params.isInReportAction
+ * @param {Boolean} params.shouldUseCardBackground
  * @returns {Object}
  */
-function getHorizontalStackedAvatarBorderStyle(isHovered, isPressed) {
-    let backgroundColor = themeColors.appBG;
+function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}) {
+    let backgroundColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = themeColors.border;
+        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
     }
 
     if (isPressed) {
-        backgroundColor = themeColors.buttonPressedBG;
+        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.buttonPressedBG;
     }
 
     return {
@@ -1019,7 +1027,7 @@ function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = 
     }
 
     if (hasUserReacted) {
-        backgroundColor = themeColors.reactionActive;
+        backgroundColor = themeColors.reactionActiveBackground;
     }
 
     if (isContextMenu) {
@@ -1053,7 +1061,7 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
 
 function getEmojiReactionCounterTextStyle(hasUserReacted) {
     if (hasUserReacted) {
-        return {color: themeColors.link};
+        return {color: themeColors.reactionActiveText};
     }
 
     return {color: themeColors.textLight};
@@ -1132,6 +1140,7 @@ export {
     getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getBorderColorStyle,
     getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
     getButtonBackgroundColorStyle,
@@ -1151,7 +1160,6 @@ export {
     parseStyleFromFunction,
     combineStyles,
     getPaddingLeft,
-    convertToLTR,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,

@@ -106,6 +106,24 @@ export default [
         getDescription: () => {},
     },
     {
+        textTranslateKey: 'reportActionContextMenu.replyInThread',
+        icon: Expensicons.ChatBubble,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) =>
+            Permissions.canUseThreads(betas) &&
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+            !ReportUtils.isThreadFirstChat(reportAction, reportID),
+        onPress: (closePopover, {reportAction, reportID}) => {
+            Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -137,6 +155,9 @@ export default [
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCANCELED &&
+            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
+            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
             !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
             !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))),
 
@@ -175,7 +196,8 @@ export default [
         successIcon: Expensicons.Checkmark,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
-            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
+            const message = _.last(lodashGet(reportAction, 'message', [{}]));
+            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
@@ -225,10 +247,11 @@ export default [
         getDescription: () => {},
     },
     {
-        textTranslateKey: 'reportActionContextMenu.deleteComment',
+        textTranslateKey: 'reportActionContextMenu.deleteAction',
         icon: Expensicons.Trashcan,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
+            // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction, reportID) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal

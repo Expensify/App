@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
@@ -39,7 +39,7 @@ const propTypes = {
 };
 
 const SignInPageLayout = (props) => {
-    const scrollViewRef = useRef(null);
+    const scrollViewRef = useRef();
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
     const isFocused = useIsFocused();
@@ -51,6 +51,15 @@ const SignInPageLayout = (props) => {
         containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
+
+    const scrollPageToTop = (animated = false) => {
+        if (!scrollViewRef.current) {
+            return;
+        }
+        scrollViewRef.current.scrollTo({y: 0, animated});
+    };
+
+    useEffect(scrollPageToTop, [props.welcomeHeader, props.welcomeText]);
 
     if (!isFocused) {
         return null;
@@ -96,7 +105,7 @@ const SignInPageLayout = (props) => {
                                     ]}
                                 >
                                     <SignInPageHero />
-                                    <Footer scrollViewRef={scrollViewRef} />
+                                    <Footer scrollPageToTop={scrollPageToTop} />
                                 </View>
                             </View>
                         </View>
@@ -124,7 +133,7 @@ const SignInPageLayout = (props) => {
                         </SignInPageContent>
                     </View>
                     <View style={[styles.flex0]}>
-                        <Footer scrollViewRef={scrollViewRef} />
+                        <Footer scrollPageToTop={scrollPageToTop} />
                     </View>
                 </ScrollView>
             )}

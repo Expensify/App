@@ -11,6 +11,7 @@ import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
+import ReportActionItemParentAction from './ReportActionItemParentAction';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -78,10 +79,10 @@ function keyExtractor(item) {
 const ReportActionsList = (props) => {
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
-        opacity: withTiming(opacity.value, {duration: 100}),
+        opacity: opacity.value,
     }));
     useEffect(() => {
-        opacity.value = 1;
+        opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
@@ -113,13 +114,22 @@ const ReportActionsList = (props) => {
         ({item: reportAction, index}) => {
             // When the new indicator should not be displayed we explicitly set it to null
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
-            return (
+            const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isThread(report);
+            return shouldDisplayParentAction ? (
+                <ReportActionItemParentAction
+                    reportID={report.reportID}
+                    parentReportID={`${report.parentReportID}`}
+                />
+            ) : (
                 <ReportActionItem
                     report={report}
                     action={reportAction}
                     displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
                     shouldDisplayNewMarker={shouldDisplayNewMarker}
-                    shouldShowSubscriptAvatar={ReportUtils.isPolicyExpenseChat(report) && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
+                    shouldShowSubscriptAvatar={
+                        (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
+                        _.contains([CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW], reportAction.actionName)
+                    }
                     isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     index={index}

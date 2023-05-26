@@ -4,13 +4,10 @@ import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
-import Log from '../Log';
-import NetworkConnection from '../NetworkConnection';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as Link from './Link';
@@ -18,7 +15,7 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import DateUtils from '../DateUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 
@@ -168,9 +165,7 @@ function requestContactMethodValidateCode(contactMethod) {
                 [contactMethod]: {
                     validateCodeSent: false,
                     errorFields: {
-                        validateCodeSent: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                        },
+                        validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
                     pendingFields: {
                         validateCodeSent: null,
@@ -269,9 +264,7 @@ function deleteContactMethod(contactMethod, loginList) {
                 [contactMethod]: {
                     ...oldLoginData,
                     errorFields: {
-                        deletedLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.deleteContactMethod'),
-                        },
+                        deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
                         deletedLogin: null,
@@ -355,9 +348,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        addedLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
-                        },
+                        addedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.addContactMethod'),
                     },
                     pendingFields: {
                         addedLogin: null,
@@ -422,6 +413,14 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
     ];
     const successData = [
         {
@@ -435,6 +434,11 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
     ];
     const failureData = [
         {
@@ -443,15 +447,18 @@ function validateSecondaryLogin(contactMethod, validateCode) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        validateLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'),
-                        },
+                        validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
                     },
                     pendingFields: {
                         validateLogin: null,
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
         },
     ];
 
@@ -566,6 +573,52 @@ function triggerNotifications(onyxUpdates) {
 }
 
 /**
+ * Handles the newest events from Pusher where a single mega multipleEvents contains
+ * an array of singular events all in one event
+ */
+function subscribeToUserEventsUsingMultipleEventType() {
+    // Handles the mega multipleEvents from Pusher which contains an array of single events.
+    // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
+        _.each(pushJSON, (multipleEvent) => {
+            PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
+        });
+    });
+
+    // Handles Onyx updates coming from Pusher through the mega multipleEvents.
+    PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) => {
+        SequentialQueue.getCurrentRequest().then(() => {
+            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            if (!currentUserAccountID) {
+                return;
+            }
+            Onyx.update(pushJSON);
+            triggerNotifications(pushJSON);
+        });
+    });
+}
+
+/**
+ * Handles the older Pusher events where each event was pushed separately. This is considered legacy code
+ * and should not be updated. Once the server is sending all pusher events using the multipleEvents type,
+ * then this code can be removed. This will be handled in https://github.com/Expensify/Expensify/issues/279347
+ * @deprecated
+ */
+function subscribeToUserDeprecatedEvents() {
+    // Receive any relevant Onyx updates from the server
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
+        SequentialQueue.getCurrentRequest().then(() => {
+            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            if (!currentUserAccountID) {
+                return;
+            }
+            Onyx.update(pushJSON);
+            triggerNotifications(pushJSON);
+        });
+    });
+}
+
+/**
  * Initialize our pusher subscription to listen for user changes
  */
 function subscribeToUserEvents() {
@@ -574,73 +627,8 @@ function subscribeToUserEvents() {
         return;
     }
 
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
-
-    // Receive any relevant Onyx updates from the server
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
-        SequentialQueue.getCurrentRequest().then(() => {
-            Onyx.update(pushJSON);
-            triggerNotifications(pushJSON);
-        });
-    });
-
-    // Live-update an user's preferred locale
-    Pusher.subscribe(
-        pusherChannelName,
-        Pusher.TYPE.PREFERRED_LOCALE,
-        (pushJSON) => {
-            Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, pushJSON.preferredLocale);
-        },
-        () => {
-            NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-        },
-    ).catch((error) => {
-        Log.hmmm('[User] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE});
-    });
-
-    // Subscribe to screen share requests sent by GuidesPlus agents
-    Pusher.subscribe(
-        pusherChannelName,
-        Pusher.TYPE.SCREEN_SHARE_REQUEST,
-        (pushJSON) => {
-            Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
-        },
-        () => {
-            NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-        },
-    ).catch((error) => {
-        Log.hmmm('[User] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName: Pusher.TYPE.SCREEN_SHARE_REQUEST});
-    });
-}
-
-/**
- * Subscribes to Expensify Card updates when checking loginList for private domains
- */
-function subscribeToExpensifyCardUpdates() {
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${currentUserAccountID}${CONFIG.PUSHER.SUFFIX}`;
-
-    // Handle Expensify Card approval flow updates
-    Pusher.subscribe(
-        pusherChannelName,
-        Pusher.TYPE.EXPENSIFY_CARD_UPDATE,
-        (pushJSON) => {
-            if (pushJSON.isUsingExpensifyCard) {
-                Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard: pushJSON.isUsingExpensifyCard, isCheckingDomain: null});
-                Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE);
-            } else {
-                Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
-            }
-        },
-        () => {
-            NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-        },
-    ).catch((error) => {
-        Log.info('[User] Failed to subscribe to Pusher channel', false, {error, pusherChannelName, eventName: Pusher.TYPE.EXPENSIFY_CARD_UPDATE});
-    });
+    subscribeToUserEventsUsingMultipleEventType();
+    subscribeToUserDeprecatedEvents();
 }
 
 /**
@@ -847,9 +835,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
                         defaultLogin: null,
                     },
                     errorFields: {
-                        defaultLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.setDefaultContactMethod'),
-                        },
+                        defaultLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.setDefaultContactMethod'),
                     },
                 },
             },
@@ -883,7 +869,6 @@ export {
     updatePreferredSkinTone,
     setShouldUseStagingServer,
     clearUserErrorMessage,
-    subscribeToExpensifyCardUpdates,
     updateFrequentlyUsedEmojis,
     joinScreenShare,
     clearScreenShareRequest,

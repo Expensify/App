@@ -182,12 +182,12 @@ class BaseTextInput extends Component {
         Animated.parallel([
             Animated.spring(this.state.labelTranslateY, {
                 toValue: translateY,
-                duration: 80,
+                duration: styleConst.LABEL_ANIMATION_DURATION,
                 useNativeDriver: true,
             }),
             Animated.spring(this.state.labelScale, {
                 toValue: scale,
-                duration: 80,
+                duration: styleConst.LABEL_ANIMATION_DURATION,
                 useNativeDriver: true,
             }),
         ]).start();
@@ -380,7 +380,12 @@ class BaseTextInput extends Component {
                 {(this.props.autoGrow || this.props.autoGrowHeight) && (
                     // Add +2 to width so that the first digit of amount do not cut off on mWeb - https://github.com/Expensify/App/issues/8158.
                     <Text
-                        style={[...this.props.inputStyle, this.props.autoGrowHeight ? {maxWidth: this.state.width} : {}, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
+                        style={[
+                            ...this.props.inputStyle,
+                            this.props.autoGrowHeight && styles.autoGrowHeightHiddenInput(this.state.width, maxHeight),
+                            styles.hiddenElementOutsideOfWindow,
+                            styles.visibilityHidden,
+                        ]}
                         onLayout={(e) => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height})}
                     >
                         {this.state.value || this.props.placeholder}

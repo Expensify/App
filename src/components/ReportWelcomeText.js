@@ -94,10 +94,7 @@ const ReportWelcomeText = (props) => {
                         <Text>{props.translate('reportActionsView.beginningOfChatHistory')}</Text>
                         {_.map(displayNamesWithTooltips, ({displayName, pronouns, tooltip}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
-                                <Tooltip
-                                    text={tooltip}
-                                    containerStyles={[styles.dInline]}
-                                >
+                                <Tooltip text={tooltip}>
                                     <Text
                                         style={[styles.textStrong]}
                                         onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}
@@ -114,10 +111,7 @@ const ReportWelcomeText = (props) => {
                     </Text>
                 )}
                 {(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
-                    <Text>
-                        {/* Need to confirm copy for the below with marketing, and then add to translations. */}
-                        {props.translate('reportActionsView.usePlusButton')}
-                    </Text>
+                    <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
                 )}
             </Text>
         </>
