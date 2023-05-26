@@ -94,7 +94,7 @@ function FlagCommentPage(props) {
 
     const flagComment = (severity) => {
         Report.flagComment(props.route.params.reportID, reportAction, severity);
-        Navigation.dismissModal(true)
+        Navigation.dismissModal(true);
     };
 
     const severityMenuItems = _.map(severities, (item, index) => (
