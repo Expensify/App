@@ -34,6 +34,8 @@ import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
+import * as SessionUtils from '../../../libs/SessionUtils';
+import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -107,7 +109,11 @@ class SidebarLinks extends React.Component {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
-        Navigation.navigate(ROUTES.SEARCH);
+        if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+            Session.signOutAndRedirectToSignIn();
+        } else {
+            Navigation.navigate(ROUTES.SEARCH);
+        }
     }
 
     showSettingsPage() {
@@ -115,7 +121,11 @@ class SidebarLinks extends React.Component {
             // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS);
+        if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+            Session.signOutAndRedirectToSignIn();
+        } else {
+            Navigation.navigate(ROUTES.SETTINGS);
+        }
     }
 
     /**
