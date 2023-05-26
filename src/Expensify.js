@@ -99,7 +99,7 @@ function Expensify(props) {
     const [isSplashHidden, setIsSplashHidden] = useState(false);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
-    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded || !props.isCheckingPublicRoom);
+    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded) && !props.isCheckingPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {
