@@ -107,7 +107,6 @@ class CalendarPicker extends React.PureComponent {
                         onPress={this.onYearPickerPressed}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
                         wrapperStyle={[styles.alignItemsCenter]}
-                        // disable the opacity change on hover
                         hoverDimmingValue={1}
                         accessibilityLabel={this.props.translate('common.currentYear')}
                     >
@@ -132,7 +131,6 @@ class CalendarPicker extends React.PureComponent {
                             testID="prev-month-arrow"
                             disabled={!hasAvailableDatesPrevMonth}
                             onPress={this.moveToPrevMonth}
-                            // disable the opacity change on hover
                             hoverDimmingValue={1}
                             accessibilityLabel={this.props.translate('common.previous')}
                         >
@@ -145,7 +143,6 @@ class CalendarPicker extends React.PureComponent {
                             testID="next-month-arrow"
                             disabled={!hasAvailableDatesNextMonth}
                             onPress={this.moveToNextMonth}
-                            // disable the opacity change on hover
                             hoverDimmingValue={1}
                             accessibilityLabel={this.props.translate('common.next')}
                         >
@@ -182,9 +179,8 @@ class CalendarPicker extends React.PureComponent {
                                     onPress={() => this.onDayPressed(day)}
                                     style={styles.calendarDayRoot}
                                     accessibilityLabel={day ? day.toString() : undefined}
-                                    // disable focus and accessibility  on empty fields
-                                    focusable={!!day}
-                                    accessible={!!day}
+                                    focusable={Boolean(day)}
+                                    accessible={Boolean(day)}
                                 >
                                     {({hovered, pressed}) => (
                                         <View
