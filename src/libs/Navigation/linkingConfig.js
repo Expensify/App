@@ -177,6 +177,9 @@ export default {
                     Workspace_Reimburse: {
                         path: ROUTES.WORKSPACE_REIMBURSE,
                     },
+                    Workspace_RateAndUnit: {
+                        path: ROUTES.WORKSPACE_RATE_AND_UNIT,
+                    },
                     Workspace_Bills: {
                         path: ROUTES.WORKSPACE_BILLS,
                     },
@@ -227,6 +230,11 @@ export default {
                     Report_Settings_Write_Capability: {
                         path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY,
                     },
+                },
+            },
+            Report_WelcomeMessage: {
+                screens: {
+                    Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE,
                 },
             },
             NewGroup: {

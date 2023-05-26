@@ -139,6 +139,9 @@ export default {
         with: 'con',
         shareCode: 'Compartir código',
         share: 'Compartir',
+        per: 'por',
+        mi: 'milla',
+        km: 'kilómetro',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -172,6 +175,9 @@ export default {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
+        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
+        youCanAlso: 'También puedes',
+        openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -639,6 +645,10 @@ export default {
                 description: 'Mostrar sólo los no leídos ordenados alfabéticamente',
             },
         },
+    },
+    welcomeMessagePage: {
+        welcomeMessage: 'Mensaje de bienvenida',
+        explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
     },
     languagePage: {
         language: 'Idioma',
@@ -1113,6 +1123,7 @@ export default {
             unlockNoVBACopy: 'Conecta una cuenta bancaria para reembolsar online a los miembros de tu espacio de trabajo.',
             fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
             updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado. Por favor, inténtalo de nuevo.',
+            invalidRateError: 'Por favor ingrese una tarifa válida',
         },
         bills: {
             manageYourBills: 'Gestiona tus facturas',

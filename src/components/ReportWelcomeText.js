@@ -94,10 +94,7 @@ const ReportWelcomeText = (props) => {
                         <Text>{props.translate('reportActionsView.beginningOfChatHistory')}</Text>
                         {_.map(displayNamesWithTooltips, ({displayName, pronouns, tooltip}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
-                                <Tooltip
-                                    text={tooltip}
-                                    containerStyles={[styles.dInline]}
-                                >
+                                <Tooltip text={tooltip}>
                                     <Text
                                         style={[styles.textStrong]}
                                         onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}
