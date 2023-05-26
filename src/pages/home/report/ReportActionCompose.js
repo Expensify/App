@@ -46,7 +46,6 @@ import reportPropTypes from '../../reportPropTypes';
 import EmojiSuggestions from '../../../components/EmojiSuggestions';
 import MentionSuggestions from '../../../components/MentionSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
-import ArrowKeyFocusManager from '../../../components/ArrowKeyFocusManager';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
@@ -54,8 +53,8 @@ import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
-import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager'
-import useKeyboardShortcut from '../../../hooks/useKeyboardShortcut'
+import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager';
+import useKeyboardShortcut from '../../../hooks/useKeyboardShortcut';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -145,7 +144,6 @@ const defaultProps = {
 const defaultSuggestionsValues = {
     suggestedEmojis: [],
     suggestedMentions: [],
-    highlightedMentionIndex: 0,
     colonIndex: -1,
     atSignIndex: -1,
     shouldShowEmojiSuggestionMenu: false,
@@ -175,7 +173,6 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
 
 /**
  * Save draft report comment. Debounced to happen at most once per second.
@@ -214,11 +211,11 @@ const isEmojiCode = (str, pos) => {
 const isMentionCode = (str) => CONST.REGEX.HAS_AT_MOST_TWO_AT_SIGNS.test(str);
 
 /**
-     * Trims first character of the string if it is a space
-     * @param {String} str
-     * @returns {String}
-     */
-const trimLeadingSpace = (str) => str.slice(0, 1) === ' ' ? str.slice(1) : str
+ * Trims first character of the string if it is a space
+ * @param {String} str
+ * @returns {String}
+ */
+const trimLeadingSpace = (str) => (str.slice(0, 1) === ' ' ? str.slice(1) : str);
 
 // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
 // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
@@ -231,7 +228,6 @@ function ReportActionCompose(props) {
      */
     const [isFocused, setIsFocused] = useState(shouldFocusInputOnScreenFocus && !props.modal.isVisible && !props.modal.willAlertModalBecomeVisible && props.shouldShowComposeInput);
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(props.isComposerFullSize);
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager()
 
     const isEmptyChat = useMemo(() => _.size(props.reportActions) === 1, [props.reportActions]);
 
@@ -262,13 +258,21 @@ function ReportActionCompose(props) {
     // TODO: rewrite suggestion logic to some hook or state machine or util or something to not make it depend on ReportActionComposer
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
+    const [highlightedEmojiIndex] = useArrowKeyFocusManager({
+        maxIndex: getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge),
+        shouldExcludeTextAreaNodes: false,
+    });
+    const [highlightedMentionIndex] = useArrowKeyFocusManager({
+        maxIndex: getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge),
+        shouldExcludeTextAreaNodes: false,
+    });
+
     /**
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
      */
     const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
 
-    const unsubscribeEscapeKey = useRef(null);
     const comment = useRef(props.comment);
     const textInput = useRef(null);
     const actionButton = useRef(null);
@@ -290,10 +294,7 @@ function ReportActionCompose(props) {
     );
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
-    const conciergePlaceholderRandomIndex = useMemo(
-        () => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
-        [props],
-    );
+    const conciergePlaceholderRandomIndex = useMemo(() => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)), [props]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -412,8 +413,8 @@ function ReportActionCompose(props) {
         {
             captureOnInputs: true,
             shouldBubble: true,
-        }
-    )
+        },
+    );
 
     useEffect(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
@@ -516,46 +517,49 @@ function ReportActionCompose(props) {
         [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestions, shouldBlockEmojiCalc],
     );
 
-    const getMentionOptions = useCallback((personalDetails, searchValue = '') => {
-        const suggestions = [];
+    const getMentionOptions = useCallback(
+        (personalDetails, searchValue = '') => {
+            const suggestions = [];
 
-        if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue)) {
-            suggestions.push({
-                text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
-                alternateText: props.translate('mentionSuggestions.hereAlternateText'),
-                icons: [
-                    {
-                        source: Expensicons.Megaphone,
-                        type: 'avatar',
-                    },
-                ],
-            });
-        }
-
-        const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
-            if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
-                return false;
+            if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue)) {
+                suggestions.push({
+                    text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
+                    alternateText: props.translate('mentionSuggestions.hereAlternateText'),
+                    icons: [
+                        {
+                            source: Expensicons.Megaphone,
+                            type: 'avatar',
+                        },
+                    ],
+                });
             }
-            return true;
-        });
 
-        const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
-        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
-            suggestions.push({
-                text: detail.displayName,
-                alternateText: detail.login,
-                icons: [
-                    {
-                        name: detail.login,
-                        source: detail.avatar,
-                        type: 'avatar',
-                    },
-                ],
+            const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+                if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
+                    return false;
+                }
+                return true;
             });
-        });
 
-        return suggestions;
-    }, [props])
+            const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
+            _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
+                suggestions.push({
+                    text: detail.displayName,
+                    alternateText: detail.login,
+                    icons: [
+                        {
+                            name: detail.login,
+                            source: detail.avatar,
+                            type: 'avatar',
+                        },
+                    ],
+                });
+            });
+
+            return suggestions;
+        },
+        [props],
+    );
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
@@ -587,7 +591,6 @@ function ReportActionCompose(props) {
 
             const nextState = {
                 suggestedMentions: [],
-                highlightedmentionindex: 0,
                 atSignIndex,
                 mentionPrefix: prefix,
             };
@@ -717,7 +720,7 @@ function ReportActionCompose(props) {
             const emojiCode = emojiObject.types && emojiObject.types[props.preferredSkinTone] ? emojiObject.types[props.preferredSkinTone] : emojiObject.code;
             const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
 
-            updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace( commentAfterColonWithEmojiNameRemoved)}`, true);
+            updateComment(`${commentBeforeColon}${emojiCode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
 
             // In some Android phones keyboard, the text to search for the emoji is not cleared
             // will be added after the user starts typing again on the keyboard. This package is
@@ -743,9 +746,9 @@ function ReportActionCompose(props) {
      * @param {Number} highlightedMentionIndex
      */
     const insertSelectedMention = useCallback(
-        (highlightedMentionIndex) => {
+        (highlightedMentionIndexInner) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
-            const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndex];
+            const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
             const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
             const commentAfterAtSignWithMentionRemoved = value.slice(suggestionValues.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
@@ -851,10 +854,10 @@ function ReportActionCompose(props) {
             if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
                 e.preventDefault();
                 if (suggestionValues.suggestedEmojis.length > 0) {
-                    insertSelectedEmoji(suggestionValues.highlightedEmojiIndex);
+                    insertSelectedEmoji(highlightedEmojiIndex);
                 }
                 if (suggestionValues.suggestedMentions.length > 0) {
-                    insertSelectedMention(suggestionValues.highlightedMentionIndex);
+                    insertSelectedMention(highlightedMentionIndex);
                 }
                 return;
             }
@@ -877,10 +880,7 @@ function ReportActionCompose(props) {
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
-                textInput.selectionStart === 0 &&
-                isCommentEmpty &&
-                !ReportUtils.chatIncludesChronos(props.report)) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.selectionStart === 0 && isCommentEmpty && !ReportUtils.chatIncludesChronos(props.report)) {
                 e.preventDefault();
 
                 const lastReportAction = _.find(props.reportActions, (action) => ReportUtils.canEditReportAction(action));
@@ -890,7 +890,23 @@ function ReportActionCompose(props) {
                 }
             }
         },
-        [props.isSmallScreenWidth, props.isKeyboardShown, props.report, props.reportActions, props.reportID, suggestionValues.suggestedEmojis.length, suggestionValues.suggestedMentions.length, suggestionValues.highlightedEmojiIndex, suggestionValues.highlightedMentionIndex, isCommentEmpty, insertSelectedEmoji, insertSelectedMention, resetSuggestions, updateComment, submitForm],
+        [
+            highlightedEmojiIndex,
+            highlightedMentionIndex,
+            insertSelectedEmoji,
+            insertSelectedMention,
+            isCommentEmpty,
+            props.isKeyboardShown,
+            props.isSmallScreenWidth,
+            props.report,
+            props.reportActions,
+            props.reportID,
+            resetSuggestions,
+            submitForm,
+            suggestionValues.suggestedEmojis.length,
+            suggestionValues.suggestedMentions.length,
+            updateComment,
+        ],
     );
 
     /**
@@ -980,7 +996,7 @@ function ReportActionCompose(props) {
                                                     isFullSizeComposerAvailable || props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
                                                 ]}
                                             >
-                                                {props.isComposerFullSize &&  isFullSizeComposerAvailable && (
+                                                {props.isComposerFullSize && isFullSizeComposerAvailable && (
                                                     <Tooltip text={props.translate('reportActionCompose.collapse')}>
                                                         <TouchableOpacity
                                                             onPress={(e) => {
@@ -1164,51 +1180,37 @@ function ReportActionCompose(props) {
             </OfflineWithFeedback>
             {isDraggingOver && <ReportDropUI />}
             {!_.isEmpty(suggestionValues.suggestedEmojis) && (
-                <ArrowKeyFocusManager
-                    focusedIndex={suggestionValues.highlightedEmojiIndex}
-                    maxIndex={getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge)}
-                    shouldExcludeTextAreaNodes={false}
-                    onFocusedIndexChanged={(index) => setSuggestionValues((prevState) => ({...prevState, highlightedEmojiIndex: index}))}
-                >
-                    <EmojiSuggestions
-                        onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
-                        highlightedEmojiIndex={suggestionValues.highlightedEmojiIndex}
-                        emojis={suggestionValues.suggestedEmojis}
-                        comment={value}
-                        updateComment={(newComment) => setValue(newComment)}
-                        colonIndex={suggestionValues.colonIndex}
-                        prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
-                        onSelect={insertSelectedEmoji}
-                        isComposerFullSize={props.isComposerFullSize}
-                        preferredSkinToneIndex={props.preferredSkinTone}
-                        isEmojiPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
-                        composerHeight={composerHeight}
-                        shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
-                    />
-                </ArrowKeyFocusManager>
+                <EmojiSuggestions
+                    onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
+                    highlightedEmojiIndex={suggestionValues.highlightedEmojiIndex}
+                    emojis={suggestionValues.suggestedEmojis}
+                    comment={value}
+                    updateComment={(newComment) => setValue(newComment)}
+                    colonIndex={suggestionValues.colonIndex}
+                    prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
+                    onSelect={insertSelectedEmoji}
+                    isComposerFullSize={props.isComposerFullSize}
+                    preferredSkinToneIndex={props.preferredSkinTone}
+                    isEmojiPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
+                    composerHeight={composerHeight}
+                    shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                />
             )}
             {!_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowMentionSuggestionMenu && (
-                <ArrowKeyFocusManager
-                    focusedIndex={suggestionValues.highlightedMentionIndex}
-                    maxIndex={getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge)}
-                    shouldExcludeTextAreaNodes={false}
-                    onFocusedIndexChanged={(index) => setSuggestionValues((prevState) => ({...prevState, highlightedMentionIndex: index}))}
-                >
-                    <MentionSuggestions
-                        onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}))}
-                        highlightedMentionIndex={suggestionValues.highlightedMentionIndex}
-                        mentions={suggestionValues.suggestedMentions}
-                        comment={value}
-                        updateComment={(newComment) => setValue(newComment)}
-                        colonIndex={suggestionValues.colonIndex}
-                        prefix={suggestionValues.mentionPrefix}
-                        onSelect={insertSelectedMention}
-                        isComposerFullSize={props.isComposerFullSize}
-                        isMentionPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
-                        composerHeight={composerHeight}
-                        shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
-                    />
-                </ArrowKeyFocusManager>
+                <MentionSuggestions
+                    onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}))}
+                    highlightedMentionIndex={highlightedMentionIndex}
+                    mentions={suggestionValues.suggestedMentions}
+                    comment={value}
+                    updateComment={(newComment) => setValue(newComment)}
+                    colonIndex={suggestionValues.colonIndex}
+                    prefix={suggestionValues.mentionPrefix}
+                    onSelect={insertSelectedMention}
+                    isComposerFullSize={props.isComposerFullSize}
+                    isMentionPickerLarge={suggestionValues.isAutoSuggestionPickerLarge}
+                    composerHeight={composerHeight}
+                    shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
+                />
             )}
         </View>
     );
