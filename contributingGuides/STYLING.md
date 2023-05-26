@@ -2,7 +2,7 @@
 
 ## Where to Define Styles
 
-All non-theme-related styles must be defined in the `/styles` directory and `staticStyles.js` contains the final export after gathering all appropriate styles. Unlike some React Native applications we are not using `StyleSheet.create()` and instead store styles as plain JS objects. There are also many helper styles available for direct use in components.
+All non-theme-related styles must be defined in the `/styles` directory and `styles.js` contains the final export after gathering all appropriate styles. Unlike some React Native applications we are not using `StyleSheet.create()` and instead store styles as plain JS objects. There are also many helper styles available for direct use in components.
 
 All styles that depend on theme colors have to be defined in the `StylesProvider` component, as those need to be dynamically created and animated.
 
@@ -53,7 +53,7 @@ Any array of styles associated with a single type of React element that has at l
 
 ## Inline Styles
 
-**Inline styles are forbidden.** If we run into a case where we feel it's necessary to conditionally render some styles we should create a helper function then pass any modifying parameters to that function. Small helper functions can be written directly in `staticStyles.js`, but larger, more complex methods should be put in their own modules and imported into `staticStyles.js`.
+**Inline styles are forbidden.** If we run into a case where we feel it's necessary to conditionally render some styles we should create a helper function then pass any modifying parameters to that function. Small helper functions can be written directly in `styles.js`, but larger, more complex methods should be put in their own modules and imported into `styles.js`.
 
 ```jsx
 // Bad - Do not use inline styles
@@ -81,7 +81,7 @@ const TextWithPadding = props => (
 
 ## How to Reuse Styles
 
-There are many styles in the `staticStyles.js` file. It is generally a bad practice to grab a style meant for a _specific_ use case and utilize it for some other more _general_ use case without changing it's name to make it more general. If we think we see a style that might be appropriate for reuse, but does not have a generic name then we should **rename it** instead of using it directly.
+There are many styles in the `styles.js` file. It is generally a bad practice to grab a style meant for a _specific_ use case and utilize it for some other more _general_ use case without changing it's name to make it more general. If we think we see a style that might be appropriate for reuse, but does not have a generic name then we should **rename it** instead of using it directly.
 
 ```jsx
 // Bad - Reuses style without generalizing style name
