@@ -64,7 +64,7 @@ class QRShare extends Component {
 
                 <Text
                     family="EXP_NEW_KANSAS_MEDIUM"
-                    fontSize={22}
+                    fontSize={variables.fontSizeXLarge}
                     numberOfLines={2}
                     style={styles.qrShareTitle}
                 >
@@ -74,7 +74,7 @@ class QRShare extends Component {
                 {this.props.subtitle && (
                     <Text
                         family="EXP_NEUE_BOLD"
-                        fontSize={13}
+                        fontSize={variables.fontSizeLabel}
                         numberOfLines={1}
                         style={styles.mt1}
                         color={defaultTheme.textSupporting}
