@@ -1075,7 +1075,7 @@ class ReportActionCompose extends React.Component {
                                                     this.setIsFocused(false);
                                                     this.resetSuggestions();
                                                 }}
-                                                onClick={this.setShouldBlockSuggestionsCalcToFalse}
+                                                onMouseDown={this.setShouldBlockSuggestionsCalcToFalse}
                                                 onPasteFile={displayFileInModal}
                                                 shouldClear={this.state.textInputShouldClear}
                                                 onClear={() => this.setTextInputShouldClear(false)}
