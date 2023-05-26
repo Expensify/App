@@ -51,6 +51,21 @@ const AvatarWithDisplayName = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins([props.report.ownerEmail], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(ownerPersonalDetails, false);
+
+    let avatarContainerStyle = styles.emptyAvatar;
+
+    if (props.size === CONST.AVATAR_SIZE.SMALL) {
+        avatarContainerStyle = styles.emptyAvatarSmall;
+    }
+
+    if (props.size === CONST.AVATAR_SIZE.MEDIUM) {
+        avatarContainerStyle = styles.emptyAvatarMedium;
+    }
+
+    if (props.size === CONST.AVATAR_SIZE.LARGE) {
+        avatarContainerStyle = styles.emptyAvatarLarge;
+    }
+
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
@@ -70,7 +85,7 @@ const AvatarWithDisplayName = (props) => {
                             source={icons[0].source}
                             type={icons[0].type}
                             name={icons[0].name}
-                            containerStyles={props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar}
+                            containerStyles={avatarContainerStyle}
                         />
                     )}
                     <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
