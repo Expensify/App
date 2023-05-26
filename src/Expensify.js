@@ -26,7 +26,6 @@ import Navigation from './libs/Navigation/Navigation';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
-import * as Session from './libs/actions/Session';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -181,7 +180,6 @@ function Expensify(props) {
         Session.signOut();
     };
 
-
     return (
         <>
             {!isSplashShown && (
@@ -204,7 +202,7 @@ function Expensify(props) {
                     ) : null}
                 </>
             )}
-            <AppleAuthWrapper onCredentialRevoked={handleCredentialRevoked} />
+            <AppleAuthWrapper />
             <NavigationRoot
                 onReady={setNavigationReady}
                 authenticated={isAuthenticated}
