@@ -207,8 +207,8 @@ class ReportScreen extends React.Component {
     fetchReportIfNeeded() {
         // Re-open the last opened public room if the user logged in
         if (this.props.lastOpenedPublicRoomID && !SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+            Report.setLastOpenedPublicRoom('');
             Report.openReport(this.props.lastOpenedPublicRoomID);
-            Report.setLastOpenedPublicRoom(null);
             return;
         }
 
@@ -411,6 +411,7 @@ export default compose(
     withOnyx({
         lastOpenedPublicRoomID: {
             key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+            initWithStoredValues: false,
         },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
