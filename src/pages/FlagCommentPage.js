@@ -1,7 +1,12 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import reportActionPropTypes from './home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import compose from '../libs/compose';
+import ONYXKEYS from '../ONYXKEYS';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
@@ -9,12 +14,44 @@ import Navigation from '../libs/Navigation/Navigation';
 import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
+import * as Report from '../libs/actions/Report';
 
 const propTypes = {
+    /** Array of report actions for this report */
+    reportActions: PropTypes.shape(reportActionPropTypes),
+
+    /** Route params */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** Report ID passed via route r/:reportID/:reportActionID */
+            reportID: PropTypes.string,
+
+            /** ReportActionID passed via route r/:reportID/:reportActionID */
+            reportActionID: PropTypes.string,
+        }),
+    }).isRequired,
+    
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    reportActions: {},
+}
+
+/**
+ * Get the reportID for the associated chatReport
+ *
+ * @param {Object} route
+ * @param {Object} route.params
+ * @param {String} route.params.reportID
+ * @returns {String}
+ */
+function getReportID(route) {
+    return route.params.reportID.toString();
+}
+
 function FlagCommentPage(props) {
+    const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const severities = [
         {
             severity: 'spam',
@@ -55,9 +92,7 @@ function FlagCommentPage(props) {
     ];
 
     const flagComment = (severity) => {
-        console.log(severity);
-        console.log(props.route.params.reportActionID);
-        console.log(props.route.params.reportID);
+        Report.flagComment(props.route.params.reportID, reportAction, severity);
     };
 
     const severityMenuItems = _.map(severities, (item, index) => (<MenuItem
@@ -103,7 +138,16 @@ function FlagCommentPage(props) {
 }
 
 FlagCommentPage.propTypes = propTypes;
+FlagCommentPage.defaultProps = defaultProps;
 FlagCommentPage.displayName = 'FlagCommentPage';
 
-export default withLocalize(FlagCommentPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reportActions: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+            canEvict: false,
+        },
+    }),
+)(FlagCommentPage);
 
