@@ -51,23 +51,16 @@ describe('test workflow authorChecklist', () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
+                });
 
                 assertions.assertChecklistJobExecuted(result);
             });
@@ -78,23 +71,16 @@ describe('test workflow authorChecklist', () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
+                });
 
                 assertions.assertChecklistJobExecuted(result, false);
             });
@@ -111,23 +97,16 @@ describe('test workflow authorChecklist', () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
+                });
 
                 assertions.assertChecklistJobExecuted(result);
             });
@@ -138,23 +117,16 @@ describe('test workflow authorChecklist', () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
+                });
 
                 assertions.assertChecklistJobExecuted(result, false);
             });
@@ -171,23 +143,16 @@ describe('test workflow authorChecklist', () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
+                });
 
                 assertions.assertChecklistJobExecuted(result);
             });
@@ -198,23 +163,16 @@ describe('test workflow authorChecklist', () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     checklist: mocks.AUTHORCHECKLIST__CHECKLIST__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
+                });
 
                 assertions.assertChecklistJobExecuted(result, false);
             });

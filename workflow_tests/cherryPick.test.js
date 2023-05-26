@@ -67,13 +67,12 @@ describe('test workflow cherryPick', () => {
                     createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                     cherryPick: mocks.getCherryPickMockSteps(true, true, true),
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor);
                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -111,28 +110,16 @@ describe('test workflow cherryPick', () => {
                         NEW_VERSION: newVersion,
                     },
                 );
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor);
                 assertions.assertCreateNewVersionJobExecuted(result);
-                assertions.assertCherryPickJobExecuted(
-                    result,
-                    actor,
-                    '1234',
-                    '1.2.3',
-                    true,
-                    mergeConflicts || !versionsMatch,
-                    !mergeConflicts,
-                    versionsMatch,
-                    prIsMergeable,
-                    newVersion,
-                );
+                assertions.assertCherryPickJobExecuted(result, actor, '1234', '1.2.3', true, mergeConflicts || !versionsMatch, !mergeConflicts, versionsMatch, prIsMergeable, newVersion);
             });
         });
         describe('actor is a deployer', () => {
@@ -170,13 +157,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -221,13 +207,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -275,13 +260,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -326,13 +310,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -383,13 +366,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -434,13 +416,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -488,13 +469,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -539,13 +519,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result);
@@ -600,13 +579,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -651,13 +629,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -705,13 +682,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -756,13 +732,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -813,13 +788,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -864,13 +838,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -918,13 +891,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -969,13 +941,12 @@ describe('test workflow cherryPick', () => {
                                         NEW_VERSION: newVersion,
                                     },
                                 );
-                                const result = await act
-                                    .runEvent(event, {
-                                        workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                        mockSteps: testMockSteps,
-                                        actor,
-                                        logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                    });
+                                const result = await act.runEvent(event, {
+                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                                    mockSteps: testMockSteps,
+                                    actor,
+                                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
                                 assertions.assertCreateNewVersionJobExecuted(result, false);
@@ -1025,13 +996,12 @@ describe('test workflow cherryPick', () => {
                 createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                 cherryPick: mocks.getCherryPickMockSteps(true, true, true),
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                    mockSteps: testMockSteps,
-                    actor: 'Dummy Author',
-                    logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                mockSteps: testMockSteps,
+                actor: 'Dummy Author',
+                logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+            });
 
             assertions.assertValidateActorJobExecuted(result, 'Dummy Author', false);
             assertions.assertCreateNewVersionJobExecuted(result, false);

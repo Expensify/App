@@ -61,20 +61,8 @@ describe('test workflow testBuild', () => {
             const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                {},
-                secrets,
-                githubToken,
-                {},
-                inputs,
-            );
-            act = utils.setJobRunners(
-                act,
-                {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                workflowPath,
-            );
+            act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
+            act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
             const testMockSteps = {
                 validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                 getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -84,13 +72,12 @@ describe('test workflow testBuild', () => {
                 web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                 postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+            });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
             assertions.assertGetBranchRefJobExecuted(result);
@@ -105,20 +92,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -128,13 +103,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -150,20 +124,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -173,13 +135,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -195,20 +156,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -218,13 +167,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -240,20 +188,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -263,23 +199,13 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.android[4] = utils.createMockStep(
-                    'Decrypt keystore',
-                    'Decrypt keystore',
-                    'ANDROID',
-                    [],
-                    ['LARGE_SECRET_PASSPHRASE'],
-                    {},
-                    {},
-                    false,
-                );
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                testMockSteps.android[4] = utils.createMockStep('Decrypt keystore', 'Decrypt keystore', 'ANDROID', [], ['LARGE_SECRET_PASSPHRASE'], {}, {}, false);
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result);
@@ -295,20 +221,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -318,23 +232,13 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.iOS[5] = utils.createMockStep(
-                    'Install cocoapods',
-                    'Install cocoapods',
-                    'IOS',
-                    ['timeout_minutes', 'max_attempts', 'command'],
-                    [],
-                    {},
-                    {},
-                    false,
-                );
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                testMockSteps.iOS[5] = utils.createMockStep('Install cocoapods', 'Install cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command'], [], {}, {}, false);
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result);
@@ -350,20 +254,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -383,13 +275,12 @@ describe('test workflow testBuild', () => {
                     {},
                     false,
                 );
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result);
@@ -405,20 +296,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    {},
-                    secrets,
-                    githubToken,
-                    {},
-                    inputs,
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, {}, secrets, githubToken, {}, inputs);
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -438,13 +317,12 @@ describe('test workflow testBuild', () => {
                     {},
                     false,
                 );
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result);
@@ -471,19 +349,8 @@ describe('test workflow testBuild', () => {
             const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                secrets,
-                githubToken,
-                {},
-            );
-            act = utils.setJobRunners(
-                act,
-                {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                workflowPath,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+            act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
             const testMockSteps = {
                 validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                 getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -493,13 +360,12 @@ describe('test workflow testBuild', () => {
                 web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                 postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+            });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
             assertions.assertGetBranchRefJobExecuted(result, false);
@@ -514,19 +380,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -536,13 +391,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -558,19 +412,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -580,13 +423,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -602,19 +444,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -624,13 +455,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -657,19 +487,8 @@ describe('test workflow testBuild', () => {
             const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                secrets,
-                githubToken,
-                {},
-            );
-            act = utils.setJobRunners(
-                act,
-                {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                workflowPath,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+            act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
             const testMockSteps = {
                 validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                 getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -679,13 +498,12 @@ describe('test workflow testBuild', () => {
                 web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                 postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+            });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
             assertions.assertGetBranchRefJobExecuted(result, false);
@@ -700,19 +518,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -722,13 +529,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -744,19 +550,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -766,13 +561,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -788,19 +582,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -810,13 +593,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -843,19 +625,8 @@ describe('test workflow testBuild', () => {
             const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                secrets,
-                githubToken,
-                {},
-            );
-            act = utils.setJobRunners(
-                act,
-                {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                workflowPath,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+            act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
             const testMockSteps = {
                 validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                 getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -865,13 +636,12 @@ describe('test workflow testBuild', () => {
                 web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                 postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+            });
 
             assertions.assertValidateActorJobExecuted(result, actor, '1234');
             assertions.assertGetBranchRefJobExecuted(result, false);
@@ -886,19 +656,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_HAS_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -908,13 +667,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -930,19 +688,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -952,13 +699,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);
@@ -974,19 +720,8 @@ describe('test workflow testBuild', () => {
                 const repoPath = mockGithub.repo.getPath('testTestBuildWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'testBuild.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                );
-                act = utils.setJobRunners(
-                    act,
-                    {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'},
-                    workflowPath,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken, {});
+                act = utils.setJobRunners(act, {iOS: 'ubuntu-latest', desktop: 'ubuntu-latest'}, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.TESTBUILD__VALIDATEACTOR__NO_TEAM_MEMBER_NO_FLAG__STEP_MOCKS,
                     getBranchRef: mocks.TESTBUILD__GETBRANCHREF__STEP_MOCKS,
@@ -996,13 +731,12 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('testBuild', expect.getState().currentTestName),
+                });
 
                 assertions.assertValidateActorJobExecuted(result, actor, '1234');
                 assertions.assertGetBranchRefJobExecuted(result, false);

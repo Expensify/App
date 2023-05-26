@@ -8,7 +8,10 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
             null,
             'DEPLOYBLOCKER',
             'Checkout',
-            [{key: 'fetch-depth', value: '0'}, {key: 'token', value: '***'}],
+            [
+                {key: 'fetch-depth', value: '0'},
+                {key: 'token', value: '***'},
+            ],
             [],
         ),
         utils.createStepAssertion(
@@ -35,7 +38,10 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
             null,
             'DEPLOYBLOCKER',
             'Give the issue/PR the Hourly, Engineering labels',
-            [{key: 'add-labels', value: 'Hourly, Engineering'}, {key: 'remove-labels', value: 'Daily, Weekly, Monthly'}],
+            [
+                {key: 'add-labels', value: 'Hourly, Engineering'},
+                {key: 'remove-labels', value: 'Daily, Weekly, Monthly'},
+            ],
             [],
         ),
         utils.createStepAssertion(
@@ -44,7 +50,10 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
             null,
             'DEPLOYBLOCKER',
             'Comment on deferred PR',
-            [{key: 'github_token', value: '***'}, {key: 'number', value: issueNumber}],
+            [
+                {key: 'github_token', value: '***'},
+                {key: 'number', value: issueNumber},
+            ],
             [],
         ),
     ];
@@ -67,7 +76,10 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
             'DEPLOYBLOCKER',
             'Post the issue in the expensify-open-source slack room',
             [{key: 'status', value: 'custom'}],
-            [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'SLACK_WEBHOOK_URL', value: '***'}],
+            [
+                {key: 'GITHUB_TOKEN', value: '***'},
+                {key: 'SLACK_WEBHOOK_URL', value: '***'},
+            ],
         ),
     ];
 
@@ -80,15 +92,7 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
     });
 
     const failedSteps = [
-        utils.createStepAssertion(
-            'Announce failed workflow in Slack',
-            true,
-            null,
-            'DEPLOYBLOCKER',
-            'Announce failed workflow in Slack',
-            [{key: 'SLACK_WEBHOOK', value: '***'}],
-            [],
-        ),
+        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'DEPLOYBLOCKER', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
     ];
 
     failedSteps.forEach((step) => {

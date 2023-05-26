@@ -53,9 +53,7 @@ describe('test workflow finishReleaseCycle', () => {
                                 action: 'closed',
                                 type: 'closed',
                                 issue: {
-                                    labels: [
-                                        {name: 'StagingDeployCash'},
-                                    ],
+                                    labels: [{name: 'StagingDeployCash'}],
                                     number: '1234',
                                 },
                             },
@@ -71,13 +69,12 @@ describe('test workflow finishReleaseCycle', () => {
                             createNewPatchVersion: mocks.FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS,
                             createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                         };
-                        const result = await act
-                            .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
-                                mockSteps: testMockSteps,
-                                actor: 'Dummy Author',
-                                logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
-                            });
+                        const result = await act.runEvent('issues', {
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
+                            mockSteps: testMockSteps,
+                            actor: 'Dummy Author',
+                            logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
+                        });
                         assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234');
                         assertions.assertUpdateProductionJobExecuted(result);
                         assertions.assertCreateNewPatchVersionJobExecuted(result);
@@ -95,9 +92,7 @@ describe('test workflow finishReleaseCycle', () => {
                                     action: 'closed',
                                     type: 'closed',
                                     issue: {
-                                        labels: [
-                                            {name: 'StagingDeployCash'},
-                                        ],
+                                        labels: [{name: 'StagingDeployCash'}],
                                         number: '1234',
                                     },
                                 },
@@ -123,13 +118,12 @@ describe('test workflow finishReleaseCycle', () => {
                                 null,
                                 false,
                             );
-                            const result = await act
-                                .runEvent('issues', {
-                                    workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
-                                    mockSteps: testMockSteps,
-                                    actor: 'Dummy Author',
-                                    logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
-                                });
+                            const result = await act.runEvent('issues', {
+                                workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
+                                mockSteps: testMockSteps,
+                                actor: 'Dummy Author',
+                                logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
+                            });
                             assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234');
                             assertions.assertUpdateProductionJobExecuted(result);
                             assertions.assertCreateNewPatchVersionJobExecuted(result);
@@ -149,9 +143,7 @@ describe('test workflow finishReleaseCycle', () => {
                                 action: 'closed',
                                 type: 'closed',
                                 issue: {
-                                    labels: [
-                                        {name: 'StagingDeployCash'},
-                                    ],
+                                    labels: [{name: 'StagingDeployCash'}],
                                     number: '1234',
                                 },
                             },
@@ -167,13 +159,12 @@ describe('test workflow finishReleaseCycle', () => {
                             createNewPatchVersion: mocks.FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS,
                             createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                         };
-                        const result = await act
-                            .runEvent('issues', {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
-                                mockSteps: testMockSteps,
-                                actor: 'Dummy Author',
-                                logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
-                            });
+                        const result = await act.runEvent('issues', {
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
+                            mockSteps: testMockSteps,
+                            actor: 'Dummy Author',
+                            logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
+                        });
                         assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234', true, true, true);
                         assertions.assertUpdateProductionJobExecuted(result, false);
                         assertions.assertCreateNewPatchVersionJobExecuted(result, false);
@@ -193,9 +184,7 @@ describe('test workflow finishReleaseCycle', () => {
                             action: 'closed',
                             type: 'closed',
                             issue: {
-                                labels: [
-                                    {name: 'StagingDeployCash'},
-                                ],
+                                labels: [{name: 'StagingDeployCash'}],
                                 number: '1234',
                             },
                         },
@@ -211,13 +200,12 @@ describe('test workflow finishReleaseCycle', () => {
                         createNewPatchVersion: mocks.FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS,
                         createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                     };
-                    const result = await act
-                        .runEvent('issues', {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
-                            mockSteps: testMockSteps,
-                            actor: 'Dummy Author',
-                            logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent('issues', {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
+                        mockSteps: testMockSteps,
+                        actor: 'Dummy Author',
+                        logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
+                    });
                     assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234', true, false, false);
                     assertions.assertUpdateProductionJobExecuted(result, false);
                     assertions.assertCreateNewPatchVersionJobExecuted(result, false);
@@ -237,11 +225,7 @@ describe('test workflow finishReleaseCycle', () => {
                         action: 'closed',
                         type: 'closed',
                         issue: {
-                            labels: [
-                                {name: 'Some'},
-                                {name: 'Other'},
-                                {name: 'Labels'},
-                            ],
+                            labels: [{name: 'Some'}, {name: 'Other'}, {name: 'Labels'}],
                             number: '1234',
                         },
                     },
@@ -257,13 +241,12 @@ describe('test workflow finishReleaseCycle', () => {
                     createNewPatchVersion: mocks.FINISHRELEASECYCLE__CREATENEWPATCHVERSION__STEP_MOCKS,
                     createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent('issues', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Author',
-                        logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent('issues', {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'finishReleaseCycle.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'Dummy Author',
+                    logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
+                });
                 assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234', false);
                 assertions.assertUpdateProductionJobExecuted(result, false);
                 assertions.assertCreateNewPatchVersionJobExecuted(result, false);

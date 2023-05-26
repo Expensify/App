@@ -50,23 +50,16 @@ describe('test workflow lint', () => {
             const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                {},
-                githubToken,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 lint: mocks.LINT__LINT__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
+            });
 
             assertions.assertLintJobExecuted(result);
         });
@@ -76,23 +69,16 @@ describe('test workflow lint', () => {
                 const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     lint: mocks.LINT__LINT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
-                        mockSteps: testMockSteps,
-                        actor: testActor,
-                        logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
+                    mockSteps: testMockSteps,
+                    actor: testActor,
+                    logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
+                });
 
                 assertions.assertLintJobExecuted(result);
             });
@@ -108,23 +94,16 @@ describe('test workflow lint', () => {
                 const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     lint: mocks.LINT__LINT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
+                });
 
                 assertions.assertLintJobExecuted(result);
             });
@@ -134,23 +113,16 @@ describe('test workflow lint', () => {
                     const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        event,
-                        eventOptions,
-                        {},
-                        githubToken,
-                    );
+                    act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                     const testMockSteps = {
                         lint: mocks.LINT__LINT__STEP_MOCKS,
                     };
-                    const result = await act
-                        .runEvent(event, {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
-                            mockSteps: testMockSteps,
-                            actor: testActor,
-                            logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent(event, {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
+                        mockSteps: testMockSteps,
+                        actor: testActor,
+                        logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
+                    });
 
                     assertions.assertLintJobExecuted(result, false);
                 });
@@ -164,23 +136,16 @@ describe('test workflow lint', () => {
                 const repoPath = mockGithub.repo.getPath('testLintWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'lint.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     lint: mocks.LINT__LINT__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'lint.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('lint', expect.getState().currentTestName),
+                });
 
                 assertions.assertLintJobExecuted(result);
             });

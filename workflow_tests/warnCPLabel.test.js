@@ -56,23 +56,16 @@ describe('test workflow warnCPLabel', () => {
             const repoPath = mockGithub.repo.getPath('testWarnCPLabelWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                secrets,
-                githubToken,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken);
             const testMockSteps = {
                 warnCPLabel: mocks.WARNCPLABEL__WARNCPLABEL__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('warnCPLabel', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('warnCPLabel', expect.getState().currentTestName),
+            });
 
             assertions.assertWarnCPLabelJobExecuted(result);
         });
@@ -81,13 +74,7 @@ describe('test workflow warnCPLabel', () => {
                 const repoPath = mockGithub.repo.getPath('testWarnCPLabelWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    secrets,
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, secrets, githubToken);
                 const testMockSteps = {
                     warnCPLabel: utils.deepCopy(mocks.WARNCPLABEL__WARNCPLABEL__STEP_MOCKS),
                 };
@@ -101,13 +88,12 @@ describe('test workflow warnCPLabel', () => {
                     {},
                     false,
                 );
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('warnCPLabel', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('warnCPLabel', expect.getState().currentTestName),
+                });
 
                 assertions.assertWarnCPLabelJobExecuted(result, true, false);
             });
@@ -123,23 +109,16 @@ describe('test workflow warnCPLabel', () => {
                 const repoPath = mockGithub.repo.getPath('testWarnCPLabelWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    differentEventOptions,
-                    secrets,
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, differentEventOptions, secrets, githubToken);
                 const testMockSteps = {
                     warnCPLabel: mocks.WARNCPLABEL__WARNCPLABEL__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('warnCPLabel', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'warnCPLabel.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('warnCPLabel', expect.getState().currentTestName),
+                });
 
                 assertions.assertWarnCPLabelJobExecuted(result, false);
             });

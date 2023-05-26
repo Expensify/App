@@ -67,25 +67,16 @@ describe('test workflow deployBlocker', () => {
                 const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    testEventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                    {},
-                );
+                act = utils.setUpActParams(act, event, testEventOptions, secrets, githubToken, {}, {});
                 const testMockSteps = {
                     deployBlocker: mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('deployBlocker', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('deployBlocker', expect.getState().currentTestName),
+                });
 
                 assertions.assertDeployBlockerJobExecuted(result, 'Labeled issue title', '1234');
             });
@@ -94,15 +85,7 @@ describe('test workflow deployBlocker', () => {
                     const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') || '';
                     const workflowPath = path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml');
                     let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        event,
-                        testEventOptions,
-                        secrets,
-                        githubToken,
-                        {},
-                        {},
-                    );
+                    act = utils.setUpActParams(act, event, testEventOptions, secrets, githubToken, {}, {});
                     const testMockSteps = {
                         deployBlocker: utils.deepCopy(mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS),
                     };
@@ -116,13 +99,12 @@ describe('test workflow deployBlocker', () => {
                         {},
                         false,
                     );
-                    const result = await act
-                        .runEvent(event, {
-                            workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
-                            mockSteps: testMockSteps,
-                            actor,
-                            logFile: utils.getLogFilePath('deployBlocker', expect.getState().currentTestName),
-                        });
+                    const result = await act.runEvent(event, {
+                        workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
+                        mockSteps: testMockSteps,
+                        actor,
+                        logFile: utils.getLogFilePath('deployBlocker', expect.getState().currentTestName),
+                    });
 
                     assertions.assertDeployBlockerJobExecuted(result, 'Labeled issue title', '1234', true, false);
                 });
@@ -135,25 +117,16 @@ describe('test workflow deployBlocker', () => {
                 const repoPath = mockGithub.repo.getPath('testDeployBlockerWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    testEventOptions,
-                    secrets,
-                    githubToken,
-                    {},
-                    {},
-                );
+                act = utils.setUpActParams(act, event, testEventOptions, secrets, githubToken, {}, {});
                 const testMockSteps = {
                     deployBlocker: mocks.DEPLOYBLOCKER__DEPLOYBLOCKER__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
-                        mockSteps: testMockSteps,
-                        actor,
-                        logFile: utils.getLogFilePath('deployBlocker', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'deployBlocker.yml'),
+                    mockSteps: testMockSteps,
+                    actor,
+                    logFile: utils.getLogFilePath('deployBlocker', expect.getState().currentTestName),
+                });
 
                 assertions.assertDeployBlockerJobExecuted(result, '', '', false);
             });

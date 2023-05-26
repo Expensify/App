@@ -50,23 +50,16 @@ describe('test workflow verifySignedCommits', () => {
             const repoPath = mockGithub.repo.getPath('testVerifySignedCommitsWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                {},
-                githubToken,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 verifySignedCommits: mocks.VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('verifySignedCommits', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('verifySignedCommits', expect.getState().currentTestName),
+            });
 
             assertions.assertVerifySignedCommitsJobExecuted(result);
         });
@@ -80,23 +73,16 @@ describe('test workflow verifySignedCommits', () => {
             const repoPath = mockGithub.repo.getPath('testVerifySignedCommitsWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                {},
-                githubToken,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 verifySignedCommits: mocks.VERIFYSIGNEDCOMMITS__VERIFYSIGNEDCOMMITS__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('verifySignedCommits', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'verifySignedCommits.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('verifySignedCommits', expect.getState().currentTestName),
+            });
 
             assertions.assertVerifySignedCommitsJobExecuted(result);
         });

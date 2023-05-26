@@ -52,24 +52,17 @@ describe('test workflow test', () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                {},
-                githubToken,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
                 shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
+            });
 
             assertions.assertJestJobExecuted(result);
             assertions.assertShellTestsJobExecuted(result);
@@ -79,24 +72,17 @@ describe('test workflow test', () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
                     shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
-                        mockSteps: testMockSteps,
-                        actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
+                    mockSteps: testMockSteps,
+                    actor: osbotifyActor,
+                    logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
+                });
 
                 assertions.assertJestJobExecuted(result, false);
                 assertions.assertShellTestsJobExecuted(result, false);
@@ -113,24 +99,17 @@ describe('test workflow test', () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                {},
-                githubToken,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
                 shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
+            });
 
             assertions.assertJestJobExecuted(result);
             assertions.assertShellTestsJobExecuted(result);
@@ -140,24 +119,17 @@ describe('test workflow test', () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
                     shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
-                        mockSteps: testMockSteps,
-                        actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
+                    mockSteps: testMockSteps,
+                    actor: osbotifyActor,
+                    logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
+                });
 
                 assertions.assertJestJobExecuted(result, false);
                 assertions.assertShellTestsJobExecuted(result, false);
@@ -172,24 +144,17 @@ describe('test workflow test', () => {
             const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
             let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                event,
-                eventOptions,
-                {},
-                githubToken,
-            );
+            act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
                 shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
             };
-            const result = await act
-                .runEvent(event, {
-                    workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
-                    mockSteps: testMockSteps,
-                    actor,
-                    logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
-                });
+            const result = await act.runEvent(event, {
+                workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
+                mockSteps: testMockSteps,
+                actor,
+                logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
+            });
 
             assertions.assertJestJobExecuted(result);
             assertions.assertShellTestsJobExecuted(result);
@@ -199,24 +164,17 @@ describe('test workflow test', () => {
                 const repoPath = mockGithub.repo.getPath('testTestWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'test.yml');
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                act = utils.setUpActParams(
-                    act,
-                    event,
-                    eventOptions,
-                    {},
-                    githubToken,
-                );
+                act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
                     shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
                 };
-                const result = await act
-                    .runEvent(event, {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
-                        mockSteps: testMockSteps,
-                        actor: osbotifyActor,
-                        logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
-                    });
+                const result = await act.runEvent(event, {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
+                    mockSteps: testMockSteps,
+                    actor: osbotifyActor,
+                    logFile: utils.getLogFilePath('test', expect.getState().currentTestName),
+                });
 
                 assertions.assertJestJobExecuted(result);
                 assertions.assertShellTestsJobExecuted(result);

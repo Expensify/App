@@ -8,7 +8,11 @@ const assertValidateActorJobExecuted = (workflowResult, actor = 'Dummy Actor', p
             null,
             'VALIDATEACTOR',
             'Is team member',
-            [{key: 'GITHUB_TOKEN', value: '***'}, {key: 'username', value: actor}, {key: 'team', value: 'Expensify/expensify'}],
+            [
+                {key: 'GITHUB_TOKEN', value: '***'},
+                {key: 'username', value: actor},
+                {key: 'team', value: 'Expensify/expensify'},
+            ],
             [],
         ),
         utils.createStepAssertion(
@@ -18,7 +22,10 @@ const assertValidateActorJobExecuted = (workflowResult, actor = 'Dummy Actor', p
             'VALIDATEACTOR',
             'Set HAS_READY_TO_BUILD_LABEL flag',
             [],
-            [{key: 'PULL_REQUEST_NUMBER', value: pullRequestNumber}, {key: 'GITHUB_TOKEN', value: '***'}],
+            [
+                {key: 'PULL_REQUEST_NUMBER', value: pullRequestNumber},
+                {key: 'GITHUB_TOKEN', value: '***'},
+            ],
         ),
     ];
 
@@ -32,15 +39,7 @@ const assertValidateActorJobExecuted = (workflowResult, actor = 'Dummy Actor', p
 };
 const assertGetBranchRefJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'GETBRANCHREF',
-            'Checkout',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Checkout', true, null, 'GETBRANCHREF', 'Checkout', [], []),
         utils.createStepAssertion(
             'Check if pull request number is correct',
             true,
@@ -62,15 +61,7 @@ const assertGetBranchRefJobExecuted = (workflowResult, didExecute = true) => {
 };
 const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'ANDROID',
-            'Checkout',
-            [{key: 'ref', value: ref}],
-            [],
-        ),
+        utils.createStepAssertion('Checkout', true, null, 'ANDROID', 'Checkout', [{key: 'ref', value: ref}], []),
         utils.createStepAssertion(
             'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
             true,
@@ -80,49 +71,31 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [],
             [],
         ),
-        utils.createStepAssertion(
-            'Setup Node',
-            true,
-            null,
-            'ANDROID',
-            'Setup Node',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Setup Node', true, null, 'ANDROID', 'Setup Node', [], []),
         utils.createStepAssertion(
             'Setup Ruby',
             true,
             null,
             'ANDROID',
             'Setup Ruby',
-            [{key: 'ruby-version', value: '2.7'}, {key: 'bundler-cache', value: true}],
+            [
+                {key: 'ruby-version', value: '2.7'},
+                {key: 'bundler-cache', value: true},
+            ],
             [],
         ),
-        utils.createStepAssertion(
-            'Decrypt keystore',
-            true,
-            null,
-            'ANDROID',
-            'Decrypt keystore',
-            [],
-            [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
-        ),
-        utils.createStepAssertion(
-            'Decrypt json key',
-            true,
-            null,
-            'ANDROID',
-            'Decrypt json key',
-            [],
-            [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
-        ),
+        utils.createStepAssertion('Decrypt keystore', true, null, 'ANDROID', 'Decrypt keystore', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt json key', true, null, 'ANDROID', 'Decrypt json key', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion(
             'Configure AWS Credentials',
             true,
             null,
             'ANDROID',
             'Configure AWS Credentials',
-            [{key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
+            [
+                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
+                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+            ],
             [],
         ),
         utils.createStepAssertion(
@@ -145,7 +118,10 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
             null,
             'ANDROID',
             'Upload Artifact',
-            [{key: 'name', value: 'android'}, {key: 'path', value: './android_paths.json'}],
+            [
+                {key: 'name', value: 'android'},
+                {key: 'path', value: './android_paths.json'},
+            ],
             [],
         ),
     ];
@@ -170,50 +146,26 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
 };
 const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'IOS',
-            'Checkout',
-            [{key: 'ref', value: ref}],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
-            true,
-            null,
-            'IOS',
-            'Creating .env.adhoc file based on staging',
-            [],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Setup Node',
-            true,
-            null,
-            'IOS',
-            'Setup Node',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Checkout', true, null, 'IOS', 'Checkout', [{key: 'ref', value: ref}], []),
+        utils.createStepAssertion('Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it', true, null, 'IOS', 'Creating .env.adhoc file based on staging', [], []),
+        utils.createStepAssertion('Setup Node', true, null, 'IOS', 'Setup Node', [], []),
         utils.createStepAssertion(
             'Setup Ruby',
             true,
             null,
             'IOS',
             'Setup Ruby',
-            [{key: 'ruby-version', value: '2.7'}, {key: 'bundler-cache', value: true}],
+            [
+                {key: 'ruby-version', value: '2.7'},
+                {key: 'bundler-cache', value: true},
+            ],
             [],
         ),
-        utils.createStepAssertion(
-            'Cache',
-            true,
-            null,
-            'IOS',
-            'Caching',
-            [{key: 'path', value: 'ios/Pods'}, {key: 'key', value: 'Linux-pods-'}, {key: 'restore-keys', value: 'Linux-pods-'}],
-        ),
+        utils.createStepAssertion('Cache', true, null, 'IOS', 'Caching', [
+            {key: 'path', value: 'ios/Pods'},
+            {key: 'key', value: 'Linux-pods-'},
+            {key: 'restore-keys', value: 'Linux-pods-'},
+        ]),
         utils.createStepAssertion(
             'Install cocoapods',
             true,
@@ -227,31 +179,18 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             ],
             [],
         ),
-        utils.createStepAssertion(
-            'Decrypt profile',
-            true,
-            null,
-            'IOS',
-            'Decrypt profile',
-            [],
-            [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
-        ),
-        utils.createStepAssertion(
-            'Decrypt certificate',
-            true,
-            null,
-            'IOS',
-            'Decrypt certificate',
-            [],
-            [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
-        ),
+        utils.createStepAssertion('Decrypt profile', true, null, 'IOS', 'Decrypt profile', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt certificate', true, null, 'IOS', 'Decrypt certificate', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion(
             'Configure AWS Credentials',
             true,
             null,
             'IOS',
             'Configure AWS Credentials',
-            [{key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
+            [
+                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
+                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+            ],
             [],
         ),
         utils.createStepAssertion(
@@ -274,7 +213,10 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             null,
             'IOS',
             'Upload Artifact',
-            [{key: 'name', value: 'ios'}, {key: 'path', value: './ios_paths.json'}],
+            [
+                {key: 'name', value: 'ios'},
+                {key: 'path', value: './ios_paths.json'},
+            ],
             [],
         ),
     ];
@@ -305,7 +247,10 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
             null,
             'DESKTOP',
             'Checkout',
-            [{key: 'ref', value: ref}, {key: 'fetch-depth', value: '0'}],
+            [
+                {key: 'ref', value: ref},
+                {key: 'fetch-depth', value: '0'},
+            ],
             [],
         ),
         utils.createStepAssertion(
@@ -317,31 +262,18 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
             [],
             [],
         ),
-        utils.createStepAssertion(
-            'Setup Node',
-            true,
-            null,
-            'DESKTOP',
-            'Setup Node',
-            [],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Decrypt Developer ID Certificate',
-            true,
-            null,
-            'DESKTOP',
-            'Decrypt Developer ID Certificate',
-            [],
-            [{key: 'DEVELOPER_ID_SECRET_PASSPHRASE', value: '***'}],
-        ),
+        utils.createStepAssertion('Setup Node', true, null, 'DESKTOP', 'Setup Node', [], []),
+        utils.createStepAssertion('Decrypt Developer ID Certificate', true, null, 'DESKTOP', 'Decrypt Developer ID Certificate', [], [{key: 'DEVELOPER_ID_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion(
             'Configure AWS Credentials',
             true,
             null,
             'DESKTOP',
             'Configure AWS Credentials',
-            [{key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
+            [
+                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
+                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+            ],
             [],
         ),
         utils.createStepAssertion(
@@ -388,63 +320,29 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             null,
             'WEB',
             'Checkout',
-            [{key: 'fetch-depth', value: '0'}, {key: 'ref', value: ref}],
+            [
+                {key: 'fetch-depth', value: '0'},
+                {key: 'ref', value: ref},
+            ],
             [],
         ),
-        utils.createStepAssertion(
-            'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
-            true,
-            null,
-            'WEB',
-            'Creating .env.adhoc file based on staging',
-            [],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Setup Node',
-            true,
-            null,
-            'WEB',
-            'Setup Node',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it', true, null, 'WEB', 'Creating .env.adhoc file based on staging', [], []),
+        utils.createStepAssertion('Setup Node', true, null, 'WEB', 'Setup Node', [], []),
         utils.createStepAssertion(
             'Configure AWS Credentials',
             true,
             null,
             'WEB',
             'Configure AWS Credentials',
-            [{key: 'AWS_ACCESS_KEY_ID', value: '***'}, {key: 'AWS_SECRET_ACCESS_KEY', value: '***'}],
+            [
+                {key: 'AWS_ACCESS_KEY_ID', value: '***'},
+                {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
+            ],
             [],
         ),
-        utils.createStepAssertion(
-            'Build web for testing',
-            true,
-            null,
-            'WEB',
-            'Build web for testing',
-            [],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Build docs',
-            true,
-            null,
-            'WEB',
-            'Build docs',
-            [],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Deploy to S3 for internal testing',
-            true,
-            null,
-            'WEB',
-            'Deploy to S3 for internal testing',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Build web for testing', true, null, 'WEB', 'Build web for testing', [], []),
+        utils.createStepAssertion('Build docs', true, null, 'WEB', 'Build docs', [], []),
+        utils.createStepAssertion('Deploy to S3 for internal testing', true, null, 'WEB', 'Deploy to S3 for internal testing', [], []),
     ];
 
     steps.forEach((expectedStep, i) => {
@@ -467,7 +365,8 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
 };
 
 const assertPostGithubCommentJobExecuted = (
-    workflowResult, ref = '',
+    workflowResult,
+    ref = '',
     pullRequestNumber = '1234',
     didExecute = true,
     androidStatus = 'success',
@@ -476,50 +375,14 @@ const assertPostGithubCommentJobExecuted = (
     webStatus = 'success',
 ) => {
     const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'POSTGITHUBCOMMENT',
-            'Checkout',
-            [{key: 'ref', value: ref}],
-            [],
-        ),
-        utils.createStepAssertion(
-            'Download Artifact',
-            true,
-            null,
-            'POSTGITHUBCOMMENT',
-            'Download Artifact',
-            [],
-            [],
-        ),
+        utils.createStepAssertion('Checkout', true, null, 'POSTGITHUBCOMMENT', 'Checkout', [{key: 'ref', value: ref}], []),
+        utils.createStepAssertion('Download Artifact', true, null, 'POSTGITHUBCOMMENT', 'Download Artifact', [], []),
     ];
     if (androidStatus === 'success') {
-        steps.push(
-            utils.createStepAssertion(
-                'Read JSONs with android paths',
-                true,
-                null,
-                'POSTGITHUBCOMMENT',
-                'Read JSONs with android paths',
-                [],
-                [],
-            ),
-        );
+        steps.push(utils.createStepAssertion('Read JSONs with android paths', true, null, 'POSTGITHUBCOMMENT', 'Read JSONs with android paths', [], []));
     }
     if (iOSStatus === 'success') {
-        steps.push(
-            utils.createStepAssertion(
-                'Read JSONs with iOS paths',
-                true,
-                null,
-                'POSTGITHUBCOMMENT',
-                'Read JSONs with iOS paths',
-                [],
-                [],
-            ),
-        );
+        steps.push(utils.createStepAssertion('Read JSONs with iOS paths', true, null, 'POSTGITHUBCOMMENT', 'Read JSONs with iOS paths', [], []));
     }
     steps.push(
         utils.createStepAssertion(

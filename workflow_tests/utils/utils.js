@@ -2,15 +2,7 @@ const yaml = require('yaml');
 const fs = require('fs');
 const path = require('path');
 
-function setUpActParams(
-    act,
-    event = null,
-    eventOptions = null,
-    secrets = null,
-    githubToken = null,
-    envVars = null,
-    inputs = null,
-) {
+function setUpActParams(act, event = null, eventOptions = null, secrets = null, githubToken = null, envVars = null, inputs = null) {
     let updated_act = act;
 
     if (event && eventOptions) {
@@ -49,16 +41,7 @@ function setUpActParams(
     return updated_act;
 }
 
-function createMockStep(
-    name,
-    message,
-    job_id = null,
-    inputs = null,
-    in_envs = null,
-    outputs = null,
-    out_envs = null,
-    isSuccessful = true,
-) {
+function createMockStep(name, message, job_id = null, inputs = null, in_envs = null, outputs = null, out_envs = null, isSuccessful = true) {
     const mockStepName = name;
     let mockWithCommand = 'echo [MOCK]';
     if (job_id) {
@@ -94,15 +77,7 @@ function createMockStep(
     };
 }
 
-function createStepAssertion(
-    name,
-    isSuccessful = true,
-    expectedOutput = null,
-    jobId = null,
-    message = null,
-    inputs = null,
-    envs = null,
-) {
+function createStepAssertion(name, isSuccessful = true, expectedOutput = null, jobId = null, message = null, inputs = null, envs = null) {
     const stepName = `Main ${name}`;
     const stepStatus = isSuccessful ? 0 : 1;
     let stepOutput;
