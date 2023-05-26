@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import {View, Keyboard} from 'react-native';
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';
+import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
 import SwipeableView from '../../../components/SwipeableView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
 import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
@@ -15,6 +16,7 @@ import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import * as SessionUtils from '../../../libs/SessionUtils';
 
 const propTypes = {
     /** Report object for the current report */
@@ -42,6 +44,12 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
+     /** Session info for the currently logged in user. */
+     session: PropTypes.shape({
+        /** Type of authToken for the logged in user */
+        authTokenType: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 
@@ -53,6 +61,7 @@ const defaultProps = {
     pendingAction: null,
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
+    session: {},
 };
 
 class ReportFooter extends React.Component {
@@ -81,15 +90,18 @@ class ReportFooter extends React.Component {
                 {!hideComposer && (this.props.shouldShowComposeInput || !this.props.isSmallScreenWidth) && (
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                            <ReportActionCompose
-                                onSubmit={this.props.onSubmitComment}
-                                reportID={this.props.report.reportID.toString()}
-                                reportActions={this.props.reportActions}
-                                report={this.props.report}
-                                pendingAction={this.props.pendingAction}
-                                isComposerFullSize={this.props.isComposerFullSize}
-                                disabled={this.props.shouldDisableCompose}
-                            />
+                            {SessionUtils.isAnonymousUser(this.props.session.authTokenType) ?
+                                <AnonymousReportFooter report={this.props.report} /> :
+                                <ReportActionCompose
+                                    onSubmit={this.props.onSubmitComment}
+                                    reportID={this.props.report.reportID.toString()}
+                                    reportActions={this.props.reportActions}
+                                    report={this.props.report}
+                                    pendingAction={this.props.pendingAction}
+                                    isComposerFullSize={this.props.isComposerFullSize}
+                                    disabled={this.props.shouldDisableCompose}
+                                />
+                            }
                         </SwipeableView>
                     </View>
                 )}
@@ -104,5 +116,8 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
     }),
 )(ReportFooter);

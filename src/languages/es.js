@@ -144,7 +144,7 @@ export default {
         km: 'kilómetro',
     },
     anonymousReportFooter: {
-        logoTagline: '',
+        logoTagline: 'Únete a la discussion.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',

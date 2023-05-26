@@ -2175,10 +2175,11 @@ const styles = {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 20,
+        marginBottom: 20,
         backgroundColor: themeColors.activeComponentBG,
         flexWrap: 'wrap',
         gap: 4,
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: variables.componentBorderRadiusLarge,
     },
 
     anonymousRoomFooterLogo: {
