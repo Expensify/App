@@ -177,11 +177,12 @@ class AuthScreens extends React.Component {
             animationEnabled: true,
             cardStyleInterpolator: (props) => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
             cardOverlayEnabled: true,
-            animationTypeForReplace: 'pop',
+            animationTypeForReplace: 'push',
         };
 
         const rightModalNavigatorScreenOptions = {
             ...commonScreenOptions,
+            animationTypeForReplace: 'pop',
             cardStyle: styles.navigationModalCard(this.props.isSmallScreenWidth),
         };
 
