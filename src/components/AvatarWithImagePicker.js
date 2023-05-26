@@ -259,26 +259,25 @@ class AvatarWithImagePicker extends React.Component {
                 <Pressable onPress={() => this.setState({isMenuVisible: true})}>
                     <View style={[styles.pRelative, styles.avatarLarge]}>
                         <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
-                            {this.props.source ? (
-                                <Avatar
-                                    containerStyles={styles.avatarLarge}
-                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                    source={this.props.source}
-                                    fallbackIcon={this.props.fallbackIcon}
-                                    size={this.props.size}
-                                    type={this.props.type}
-                                />
-                            ) : (
-                                <DefaultAvatar />
-                            )}
+                            <View>
+                                {this.props.source ? (
+                                    <Avatar
+                                        containerStyles={styles.avatarLarge}
+                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                        source={this.props.source}
+                                        fallbackIcon={this.props.fallbackIcon}
+                                        size={this.props.size}
+                                        type={this.props.type}
+                                    />
+                                ) : (
+                                    <DefaultAvatar />
+                                )}
+                            </View>
                         </Tooltip>
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => (
                                 <>
-                                    <Tooltip
-                                        absolute
-                                        text={this.props.translate('avatarWithImagePicker.editImage')}
-                                    >
+                                    <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
                                         <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                             <Icon
                                                 src={Expensicons.Camera}
