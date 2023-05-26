@@ -145,7 +145,10 @@ class SignInPage extends Component {
         }
 
         return (
-            <SafeAreaView style={[styles.signInPage]}>
+            <SafeAreaView
+                style={[styles.signInPage]}
+                edges={['top', 'left', 'right']}
+            >
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}

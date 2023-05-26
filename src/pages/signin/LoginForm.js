@@ -165,6 +165,10 @@ class LoginForm extends React.Component {
         Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login);
     }
 
+    getSignInWithStyles() {
+        return this.props.isSmallScreenWidth ? styles.mt1 : styles.mt5;
+    }
+
     render() {
         const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
         const serverErrorText = ErrorUtils.getLatestErrorMessage(this.props.account);
@@ -214,14 +218,11 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
-                            <View
-                                style={{
-                                    flexDirection: 'row',
-                                    width: '100%',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                <AppleSignIn />
+                            <View style={[styles.mt8, this.getSignInWithStyles()]}>
+                                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{this.props.translate('common.signInWith')}</Text>
+                                <View style={styles.loginButtonRow}>
+                                    <AppleSignIn />
+                                </View>
                             </View>
                         </View>
                     )

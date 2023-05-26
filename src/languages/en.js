@@ -33,6 +33,7 @@ export default {
         signIn: 'Sign in',
         signInWithGoogle: 'Sign in with Google',
         signInWithApple: 'Sign in with Apple',
+        signInWith: 'Sign in with',
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',

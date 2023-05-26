@@ -30,6 +30,7 @@ export default {
         view: 'Ver',
         not: 'No',
         signIn: 'Conectarse',
+        signInWith: 'Conectarse con',
         continue: 'Continuar',
         firstName: 'Nombre',
         lastName: 'Apellidos',
