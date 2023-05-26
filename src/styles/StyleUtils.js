@@ -321,7 +321,9 @@ function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
     return {
         ...styles.pr0,
         ...styles.overflowHidden,
-        height: maxHeight,
+        // maxHeight is not of the input only but the of the whole input container
+        // which also includes the top padding and bottom border
+        height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
     };
 }
 
