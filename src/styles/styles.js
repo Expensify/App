@@ -1374,11 +1374,6 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
-
-        // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
-        // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
-        // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        ...userSelect.userSelectText,
     },
 
     appContentHeader: {
