@@ -59,7 +59,9 @@ Now that you have an HTTPS address to use, you can create an Apple Service ID co
 1. Create a new app ID on your Apple development team that can be used to test this, following the instructions [here](https://github.com/invertase/react-native-apple-authentication/blob/main/docs/INITIAL_SETUP.md).
 2. Create a new service ID following the instructions [here](https://github.com/invertase/react-native-apple-authentication/blob/main/docs/ANDROID_EXTRA.md). For allowed domains, enter your SSH tunnel address (e.g., `https://mysubdomain.ngrok.io`), and for redirect URLs, just make up an endpoint, it's never actually invoked (e.g., `mysubdomain.ngrok.io/appleauth`).
 
-Note: Depending on your Apple account configuration, you may need additional permissions to access some of the features described in the instructions above. Another point of confusion can be that while the Apple Sign In configuration requires a `clientId`, the Apple Developer console calls this a `Service ID`.
+Notes: 
+- Depending on your Apple account configuration, you may need additional permissions to access some of the features described in the instructions above.
+- While the Apple Sign In configuration requires a `clientId`, the Apple Developer console calls this a `Service ID`.
 
 Finally, edit `.env` to use your client (service) ID and redirect URL config:
 
