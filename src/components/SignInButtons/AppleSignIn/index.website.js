@@ -1,10 +1,14 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import getUserLanguage from '../GetUserLanguage';
 import {beginAppleSignIn} from '../../../libs/actions/Session';
+
+const basePropTypes = {
+    isFullWidth: PropTypes.bool.isRequired,
+};
 
 const propTypes = {
     isFullWidth: PropTypes.bool,
@@ -29,93 +33,22 @@ const config = {
     usePopup: true,
 };
 
-// Apple script may fail to render button if there are multiple of these divs
-// present in the app, as its logic is based on div id. So we'll only mount the
-// div when it should be visible.
-const SingletonAppleLogoDiv = () => {
-    const isFocused = useIsFocused();
-    if (!isFocused) {
-        return null;
-    }
-    return (
-        <div
-            style={{fontSize: '0'}}
-            id="appleid-signin"
-            data-mode="logo-only"
-            data-color="white"
-            data-border-radius="50"
-            data-border="false"
-            data-border-color="white"
-            data-width="40"
-            data-height="40"
-            data-type="sign in"
-            data-logo-size="medium"
-        />
-    );
-};
-
-const SingletonAppleFullWidthDiv = () => {
-    const isFocused = useIsFocused();
-    if (!isFocused) {
-        return null;
-    }
-    return (
-        <div
-            style={{fontSize: '0'}}
-            id="appleid-signin"
-            data-mode="left-align"
-            data-color="white"
-            data-border="false"
-            data-border-color="white"
-            data-type="sign in"
-            data-logo-size="medium"
-            data-width="140"
-            data-height="30"
-        />
-    );
-};
-
 const hardcodedToken = '';
 const successListener = (event) => {
-    // successful response:
-    // { code: "...",
-    // id_token: "..." }
-    // should be: beginAppleSignIn(event.detail.id_token);
-    // using:
-    console.log('logging in with hardcoded token');
-    beginAppleSignIn({token: hardcodedToken});
+    beginAppleSignIn({token: ''});
 };
 
 const failureListener = (event) => {
     console.log(event.detail);
 };
 
-const AppleSignIn = (props) => {
-    React.useEffect(() => {
-        if (window.appleAuthScriptLoaded) return;
-
-        const localeCode = getUserLanguage();
-        const script = document.createElement('script');
-        script.src = `https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1//${localeCode}/appleid.auth.js`;
-        script.async = true;
-
-        const handleScriptLoad = () => {
-            window.AppleID.auth.init(config);
-            window.appleAuthScriptLoaded = true;
-        };
-        script.addEventListener('load', handleScriptLoad);
-        document.body.appendChild(script);
-
-        return () => {
-            script.removeEventListener('load', handleScriptLoad);
-            // Don't remove the script when unmounting because we want to reuse it
-        };
+function AppleSignInDiv({isFullWidth}) {
+    useEffect(() => {
+        window.AppleID.auth.init(config);
     }, []);
-
-    // result listeners
+    //  Result listeners need to live within the focused item to avoid duplicate
+    //  side effects on success and failure
     React.useEffect(() => {
-        if (!window.appleAuthScriptLoaded) return;
-
         document.addEventListener('AppleIDSignInOnSuccess', successListener);
         document.addEventListener('AppleIDSignInOnFailure', failureListener);
         return () => {
@@ -124,13 +57,74 @@ const AppleSignIn = (props) => {
         };
     }, []);
 
+    return isFullWidth ? (
+        <div
+            style={{fontSize: '0'}}
+            id="appleid-signin"
+            data-type="sign in"
+            data-mode="left-align"
+            data-logo-size="medium"
+            data-border="false"
+            data-color="white"
+            data-width="140"
+            data-height="30"
+        />
+    ) : (
+        <div
+            style={{fontSize: '0'}}
+            id="appleid-signin"
+            data-type="sign in"
+            data-mode="logo-only"
+            data-logo-size="medium"
+            data-color="white"
+            data-border="false"
+            data-border-radius="50"
+            data-width="40"
+            data-height="40"
+        />
+    );
+}
+
+AppleSignInDiv.propTypes = basePropTypes;
+
+// The Sign in with Apple script may fail to render button if there are multiple
+// of these divs present in the app, as it matches based on div id. So we'll
+// only mount the div when it should be visible.
+function SingletonAppleSignInButton({isFullWidth}) {
+    const isFocused = useIsFocused();
+    if (!isFocused) {
+        return null;
+    }
+    return <AppleSignInDiv isFullWidth={isFullWidth} />;
+}
+
+SingletonAppleSignInButton.propTypes = basePropTypes;
+
+const AppleSignIn = ({isFullWidth, translate}) => {
+    const [scriptLoaded, setScriptLoaded] = useState(false);
+    useEffect(() => {
+        if (window.appleAuthScriptLoaded) return;
+
+        const localeCode = getUserLanguage();
+        const script = document.createElement('script');
+        script.src = `https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1//${localeCode}/appleid.auth.js`;
+        script.async = true;
+        script.onload = () => setScriptLoaded(true);
+
+        document.body.appendChild(script);
+    }, []);
+
+    if (scriptLoaded === false) {
+        return null;
+    }
+
     return (
         <View
             style={$appleButtonContainerStyle}
             accessibilityRole="button"
-            accessibilityLabel={props.translate('common.signInWithApple')}
+            accessibilityLabel={translate('common.signInWithApple')}
         >
-            {props.isFullWidth ? <SingletonAppleFullWidthDiv /> : <SingletonAppleLogoDiv />}
+            <SingletonAppleSignInButton isFullWidth={isFullWidth} />
         </View>
     );
 };
