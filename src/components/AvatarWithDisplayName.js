@@ -33,6 +33,9 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** Uses the reports display name as title with relying on policies and personalDetails object */
+    isAnonymous: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -41,11 +44,12 @@ const defaultProps = {
     personalDetails: {},
     policies: {},
     report: null,
+    isAnonymous: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
 const AvatarWithDisplayName = (props) => {
-    const title = ReportUtils.getDisplayNameForParticipant(props.report.ownerEmail, true);
+    const title = props.isAnonymous ? props.report.displayName : ReportUtils.getDisplayNameForParticipant(props.report.ownerEmail, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
@@ -95,7 +99,7 @@ const AvatarWithDisplayName = (props) => {
                             tooltipEnabled
                             numberOfLines={1}
                             textStyles={[styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isExpenseReport}
+                            shouldUseFullTitle={isExpenseReport || props.isAnonymous}
                         />
                         {!_.isEmpty(subtitle) && (
                             <Text

@@ -34,6 +34,7 @@ const AnonymousReportFooter = (props) => (
             <AvatarWithDisplayName
                 report={props.report}
                 size={CONST.AVATAR_SIZE.MEDIUM}
+                isAnonymous
             />
         </View>
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
