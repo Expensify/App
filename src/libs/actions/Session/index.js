@@ -23,7 +23,7 @@ import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as SessionUtils from '../../SessionUtils';
 import * as ReportUtils from '../../ReportUtils';
-import * as Report from "../Report";
+import * as Report from '../Report';
 
 let credentials = {};
 Onyx.connect({
@@ -111,7 +111,7 @@ function checkIfActionIsAllowed(authTokenType, callback) {
             return signOutAndRedirectToSignIn(authTokenType);
         }
         return callback();
-    }
+    };
 }
 
 /**

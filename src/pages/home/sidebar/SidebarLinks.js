@@ -181,7 +181,7 @@ class SidebarLinks extends React.Component {
                         accessibilityRole="button"
                         onPress={Session.checkIfActionIsAllowed(this.props.session.authTokenType, this.showSettingsPage)}
                     >
-                        {SessionUtils.isAnonymousUser(this.props.session.authTokenType) ?
+                        {SessionUtils.isAnonymousUser(this.props.session.authTokenType) ? (
                             <View style={styles.signInButtonAvatar}>
                                 <Button
                                     medium
@@ -189,14 +189,15 @@ class SidebarLinks extends React.Component {
                                     text={this.props.translate('common.signIn')}
                                     onPress={() => Session.signOutAndRedirectToSignIn(this.props.authTokenType)}
                                 />
-                            </View> :
+                            </View>
+                        ) : (
                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <AvatarWithIndicator
                                     source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                                     tooltipText={this.props.translate('common.settings')}
                                 />
                             </OfflineWithFeedback>
-                        }
+                        )}
                     </TouchableOpacity>
                 </View>
                 <Freeze

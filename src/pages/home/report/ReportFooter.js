@@ -44,8 +44,8 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
-     /** Session info for the currently logged in user. */
-     session: PropTypes.shape({
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
         /** Type of authToken for the logged in user */
         authTokenType: PropTypes.string,
     }),
@@ -90,8 +90,12 @@ class ReportFooter extends React.Component {
                 {!hideComposer && (this.props.shouldShowComposeInput || !this.props.isSmallScreenWidth) && (
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                            {SessionUtils.isAnonymousUser(this.props.session.authTokenType) ?
-                                <AnonymousReportFooter report={this.props.report} authTokenType={this.props.session.authTokenType} /> :
+                            {SessionUtils.isAnonymousUser(this.props.session.authTokenType) ? (
+                                <AnonymousReportFooter
+                                    report={this.props.report}
+                                    authTokenType={this.props.session.authTokenType}
+                                />
+                            ) : (
                                 <ReportActionCompose
                                     onSubmit={this.props.onSubmitComment}
                                     reportID={this.props.report.reportID.toString()}
@@ -101,7 +105,7 @@ class ReportFooter extends React.Component {
                                     isComposerFullSize={this.props.isComposerFullSize}
                                     disabled={this.props.shouldDisableCompose}
                                 />
-                            }
+                            )}
                         </SwipeableView>
                     </View>
                 )}
