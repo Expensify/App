@@ -7,7 +7,7 @@ import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLived
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
-import AppleSignInDesktopPage from '../../../pages/signin/AppleSignInDesktopPage'
+import AppleSignInDesktopPage from '../../../pages/signin/AppleSignInDesktopPage';
 
 const RootStack = createStackNavigator();
 
