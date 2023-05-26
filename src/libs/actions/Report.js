@@ -1072,7 +1072,7 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  */
 function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     if (previousValue === newValue) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1090,7 +1090,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1099,7 +1099,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
  */
 function updateWriteCapabilityAndNavigate(report, newValue) {
     if (report.writeCapability === newValue) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
+        Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
         return;
     }
 
@@ -1119,7 +1119,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
     ];
     API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
+    Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
 }
 
 /**
@@ -1270,7 +1270,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
 
     // No change needed, navigate back
     if (previousName === policyRoomName) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1309,7 +1309,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**

@@ -5,7 +5,7 @@ import lodashGet from 'lodash/get';
 
 /**
  * Find the last visited report screen in the navigation state and get the id of it.
- * 
+ *
  * @param {Object} state - The react-navigation state
  * @returns {String | undefined} - It's possible that there is no report screen
  */

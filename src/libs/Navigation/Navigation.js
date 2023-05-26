@@ -10,7 +10,6 @@ import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
-import dismissKeyboardGoingBack from './dismissKeyboardGoingBack';
 import getStateFromPath from './getStateFromPath';
 
 let resolveNavigationIsReadyPromise;
@@ -239,22 +238,6 @@ function setIsReportScreenIsReady() {
     resolveReportScreenIsReadyPromise();
 }
 
-/**
- * Navigation function with additional logic to dismiss the opened keyboard
- *
- * Navigation events are not fired when we navigate to an existing screen in the navigation stack,
- * that is why we need to manipulate closing keyboard manually
- * @param {string} backRoute - Name of the screen to navigate the user to
- */
-function drawerGoBack(backRoute) {
-    dismissKeyboardGoingBack();
-    if (!backRoute) {
-        goBack();
-        return;
-    }
-    navigate(backRoute);
-}
-
 export default {
     canNavigate,
     navigate,
@@ -270,7 +253,6 @@ export default {
     isReportScreenReady,
     setIsReportScreenIsReady,
     getTopmostReportId,
-    drawerGoBack,
 };
 
 export {navigationRef};
