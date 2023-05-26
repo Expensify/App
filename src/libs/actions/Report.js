@@ -19,9 +19,9 @@ import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
-import * as Localize from '../Localize';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as Welcome from './Welcome';
 
 let currentUserEmail;
@@ -263,7 +263,7 @@ function addActions(reportID, text = '', file) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: _.mapObject(optimisticReportActions, (action) => ({
                 ...action,
-                errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericAddCommentFailureMessage')},
+                errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
             })),
         },
     ];
@@ -899,32 +899,6 @@ function deleteReportComment(reportID, reportAction) {
 }
 
 /**
- * @param {String} comment
- * @returns {Array}
- */
-const extractLinksInMarkdownComment = (comment) => {
-    const regex = /\[[^[\]]*\]\(([^()]*)\)/gm;
-    const matches = [...comment.matchAll(regex)];
-
-    // Element 1 from match is the regex group if it exists which contains the link URLs
-    const links = _.map(matches, (match) => Str.sanitizeURL(match[1]));
-    return links;
-};
-
-/**
- * Compares two markdown comments and returns a list of the links removed in a new comment.
- *
- * @param {String} oldComment
- * @param {String} newComment
- * @returns {Array}
- */
-const getRemovedMarkdownLinks = (oldComment, newComment) => {
-    const linksInOld = extractLinksInMarkdownComment(oldComment);
-    const linksInNew = extractLinksInMarkdownComment(newComment);
-    return _.difference(linksInOld, linksInNew);
-};
-
-/**
  * Removes the links in html of a comment.
  * example:
  *      html="test <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">https://www.google.com</a> test"
@@ -959,7 +933,7 @@ const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
     }
     const markdownOriginalComment = parser.htmlToMarkdown(originalHtml).trim();
     const htmlForNewComment = parser.replace(newCommentText);
-    const removedLinks = getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
+    const removedLinks = parser.getRemovedMarkdownLinks(markdownOriginalComment, newCommentText);
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 };
 

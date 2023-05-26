@@ -92,8 +92,10 @@ const defaultProps = {
 
 const MoneyRequestAction = (props) => {
     const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
+    const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+
     const onIOUPreviewPressed = () => {
-        if (lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && hasMultipleParticipants) {
+        if (isSplitBillAction && hasMultipleParticipants) {
             Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
             return;
         }
@@ -145,7 +147,7 @@ const MoneyRequestAction = (props) => {
             <IOUPreview
                 iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
-                isBillSplit={hasMultipleParticipants}
+                isBillSplit={isSplitBillAction}
                 action={props.action}
                 contextMenuAnchor={props.contextMenuAnchor}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
