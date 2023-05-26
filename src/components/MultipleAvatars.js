@@ -74,8 +74,8 @@ const MultipleAvatars = (props) => {
 
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
         return (
-            <View style={avatarContainerStyles}>
-                <Tooltip text={tooltipTexts[0]}>
+            <Tooltip text={tooltipTexts[0]}>
+                <View style={avatarContainerStyles}>
                     <Avatar
                         source={props.icons[0].source}
                         size={props.size}
@@ -83,8 +83,8 @@ const MultipleAvatars = (props) => {
                         name={props.icons[0].name}
                         type={props.icons[0].type}
                     />
-                </Tooltip>
-            </View>
+                </View>
+            </Tooltip>
         );
     }
 
@@ -175,10 +175,7 @@ const MultipleAvatars = (props) => {
                 </>
             ) : (
                 <View style={singleAvatarStyles}>
-                    <Tooltip
-                        text={tooltipTexts[0]}
-                        absolute
-                    >
+                    <Tooltip text={tooltipTexts[0]}>
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
@@ -193,10 +190,7 @@ const MultipleAvatars = (props) => {
                     </Tooltip>
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
-                            <Tooltip
-                                text={tooltipTexts[1]}
-                                absolute
-                            >
+                            <Tooltip text={tooltipTexts[1]}>
                                 <View>
                                     <Avatar
                                         source={props.icons[1].source || props.fallbackIcon}
@@ -209,10 +203,7 @@ const MultipleAvatars = (props) => {
                                 </View>
                             </Tooltip>
                         ) : (
-                            <Tooltip
-                                text={tooltipTexts.slice(1).join(', ')}
-                                absolute
-                            >
+                            <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                 <View style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Text
                                         selectable={false}

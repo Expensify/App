@@ -135,7 +135,9 @@ const HeaderView = (props) => {
                             text={props.translate('common.back')}
                             shiftVertical={4}
                         >
-                            <Icon src={Expensicons.BackArrow} />
+                            <View>
+                                <Icon src={Expensicons.BackArrow} />
+                            </View>
                         </Tooltip>
                     </Pressable>
                 )}

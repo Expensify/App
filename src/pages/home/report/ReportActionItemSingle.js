@@ -96,10 +96,12 @@ const ReportActionItemSingle = (props) => {
                         />
                     ) : (
                         <Tooltip text={actorEmail}>
-                            <Avatar
-                                containerStyles={[styles.actionAvatar]}
-                                source={avatarSource}
-                            />
+                            <View>
+                                <Avatar
+                                    containerStyles={[styles.actionAvatar]}
+                                    source={avatarSource}
+                                />
+                            </View>
                         </Tooltip>
                     )}
                 </OfflineWithFeedback>

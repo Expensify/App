@@ -48,19 +48,19 @@ const defaultProps = {
 const BaseQuickEmojiReactions = (props) => (
     <View style={styles.quickReactionsContainer}>
         {_.map(CONST.QUICK_REACTIONS, (emoji) => (
-            // Note: focus is handled by the Pressable component in EmojiReactionBubble
             <Tooltip
                 text={`:${emoji.name}:`}
                 key={emoji.name}
-                focusable={false}
             >
-                <EmojiReactionBubble
-                    emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
-                    isContextMenu
-                    onPress={() => {
-                        props.onEmojiSelected(emoji);
-                    }}
-                />
+                <View>
+                    <EmojiReactionBubble
+                        emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
+                        isContextMenu
+                        onPress={() => {
+                            props.onEmojiSelected(emoji);
+                        }}
+                    />
+                </View>
             </Tooltip>
         ))}
         <AddReactionBubble
