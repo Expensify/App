@@ -90,7 +90,7 @@ function SingletonAppleSignInButton({isDesktopFlow}) {
 
 SingletonAppleSignInButton.propTypes = requiredPropTypes;
 
-const AppleSignIn = ({isDesktopFlow}) => {
+function AppleSignIn({isDesktopFlow}) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     useEffect(() => {
         if (window.appleAuthScriptLoaded) return;
@@ -109,9 +109,8 @@ const AppleSignIn = ({isDesktopFlow}) => {
     }
 
     return <SingletonAppleSignInButton isDesktopFlow={isDesktopFlow} />;
-};
+}
 
-AppleSignIn.displayName = 'AppleSignIn';
 AppleSignIn.propTypes = propTypes;
 AppleSignIn.defaultProps = defaultProps;
 
