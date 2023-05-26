@@ -43,6 +43,9 @@ const propTypes = {
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
 
+    /** Depending on expense report or personal IOU report, respective bank account route */
+    bankAccountRoute: PropTypes.string.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -69,7 +72,7 @@ const propTypes = {
     navigateToStep: PropTypes.func.isRequired,
 
     /** The policyID of the request */
-    policyID: PropTypes.string.isRequired,
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -81,6 +84,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    policyID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -288,7 +292,7 @@ class MoneyRequestConfirmationList extends Component {
                             onPress={this.confirm}
                             shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
                             enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountRoute={ROUTES.IOU_SEND_ADD_BANK_ACCOUNT}
+                            addBankAccountRoute={this.props.bankAccountRoute}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={this.props.iou.selectedCurrencyCode}
                             policyID={this.props.policyID}
