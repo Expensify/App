@@ -2,9 +2,8 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
-import {AppState, Linking, Platform} from 'react-native';
+import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import {appleAuth} from '@invertase/react-native-apple-authentication';
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -28,6 +27,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import * as Session from './libs/actions/Session';
+import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -89,13 +89,6 @@ function Expensify(props) {
     const [isSplashShown, setIsSplashShown] = useState(true);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
-
-    useEffect(() => {
-        if (Platform.OS !== 'ios') return;
-        appleAuth.onCredentialRevoked(() => {
-            Session.signOut();
-        });
-    }, []);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -184,6 +177,11 @@ function Expensify(props) {
         return null;
     }
 
+    const handleCredentialRevoked = () => {
+        Session.signOut();
+    };
+
+
     return (
         <>
             {!isSplashShown && (
@@ -206,7 +204,7 @@ function Expensify(props) {
                     ) : null}
                 </>
             )}
-
+            <AppleAuthWrapper onCredentialRevoked={handleCredentialRevoked} />
             <NavigationRoot
                 onReady={setNavigationReady}
                 authenticated={isAuthenticated}
