@@ -89,7 +89,7 @@ const defaultProps = {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
-    payee: null,
+    payeePersonalDetails: null,
     canModifyParticipants: false,
     isReadOnly: false,
     bankAccountRoute: '',
@@ -171,15 +171,12 @@ class MoneyRequestConfirmationList extends Component {
     }
 
     /**
-     * Returns the personalDetails object for the requester
+     * Returns the personalDetails object for the payee. Use the payee prop if passed, else fallback to current user
      *
      * @returns {Object} personalDetails
      */
-    getRequestorPersonalDetails() {
-        if (this.props.payeePersonalDetails) {
-            return this.props.payeePersonalDetails;
-        }
-        return this.props.currentUserPersonalDetails;
+    getPayeePersonalDetails() {
+        return this.props.payeePersonalDetails || this.props.currentUserPersonalDetails;
     }
 
     /**
@@ -199,7 +196,7 @@ class MoneyRequestConfirmationList extends Component {
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.iouAmount, true);
             const formattedPayeePersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                this.getRequestorPersonalDetails(),
+                this.getPayeePersonalDetails(),
                 CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.iou.selectedCurrencyCode),
             );
 
@@ -269,7 +266,7 @@ class MoneyRequestConfirmationList extends Component {
             return [];
         }
         const selectedParticipants = this.getSelectedParticipants();
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(this.getRequestorPersonalDetails())];
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(this.getPayeePersonalDetails())];
     }
 
     /**
