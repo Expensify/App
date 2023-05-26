@@ -116,8 +116,8 @@ const ReportActionsList = (props) => {
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
             const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isThread(report);
             // check if the second message of the thread is unread, then hide the divider line.
-            const shouldHideThreadDividerLine = shouldDisplayParentAction && sortedReportActions.length > 1 && 
-                    sortedReportActions[sortedReportActions.length -2].reportActionID === newMarkerReportActionID;
+            const shouldHideThreadDividerLine =
+                shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
