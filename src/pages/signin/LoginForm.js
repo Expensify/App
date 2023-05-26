@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import {AppleButton} from '@invertase/react-native-apple-authentication';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -212,6 +213,13 @@ class LoginForm extends React.Component {
                                 message={serverErrorText}
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
+                            />
+                            {/* TODO: Replace with custom button */}
+                            <AppleButton
+                                buttonStyle={AppleButton.Style.WHITE}
+                                buttonType={AppleButton.Type.SIGN_IN}
+                                style={{width: 160, height: 45}}
+                                onPress={Session.beginAppleSignIn}
                             />
                         </View>
                     )
