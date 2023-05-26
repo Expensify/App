@@ -2433,7 +2433,7 @@ const CONST = {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
         MODERATOR_DECISION_APPROVED: 'approved',
-        MODERATOR_DECISION: 'hidden',
+        MODERATOR_DECISION_HIDDEN: 'hidden',
         FLAG_SEVERITY_SPAM: 'spam',
         FLAG_SEVERITY_INCONSIDERATE: 'inconsiderate',
     },

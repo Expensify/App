@@ -28,18 +28,22 @@ const defaultProps = {
 
 const ReportActionItemMessage = (props) => (
     <View style={[styles.chatItemMessage, ...props.style]}>
-        {!props.isHidden ? _.map(_.compact(props.action.previousMessage || props.action.message), (fragment, index) => (
-            <ReportActionItemFragment
-                key={`actionFragment-${props.action.reportActionID}-${index}`}
-                fragment={fragment}
-                isAttachment={props.action.isAttachment}
-                attachmentInfo={props.action.attachmentInfo}
-                pendingAction={props.action.pendingAction}
-                source={lodashGet(props.action, 'originalMessage.source')}
-                loading={props.action.isLoading}
-                style={props.style}
-            />
-        )) : <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>}
+        {!props.isHidden ? (
+            _.map(_.compact(props.action.previousMessage || props.action.message), (fragment, index) => (
+                <ReportActionItemFragment
+                    key={`actionFragment-${props.action.reportActionID}-${index}`}
+                    fragment={fragment}
+                    isAttachment={props.action.isAttachment}
+                    attachmentInfo={props.action.attachmentInfo}
+                    pendingAction={props.action.pendingAction}
+                    source={lodashGet(props.action, 'originalMessage.source')}
+                    loading={props.action.isLoading}
+                    style={props.style}
+                />
+            ))
+        ) : (
+            <Text style={[styles.textLabelSupporting, styles.lh20]}>{props.translate('moderation.flaggedContent')}</Text>
+        )}
     </View>
 );
 

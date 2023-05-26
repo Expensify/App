@@ -133,9 +133,7 @@ const ReportActionItemSingle = (props) => {
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
-                <View style={props.hasBeenFlagged ? styles.blockquote: {}}>
-                    {props.children}
-                </View>
+                <View style={props.hasBeenFlagged ? styles.blockquote : {}}>{props.children}</View>
             </View>
         </View>
     );

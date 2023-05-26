@@ -133,7 +133,7 @@ function ReportActionItem(props) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision.decision);
-    }, [props.action, moderationDecision])
+    }, [props.action, moderationDecision]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -263,18 +263,25 @@ function ReportActionItem(props) {
                                 isHidden={isHidden}
                                 style={[
                                     !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
-                                    _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName) ? styles.colorMuted : undefined,
+                                    _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
+                                        ? styles.colorMuted
+                                        : undefined,
                                 ]}
                             />
-                            {props.displayAsGroup && hasBeenFlagged &&
+                            {props.displayAsGroup && hasBeenFlagged && (
                                 <Button
                                     small
                                     style={[styles.mt2, styles.alignSelfStart]}
                                     onPress={() => setIsHidden(!isHidden)}
                                 >
-                                    <Text style={styles.buttonSmallText} selectable={false} >{isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}</Text>
+                                    <Text
+                                        style={styles.buttonSmallText}
+                                        selectable={false}
+                                    >
+                                        {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
+                                    </Text>
                                 </Button>
-                            }
+                            )}
                         </View>
                     ) : (
                         <ReportActionItemMessageEdit
@@ -291,15 +298,20 @@ function ReportActionItem(props) {
                             }
                         />
                     )}
-                    {!props.displayAsGroup && hasBeenFlagged &&
+                    {!props.displayAsGroup && hasBeenFlagged && (
                         <Button
                             small
                             style={[styles.mt2, styles.alignSelfStart]}
                             onPress={() => setIsHidden(!isHidden)}
                         >
-                            <Text style={styles.buttonSmallText} selectable={false} >{isHidden ? 'Reveal message' : 'Hide message'}</Text>
+                            <Text
+                                style={styles.buttonSmallText}
+                                selectable={false}
+                            >
+                                {isHidden ? 'Reveal message' : 'Hide message'}
+                            </Text>
                         </Button>
-                    }
+                    )}
                 </ShowContextMenuContext.Provider>
             );
         }
