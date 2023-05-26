@@ -180,7 +180,7 @@ class FloatingActionButtonAndPopover extends React.Component {
      */
     interceptAnonymousUser(callback) {
         if (this.state.isAnonymousUser) {
-            Session.signOutAndRedirectToSignIn();
+            Session.signOutAndRedirectToSignIn(this.props.session.authTokenType);
         } else {
             callback();
         }

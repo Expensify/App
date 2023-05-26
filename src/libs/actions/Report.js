@@ -1705,6 +1705,13 @@ function leaveRoom(reportID) {
     navigateToConciergeChat();
 }
 
+/**
+ * @param {String} reportID
+ */
+function setLastOpenedPublicRoom(reportID) {
+    Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
+}
+
 export {
     addComment,
     addAttachment,
@@ -1749,4 +1756,5 @@ export {
     hasAccountIDReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    setLastOpenedPublicRoom,
 };

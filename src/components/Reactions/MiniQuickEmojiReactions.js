@@ -17,7 +17,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as EmojiUtils from '../../libs/EmojiUtils';
-import * as SessionUtils from '../../libs/SessionUtils';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {

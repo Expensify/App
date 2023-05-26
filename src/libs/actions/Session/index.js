@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {Linking} from 'react-native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -21,6 +22,8 @@ import subscribeToReportCommentPushNotifications from '../../Notification/PushNo
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as SessionUtils from '../../SessionUtils';
+import * as ReportUtils from '../../ReportUtils';
+import * as Report from "../Report";
 
 let credentials = {};
 Onyx.connect({
@@ -79,10 +82,21 @@ function signOut() {
     Timing.clearData();
 }
 
-function signOutAndRedirectToSignIn() {
+/**
+ * @param {String} [authTokenType] The type of auth token to check
+ */
+function signOutAndRedirectToSignIn(authTokenType = '') {
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
+    if (SessionUtils.isAnonymousUser(authTokenType)) {
+        Linking.getInitialURL().then((url) => {
+            const reportID = ReportUtils.getReportIDFromLink(url);
+            if (reportID) {
+                Report.setLastOpenedPublicRoom(reportID);
+            }
+        });
+    }
 }
 
 /**
@@ -94,7 +108,7 @@ function signOutAndRedirectToSignIn() {
 function checkIfActionIsAllowed(authTokenType, callback) {
     return () => {
         if (SessionUtils.isAnonymousUser(authTokenType)) {
-            return signOutAndRedirectToSignIn();
+            return signOutAndRedirectToSignIn(authTokenType);
         }
         return callback();
     }

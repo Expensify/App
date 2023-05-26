@@ -41,6 +41,7 @@ import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
+import * as SessionUtils from '../../libs/SessionUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -84,8 +85,16 @@ const propTypes = {
     /** The account manager report ID */
     accountManagerReportID: PropTypes.string,
 
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: PropTypes.string,
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
+    /** Current user session */
+    session: PropTypes.shape({
+        authTokenType: PropTypes.string,
+    }),
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
@@ -104,6 +113,8 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     personalDetails: {},
+    lastOpenedPublicRoomID: null,
+    session: {},
 };
 
 /**
@@ -194,6 +205,13 @@ class ReportScreen extends React.Component {
     }
 
     fetchReportIfNeeded() {
+        // Re-open the last opened public room if the user logged in
+        if (this.props.lastOpenedPublicRoomID && !SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+            Report.openReport(this.props.lastOpenedPublicRoomID);
+            Report.setLastOpenedPublicRoom(null);
+            return;
+        }
+
         const reportIDFromPath = getReportID(this.props.route);
 
         // Report ID will be empty when the reports collection is empty.
@@ -391,6 +409,9 @@ export default compose(
     withDrawerState,
     withNetwork(),
     withOnyx({
+        lastOpenedPublicRoomID: {
+            key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+        },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
         },
@@ -416,6 +437,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportScreen);

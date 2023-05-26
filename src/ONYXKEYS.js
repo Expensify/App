@@ -226,4 +226,7 @@ export default {
 
     // A map of the user's security group IDs they belong to in specific domains
     MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
+
+    // Report ID of the last report the user viewed as anonymous user
+    LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
 };

@@ -34,7 +34,6 @@ import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
-import * as SessionUtils from '../../../libs/SessionUtils';
 import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
