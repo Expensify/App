@@ -5,8 +5,9 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {Freeze} from 'react-freeze';
-import {PortalHost} from '@gorhom/portal';
 import Reanimated from 'react-native-reanimated';
+import {PortalHost} from '@gorhom/portal';
+import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -38,10 +39,10 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import StylesContext from '../../styles/StylesContext';
 import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
+import StylesContext from '../../styles/StylesContext';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -228,7 +229,7 @@ class ReportScreen extends React.Component {
         const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
         const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
 
-        const styles = this.context;
+        const themeStyles = this.context;
 
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
 
@@ -251,8 +252,8 @@ class ReportScreen extends React.Component {
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
         const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
         return (
-            <Reanimated.View style={styles.appContent}>
-                <ScreenWrapper style={screenWrapperStyle}>
+            <ScreenWrapper style={screenWrapperStyle}>
+                <Reanimated.View style={themeStyles.appContent}>
                     <Freeze
                         freeze={shouldFreeze}
                         placeholder={
@@ -343,13 +344,13 @@ class ReportScreen extends React.Component {
                                         reportActions={this.props.reportActions}
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
-                                        onSubmitComment={this.onSubmitComment}
-                                        policies={this.props.policies}
+                                        isDrawerOpen={this.props.isDrawerOpen}
+                                        parentViewHeight={this.state.skeletonViewContainerHeight}
                                     />
                                 )}
 
                                 {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
-                                we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
                                     <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
                                 )}
@@ -364,6 +365,7 @@ class ReportScreen extends React.Component {
                                             report={this.props.report}
                                             isComposerFullSize={this.props.isComposerFullSize}
                                             onSubmitComment={this.onSubmitComment}
+                                            policies={this.props.policies}
                                         />
                                     </>
                                 )}
@@ -380,8 +382,8 @@ class ReportScreen extends React.Component {
                             </View>
                         </FullPageNotFoundView>
                     </Freeze>
-                </ScreenWrapper>
-            </Reanimated.View>
+                </Reanimated.View>
+            </ScreenWrapper>
         );
     }
 }

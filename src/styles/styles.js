@@ -1364,7 +1364,6 @@ const styles = {
     },
 
     appContent: {
-        backgroundColor: themeColors.appBG,
         overflow: 'hidden',
 
         // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
