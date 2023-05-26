@@ -323,8 +323,9 @@ function addComment(reportID, text) {
  * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
+ * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
  */
-function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0') {
+function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -368,6 +369,10 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         emailList: participantList ? participantList.join(',') : '',
         parentReportActionID,
     };
+
+    if (isFromDeepLink) {
+        params.shouldRetry = false;
+    }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
@@ -416,7 +421,13 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         }
     }
 
-    API.write('OpenReport', params, onyxData);
+    if (isFromDeepLink) {
+        API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
+            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        });
+    } else {
+        API.write('OpenReport', params, onyxData);
+    }
 }
 
 /**
@@ -1633,7 +1644,7 @@ function openReportFromDeepLink(url, isAuthenticated, isOffline) {
 
     if (reportID && !isAuthenticated) {
         // Check if it's a public room to open it as an anonymous user
-        openReport(reportID);
+        openReport(reportID, [], {}, '0', true);
 
         // Show the sign-in page if the app is offline
         if (isOffline) {
