@@ -65,9 +65,6 @@ export default {
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
-    APPLEOAUTH: 'signinwithapple',
-    GOOGLEOAUTH: 'signinwithgoogle',
-    APPLEOAUTHRECEIVER: 'siwa/:token',
 
     IOU_REQUEST,
     IOU_BILL,
@@ -122,6 +119,8 @@ export default {
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: (taskID) => `get-assistance/${taskID}`,
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
+
+    APPLE_SIGN_IN: 'sign-in-with-apple',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
