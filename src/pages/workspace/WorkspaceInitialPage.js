@@ -78,6 +78,18 @@ const WorkspaceInitialPage = (props) => {
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
 
+    /**
+     * Navigates to workspace rooms
+     * @param {String} chatType
+     */
+    const goToRoom = useCallback(
+        (type) => {
+            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type);
+            Navigation.navigate(ROUTES.getReportRoute(room.reportID));
+        },
+        [props.reports, policy],
+    );
+
     const policyName = lodashGet(policy, 'name', '');
     const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
     const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
@@ -129,6 +141,24 @@ const WorkspaceInitialPage = (props) => {
         },
     ];
 
+    const threeDotsMenuItems = [
+        {
+            icon: Expensicons.Trashcan,
+            text: props.translate('workspace.common.delete'),
+            onSelected: () => setIsDeleteModalOpen(true),
+        },
+        {
+            icon: Expensicons.Hashtag,
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
+            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+        },
+        {
+            icon: Expensicons.Hashtag,
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
+            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
+        },
+    ];
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
@@ -144,13 +174,7 @@ const WorkspaceInitialPage = (props) => {
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Trashcan,
-                                text: props.translate('workspace.common.delete'),
-                                onSelected: () => setIsDeleteModalOpen(true),
-                            },
-                        ]}
+                        threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
