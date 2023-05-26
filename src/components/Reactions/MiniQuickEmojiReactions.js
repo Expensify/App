@@ -57,11 +57,6 @@ const MiniQuickEmojiReactions = (props) => {
     const ref = useRef();
 
     const openEmojiPicker = () => {
-        if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
-
         props.onPressOpenPicker();
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
@@ -79,26 +74,14 @@ const MiniQuickEmojiReactions = (props) => {
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
-                    onPress={() => {
-                        if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
-                            Session.signOutAndRedirectToSignIn();
-                        } else {
-                            props.onEmojiSelected(emoji);
-                        }
-                    }}
+                    onPress={Session.checkIfActionIsAllowed(props.session.authTokenType, () => props.onEmojiSelected(emoji))}
                 >
                     <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={() => {
-                    if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
-                        Session.signOutAndRedirectToSignIn();
-                    } else {
-                        openEmojiPicker();
-                    }
-                }}
+                onPress={Session.checkIfActionIsAllowed(props.session.authTokenType, openEmojiPicker)}
                 isDelayButtonStateComplete={false}
                 tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >

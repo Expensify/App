@@ -20,6 +20,7 @@ import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
+import * as SessionUtils from '../../SessionUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -82,6 +83,21 @@ function signOutAndRedirectToSignIn() {
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
+}
+
+/**
+ *
+ * @param {String} authTokenType The type of auth token to check
+ * @param {Function} callback The callback to execute if the action is allowed
+ * @returns {*} callback's result
+ */
+function checkIfActionIsAllowed(authTokenType, callback) {
+    return () => {
+        if (SessionUtils.isAnonymousUser(authTokenType)) {
+            return signOutAndRedirectToSignIn();
+        }
+        return callback();
+    }
 }
 
 /**
@@ -887,6 +903,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
 export {
     beginSignIn,
+    checkIfActionIsAllowed,
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,

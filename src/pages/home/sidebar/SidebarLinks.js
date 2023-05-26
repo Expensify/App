@@ -109,11 +109,8 @@ class SidebarLinks extends React.Component {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
-        if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
-            Session.signOutAndRedirectToSignIn();
-        } else {
-            Navigation.navigate(ROUTES.SEARCH);
-        }
+
+        Navigation.navigate(ROUTES.SEARCH);
     }
 
     showSettingsPage() {
@@ -121,11 +118,8 @@ class SidebarLinks extends React.Component {
             // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
             return;
         }
-        if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
-            Session.signOutAndRedirectToSignIn();
-        } else {
-            Navigation.navigate(ROUTES.SETTINGS);
-        }
+
+        Navigation.navigate(ROUTES.SETTINGS);
     }
 
     /**
@@ -176,7 +170,7 @@ class SidebarLinks extends React.Component {
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
-                            onPress={this.showSearchPage}
+                            onPress={Session.checkIfActionIsAllowed(this.props.session.authTokenType, this.showSearchPage)}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
@@ -184,7 +178,7 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={this.showSettingsPage}
+                        onPress={Session.checkIfActionIsAllowed(this.props.session.authTokenType, this.showSettingsPage)}
                     >
                         <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                             <AvatarWithIndicator

@@ -14,7 +14,6 @@ import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as SessionUtils from '../../libs/SessionUtils';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
@@ -58,11 +57,6 @@ const AddReactionBubble = (props) => {
     const ref = useRef();
 
     const onPress = () => {
-        if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
-
         const openPicker = (refParam, anchorOrigin) => {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
@@ -87,7 +81,7 @@ const AddReactionBubble = (props) => {
             <Pressable
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
-                onPress={onPress}
+                onPress={Session.checkIfActionIsAllowed(props.session.authTokenType, onPress)}
                 // Prevent text input blur when Add reaction is clicked
                 onMouseDown={(e) => e.preventDefault()}
             >

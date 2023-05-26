@@ -17,7 +17,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
-import * as SessionUtils from '../../libs/SessionUtils';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 
@@ -112,15 +111,9 @@ class BaseVideoChatButtonAndMenu extends Component {
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
                             ref={(el) => (this.videoChatButton = el)}
-                            onPress={() => {
+                            onPress={Session.checkIfActionIsAllowed(this.props.session.authTokenType, () => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
-
-                                // If user is anonymous, show the sign in modal
-                                if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
-                                    Session.signOutAndRedirectToSignIn();
-                                    return;
-                                }
 
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                                 if (this.props.isConcierge && this.props.guideCalendarLink) {
@@ -128,7 +121,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                                     return;
                                 }
                                 this.setMenuVisibility(true);
-                            }}
+                            })}
                             style={[styles.touchableButtonImage]}
                         >
                             <Icon
