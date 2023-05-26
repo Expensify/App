@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity, View, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -19,6 +19,7 @@ import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
 import TextPill from '../TextPill';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Style for hovered state */
@@ -91,7 +92,7 @@ const OptionRowLHN = (props) => {
         >
             <Hoverable>
                 {(hovered) => (
-                    <TouchableOpacity
+                    <PressableWithFeedback
                         ref={(el) => (touchableRef = el)}
                         onPress={(e) => {
                             if (e) {
@@ -100,7 +101,6 @@ const OptionRowLHN = (props) => {
 
                             props.onSelectRow(optionItem, touchableRef);
                         }}
-                        activeOpacity={0.8}
                         style={[
                             styles.flexRow,
                             styles.alignItemsCenter,
@@ -111,6 +111,11 @@ const OptionRowLHN = (props) => {
                             props.isFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
+                        accessibilityLabel={optionItem.text}
+                        accessibilityRole="button"
+                        // disable hover dim for switch
+                        hoverDimmingValue={1}
+                        pressDimmingValue={0.8}
                     >
                         <View
                             accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
@@ -213,7 +218,7 @@ const OptionRowLHN = (props) => {
                                 </View>
                             )}
                         </View>
-                    </TouchableOpacity>
+                    </PressableWithFeedback>
                 )}
             </Hoverable>
         </OfflineWithFeedback>
