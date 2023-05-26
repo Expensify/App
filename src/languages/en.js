@@ -176,6 +176,9 @@ export default {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+        redirectedToDesktopApp: "We've redirected you to the desktop app.",
+        youCanAlso: 'You can also',
+        openLinkInBrowser: 'open this link in your browser',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -641,6 +644,10 @@ export default {
                 description: 'Only show unread sorted alphabetically',
             },
         },
+    },
+    welcomeMessagePage: {
+        welcomeMessage: 'Welcome message',
+        explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {
         language: 'Language',

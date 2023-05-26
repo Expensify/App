@@ -45,6 +45,11 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.ReportSettingsModalStackNavigator}
             />
             <Stack.Screen
+                name="Report_WelcomeMessage"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.ReportWelcomeMessageModalStackNavigator}
+            />
+            <Stack.Screen
                 name="Participants"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
@@ -63,6 +68,11 @@ function RigthModalNavigator() {
                 name="EnablePayments"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.EnablePaymentsStackNavigator}
+            />
+            <Stack.Screen
+                name="SplitDetails"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.SplitDetailsModalStackNavigator}
             />
             <Stack.Screen
                 name="AddPersonalBankAccount"
