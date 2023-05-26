@@ -31,6 +31,8 @@ export default {
         view: 'View',
         not: 'Not',
         signIn: 'Sign in',
+        signInWithGoogle: 'Sign in with Google',
+        signInWithApple: 'Sign in with Apple',
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',

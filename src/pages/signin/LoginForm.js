@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
-import {AppleButton} from '@invertase/react-native-apple-authentication';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -25,6 +24,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
+import AppleSignIn from '../../components/SignInButtons/Apple';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -214,13 +214,14 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
-                            {/* TODO: Replace with custom button */}
-                            <AppleButton
-                                buttonStyle={AppleButton.Style.WHITE}
-                                buttonType={AppleButton.Type.SIGN_IN}
-                                style={{width: 160, height: 45}}
-                                onPress={Session.beginAppleSignIn}
-                            />
+                            <View style={{
+                                flexDirection: 'row',
+                                width: '100%',
+                                justifyContent: 'center',
+                            }}
+                            >
+                                <AppleSignIn />
+                            </View>
                         </View>
                     )
                 }
