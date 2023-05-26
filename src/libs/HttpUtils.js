@@ -32,15 +32,11 @@ let reconnectAppCancellationController = new AbortController();
  * @param {String} url
  * @param {String} [method]
  * @param {Object} [body]
- * @param {Boolean} [canCancel]
  * @param {String} [command]
  * @returns {Promise}
  */
-function processHTTPRequest(url, method = 'get', body = null, canCancel = true, command = '') {
-    let signal;
-    if (canCancel) {
-        signal = command === CONST.NETWORK.COMMAND.RECONNECT_APP ? reconnectAppCancellationController.signal : cancellationController.signal;
-    }
+function processHTTPRequest(url, method = 'get', body = null, command = '') {
+    const signal = command === CONST.NETWORK.COMMAND.RECONNECT_APP ? reconnectAppCancellationController.signal : cancellationController.signal;
 
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
@@ -136,7 +132,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     });
 
     const url = ApiUtils.getCommandURL({shouldUseSecure, command});
-    return processHTTPRequest(url, type, formData, data.canCancel, command);
+    return processHTTPRequest(url, type, formData, command);
 }
 
 function cancelPendingReconnectAppRequest() {

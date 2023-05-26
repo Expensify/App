@@ -544,7 +544,7 @@ describe('NetworkTests', () => {
             waitForPromisesToResolve()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
                 .then(() => {
-                    Network.post('Mock', {param1: 'value1', persist: true, shouldRetry: true});
+                    Network.post('Mock', {param1: 'value1', persist: true});
                     return waitForPromisesToResolve();
                 })
 
