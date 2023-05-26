@@ -4,15 +4,17 @@ import Log from '../../../libs/Log';
 import ButtonBase from '../ButtonBase';
 import AppleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
 import * as Session from '../../../libs/actions/Session';
-import APPLE_CONFIG from './AppleConfig';
+import CONST from '../../../CONST';
+
+const config = {
+    clientId: CONST.APPLE_SIGN_IN_SERVICE_ID,
+    redirectUri: CONST.APPLE_SIGN_IN_REDIRECT_URI,
+    responseType: appleAuthAndroid.ResponseType.ALL,
+    scope: appleAuthAndroid.Scope.ALL,
+};
 
 function appleSignInRequest() {
-    appleAuthAndroid.configure({
-        clientId: APPLE_CONFIG.CLIENT_ID,
-        redirectUri: APPLE_CONFIG.REDIRECT_URI,
-        responseType: appleAuthAndroid.ResponseType.ALL,
-        scope: appleAuthAndroid.Scope.ALL,
-    });
+    appleAuthAndroid.configure(config);
     return appleAuthAndroid
         .signIn()
         .then((response) => response.id_token)

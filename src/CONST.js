@@ -390,6 +390,11 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
 
+    APPLE_SIGN_IN_SERVICE_ID: 'com.expensify.expensifylite.AppleSignIn',
+    APPLE_SIGN_IN_REDIRECT_URI: 'https://www.expensify.com/partners/apple/loginCallback',
+    // APPLE_SIGN_IN_SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
+    // APPLE_SIGN_IN_REDIRECT_URI: 'https://new.expensify.com/appleauth',
+
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
