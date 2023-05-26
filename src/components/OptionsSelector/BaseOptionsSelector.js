@@ -275,7 +275,8 @@ class BaseOptionsSelector extends Component {
     }
 
     render() {
-        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
+        const shouldShowFooter =
+            !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const textInput = (

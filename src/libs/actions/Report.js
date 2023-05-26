@@ -1712,6 +1712,81 @@ function setLastOpenedPublicRoom(reportID) {
     Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
 }
 
+/**
+ * Flag a comment as offensive
+ *
+ * @param {String} reportID
+ * @param {Object} reportAction
+ * @param {String} severity
+ */
+function flagComment(reportID, reportAction, severity) {
+    let newDecision;
+    if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
+        newDecision = {
+            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
+        };
+    } else {
+        newDecision = {
+            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+        };
+    }
+
+    const message = reportAction.message[0];
+    const reportActionID = reportAction.reportActionID;
+
+    const updatedDecisions = [...(message.moderationDecisions || []), newDecision];
+
+    const updatedMessage = {
+        ...message,
+        moderationDecisions: updatedDecisions,
+    };
+
+    const optimisticData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    message: [updatedMessage],
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    ...reportAction,
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        severity,
+        reportActionID,
+    };
+
+    API.write('FlagComment', parameters, {optimisticData, successData, failureData});
+}
+
 export {
     addComment,
     addAttachment,
@@ -1757,4 +1832,5 @@ export {
     shouldShowReportActionNotification,
     leaveRoom,
     setLastOpenedPublicRoom,
+    flagComment,
 };

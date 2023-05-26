@@ -657,16 +657,17 @@ function getOptions(
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             const reportOption = allReportOptions[i];
-            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow =
-                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
             }
 
+            const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
+                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
+
             // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && !includeMultipleParticipantReports && !reportOption.login) {
+            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
                 continue;
             }
 
@@ -793,25 +794,25 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 }
 
 /**
- * Build the IOUConfirmation options for showing MyPersonalDetail
+ * Build the IOUConfirmation options for showing the payee personalDetail
  *
- * @param {Object} myPersonalDetail
+ * @param {Object} personalDetail
  * @param {String} amountText
  * @returns {Object}
  */
-function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountText) {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     return {
-        text: myPersonalDetail.displayName,
-        alternateText: myPersonalDetail.login,
+        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
+        alternateText: personalDetail.login,
         icons: [
             {
-                source: ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login),
-                name: myPersonalDetail.login,
+                source: ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login),
+                name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ],
         descriptiveText: amountText,
-        login: myPersonalDetail.login,
+        login: personalDetail.login,
     };
 }
 
@@ -952,7 +953,7 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
-    getIOUConfirmationOptionsFromMyPersonalDetail,
+    getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
