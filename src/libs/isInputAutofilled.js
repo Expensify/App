@@ -3,9 +3,7 @@
  * @param  {Object} input
  * @return {Boolean}
  */
-function isInputAutoFilled(input) {
+export default function isInputAutoFilled(input) {
     if (!input.matches) return false;
     return input.matches(':-webkit-autofill') || input.matches(':autofill');
 }
-
-export default isInputAutoFilled;
