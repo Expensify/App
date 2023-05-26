@@ -794,25 +794,25 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 }
 
 /**
- * Build the IOUConfirmation options for showing MyPersonalDetail
+ * Build the IOUConfirmation options for showing the payee personalDetail
  *
- * @param {Object} myPersonalDetail
+ * @param {Object} personalDetail
  * @param {String} amountText
  * @returns {Object}
  */
-function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountText) {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     return {
-        text: myPersonalDetail.displayName,
-        alternateText: myPersonalDetail.login,
+        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
+        alternateText: personalDetail.login,
         icons: [
             {
-                source: ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login),
-                name: myPersonalDetail.login,
+                source: ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login),
+                name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ],
         descriptiveText: amountText,
-        login: myPersonalDetail.login,
+        login: personalDetail.login,
     };
 }
 
@@ -953,7 +953,7 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
-    getIOUConfirmationOptionsFromMyPersonalDetail,
+    getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,

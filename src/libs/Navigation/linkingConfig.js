@@ -295,6 +295,11 @@ export default {
                     IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                 },
             },
+            SplitDetails: {
+                screens: {
+                    SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS,
+                },
+            },
             Task_Details: {
                 screens: {
                     Task_Title: ROUTES.TASK_TITLE,
