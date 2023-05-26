@@ -13,8 +13,9 @@ function appleSignInRequest() {
         responseType: appleAuthAndroid.ResponseType.ALL,
         scope: appleAuthAndroid.Scope.ALL,
     });
-    return appleAuthAndroid.signIn()
-        .then(response => response.id_token)
+    return appleAuthAndroid
+        .signIn()
+        .then((response) => response.id_token)
         .catch((e) => {
             Log.error('Request to sign in with Apple failed. Error: ', e);
             throw e;
@@ -24,12 +25,17 @@ function appleSignInRequest() {
 const AppleSignIn = () => {
     const handleSignIn = () => {
         appleSignInRequest()
-            .then(token => Session.beginAppleSignIn(token))
+            .then((token) => Session.beginAppleSignIn(token))
             .catch((e) => {
                 Log.error('Apple authentication failed', e);
             });
     };
-    return <ButtonBase onPress={handleSignIn} icon={<AppleLogoIcon />} />;
+    return (
+        <ButtonBase
+            onPress={handleSignIn}
+            icon={<AppleLogoIcon />}
+        />
+    );
 };
 
 AppleSignIn.displayName = 'AppleSignIn';

@@ -214,11 +214,12 @@ class LoginForm extends React.Component {
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
-                            <View style={{
-                                flexDirection: 'row',
-                                width: '100%',
-                                justifyContent: 'center',
-                            }}
+                            <View
+                                style={{
+                                    flexDirection: 'row',
+                                    width: '100%',
+                                    justifyContent: 'center',
+                                }}
                             >
                                 <AppleSignIn />
                             </View>

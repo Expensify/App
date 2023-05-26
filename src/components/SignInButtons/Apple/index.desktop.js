@@ -6,7 +6,12 @@ const AppleSignIn = () => {
     const handleSignIn = () => {
         // handlesignin
     };
-    return <ButtonBase onPress={handleSignIn} icon={<AppleLogoIcon />} />;
+    return (
+        <ButtonBase
+            onPress={handleSignIn}
+            icon={<AppleLogoIcon />}
+        />
+    );
 };
 
 AppleSignIn.displayName = 'AppleSignIn';
