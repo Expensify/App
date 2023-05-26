@@ -422,10 +422,12 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
     }
 
     if (isFromDeepLink) {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write('OpenReport', params, onyxData);
     }
 }

@@ -54,6 +54,11 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        authTokenType: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -66,6 +71,7 @@ const defaultProps = {
         guideCalendarLink: null,
     },
     parentReport: {},
+    session: {},
 };
 
 const HeaderView = (props) => {
