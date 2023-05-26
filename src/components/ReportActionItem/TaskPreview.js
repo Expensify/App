@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Pressable} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
@@ -53,8 +54,8 @@ const TaskPreview = (props) => {
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
-    const isTaskCompleted =
-        (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) ||
+    const isTaskCompleted = !_.isEmpty(props.taskReport) ?
+        (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) :
         (props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
     const taskTitle = props.action.taskTitle || props.taskReport.reportName;
     const parentReportID = props.action.parentReportID || props.taskReport.parentReportID;
@@ -72,9 +73,9 @@ const TaskPreview = (props) => {
                     disabled={TaskUtils.isTaskCanceled(props.taskReport)}
                     onPress={() => {
                         if (isTaskCompleted) {
-                            TaskUtils.reopenTask(props.taskReportID, parentReportID, taskTitle);
+                            TaskUtils.reopenTask(props.taskReportID, parentReportID, props.action.reportActionID, taskTitle);
                         } else {
-                            TaskUtils.completeTask(props.taskReportID, parentReportID, taskTitle);
+                            TaskUtils.completeTask(props.taskReportID, parentReportID, props.action.reportActionID, taskTitle);
                         }
                     }}
                 />

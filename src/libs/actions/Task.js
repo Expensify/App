@@ -169,7 +169,14 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
-function completeTask(taskReportID, parentReportID, taskTitle) {
+/**
+ * Completes a task
+ * @param {string} taskReportID ReportID of the task
+ * @param {string} parentReportID ReportID of the linked parent report of the task so we can add the action
+ * @param {string} reportActionID The action in the parent report that displays the TaskPreview
+ * @param {string} taskTitle Title of the task
+ */
+function completeTask(taskReportID, parentReportID, reportActionID, taskTitle) {
     const message = `Completed task: ${taskTitle}`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
@@ -194,11 +201,28 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[reportActionID]: {
+                childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                childStatusNum: CONST.REPORT.STATUS.APPROVED,
+            }},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {[completedTaskReportAction.reportActionID]: completedTaskReportAction},
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[reportActionID]: {
+                childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                childStatusNum: CONST.REPORT.STATUS.APPROVED,
+            }},
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -229,9 +253,10 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
  * Reopens a closed task
  * @param {string} taskReportID ReportID of the task
  * @param {string} parentReportID ReportID of the linked parent report of the task so we can add the action
+ * @param {string} reportActionID The action in the parent report that displays the TaskPreview
  * @param {string} taskTitle Title of the task
  */
-function reopenTask(taskReportID, parentReportID, taskTitle) {
+function reopenTask(taskReportID, parentReportID, reportActionID, taskTitle) {
     const message = `Reopened task: ${taskTitle}`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
@@ -256,11 +281,28 @@ function reopenTask(taskReportID, parentReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[reportActionID]: {
+                childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                childStatusNum: CONST.REPORT.STATUS.OPEN,
+            }},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {[reopenedTaskReportAction.reportActionID]: reopenedTaskReportAction},
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[reportActionID]: {
+                childStateNum: CONST.REPORT.STATUS.OPEN,
+                childStatusNum: CONST.REPORT.STATUS.OPEN,
+            }},
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
