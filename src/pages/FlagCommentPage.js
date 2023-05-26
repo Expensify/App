@@ -30,13 +30,13 @@ const propTypes = {
             reportActionID: PropTypes.string,
         }),
     }).isRequired,
-    
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reportActions: {},
-}
+};
 
 /**
  * Get the reportID for the associated chatReport
@@ -95,7 +95,8 @@ function FlagCommentPage(props) {
         Report.flagComment(props.route.params.reportID, reportAction, severity);
     };
 
-    const severityMenuItems = _.map(severities, (item, index) => (<MenuItem
+    const severityMenuItems = _.map(severities, (item, index) => (
+        <MenuItem
             key={`${item.severity}_${index}`}
             icon={item.icon}
             shouldShowRightIcon
@@ -103,8 +104,8 @@ function FlagCommentPage(props) {
             description={item.description}
             onPress={() => flagComment(item.severity)}
             wrapperStyle={[styles.borderBottom]}
-        />)
-    )
+        />
+    ));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -120,20 +121,15 @@ function FlagCommentPage(props) {
                     >
                         <View style={styles.pageWrapper}>
                             <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                <Text style={[styles.baseFontStyle]}>
-                                    {props.translate('moderation.flagDescription')}
-                                </Text>
+                                <Text style={[styles.baseFontStyle]}>{props.translate('moderation.flagDescription')}</Text>
                             </View>
                         </View>
-                        <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>
-                            {props.translate('moderation.chooseAReason')}
-                        </Text>
+                        <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{props.translate('moderation.chooseAReason')}</Text>
                         {severityMenuItems}
                     </ScrollView>
                 </>
             )}
         </ScreenWrapper>
-
     );
 }
 
@@ -150,4 +146,3 @@ export default compose(
         },
     }),
 )(FlagCommentPage);
-

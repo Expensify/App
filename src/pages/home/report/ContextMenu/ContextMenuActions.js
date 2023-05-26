@@ -270,16 +270,17 @@ export default [
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
         icon: Expensicons.Flag,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canFlagReportAction(reportAction, reportID) && !isArchivedRoom && !isChronosReport && !ReportUtils.isConciergeChatReport(reportID),
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            ReportUtils.canFlagReportAction(reportAction, reportID) &&
+            !isArchivedRoom &&
+            !isChronosReport &&
+            !ReportUtils.isConciergeChatReport(reportID),
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
-                hideContextMenu(
-                    false,
-                    () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID))
-                );
+                hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));
             }
 
-            Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID))
+            Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID));
         },
         getDescription: () => {},
     },
