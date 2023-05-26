@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import CONST from '../CONST';
+import DateUtils from './DateUtils';
 
 /**
  * @param {Object} response
@@ -35,6 +36,16 @@ function getAuthenticateErrorMessage(response) {
         default:
             return 'passwordForm.error.fallback';
     }
+}
+
+/**
+ * Method used to get an error object with microsecond as the key.
+ * @param {String} error - error key or message to be saved
+ * @return {Object}
+ *
+ */
+function getMicroSecondOnyxError(error) {
+    return {[DateUtils.getMicroseconds()]: error};
 }
 
 /**
@@ -95,4 +106,4 @@ function addErrorMessage(errors, inputID, message) {
     }
 }
 
-export {getAuthenticateErrorMessage, getLatestErrorMessage, getLatestErrorField, addErrorMessage};
+export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getLatestErrorMessage, getLatestErrorField, addErrorMessage};

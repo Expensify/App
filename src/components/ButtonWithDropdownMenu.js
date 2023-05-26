@@ -52,7 +52,7 @@ const ButtonWithDropdownMenu = (props) => {
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
-    const {width: windowWidth, height: windowHeight} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
     useEffect(() => {
         if (!caretButton.current) {
