@@ -60,10 +60,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
         >
-            <Tooltip
-                containerStyles={[styles.dInline]}
-                text={props.href}
-            >
+            <Tooltip text={props.href}>
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}

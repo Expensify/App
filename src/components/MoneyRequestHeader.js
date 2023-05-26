@@ -84,13 +84,15 @@ const MoneyRequestHeader = (props) => {
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
         : ReportUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(props.report) && lodashGet(props.session, 'email', null) === props.report.managerEmail);
+    const isPayer =
+        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
                 shouldShowAvatarWithDisplay
-                shouldShowThreeDotsButton={!isSettled && props.isSingleTransactionView}
+                shouldShowThreeDotsButton={!isPayer && !isSettled && props.isSingleTransactionView}
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,
@@ -153,7 +155,7 @@ const MoneyRequestHeader = (props) => {
                                     iouReport={props.report}
                                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
                                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                                    addBankAccountRoute={bankAccountRoute}
                                     shouldShowPaymentOptions
                                 />
                             </View>
@@ -169,7 +171,7 @@ const MoneyRequestHeader = (props) => {
                         iouReport={props.report}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                        addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                        addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                     />
                 )}

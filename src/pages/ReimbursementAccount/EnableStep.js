@@ -59,7 +59,7 @@ const EnableStep = (props) => {
             includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithCloseButton
-                title={props.translate('workspace.common.bankAccount')}
+                title={props.translate('workspace.common.connectBankAccount')}
                 subtitle={props.policyName}
                 onCloseButtonPress={Navigation.dismissModal}
                 shouldShowGetAssistanceButton

@@ -56,7 +56,7 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                           and the left edge of the wrapped component.
  * @param {Number} yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
- * @param {Element} tooltip - The reference to the tooltip's root element
+ * @param {Element} [tooltip] - The reference to the tooltip's root element
  * @returns {Boolean}
  */
 function isOverlappingAtTop(xOffset, yOffset, tooltip) {
@@ -65,9 +65,10 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip) {
     }
 
     const element = document.elementFromPoint(xOffset, yOffset);
+    const tooltipRef = (tooltip && tooltip.current) || tooltip;
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!element || tooltip.contains(element)) {
+    if (!element || (tooltipRef && tooltipRef.contains(element))) {
         return false;
     }
 
@@ -118,7 +119,8 @@ export default function getTooltipStyles(
 
     // We calculate tooltip width and height based on the tooltip's content width and height
     // so the tooltip wrapper is just big enough to fit content and prevent white space.
-    const tooltipWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2;
+    // NOTE: Add 1 to the tooltipWidth to prevent truncated text in Safari
+    const tooltipWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1;
     const tooltipHeight = tooltipContentHeight && tooltipContentHeight + tooltipVerticalPadding.paddingVertical * 2;
 
     const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
