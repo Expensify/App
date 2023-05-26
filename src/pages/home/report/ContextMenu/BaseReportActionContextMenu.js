@@ -1,7 +1,8 @@
 import React from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
 import {propTypes as genericReportActionContextMenuPropTypes, defaultProps as GenericReportActionContextMenuDefaultProps} from './genericReportActionContextMenuPropTypes';
@@ -10,8 +11,16 @@ import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import {withBetas} from '../../../../components/OnyxProvider';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import * as SessionUtils from '../../../../libs/SessionUtils';
+import * as Session from '../../../../libs/actions/Session';
+import {hideContextMenu} from './ReportActionContextMenu';
 
 const propTypes = {
+    ...genericReportActionContextMenuPropTypes,
+    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
+
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type: PropTypes.string,
 
@@ -26,18 +35,20 @@ const propTypes = {
 
     contentRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
 
-    ...genericReportActionContextMenuPropTypes,
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
+    session: PropTypes.shape({
+        /** Determines if user is anonymous or not */
+        authTokenType: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
+    ...GenericReportActionContextMenuDefaultProps,
     type: CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor: null,
     contentRef: null,
     isChronosReport: false,
     isArchivedRoom: false,
-    ...GenericReportActionContextMenuDefaultProps,
+    session: {},
 };
 class BaseReportActionContextMenu extends React.Component {
     constructor(props) {
@@ -61,6 +72,24 @@ class BaseReportActionContextMenu extends React.Component {
                 this.props.reportID,
             );
 
+        /**
+         * Checks if user is anonymous. If true, hides the context menu and
+         * shows the sign in modal. Else, executes the callback.
+         *
+         * @param {Function} callback
+         */
+        const interceptAnonymousUser = (callback) => {
+            if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+                hideContextMenu(false);
+
+                InteractionManager.runAfterInteractions(() => {
+                    Session.signOutAndRedirectToSignIn();
+                });
+            } else {
+                callback();
+            }
+        };
+
         return (
             (this.props.isVisible || this.state.shouldKeepOpen) && (
                 <View
@@ -76,6 +105,7 @@ class BaseReportActionContextMenu extends React.Component {
                             selection: this.props.selection,
                             close: () => this.setState({shouldKeepOpen: false}),
                             openContextMenu: () => this.setState({shouldKeepOpen: true}),
+                            interceptAnonymousUser,
                         };
 
                         if (contextAction.renderContent) {
@@ -95,7 +125,7 @@ class BaseReportActionContextMenu extends React.Component {
                                 successText={contextAction.successTextTranslateKey ? this.props.translate(contextAction.successTextTranslateKey) : undefined}
                                 isMini={this.props.isMini}
                                 key={contextAction.textTranslateKey}
-                                onPress={() => contextAction.onPress(closePopup, payload)}
+                                onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload))}
                                 description={contextAction.getDescription(this.props.selection, this.props.isSmallScreenWidth)}
                                 autoReset={contextAction.autoReset}
                             />
@@ -110,4 +140,13 @@ class BaseReportActionContextMenu extends React.Component {
 BaseReportActionContextMenu.propTypes = propTypes;
 BaseReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(withLocalize, withBetas(), withWindowDimensions)(BaseReportActionContextMenu);
+export default compose(
+    withLocalize,
+    withBetas(),
+    withWindowDimensions,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(BaseReportActionContextMenu);

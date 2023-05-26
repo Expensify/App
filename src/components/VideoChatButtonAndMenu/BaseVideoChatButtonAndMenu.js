@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Pressable, Dimensions, Linking} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Popover from '../Popover';
@@ -16,14 +17,22 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
+import * as SessionUtils from '../../libs/SessionUtils';
+import * as Session from '../../libs/actions/Session';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
-    /** Link to open when user wants to create a new google meet meeting */
-    googleMeetURL: PropTypes.string.isRequired,
-
     ...videoChatButtonAndMenuPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+
+    /** Link to open when user wants to create a new google meet meeting */
+    googleMeetURL: PropTypes.string.isRequired,
+
+    session: PropTypes.shape({
+        /** Determines if user is anonymous or not */
+        authTokenType: PropTypes.string,
+    }),
 };
 
 class BaseVideoChatButtonAndMenu extends Component {
@@ -107,6 +116,12 @@ class BaseVideoChatButtonAndMenu extends Component {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
 
+                                // If user is anonymous, show the sign in modal
+                                if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+                                    Session.signOutAndRedirectToSignIn();
+                                    return;
+                                }
+
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                                 if (this.props.isConcierge && this.props.guideCalendarLink) {
                                     Linking.openURL(this.props.guideCalendarLink);
@@ -151,4 +166,12 @@ class BaseVideoChatButtonAndMenu extends Component {
 BaseVideoChatButtonAndMenu.propTypes = propTypes;
 BaseVideoChatButtonAndMenu.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withLocalize)(BaseVideoChatButtonAndMenu);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(BaseVideoChatButtonAndMenu);
