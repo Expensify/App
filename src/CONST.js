@@ -728,6 +728,13 @@ const CONST = {
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
+    FORMS: {
+        LOGIN_FORM: 'LoginForm',
+        VALIDATE_CODE_FORM: 'ValidateCodeForm',
+        VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
+        RESEND_VALIDATION_FORM: 'ResendValidationForm',
+        UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
+    },
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -1078,7 +1085,7 @@ const CONST = {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
-        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
+        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -1122,6 +1129,10 @@ const CONST = {
             /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
+
+        ROUTES: {
+            VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+        },
     },
 
     PRONOUNS: {
@@ -1197,6 +1208,7 @@ const CONST = {
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
+        WELCOME_MESSAGE: 'welcomeMessage',
     },
 
     FOOTER: {
@@ -2418,6 +2430,12 @@ const CONST = {
     // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
     // div and then remove it from copied contents in the getHTMLOfSelection() method.
     UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
+    MODERATION: {
+        MODERATOR_DECISION_PENDING: 'pending',
+        MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        FLAG_SEVERITY_SPAM: 'spam',
+        FLAG_SEVERITY_INCONSIDERATE: 'inconsiderate',
+    },
 };
 
 export default CONST;

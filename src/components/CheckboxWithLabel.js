@@ -104,6 +104,7 @@ class CheckboxWithLabel extends React.Component {
                     />
                     <PressableWithFeedback
                         focusable={false}
+                        wrapperStyle={[styles.flex1]}
                         onPress={this.toggleCheckbox}
                         pressDimmingValue={variables.checkboxLabelActiveOpacity}
                         hoverDimmingValue={variables.checkboxLabelHoverOpacity}

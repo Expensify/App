@@ -7,7 +7,6 @@ import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
 import * as ReportUtils from '../libs/ReportUtils';
-import getSafeAreaPaddingTop from '../libs/getSafeAreaPaddingTop';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -172,15 +171,15 @@ function getDefaultWorkspaceAvatarColor(workspaceName) {
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
- * @param {Boolean} statusBarTranslucent
+ * @param {Number} [insetsPercentage] - Percentage of the insets to use for sides and bottom padding
  * @returns {Object}
  */
-function getSafeAreaPadding(insets, statusBarTranslucent) {
+function getSafeAreaPadding(insets, insetsPercentage = variables.safeInsertPercentage) {
     return {
-        paddingTop: getSafeAreaPaddingTop(insets, statusBarTranslucent),
-        paddingBottom: insets.bottom * variables.safeInsertPercentage,
-        paddingLeft: insets.left * variables.safeInsertPercentage,
-        paddingRight: insets.right * variables.safeInsertPercentage,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom * insetsPercentage,
+        paddingLeft: insets.left * insetsPercentage,
+        paddingRight: insets.right * insetsPercentage,
     };
 }
 

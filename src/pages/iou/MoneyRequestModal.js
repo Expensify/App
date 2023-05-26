@@ -113,10 +113,17 @@ const MoneyRequestModal = (props) => {
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
-        IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
         IOU.setMoneyRequestDescription('');
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
     }, []);
+
+    // We update selected currency when PersonalDetails.openMoneyRequestModalPage finishes
+    // props.currentUserPersonalDetails might be stale data or might not exist if user is signing in
+    useEffect(() => {
+        if (_.isUndefined(props.currentUserPersonalDetails.localCurrencyCode)) {
+            return;
+        }
+        IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
+    }, [props.currentUserPersonalDetails.localCurrencyCode]);
 
     // User came back online, so let's refetch the currency details based on location
     useOnNetworkReconnect(PersonalDetails.openMoneyRequestModalPage);
