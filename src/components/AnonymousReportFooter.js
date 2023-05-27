@@ -24,7 +24,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    report: null,
+    report: {},
     authTokenType: '',
 };
 
