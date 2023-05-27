@@ -836,9 +836,10 @@ function getIconsForParticipants(participants, personalDetails) {
  * @param {Object} report
  * @param {Object} personalDetails
  * @param {*} [defaultIcon]
+ * @param {Boolean} [isPayer]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null) {
+function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
@@ -858,25 +859,16 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         return [result];
     }
     if (isThread(report)) {
-        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
-        if (!parentReport) {
-            result.source = Expensicons.ActiveRoomAvatar;
-            return [result];
-        }
-
-        if (getChatType(parentReport)) {
-            result.source = getWorkspaceAvatar(parentReport);
-            result.type = CONST.ICON_TYPE_WORKSPACE;
-            result.name = getPolicyName(parentReport);
-            return [result];
-        }
-
         const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
-        result.source = getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail);
-        result.name = actorEmail;
-        return [result];
+        const actorIcon = {
+            source: getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail),
+            name: actorEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        };
+
+        return [actorIcon];
     }
     if (isDomainRoom(report)) {
         result.source = Expensicons.DomainRoomAvatar;
@@ -924,10 +916,11 @@ function getIcons(report, personalDetails, defaultIcon = null) {
         return [adminIcon, workspaceIcon];
     }
     if (isIOUReport(report)) {
+        const email = isPayer ? report.managerEmail : report.ownerEmail;
         return [
             {
-                source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
-                name: report.ownerEmail,
+                source: getAvatar(lodashGet(personalDetails, [email, 'avatar']), email),
+                name: email,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ];
@@ -1114,6 +1107,11 @@ function getReportName(report) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
+        }
+
+        const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
+        if (isAttachment) {
+            return `[${Localize.translateLocal('common.attachment')}]`;
         }
         const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');

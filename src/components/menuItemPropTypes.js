@@ -33,6 +33,12 @@ const propTypes = {
     /** Text to display for the item */
     title: PropTypes.string.isRequired,
 
+    /** Boolean whether to display the title right icon */
+    shouldShowTitleIcon: PropTypes.bool,
+
+    /** Icon to display at right side of title */
+    titleIcon: PropTypes.func,
+
     /** Boolean whether to display the right icon */
     shouldShowRightIcon: PropTypes.bool,
 

@@ -15,6 +15,7 @@ import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -83,7 +84,7 @@ const UnlinkLoginForm = (props) => {
                     medium
                     success
                     text={props.translate('unlinkLoginForm.unlink')}
-                    isLoading={props.account.isLoading}
+                    isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => Session.requestUnlinkValidationLink()}
                     isDisabled={props.network.isOffline || !_.isEmpty(props.account.message)}
                 />

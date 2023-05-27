@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import reportPropTypes from '../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -54,7 +55,7 @@ function TaskHeader(props) {
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {props.report.managerEmail && (
+                                {!_.isEmpty(props.report.managerEmail) && (
                                     <>
                                         <Avatar
                                             source={assigneeAvatar}

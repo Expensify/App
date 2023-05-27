@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {Pressable, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -115,11 +114,6 @@ class WorkspaceInviteMessagePage extends React.Component {
         });
     }
 
-    getAvatarTooltips() {
-        const filteredPersonalDetails = _.pick(this.props.personalDetails, this.props.invitedMembersDraft);
-        return _.map(filteredPersonalDetails, (personalDetail) => Str.removeSMSDomain(personalDetail.login));
-    }
-
     sendInvitation() {
         Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
@@ -187,7 +181,6 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft, this.props.personalDetails)}
                                 shouldStackHorizontally
                                 secondAvatarStyle={[styles.secondAvatarInline]}
-                                avatarTooltips={this.getAvatarTooltips()}
                             />
                         </View>
                         <View style={[styles.mb5]}>

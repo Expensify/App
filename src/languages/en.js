@@ -140,6 +140,9 @@ export default {
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
+        per: 'per',
+        mi: 'mile',
+        km: 'kilometer',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -173,6 +176,9 @@ export default {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+        redirectedToDesktopApp: "We've redirected you to the desktop app.",
+        youCanAlso: 'You can also',
+        openLinkInBrowser: 'open this link in your browser',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -639,6 +645,10 @@ export default {
             },
         },
     },
+    welcomeMessagePage: {
+        welcomeMessage: 'Welcome message',
+        explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
+    },
     languagePage: {
         language: 'Language',
         languages: {
@@ -727,7 +737,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include letters and numbers.',
+            hasInvalidCharacter: 'Name can only include latin letters and numbers.',
             incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -1057,6 +1067,7 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
+            goToRoom: ({roomName}) => `Go to ${roomName} room`,
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1107,6 +1118,7 @@ export default {
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: "You're all set to reimburse receipts from your bank account!",
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
+            invalidRateError: 'Please enter a valid rate',
         },
         bills: {
             manageYourBills: 'Manage your bills',
