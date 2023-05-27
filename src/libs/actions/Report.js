@@ -1645,7 +1645,7 @@ function openReportFromDeepLink(url, isAuthenticated, isOffline) {
     const reportID = ReportUtils.getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
-        // Check if it's a public room to open it as an anonymous user
+        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
         openReport(reportID, [], {}, '0', true);
 
         // Show the sign-in page if the app is offline
