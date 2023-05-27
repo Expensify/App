@@ -33,7 +33,7 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
-    /** Uses the reports display name as title with relying on policies and personalDetails object */
+    /** Whether if it's an unauthenticated user */
     isAnonymous: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
