@@ -30,7 +30,7 @@ const defaultProps = {
 
 const AnonymousReportFooter = (props) => (
     <View style={styles.anonymousRoomFooter}>
-        <View>
+        <View style={[styles.flexRow]}>
             <AvatarWithDisplayName
                 report={props.report}
                 size={CONST.AVATAR_SIZE.MEDIUM}

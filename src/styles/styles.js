@@ -2184,14 +2184,15 @@ const styles = {
         marginBottom: 20,
         backgroundColor: themeColors.activeComponentBG,
         flexWrap: 'wrap',
-        gap: 4,
+        gap: 8,
         borderRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
     },
 
     anonymousRoomFooterLogo: {
         width: 88,
-        height: 'auto',
-        margin: 0,
+        marginLeft: 0,
+        height: 20,
     },
 
     signInButtonAvatar: {
