@@ -16,6 +16,7 @@ import DisplayNames from './DisplayNames';
 import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -55,21 +56,7 @@ const AvatarWithDisplayName = (props) => {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins([props.report.ownerEmail], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(ownerPersonalDetails, false);
-
-    let avatarContainerStyle = styles.emptyAvatar;
-
-    if (props.size === CONST.AVATAR_SIZE.SMALL) {
-        avatarContainerStyle = styles.emptyAvatarSmall;
-    }
-
-    if (props.size === CONST.AVATAR_SIZE.MEDIUM) {
-        avatarContainerStyle = styles.emptyAvatarMedium;
-    }
-
-    if (props.size === CONST.AVATAR_SIZE.LARGE) {
-        avatarContainerStyle = styles.emptyAvatarLarge;
-    }
-
+    const avatarContainerStyle = StyleUtils.getEmptyAvatarStyle(props.size) || styles.emptyAvatar;
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
