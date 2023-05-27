@@ -43,7 +43,7 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     policies: {},
-    report: null,
+    report: {},
     isAnonymous: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
 };
