@@ -71,21 +71,6 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * Helps to navigate between next/previous attachments
-     * @param {Object} attachmentItem
-     * @returns {Object}
-     */
-    getAttachment(attachmentItem) {
-        const source = _.get(attachmentItem, 'source', '');
-        const file = _.get(attachmentItem, 'file', {name: ''});
-
-        return {
-            source,
-            file,
-        };
-    }
-
-    /**
      * Calculate items layout information to optimize scrolling performance
      * @param {*} data
      * @param {Number} index
@@ -221,7 +206,7 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Updates the page state when the user navigates between attachments
-     * @param {Array<{item: *, index: Number}>} viewableItems
+     * @param {Array<{item: {source, file}, index: Number}>} viewableItems
      */
     updatePage({viewableItems}) {
         // Since we can have only one item in view at a time, we can use the first item in the array
@@ -232,8 +217,7 @@ class AttachmentCarousel extends React.Component {
         }
 
         const page = entry.index;
-        const {source, file} = this.getAttachment(entry.item);
-        this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
+        this.props.onNavigate({source: addEncryptedAuthTokenToURL(entry.item.source), file: entry.item.file});
         this.setState({page, isZoomed: false});
     }
 
