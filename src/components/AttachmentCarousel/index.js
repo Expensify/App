@@ -3,6 +3,7 @@ import {View, FlatList, PixelRatio} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import {Parser as HtmlParser} from 'htmlparser2';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -62,7 +63,7 @@ class AttachmentCarousel extends React.Component {
         this.updateZoomState = this.updateZoomState.bind(this);
         this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
 
-        this.state = this.makeInitialState();
+        this.state = this.createInitialState();
     }
 
     componentDidMount() {
@@ -159,38 +160,35 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * Map report actions to attachment items and sets the initial carousel state
+     * Constructs the initial component state from report actions
      * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
      */
-    makeInitialState() {
-        let page = 0;
-        const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
-
-        /**
-         * Looping to filter out attachments and retrieve the src URL and name of attachments.
-         */
+    createInitialState() {
+        const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions));
         const attachments = [];
-        _.forEach(actions, ({originalMessage, message}) => {
-            // Check for attachment which hasn't been deleted
-            if (!originalMessage || !originalMessage.html || _.some(message, (m) => m.isEdited)) {
-                return;
-            }
-            const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
 
-            // matchAll captured both source url and name of the attachment
-            if (matches.length === 2) {
-                const [originalSource, name] = _.map(matches, (m) => m[2]);
-
-                // Update the image URL so the images can be accessed depending on the config environment.
-                // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
-                const source = tryResolveUrlFromApiRoot(originalSource);
-                if (source === this.props.source) {
-                    page = attachments.length;
+        const htmlParser = new HtmlParser({
+            onopentag: (name, attribs) => {
+                if (name !== 'img' || !attribs.src) {
+                    return;
                 }
 
-                attachments.push({source, file: {name}});
-            }
+                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+
+                // By iterating actions in chronological order and prepending each attachment
+                // we ensure correct order of attachments even across actions with multiple attachments.
+                attachments.unshift({
+                    source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
+                    isAuthTokenRequired: Boolean(expensifySource),
+                    file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || attribs.src.split('/').pop()},
+                });
+            },
         });
+
+        _.forEach(actions, (action) => htmlParser.write(_.get(action, ['message', 0, 'html'])));
+        htmlParser.end();
+
+        const page = _.findIndex(attachments, (a) => a.source === this.props.source);
 
         return {
             page,
@@ -258,26 +256,17 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Defines how a single attachment should be rendered
-     * @param {{ source: String, file: { name: String } }} item
+     * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String } }} item
      * @returns {JSX.Element}
      */
     renderItem({item}) {
-        const authSource = addEncryptedAuthTokenToURL(item.source);
-        if (!this.canUseTouchScreen) {
-            return (
-                <AttachmentView
-                    source={authSource}
-                    file={item.file}
-                />
-            );
-        }
-
         return (
             <AttachmentView
-                source={authSource}
+                source={item.source}
                 file={item.file}
-                onScaleChanged={this.updateZoomState}
-                onPress={this.toggleArrowsVisibility}
+                isAuthTokenRequired={item.isAuthTokenRequired}
+                onScaleChanged={this.canUseTouchScreen ? this.updateZoomState : undefined}
+                onPress={this.canUseTouchScreen ? this.toggleArrowsVisibility : undefined}
             />
         );
     }
