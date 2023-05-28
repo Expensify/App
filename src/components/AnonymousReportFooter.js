@@ -1,6 +1,5 @@
 import React from 'react';
 import {View, Text} from 'react-native';
-import PropTypes from 'prop-types';
 import Button from './Button';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import ExpensifyWordmark from './ExpensifyWordmark';
@@ -16,16 +15,12 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    /** Type of authToken for the logged in user */
-    authTokenType: PropTypes.string,
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
-    authTokenType: '',
 };
 
 const AnonymousReportFooter = (props) => (

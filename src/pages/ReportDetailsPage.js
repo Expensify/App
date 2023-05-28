@@ -50,17 +50,11 @@ const propTypes = {
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
-
-    session: PropTypes.shape({
-        /** Determines if user is anonymous or not */
-        authTokenType: PropTypes.string,
-    }),
 };
 
 const defaultProps = {
     policies: {},
     personalDetails: {},
-    session: {},
 };
 
 class ReportDetailsPage extends Component {
@@ -212,9 +206,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

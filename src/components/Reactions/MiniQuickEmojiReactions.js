@@ -30,16 +30,9 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
 };
 
 const defaultProps = {
-    session: {},
     onEmojiPickerClosed: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
@@ -102,9 +95,6 @@ MiniQuickEmojiReactions.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },

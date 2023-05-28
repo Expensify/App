@@ -1,7 +1,6 @@
 import React, {useRef} from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import Tooltip from '../Tooltip';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -12,8 +11,6 @@ import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
@@ -37,17 +34,10 @@ const propTypes = {
      */
     onSelectEmoji: PropTypes.func.isRequired,
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    session: {},
     isContextMenu: false,
     onWillShowPicker: () => {},
     onPressOpenPicker: undefined,
@@ -110,11 +100,4 @@ AddReactionBubble.propTypes = propTypes;
 AddReactionBubble.defaultProps = defaultProps;
 AddReactionBubble.displayName = 'AddReactionBubble';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(AddReactionBubble);
+export default withLocalize(AddReactionBubble);

@@ -91,10 +91,7 @@ class ReportFooter extends React.Component {
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
                             {SessionUtils.isAnonymousUser(this.props.session.authTokenType) ? (
-                                <AnonymousReportFooter
-                                    report={this.props.report}
-                                    authTokenType={this.props.session.authTokenType}
-                                />
+                                <AnonymousReportFooter report={this.props.report} />
                             ) : (
                                 <ReportActionCompose
                                     onSubmit={this.props.onSubmitComment}

@@ -29,12 +29,6 @@ const baseQuickEmojiReactionsPropTypes = {
      * to actually open the emoji picker.
      */
     onPressOpenPicker: PropTypes.func,
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
@@ -82,9 +76,6 @@ BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;
 BaseQuickEmojiReactions.defaultProps = defaultProps;
 export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     },
