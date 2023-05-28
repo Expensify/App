@@ -189,6 +189,9 @@ class AttachmentCarousel extends React.Component {
         htmlParser.end();
 
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
+        if (page === -1) {
+            throw new Error('Attachment not found');
+        }
 
         return {
             page,
