@@ -91,11 +91,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Current user session */
-    session: PropTypes.shape({
-        authTokenType: PropTypes.string,
-    }),
-
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...viewportOffsetTopPropTypes,
@@ -114,7 +109,6 @@ const defaultProps = {
     accountManagerReportID: null,
     personalDetails: {},
     lastOpenedPublicRoomID: null,
-    session: {},
 };
 
 /**
@@ -437,9 +431,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportScreen);

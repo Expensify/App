@@ -44,12 +44,6 @@ const propTypes = {
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Type of authToken for the logged in user */
-        authTokenType: PropTypes.string,
-    }),
-
     ...windowDimensionsPropTypes,
 };
 
@@ -61,7 +55,6 @@ const defaultProps = {
     pendingAction: null,
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
-    session: {},
 };
 
 class ReportFooter extends React.Component {
@@ -117,8 +110,5 @@ export default compose(
     withWindowDimensions,
     withOnyx({
         shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
     }),
 )(ReportFooter);

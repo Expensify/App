@@ -94,11 +94,6 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    session: PropTypes.shape({
-        /** Determines if user is anonymous or not */
-        authTokenType: PropTypes.string,
-    }),
 };
 
 const defaultProps = {
@@ -108,7 +103,6 @@ const defaultProps = {
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
     betas: [],
-    session: {},
 };
 
 function ReportActionItem(props) {
@@ -461,9 +455,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(

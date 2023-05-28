@@ -54,11 +54,6 @@ const propTypes = {
 
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
-
-    session: PropTypes.shape({
-        /** Determines if user is anonymous or not */
-        authTokenType: PropTypes.string,
-    }),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -66,7 +61,6 @@ const defaultProps = {
     allPolicies: {},
     betas: [],
     isLoading: false,
-    session: {},
 };
 
 /**
@@ -288,9 +282,6 @@ export default compose(
     withDrawerState,
     withWindowDimensions,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
