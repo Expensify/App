@@ -204,7 +204,7 @@ const HeaderView = (props) => {
                             )}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
-                                    onPress={Session.checkIfActionIsAllowed(props.session.authTokenType, () => Report.togglePinnedState(props.report))}
+                                    onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report))}
                                     style={[styles.touchableButtonImage]}
                                 >
                                     <Icon

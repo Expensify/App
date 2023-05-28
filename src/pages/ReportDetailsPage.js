@@ -188,7 +188,7 @@ class ReportDetailsPage extends Component {
                                     title={this.props.translate(item.translationKey)}
                                     subtitle={item.subtitle}
                                     icon={item.icon}
-                                    onPress={Session.checkIfActionIsAllowed(this.props.session.authTokenType, item.action)}
+                                    onPress={Session.checkIfActionIsAllowed(item.action)}
                                     shouldShowRightIcon
                                     brickRoadIndicator={brickRoadIndicator}
                                 />

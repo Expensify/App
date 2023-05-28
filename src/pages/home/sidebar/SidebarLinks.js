@@ -171,7 +171,7 @@ class SidebarLinks extends React.Component {
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
-                            onPress={Session.checkIfActionIsAllowed(this.props.session.authTokenType, this.showSearchPage)}
+                            onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
@@ -179,7 +179,7 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={Session.checkIfActionIsAllowed(this.props.session.authTokenType, this.showSettingsPage)}
+                        onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
                     >
                         {SessionUtils.isAnonymousUser(this.props.session.authTokenType) ? (
                             <View style={styles.signInButtonAvatar}>
@@ -187,7 +187,7 @@ class SidebarLinks extends React.Component {
                                     medium
                                     success
                                     text={this.props.translate('common.signIn')}
-                                    onPress={() => Session.signOutAndRedirectToSignIn(this.props.session.authTokenType)}
+                                    onPress={() => Session.signOutAndRedirectToSignIn()}
                                 />
                             </View>
                         ) : (

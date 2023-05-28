@@ -83,7 +83,7 @@ class BaseReportActionContextMenu extends React.Component {
                 hideContextMenu(false);
 
                 InteractionManager.runAfterInteractions(() => {
-                    Session.signOutAndRedirectToSignIn(this.props.session.authTokenType);
+                    Session.signOutAndRedirectToSignIn();
                 });
             } else {
                 callback();

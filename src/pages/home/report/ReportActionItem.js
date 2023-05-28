@@ -295,7 +295,7 @@ function ReportActionItem(props) {
                                     hideContextMenu(false);
 
                                     InteractionManager.runAfterInteractions(() => {
-                                        Session.signOutAndRedirectToSignIn(props.session.authTokenType);
+                                        Session.signOutAndRedirectToSignIn();
                                     });
                                 } else {
                                     toggleReaction(emoji);

@@ -25,6 +25,12 @@ import * as SessionUtils from '../../SessionUtils';
 import * as ReportUtils from '../../ReportUtils';
 import * as Report from '../Report';
 
+let authTokenType = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
+});
+
 let credentials = {};
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
@@ -82,10 +88,7 @@ function signOut() {
     Timing.clearData();
 }
 
-/**
- * @param {String} [authTokenType] The type of auth token to check
- */
-function signOutAndRedirectToSignIn(authTokenType = '') {
+function signOutAndRedirectToSignIn() {
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
@@ -100,14 +103,12 @@ function signOutAndRedirectToSignIn(authTokenType = '') {
 }
 
 /**
- *
- * @param {String} authTokenType The type of auth token to check
  * @param {Function} callback The callback to execute if the action is allowed
  * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
-function checkIfActionIsAllowed(authTokenType, callback) {
+function checkIfActionIsAllowed(callback) {
     if (SessionUtils.isAnonymousUser(authTokenType)) {
-        return () => signOutAndRedirectToSignIn(authTokenType);
+        return () => signOutAndRedirectToSignIn();
     }
     return callback;
 }

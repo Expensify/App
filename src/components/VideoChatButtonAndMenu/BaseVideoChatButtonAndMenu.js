@@ -111,7 +111,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
                             ref={(el) => (this.videoChatButton = el)}
-                            onPress={Session.checkIfActionIsAllowed(this.props.session.authTokenType, () => {
+                            onPress={Session.checkIfActionIsAllowed(() => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
 

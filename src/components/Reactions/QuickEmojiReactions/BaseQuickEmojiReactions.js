@@ -64,7 +64,7 @@ const BaseQuickEmojiReactions = (props) => (
                     <EmojiReactionBubble
                         emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
                         isContextMenu
-                        onPress={Session.checkIfActionIsAllowed(props.session.authTokenType, () => props.onEmojiSelected(emoji))}
+                        onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
                     />
                 </View>
             </Tooltip>

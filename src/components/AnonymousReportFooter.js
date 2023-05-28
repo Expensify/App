@@ -49,7 +49,7 @@ const AnonymousReportFooter = (props) => (
                     medium
                     success
                     text={props.translate('common.signIn')}
-                    onPress={() => Session.signOutAndRedirectToSignIn(props.authTokenType)}
+                    onPress={() => Session.signOutAndRedirectToSignIn()}
                 />
             </View>
         </View>
