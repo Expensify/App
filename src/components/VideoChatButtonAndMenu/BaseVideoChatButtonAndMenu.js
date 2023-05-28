@@ -19,12 +19,12 @@ import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './vide
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
+    /** Link to open when user wants to create a new google meet meeting */
+    googleMeetURL: PropTypes.string.isRequired,
+
     ...videoChatButtonAndMenuPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-
-    /** Link to open when user wants to create a new google meet meeting */
-    googleMeetURL: PropTypes.string.isRequired,
 };
 
 class BaseVideoChatButtonAndMenu extends Component {
