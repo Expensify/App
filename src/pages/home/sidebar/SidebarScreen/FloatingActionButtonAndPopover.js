@@ -22,7 +22,6 @@ import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
 import withDrawerState from '../../../../components/withDrawerState';
 import * as TaskUtils from '../../../../libs/actions/Task';
-import * as SessionUtils from '../../../../libs/SessionUtils';
 import * as Session from '../../../../libs/actions/Session';
 
 /**
@@ -84,7 +83,7 @@ class FloatingActionButtonAndPopover extends React.Component {
 
         this.state = {
             isCreateMenuActive: false,
-            isAnonymousUser: SessionUtils.isAnonymousUser(props.session.authTokenType),
+            isAnonymousUser: Session.isAnonymousUser(),
         };
     }
 

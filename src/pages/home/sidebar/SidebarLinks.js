@@ -35,7 +35,6 @@ import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
 import * as Session from '../../../libs/actions/Session';
-import * as SessionUtils from '../../../libs/SessionUtils';
 import Button from '../../../components/Button';
 
 const propTypes = {
@@ -181,7 +180,7 @@ class SidebarLinks extends React.Component {
                         accessibilityRole="button"
                         onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
                     >
-                        {SessionUtils.isAnonymousUser(this.props.session.authTokenType) ? (
+                        {Session.isAnonymousUser() ? (
                             <View style={styles.signInButtonAvatar}>
                                 <Button
                                     medium

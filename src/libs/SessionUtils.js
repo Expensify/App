@@ -28,18 +28,7 @@ function isLoggingInAsNewUser(transitionURL, sessionEmail) {
     return linkedEmail !== sessionEmail;
 }
 
-/**
- * Checks if the account is an anonymous account.
- *
- * @param {string} authTokenType from Session object
- * @return {boolean}
- */
-function isAnonymousUser(authTokenType) {
-    return authTokenType === 'anonymousAccount';
-}
-
 export {
     // eslint-disable-next-line import/prefer-default-export
     isLoggingInAsNewUser,
-    isAnonymousUser,
 };

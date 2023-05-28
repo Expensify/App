@@ -41,7 +41,7 @@ import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
-import * as SessionUtils from '../../libs/SessionUtils';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -206,7 +206,7 @@ class ReportScreen extends React.Component {
 
     fetchReportIfNeeded() {
         // Re-open the last opened public room if the user logged in
-        if (this.props.lastOpenedPublicRoomID && !SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+        if (this.props.lastOpenedPublicRoomID && !Session.isAnonymousUser()) {
             Report.setLastOpenedPublicRoom('');
             Report.openReport(this.props.lastOpenedPublicRoomID);
             return;

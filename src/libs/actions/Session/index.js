@@ -21,7 +21,6 @@ import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
-import * as SessionUtils from '../../SessionUtils';
 import * as ReportUtils from '../../ReportUtils';
 import * as Report from '../Report';
 
@@ -88,11 +87,20 @@ function signOut() {
     Timing.clearData();
 }
 
+/**
+ * Checks if the account is an anonymous account.
+ *
+ * @return {boolean}
+ */
+function isAnonymousUser() {
+    return authTokenType === 'anonymousAccount';
+}
+
 function signOutAndRedirectToSignIn() {
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
-    if (SessionUtils.isAnonymousUser(authTokenType)) {
+    if (isAnonymousUser()) {
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
@@ -107,7 +115,7 @@ function signOutAndRedirectToSignIn() {
  * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 function checkIfActionIsAllowed(callback) {
-    if (SessionUtils.isAnonymousUser(authTokenType)) {
+    if (isAnonymousUser()) {
         return () => signOutAndRedirectToSignIn();
     }
     return callback;
@@ -939,6 +947,7 @@ export {
     reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
+    isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
 };

@@ -12,7 +12,6 @@ import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import {withBetas} from '../../../../components/OnyxProvider';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import * as SessionUtils from '../../../../libs/SessionUtils';
 import * as Session from '../../../../libs/actions/Session';
 import {hideContextMenu} from './ReportActionContextMenu';
 
@@ -79,7 +78,7 @@ class BaseReportActionContextMenu extends React.Component {
          * @param {Function} callback
          */
         const interceptAnonymousUser = (callback) => {
-            if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+            if (Session.isAnonymousUser()) {
                 hideContextMenu(false);
 
                 InteractionManager.runAfterInteractions(() => {
