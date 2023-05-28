@@ -11,7 +11,6 @@ import CarouselActions from './CarouselActions';
 import Button from '../Button';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import AttachmentView from '../AttachmentView';
-import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -217,7 +216,7 @@ class AttachmentCarousel extends React.Component {
         }
 
         const page = entry.index;
-        this.props.onNavigate({source: addEncryptedAuthTokenToURL(entry.item.source), file: entry.item.file});
+        this.props.onNavigate(entry.item);
         this.setState({page, isZoomed: false});
     }
 
