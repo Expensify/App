@@ -29,8 +29,6 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import SplashScreenHider from './components/SplashScreenHider';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
-import {withNetwork} from './components/OnyxProvider';
-import networkPropTypes from './components/networkPropTypes';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -71,9 +69,6 @@ const propTypes = {
         /** Name of the screen share room to join */
         roomName: PropTypes.string,
     }),
-
-    /** Props to detect online status */
-    network: networkPropTypes.isRequired,
 
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: PropTypes.bool,
@@ -160,10 +155,10 @@ function Expensify(props) {
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => Report.openReportFromDeepLink(url, isAuthenticated, props.network.isOffline));
+        Linking.getInitialURL().then((url) => Report.openReportFromDeepLink(url, isAuthenticated));
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated, props.network.isOffline));
+        Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
 
         return () => {
             if (!appStateChangeListener.current) {
@@ -237,5 +232,4 @@ export default compose(
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
         },
     }),
-    withNetwork(),
 )(Expensify);

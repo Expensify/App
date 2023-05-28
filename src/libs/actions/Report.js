@@ -59,6 +59,12 @@ Onyx.connect({
     },
 });
 
+let isNetworkOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -1638,9 +1644,8 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
 /**
  * @param {String|null} url
  * @param {Boolean} isAuthenticated
- * @param {Boolean} isOffline
  */
-function openReportFromDeepLink(url, isAuthenticated, isOffline) {
+function openReportFromDeepLink(url, isAuthenticated) {
     const route = ReportUtils.getRouteFromLink(url);
     const reportID = ReportUtils.getReportIDFromLink(url);
 
@@ -1649,7 +1654,7 @@ function openReportFromDeepLink(url, isAuthenticated, isOffline) {
         openReport(reportID, [], {}, '0', true);
 
         // Show the sign-in page if the app is offline
-        if (isOffline) {
+        if (isNetworkOffline) {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         }
     } else {
