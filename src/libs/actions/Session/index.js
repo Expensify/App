@@ -103,15 +103,13 @@ function signOutAndRedirectToSignIn(authTokenType = '') {
  *
  * @param {String} authTokenType The type of auth token to check
  * @param {Function} callback The callback to execute if the action is allowed
- * @returns {*} callback's result
+ * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 function checkIfActionIsAllowed(authTokenType, callback) {
-    return () => {
-        if (SessionUtils.isAnonymousUser(authTokenType)) {
-            return signOutAndRedirectToSignIn(authTokenType);
-        }
-        return callback();
-    };
+    if (SessionUtils.isAnonymousUser(authTokenType)) {
+        return () => signOutAndRedirectToSignIn(authTokenType);
+    }
+    return callback;
 }
 
 /**
