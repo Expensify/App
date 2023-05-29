@@ -65,7 +65,7 @@ const LinkPreviewer = (props) =>
     _.map(
         _.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length),
         (linkData) => {
-            if (_.isArray( linkData )) {
+            if (_.isArray(linkData)) {
                 return;
             }
             const {description, image, title, logo, publisher, url} = linkData;
