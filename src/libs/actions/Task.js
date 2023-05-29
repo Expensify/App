@@ -434,7 +434,7 @@ function setAssigneeValue(assignee, shareDestination, isCurrentUser = false) {
         if (!chat) {
             newChat = ReportUtils.buildOptimisticChatReport([assignee]);
         }
-        const reportID = chat ? chat.reportID : newChat.reportID;
+        const reportID = chat ? chat.reportID : ReportUtils.buildOptimisticChatReport([assignee]).reportID;
 
         if (!shareDestination) {
             setShareDestinationValue(reportID);
