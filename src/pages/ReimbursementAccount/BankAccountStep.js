@@ -151,15 +151,11 @@ const BankAccountStep = (props) => {
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href="https://use.expensify.com/privacy">{props.translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
-                            // eslint-disable-next-line max-len
                             onPress={() => Linking.openURL('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessibilityLabel={props.translate('bankAccount.yourDataIsSecure')}
                         >
-                            <TextLink
-                                // eslint-disable-next-line max-len
-                                href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
-                            >
+                            <TextLink href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/">
                                 {props.translate('bankAccount.yourDataIsSecure')}
                             </TextLink>
                             <View style={[styles.ml1]}>
