@@ -17,6 +17,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
 import ContextMenuItem from '../components/ContextMenuItem';
+import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -60,7 +61,7 @@ class ShareCodePage extends React.Component {
                             url={url}
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
                             subtitle={isReport ? subtitle : this.props.session.email}
-                            logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
+                            logo={isReport ? roomAvatar : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                         />
                     </View>
 

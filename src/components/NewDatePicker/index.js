@@ -24,13 +24,13 @@ class NewDatePicker extends React.Component {
 
         this.state = {
             selectedMonth: null,
-            selectedDate: moment(props.value || props.defaultValue || undefined).toDate(),
+            selectedDate: props.value || props.defaultValue || undefined,
         };
 
         this.setDate = this.setDate.bind(this);
         this.setCurrentSelectedMonth = this.setCurrentSelectedMonth.bind(this);
 
-        // We're using uncontrolled input otherwise it wont be possible to
+        // We're using uncontrolled input otherwise it won't be possible to
         // raise change events with a date value - each change will produce a date
         // and make us reset the text input
         this.defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
@@ -47,11 +47,12 @@ class NewDatePicker extends React.Component {
 
     /**
      * Trigger the `onInputChange` handler when the user input has a complete date or is cleared
-     * @param {Date} selectedDate
+     * @param {string} selectedDate
      */
     setDate(selectedDate) {
         this.setState({selectedDate}, () => {
-            this.props.onInputChange(moment(selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+            this.props.onTouched();
+            this.props.onInputChange(selectedDate);
         });
     }
 

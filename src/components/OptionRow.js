@@ -144,7 +144,7 @@ class OptionRow extends Component {
                 errors={this.props.option.allReportErrors}
                 shouldShowErrorMessages={false}
             >
-                <Hoverable containerStyles={[this.props.isDisabled ? styles.userSelectNone : null]}>
+                <Hoverable>
                     {(hovered) => (
                         <TouchableOpacity
                             ref={(el) => (touchableRef = el)}
@@ -206,7 +206,9 @@ class OptionRow extends Component {
                                             tooltipEnabled={this.props.showTitleTooltip}
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
-                                            shouldUseFullTitle={this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport}
+                                            shouldUseFullTitle={
+                                                this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport || this.props.option.isThread
+                                            }
                                         />
                                         {this.props.option.alternateText ? (
                                             <Text

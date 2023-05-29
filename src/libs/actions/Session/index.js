@@ -50,17 +50,6 @@ Onyx.connect({
 });
 
 /**
- * @private
- * @returns {string}
- */
-function getDeviceInfoForLogin() {
-    return JSON.stringify({
-        ...Device.getDeviceInfo(),
-        parentLogin: credentials.login,
-    });
-}
-
-/**
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
@@ -380,7 +369,6 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
         twoFactorAuthCode,
         email: credentials.login,
         preferredLocale,
-        deviceInfo: getDeviceInfoForLogin(),
     };
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
@@ -389,8 +377,9 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     } else {
         params.password = password;
     }
-
-    API.write('SigninUser', params, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        API.write('SigninUser', {...params, deviceInfo}, {optimisticData, successData, failureData});
+    });
 }
 
 function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
@@ -454,18 +443,19 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
             value: {autoAuthState: CONST.AUTO_AUTH_STATE.FAILED},
         },
     ];
-
-    API.write(
-        'SigninUserWithLink',
-        {
-            accountID,
-            validateCode,
-            twoFactorAuthCode,
-            preferredLocale,
-            deviceInfo: getDeviceInfoForLogin(),
-        },
-        {optimisticData, successData, failureData},
-    );
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        API.write(
+            'SigninUserWithLink',
+            {
+                accountID,
+                validateCode,
+                twoFactorAuthCode,
+                preferredLocale,
+                deviceInfo,
+            },
+            {optimisticData, successData, failureData},
+        );
+    });
 }
 
 function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
