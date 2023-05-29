@@ -286,6 +286,9 @@ const Form = (props) => {
                             child.props.onBlur(event);
                         }
                     },
+                    onTouched: () => {
+                        setTouchedInput(inputID);
+                    },
                     onInputChange: (value, key) => {
                         const inputKey = key || inputID;
                         setInputValues((prevState) => {

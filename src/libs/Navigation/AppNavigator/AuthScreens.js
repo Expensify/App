@@ -299,6 +299,12 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name="Report_WelcomeMessage"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.ReportWelcomeMessageModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name="Participants"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
@@ -332,6 +338,12 @@ class AuthScreens extends React.Component {
                     name="EnablePayments"
                     options={modalScreenOptions}
                     component={ModalStackNavigators.EnablePaymentsStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="SplitDetails"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.SplitDetailsModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

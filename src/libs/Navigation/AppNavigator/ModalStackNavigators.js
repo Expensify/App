@@ -111,6 +111,16 @@ const IOUSendModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const SplitDetailsModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SplitBillDetailsPage = require('../../../pages/iou/SplitBillDetailsPage').default;
+            return SplitBillDetailsPage;
+        },
+        name: 'SplitDetails_Root',
+    },
+]);
+
 const DetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -190,6 +200,16 @@ const TaskModalStackNavigator = createModalStackNavigator([
             return TaskAssigneeSelectorPage;
         },
         name: 'Task_Assignee',
+    },
+]);
+
+const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ReportWelcomeMessagePage = require('../../../pages/ReportWelcomeMessagePage').default;
+            return ReportWelcomeMessagePage;
+        },
+        name: 'Report_WelcomeMessage_Root',
     },
 ]);
 
@@ -686,10 +706,12 @@ export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     IOUSendModalStackNavigator,
+    SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,
+    ReportWelcomeMessageModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
