@@ -1,10 +1,5 @@
 name: Reassure Performance Tests
 
-inputs:
-  OS_BOTIFY_TOKEN:
-    description: GitHub token for OSBotify
-    required: true
-
 on:
   push:
     branches: [main]
@@ -31,4 +26,4 @@ jobs:
       - name: Run Danger.js
         run: yarn danger ci
         env:
-          GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
