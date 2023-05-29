@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
-import {TouchableOpacity} from 'react-native';
+import {Pressable} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import Text from '../Text';
 import HapticFeedback from '../../libs/HapticFeedback';
@@ -13,7 +13,7 @@ import HapticFeedback from '../../libs/HapticFeedback';
  */
 const PressableWithSecondaryInteraction = (props) => {
     // Use Text node for inline mode to prevent content overflow.
-    const Node = props.inline ? Text : TouchableOpacity;
+    const Node = props.inline ? Text : Pressable;
     return (
         <Node
             ref={props.forwardedRef}
