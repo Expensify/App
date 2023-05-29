@@ -14,6 +14,7 @@ import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as UserUtils from './UserUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -152,7 +153,7 @@ function getAvatarsForLogins(logins, personalDetails) {
     return _.map(logins, (login) => {
         const userPersonalDetail = lodashGet(personalDetails, login, {login, avatar: ''});
         return {
-            source: ReportUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
+            source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
             type: CONST.ICON_TYPE_AVATAR,
             name: userPersonalDetail.login,
         };
@@ -181,7 +182,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
                 personalDetail = {
                     login,
                     displayName: LocalePhoneNumber.formatPhoneNumber(login),
-                    avatar: ReportUtils.getDefaultAvatar(login),
+                    avatar: UserUtils.getDefaultAvatar(login),
                 };
             }
 
@@ -220,7 +221,7 @@ function getParticipantsOptions(report, personalDetails) {
         alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
         icons: [
             {
-                source: ReportUtils.getAvatar(details.avatar, details.login),
+                source: UserUtils.getAvatar(details.avatar, details.login),
                 name: details.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -482,7 +483,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.subtitle = subtitle;
 
     return result;
@@ -657,16 +658,17 @@ function getOptions(
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             const reportOption = allReportOptions[i];
-            const isCurrentUserOwnedPolicyExpenseChatThatShouldShow =
-                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
             }
 
+            const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
+                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
+
             // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!isCurrentUserOwnedPolicyExpenseChatThatShouldShow && !includeMultipleParticipantReports && !reportOption.login) {
+            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
                 continue;
             }
 
@@ -726,7 +728,7 @@ function getOptions(
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: ReportUtils.getAvatar('', searchValue),
+                source: UserUtils.getAvatar('', searchValue),
                 name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -793,25 +795,25 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 }
 
 /**
- * Build the IOUConfirmation options for showing MyPersonalDetail
+ * Build the IOUConfirmation options for showing the payee personalDetail
  *
- * @param {Object} myPersonalDetail
+ * @param {Object} personalDetail
  * @param {String} amountText
  * @returns {Object}
  */
-function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountText) {
+function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     return {
-        text: myPersonalDetail.displayName,
-        alternateText: myPersonalDetail.login,
+        text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
+        alternateText: personalDetail.login,
         icons: [
             {
-                source: ReportUtils.getAvatar(myPersonalDetail.avatar, myPersonalDetail.login),
-                name: myPersonalDetail.login,
+                source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.login),
+                name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ],
         descriptiveText: amountText,
-        login: myPersonalDetail.login,
+        login: personalDetail.login,
     };
 }
 
@@ -952,7 +954,7 @@ export {
     getMemberInviteOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,
-    getIOUConfirmationOptionsFromMyPersonalDetail,
+    getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,
     getAllReportErrors,
