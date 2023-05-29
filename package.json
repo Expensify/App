@@ -32,7 +32,7 @@
     "lint": "eslint . --max-warnings=0 --cache --cache-location=node_modules/.cache/eslint",
     "lint-watch": "npx eslint-watch --watch --changed",
     "shellcheck": "./scripts/shellCheck.sh",
-    "prettier": "prettier --write \"**/*.js\"",
+    "prettier": "prettier --write .",
     "prettier-watch": "onchange \"**/*.js\" -- prettier --write --ignore-unknown {{changed}}",
     "print-version": "echo $npm_package_version",
     "storybook": "start-storybook -p 6006",
