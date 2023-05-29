@@ -101,8 +101,8 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     render() {
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance');
-        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance') || {};
+        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate') || {};
         return (
             <WorkspacePageWithSections
                 shouldUseScrollView
@@ -125,7 +125,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                         <OfflineWithFeedback
                             errors={{
                                 ...lodashGet(distanceCustomUnit, 'errors', {}),
-                                ...lodashGet(distanceCustomRate.errors, 'errors', {}),
+                                ...lodashGet(distanceCustomRate, 'errors', {}),
                             }}
                             pendingAction={distanceCustomUnit.pendingAction || distanceCustomRate.pendingAction}
                             onClose={() =>
