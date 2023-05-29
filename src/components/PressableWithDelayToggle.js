@@ -51,7 +51,11 @@ const propTypes = {
     /** The icon to display once the pressable is pressed */
     iconChecked: PropTypes.func,
 
-    /** If the component should be inline with text or not */
+    /**
+     * Should be set to `true` if this component is being rendered inline in
+     * another `Text`. This is due to limitations in RN regarding the
+     * vertical text alignment of non-Text elements
+     */
     inline: PropTypes.bool,
 };
 
@@ -88,7 +92,7 @@ function PressableWithDelayToggle(props) {
             onPress={updatePressState}
         >
             <Tooltip
-                containerStyles={styles.flexRow}
+                containerStyles={[styles.flexRow]}
                 text={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
             >
                 <Text
