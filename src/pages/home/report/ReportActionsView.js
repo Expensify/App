@@ -38,6 +38,11 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Policy values needed in the component */
+    policy: PropTypes.shape({
+        avatar: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
@@ -45,6 +50,7 @@ const propTypes = {
 
 const defaultProps = {
     reportActions: [],
+    policy: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -120,6 +126,10 @@ class ReportActionsView extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        if (lodashGet(this.props, 'policy.avatar') !== lodashGet(nextProps, 'policy.avatar')) {
+            return true;
+        }
+
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(nextProps.reportActions);
             return true;
