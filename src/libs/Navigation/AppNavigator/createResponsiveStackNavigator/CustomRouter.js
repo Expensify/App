@@ -10,7 +10,8 @@ const isAtLeastOneCentralPaneNavigatorInState = (state) => _.find(state.routes, 
 
 /**
  * Adds report route without any specific reportID to the state.
- * The report screen will self set proper reportID param basing on the helper function findLastAccessedReport (look at the ReportScreenWraper for more info)
+ * The report screen will self set proper reportID param based on the helper function findLastAccessedReport (look at ReportScreenWrapper for more info)
+ *
  * @param {Object} state - react-navigation state
  */
 const addCentralPaneNavigatorRoute = (state) => {
