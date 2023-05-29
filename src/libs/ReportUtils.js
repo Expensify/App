@@ -916,10 +916,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isIOUTargetAccoun
         return [adminIcon, workspaceIcon];
     }
     if (isIOUReport(report)) {
-        let email = report.ownerEmail;
-        if (isIOUTargetAccount && report.ownerEmail === currentUserEmail) {
-            email = report.managerEmail;
-        }
+        const email = isIOUTargetAccount && report.ownerEmail === currentUserEmail ? report.managerEmail : report.ownerEmail;
 
         return [
             {
