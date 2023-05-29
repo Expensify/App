@@ -171,12 +171,12 @@ class WorkspaceReimburseView extends React.Component {
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
                     <OfflineWithFeedback
-                            errors={{
-                                ...lodashGet(distanceCustomUnit, 'errors', {}),
-                                ...lodashGet(distanceCustomRate.errors, 'errors', {}),
-                            }}
-                            pendingAction={distanceCustomUnit.pendingAction || distanceCustomRate.pendingAction}
-                        >
+                        errors={{
+                            ...lodashGet(distanceCustomUnit, 'errors', {}),
+                            ...lodashGet(distanceCustomRate.errors, 'errors', {}),
+                        }}
+                        pendingAction={distanceCustomUnit.pendingAction || distanceCustomRate.pendingAction}
+                    >
                         <MenuItemWithTopDescription
                             title={this.state.currentRatePerUnit}
                             description={this.props.translate('workspace.reimburse.trackDistanceRate')}
