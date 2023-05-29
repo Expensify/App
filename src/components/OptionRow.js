@@ -176,7 +176,6 @@ class OptionRow extends Component {
                             ]}
                             accessibilityLabel={this.props.option.text}
                             accessibilityRole="button"
-                            // disable hover dim for switch
                             hoverDimmingValue={1}
                             pressDimmingValue={0.8}
                         >
