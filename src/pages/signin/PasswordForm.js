@@ -198,7 +198,6 @@ class PasswordForm extends React.Component {
                             accessibilityRole="link"
                             accessibilityLabel={this.props.translate('passwordForm.forgot')}
                             hoverDimmingValue={1}
-
                         >
                             <Text style={[styles.link]}>{this.props.translate('passwordForm.forgot')}</Text>
                         </PressableWithFeedback>
