@@ -403,12 +403,12 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             onyxData.optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: reportID, actorEmail: currentUserEmail}},
+                value: {[parentReportActionID]: {childReportID: reportID}},
             });
             onyxData.failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childReportID: '0', actorEmail: currentUserEmail}},
+                value: {[parentReportActionID]: {childReportID: '0'}},
             });
         }
     }
