@@ -86,7 +86,7 @@ const NewTaskDescriptionPage = (props) => {
                     <TextInput
                         defaultValue={props.task.description}
                         inputID="taskDescription"
-                        label={props.translate('newTaskPage.description')}
+                        label={props.translate('newTaskPage.descriptionOptional')}
                         ref={(el) => (inputRef.current = el)}
                     />
                 </View>
