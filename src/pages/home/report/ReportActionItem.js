@@ -451,7 +451,7 @@ export default compose(
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
         emojiReactions: {
-            key: ({report, action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${report.reportID}${action.reportActionID}`,
+            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
         },
         betas: {
             key: ONYXKEYS.BETAS,

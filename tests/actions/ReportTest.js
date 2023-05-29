@@ -570,10 +570,10 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Expect the reaction to exist in the reportActionsReactions collection
-                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
+                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
 
                 // Expect the reaction to have the emoji on it
-                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                 expect(reportActionReaction).toHaveProperty(EMOJI.name);
 
                 // Expect the emoji to have the user accountID
@@ -586,8 +586,8 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Expect the reaction to have null where the users reaction used to be
-                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
-                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
+                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                 expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
             })
             .then(() => {
@@ -595,16 +595,16 @@ describe('actions/Report', () => {
                 Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI);
                 return waitForPromisesToResolve()
                     .then(() => {
-                        const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
+                        const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                         Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
                         return waitForPromisesToResolve();
                     })
                     .then(() => {
                         // Expect the reaction to exist in the reportActionsReactions collection
-                        expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
+                        expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
 
                         // Expect the reaction to have the emoji on it
-                        const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
+                        const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                         expect(reportActionReaction).toHaveProperty(EMOJI.name);
 
                         // Expect the emoji to have the user accountID
@@ -622,8 +622,8 @@ describe('actions/Report', () => {
                     })
                     .then(() => {
                         // Expect the reaction to have null where the users reaction used to be
-                        expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
-                        const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
+                        expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
+                        const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                         expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
                     });
             });
@@ -680,14 +680,14 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Now we toggle the reaction while the skin tone has changed. Since the emoji doesn't support skin tones, the emoji should get removed instead of added again.
-                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                 Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, 2);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Expect the reaction to have null where the users reaction used to be
-                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`);
-                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ID}${reportActionID}`];
+                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                 expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
             });
     });

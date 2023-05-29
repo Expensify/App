@@ -87,7 +87,7 @@ export default withOnyx({
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     },
     emojiReactions: {
-        key: ({reportID, reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
+        key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
     },
 })(BaseQuickEmojiReactions);
 

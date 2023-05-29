@@ -1489,7 +1489,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
             value: {
                 [emoji.name]: {
                     createdAt,
@@ -1527,7 +1527,7 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportID}${reportActionID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
             value: {
                 [emoji.name]: {
                     users: {
