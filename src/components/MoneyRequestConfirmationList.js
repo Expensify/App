@@ -23,10 +23,10 @@ import * as CurrencyUtils from '../libs/CurrencyUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
-    onConfirm: PropTypes.func.isRequired,
+    onConfirm: PropTypes.func,
 
     /** Callback to parent modal to send money */
-    onSendMoney: PropTypes.func.isRequired,
+    onSendMoney: PropTypes.func,
 
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
@@ -40,11 +40,17 @@ const propTypes = {
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
+    /** Payee of the money request with login */
+    payeePersonalDetails: optionPropTypes,
+
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
 
+    /** Should the list be read only, and not editable? */
+    isReadOnly: PropTypes.bool,
+
     /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute: PropTypes.string.isRequired,
+    bankAccountRoute: PropTypes.string,
 
     ...windowDimensionsPropTypes,
 
@@ -69,18 +75,24 @@ const propTypes = {
     }),
 
     /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
-    navigateToStep: PropTypes.func.isRequired,
+    navigateToStep: PropTypes.func,
 
     /** The policyID of the request */
     policyID: PropTypes.string,
 };
 
 const defaultProps = {
+    onConfirm: () => {},
+    onSendMoney: () => {},
+    navigateToStep: () => {},
     iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+    payeePersonalDetails: null,
     canModifyParticipants: false,
+    isReadOnly: false,
+    bankAccountRoute: '',
     session: {
         email: null,
     },
@@ -159,6 +171,15 @@ class MoneyRequestConfirmationList extends Component {
     }
 
     /**
+     * Returns the personalDetails object for the payee. Use the payee prop if passed, else fallback to current user
+     *
+     * @returns {Object} personalDetails
+     */
+    getPayeePersonalDetails() {
+        return this.props.payeePersonalDetails || this.props.currentUserPersonalDetails;
+    }
+
+    /**
      * Returns the sections needed for the OptionsSelector
      *
      * @returns {Array}
@@ -174,15 +195,15 @@ class MoneyRequestConfirmationList extends Component {
             const formattedParticipants = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.iouAmount, true);
-            const formattedMyPersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(
-                this.props.currentUserPersonalDetails,
+            const formattedPayeePersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
+                this.getPayeePersonalDetails(),
                 CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.iou.selectedCurrencyCode),
             );
 
             sections.push(
                 {
                     title: this.props.translate('moneyRequestConfirmationList.whoPaid'),
-                    data: [formattedMyPersonalDetails],
+                    data: [formattedPayeePersonalDetails],
                     shouldShow: true,
                     indexOffset: 0,
                     isDisabled: true,
@@ -206,6 +227,36 @@ class MoneyRequestConfirmationList extends Component {
         return sections;
     }
 
+    getFooterContent() {
+        if (this.props.isReadOnly) {
+            return;
+        }
+
+        const selectedParticipants = this.getSelectedParticipants();
+        const shouldShowSettlementButton = this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+        const shouldDisableButton = selectedParticipants.length === 0;
+        const recipient = this.state.participants[0];
+
+        return shouldShowSettlementButton ? (
+            <SettlementButton
+                isDisabled={shouldDisableButton}
+                onPress={this.confirm}
+                shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                addBankAccountRoute={this.props.bankAccountRoute}
+                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                currency={this.props.iou.selectedCurrencyCode}
+                policyID={this.props.policyID}
+            />
+        ) : (
+            <ButtonWithDropdownMenu
+                isDisabled={shouldDisableButton}
+                onPress={(_event, value) => this.confirm(value)}
+                options={this.getSplitOrRequestOptions()}
+            />
+        );
+    }
+
     /**
      * Returns selected options -- there is checkmark for every row in List for split flow
      * @returns {Array}
@@ -215,7 +266,7 @@ class MoneyRequestConfirmationList extends Component {
             return [];
         }
         const selectedParticipants = this.getSelectedParticipants();
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromMyPersonalDetail(this.props.currentUserPersonalDetails)];
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(this.getPayeePersonalDetails())];
     }
 
     /**
@@ -263,11 +314,7 @@ class MoneyRequestConfirmationList extends Component {
     }
 
     render() {
-        const selectedParticipants = this.getSelectedParticipants();
-        const shouldShowSettlementButton = this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = this.state.participants[0];
-        const canModifyParticipants = this.props.canModifyParticipants && this.props.hasMultipleParticipants;
+        const canModifyParticipants = !this.props.isReadOnly && this.props.canModifyParticipants && this.props.hasMultipleParticipants;
         const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode);
 
         return (
@@ -285,43 +332,24 @@ class MoneyRequestConfirmationList extends Component {
                 shouldShowTextInput={false}
                 shouldUseStyleForChildren={false}
                 optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-                footerContent={
-                    shouldShowSettlementButton ? (
-                        <SettlementButton
-                            isDisabled={shouldDisableButton}
-                            onPress={this.confirm}
-                            shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
-                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                            addBankAccountRoute={this.props.bankAccountRoute}
-                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                            currency={this.props.iou.selectedCurrencyCode}
-                            policyID={this.props.policyID}
-                        />
-                    ) : (
-                        <ButtonWithDropdownMenu
-                            isDisabled={shouldDisableButton}
-                            onPress={(_event, value) => this.confirm(value)}
-                            options={this.getSplitOrRequestOptions()}
-                        />
-                    )
-                }
+                footerContent={this.getFooterContent()}
             >
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!this.props.isReadOnly}
                     title={formattedAmount}
                     description={this.props.translate('iou.amount')}
                     onPress={() => this.props.navigateToStep(0)}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={this.state.didConfirm}
+                    disabled={this.state.didConfirm || this.props.isReadOnly}
                 />
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!this.props.isReadOnly}
                     title={this.props.iou.comment}
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                     style={[styles.moneyRequestMenuItem, styles.mb2]}
-                    disabled={this.state.didConfirm}
+                    disabled={this.state.didConfirm || this.props.isReadOnly}
                 />
             </OptionsSelector>
         );
