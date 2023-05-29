@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import SkeletonViewLines from './SkeletonViewLines';
 import CONST from '../../CONST';
 
@@ -50,7 +51,7 @@ const ReportActionsSkeletonView = (props) => {
                 );
         }
     }
-    return <>{skeletonViewLines}</>;
+    return <View>{skeletonViewLines}</View>;
 };
 
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
