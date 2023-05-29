@@ -836,10 +836,10 @@ function getIconsForParticipants(participants, personalDetails) {
  * @param {Object} report
  * @param {Object} personalDetails
  * @param {*} [defaultIcon]
- * @param {Boolean} [isPayer]
+ * @param {Boolean} [isIOUTargetAccount]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) {
+function getIcons(report, personalDetails, defaultIcon = null, isIOUTargetAccount = false) {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
@@ -916,7 +916,11 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         return [adminIcon, workspaceIcon];
     }
     if (isIOUReport(report)) {
-        const email = isPayer ? report.managerEmail : report.ownerEmail;
+        let email = report.ownerEmail;
+        if (isIOUTargetAccount && report.ownerEmail === currentUserEmail) {
+            email = report.managerEmail;
+        }
+
         return [
             {
                 source: getAvatar(lodashGet(personalDetails, [email, 'avatar']), email),
