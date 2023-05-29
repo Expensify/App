@@ -82,6 +82,11 @@ class Hoverable extends Component {
                 const {ref} = child;
                 if (_.isFunction(ref)) {
                     ref(el);
+                    return;
+                }
+
+                if (_.isObject(ref)) {
+                    ref.current = el;
                 }
             },
             onMouseEnter: (el) => {

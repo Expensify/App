@@ -9,6 +9,7 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
+import * as UserUtils from '../UserUtils';
 
 /**
  * Clears out the task info from the store
@@ -61,7 +62,13 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: optimisticTaskReport,
+            value: {
+                ...optimisticTaskReport,
+                pendingFields: {
+                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                isOptimisticReport: true,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -80,7 +87,18 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        },
+    ];
 
     const failureData = [
         {
@@ -478,7 +496,7 @@ function getAssignee(details) {
             subtitle: '',
         };
     }
-    const source = ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
+    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
     return {
         icons: [{source, type: 'avatar', name: details.login}],
         displayName: details.displayName,

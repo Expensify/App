@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -36,6 +37,8 @@ const defaultProps = {
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
+    shouldShowTitleIcon: false,
+    titleIcon: () => {},
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
@@ -66,6 +69,7 @@ const MenuItem = (props) => {
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
         [
+            styles.flexShrink1,
             styles.popoverMenuText,
             props.icon ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
@@ -91,7 +95,7 @@ const MenuItem = (props) => {
     return (
         <PressableWithSecondaryInteraction
             onPress={(e) => {
-                if (props.disabled) {
+                if (props.disabled || !props.interactive) {
                     return;
                 }
 
@@ -106,6 +110,7 @@ const MenuItem = (props) => {
             onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => [
                 props.style,
+                !props.interactive && styles.cursorDefault,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
             ]}
@@ -156,14 +161,24 @@ const MenuItem = (props) => {
                                     {props.description}
                                 </Text>
                             )}
-                            {Boolean(props.title) && (
-                                <Text
-                                    style={titleTextStyle}
-                                    numberOfLines={1}
-                                >
-                                    {convertToLTR(props.title)}
-                                </Text>
-                            )}
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                {Boolean(props.title) && (
+                                    <Text
+                                        style={titleTextStyle}
+                                        numberOfLines={1}
+                                    >
+                                        {convertToLTR(props.title)}
+                                    </Text>
+                                )}
+                                {Boolean(props.shouldShowTitleIcon) && (
+                                    <View style={[styles.ml2]}>
+                                        <Icon
+                                            src={props.titleIcon}
+                                            fill={themeColors.iconSuccessFill}
+                                        />
+                                    </View>
+                                )}
+                            </View>
                             {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
                                 <Text
                                     style={descriptionTextStyle}
