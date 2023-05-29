@@ -47,7 +47,7 @@ function AttachmentPicker(props) {
                     }
 
                     // Cleanup after selecting a file to start from a fresh state
-                     fileInput.current.value = null;
+                    fileInput.current.value = null;
                 }}
                 // We are stopping the event propagation because triggering the `click()` on the hidden input
                 // causes the event to unexpectedly bubble up to anything wrapping this component e.g. Pressable
