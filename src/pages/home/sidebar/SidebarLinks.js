@@ -21,7 +21,6 @@ import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import reportActionPropTypes from '../report/reportActionPropTypes';
@@ -34,6 +33,7 @@ import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
+import * as UserUtils from '../../../libs/UserUtils';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -178,7 +178,7 @@ class SidebarLinks extends React.Component {
                     >
                         <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                             <AvatarWithIndicator
-                                source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                                source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                                 tooltipText={this.props.translate('common.settings')}
                             />
                         </OfflineWithFeedback>
@@ -256,7 +256,7 @@ const personalDetailsSelector = (personalDetails) =>
                 login: personalData.login,
                 displayName: personalData.displayName,
                 firstName: personalData.firstName,
-                avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
+                avatar: UserUtils.getAvatar(personalData.avatar, personalData.login),
             };
             return finalPersonalDetails;
         },

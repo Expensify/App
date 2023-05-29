@@ -6,7 +6,7 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
-import * as ReportUtils from '../libs/ReportUtils';
+import * as UserUtils from '../libs/UserUtils';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -162,7 +162,7 @@ function getAvatarBorderStyle(size, type) {
  * @returns {Object}
  */
 function getDefaultWorkspaceAvatarColor(workspaceName) {
-    const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
+    const colorHash = UserUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
