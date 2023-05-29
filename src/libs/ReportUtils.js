@@ -1804,10 +1804,6 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
-    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
-        return false;
-    }
-
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
