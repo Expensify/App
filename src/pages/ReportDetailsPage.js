@@ -58,13 +58,21 @@ const defaultProps = {
 
 const ReportDetailsPage = (props) => {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(props.report), [props.report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
     const isThread = useMemo(() => ReportUtils.isThread(props.report), [props.report]);
+    const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
+    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report]);
+    const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
+    const participants = useMemo(() => lodashGet(props.report, 'participants', []), [props.report]);
 
     const menuItems = useMemo(() => {
+        if (isArchivedRoom) {
+            return [];
+        }
+
         const items = [
             {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
@@ -74,23 +82,19 @@ const ReportDetailsPage = (props) => {
             },
         ];
 
-        if (ReportUtils.isArchivedRoom(props.report)) {
-            return [];
-        }
-
-        if (lodashGet(props.report, 'participants', []).length) {
+        if (participants.length) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
-                subtitle: lodashGet(props.report, 'participants', []).length,
+                subtitle: participants.length,
                 action: () => {
                     Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID));
                 },
             });
         }
 
-        if (ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isChatRoom(props.report) || ReportUtils.isThread(props.report)) {
+        if (isPolicyExpenseChat || isChatRoom || isThread) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
@@ -101,7 +105,7 @@ const ReportDetailsPage = (props) => {
             });
         }
 
-        if (ReportUtils.isUserCreatedPolicyRoom(props.report) || ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)) || isThread) {
+        if (isUserCreatedPolicyRoom || canLeaveRoom || isThread) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
@@ -111,13 +115,12 @@ const ReportDetailsPage = (props) => {
         }
 
         return items;
-    }, [props.report, policy, isThread]);
+    }, [props.report.reportID, participants, isArchivedRoom, isPolicyExpenseChat, isChatRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
-        const participants = lodashGet(props.report, 'participants', []);
-        const isMultipleParticipant = participants.length > 1;
-        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), isMultipleParticipant);
-    }, [props.report, props.personalDetails]);
+        const hasMultipleParticipant = participants.length > 1;
+        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), hasMultipleParticipant);
+    }, [participants, props.personalDetails]);
 
     const chatRoomSubtitleText = (
         <Text
