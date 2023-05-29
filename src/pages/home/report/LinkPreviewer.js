@@ -1,15 +1,15 @@
 import React from 'react';
-import {View, Image, Dimensions} from 'react-native';
+import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {uniqBy} from 'lodash';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import colors from '../../../styles/colors';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 const MAX_IMAGE_SIZE = 350;
 const SMALL_SCREEN_MAX_IMAGE_SIZE = 180;
 
@@ -64,8 +64,10 @@ const defaultProps = {
     maxAmountOfPreviews: -1,
 };
 
-const LinkPreviewer = (props) =>
-    _.map(
+const LinkPreviewer = (props) => {
+    const {windowHeight} = useWindowDimensions();
+
+    return _.map(
         _.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length),
         (linkData) => {
             if (_.isArray(linkData)) {
@@ -112,7 +114,7 @@ const LinkPreviewer = (props) =>
                                         styles.linkPreviewImage,
                                         {
                                             aspectRatio: image.width / image.height,
-                                            maxHeight: SCREEN_HEIGHT / 2 < MAX_IMAGE_SIZE ? SMALL_SCREEN_MAX_IMAGE_SIZE : MAX_IMAGE_SIZE,
+                                            maxHeight: windowHeight / 2 < MAX_IMAGE_SIZE ? SMALL_SCREEN_MAX_IMAGE_SIZE : MAX_IMAGE_SIZE,
                                         },
                                     ]}
                                     resizeMode="contain"
@@ -125,6 +127,7 @@ const LinkPreviewer = (props) =>
             );
         },
     );
+};
 
 LinkPreviewer.propTypes = propTypes;
 LinkPreviewer.defaultProps = defaultProps;
