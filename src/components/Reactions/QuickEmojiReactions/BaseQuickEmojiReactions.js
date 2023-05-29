@@ -13,7 +13,7 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import EmojiReactionsPropTypes from '../EmojiReactionsPropTypes';
 
 const baseQuickEmojiReactionsPropTypes = {
-    ...EmojiReactionsPropTypes,
+    emojiReactions: EmojiReactionsPropTypes,
 
     /**
      * Callback to fire when an emoji is selected.
@@ -79,9 +79,6 @@ const BaseQuickEmojiReactions = (props) => (
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;
 BaseQuickEmojiReactions.defaultProps = defaultProps;
-// ESLint throws an error because it can't see that emojiReactions is defined in props. It is defined in props, but
-// because of a couple spread operators, I think that's why ESLint struggles to see it
-// eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,

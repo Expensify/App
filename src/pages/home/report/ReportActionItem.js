@@ -89,12 +89,11 @@ const propTypes = {
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    ...EmojiReactionsPropTypes,
-
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
     ...windowDimensionsPropTypes,
+    emojiReactions: EmojiReactionsPropTypes,
 };
 
 const defaultProps = {

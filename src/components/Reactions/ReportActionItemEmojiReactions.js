@@ -15,7 +15,7 @@ import * as EmojiUtils from '../../libs/EmojiUtils';
 import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
 
 const propTypes = {
-    ...EmojiReactionsPropTypes,
+    emojiReactions: EmojiReactionsPropTypes,
 
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: PropTypes.string.isRequired,
