@@ -14,6 +14,7 @@ import * as CollectionUtils from './CollectionUtils';
 import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as UserUtils from './UserUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -152,7 +153,7 @@ function getAvatarsForLogins(logins, personalDetails) {
     return _.map(logins, (login) => {
         const userPersonalDetail = lodashGet(personalDetails, login, {login, avatar: ''});
         return {
-            source: ReportUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
+            source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
             type: CONST.ICON_TYPE_AVATAR,
             name: userPersonalDetail.login,
         };
@@ -181,7 +182,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
                 personalDetail = {
                     login,
                     displayName: LocalePhoneNumber.formatPhoneNumber(login),
-                    avatar: ReportUtils.getDefaultAvatar(login),
+                    avatar: UserUtils.getDefaultAvatar(login),
                 };
             }
 
@@ -220,7 +221,7 @@ function getParticipantsOptions(report, personalDetails) {
         alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
         icons: [
             {
-                source: ReportUtils.getAvatar(details.avatar, details.login),
+                source: UserUtils.getAvatar(details.avatar, details.login),
                 name: details.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -482,7 +483,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login));
     result.subtitle = subtitle;
 
     return result;
@@ -727,7 +728,7 @@ function getOptions(
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: ReportUtils.getAvatar('', searchValue),
+                source: UserUtils.getAvatar('', searchValue),
                 name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -806,7 +807,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
         alternateText: personalDetail.login,
         icons: [
             {
-                source: ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login),
+                source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.login),
                 name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },

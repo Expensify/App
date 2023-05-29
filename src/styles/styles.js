@@ -3353,6 +3353,17 @@ const styles = {
         fontWeight: fontWeightBold,
         lineHeight: undefined,
     },
+
+    expensifyQrLogo: {
+        alignSelf: 'stretch',
+        height: 27,
+        marginBottom: 20,
+    },
+
+    qrShareTitle: {
+        marginTop: 15,
+        textAlign: 'center',
+    },
 };
 
 export default styles;

@@ -76,7 +76,7 @@ class SignInPage extends Component {
         // - AND the login is not the primary login
         // - AND the login is not validated
         const showUnlinkLoginForm =
-            this.props.credentials.login && this.props.account.primaryLogin && this.props.account.primaryLogin !== this.props.credentials.login && !this.props.account.validated;
+            Boolean(this.props.credentials.login && this.props.account.primaryLogin) && this.props.account.primaryLogin !== this.props.credentials.login && !this.props.account.validated;
 
         // Show the old password form if
         // - A login has been entered
@@ -97,7 +97,8 @@ class SignInPage extends Component {
         // - A login has been entered or a validateCode has been cached from sign in link
         // - AND the login isn't an unvalidated secondary login
         // - AND the user is on the 'passwordless' beta
-        const showValidateCodeForm = (this.props.credentials.login || this.props.credentials.validateCode) && !showUnlinkLoginForm && Permissions.canUsePasswordlessLogins(this.props.betas);
+        const showValidateCodeForm =
+            Boolean(this.props.credentials.login || this.props.credentials.validateCode) && !showUnlinkLoginForm && Permissions.canUsePasswordlessLogins(this.props.betas);
 
         // Show the resend validation link form if
         // - A login has been entered
