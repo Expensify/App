@@ -20,6 +20,7 @@ import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
+import {getDeviceInfoWithID} from '../Device';
 
 let credentials = {};
 Onyx.connect({
@@ -54,9 +55,15 @@ Onyx.connect({
  * @returns {string}
  */
 function getDeviceInfoForLogin() {
-    return JSON.stringify({
-        ...Device.getDeviceInfo(),
-        parentLogin: credentials.login,
+    return new Promise((resolve) => {
+        Device.getDeviceID().then(deviceID => {
+            resolve(JSON.stringify({
+                ...Device.getDeviceInfo(),
+                parentLogin: credentials.login,
+                deviceID,
+            }));
+        })
+
     });
 }
 
@@ -380,7 +387,6 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
         twoFactorAuthCode,
         email: credentials.login,
         preferredLocale,
-        deviceInfo: getDeviceInfoForLogin(),
     };
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
@@ -389,8 +395,9 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     } else {
         params.password = password;
     }
-
-    API.write('SigninUser', params, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        API.write('SigninUser', { ...params, deviceInfo }, {optimisticData, successData, failureData});
+    });
 }
 
 function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
@@ -454,18 +461,20 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
             value: {autoAuthState: CONST.AUTO_AUTH_STATE.FAILED},
         },
     ];
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        API.write(
+            'SigninUserWithLink',
+            {
+                accountID,
+                validateCode,
+                twoFactorAuthCode,
+                preferredLocale,
+                deviceInfo: deviceInfo,
+            },
+            {optimisticData, successData, failureData},
+        );
+    });
 
-    API.write(
-        'SigninUserWithLink',
-        {
-            accountID,
-            validateCode,
-            twoFactorAuthCode,
-            preferredLocale,
-            deviceInfo: getDeviceInfoForLogin(),
-        },
-        {optimisticData, successData, failureData},
-    );
 }
 
 function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
