@@ -20,7 +20,6 @@ import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
-import {getDeviceInfoWithID} from '../Device';
 
 let credentials = {};
 Onyx.connect({
