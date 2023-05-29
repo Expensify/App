@@ -51,23 +51,6 @@ Onyx.connect({
 });
 
 /**
- * @private
- * @returns {string}
- */
-function getDeviceInfoForLogin() {
-    return new Promise((resolve) => {
-        Device.getDeviceID().then(deviceID => {
-            resolve(JSON.stringify({
-                ...Device.getDeviceInfo(),
-                parentLogin: credentials.login,
-                deviceID,
-            }));
-        })
-
-    });
-}
-
-/**
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
@@ -469,7 +452,7 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
                 validateCode,
                 twoFactorAuthCode,
                 preferredLocale,
-                deviceInfo: deviceInfo,
+                deviceInfo,
             },
             {optimisticData, successData, failureData},
         );
