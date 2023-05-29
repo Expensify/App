@@ -83,6 +83,12 @@
             caret-color: #ffffff;
         }
 
+        /* Prevent autofill from overlapping with the input label in Chrome */
+        div:has(input:-webkit-autofill) > label {
+            transform: translateY(var(--active-label-translate-y)) scale(var(--active-label-scale)) !important;
+            transition: transform var(--label-transition-duration);
+        }
+
         @media screen and (min-width: 480px) { 
             .splash-logo > svg { 
                 width: 104px; 

@@ -220,33 +220,27 @@ SidebarLinks.defaultProps = defaultProps;
  * @param {Object} [report]
  * @returns {Object|undefined}
  */
-const chatReportSelector = (report) => {
-    if (ReportUtils.isIOUReport(report)) {
-        return null;
-    }
-    return (
-        report && {
-            reportID: report.reportID,
-            participants: report.participants,
-            hasDraft: report.hasDraft,
-            isPinned: report.isPinned,
-            errorFields: {
-                addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-            },
-            lastReadTime: report.lastReadTime,
-            lastMentionedTime: report.lastMentionedTime,
-            lastMessageText: report.lastMessageText,
-            lastVisibleActionCreated: report.lastVisibleActionCreated,
-            iouReportID: report.iouReportID,
-            hasOutstandingIOU: report.hasOutstandingIOU,
-            statusNum: report.statusNum,
-            stateNum: report.stateNum,
-            chatType: report.chatType,
-            policyID: report.policyID,
-            reportName: report.reportName,
-        }
-    );
-};
+const chatReportSelector = (report) =>
+    report && {
+        reportID: report.reportID,
+        participants: report.participants,
+        hasDraft: report.hasDraft,
+        isPinned: report.isPinned,
+        errorFields: {
+            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+        },
+        lastReadTime: report.lastReadTime,
+        lastMentionedTime: report.lastMentionedTime,
+        lastMessageText: report.lastMessageText,
+        lastVisibleActionCreated: report.lastVisibleActionCreated,
+        iouReportID: report.iouReportID,
+        hasOutstandingIOU: report.hasOutstandingIOU,
+        statusNum: report.statusNum,
+        stateNum: report.stateNum,
+        chatType: report.chatType,
+        policyID: report.policyID,
+        reportName: report.reportName,
+    };
 
 /**
  * @param {Object} [personalDetails]
