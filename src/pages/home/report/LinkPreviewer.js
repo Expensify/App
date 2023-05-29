@@ -58,38 +58,66 @@ const propTypes = {
 
 const defaultProps = {
     linkMetadata: [],
-    maxAmountOfPreviews: -1
+    maxAmountOfPreviews: -1,
 };
 
-const LinkPreviewer = props => (
-    _.map(_.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length), (linkData) => {
-        const {
-            description, image, title, logo, publisher, url,
-        } = linkData;
+const LinkPreviewer = (props) =>
+    _.map(
+        _.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length),
+        (linkData) => {
+            const {description, image, title, logo, publisher, url} = linkData;
 
-        return linkData && (
-            <View style={styles.linkPreviewWrapper} key={url}>
-                <View style={styles.flexRow}>
-                    {!_.isEmpty(logo) && <Image style={styles.linkPreviewLogoImage} source={{uri: logo.url}} />}
-                    {!_.isEmpty(publisher) && <Text fontSize={variables.fontSizeLabel} style={styles.pl2}>{publisher}</Text>}
-                </View>
-                {!_.isEmpty(title) && <Text fontSize={variables.fontSizeNormal} style={styles.pv2} color={colors.blueLinkPreview}>{title}</Text>}
-                {!_.isEmpty(description) && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
-                <View style={styles.flexRow}>
-                    {!_.isEmpty(image) && IMAGE_TYPES.includes(image.type) && (
-                        <Image
-                            style={[styles.linkPreviewImage, {
-                                aspectRatio: image.width / image.height,
-                            }]}
-                            resizeMode="contain"
-                            source={{uri: image.url}}
-                        />
-                    )}
-                </View>
-            </View>
-        );
-    })
-);
+            return (
+                linkData && (
+                    <View
+                        style={styles.linkPreviewWrapper}
+                        key={url}
+                    >
+                        <View style={styles.flexRow}>
+                            {!_.isEmpty(logo) && (
+                                <Image
+                                    style={styles.linkPreviewLogoImage}
+                                    source={{uri: logo.url}}
+                                />
+                            )}
+                            {!_.isEmpty(publisher) && (
+                                <Text
+                                    fontSize={variables.fontSizeLabel}
+                                    style={styles.pl2}
+                                >
+                                    {publisher}
+                                </Text>
+                            )}
+                        </View>
+                        {!_.isEmpty(title) && (
+                            <Text
+                                fontSize={variables.fontSizeNormal}
+                                style={styles.pv2}
+                                color={colors.blueLinkPreview}
+                            >
+                                {title}
+                            </Text>
+                        )}
+                        {!_.isEmpty(description) && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
+                        <View style={styles.flexRow}>
+                            {!_.isEmpty(image) && IMAGE_TYPES.includes(image.type) && (
+                                <Image
+                                    style={[
+                                        styles.linkPreviewImage,
+                                        {
+                                            aspectRatio: image.width / image.height,
+                                        },
+                                    ]}
+                                    resizeMode="contain"
+                                    source={{uri: image.url}}
+                                />
+                            )}
+                        </View>
+                    </View>
+                )
+            );
+        },
+    );
 
 LinkPreviewer.propTypes = propTypes;
 LinkPreviewer.defaultProps = defaultProps;

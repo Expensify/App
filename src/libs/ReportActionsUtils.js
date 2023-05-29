@@ -163,11 +163,11 @@ function getMostRecentIOURequestActionID(reportActions) {
 }
 
 /**
-  * Returns true when the report action contains a link
-  *
-  * @param {reportAction} reportAction
-  * @returns {Boolean}
-  */
+ * Returns true when the report action contains a link
+ *
+ * @param {reportAction} reportAction
+ * @returns {Boolean}
+ */
 function containsLink(reportAction) {
     return !_.isEmpty(lodashGet(reportAction, ['message', 0, 'html']));
 }

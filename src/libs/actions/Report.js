@@ -609,11 +609,11 @@ function openPaymentDetailsPage(chatReportID, iouReportID) {
 }
 
 /**
-  * Gets metadata info about links in the provided report
-  *
-  * @param {String} reportID
-  * @param {String} reportActionID
-  */
+ * Gets metadata info about links in the provided report
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ */
 function expandURLPreview(reportID, reportActionID) {
     API.read('ExpandURLPreview', {
         reportID,
