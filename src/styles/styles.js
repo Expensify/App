@@ -3272,7 +3272,6 @@ const styles = {
         flex: 1,
         resizeMode: 'contain',
         maxWidth: 350,
-        maxHeight: 350,
         borderRadius: 8,
         marginTop: 8,
     },

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View, Image, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {uniqBy} from 'lodash';
@@ -9,6 +9,9 @@ import variables from '../../../styles/variables';
 import colors from '../../../styles/colors';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const MAX_IMAGE_SIZE = 350;
+const SMALL_SCREEN_MAX_IMAGE_SIZE = 180;
 
 const propTypes = {
     /** Data about links provided in message. */
@@ -102,13 +105,14 @@ const LinkPreviewer = (props) =>
                             </Text>
                         )}
                         {!_.isEmpty(description) && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
-                        <View style={styles.flexRow}>
+                        <View>
                             {!_.isEmpty(image) && IMAGE_TYPES.includes(image.type) && (
                                 <Image
                                     style={[
                                         styles.linkPreviewImage,
                                         {
                                             aspectRatio: image.width / image.height,
+                                            maxHeight: SCREEN_HEIGHT / 2 < MAX_IMAGE_SIZE ? SMALL_SCREEN_MAX_IMAGE_SIZE : MAX_IMAGE_SIZE,
                                         },
                                     ]}
                                     resizeMode="contain"
