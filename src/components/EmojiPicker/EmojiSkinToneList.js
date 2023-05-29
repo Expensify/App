@@ -21,7 +21,7 @@ const propTypes = {
 };
 
 function EmojiSkinToneList(props) {
-    const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const [highlightedIndex, setHighlightedIndex] = useState(null);
     const [isSkinToneListVisible, setIsSkinToneListVisible] = useState(false);
 
     const toggleIsSkinToneListVisible = useCallback(() => {
