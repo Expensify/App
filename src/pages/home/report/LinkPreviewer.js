@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -66,6 +66,11 @@ const defaultProps = {
 
 const LinkPreviewer = (props) => {
     const {windowHeight} = useWindowDimensions();
+    const [maxImageSize, setMaxImageSize] = useState(MAX_IMAGE_SIZE);
+
+    useEffect(() => {
+        setMaxImageSize(windowHeight / 2 < MAX_IMAGE_SIZE ? SMALL_SCREEN_MAX_IMAGE_SIZE : MAX_IMAGE_SIZE);
+    }, [windowHeight]);
 
     return _.map(
         _.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length),
@@ -107,21 +112,22 @@ const LinkPreviewer = (props) => {
                             </Text>
                         )}
                         {!_.isEmpty(description) && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
-                        <View>
-                            {!_.isEmpty(image) && IMAGE_TYPES.includes(image.type) && (
-                                <Image
-                                    style={[
-                                        styles.linkPreviewImage,
-                                        {
-                                            aspectRatio: image.width / image.height,
-                                            maxHeight: windowHeight / 2 < MAX_IMAGE_SIZE ? SMALL_SCREEN_MAX_IMAGE_SIZE : MAX_IMAGE_SIZE,
-                                        },
-                                    ]}
-                                    resizeMode="contain"
-                                    source={{uri: image.url}}
-                                />
-                            )}
-                        </View>
+                        {!_.isEmpty(image) && IMAGE_TYPES.includes(image.type) && (
+                            <Image
+                                style={[
+                                    styles.linkPreviewImage,
+                                    {
+                                        aspectRatio: image.width / image.height,
+                                        maxHeight: Math.min(image.height, maxImageSize),
+
+                                        // Calculate maximum width when image is too tall, so it doesn't move away from left
+                                        maxWidth: Math.min(image.width, maxImageSize) * (image.width < image.height ? image.width / image.height : 1),
+                                    },
+                                ]}
+                                resizeMode="contain"
+                                source={{uri: image.url}}
+                            />
+                        )}
                     </View>
                 )
             );
