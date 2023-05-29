@@ -46,16 +46,18 @@ function setDeviceID() {
 }
 
 /**
- * Returns an object with device info and uniqueID
- * @returns {Promise<Object>}
+ * Returns a string object with device info and uniqueID
+ * @returns {Promise<string>}
  */
 function getDeviceInfoWithID() {
     return new Promise((resolve) => {
         getDeviceID()
-            .then((currentDeviceID) => resolve({
-                ...getDeviceInfo,
-                deviceID: currentDeviceID
-            }));
+            .then((currentDeviceID) => resolve(
+                JSON.stringify({
+                    ...getDeviceInfo(),
+                    deviceID: currentDeviceID
+                })
+            ));
     });
 }
 export {getDeviceID, setDeviceID, getDeviceInfoWithID};
