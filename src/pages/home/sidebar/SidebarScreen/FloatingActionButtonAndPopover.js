@@ -24,6 +24,7 @@ import withDrawerState from '../../../../components/withDrawerState';
 import * as TaskUtils from '../../../../libs/actions/Task';
 import * as SignInModalActions from '../../../../libs/actions/SignInModalActions';
 import * as SessionUtils from '../../../../libs/SessionUtils';
+import * as Session from '../../../../libs/actions/Session';
 
 /**
  * @param {Object} [policy]
@@ -56,10 +57,11 @@ const propTypes = {
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
-    session: PropTypes.shape({
-        /** Determines if user is anonymous or not */
-        authTokenType: PropTypes.string,
-    }),
+    // TODO: REVIEW
+    // session: PropTypes.shape({
+    //     /** Determines if user is anonymous or not */
+    //     authTokenType: PropTypes.string,
+    // }),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -84,7 +86,8 @@ class FloatingActionButtonAndPopover extends React.Component {
 
         this.state = {
             isCreateMenuActive: false,
-            isAnonymousUser: SessionUtils.isAnonymousUser(props.session.authTokenType),
+            // TODO: REVIEW
+            isAnonymousUser: Session.isAnonymousUser(),
         };
     }
 
@@ -180,7 +183,8 @@ class FloatingActionButtonAndPopover extends React.Component {
      */
     interceptAnonymousUser(callback) {
         if (this.state.isAnonymousUser) {
-            SignInModalActions.showSignInModal();
+            // TODO: REVIEW
+            Session.signOutAndRedirectToSignIn();
         } else {
             callback();
         }

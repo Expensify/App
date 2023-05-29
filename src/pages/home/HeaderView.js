@@ -30,6 +30,7 @@ import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import * as SessionUtils from '../../libs/SessionUtils';
 import * as SignInModalActions from '../../libs/actions/SignInModalActions';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -199,13 +200,8 @@ const HeaderView = (props) => {
                             )}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
-                                    onPress={() => {
-                                        if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
-                                            SignInModalActions.showSignInModal();
-                                        } else {
-                                            Report.togglePinnedState(props.report);
-                                        }
-                                    }}
+                                    // TODO: REVIEW
+                                    onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report))}
                                     style={[styles.touchableButtonImage]}
                                 >
                                     <Icon

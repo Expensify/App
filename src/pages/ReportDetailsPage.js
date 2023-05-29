@@ -19,6 +19,7 @@ import * as PolicyUtils from '../libs/PolicyUtils';
 import * as Report from '../libs/actions/Report';
 import * as SignInModalActions from '../libs/actions/SignInModalActions';
 import * as SessionUtils from '../libs/SessionUtils';
+import * as Session from '../libs/actions/Session';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -89,13 +90,7 @@ class ReportDetailsPage extends Component {
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
                 subtitle: lodashGet(this.props.report, 'participants', []).length,
-                action: () => {
-                    if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
-                        SignInModalActions.showSignInModal();
-                    } else {
-                        Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID));
-                    }
-                },
+                action: () => Navigation.navigate(ROUTES.getReportParticipantsRoute(this.props.report.reportID)),
             });
         }
 
@@ -104,13 +99,7 @@ class ReportDetailsPage extends Component {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
-                action: () => {
-                    if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
-                        SignInModalActions.showSignInModal();
-                    } else {
-                        Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID));
-                    }
-                },
+                action: () => Navigation.navigate(ROUTES.getReportSettingsRoute(this.props.report.reportID)),
             });
         }
 
@@ -197,7 +186,8 @@ class ReportDetailsPage extends Component {
                                     title={this.props.translate(item.translationKey)}
                                     subtitle={item.subtitle}
                                     icon={item.icon}
-                                    onPress={item.action}
+                                    // TODO: REVIEW
+                                    onPress={Session.checkIfActionIsAllowed(item.action)}
                                     shouldShowRightIcon
                                     brickRoadIndicator={brickRoadIndicator}
                                 />

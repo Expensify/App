@@ -14,6 +14,7 @@ import {withBetas} from '../../../../components/OnyxProvider';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as SessionUtils from '../../../../libs/SessionUtils';
 import * as SignInModalActions from '../../../../libs/actions/SignInModalActions';
+import * as Session from '../../../../libs/actions/Session';
 import {hideContextMenu} from './ReportActionContextMenu';
 
 const propTypes = {
@@ -79,11 +80,12 @@ class BaseReportActionContextMenu extends React.Component {
          * @param {Function} callback
          */
         const interceptAnonymousUser = (callback) => {
-            if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+            // TODO: REVIEW
+            if (Session.isAnonymousUser()) {
                 hideContextMenu(false);
 
                 InteractionManager.runAfterInteractions(() => {
-                    SignInModalActions.showSignInModal();
+                    Session.signOutAndRedirectToSignIn();
                 });
             } else {
                 callback();

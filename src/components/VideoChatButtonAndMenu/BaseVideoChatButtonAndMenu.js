@@ -20,6 +20,7 @@ import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './vide
 import * as SessionUtils from '../../libs/SessionUtils';
 import * as SignInModalActions from '../../libs/actions/SignInModalActions';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     ...videoChatButtonAndMenuPropTypes,
@@ -112,15 +113,16 @@ class BaseVideoChatButtonAndMenu extends Component {
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
                             ref={(el) => (this.videoChatButton = el)}
-                            onPress={() => {
+                            onPress={Session.checkIfActionIsAllowed(() => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
 
+                                // TODO: REVIEW
                                 // If user is anonymous, show the sign in modal
-                                if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
-                                    SignInModalActions.showSignInModal();
-                                    return;
-                                }
+                                // if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
+                                //     SignInModalActions.showSignInModal();
+                                //     return;
+                                // }
 
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                                 if (this.props.isConcierge && this.props.guideCalendarLink) {
@@ -128,7 +130,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                                     return;
                                 }
                                 this.setMenuVisibility(true);
-                            }}
+                            })}
                             style={[styles.touchableButtonImage]}
                         >
                             <Icon

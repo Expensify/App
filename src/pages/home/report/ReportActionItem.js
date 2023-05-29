@@ -54,6 +54,7 @@ import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import Permissions from '../../../libs/Permissions';
 import * as SessionUtils from '../../../libs/SessionUtils';
 import * as SignInModalActions from '../../../libs/actions/SignInModalActions';
+import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
@@ -96,10 +97,11 @@ const propTypes = {
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    session: PropTypes.shape({
-        /** Determines if user is anonymous or not */
-        authTokenType: PropTypes.string,
-    }),
+    // TODO: REVIEW
+    // session: PropTypes.shape({
+    //     /** Determines if user is anonymous or not */
+    //     authTokenType: PropTypes.string,
+    // }),
 };
 
 const defaultProps = {
@@ -291,11 +293,12 @@ function ReportActionItem(props) {
                             reportActionID={props.action.reportActionID}
                             reactions={reactions}
                             toggleReaction={(emoji) => {
-                                if (SessionUtils.isAnonymousUser(props.session.authTokenType)) {
+                                // TODO: REVIEW
+                                if (Session.isAnonymousUser()) {
                                     hideContextMenu(false);
 
                                     InteractionManager.runAfterInteractions(() => {
-                                        SignInModalActions.showSignInModal();
+                                        Session.signOutAndRedirectToSignIn();
                                     });
                                 } else {
                                     toggleReaction(emoji);
