@@ -28,7 +28,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
@@ -344,7 +344,7 @@ class WorkspaceMembersPage extends React.Component {
                                 participantsList: [item],
                                 icons: [
                                     {
-                                        source: ReportUtils.getAvatar(item.avatar, item.login),
+                                        source: UserUtils.getAvatar(item.avatar, item.login),
                                         name: item.login,
                                         type: CONST.ICON_TYPE_AVATAR,
                                     },
