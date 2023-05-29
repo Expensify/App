@@ -52,6 +52,7 @@ import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import Permissions from '../../../libs/Permissions';
+import EmojiReactionsPropTypes from '../../../components/Reactions/EmojiReactionsPropTypes';
 
 const propTypes = {
     /** Report for this action */
@@ -88,17 +89,7 @@ const propTypes = {
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    emojiReactions: PropTypes.objectOf(
-        PropTypes.shape({
-            emoji: PropTypes.string,
-            users: PropTypes.objectOf(
-                PropTypes.shape({
-                    accountID: PropTypes.number,
-                    skinTone: PropTypes.string,
-                }),
-            ),
-        }),
-    ),
+    ...EmojiReactionsPropTypes,
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
