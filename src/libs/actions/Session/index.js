@@ -378,7 +378,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
         params.password = password;
     }
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        API.write('SigninUser', { ...params, deviceInfo }, {optimisticData, successData, failureData});
+        API.write('SigninUser', {...params, deviceInfo}, {optimisticData, successData, failureData});
     });
 }
 
@@ -456,7 +456,6 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
             {optimisticData, successData, failureData},
         );
     });
-
 }
 
 function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {

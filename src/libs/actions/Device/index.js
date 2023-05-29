@@ -51,13 +51,14 @@ function setDeviceID() {
  */
 function getDeviceInfoWithID() {
     return new Promise((resolve) => {
-        getDeviceID()
-            .then((currentDeviceID) => resolve(
+        getDeviceID().then((currentDeviceID) =>
+            resolve(
                 JSON.stringify({
                     ...getDeviceInfo(),
-                    deviceID: currentDeviceID
-                })
-            ));
+                    deviceID: currentDeviceID,
+                }),
+            ),
+        );
     });
 }
 export {getDeviceID, setDeviceID, getDeviceInfoWithID};
