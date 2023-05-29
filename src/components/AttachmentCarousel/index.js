@@ -296,8 +296,8 @@ class AttachmentCarousel extends React.Component {
                 {this.state.shouldShowArrow && (
                     <>
                         {!isBackDisabled && (
-                            <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.l2 : styles.l8]}>
-                                <Tooltip text={this.props.translate('common.previous')}>
+                            <Tooltip text={this.props.translate('common.previous')}>
+                                <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.l2 : styles.l8]}>
                                     <Button
                                         small
                                         innerStyles={[styles.arrowIcon]}
@@ -311,12 +311,12 @@ class AttachmentCarousel extends React.Component {
                                         onPressIn={this.cancelAutoHideArrow}
                                         onPressOut={this.autoHideArrow}
                                     />
-                                </Tooltip>
-                            </View>
+                                </View>
+                            </Tooltip>
                         )}
                         {!isForwardDisabled && (
-                            <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.r2 : styles.r8]}>
-                                <Tooltip text={this.props.translate('common.next')}>
+                            <Tooltip text={this.props.translate('common.next')}>
+                                <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.r2 : styles.r8]}>
                                     <Button
                                         small
                                         innerStyles={[styles.arrowIcon]}
@@ -330,8 +330,8 @@ class AttachmentCarousel extends React.Component {
                                         onPressIn={this.cancelAutoHideArrow}
                                         onPressOut={this.autoHideArrow}
                                     />
-                                </Tooltip>
-                            </View>
+                                </View>
+                            </Tooltip>
                         )}
                     </>
                 )}

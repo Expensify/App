@@ -66,10 +66,7 @@ const AddReactionBubble = (props) => {
     };
 
     return (
-        <Tooltip
-            text={props.translate('emojiReactions.addReactionTooltip')}
-            focusable={false}
-        >
+        <Tooltip text={props.translate('emojiReactions.addReactionTooltip')}>
             <Pressable
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}

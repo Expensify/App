@@ -7,8 +7,6 @@ const Modal = (props) => (
     <BaseModal
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-        useNativeDriver
-        hideModalContentWhileAnimating
     >
         {props.children}
     </BaseModal>
