@@ -317,7 +317,7 @@ class Composer extends React.Component {
                 // If HTML has emoji, then treat this as plain text.
                 if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
                     const plainText = event.clipboardData.getData('text/plain');
-                    this.paste(Str.htmlDecode(plainText));
+                    this.paste(plainText);
                     return;
                 }
                 fetch(embeddedImages[0].src)
@@ -357,7 +357,7 @@ class Composer extends React.Component {
 
         const plainText = event.clipboardData.getData('text/plain');
 
-        this.paste(Str.htmlDecode(plainText));
+        this.paste(plainText);
     }
 
     /**
