@@ -285,7 +285,7 @@ function ReportActionItem(props) {
         return (
             <>
                 {children}
-                {!_.isEmpty(props.action.linkMetadata) && _.size(props.action.linkMetadata) > 0 && <LinkPreviewer linkMetadata={props.action.linkMetadata} />}
+                {!_.isEmpty(props.action.linkMetadata) && <LinkPreviewer linkMetadata={props.action.linkMetadata} />}
                 {hasReactions && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions
