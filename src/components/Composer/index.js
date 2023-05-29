@@ -142,7 +142,6 @@ class Composer extends React.Component {
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
-        this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
         this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
         this.textRef = React.createRef(null);
@@ -164,7 +163,6 @@ class Composer extends React.Component {
         if (this.textInput) {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
-            this.textInput.addEventListener('keydown', this.putSelectionInClipboard);
         }
     }
 
@@ -372,19 +370,6 @@ class Composer extends React.Component {
         this.textInput.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
-    }
-
-    putSelectionInClipboard(event) {
-        // If anything happens that isn't cmd+c or cmd+x, ignore the event because it's not a copy command
-        if (!event.metaKey || (event.key !== 'c' && event.key !== 'x')) {
-            return;
-        }
-
-        // The user might have only highlighted a portion of the message to copy, so using the selection will ensure that
-        // the only stuff put into the clipboard is what the user selected.
-        const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
-
-        Clipboard.setHtml(selectedText, selectedText);
     }
 
     /**
