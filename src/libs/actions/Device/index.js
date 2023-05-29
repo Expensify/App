@@ -45,4 +45,13 @@ function setDeviceID() {
         .catch((err) => Log.info('Found existing deviceID', false, err.message));
 }
 
-export {getDeviceInfo, getDeviceID, setDeviceID};
+function getDeviceInfoWithID() {
+    return new Promise((resolve) => {
+        getDeviceID()
+            .then((currentDeviceID) => resolve({
+                ...getDeviceInfo,
+                deviceID: currentDeviceID
+            }));
+    });
+}
+export {getDeviceID, setDeviceID, getDeviceInfoWithID};
