@@ -246,8 +246,5 @@ export default compose(
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
         },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
     }),
 )(HeaderView);

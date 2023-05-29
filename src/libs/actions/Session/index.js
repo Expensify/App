@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {Linking} from 'react-native';
+import {InteractionManager, Linking} from 'react-native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -23,6 +23,8 @@ import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
 import * as Report from '../Report';
+import * as SignInModalActions from '../SignInModalActions';
+import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
 let authTokenType = '';
 Onyx.connect({
@@ -93,7 +95,8 @@ function signOut() {
  * @return {boolean}
  */
 function isAnonymousUser() {
-    return authTokenType === 'anonymousAccount';
+    // return authTokenType === 'anonymousAccount';
+    return true;
 }
 
 function signOutAndRedirectToSignIn() {
@@ -115,8 +118,18 @@ function signOutAndRedirectToSignIn() {
  * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 function checkIfActionIsAllowed(callback) {
+    console.log('check');
+
     if (isAnonymousUser()) {
-        return () => signOutAndRedirectToSignIn();
+        // return () => signOutAndRedirectToSignIn();
+        return () => {
+            hideContextMenu(false);
+
+            InteractionManager.runAfterInteractions(() => {
+                console.log('show');
+                SignInModalActions.showSignInModal();
+            });
+        };
     }
     return callback;
 }

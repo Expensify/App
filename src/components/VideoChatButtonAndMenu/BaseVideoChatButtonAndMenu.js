@@ -113,16 +113,10 @@ class BaseVideoChatButtonAndMenu extends Component {
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
                             ref={(el) => (this.videoChatButton = el)}
+                            // TODO: REVIEW
                             onPress={Session.checkIfActionIsAllowed(() => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
-
-                                // TODO: REVIEW
-                                // If user is anonymous, show the sign in modal
-                                // if (SessionUtils.isAnonymousUser(this.props.session.authTokenType)) {
-                                //     SignInModalActions.showSignInModal();
-                                //     return;
-                                // }
 
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                                 if (this.props.isConcierge && this.props.guideCalendarLink) {

@@ -71,9 +71,6 @@ const propTypes = {
         roomName: PropTypes.string,
     }),
 
-    /** Keeps track if sign in modal for anonymous user is open */
-    isSignInModalOpen: PropTypes.bool,
-
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: PropTypes.bool,
 
@@ -88,7 +85,6 @@ const defaultProps = {
     updateAvailable: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
-    isSignInModalOpen: false,
     isCheckingPublicRoom: true,
 };
 
@@ -186,7 +182,7 @@ function Expensify(props) {
                     <KeyboardShortcutsModal />
                     <GrowlNotification ref={Growl.growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
-                    <SignInModal isVisible={props.isSignInModalOpen} />
+                    <SignInModal />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {props.updateAvailable ? <UpdateAppModal /> : null}
                     {props.screenShareRequest ? (
@@ -236,9 +232,6 @@ export default compose(
         },
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
-        },
-        isSignInModalOpen: {
-            key: ONYXKEYS.IS_SIGN_IN_MODAL_OPEN,
         },
     }),
 )(Expensify);

@@ -58,6 +58,8 @@ export default [
             };
 
             const onEmojiSelected = (emoji) => {
+                console.log('test');
+
                 interceptAnonymousUser(() => {
                     Report.toggleEmojiReaction(reportID, reportAction, emoji);
                     closeContextMenu();

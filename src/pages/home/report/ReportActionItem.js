@@ -96,12 +96,6 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    // TODO: REVIEW
-    // session: PropTypes.shape({
-    //     /** Determines if user is anonymous or not */
-    //     authTokenType: PropTypes.string,
-    // }),
 };
 
 const defaultProps = {
@@ -111,7 +105,6 @@ const defaultProps = {
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
     betas: [],
-    session: {},
 };
 
 function ReportActionItem(props) {
@@ -298,7 +291,8 @@ function ReportActionItem(props) {
                                     hideContextMenu(false);
 
                                     InteractionManager.runAfterInteractions(() => {
-                                        Session.signOutAndRedirectToSignIn();
+                                        // Session.signOutAndRedirectToSignIn();
+                                        SignInModalActions.showSignInModal();
                                     });
                                 } else {
                                     toggleReaction(emoji);
@@ -465,9 +459,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(

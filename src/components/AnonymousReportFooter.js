@@ -10,6 +10,7 @@ import reportPropTypes from '../pages/reportPropTypes';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
+import * as SignInModalActions from '../libs/actions/SignInModalActions';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -44,7 +45,9 @@ const AnonymousReportFooter = (props) => (
                     medium
                     success
                     text={props.translate('common.signIn')}
-                    onPress={() => Session.signOutAndRedirectToSignIn()}
+                    // TODO: REVIEW
+                    // onPress={() => Session.signOutAndRedirectToSignIn()}
+                    onPress={() => SignInModalActions.showSignInModal()}
                 />
             </View>
         </View>
