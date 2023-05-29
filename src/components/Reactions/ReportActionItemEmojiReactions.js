@@ -101,6 +101,7 @@ const ReportActionItemEmojiReactions = (props) => {
                             />
                         )}
                         key={reactionEmojiName}
+                        renderTooltipContentKey={[...reactionUsers, ...emojiCodes]}
                     >
                         <View>
                             <EmojiReactionBubble
