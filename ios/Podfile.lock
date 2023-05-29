@@ -891,7 +891,7 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - react-native-key-command (1.0.0):
+  - react-native-key-command (1.0.1):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1605,7 +1605,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: 2178704739867574667da2c325f25a81e52e17c4
   react-native-image-manipulator: 39f7fded66a1170ccb5055095beafa657d0cb36a
   react-native-image-picker: c48f133656e69506017e6d0059b3ed024faf2fbd
-  react-native-key-command: 0197e6263f3e60c709e65bdfd166e3790ea66b23
+  react-native-key-command: b1d2e140b41aefea00de48a2ce61d506a84dc44f
   react-native-netinfo: 20ae59b6777f1114a7bdad5010b1230959daf9cf
   react-native-pdf: 98810171111685a679dfb6beaf638090ba3a9eb9
   react-native-performance: 426cc34043381602a59f059755a04452315effb4

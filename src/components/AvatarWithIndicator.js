@@ -5,7 +5,7 @@ import Avatar from './Avatar';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import Indicator from './Indicator';
-import * as ReportUtils from '../libs/ReportUtils';
+import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /** URL for the avatar */
@@ -22,7 +22,7 @@ const defaultProps = {
 const AvatarWithIndicator = props => (
     <View style={[styles.sidebarAvatar]}>
         <Tooltip text={props.tooltipText}>
-            <Avatar source={ReportUtils.getSmallSizeAvatar(props.source)} />
+            <Avatar source={UserUtils.getSmallSizeAvatar(props.source)} />
             <Indicator />
         </Tooltip>
     </View>

@@ -30,6 +30,7 @@ import CONST from '../../../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
+import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
@@ -48,7 +49,7 @@ const propTypes = {
     index: PropTypes.number.isRequired,
 
     /** A ref to forward to the text input */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 
     /** The report currently being looked at */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -101,12 +102,24 @@ class ReportActionItemMessageEdit extends React.Component {
         this.state = {
             draft: draftMessage,
             selection: {
-                start: draftMessage.length,
-                end: draftMessage.length,
+                start: 0,
+                end: 0,
             },
             isFocused: false,
             hasExceededMaxCommentLength: false,
         };
+    }
+
+    componentDidMount() {
+        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
+        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
+        // so we need to ensure that it is only updated after focus.
+        this.setState((prevState) => ({
+            selection: {
+                start: prevState.draft.length,
+                end: prevState.draft.length,
+            },
+        }));
     }
 
     componentWillUnmount() {
@@ -299,13 +312,13 @@ class ReportActionItemMessageEdit extends React.Component {
                                 multiline
                                 ref={(el) => {
                                     this.textInput = el;
-                                    this.props.forwardedRef(el);
+                                    this.props.forwardedRef.current = el;
                                 }}
                                 nativeID={this.messageEditInput}
                                 onChangeText={this.updateDraft} // Debounced saveDraftComment
                                 onKeyPress={this.triggerSaveOrCancel}
                                 value={this.state.draft}
-                                maxLines={16} // This is the same that slack has
+                                maxLines={this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                                 style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                                 onFocus={() => {
                                     this.setState({isFocused: true});
