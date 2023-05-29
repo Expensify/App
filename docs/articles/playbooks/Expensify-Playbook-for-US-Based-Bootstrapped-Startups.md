@@ -5,7 +5,7 @@ description: Best practices for how to deploy Expensify for your business
 
 This playbook details best practices on how Bootstrapped Startups with less than 5 employees can use Expensify to prioritize product development while capturing business-related receipts for future reimbursement.
 - See our *[Playbook for VC-Backed Startups](https://help.expensify.com/articles/playbooks/Expensify-Playbook-for-US-based-VC-Backed-Startups)* if you have taken venture capital investment and are more concerned with prioritizing top-line revenue growth than achieving near-term profitability
-- See our *[Playbook for Small to Medium-Sized Businesses]([url](https://help.expensify.com/articles/playbooks/Expensify-Playbook-for-Small-to-Medium-Sized-Businesses))* if you are more concerned with maintaining profitability than growing top-line revenue.
+- See our *[Playbook for Small to Medium-Sized Businesses](https://help.expensify.com/articles/playbooks/Expensify-Playbook-for-Small-to-Medium-Sized-Businesses)* if you are more concerned with maintaining profitability than growing top-line revenue.
 
 # Who you are
 As a bootstrapped startup, you have surrounded yourself with a small handful of people you trust, and are focused on developing your concept to officially launch and possibly take to outside investors. You are likely running your business with your own money, and possibly a small amount of funding from friends and family. You are either paying yourself a little, or not at all, but at this stage, the company isn’t profitable. And for now, you are capturing receipts so that you can reimburse yourself for startup costs when you either take on investment or start to turn a profit.
@@ -14,7 +14,7 @@ As a bootstrapped startup, you have surrounded yourself with a small handful of 
 This playbook is built based on best practices we’ve developed after processing expenses for tens of thousands of companies around the world. As such, use this playbook as your starting point, knowing that you can customize Expensify to suit your business needs. Every company is different, and we’re always one chat away with any questions you may have.
 
 ## Step 1: Create your Expensify account
-If you don't already have one, go to *[new.expensify.com](new.expensifiy.com)* and sign up for an account with your business email address.
+If you don't already have one, go to *[new.expensify.com](https://new.expensify.com)* and sign up for an account with your business email address.
 
 ## Step 2: Create a Free Plan Workspace
 There are three plans (Free, Collect, and Control), but for your needs, we recommend the *Free Plan* for the following reasons:
@@ -25,13 +25,13 @@ There are three plans (Free, Collect, and Control), but for your needs, we recom
 
 To create your Free Plan Workspace:
 
-1. Go to *new.expensify.com*
+1. Go to *[new.expensify.com](https://new.expensify.com)*
 2. Select *New Workspace*
 3. Select the avatar in the top left corner
 4. Click on the workspace name and rename it
 5. Express yourself by adding an avatar image, preferably an image of yourself
 
-The Free Plan also gives you direct access to lightning-fast 24/7 support via Concierge. Within new.expensify.com, you can start a direct message (DM) with Concierge anytime.
+The Free Plan also gives you direct access to lightning-fast 24/7 support via Concierge. Within *[new.expensify.com](https://new.expensify.com/concierge)*, you can start a direct message (DM) with Concierge anytime.
 
 ## Step 3: Invite Your Team
 As a bootstrapped startup, you communicate with your team all day. Similarly, if you are a co-founder, you will have multiple people that will need to capture receipts for your project.
@@ -87,5 +87,5 @@ To view and pay bills:
 When you have bills to pay you can click *View all bills* under the *Manage your bills* box and we’ll keep a neatly organized list of all of the bills you can pay via ACH directly from your Expensify account.
 
 # You’re all set!
-Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Concierge directly in new.expensify.com, or email concierge@expensify.com. Create a Collect or Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you.
+Congrats, you are all set up! If you need any assistance with anything mentioned above, reach out to either your Concierge directly in *[new.expensify.com](https://new.expensify.com/concierge)*, or email concierge@expensify.com. Create a Collect or Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you.
 
