@@ -38,7 +38,7 @@ const ModalHeader = (props) => (
                         style={[styles.touchableButtonImage]}
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('common.back')}
-                        // disable hover dim for switch
+                        // disable hover dimming
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                     >
@@ -54,7 +54,7 @@ const ModalHeader = (props) => (
                         style={[styles.touchableButtonImage]}
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('common.close')}
-                        // disable hover dim for switch
+                        // disable hover dimming
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                     >
