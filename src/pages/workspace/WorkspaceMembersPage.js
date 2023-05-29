@@ -335,7 +335,7 @@ class WorkspaceMembersPage extends React.Component {
                         checked: isChecked,
                     }}
                     accessibilityLabel={this.props.formatPhoneNumber(item.displayName)}
-                    // disable hover style when disabled
+                    // disable hover dimming
                     hoverDimmingValue={1}
                     pressDimmingValue={0.7}
                 >
