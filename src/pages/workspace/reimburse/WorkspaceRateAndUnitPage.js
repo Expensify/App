@@ -105,7 +105,6 @@ class WorkspaceRateAndUnitPage extends React.Component {
         const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
         return (
             <WorkspacePageWithSections
-                shouldUseScrollView
                 headerText={this.props.translate('workspace.reimburse.trackDistance')}
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
