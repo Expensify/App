@@ -1,0 +1,32 @@
+name: Reassure Performance Tests
+
+inputs:
+  OS_BOTIFY_TOKEN:
+    description: GitHub token for OSBotify
+    required: true
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ['**']
+
+jobs:
+  steps:
+    - name: Run performance testing script
+      shell: bash
+      run: |
+        set -e 
+        BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
+        git fetch origin
+        git switch "$BASELINE_BRANCH"
+        yarn install --force
+        yarn reassure --baseline
+        git switch --detach -
+        yarn install --force
+        yarn reassure --branch
+
+    - name: Run Danger.js
+      run: yarn danger ci
+      env:
+        GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
