@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
-import DateUtils from '../../DateUtils';
+import * as ErrorUtils from '../../ErrorUtils';
 
 /**
  * Set the current fields with errors.
@@ -40,10 +40,7 @@ function resetReimbursementAccount() {
  */
 function showBankAccountFormValidationError(error) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-        // eslint-disable-next-line rulesdir/prefer-localization
-        errors: {
-            [DateUtils.getMicroseconds()]: error,
-        },
+        errors: ErrorUtils.getMicroSecondOnyxError(error),
     });
 }
 

@@ -5,7 +5,7 @@ import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
-import * as ReportUtils from '../ReportUtils';
+import * as UserUtils from '../UserUtils';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
@@ -373,7 +373,7 @@ function updateAvatar(file) {
  */
 function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = ReportUtils.getOldDotDefaultAvatar(currentUserEmail);
+    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserEmail);
 
     API.write(
         'DeleteUserAvatar',
