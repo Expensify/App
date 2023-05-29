@@ -12,21 +12,23 @@ on:
     branches: ['**']
 
 jobs:
-  steps:
-    - name: Run performance testing script
-      shell: bash
-      run: |
-        set -e 
-        BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-        git fetch origin
-        git switch "$BASELINE_BRANCH"
-        yarn install --force
-        yarn reassure --baseline
-        git switch --detach -
-        yarn install --force
-        yarn reassure --branch
+  perf-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run performance testing script
+        shell: bash
+        run: |
+          set -e 
+          BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
+          git fetch origin
+          git switch "$BASELINE_BRANCH"
+          yarn install --force
+          yarn reassure --baseline
+          git switch --detach -
+          yarn install --force
+          yarn reassure --branch
 
-    - name: Run Danger.js
-      run: yarn danger ci
-      env:
-        GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
+      - name: Run Danger.js
+        run: yarn danger ci
+        env:
+          GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
