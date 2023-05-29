@@ -24,6 +24,7 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import networkPropTypes from '../../../components/networkPropTypes';
 import WorkspaceReimburseSection from './WorkspaceReimburseSection';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 
 const propTypes = {
     /** Policy values needed in the component */
@@ -169,14 +170,19 @@ class WorkspaceReimburseView extends React.Component {
                     <View style={[styles.mv3]}>
                         <Text>{this.props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
                     </View>
-                    <MenuItemWithTopDescription
-                        title={this.state.currentRatePerUnit}
-                        description={this.props.translate('workspace.reimburse.trackDistanceRate')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(this.props.policy.id))}
-                        wrapperStyle={[styles.mhn5, styles.wAuto]}
-                        brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors', {}) || lodashGet(distanceCustomRate, 'errors', {})) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
+                        shouldShowErrorMessages={false}
+                    >
+                        <MenuItemWithTopDescription
+                            title={this.state.currentRatePerUnit}
+                            description={this.props.translate('workspace.reimburse.trackDistanceRate')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(this.props.policy.id))}
+                            wrapperStyle={[styles.mhn5, styles.wAuto]}
+                            brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors', {}) || lodashGet(distanceCustomRate, 'errors', {})) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                        />
+                    </OfflineWithFeedback>
                 </Section>
 
                 <WorkspaceReimburseSection
