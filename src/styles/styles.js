@@ -3224,12 +3224,11 @@ const styles = {
     },
 
     datePickerPopover: {
-        position: 'absolute',
         backgroundColor: themeColors.appBG,
         width: '100%',
         alignSelf: 'center',
-        top: 60,
         zIndex: 100,
+        marginTop: 8,
     },
 
     loginHeroHeader: {
@@ -3310,6 +3309,17 @@ const styles = {
         fontSize: 7,
         fontWeight: fontWeightBold,
         lineHeight: undefined,
+    },
+
+    expensifyQrLogo: {
+        alignSelf: 'stretch',
+        height: 27,
+        marginBottom: 20,
+    },
+
+    qrShareTitle: {
+        marginTop: 15,
+        textAlign: 'center',
     },
 };
 

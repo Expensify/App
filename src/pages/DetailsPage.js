@@ -28,6 +28,7 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import * as UserUtils from '../libs/UserUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -95,7 +96,7 @@ class DetailsPage extends React.PureComponent {
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
+                avatar: UserUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
             };
         }
 
@@ -135,7 +136,7 @@ class DetailsPage extends React.PureComponent {
                                 <View style={styles.avatarSectionWrapper}>
                                     <AttachmentModal
                                         headerTitle={details.displayName}
-                                        source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
+                                        source={UserUtils.getFullSizeAvatar(details.avatar, details.login)}
                                         isAuthTokenRequired
                                         originalFileName={details.originalFileName}
                                     >
@@ -148,7 +149,7 @@ class DetailsPage extends React.PureComponent {
                                                     <Avatar
                                                         containerStyles={[styles.avatarLarge, styles.mb3]}
                                                         imageStyles={[styles.avatarLarge]}
-                                                        source={ReportUtils.getAvatar(details.avatar, details.login)}
+                                                        source={UserUtils.getAvatar(details.avatar, details.login)}
                                                         size={CONST.AVATAR_SIZE.LARGE}
                                                     />
                                                 </OfflineWithFeedback>
