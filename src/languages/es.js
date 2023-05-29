@@ -1854,6 +1854,7 @@ export default {
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+        prestyledText: 'texto preestilizado',
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
