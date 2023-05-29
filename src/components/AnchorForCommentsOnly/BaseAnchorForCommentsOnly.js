@@ -50,9 +50,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             inline
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(
-                    props.href.indexOf('mailto:') === 0 && Str.isValidEmailMarkdown(props.displayName)
-                        ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL
-                        : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                    Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, '')) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                     event,
                     props.href,
                     lodashGet(linkRef, 'current'),
