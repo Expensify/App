@@ -131,6 +131,8 @@ class WorkspaceReimburseView extends React.Component {
 
     render() {
         const viewAllReceiptsUrl = `expenses?policyIDList=${this.props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance');
+        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
         return (
             <>
                 <Section
@@ -173,6 +175,7 @@ class WorkspaceReimburseView extends React.Component {
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(this.props.policy.id))}
                         wrapperStyle={[styles.mhn5, styles.wAuto]}
+                        brickRoadIndicator={(lodashGet(distanceCustomUnit, 'errors', {}) || lodashGet(distanceCustomRate, 'errors', {})) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
                     />
                 </Section>
 
