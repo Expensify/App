@@ -18,7 +18,8 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import reportPropTypes from '../reportPropTypes';
 import * as Policy from '../../libs/actions/Policy';
 import * as PolicyUtils from '../../libs/PolicyUtils';
@@ -77,6 +78,18 @@ const WorkspaceInitialPage = (props) => {
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
 
+    /**
+     * Navigates to workspace rooms
+     * @param {String} chatType
+     */
+    const goToRoom = useCallback(
+        (type) => {
+            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type);
+            Navigation.navigate(ROUTES.getReportRoute(room.reportID));
+        },
+        [props.reports, policy],
+    );
+
     const policyName = lodashGet(policy, 'name', '');
     const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
     const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
@@ -128,6 +141,24 @@ const WorkspaceInitialPage = (props) => {
         },
     ];
 
+    const threeDotsMenuItems = [
+        {
+            icon: Expensicons.Trashcan,
+            text: props.translate('workspace.common.delete'),
+            onSelected: () => setIsDeleteModalOpen(true),
+        },
+        {
+            icon: Expensicons.Hashtag,
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
+            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+        },
+        {
+            icon: Expensicons.Hashtag,
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
+            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
+        },
+    ];
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
@@ -143,13 +174,7 @@ const WorkspaceInitialPage = (props) => {
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Trashcan,
-                                text: props.translate('workspace.common.delete'),
-                                onSelected: () => setIsDeleteModalOpen(true),
-                            },
-                        ]}
+                        threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
@@ -162,12 +187,12 @@ const WorkspaceInitialPage = (props) => {
                             <View style={[styles.flex1]}>
                                 <View style={styles.avatarSectionWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                        <Pressable
-                                            disabled={hasPolicyCreationError}
-                                            style={[styles.pRelative, styles.avatarLarge]}
-                                            onPress={() => openEditor(policy.id)}
-                                        >
-                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                        <Tooltip text={props.translate('workspace.common.settings')}>
+                                            <Pressable
+                                                disabled={hasPolicyCreationError}
+                                                style={[styles.pRelative, styles.avatarLarge]}
+                                                onPress={() => openEditor(policy.id)}
+                                            >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
@@ -177,23 +202,23 @@ const WorkspaceInitialPage = (props) => {
                                                     name={policyName}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
                                                 />
-                                            </Tooltip>
-                                        </Pressable>
+                                            </Pressable>
+                                        </Tooltip>
                                         {!_.isEmpty(policy.name) && (
-                                            <Pressable
-                                                disabled={hasPolicyCreationError}
-                                                style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
-                                                onPress={() => openEditor(policy.id)}
-                                            >
-                                                <Tooltip text={props.translate('workspace.common.settings')}>
+                                            <Tooltip text={props.translate('workspace.common.settings')}>
+                                                <Pressable
+                                                    disabled={hasPolicyCreationError}
+                                                    style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
+                                                    onPress={() => openEditor(policy.id)}
+                                                >
                                                     <Text
                                                         numberOfLines={1}
                                                         style={[styles.textHeadline, styles.alignSelfCenter, styles.pre]}
                                                     >
                                                         {policy.name}
                                                     </Text>
-                                                </Tooltip>
-                                            </Pressable>
+                                                </Pressable>
+                                            </Tooltip>
                                         )}
                                     </View>
                                 </View>
@@ -235,7 +260,7 @@ WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withWindowDimensions,
     withOnyx({
         reports: {
