@@ -77,7 +77,7 @@ function getAvatarSize(size) {
  * @returns {Object}
  */
 function getHeightOfMagicCodeInput() {
-    return  {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth}
+    return {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth};
 }
 
 /**
@@ -1211,5 +1211,5 @@ export {
     getGoogleListViewStyle,
     getMentionStyle,
     getMentionTextColor,
-    getHeightOfMagicCodeInput
+    getHeightOfMagicCodeInput,
 };
