@@ -32,4 +32,4 @@ jobs:
       - name: Run Danger.js
         run: npx danger ci
         env:
-          DANGER_GITHUB_API_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
