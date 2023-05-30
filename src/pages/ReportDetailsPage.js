@@ -127,7 +127,7 @@ class ReportDetailsPage extends Component {
         const isPolicyAdmin = PolicyUtils.isPolicyAdmin(this.getPolicy());
         const chatRoomSubtitleText = chatRoomSubtitle ? (
             <Text
-                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
                 numberOfLines={1}
             >
                 {chatRoomSubtitle}
