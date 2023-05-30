@@ -2,7 +2,6 @@ import React from 'react';
 import {InteractionManager, View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
 import {propTypes as genericReportActionContextMenuPropTypes, defaultProps as GenericReportActionContextMenuDefaultProps} from './genericReportActionContextMenuPropTypes';
@@ -11,8 +10,6 @@ import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import {withBetas} from '../../../../components/OnyxProvider';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import * as SessionUtils from '../../../../libs/SessionUtils';
 import * as SignInModalActions from '../../../../libs/actions/SignInModalActions';
 import * as Session from '../../../../libs/actions/Session';
 import {hideContextMenu} from './ReportActionContextMenu';
@@ -35,11 +32,6 @@ const propTypes = {
     isArchivedRoom: PropTypes.bool,
 
     contentRef: PropTypes.oneOfType([PropTypes.node, PropTypes.object, PropTypes.func]),
-
-    session: PropTypes.shape({
-        /** Determines if user is anonymous or not */
-        authTokenType: PropTypes.string,
-    }),
 };
 
 const defaultProps = {
@@ -49,7 +41,6 @@ const defaultProps = {
     contentRef: null,
     isChronosReport: false,
     isArchivedRoom: false,
-    session: {},
 };
 class BaseReportActionContextMenu extends React.Component {
     constructor(props) {
@@ -80,12 +71,10 @@ class BaseReportActionContextMenu extends React.Component {
          * @param {Function} callback
          */
         const interceptAnonymousUser = (callback) => {
-            // TODO: REVIEW
             if (Session.isAnonymousUser()) {
                 hideContextMenu(false);
 
                 InteractionManager.runAfterInteractions(() => {
-                    // Session.signOutAndRedirectToSignIn();
                     SignInModalActions.showSignInModal();
                 });
             } else {
@@ -143,13 +132,4 @@ class BaseReportActionContextMenu extends React.Component {
 BaseReportActionContextMenu.propTypes = propTypes;
 BaseReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withBetas(),
-    withWindowDimensions,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(BaseReportActionContextMenu);
+export default compose(withLocalize, withBetas(), withWindowDimensions)(BaseReportActionContextMenu);

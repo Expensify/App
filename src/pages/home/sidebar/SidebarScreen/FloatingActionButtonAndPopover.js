@@ -23,7 +23,6 @@ import withNavigationFocus from '../../../../components/withNavigationFocus';
 import withDrawerState from '../../../../components/withDrawerState';
 import * as TaskUtils from '../../../../libs/actions/Task';
 import * as SignInModalActions from '../../../../libs/actions/SignInModalActions';
-import * as SessionUtils from '../../../../libs/SessionUtils';
 import * as Session from '../../../../libs/actions/Session';
 
 /**
@@ -56,12 +55,6 @@ const propTypes = {
 
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
-
-    // TODO: REVIEW
-    // session: PropTypes.shape({
-    //     /** Determines if user is anonymous or not */
-    //     authTokenType: PropTypes.string,
-    // }),
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -69,7 +62,6 @@ const defaultProps = {
     allPolicies: {},
     betas: [],
     isLoading: false,
-    session: {},
 };
 
 /**
@@ -86,7 +78,6 @@ class FloatingActionButtonAndPopover extends React.Component {
 
         this.state = {
             isCreateMenuActive: false,
-            // TODO: REVIEW
             isAnonymousUser: Session.isAnonymousUser(),
         };
     }
@@ -183,8 +174,6 @@ class FloatingActionButtonAndPopover extends React.Component {
      */
     interceptAnonymousUser(callback) {
         if (this.state.isAnonymousUser) {
-            // TODO: REVIEW
-            // Session.signOutAndRedirectToSignIn();
             SignInModalActions.showSignInModal();
         } else {
             callback();
@@ -294,9 +283,6 @@ export default compose(
     withDrawerState,
     withWindowDimensions,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,

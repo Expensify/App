@@ -45,8 +45,6 @@ const AnonymousReportFooter = (props) => (
                     medium
                     success
                     text={props.translate('common.signIn')}
-                    // TODO: REVIEW
-                    // onPress={() => Session.signOutAndRedirectToSignIn()}
                     onPress={() => SignInModalActions.showSignInModal()}
                 />
             </View>

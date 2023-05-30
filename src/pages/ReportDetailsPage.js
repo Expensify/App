@@ -17,8 +17,6 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as Report from '../libs/actions/Report';
-import * as SignInModalActions from '../libs/actions/SignInModalActions';
-import * as SessionUtils from '../libs/SessionUtils';
 import * as Session from '../libs/actions/Session';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
@@ -52,17 +50,11 @@ const propTypes = {
 
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
-
-    session: PropTypes.shape({
-        /** Determines if user is anonymous or not */
-        authTokenType: PropTypes.string,
-    }),
 };
 
 const defaultProps = {
     policies: {},
     personalDetails: {},
-    session: {},
 };
 
 class ReportDetailsPage extends Component {
@@ -186,7 +178,6 @@ class ReportDetailsPage extends Component {
                                     title={this.props.translate(item.translationKey)}
                                     subtitle={item.subtitle}
                                     icon={item.icon}
-                                    // TODO: REVIEW
                                     onPress={Session.checkIfActionIsAllowed(item.action)}
                                     shouldShowRightIcon
                                     brickRoadIndicator={brickRoadIndicator}
@@ -211,9 +202,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

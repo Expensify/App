@@ -52,7 +52,6 @@ import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import Permissions from '../../../libs/Permissions';
-import * as SessionUtils from '../../../libs/SessionUtils';
 import * as SignInModalActions from '../../../libs/actions/SignInModalActions';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -286,12 +285,10 @@ function ReportActionItem(props) {
                             reportActionID={props.action.reportActionID}
                             reactions={reactions}
                             toggleReaction={(emoji) => {
-                                // TODO: REVIEW
                                 if (Session.isAnonymousUser()) {
                                     hideContextMenu(false);
 
                                     InteractionManager.runAfterInteractions(() => {
-                                        // Session.signOutAndRedirectToSignIn();
                                         SignInModalActions.showSignInModal();
                                     });
                                 } else {

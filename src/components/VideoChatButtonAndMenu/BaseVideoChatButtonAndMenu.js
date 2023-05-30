@@ -17,8 +17,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
-import * as SessionUtils from '../../libs/SessionUtils';
-import * as SignInModalActions from '../../libs/actions/SignInModalActions';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 
@@ -29,11 +27,6 @@ const propTypes = {
 
     /** Link to open when user wants to create a new google meet meeting */
     googleMeetURL: PropTypes.string.isRequired,
-
-    session: PropTypes.shape({
-        /** Determines if user is anonymous or not */
-        authTokenType: PropTypes.string,
-    }),
 };
 
 class BaseVideoChatButtonAndMenu extends Component {
@@ -162,12 +155,4 @@ class BaseVideoChatButtonAndMenu extends Component {
 BaseVideoChatButtonAndMenu.propTypes = propTypes;
 BaseVideoChatButtonAndMenu.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(BaseVideoChatButtonAndMenu);
+export default compose(withWindowDimensions, withLocalize)(BaseVideoChatButtonAndMenu);

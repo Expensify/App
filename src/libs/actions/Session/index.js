@@ -104,18 +104,14 @@ function signOutAndRedirectToSignIn() {
 
 /**
  * @param {Function} callback The callback to execute if the action is allowed
- * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
+ * @returns {Function} same callback if the action is allowed, otherwise a function that opens the Sign In modal
  */
 function checkIfActionIsAllowed(callback) {
-    console.log('check');
-
     if (isAnonymousUser()) {
-        // return () => signOutAndRedirectToSignIn();
         return () => {
             hideContextMenu(false);
 
             InteractionManager.runAfterInteractions(() => {
-                console.log('show');
                 SignInModalActions.showSignInModal();
             });
         };

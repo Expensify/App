@@ -19,8 +19,6 @@ import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
-import * as User from '../../../../libs/actions/User';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -58,12 +56,11 @@ export default [
             };
 
             const onEmojiSelected = (emoji) => {
-                console.log('test');
-
-                interceptAnonymousUser(() => {
-                    Report.toggleEmojiReaction(reportID, reportAction, emoji);
-                    closeContextMenu();
-                });
+                // TODO: REVIEW
+                // interceptAnonymousUser(() => {
+                Report.toggleEmojiReaction(reportID, reportAction, emoji);
+                closeContextMenu();
+                // });
             };
 
             if (isMini) {
@@ -82,7 +79,8 @@ export default [
                     key="BaseQuickEmojiReactions"
                     closeContextMenu={closeContextMenu}
                     onEmojiSelected={onEmojiSelected}
-                    onPressOpenPicker={interceptAnonymousUser}
+                    // TODO: REVIEW
+                    // onPressOpenPicker={interceptAnonymousUser}
                 />
             );
         },
