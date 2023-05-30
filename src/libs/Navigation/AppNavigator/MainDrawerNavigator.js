@@ -99,7 +99,7 @@ class MainDrawerNavigator extends Component {
 
     componentDidMount() {
         if (!this.props.lastOpenedPublicRoomID || Session.isAnonymousUser()) {
-            return
+            return;
         }
         // Re-open the last opened public room if the user logged in
         Report.setLastOpenedPublicRoom('');
