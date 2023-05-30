@@ -106,7 +106,7 @@ class Tooltip extends PureComponent {
 
         TooltipSense.deactivate();
 
-        this.setState({isVisible: false});
+        this.setState({isVisible: false, isRendered: false});
     }
 
     render() {
