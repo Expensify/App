@@ -92,15 +92,15 @@ function Expensify(props) {
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const [isSplashHidden, setIsSplashHidden] = useState(false);
-    const [isCheckingPublicRoom, setIsCheckingPublicRoom] = useState(true);
+    const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
 
     useEffect(() => {
         if (props.isCheckingPublicRoom) return;
-        setIsCheckingPublicRoom(false);
+        setAttemptedToOpenPublicRoom(true);
     }, [props.isCheckingPublicRoom]);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
-    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded) && !isCheckingPublicRoom;
+    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {
@@ -203,7 +203,7 @@ function Expensify(props) {
                 </>
             )}
 
-            {!isCheckingPublicRoom && (
+            {hasAttemptedToOpenPublicRoom && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
