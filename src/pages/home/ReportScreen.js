@@ -29,7 +29,6 @@ import Banner from '../../components/Banner';
 import withLocalize from '../../components/withLocalize';
 import reportPropTypes from '../reportPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import ReportHeaderSkeletonView from '../../components/ReportHeaderSkeletonView';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
@@ -262,50 +261,44 @@ class ReportScreen extends React.Component {
                     shouldShowBackButton={this.props.isSmallScreenWidth}
                     onBackButtonPress={Navigation.goBack}
                 >
-                    {isLoading ? (
-                        <ReportHeaderSkeletonView shouldAnimate />
-                    ) : (
-                        <>
-                            <OfflineWithFeedback
-                                pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                errors={addWorkspaceRoomOrChatErrors}
-                                shouldShowErrorMessages={false}
-                            >
-                                {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
-                                    <MoneyRequestHeader
-                                        report={this.props.report}
-                                        policies={this.props.policies}
-                                        personalDetails={this.props.personalDetails}
-                                        isSingleTransactionView={isSingleTransactionView}
-                                        parentReportAction={parentReportAction}
-                                    />
-                                ) : (
-                                    <HeaderView
-                                        reportID={reportID}
-                                        onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
-                                        personalDetails={this.props.personalDetails}
-                                        report={this.props.report}
-                                    />
-                                )}
+                    <OfflineWithFeedback
+                        pendingAction={addWorkspaceRoomOrChatPendingAction}
+                        errors={addWorkspaceRoomOrChatErrors}
+                        shouldShowErrorMessages={false}
+                    >
+                        {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
+                            <MoneyRequestHeader
+                                report={this.props.report}
+                                policies={this.props.policies}
+                                personalDetails={this.props.personalDetails}
+                                isSingleTransactionView={isSingleTransactionView}
+                                parentReportAction={parentReportAction}
+                            />
+                        ) : (
+                            <HeaderView
+                                reportID={reportID}
+                                onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
+                                personalDetails={this.props.personalDetails}
+                                report={this.props.report}
+                            />
+                        )}
 
-                                {ReportUtils.isTaskReport(this.props.report) && (
-                                    <TaskHeader
-                                        report={this.props.report}
-                                        personalDetails={this.props.personalDetails}
-                                    />
-                                )}
-                            </OfflineWithFeedback>
-                            {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
-                                <Banner
-                                    containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                                    textStyles={[styles.colorReversed]}
-                                    text={this.props.translate('reportActionsView.chatWithAccountManager')}
-                                    onClose={this.dismissBanner}
-                                    onPress={this.chatWithAccountManager}
-                                    shouldShowCloseButton
-                                />
-                            )}
-                        </>
+                        {ReportUtils.isTaskReport(this.props.report) && (
+                            <TaskHeader
+                                report={this.props.report}
+                                personalDetails={this.props.personalDetails}
+                            />
+                        )}
+                    </OfflineWithFeedback>
+                    {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
+                        <Banner
+                            containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                            textStyles={[styles.colorReversed]}
+                            text={this.props.translate('reportActionsView.chatWithAccountManager')}
+                            onClose={this.dismissBanner}
+                            onPress={this.chatWithAccountManager}
+                            shouldShowCloseButton
+                        />
                     )}
                     <View
                         nativeID={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
