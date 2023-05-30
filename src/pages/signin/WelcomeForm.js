@@ -58,6 +58,7 @@ const WelcomeForm = (props) => (
                 isLoading={props.account.isLoading}
                 onPress={() => Session.signUp(props.preferredLocale)}
                 isDisabled={props.network.isOffline || !_.isEmpty(props.account.message)}
+                pressOnEnter
             />
         </View>
         <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
