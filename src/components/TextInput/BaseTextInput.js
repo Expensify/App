@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {Animated, View, TouchableWithoutFeedback, AppState, Keyboard, StyleSheet} from 'react-native';
+import {Animated, View, AppState, Keyboard, StyleSheet} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import TextInputLabel from './TextInputLabel';
@@ -17,7 +17,10 @@ import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
+import isInputAutoFilled from '../../libs/isInputAutoFilled';
+import * as Pressables from '../Pressable';
 
+const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 class BaseTextInput extends Component {
     constructor(props) {
         super(props);
@@ -131,8 +134,7 @@ class BaseTextInput extends Component {
 
         // If the text has been supplied by Chrome autofill, the value state is not synced with the value
         // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
-        const textWasAutoFilledOnChrome = this.input.matches && this.input.matches(':-webkit-autofill');
-        if (!textWasAutoFilledOnChrome) {
+        if (!isInputAutoFilled(this.input)) {
             this.deactivateLabel();
         }
     }
@@ -182,12 +184,12 @@ class BaseTextInput extends Component {
         Animated.parallel([
             Animated.spring(this.state.labelTranslateY, {
                 toValue: translateY,
-                duration: 80,
+                duration: styleConst.LABEL_ANIMATION_DURATION,
                 useNativeDriver: true,
             }),
             Animated.spring(this.state.labelScale, {
                 toValue: scale,
-                duration: 80,
+                duration: styleConst.LABEL_ANIMATION_DURATION,
                 useNativeDriver: true,
             }),
         ]).start();
@@ -226,144 +228,142 @@ class BaseTextInput extends Component {
         return (
             <>
                 <View>
-                    <View
+                    <PressableWithoutFeedback
+                        onPress={this.onPress}
+                        focusable={false}
+                        accessibilityLabel={this.props.label}
                         style={[
                             this.props.autoGrowHeight && styles.autoGrowHeightInputContainer(this.state.textInputHeight, maxHeight),
                             !isMultiline && styles.componentHeightLarge,
                             ...this.props.containerStyles,
                         ]}
                     >
-                        <TouchableWithoutFeedback
-                            onPress={this.onPress}
-                            focusable={false}
+                        <View
+                            // When autoGrowHeight is true we calculate the width for the textInput, so It will break lines properly
+                            // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                            onLayout={(event) => {
+                                if (!this.props.autoGrowHeight && this.props.multiline) {
+                                    return;
+                                }
+
+                                const layout = event.nativeEvent.layout;
+
+                                this.setState((prevState) => ({
+                                    width: this.props.autoGrowHeight ? layout.width : prevState.width,
+                                    height: !isMultiline ? layout.height : prevState.height,
+                                }));
+                            }}
+                            style={[
+                                textInputContainerStyles,
+
+                                // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
+                                this.props.autoGrow && !textInputContainerStyles.minWidth && styles.mnw2,
+                            ]}
                         >
-                            <View
-                                // When autoGrowHeight is true we calculate the width for the textInput, so It will break lines properly
-                                // or if multiline is not supplied we calculate the textinput height, using onLayout.
-                                onLayout={(event) => {
-                                    if (!this.props.autoGrowHeight && this.props.multiline) {
-                                        return;
-                                    }
-
-                                    const layout = event.nativeEvent.layout;
-
-                                    this.setState((prevState) => ({
-                                        width: this.props.autoGrowHeight ? layout.width : prevState.width,
-                                        height: !isMultiline ? layout.height : prevState.height,
-                                    }));
-                                }}
-                                style={[
-                                    textInputContainerStyles,
-
-                                    // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
-                                    this.props.autoGrow && !textInputContainerStyles.minWidth && styles.mnw2,
-                                ]}
-                            >
-                                {hasLabel ? (
-                                    <>
-                                        {/* Adding this background to the label only for multiline text input,
+                            {hasLabel ? (
+                                <>
+                                    {/* Adding this background to the label only for multiline text input,
                                     to prevent text overlapping with label when scrolling */}
-                                        {isMultiline && (
-                                            <View
-                                                style={styles.textInputLabelBackground}
-                                                pointerEvents="none"
-                                            />
-                                        )}
-                                        <TextInputLabel
-                                            isLabelActive={this.isLabelActive}
-                                            label={this.props.label}
-                                            labelTranslateY={this.state.labelTranslateY}
-                                            labelScale={this.state.labelScale}
-                                            for={this.props.nativeID}
+                                    {isMultiline && (
+                                        <View
+                                            style={styles.textInputLabelBackground}
+                                            pointerEvents="none"
                                         />
-                                    </>
-                                ) : null}
-                                <View
-                                    style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer]}
-                                    pointerEvents="box-none"
-                                >
-                                    {Boolean(this.props.prefixCharacter) && (
-                                        <View style={styles.textInputPrefixWrapper}>
-                                            <Text
-                                                pointerEvents="none"
-                                                selectable={false}
-                                                style={[styles.textInputPrefix, !hasLabel && styles.pv0]}
-                                                onLayout={this.storePrefixLayoutDimensions}
-                                            >
-                                                {this.props.prefixCharacter}
-                                            </Text>
-                                        </View>
                                     )}
-                                    <RNTextInput
-                                        ref={(ref) => {
-                                            if (typeof this.props.innerRef === 'function') {
-                                                this.props.innerRef(ref);
-                                            } else if (this.props.innerRef && _.has(this.props.innerRef, 'current')) {
-                                                this.props.innerRef.current = ref;
-                                            }
-                                            this.input = ref;
-                                        }}
-                                        // eslint-disable-next-line
-                                        {...inputProps}
-                                        autoCorrect={this.props.secureTextEntry ? false : this.props.autoCorrect}
-                                        placeholder={placeholder}
-                                        placeholderTextColor={themeColors.placeholderText}
-                                        underlineColorAndroid="transparent"
-                                        style={[
-                                            styles.flex1,
-                                            styles.w100,
-                                            this.props.inputStyle,
-                                            (!hasLabel || isMultiline) && styles.pv0,
-                                            this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
-                                            this.props.secureTextEntry && styles.secureInput,
-
-                                            // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
-                                            // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                            !isMultiline && {height: this.state.height, lineHeight: undefined},
-
-                                            // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                            this.props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(this.state.textInputHeight, maxHeight),
-                                        ]}
-                                        multiline={isMultiline}
-                                        maxLength={this.props.maxLength}
-                                        onFocus={this.onFocus}
-                                        onBlur={this.onBlur}
-                                        onChangeText={this.setValue}
-                                        secureTextEntry={this.state.passwordHidden}
-                                        onPressOut={this.props.onPress}
-                                        showSoftInputOnFocus={!this.props.disableKeyboard}
-                                        keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
-                                        value={this.state.value}
-                                        selection={this.state.selection}
-                                        editable={isEditable}
-                                        // FormSubmit Enter key handler does not have access to direct props.
-                                        // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
-                                        dataSet={{submitOnEnter: isMultiline && this.props.submitOnEnter}}
+                                    <TextInputLabel
+                                        isLabelActive={this.isLabelActive}
+                                        label={this.props.label}
+                                        labelTranslateY={this.state.labelTranslateY}
+                                        labelScale={this.state.labelScale}
+                                        for={this.props.nativeID}
                                     />
-                                    {Boolean(this.props.secureTextEntry) && (
-                                        <Checkbox
-                                            style={styles.textInputIconContainer}
-                                            onPress={this.togglePasswordVisibility}
-                                            onMouseDown={(e) => e.preventDefault()}
+                                </>
+                            ) : null}
+                            <View
+                                style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer]}
+                                pointerEvents="box-none"
+                            >
+                                {Boolean(this.props.prefixCharacter) && (
+                                    <View style={styles.textInputPrefixWrapper}>
+                                        <Text
+                                            pointerEvents="none"
+                                            selectable={false}
+                                            style={[styles.textInputPrefix, !hasLabel && styles.pv0]}
+                                            onLayout={this.storePrefixLayoutDimensions}
                                         >
-                                            <Icon
-                                                src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
-                                                fill={themeColors.icon}
-                                            />
-                                        </Checkbox>
-                                    )}
-                                    {!this.props.secureTextEntry && Boolean(this.props.icon) && (
-                                        <View style={[styles.textInputIconContainer, isEditable ? styles.cursorPointer : styles.pointerEventsNone]}>
-                                            <Icon
-                                                src={this.props.icon}
-                                                fill={themeColors.icon}
-                                            />
-                                        </View>
-                                    )}
-                                </View>
+                                            {this.props.prefixCharacter}
+                                        </Text>
+                                    </View>
+                                )}
+                                <RNTextInput
+                                    ref={(ref) => {
+                                        if (typeof this.props.innerRef === 'function') {
+                                            this.props.innerRef(ref);
+                                        } else if (this.props.innerRef && _.has(this.props.innerRef, 'current')) {
+                                            this.props.innerRef.current = ref;
+                                        }
+                                        this.input = ref;
+                                    }}
+                                    // eslint-disable-next-line
+                                    {...inputProps}
+                                    autoCorrect={this.props.secureTextEntry ? false : this.props.autoCorrect}
+                                    placeholder={placeholder}
+                                    placeholderTextColor={themeColors.placeholderText}
+                                    underlineColorAndroid="transparent"
+                                    style={[
+                                        styles.flex1,
+                                        styles.w100,
+                                        this.props.inputStyle,
+                                        (!hasLabel || isMultiline) && styles.pv0,
+                                        this.props.prefixCharacter && StyleUtils.getPaddingLeft(this.state.prefixWidth + styles.pl1.paddingLeft),
+                                        this.props.secureTextEntry && styles.secureInput,
+
+                                        // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
+                                        // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
+                                        !isMultiline && {height: this.state.height, lineHeight: undefined},
+
+                                        // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
+                                        this.props.autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(this.state.textInputHeight, maxHeight),
+                                    ]}
+                                    multiline={isMultiline}
+                                    maxLength={this.props.maxLength}
+                                    onFocus={this.onFocus}
+                                    onBlur={this.onBlur}
+                                    onChangeText={this.setValue}
+                                    secureTextEntry={this.state.passwordHidden}
+                                    onPressOut={this.props.onPress}
+                                    showSoftInputOnFocus={!this.props.disableKeyboard}
+                                    keyboardType={getSecureEntryKeyboardType(this.props.keyboardType, this.props.secureTextEntry, this.state.passwordHidden)}
+                                    value={this.state.value}
+                                    selection={this.state.selection}
+                                    editable={isEditable}
+                                    // FormSubmit Enter key handler does not have access to direct props.
+                                    // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
+                                    dataSet={{submitOnEnter: isMultiline && this.props.submitOnEnter}}
+                                />
+                                {Boolean(this.props.secureTextEntry) && (
+                                    <Checkbox
+                                        style={styles.textInputIconContainer}
+                                        onPress={this.togglePasswordVisibility}
+                                        onMouseDown={(e) => e.preventDefault()}
+                                    >
+                                        <Icon
+                                            src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                            fill={themeColors.icon}
+                                        />
+                                    </Checkbox>
+                                )}
+                                {!this.props.secureTextEntry && Boolean(this.props.icon) && (
+                                    <View style={[styles.textInputIconContainer, isEditable ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                        <Icon
+                                            src={this.props.icon}
+                                            fill={themeColors.icon}
+                                        />
+                                    </View>
+                                )}
                             </View>
-                        </TouchableWithoutFeedback>
-                    </View>
+                        </View>
+                    </PressableWithoutFeedback>
                     {!_.isEmpty(inputHelpText) && (
                         <FormHelpMessage
                             isError={!_.isEmpty(this.props.errorText)}

@@ -82,6 +82,7 @@ class FloatingActionButton extends PureComponent {
                             this.fabPressable.blur();
                             this.props.onPress(e);
                         }}
+                        onLongPress={() => {}}
                         style={[styles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                     >
                         <AnimatedIcon
