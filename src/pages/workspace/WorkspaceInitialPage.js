@@ -249,7 +249,7 @@ const WorkspaceInitialPage = (props) => {
                         </OfflineWithFeedback>
                     </ScrollView>
                     <ConfirmModal
-                        title={props.translate('workspace.common.updateCurrency')}
+                        title={props.translate('workspace.bankAccount.updateCurrency')}
                         isVisible={isCurrencyModalOpen}
                         onConfirm={confirmCurrencyChangeAndHideModal}
                         onCancel={() => setIsCurrencyModalOpen(false)}
