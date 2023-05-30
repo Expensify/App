@@ -93,7 +93,7 @@ class SettlementButton extends React.Component {
                 value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: this.props.translate('iou.settleElsewhere'),
+                text: ReportUtils.isExpenseReport(this.props.iouReport) ? this.props.translate('iou.payElsewhere') : this.props.translate('iou.settleElsewhere'),
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
