@@ -19,7 +19,7 @@ import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
-import CONST from "../CONST"
+import CONST from '../CONST'
 
 const propTypes = {
     /** Title of the Header */
@@ -136,7 +136,7 @@ const defaultProps = {
     threeDotsAnchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    }
+    },
 };
 
 class HeaderWithCloseButton extends Component {

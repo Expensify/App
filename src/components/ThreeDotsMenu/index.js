@@ -9,7 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
-import CONST from "../../CONST"
+import CONST from '../../CONST'
 
 const propTypes = {
     ...withLocalizePropTypes,
