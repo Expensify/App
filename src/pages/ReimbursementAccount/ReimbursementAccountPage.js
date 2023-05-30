@@ -113,20 +113,10 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.policy.outputCurrency !== CONST.CURRENCY.USD) {
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.policy.id));
-            this.isNavigating = true;
-            return;
-        }
-
         this.fetchData();
     }
 
     componentDidUpdate(prevProps) {
-        if (this.isNavigating) {
-            return;
-        }
-
         if (prevProps.network.isOffline && !this.props.network.isOffline && prevProps.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             this.fetchData();
         }
@@ -364,27 +354,20 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        let errorComponent;
+        let errorText;
         const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
+        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
+        const hasUnsupportedCurrency = lodashGet(this.props.policy, 'outputCurrency', '') !== CONST.CURRENCY.USD;
 
         if (userHasPhonePrimaryEmail) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
-                </View>
-            );
+            errorText = this.props.translate('bankAccount.hasPhoneLoginError');
+        } else if (throttledDate) {
+            errorText = this.props.translate('bankAccount.hasPhoneLoginError');
+        } else if (hasUnsupportedCurrency) {
+            errorText = this.props.translate('bankAccount.hasCurrencyError');
         }
 
-        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
-        if (throttledDate) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasBeenThrottledError')}</Text>
-                </View>
-            );
-        }
-
-        if (errorComponent) {
+        if (errorText) {
             return (
                 <ScreenWrapper>
                     <HeaderWithCloseButton
@@ -392,7 +375,9 @@ class ReimbursementAccountPage extends React.Component {
                         onCloseButtonPress={Navigation.dismissModal}
                         subtitle={policyName}
                     />
-                    {errorComponent}
+                    <View style={[styles.m5]}>
+                        <Text>{errorText}</Text>
+                    </View>
                 </ScreenWrapper>
             );
         }
