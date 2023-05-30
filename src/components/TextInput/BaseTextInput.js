@@ -17,6 +17,7 @@ import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
+import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as Pressables from '../Pressable';
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
@@ -133,8 +134,7 @@ class BaseTextInput extends Component {
 
         // If the text has been supplied by Chrome autofill, the value state is not synced with the value
         // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
-        const textWasAutoFilledOnChrome = this.input.matches && this.input.matches(':-webkit-autofill');
-        if (!textWasAutoFilledOnChrome) {
+        if (!isInputAutoFilled(this.input)) {
             this.deactivateLabel();
         }
     }

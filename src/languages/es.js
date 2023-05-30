@@ -143,6 +143,9 @@ export default {
         mi: 'milla',
         km: 'kilómetro',
     },
+    anonymousReportFooter: {
+        logoTagline: 'Únete a la discussion.',
+    },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
         expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a tu cámara. Haz click en Configuración para actualizar los permisos.',
@@ -1867,5 +1870,10 @@ export default {
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',
         copied: '¡Copiado!',
+    },
+    moderation: {
+        flaggedContent: 'Este mensaje ha sido marcado por violar las reglas de nuestra comunidad y el contenido se ha ocultado.',
+        hideMessage: 'Ocultar mensaje',
+        revealMessage: 'Revelar mensaje',
     },
 };
