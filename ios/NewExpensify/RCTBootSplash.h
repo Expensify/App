@@ -11,6 +11,6 @@
 @interface RCTBootSplash : NSObject <RCTBridgeModule>
 
 + (void)initWithStoryboard:(NSString * _Nonnull)storyboardName
-                  rootView:(RCTRootView * _Nullable)rootView;
+                  rootView:(UIView * _Nullable)rootView;
 
 @end
