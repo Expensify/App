@@ -80,7 +80,12 @@ class SettlementButton extends React.Component {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: this.props.translate('iou.settleExpensify'),
                 icon: Expensicons.Wallet,
-                value: ReportUtils.isExpenseReport(this.props.iouReport) ? CONST.IOU.PAYMENT_TYPE.VBBA : CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+            },
+            [CONST.IOU.PAYMENT_TYPE.VBBA]: {
+                text: this.props.translate('iou.settleExpensify'),
+                icon: Expensicons.Wallet,
+                value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
                 text: this.props.translate('iou.settlePaypalMe'),
@@ -98,6 +103,9 @@ class SettlementButton extends React.Component {
         }
         if (this.props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
+        }
+        if (ReportUtils.isExpenseReport(this.props.iouReport)) {
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
         if (this.props.shouldShowPaypal && _.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, this.props.currency)) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]);
