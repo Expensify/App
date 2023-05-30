@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -28,6 +27,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import SplashScreenHider from './components/SplashScreenHider';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
@@ -191,7 +191,7 @@ function Expensify(props) {
                     ) : null}
                 </>
             )}
-
+            <AppleAuthWrapper />
             <NavigationRoot
                 onReady={setNavigationReady}
                 authenticated={isAuthenticated}
