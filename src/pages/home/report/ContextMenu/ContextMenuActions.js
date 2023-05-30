@@ -111,7 +111,6 @@ export default [
         successTextTranslateKey: '',
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) =>
-            Permissions.canUseThreads(betas) &&
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
             reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
             !ReportUtils.isThreadFirstChat(reportAction, reportID),

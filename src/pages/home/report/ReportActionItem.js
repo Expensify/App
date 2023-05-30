@@ -324,7 +324,7 @@ function ReportActionItem(props) {
         const hasReplies = numberOfThreadReplies > 0;
 
         const shouldDisplayThreadReplies =
-            hasReplies && props.action.childCommenterCount && Permissions.canUseThreads(props.betas) && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
+            hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
         const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
 
         return (
