@@ -100,6 +100,7 @@ class ReimbursementAccountPage extends React.Component {
         this.continue = this.continue.bind(this);
         this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.goBack = this.goBack.bind(this);
+        this.isNavigating = false;
 
         // The first time we open this page, the props.reimbursementAccount has not been loaded from the server.
         // Calculating shouldShowContinueSetupButton on the default data doesn't make sense, and we should recalculate
@@ -112,10 +113,20 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     componentDidMount() {
+        if (this.props.policy.outputCurrency !== CONST.CURRENCY.USD) {
+            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.policy.id));
+            this.isNavigating = true;
+            return;
+        }
+
         this.fetchData();
     }
 
     componentDidUpdate(prevProps) {
+        if (this.isNavigating) {
+            return;
+        }
+
         if (prevProps.network.isOffline && !this.props.network.isOffline && prevProps.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             this.fetchData();
         }

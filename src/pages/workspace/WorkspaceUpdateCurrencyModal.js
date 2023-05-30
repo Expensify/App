@@ -57,9 +57,4 @@ WorkspaceUpdateCurrencyModal.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        policy: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-        },
-    }),
 )(WorkspaceUpdateCurrencyModal);
