@@ -141,7 +141,7 @@ const IOUPreview = (props) => {
 
     const requestAmount = moneyRequestAction.amount;
     const requestCurrency = moneyRequestAction.currency;
-    const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim();
+    const requestComment = moneyRequestAction.comment.trim();
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
