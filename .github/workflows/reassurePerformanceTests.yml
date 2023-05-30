@@ -13,16 +13,17 @@ jobs:
       - name: Run performance testing script
         shell: bash
         run: |
+          set -e 
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin
           git switch "$BASELINE_BRANCH"
-          yarn install --force
-          yarn reassure --baseline
+          npm install --force
+          npm run reassure --baseline
           git switch --detach -
-          yarn install --force
-          yarn reassure --branch
+          npm install --force
+          npm run reassure --branch
 
       - name: Run Danger.js
-        run: yarn danger ci
+        run: npm run danger ci
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
