@@ -13,7 +13,6 @@ jobs:
       - name: Run performance testing script
         shell: bash
         run: |
-          set -e 
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin
           git switch "$BASELINE_BRANCH"
