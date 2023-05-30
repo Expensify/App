@@ -105,7 +105,6 @@ class WorkspaceRateAndUnitPage extends React.Component {
         const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
         return (
             <WorkspacePageWithSections
-                shouldUseScrollView
                 headerText={this.props.translate('workspace.reimburse.trackDistance')}
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
@@ -125,9 +124,9 @@ class WorkspaceRateAndUnitPage extends React.Component {
                         <OfflineWithFeedback
                             errors={{
                                 ...lodashGet(distanceCustomUnit, 'errors', {}),
-                                ...lodashGet(distanceCustomRate.errors, 'errors', {}),
+                                ...lodashGet(distanceCustomRate, 'errors', {}),
                             }}
-                            pendingAction={distanceCustomUnit.pendingAction || distanceCustomRate.pendingAction}
+                            pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
                             onClose={() =>
                                 Policy.clearCustomUnitErrors(this.props.policy.id, lodashGet(distanceCustomUnit, 'customUnitID', ''), lodashGet(distanceCustomRate, 'customUnitRateID', ''))
                             }
