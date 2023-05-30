@@ -31,10 +31,7 @@ const defaultProps = {
 const WorkspaceUpdateCurrencyModal = (props) => {
     const [isVisible, setIsVisible] = useState(props.policy.outputCurrency !== CONST.CURRENCY.USD);
 
-    /**
-     * Call update workspace currency and hide the modal
-     */
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+    const confirmUpdateCurrencyAndHideModal = useCallback(() => {
         Policy.updateGeneralSettings(props.policy.id, props.policy.name, CONST.CURRENCY.USD);
         setIsVisible(false);
         ReimbursementAccount.navigateToBankAccountRoute(props.policy.id)
@@ -44,7 +41,7 @@ const WorkspaceUpdateCurrencyModal = (props) => {
         <ConfirmModal
             title={props.translate('workspace.common.delete')}
             isVisible={isVisible}
-            onConfirm={confirmCurrencyChangeAndHideModal}
+            onConfirm={confirmUpdateCurrencyAndHideModal}
             onCancel={() => setIsVisible(false)}
             prompt={props.translate('workspace.common.deleteConfirmation')}
             confirmText={props.translate('common.delete')}
