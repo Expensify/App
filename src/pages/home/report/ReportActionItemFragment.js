@@ -109,7 +109,7 @@ const ReportActionItemFragment = (props) => {
             // Only render HTML if we have html in the fragment
             if (!differByLineBreaksOnly) {
                 const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
-                const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
+                const editedTag = props.fragment.isEdited ? `<edited ${isPendingDelete ? 'deleted' : ''}></edited>` : '';
                 const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);
 
                 return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
@@ -125,7 +125,7 @@ const ReportActionItemFragment = (props) => {
                         <Text
                             fontSize={variables.fontSizeSmall}
                             color={themeColors.textSupporting}
-                            style={[styles.alignItemsBaseline, editedLabelStyles]}
+                            style={[editedLabelStyles, ...props.style]}
                         >
                             <Text
                                 selectable={false}

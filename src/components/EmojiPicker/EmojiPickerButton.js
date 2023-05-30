@@ -28,10 +28,7 @@ const defaultProps = {
 const EmojiPickerButton = (props) => {
     let emojiPopoverAnchor = null;
     return (
-        <Tooltip
-            containerStyles={[styles.alignSelfEnd]}
-            text={props.translate('reportActionCompose.emoji')}
-        >
+        <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <Pressable
                 ref={(el) => (emojiPopoverAnchor = el)}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
