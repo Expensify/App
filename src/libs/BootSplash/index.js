@@ -9,9 +9,10 @@ function hide() {
 
     return document.fonts.ready.then(() => {
         const splash = document.getElementById('splash');
-        splash.style.opacity = 0;
+        if (splash) splash.style.opacity = 0;
 
         return resolveAfter(250).then(() => {
+            if (!splash || !splash.parentNode) return;
             splash.parentNode.removeChild(splash);
         });
     });
