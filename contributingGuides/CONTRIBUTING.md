@@ -193,7 +193,7 @@ During communication with Expensify, you will come across a variety of acronyms 
 - **LHN:** Left Hand Navigation
 - **IOU:** I owe you (used to describe payment requests between users)
 - **OTP:** One time password, or magic sign-in
-- **RDM:** Right Docked Modal (on larger screens, pages are often displayed docked to the right side of the screen)
+- **RHP:** Right Hand Panel (on larger screens, pages are often displayed docked to the right side of the screen)
 - **QA:** Quality Assurance
 - **GH:** GitHub
 - **LGTM:*** Looks good to me
