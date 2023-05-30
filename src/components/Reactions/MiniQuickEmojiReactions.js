@@ -53,7 +53,7 @@ const MiniQuickEmojiReactions = (props) => {
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
-                props.onEmojiSelected(emojiObject, props.reactions);
+                props.onEmojiSelected(emojiObject, props.emojiReactions);
             },
             ref.current,
         );

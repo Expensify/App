@@ -1481,8 +1481,11 @@ function hasAccountIDEmojiReacted(accountID, users, skinTone) {
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
  * @param {String} reportActionID
- * @param {{ name: string, code: string, types: string[] }} emoji
- * @param {number} [skinTone] Optional.
+ * @param {Object} emoji
+ * @param {String} emoji.name
+ * @param {String} emoji.code
+ * @param {String[]} [emoji.types]
+ * @param {Number} [skinTone]
  */
 function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredSkinTone) {
     const createdAt = moment().utc().format(CONST.DATE.SQL_DATE_TIME);
@@ -1522,7 +1525,10 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
  * @param {String} reportActionID
- * @param {{ name: string, code: string, types: string[] }} emoji
+ * @param {Object} emoji
+ * @param {String} emoji.name
+ * @param {String} emoji.code
+ * @param {String[]} [emoji.types]
  */
 function removeEmojiReaction(reportID, reportActionID, emoji) {
     const optimisticData = [
@@ -1554,7 +1560,10 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
  * @param {Object} reportAction
- * @param {{ name: string, code: string, types: string[] }} emoji
+ * @param {Object} emoji
+ * @param {String} emoji.name
+ * @param {String} emoji.code
+ * @param {String[]} [emoji.types]
  * @param {Object} existingReactions
  * @param {Number} [paramSkinTone]
  */
