@@ -19,6 +19,7 @@ import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
 import CONST from "../CONST"
+import _ from 'underscore';
 
 const propTypes = {
     /** Title of the Header */

@@ -9,6 +9,7 @@ import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 import CONST from "../../CONST"
+import _ from 'underscore';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -53,6 +54,10 @@ const defaultProps = {
     iconStyles: [],
     icon: Expensicons.ThreeDots,
     onIconPress: () => {},
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
 };
 
 class ThreeDotsMenu extends Component {
