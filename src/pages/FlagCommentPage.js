@@ -110,7 +110,7 @@ function FlagCommentPage(props) {
             reportAction = ReportActionsUtils.getParentReportAction(props.report);
         }
         Report.flagComment(reportID, reportAction, severity);
-        Navigation.dismissModal(false);
+        Navigation.dismissModal();
     };
 
     const severityMenuItems = _.map(severities, (item, index) => (
@@ -131,7 +131,7 @@ function FlagCommentPage(props) {
                 <>
                     <HeaderWithCloseButton
                         title={props.translate('reportActionContextMenu.flagAsOffensive')}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
