@@ -34,7 +34,7 @@ Onyx.connect({
  * @param {Object} reportAction
  * @returns {Boolean}
  */
-function isCreatedActionType(reportAction) {
+function isCreatedAction(reportAction) {
     return lodashGet(reportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
@@ -237,7 +237,7 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
 
-    if (isCreatedActionType(lastVisibleAction)) {
+    if (isCreatedAction(lastVisibleAction)) {
         return '';
     }
 
