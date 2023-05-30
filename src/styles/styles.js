@@ -3368,6 +3368,12 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+    
+    loginButtonRow: {
+        justifyContent: 'center',
+        width: '100%',
+        ...flex.flexRow,
+    },
 };
 
 export default styles;
