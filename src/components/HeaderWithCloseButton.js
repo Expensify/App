@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, Keyboard, Pressable} from 'react-native';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import Header from './Header';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
@@ -18,6 +19,7 @@ import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
+import * as Report from '../libs/actions/Report';
 
 const propTypes = {
     /** Title of the Header */
@@ -49,6 +51,9 @@ const propTypes = {
 
     /** Whether we should show a get assistance (question mark) button */
     shouldShowGetAssistanceButton: PropTypes.bool,
+
+    /** Whether we should show a pin button */
+    shouldShowPinButton: PropTypes.bool,
 
     /** Whether we should show a more options (threedots) button */
     shouldShowThreeDotsButton: PropTypes.bool,
@@ -83,6 +88,9 @@ const propTypes = {
     /** Whether we should show an avatar */
     shouldShowAvatarWithDisplay: PropTypes.bool,
 
+    /** Parent report, if provided it will override props.report for AvatarWithDisplay */
+    parentReport: iouReportPropTypes,
+
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report: iouReportPropTypes,
 
@@ -112,10 +120,12 @@ const defaultProps = {
     shouldShowDownloadButton: false,
     shouldShowGetAssistanceButton: false,
     shouldShowThreeDotsButton: false,
+    shouldShowPinButton: false,
     shouldShowCloseButton: true,
     shouldShowStepCounter: true,
     shouldShowAvatarWithDisplay: false,
     report: null,
+    parentReport: null,
     policies: {},
     personalDetails: {},
     guidesCallTaskID: '',
@@ -168,7 +178,7 @@ class HeaderWithCloseButton extends Component {
                     )}
                     {this.props.shouldShowAvatarWithDisplay && (
                         <AvatarWithDisplayName
-                            report={this.props.report}
+                            report={this.props.parentReport ? this.props.parentReport : this.props.report}
                             policies={this.props.policies}
                             personalDetails={this.props.personalDetails}
                         />
@@ -208,6 +218,20 @@ class HeaderWithCloseButton extends Component {
                                     accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
                                 >
                                     <Icon src={Expensicons.QuestionMark} />
+                                </Pressable>
+                            </Tooltip>
+                        )}
+
+                        {this.props.shouldShowPinButton && (
+                            <Tooltip text={this.props.report.isPinned ? this.props.translate('common.unPin') : this.props.translate('common.pin')}>
+                                <Pressable
+                                    onPress={() => Report.togglePinnedState(this.props.report)}
+                                    style={[styles.touchableButtonImage]}
+                                >
+                                    <Icon
+                                        src={Expensicons.Pin}
+                                        fill={this.props.report.isPinned ? themeColors.heading : themeColors.icon}
+                                    />
                                 </Pressable>
                             </Tooltip>
                         )}
