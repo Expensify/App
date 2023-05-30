@@ -455,7 +455,7 @@ function isAllowedToComment(report) {
         return true;
     }
 
-    // If user opens public chat room directly from deep link after logout
+    // If unauthenticated user opens public chat room using deeplink, they do not have policies available and they cannot comment
     if (!allPolicies) {
         return false;
     }
