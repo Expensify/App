@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, Keyboard, Pressable} from 'react-native';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Header from './Header';
 import Navigation from '../libs/Navigation/Navigation';
@@ -19,7 +20,6 @@ import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
 import CONST from "../CONST"
-import _ from 'underscore';
 
 const propTypes = {
     /** Title of the Header */

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import Icon from '../Icon';
 import PopoverMenu from '../PopoverMenu';
 import styles from '../../styles/styles';
@@ -9,7 +10,6 @@ import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 import CONST from "../../CONST"
-import _ from 'underscore';
 
 const propTypes = {
     ...withLocalizePropTypes,
