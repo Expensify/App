@@ -59,6 +59,12 @@ Onyx.connect({
     },
 });
 
+let isNetworkOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -323,8 +329,9 @@ function addComment(reportID, text) {
  * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
+ * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
  */
-function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0') {
+function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -368,6 +375,10 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         emailList: participantList ? participantList.join(',') : '',
         parentReportActionID,
     };
+
+    if (isFromDeepLink) {
+        params.shouldRetry = false;
+    }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
@@ -416,7 +427,15 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         }
     }
 
-    API.write('OpenReport', params, onyxData);
+    if (isFromDeepLink) {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
+            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        });
+    } else {
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write('OpenReport', params, onyxData);
+    }
 }
 
 /**
@@ -1624,12 +1643,28 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
 
 /**
  * @param {String|null} url
+ * @param {Boolean} isAuthenticated
  */
-function openReportFromDeepLink(url) {
+function openReportFromDeepLink(url, isAuthenticated) {
+    const route = ReportUtils.getRouteFromLink(url);
+    const reportID = ReportUtils.getReportIDFromLink(url);
+
+    if (reportID && !isAuthenticated) {
+        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
+        openReport(reportID, [], {}, '0', true);
+
+        // Show the sign-in page if the app is offline
+        if (isNetworkOffline) {
+            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        }
+    } else {
+        // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
+        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+    }
+
+    // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Navigation.isReportScreenReady().then(() => {
-            const route = ReportUtils.getRouteFromLink(url);
-            const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID));
             }
@@ -1675,6 +1710,13 @@ function leaveRoom(reportID) {
         },
     );
     navigateToConciergeChat();
+}
+
+/**
+ * @param {String} reportID
+ */
+function setLastOpenedPublicRoom(reportID) {
+    Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
 }
 
 /**
@@ -1800,5 +1842,6 @@ export {
     hasAccountIDReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    setLastOpenedPublicRoom,
     flagComment,
 };

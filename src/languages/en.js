@@ -144,6 +144,9 @@ export default {
         mi: 'mile',
         km: 'kilometer',
     },
+    anonymousReportFooter: {
+        logoTagline: 'Join in on the discussion.',
+    },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
         expensifyDoesntHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap Settings to update permissions.",
@@ -1068,6 +1071,7 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
+            goToRoom: ({roomName}) => `Go to ${roomName} room`,
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1388,6 +1392,7 @@ export default {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+        prestyledText: 'Prestyled text',
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
@@ -1417,5 +1422,8 @@ export default {
         harassmentDescription: 'Racist, misogynistic, or other broadly discriminatory behavior',
         assault: 'Assault',
         assaultDescription: 'Specifically targeted emotional attack with the intention of harm',
+        flaggedContent: 'This message has been flagged as violating our community rules and the content has been hidden.',
+        hideMessage: 'Hide message',
+        revealMessage: 'Reveal message',
     },
 };

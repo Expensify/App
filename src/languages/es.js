@@ -143,6 +143,9 @@ export default {
         mi: 'milla',
         km: 'kilómetro',
     },
+    anonymousReportFooter: {
+        logoTagline: 'Únete a la discussion.',
+    },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
         expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a tu cámara. Haz click en Configuración para actualizar los permisos.',
@@ -1073,6 +1076,7 @@ export default {
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
+            goToRoom: ({roomName}) => `Ir a la sala ${roomName}`,
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
@@ -1854,6 +1858,7 @@ export default {
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+        prestyledText: 'texto preestilizado',
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
@@ -1883,5 +1888,8 @@ export default {
         harassmentDescription: 'Comportamiento racista, misógino u otro comportamiento discriminatorio',
         assault: 'Agresion',
         assaultDescription: 'Ataque emocional específicamente dirigido con la intención de hacer daño',
+        flaggedContent: 'Este mensaje ha sido marcado por violar las reglas de nuestra comunidad y el contenido se ha ocultado.',
+        hideMessage: 'Ocultar mensaje',
+        revealMessage: 'Revelar mensaje',
     },
 };
