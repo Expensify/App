@@ -39,6 +39,7 @@ export default {
     SETTINGS_PASSWORD: 'settings/security/password',
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
+    SETTINGS_BUG_REPORT: 'settings/about/bug-report',
     SETTINGS_PAYMENTS: 'settings/payments',
     SETTINGS_ADD_PAYPAL_ME: 'settings/payments/add-paypal-me',
     SETTINGS_ADD_DEBIT_CARD: 'settings/payments/add-debit-card',
@@ -172,7 +173,7 @@ export default {
      */
     parseReportRouteParams: (route) => {
         if (!route.startsWith(Url.addTrailingForwardSlash(REPORT))) {
-            return {reportID: '', isSubReportPageRoute: false};
+            return { reportID: '', isSubReportPageRoute: false };
         }
 
         const pathSegments = route.split('/');

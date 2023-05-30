@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import styles from '../../../styles/styles';
 
 const defaultSubRouteOptions = {
@@ -469,6 +469,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsReportBug = require('../../../pages/settings/ReportBug').default;
+            return SettingsReportBug;
+        },
+        name: 'Settings_Bug_Report',
+    },
+    {
+        getComponent: () => {
             const SettingsPaymentsPage = require('../../../pages/settings/Payments/PaymentsPage').default;
             return SettingsPaymentsPage;
         },
@@ -606,7 +613,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return ReimbursementAccountPage;
         },
         name: 'ReimbursementAccount',
-        initialParams: {stepToOpen: ''},
+        initialParams: { stepToOpen: '' },
     },
     {
         getComponent: () => {

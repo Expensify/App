@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import { View, ScrollView } from 'react-native';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -10,8 +10,8 @@ import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, { withLocalizePropTypes } from '../../../components/withLocalize';
+import withWindowDimensions, { windowDimensionsPropTypes } from '../../../components/withWindowDimensions';
 import MenuItem from '../../../components/MenuItem';
 import Logo from '../../../../assets/images/new-expensify.svg';
 import pkg from '../../../../package.json';
@@ -19,7 +19,7 @@ import * as Report from '../../../libs/actions/Report';
 import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
+import { CONTEXT_MENU_TYPES } from '../../home/report/ContextMenu/ContextMenuActions';
 import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
 import * as Environment from '../../../libs/Environment/Environment';
 
@@ -64,13 +64,15 @@ const AboutPage = (props) => {
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
             icon: Expensicons.Bug,
-            action: Report.navigateToConciergeChat,
+            action: () => {
+                Navigation.navigate(ROUTES.SETTINGS_BUG_REPORT);
+            },
         },
     ];
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
+            {({ safeAreaPaddingBottomStyle }) => (
                 <>
                     <HeaderWithCloseButton
                         title={props.translate('initialSettingsPage.about')}
