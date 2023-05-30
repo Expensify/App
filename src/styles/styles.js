@@ -3196,12 +3196,20 @@ const styles = {
     whisper: {
         backgroundColor: themeColors.cardBG,
     },
+
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
+
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    loginButtonRow: {
+        justifyContent: 'center',
+        width: '100%',
+        ...flex.flexRow,
     },
 };
 
