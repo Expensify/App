@@ -21,7 +21,6 @@ import CONST from '../../../CONST';
 import participantPropTypes from '../../../components/participantPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions from '../../../components/withWindowDimensions';
 import reportActionPropTypes from '../report/reportActionPropTypes';
@@ -34,6 +33,9 @@ import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
+import * as Session from '../../../libs/actions/Session';
+import Button from '../../../components/Button';
+import * as UserUtils from '../../../libs/UserUtils';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -107,6 +109,7 @@ class SidebarLinks extends React.Component {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
+
         Navigation.navigate(ROUTES.SEARCH);
     }
 
@@ -115,6 +118,7 @@ class SidebarLinks extends React.Component {
             // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
             return;
         }
+
         Navigation.navigate(ROUTES.SETTINGS);
     }
 
@@ -166,7 +170,7 @@ class SidebarLinks extends React.Component {
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
-                            onPress={this.showSearchPage}
+                            onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
@@ -174,14 +178,25 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={this.showSettingsPage}
+                        onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
                     >
-                        <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                            <AvatarWithIndicator
-                                source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
-                                tooltipText={this.props.translate('common.settings')}
-                            />
-                        </OfflineWithFeedback>
+                        {Session.isAnonymousUser() ? (
+                            <View style={styles.signInButtonAvatar}>
+                                <Button
+                                    medium
+                                    success
+                                    text={this.props.translate('common.signIn')}
+                                    onPress={() => Session.signOutAndRedirectToSignIn()}
+                                />
+                            </View>
+                        ) : (
+                            <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                                <AvatarWithIndicator
+                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                                    tooltipText={this.props.translate('common.settings')}
+                                />
+                            </OfflineWithFeedback>
+                        )}
                     </TouchableOpacity>
                 </View>
                 <Freeze
@@ -220,33 +235,27 @@ SidebarLinks.defaultProps = defaultProps;
  * @param {Object} [report]
  * @returns {Object|undefined}
  */
-const chatReportSelector = (report) => {
-    if (ReportUtils.isIOUReport(report)) {
-        return null;
-    }
-    return (
-        report && {
-            reportID: report.reportID,
-            participants: report.participants,
-            hasDraft: report.hasDraft,
-            isPinned: report.isPinned,
-            errorFields: {
-                addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-            },
-            lastReadTime: report.lastReadTime,
-            lastMentionedTime: report.lastMentionedTime,
-            lastMessageText: report.lastMessageText,
-            lastVisibleActionCreated: report.lastVisibleActionCreated,
-            iouReportID: report.iouReportID,
-            hasOutstandingIOU: report.hasOutstandingIOU,
-            statusNum: report.statusNum,
-            stateNum: report.stateNum,
-            chatType: report.chatType,
-            policyID: report.policyID,
-            reportName: report.reportName,
-        }
-    );
-};
+const chatReportSelector = (report) =>
+    report && {
+        reportID: report.reportID,
+        participants: report.participants,
+        hasDraft: report.hasDraft,
+        isPinned: report.isPinned,
+        errorFields: {
+            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
+        },
+        lastReadTime: report.lastReadTime,
+        lastMentionedTime: report.lastMentionedTime,
+        lastMessageText: report.lastMessageText,
+        lastVisibleActionCreated: report.lastVisibleActionCreated,
+        iouReportID: report.iouReportID,
+        hasOutstandingIOU: report.hasOutstandingIOU,
+        statusNum: report.statusNum,
+        stateNum: report.stateNum,
+        chatType: report.chatType,
+        policyID: report.policyID,
+        reportName: report.reportName,
+    };
 
 /**
  * @param {Object} [personalDetails]
@@ -262,7 +271,7 @@ const personalDetailsSelector = (personalDetails) =>
                 login: personalData.login,
                 displayName: personalData.displayName,
                 firstName: personalData.firstName,
-                avatar: ReportUtils.getAvatar(personalData.avatar, personalData.login),
+                avatar: UserUtils.getAvatar(personalData.avatar, personalData.login),
             };
             return finalPersonalDetails;
         },

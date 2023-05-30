@@ -726,6 +726,12 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    headerAnonymousFooter: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontSize: variables.fontSizeXLarge,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -1547,27 +1553,8 @@ const styles = {
             // paddingVertical: 0, alignSelf: 'center', and textAlignVertical: 'center'
 
             paddingHorizontal: variables.avatarChatSpacing,
-            paddingTop: 9,
-            paddingBottom: 9,
-            alignSelf: 'center',
-            textAlignVertical: 'center',
-        },
-        0,
-    ),
-    textInputComposeMultiLines: addOutlineWidth(
-        {
-            backgroundColor: themeColors.componentBG,
-            borderColor: themeColors.border,
-            color: themeColors.text,
-            fontFamily: fontFamily.EMOJI_TEXT_FONT,
-            fontSize: variables.fontSizeNormal,
-            borderWidth: 0,
-            height: 'auto',
-            lineHeight: variables.lineHeightXLarge,
-            ...overflowXHidden,
-            paddingHorizontal: variables.avatarChatSpacing,
-            paddingTop: 5,
-            paddingBottom: 5,
+            paddingTop: 0,
+            paddingBottom: 0,
             alignSelf: 'center',
             textAlignVertical: 'center',
         },
@@ -1588,7 +1575,7 @@ const styles = {
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 0,
+        paddingVertical: 5,
         ...flex.flexRow,
         flex: 1,
     },
@@ -1887,6 +1874,16 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarMedium: {
+        height: variables.avatarSizeMedium,
+        width: variables.avatarSizeMedium,
+    },
+
+    emptyAvatarLarge: {
+        height: variables.avatarSizeLarge,
+        width: variables.avatarSizeLarge,
+    },
+
     emptyAvatarMargin: {
         marginRight: variables.avatarChatSpacing,
     },
@@ -2179,6 +2176,33 @@ const styles = {
         marginTop: 'auto',
     },
 
+    anonymousRoomFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 20,
+        marginBottom: 20,
+        backgroundColor: themeColors.activeComponentBG,
+        flexWrap: 'wrap',
+        gap: 8,
+        borderRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+    },
+
+    anonymousRoomFooterLogo: {
+        width: 88,
+        marginLeft: 0,
+        height: 20,
+    },
+
+    signInButtonAvatar: {
+        width: 80,
+    },
+
+    anonymousRoomFooterSignInButton: {
+        width: 125,
+    },
+
     roomHeaderAvatarSize: {
         height: variables.componentSizeLarge,
         width: variables.componentSizeLarge,
@@ -2456,7 +2480,6 @@ const styles = {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
-        marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
@@ -3244,12 +3267,11 @@ const styles = {
     },
 
     datePickerPopover: {
-        position: 'absolute',
         backgroundColor: themeColors.appBG,
         width: '100%',
         alignSelf: 'center',
-        top: 60,
         zIndex: 100,
+        marginTop: 8,
     },
 
     loginHeroHeader: {
@@ -3330,6 +3352,17 @@ const styles = {
         fontSize: 7,
         fontWeight: fontWeightBold,
         lineHeight: undefined,
+    },
+
+    expensifyQrLogo: {
+        alignSelf: 'stretch',
+        height: 27,
+        marginBottom: 20,
+    },
+
+    qrShareTitle: {
+        marginTop: 15,
+        textAlign: 'center',
     },
 };
 

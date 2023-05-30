@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */
@@ -104,7 +105,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
                             ref={this.videoChatButtonRef}
-                            onPress={() => {
+                            onPress={Session.checkIfActionIsAllowed(() => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButtonRef.current.blur();
 
@@ -114,7 +115,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                                     return;
                                 }
                                 this.setMenuVisibility(!this.state.isVideoChatMenuActive);
-                            }}
+                            })}
                             style={[styles.touchableButtonImage]}
                         >
                             <Icon

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
@@ -47,11 +47,12 @@ const defaultProps = {
 
 const PopoverMenu = (props) => {
     const {isSmallScreenWidth} = useWindowDimensions();
+    const [selectedItemIndex, setSelectedItemIndex] = useState(null);
 
     const selectItem = (index) => {
         const selectedItem = props.menuItems[index];
         props.onItemSelected(selectedItem);
-        selectedItem.onSelected();
+        setSelectedItemIndex(index);
     };
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1});
@@ -74,7 +75,13 @@ const PopoverMenu = (props) => {
             anchorAlignment={props.anchorOrigin}
             onClose={props.onClose}
             isVisible={props.isVisible}
-            onModalHide={() => setFocusedIndex(-1)}
+            onModalHide={() => {
+                setFocusedIndex(-1);
+                if (selectedItemIndex !== null) {
+                    props.menuItems[selectedItemIndex].onSelected();
+                    setSelectedItemIndex(null);
+                }
+            }}
             animationIn={props.animationIn}
             animationOut={props.animationOut}
             animationInTiming={props.animationInTiming}

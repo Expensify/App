@@ -21,13 +21,14 @@ import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../../components/OptionRow';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
@@ -343,7 +344,7 @@ class WorkspaceMembersPage extends React.Component {
                                 participantsList: [item],
                                 icons: [
                                     {
-                                        source: ReportUtils.getAvatar(item.avatar, item.login),
+                                        source: UserUtils.getAvatar(item.avatar, item.login),
                                         name: item.login,
                                         type: CONST.ICON_TYPE_AVATAR,
                                     },
@@ -501,7 +502,7 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         personalDetails: {
