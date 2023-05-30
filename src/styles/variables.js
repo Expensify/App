@@ -72,6 +72,7 @@ export default {
     emojiSize: 20,
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
+    extraSmallMobileResponsiveWidthBreakpoint: 320,
     mobileResponsiveWidthBreakpoint: 800,
     modalFullscreenBackdropOpacity: 0.5,
     tabletResponsiveWidthBreakpoint: 1024,

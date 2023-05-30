@@ -13,6 +13,9 @@ const windowDimensionsPropTypes = {
     // Height of the window
     windowHeight: PropTypes.number.isRequired,
 
+    // Is the window width extra narrow, like on a Fold mobile device?
+    isExtraSmallScreenWidth: PropTypes.bool.isRequired,
+
     // Is the window width narrow, like on a mobile device?
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -35,6 +38,7 @@ class WindowDimensionsProvider extends React.Component {
         this.onDimensionChange = this.onDimensionChange.bind(this);
 
         const initialDimensions = Dimensions.get('window');
+        const isExtraSmallScreenWidth = initialDimensions.width <= variables.extraSmallMobileResponsiveWidthBreakpoint;
         const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
         const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
         const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
@@ -44,6 +48,7 @@ class WindowDimensionsProvider extends React.Component {
         this.state = {
             windowHeight: initialDimensions.height,
             windowWidth: initialDimensions.width,
+            isExtraSmallScreenWidth,
             isSmallScreenWidth,
             isMediumScreenWidth,
             isLargeScreenWidth,
@@ -69,12 +74,14 @@ class WindowDimensionsProvider extends React.Component {
      */
     onDimensionChange(newDimensions) {
         const {window} = newDimensions;
+        const isExtraSmallScreenWidth = window.width <= variables.extraSmallMobileResponsiveWidthBreakpoint;
         const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
         const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.tabletResponsiveWidthBreakpoint;
         const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
         this.setState({
             windowHeight: window.height,
             windowWidth: window.width,
+            isExtraSmallScreenWidth,
             isSmallScreenWidth,
             isMediumScreenWidth,
             isLargeScreenWidth,
