@@ -52,7 +52,6 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
-import Permissions from '../../../libs/Permissions';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
@@ -92,9 +91,6 @@ const propTypes = {
 
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -103,7 +99,6 @@ const defaultProps = {
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
-    betas: [],
 };
 
 function ReportActionItem(props) {
@@ -505,9 +500,6 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(
