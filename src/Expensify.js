@@ -95,7 +95,7 @@ function Expensify(props) {
     const [isCheckingPublicRoom, setIsCheckingPublicRoom] = useState(true);
 
     useEffect(() => {
-        if (props.isCheckingPublicRoom !== false) return;
+        if (props.isCheckingPublicRoom) return;
         setIsCheckingPublicRoom(false);
     }, [props.isCheckingPublicRoom]);
 
