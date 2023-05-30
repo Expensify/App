@@ -118,8 +118,8 @@ const ReportDetailsPage = (props) => {
     }, [props.report.reportID, participants, isArchivedRoom, isPolicyExpenseChat, isChatRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
 
     const displayNamesWithTooltips = useMemo(() => {
-        const hasMultipleParticipant = participants.length > 1;
-        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), hasMultipleParticipant);
+        const hasMultipleParticipants = participants.length > 1;
+        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), hasMultipleParticipants);
     }, [participants, props.personalDetails]);
 
     const chatRoomSubtitleText = (
