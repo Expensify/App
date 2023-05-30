@@ -58,7 +58,7 @@ function EmojiSkinToneList(props) {
                         <EmojiPickerMenuItem
                             onPress={() => updateSelectedSkinTone(skinToneEmoji)}
                             onHoverIn={() => setHighlightedIndex(skinToneEmoji.skinTone)}
-                            onHoverOut={() => setHighlightedIndex(currentSkinTone.skinTone)}
+                            onHoverOut={() => setHighlightedIndex(null)}
                             key={skinToneEmoji.code}
                             emoji={skinToneEmoji.code}
                             isHighlighted={skinToneEmoji.skinTone === highlightedIndex || skinToneEmoji.skinTone === currentSkinTone.skinTone}
