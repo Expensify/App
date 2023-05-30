@@ -25,6 +25,7 @@ import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
 import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
+import isInputAutoFilled from '../../libs/isInputAutoFilled';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -114,7 +115,7 @@ class LoginForm extends React.Component {
         }
 
         // Clear the "Account successfully closed" message when the user starts typing
-        if (this.props.closeAccount.success) {
+        if (this.props.closeAccount.success && !isInputAutoFilled(this.input)) {
             CloseAccount.setDefaultData();
         }
     }
