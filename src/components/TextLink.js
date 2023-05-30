@@ -27,7 +27,7 @@ const defaultProps = {
     href: undefined,
     style: [],
     onPress: undefined,
-    onMouseDown: undefined,
+    onMouseDown: (event) => event.preventDefault(),
 };
 
 const TextLink = (props) => {

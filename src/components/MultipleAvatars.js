@@ -23,9 +23,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
-    /** Tooltip for the Avatar */
-    avatarTooltips: PropTypes.arrayOf(PropTypes.string),
-
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
@@ -44,7 +41,10 @@ const propTypes = {
     /** Whether avatars are displayed within a reportAction */
     isInReportAction: PropTypes.bool,
 
-    /** Whether avatars are displayed within an IOUAction */
+    /** Whether to show the toolip text */
+    shouldShowTooltip: PropTypes.bool,
+
+    /** Whether avatars are displayed with the highlighted background color instead of the app background color. This is primarily the case for IOU previews. */
     shouldUseCardBackground: PropTypes.bool,
 };
 
@@ -52,13 +52,13 @@ const defaultProps = {
     icons: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
     secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
-    avatarTooltips: [],
     fallbackIcon: undefined,
     shouldStackHorizontally: false,
     isHovered: false,
     isPressed: false,
     isFocusMode: false,
     isInReportAction: false,
+    shouldShowTooltip: true,
     shouldUseCardBackground: false,
 };
 
@@ -66,6 +66,7 @@ const MultipleAvatars = (props) => {
     let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
     const singleAvatarStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
+    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [];
 
     if (!props.icons.length) {
         return null;
@@ -73,8 +74,8 @@ const MultipleAvatars = (props) => {
 
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
         return (
-            <View style={avatarContainerStyles}>
-                <Tooltip text={props.avatarTooltips[0]}>
+            <Tooltip text={tooltipTexts[0]}>
+                <View style={avatarContainerStyles}>
                     <Avatar
                         source={props.icons[0].source}
                         size={props.size}
@@ -82,8 +83,8 @@ const MultipleAvatars = (props) => {
                         name={props.icons[0].name}
                         type={props.icons[0].type}
                     />
-                </Tooltip>
-            </View>
+                </View>
+            </Tooltip>
         );
     }
 
@@ -113,7 +114,7 @@ const MultipleAvatars = (props) => {
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
                         <Tooltip
                             key={`stackedAvatars-${index}`}
-                            text={props.avatarTooltips[index]}
+                            text={tooltipTexts[index]}
                             absolute
                         >
                             <View
@@ -142,7 +143,8 @@ const MultipleAvatars = (props) => {
                     ))}
                     {props.icons.length > 4 && (
                         <Tooltip
-                            text={props.avatarTooltips.slice(3).join(', ')}
+                            // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+                            text={tooltipTexts.slice(3, 10).join(', ')}
                             absolute
                         >
                             <View
@@ -173,10 +175,7 @@ const MultipleAvatars = (props) => {
                 </>
             ) : (
                 <View style={singleAvatarStyles}>
-                    <Tooltip
-                        text={props.avatarTooltips[0]}
-                        absolute
-                    >
+                    <Tooltip text={tooltipTexts[0]}>
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
@@ -191,10 +190,7 @@ const MultipleAvatars = (props) => {
                     </Tooltip>
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
-                            <Tooltip
-                                text={props.avatarTooltips[1]}
-                                absolute
-                            >
+                            <Tooltip text={tooltipTexts[1]}>
                                 <View>
                                     <Avatar
                                         source={props.icons[1].source || props.fallbackIcon}
@@ -207,10 +203,7 @@ const MultipleAvatars = (props) => {
                                 </View>
                             </Tooltip>
                         ) : (
-                            <Tooltip
-                                text={props.avatarTooltips.slice(1).join(', ')}
-                                absolute
-                            >
+                            <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                 <View style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Text
                                         selectable={false}

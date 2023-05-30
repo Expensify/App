@@ -226,7 +226,10 @@ class PasswordForm extends React.Component {
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
-                        isLoading={this.props.account.isLoading}
+                        isLoading={
+                            this.props.account.isLoading &&
+                            this.props.account.loadingForm === (this.props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                        }
                         onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />

@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Pressable} from 'react-native';
 import lodashGet from 'lodash/get';
 import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
@@ -15,7 +15,9 @@ import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as PolicyUtils from '../libs/PolicyUtils';
 import * as Report from '../libs/actions/Report';
+import * as Session from '../libs/actions/Session';
 import participantPropTypes from '../components/participantPropTypes';
 import * as Expensicons from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
@@ -56,6 +58,10 @@ const defaultProps = {
 };
 
 class ReportDetailsPage extends Component {
+    getPolicy() {
+        return this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+    }
+
     getMenuItems() {
         const menuItems = [
             {
@@ -93,7 +99,7 @@ class ReportDetailsPage extends Component {
             });
         }
 
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        const policy = this.getPolicy();
         const isThread = ReportUtils.isThread(this.props.report);
         if (ReportUtils.isUserCreatedPolicyRoom(this.props.report) || ReportUtils.canLeaveRoom(this.props.report, !_.isEmpty(policy)) || isThread) {
             menuItems.push({
@@ -119,6 +125,15 @@ class ReportDetailsPage extends Component {
             isMultipleParticipant,
         );
         const menuItems = this.getMenuItems();
+        const isPolicyAdmin = PolicyUtils.isPolicyAdmin(this.getPolicy());
+        const chatRoomSubtitleText = (
+            <Text
+                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
+                numberOfLines={1}
+            >
+                {chatRoomSubtitle}
+            </Text>
+        );
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
@@ -144,12 +159,17 @@ class ReportDetailsPage extends Component {
                                             shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread}
                                         />
                                     </View>
-                                    <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.mb2, styles.pre]}
-                                        numberOfLines={1}
-                                    >
-                                        {chatRoomSubtitle}
-                                    </Text>
+                                    {isPolicyAdmin ? (
+                                        <Pressable
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.report.policyID));
+                                            }}
+                                        >
+                                            {chatRoomSubtitleText}
+                                        </Pressable>
+                                    ) : (
+                                        chatRoomSubtitleText
+                                    )}
                                 </View>
                             </View>
                         </View>
@@ -162,7 +182,7 @@ class ReportDetailsPage extends Component {
                                     title={this.props.translate(item.translationKey)}
                                     subtitle={item.subtitle}
                                     icon={item.icon}
-                                    onPress={item.action}
+                                    onPress={Session.checkIfActionIsAllowed(item.action)}
                                     shouldShowRightIcon
                                     brickRoadIndicator={brickRoadIndicator}
                                 />

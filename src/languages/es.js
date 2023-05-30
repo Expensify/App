@@ -139,6 +139,12 @@ export default {
         with: 'con',
         shareCode: 'Compartir código',
         share: 'Compartir',
+        per: 'por',
+        mi: 'milla',
+        km: 'kilómetro',
+    },
+    anonymousReportFooter: {
+        logoTagline: 'Únete a la discussion.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
@@ -172,6 +178,9 @@ export default {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
+        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
+        youCanAlso: 'También puedes',
+        openLinkInBrowser: 'abrir este enlace en tu navegador',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -284,6 +293,9 @@ export default {
         sayHello: '¡Saluda!',
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
     },
+    mentionSuggestions: {
+        hereAlternateText: 'Notificar a todos los que estén en linea de esta sala',
+    },
     newMessages: 'Mensajes nuevos',
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
@@ -298,6 +310,13 @@ export default {
         [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) =>
             `Este chat de espacio de trabajo esta desactivado porque ${displayName} ha dejado de ser miembro del espacio de trabajo ${policyName}.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `Este chat de espacio de trabajo esta desactivado porque el espacio de trabajo ${policyName} se ha eliminado.`,
+    },
+    writeCapabilityPage: {
+        label: 'Quién puede postear',
+        writeCapability: {
+            all: 'Todos los miembros',
+            admins: 'Solo administradores',
+        },
     },
     sidebarScreen: {
         fabAction: 'Nuevo chat',
@@ -597,6 +616,8 @@ export default {
         transferDetailBankAccount: 'Tu dinero debería llegar en 1-3 días laborables.',
         transferDetailDebitCard: 'Tu dinero debería llegar de inmediato.',
         failedTransfer: 'Tu saldo no se ha acreditado completamente. Por favor, transfiere los fondos a una cuenta bancaria.',
+        notHereSubTitle: 'Por favor, transfiere el saldo desde la página de pagos',
+        goToPayment: 'Ir a pagos',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Elegir cuenta',
@@ -627,6 +648,10 @@ export default {
                 description: 'Mostrar sólo los no leídos ordenados alfabéticamente',
             },
         },
+    },
+    welcomeMessagePage: {
+        welcomeMessage: 'Mensaje de bienvenida',
+        explainerText: 'Configura un mensaje de bienvenida privado y personalizado que se enviará cuando los usuarios se unan a esta sala de chat.',
     },
     languagePage: {
         language: 'Idioma',
@@ -717,7 +742,7 @@ export default {
             dateShouldBeBefore: ({dateString}) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `La fecha debe ser posterior a ${dateString}.`,
             incorrectZipFormat: ({zipFormat}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
-            hasInvalidCharacter: 'El nombre solo puede contener letras y números.',
+            hasInvalidCharacter: 'El nombre solo puede contener números y caracteres latinos.',
         },
     },
     resendValidationForm: {
@@ -747,7 +772,7 @@ export default {
         getMeOutOfHere: 'Sácame de aquí',
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
-        pageNotFound: 'La página que buscas no existe.',
+        pageNotFound: 'Ups, no deberías estar aquí',
         noAccess: 'No tienes acceso a este chat',
         goBackHome: 'Volver a la página principal',
     },
@@ -1029,17 +1054,18 @@ export default {
     },
     workspace: {
         common: {
-            card: 'Emitir tarjetas',
+            card: 'Tarjetas',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             delete: 'Eliminar espacio de trabajo',
-            settings: 'Configuración general',
-            reimburse: 'Reembolsar gastos',
+            settings: 'Configuración',
+            reimburse: 'Reembolsos',
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
-            travel: 'Reservar viaje',
-            members: 'Gestionar miembros',
-            bankAccount: 'Conectar cuenta bancaria',
+            travel: 'Viajes',
+            members: 'Miembros',
+            bankAccount: 'Cuenta bancaria',
+            connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
@@ -1049,6 +1075,7 @@ export default {
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
+            goToRoom: ({roomName}) => `Ir a la sala ${roomName}`,
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
@@ -1100,6 +1127,7 @@ export default {
             unlockNoVBACopy: 'Conecta una cuenta bancaria para reembolsar online a los miembros de tu espacio de trabajo.',
             fastReimbursementsVBACopy: '¡Todo listo para reembolsar recibos desde tu cuenta bancaria!',
             updateCustomUnitError: 'Los cambios no han podido ser guardados. El espacio de trabajo ha sido modificado mientras estabas desconectado. Por favor, inténtalo de nuevo.',
+            invalidRateError: 'Por favor ingrese una tarifa válida',
         },
         bills: {
             manageYourBills: 'Gestiona tus facturas',
@@ -1147,6 +1175,7 @@ export default {
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
+            nameIsTooLongError: `El nombre de su espacio de trabajo no puede tener más de ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} caracteres.`,
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',
@@ -1828,6 +1857,7 @@ export default {
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+        prestyledText: 'texto preestilizado',
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
