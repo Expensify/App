@@ -24,6 +24,7 @@ import reportPropTypes from '../../reportPropTypes';
 import * as ReactionList from './ReactionList/ReactionList';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -38,10 +39,11 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** Policy values needed in the component */
-    policy: PropTypes.shape({
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** avatar of the policy */
         avatar: PropTypes.string,
-    }),
+    }).isRequired,
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
@@ -50,7 +52,6 @@ const propTypes = {
 
 const defaultProps = {
     reportActions: [],
-    policy: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -126,7 +127,10 @@ class ReportActionsView extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (lodashGet(this.props, 'policy.avatar') !== lodashGet(nextProps, 'policy.avatar')) {
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        const nextPolicy = nextProps.policies[`${ONYXKEYS.COLLECTION.POLICY}${nextProps.report.policyID}`];
+
+        if (!_.isEqual(policy, nextPolicy)) {
             return true;
         }
 
