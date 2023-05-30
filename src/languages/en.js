@@ -144,6 +144,9 @@ export default {
         mi: 'mile',
         km: 'kilometer',
     },
+    anonymousReportFooter: {
+        logoTagline: 'Join in on the discussion.',
+    },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
         expensifyDoesntHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap Settings to update permissions.",

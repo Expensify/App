@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {Linking} from 'react-native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -20,6 +21,14 @@ import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
+import * as ReportUtils from '../../ReportUtils';
+import * as Report from '../Report';
+
+let authTokenType = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
+});
 
 let credentials = {};
 Onyx.connect({
@@ -67,10 +76,38 @@ function signOut() {
     Timing.clearData();
 }
 
+/**
+ * Checks if the account is an anonymous account.
+ *
+ * @return {boolean}
+ */
+function isAnonymousUser() {
+    return authTokenType === 'anonymousAccount';
+}
+
 function signOutAndRedirectToSignIn() {
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
+    if (isAnonymousUser()) {
+        Linking.getInitialURL().then((url) => {
+            const reportID = ReportUtils.getReportIDFromLink(url);
+            if (reportID) {
+                Report.setLastOpenedPublicRoom(reportID);
+            }
+        });
+    }
+}
+
+/**
+ * @param {Function} callback The callback to execute if the action is allowed
+ * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
+ */
+function checkIfActionIsAllowed(callback) {
+    if (isAnonymousUser()) {
+        return () => signOutAndRedirectToSignIn();
+    }
+    return callback;
 }
 
 /**
@@ -877,6 +914,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
 export {
     beginSignIn,
+    checkIfActionIsAllowed,
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
@@ -899,6 +937,7 @@ export {
     reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
+    isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
 };

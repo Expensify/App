@@ -55,6 +55,12 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
 };
 
+const emptyAvatarStyles = {
+    [CONST.AVATAR_SIZE.SMALL]: styles.emptyAvatarSmall,
+    [CONST.AVATAR_SIZE.MEDIUM]: styles.emptyAvatarMedium,
+    [CONST.AVATAR_SIZE.LARGE]: styles.emptyAvatarLarge,
+};
+
 /**
  * Return the style size from an avatar size constant
  *
@@ -63,6 +69,16 @@ const avatarSizes = {
  */
 function getAvatarSize(size) {
     return avatarSizes[size];
+}
+
+/**
+ * Return the style from an empty avatar size constant
+ *
+ * @param {String} size
+ * @returns {Object}
+ */
+function getEmptyAvatarStyle(size) {
+    return emptyAvatarStyles[size];
 }
 
 /**
@@ -1129,6 +1145,7 @@ export {
     getAvatarExtraFontSizeStyle,
     getAvatarBorderWidth,
     getAvatarBorderStyle,
+    getEmptyAvatarStyle,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
