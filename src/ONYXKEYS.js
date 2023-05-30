@@ -199,6 +199,7 @@ export default {
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
         ROOM_NAME_FORM: 'roomNameForm',
+        WELCOME_MESSAGE_FORM: 'welcomeMessageForm',
         LEGAL_NAME_FORM: 'legalNameForm',
         WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
@@ -220,6 +221,12 @@ export default {
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
 
+    // Whether we're checking if the room is public or not
+    IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
+
     // A map of the user's security group IDs they belong to in specific domains
     MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
+
+    // Report ID of the last report the user viewed as anonymous user
+    LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
 };
