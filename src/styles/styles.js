@@ -2079,12 +2079,6 @@ const styles = {
         textTransform: 'capitalize',
     },
 
-    reportTransactionWrapper: {
-        paddingVertical: 8,
-        display: 'flex',
-        flexDirection: 'row',
-    },
-
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
