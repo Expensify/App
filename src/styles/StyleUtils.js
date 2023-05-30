@@ -66,6 +66,15 @@ function getAvatarSize(size) {
 }
 
 /**
+ * Return the height of magic code input container
+ *
+ * @returns {Object}
+ */
+function getHeightOfMagicCodeInput() {
+    return  {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth}
+}
+
+/**
  * Return the style from an avatar size constant
  *
  * @param {String} size
@@ -1183,4 +1192,5 @@ export {
     getGoogleListViewStyle,
     getMentionStyle,
     getMentionTextColor,
+    getHeightOfMagicCodeInput
 };

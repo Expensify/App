@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import CONST from '../CONST';
 import Text from './Text';
@@ -296,7 +297,7 @@ function MagicCodeInput(props) {
                         <View
                             style={[
                                 styles.textInputContainer,
-                                {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth},
+                                StyleUtils.getHeightOfMagicCodeInput(),
                                 focusedIndex === index ? styles.borderColorFocus : {},
                                 props.hasError || props.errorText ? styles.borderColorDanger : {},
                             ]}
