@@ -455,6 +455,11 @@ function isAllowedToComment(report) {
         return true;
     }
 
+    // If user opens public chat room directly from deep link after logout
+    if (!allPolicies) {
+        return false;
+    }
+
     // If we've made it here, commenting on this report is restricted.
     // If the user is an admin, allow them to post.
     const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
