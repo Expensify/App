@@ -9,7 +9,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import reportPropTypes from '../pages/reportPropTypes';
 import CONST from '../CONST';
 import styles from '../styles/styles';
-import * as Session from '../libs/actions/Session';
 import * as SignInModalActions from '../libs/actions/SignInModalActions';
 
 const propTypes = {

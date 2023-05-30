@@ -147,14 +147,6 @@ class SignInPage extends Component {
             welcomeText = this.props.isSmallScreenWidth ? this.props.translate('welcomeText.getStarted') : '';
         }
 
-        console.log('SHOW===', {
-            showLoginForm,
-            showUnlinkLoginForm,
-            showPasswordForm,
-            showValidateCodeForm,
-            showResendValidationForm,
-        });
-
         return (
             // There is an issue SafeAreaView on Android where wrong insets flicker on app start.
             // Can be removed once https://github.com/th3rdwave/react-native-safe-area-context/issues/364 is resolved.

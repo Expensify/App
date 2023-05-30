@@ -41,7 +41,7 @@ export default [
     {
         shouldKeepOpen: true,
         shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message'),
-        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, interceptAnonymousUser}) => {
+        renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
             const isMini = !closePopover;
 
             const closeContextMenu = (onHideCallback) => {
@@ -56,11 +56,8 @@ export default [
             };
 
             const onEmojiSelected = (emoji) => {
-                // TODO: REVIEW
-                // interceptAnonymousUser(() => {
                 Report.toggleEmojiReaction(reportID, reportAction, emoji);
                 closeContextMenu();
-                // });
             };
 
             if (isMini) {
@@ -79,8 +76,6 @@ export default [
                     key="BaseQuickEmojiReactions"
                     closeContextMenu={closeContextMenu}
                     onEmojiSelected={onEmojiSelected}
-                    // TODO: REVIEW
-                    // onPressOpenPicker={interceptAnonymousUser}
                 />
             );
         },

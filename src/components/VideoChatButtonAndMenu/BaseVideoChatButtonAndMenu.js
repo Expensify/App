@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Pressable, Dimensions, Linking} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Popover from '../Popover';
@@ -17,16 +16,15 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
-import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
+    /** Link to open when user wants to create a new google meet meeting */
+    googleMeetURL: PropTypes.string.isRequired,
+
     ...videoChatButtonAndMenuPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-
-    /** Link to open when user wants to create a new google meet meeting */
-    googleMeetURL: PropTypes.string.isRequired,
 };
 
 class BaseVideoChatButtonAndMenu extends Component {
@@ -106,7 +104,6 @@ class BaseVideoChatButtonAndMenu extends Component {
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <Pressable
                             ref={(el) => (this.videoChatButton = el)}
-                            // TODO: REVIEW
                             onPress={Session.checkIfActionIsAllowed(() => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
