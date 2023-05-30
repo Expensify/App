@@ -143,6 +143,9 @@ export default {
         mi: 'milla',
         km: 'kilómetro',
     },
+    anonymousReportFooter: {
+        logoTagline: 'Únete a la discussion.',
+    },
     attachmentPicker: {
         cameraPermissionRequired: 'Permiso para acceder a la cámara',
         expensifyDoesntHaveAccessToCamera: 'Expensify no puede tomar fotos sin acceso a tu cámara. Haz click en Configuración para actualizar los permisos.',
@@ -1854,6 +1857,7 @@ export default {
         workspaceName: 'Nombre del espacio de trabajo',
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
+        prestyledText: 'texto preestilizado',
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
