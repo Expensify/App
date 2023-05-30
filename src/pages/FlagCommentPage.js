@@ -67,36 +67,48 @@ function FlagCommentPage(props) {
             name: props.translate('moderation.spam'),
             icon: Expensicons.FlagLevelOne,
             description: props.translate('moderation.spamDescription'),
+            furtherDetails: props.translate('moderation.levelOneResult'),
+            furtherDetailsIcon: Expensicons.FlagLevelOne,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE,
             name: props.translate('moderation.inconsiderate'),
             icon: Expensicons.FlagLevelOne,
             description: props.translate('moderation.inconsiderateDescription'),
+            furtherDetails: props.translate('moderation.levelOneResult'),
+            furtherDetailsIcon: Expensicons.FlagLevelOne,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_INTIMIDATION,
             name: props.translate('moderation.intimidation'),
             icon: Expensicons.FlagLevelTwo,
             description: props.translate('moderation.intimidationDescription'),
+            furtherDetails: props.translate('moderation.levelTwoResult'),
+            furtherDetailsIcon: Expensicons.FlagLevelTwo,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_BULLYING,
             name: props.translate('moderation.bullying'),
             icon: Expensicons.FlagLevelTwo,
             description: props.translate('moderation.bullyingDescription'),
+            furtherDetails: props.translate('moderation.levelTwoResult'),
+            furtherDetailsIcon: Expensicons.FlagLevelTwo,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_HARASSMENT,
             name: props.translate('moderation.harassment'),
             icon: Expensicons.FlagLevelThree,
             description: props.translate('moderation.harassmentDescription'),
+            furtherDetails: props.translate('moderation.levelThreeResult'),
+            furtherDetailsIcon: Expensicons.FlagLevelThree,
         },
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_ASSAULT,
             name: props.translate('moderation.assault'),
             icon: Expensicons.FlagLevelThree,
             description: props.translate('moderation.assaultDescription'),
+            furtherDetails: props.translate('moderation.levelThreeResult'),
+            furtherDetailsIcon: Expensicons.FlagLevelThree,
         },
     ];
 
@@ -116,12 +128,14 @@ function FlagCommentPage(props) {
     const severityMenuItems = _.map(severities, (item, index) => (
         <MenuItem
             key={`${item.severity}_${index}`}
-            icon={item.icon}
             shouldShowRightIcon
             title={item.name}
             description={item.description}
             onPress={Session.checkIfActionIsAllowed(() => flagComment(item.severity))}
-            wrapperStyle={[styles.borderBottom]}
+            style={[styles.pt2, styles.pb4, styles.mh5, styles.ph0, styles.flexRow, styles.borderBottom]}
+            furtherDetails={item.furtherDetails}
+            furtherDetailsIcon={item.furtherDetailsIcon}
+            hoverStyle={[styles.mh0, styles.ph5]}
         />
     ));
 

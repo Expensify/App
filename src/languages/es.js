@@ -1891,5 +1891,8 @@ export default {
         flaggedContent: 'Este mensaje ha sido marcado por violar las reglas de nuestra comunidad y el contenido se ha ocultado.',
         hideMessage: 'Ocultar mensaje',
         revealMessage: 'Revelar mensaje',
+        levelOneResult: 'Sends anonymous warning and reported for review',
+        levelTwoResult: 'Message hidden and reported for review',
+        levelThreeResult:'Message removed and reported for review',
     },
 };
