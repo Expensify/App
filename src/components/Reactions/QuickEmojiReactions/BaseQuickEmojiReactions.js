@@ -32,7 +32,6 @@ const baseQuickEmojiReactionsPropTypes = {
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
-    session: {},
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
 };
