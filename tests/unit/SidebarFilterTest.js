@@ -65,6 +65,30 @@ describe('Sidebar', () => {
             );
         });
 
+        it('excludes an empty chat report', () => {
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // Given a new report
+            const report = LHNTestUtils.getFakeReport(['emptychat+1@test.com', 'emptychat+2@test.com'], 0);
+
+            return (
+                waitForPromisesToResolve()
+                    // When Onyx is updated to contain that report
+                    .then(() =>
+                        Onyx.multiSet({
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                        }),
+                    )
+
+                    // Then no reports are rendered in the LHN
+                    .then(() => {
+                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        expect(optionRows).toHaveLength(0);
+                    })
+            );
+        });
+
         it('includes or excludes policy expense chats depending on the beta', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
