@@ -1245,7 +1245,7 @@ export default {
         assignTask: 'Asignar tarea',
         assignee: 'Cesionario',
         assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario',
-        assignMe: 'Asigname',
+        assignMe: 'Asignar a mí mismo',
         confirmTask: 'Confirmar tarea',
         confirmError: 'Por favor introduce un título y selecciona un destino de tarea',
         title: 'Título',
