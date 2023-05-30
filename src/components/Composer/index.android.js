@@ -94,8 +94,6 @@ class Composer extends React.Component {
     }
 
     render() {
-        console.log(this.props.isComposerFullSize);
-
         return (
             <RNTextInput
                 autoComplete="off"
