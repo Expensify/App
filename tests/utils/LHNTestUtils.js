@@ -170,17 +170,17 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // our app (App.js) is when the react application is wrapped in the context providers
     render(
         <ErrorBoundary>
-             <MockedSidebarLinks reportIDFromRoute={reportIDFromRoute} />
-         </ErrorBoundary>,
+            <MockedSidebarLinks reportIDFromRoute={reportIDFromRoute} />
+        </ErrorBoundary>,
     );
- }
+}
 
- /**
-  * @param {String} [reportIDFromRoute]
-  * @returns {JSX.Element}
-  */
- function MockedSidebarLinks({reportIDFromRoute}) {
-     return (
+/**
+ * @param {String} [reportIDFromRoute]
+ * @returns {JSX.Element}
+ */
+function MockedSidebarLinks({reportIDFromRoute}) {
+    return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SidebarLinks
                 onLinkClick={() => {}}
