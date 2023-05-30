@@ -1427,6 +1427,6 @@ export default {
         revealMessage: 'Reveal message',
         levelOneResult: 'Sends anonymous warning and message reported for review',
         levelTwoResult: 'Message hidden and reported for review',
-        levelThreeResult:'Message removed and reported for review',
+        levelThreeResult: 'Message removed and reported for review',
     },
 };

@@ -1893,6 +1893,6 @@ export default {
         revealMessage: 'Revelar mensaje',
         levelOneResult: 'Sends anonymous warning and reported for review',
         levelTwoResult: 'Message hidden and reported for review',
-        levelThreeResult:'Message removed and reported for review',
+        levelThreeResult: 'Message removed and reported for review',
     },
 };
