@@ -59,7 +59,7 @@ class BaseOptionsSelector extends Component {
             enterConfig.shortcutKey,
             () => {
                 const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption || !this.props.isFocused ) {
+                if (!focusedOption || !this.props.isFocused) {
                     return;
                 }
                 if (this.props.canSelectMultipleOptions) {
