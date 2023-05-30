@@ -195,6 +195,8 @@ class ReportActionCompose extends React.Component {
 
         this.shouldAutoFocus = !props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat()) && props.shouldShowComposeInput;
 
+        this.maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
@@ -211,7 +213,6 @@ class ReportActionCompose extends React.Component {
                 start: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
                 end: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
             },
-            maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             value: props.comment,
 
             // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
@@ -234,7 +235,6 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
-        this.setMaxLines();
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -257,10 +257,6 @@ class ReportActionCompose extends React.Component {
         // open creates a jarring and broken UX.
         if (this.willBlurTextInputOnTapOutside && this.props.isFocused && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
-        }
-
-        if (this.props.isComposerFullSize !== prevProps.isComposerFullSize) {
-            this.setMaxLines();
         }
 
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
@@ -400,17 +396,6 @@ class ReportActionCompose extends React.Component {
      */
     setExceededMaxCommentLength(hasExceededMaxCommentLength) {
         this.setState({hasExceededMaxCommentLength});
-    }
-
-    /**
-     * Set the maximum number of lines for the composer
-     */
-    setMaxLines() {
-        let maxLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-        if (this.props.isComposerFullSize) {
-            maxLines = CONST.COMPOSER.MAX_LINES_FULL;
-        }
-        this.setState({maxLines});
     }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -1076,7 +1061,7 @@ class ReportActionCompose extends React.Component {
                                                 onChangeText={(comment) => this.updateComment(comment, true)}
                                                 onKeyPress={this.triggerHotkeyActions}
                                                 style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                                maxLines={this.state.maxLines}
+                                                maxLines={this.maxComposerLines}
                                                 onFocus={() => this.setIsFocused(true)}
                                                 onBlur={() => {
                                                     this.setIsFocused(false);

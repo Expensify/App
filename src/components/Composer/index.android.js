@@ -56,8 +56,8 @@ const defaultProps = {
         start: 0,
         end: 0,
     },
+    maxLines: undefined,
     isFullComposerAvailable: false,
-    maxLines: -1,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
     style: null,
@@ -94,6 +94,8 @@ class Composer extends React.Component {
     }
 
     render() {
+        console.log(this.props.isComposerFullSize);
+
         return (
             <RNTextInput
                 autoComplete="off"
@@ -102,7 +104,7 @@ class Composer extends React.Component {
                 onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
-                maximumNumberOfLines={!this.props.isComposerFullSize ? this.props.maxLines : undefined}
+                maximumNumberOfLines={this.props.isComposerFullSize ? undefined : this.props.maxLines}
                 style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}
