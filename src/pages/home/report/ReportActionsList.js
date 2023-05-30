@@ -117,6 +117,7 @@ const ReportActionsList = (props) => {
                 <ReportActionItemParentAction
                     reportID={report.reportID}
                     parentReportID={`${report.parentReportID}`}
+                    shouldDisplayNewMarker={shouldDisplayNewMarker}
                 />
             ) : (
                 <ReportActionItem

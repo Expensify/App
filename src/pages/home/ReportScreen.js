@@ -12,7 +12,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
-import Permissions from '../../libs/Permissions';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import CONST from '../../CONST';
@@ -40,6 +39,7 @@ import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -83,6 +83,9 @@ const propTypes = {
     /** The account manager report ID */
     accountManagerReportID: PropTypes.string,
 
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: PropTypes.string,
+
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
@@ -103,6 +106,7 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     personalDetails: {},
+    lastOpenedPublicRoomID: null,
 };
 
 /**
@@ -205,6 +209,13 @@ class ReportScreen extends React.Component {
     }
 
     fetchReportIfNeeded() {
+        // Re-open the last opened public room if the user logged in
+        if (this.props.lastOpenedPublicRoomID && !Session.isAnonymousUser()) {
+            Report.setLastOpenedPublicRoom('');
+            Report.openReport(this.props.lastOpenedPublicRoomID);
+            return;
+        }
+
         const reportIDFromPath = getReportID(this.props.route);
 
         // Report ID will be empty when the reports collection is empty.
@@ -242,10 +253,8 @@ class ReportScreen extends React.Component {
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
-        // Users not in the Default Room or Policy Room Betas can't view the report
-        const shouldHideReport =
-            (ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas)) ||
-            (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
+        // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
+        const shouldHideReport = ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas);
 
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.state.animationFinished;
 
@@ -372,6 +381,9 @@ export default compose(
     withNavigation,
     withNetwork(),
     withOnyx({
+        lastOpenedPublicRoomID: {
+            key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+        },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
         },

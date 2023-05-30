@@ -726,6 +726,12 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    headerAnonymousFooter: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontSize: variables.fontSizeXLarge,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -1880,6 +1886,16 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarMedium: {
+        height: variables.avatarSizeMedium,
+        width: variables.avatarSizeMedium,
+    },
+
+    emptyAvatarLarge: {
+        height: variables.avatarSizeLarge,
+        width: variables.avatarSizeLarge,
+    },
+
     emptyAvatarMargin: {
         marginRight: variables.avatarChatSpacing,
     },
@@ -2170,6 +2186,33 @@ const styles = {
 
     twoFactorAuthFooter: {
         marginTop: 'auto',
+    },
+
+    anonymousRoomFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 20,
+        marginBottom: 20,
+        backgroundColor: themeColors.activeComponentBG,
+        flexWrap: 'wrap',
+        gap: 8,
+        borderRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+    },
+
+    anonymousRoomFooterLogo: {
+        width: 88,
+        marginLeft: 0,
+        height: 20,
+    },
+
+    signInButtonAvatar: {
+        width: 80,
+    },
+
+    anonymousRoomFooterSignInButton: {
+        width: 125,
     },
 
     roomHeaderAvatarSize: {
@@ -3330,6 +3373,17 @@ const styles = {
         fontSize: 7,
         fontWeight: fontWeightBold,
         lineHeight: undefined,
+    },
+
+    expensifyQrLogo: {
+        alignSelf: 'stretch',
+        height: 27,
+        marginBottom: 20,
+    },
+
+    qrShareTitle: {
+        marginTop: 15,
+        textAlign: 'center',
     },
 };
 
