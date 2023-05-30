@@ -129,7 +129,7 @@ const ReportActionItemFragment = (props) => {
                         >
                             <Text
                                 selectable={false}
-                                style={[styles.w1, styles.userSelectNone]}
+                                style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisTextLineHeight : undefined, styles.w1, styles.userSelectNone]}
                             >
                                 {' '}
                             </Text>
