@@ -39,6 +39,7 @@ class ImageWithSizeCalculation extends PureComponent {
 
         this.state = {
             isLoading: false,
+            loadedSucessfully: false,
         };
 
         this.imageLoadingStart = this.imageLoadingStart.bind(this);
@@ -52,7 +53,10 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     imageLoadingStart() {
-        this.setState({isLoading: true});
+        //Fix the spinner showing when uploading twice the same image on android #17480
+        if(!this.state.loadedSucessfully){
+            this.setState({isLoading: true});
+        }
     }
 
     imageLoadingEnd() {
@@ -60,6 +64,7 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     imageLoadedSuccessfully(event) {
+        this.setState({loadedSucessfully: true});
         this.props.onMeasure({
             width: event.nativeEvent.width,
             height: event.nativeEvent.height,
