@@ -1514,8 +1514,6 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
         emojiCode: emoji.name,
         reportActionID,
         createdAt,
-        // This will be removed as part of https://github.com/Expensify/App/issues/19535
-        useEmojiReactions: true,
     };
     API.write('AddEmojiReaction', parameters, {optimisticData});
 }
@@ -1549,8 +1547,6 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
         reportID,
         reportActionID,
         emojiCode: emoji.name,
-        // This will be removed as part of https://github.com/Expensify/App/issues/19535
-        useEmojiReactions: true,
     };
     API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
