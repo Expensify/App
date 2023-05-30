@@ -150,7 +150,7 @@ class SignInPage extends Component {
         return (
             // There is an issue SafeAreaView on Android where wrong insets flicker on app start.
             // Can be removed once https://github.com/th3rdwave/react-native-safe-area-context/issues/364 is resolved.
-            <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(this.props.insets, 1)]}>
+            <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...this.props.insets, bottom: 0}, 1)]}>
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
