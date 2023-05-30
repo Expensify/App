@@ -3,6 +3,7 @@ import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import reportPropTypes from './reportPropTypes';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
@@ -16,10 +17,16 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
 import * as Report from '../libs/actions/Report';
 import CONST from '../CONST';
+import * as ReportUtils from '../libs/ReportUtils';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.shape(reportActionPropTypes),
+
+    /** The active report */
+    report: reportPropTypes,
 
     /** Route params */
     route: PropTypes.shape({
@@ -37,6 +44,7 @@ const propTypes = {
 
 const defaultProps = {
     reportActions: {},
+    report: {},
 };
 
 /**
@@ -52,7 +60,7 @@ function getReportID(route) {
 }
 
 function FlagCommentPage(props) {
-    const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
+    let reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const severities = [
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
@@ -93,8 +101,16 @@ function FlagCommentPage(props) {
     ];
 
     const flagComment = (severity) => {
-        Report.flagComment(props.route.params.reportID, reportAction, severity);
-        Navigation.dismissModal(true);
+        
+        let reportID = props.route.params.reportID;
+        
+        // Handle threads if needed
+        if (reportAction === undefined) {
+            reportID = ReportUtils.getParentReport(props.report).reportID;
+            reportAction = ReportActionsUtils.getParentReportAction(props.report);
+        }
+        Report.flagComment(reportID, reportAction, severity);
+        Navigation.dismissModal(false);
     };
 
     const severityMenuItems = _.map(severities, (item, index) => (
@@ -104,7 +120,7 @@ function FlagCommentPage(props) {
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={() => flagComment(item.severity)}
+            onPress={Session.checkIfActionIsAllowed(() => flagComment(item.severity))}
             wrapperStyle={[styles.borderBottom]}
         />
     ));
@@ -145,6 +161,9 @@ export default compose(
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
             canEvict: false,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
         },
     }),
 )(FlagCommentPage);
