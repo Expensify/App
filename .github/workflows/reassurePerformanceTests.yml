@@ -10,8 +10,13 @@ jobs:
   perf-tests:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+
+      - name: Setup NodeJS
+        uses: Expensify/App/.github/actions/composite/setupNode@main
+
       - name: Run performance testing script
-        shell: bash
         run: |
           set -e 
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
