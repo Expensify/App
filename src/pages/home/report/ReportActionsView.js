@@ -130,7 +130,7 @@ class ReportActionsView extends React.Component {
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
         const nextPolicy = nextProps.policies[`${ONYXKEYS.COLLECTION.POLICY}${nextProps.report.policyID}`];
 
-        if (!_.isEqual(policy, nextPolicy)) {
+        if (lodashGet(policy, 'avatar') !== lodashGet(nextPolicy, 'avatar')) {
             return true;
         }
 
