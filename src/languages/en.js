@@ -234,7 +234,6 @@ export default {
         },
     },
     thirdPartySignIn: {
-        or: 'Or',
         alreadySignedIn: ({email}) => `You are already signed in as ${email}.`,
         goBackMessage: ({provider}) => `Don't want to sign in with ${provider}?`,
         continueWithMyCurrentSession: 'Continue with my current session',

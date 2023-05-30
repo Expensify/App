@@ -7,6 +7,7 @@ import getUserLanguage from '../GetUserLanguage';
 import * as Session from '../../../libs/actions/Session';
 import Log from '../../../libs/Log';
 import * as Environment from '../../../libs/Environment/Environment';
+import CONST from '../../../CONST';
 
 // TODO: copied from CONFIG.js, refactor
 // react-native-config doesn't trim whitespace on iOS for some reason so we
@@ -24,17 +25,11 @@ const defaultProps = {
     isDesktopFlow: false,
 };
 
-// TODO: move to appropriate consts file
-const defaultClientId = 'com.expensify.expensifylite.AppleSignIn';
-// const defaultClientId = 'com.chat.expensify.chat.AppleSignIn';
-const defaultRedirectURI = 'https://www.expensify.com/partners/apple/loginCallback';
-// const defaultRedirectURI = 'https://new.expensify.com/appleauth';
-
 const config = {
-    clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', defaultClientId),
+    clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONST.APPLE_SIGN_IN_SERVICE_ID),
     scope: 'name email',
     // never used, but required for configuration
-    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', defaultRedirectURI),
+    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', CONST.APPLE_SIGN_IN_REDIRECT_URI),
     state: '',
     nonce: '',
     usePopup: true,
@@ -42,7 +37,7 @@ const config = {
 
 const successListener = (event) => {
     const token = !Environment.isDevelopment() ? event.detail.id_token : lodashGet(Config, 'ASI_TOKEN_OVERRIDE', event.detail.id_token);
-    Session.beginAppleSignIn({token});
+    Session.beginAppleSignIn(token);
 };
 
 const failureListener = (event) => {
