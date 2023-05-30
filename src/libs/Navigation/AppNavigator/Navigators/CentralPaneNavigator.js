@@ -28,10 +28,10 @@ function CentralPaneNavigator() {
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('state', () => {
-            // if the screen is more than 2 screens away from the current screen, freeze it,
-            // we don't want to freeze the screen if it's only 1 screen away because the freeze placeholder
+            // if the screen is more than 1 screen away from the current screen, freeze it,
+            // we don't want to freeze the screen if it's the previous screen because the freeze placeholder
             // would be visible at the beginning of the back animation then
-            if (navigation.getState().index - screenIndex > 2) {
+            if (navigation.getState().index - screenIndex > 1) {
                 setIsScreenBlurred(true);
             } else {
                 setIsScreenBlurred(false);
@@ -41,10 +41,7 @@ function CentralPaneNavigator() {
     }, [isFocused, isScreenBlurred, navigation, screenIndex]);
 
     return (
-        <Freeze
-            freeze={!isFocused && isScreenBlurred}
-            placeholder={null}
-        >
+        <Freeze freeze={!isFocused && isScreenBlurred}>
             <Stack.Navigator>
                 <Stack.Screen
                     name={SCREENS.REPORT}
