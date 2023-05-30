@@ -23,12 +23,12 @@ jobs:
           git fetch origin
           git switch "$BASELINE_BRANCH"
           npm install --force
-          npm run reassure --baseline
+          npx reassure --baseline
           git switch --detach -
           npm install --force
-          npm run reassure --branch
+          npx reassure --branch
 
       - name: Run Danger.js
-        run: npm run danger ci
+        run: npx danger ci
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
