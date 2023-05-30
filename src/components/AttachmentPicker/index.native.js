@@ -315,7 +315,8 @@ class AttachmentPicker extends Component {
     /**
      * Setup native attachment selection to start after this popover closes
      *
-     * @param {{pickAttachment: function}} item - an item from this.menuItemData
+     * @param {Object} item - an item from this.menuItemData
+     * @param {Function} item.pickAttachment
      */
     selectItem(item) {
         /* setTimeout delays execution to the frame after the modal closes

@@ -327,7 +327,10 @@ const getPreferredEmojiCode = (emoji, preferredSkinTone) => {
  * Given an emoji object and a list of senders it will return an
  * array of emoji codes, that represents all used variations of the
  * emoji.
- * @param {{ name: string, code: string, types: string[] }} emojiAsset
+ * @param {Object} emojiAsset
+ * @param {String} emojiAsset.name
+ * @param {String} emojiAsset.code
+ * @param {String[]} [emojiAsset.types]
  * @param {Array} users
  * @return {string[]}
  * */

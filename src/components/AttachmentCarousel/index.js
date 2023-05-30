@@ -258,7 +258,10 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Defines how a single attachment should be rendered
-     * @param {{ source: String, file: { name: String } }} item
+     * @param {Object} item
+     * @param {String} item.source
+     * @param {Object} item.file
+     * @param {String} item.file.name
      * @returns {JSX.Element}
      */
     renderItem({item}) {

@@ -78,7 +78,9 @@ class ThumbnailImage extends PureComponent {
     /**
      * Update the state with the computed thumbnail sizes.
      *
-     * @param {{ width: number, height: number }} Params - width and height of the original image.
+     * @param {Object} Params - width and height of the original image.
+     * @param {Number} Params.width
+     * @param {Number} Params.height
      */
     updateImageSize({width, height}) {
         const {thumbnailWidth, thumbnailHeight} = this.calculateThumbnailImageSize(width, height);
