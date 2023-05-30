@@ -5,7 +5,6 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {Freeze} from 'react-freeze';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -96,10 +95,6 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
-    transitionEndListener = null;
-
-    gestureStartListener = null;
-
     constructor(props) {
         super(props);
 
@@ -110,28 +105,11 @@ class SidebarLinks extends React.Component {
         if (this.props.isSmallScreenWidth) {
             App.confirmReadyToOpenApp();
         }
-
-        this.state = {
-            isScreenBlurred: false,
-        };
     }
 
     componentDidMount() {
         App.setSidebarLoaded();
         this.isSidebarLoaded = true;
-        // SidebarLinks need to have information if the screen is blurred in order to enable freeze
-        this.transitionEndListener = this.props.navigation.addListener('transitionEnd', (e) => {
-            this.setState({isScreenBlurred: e.data.closing});
-        });
-
-        this.gestureStartListener = this.props.navigation.addListener('gestureStart', () => {
-            this.setState({isScreenBlurred: false});
-        });
-    }
-
-    componentWillUnmount() {
-        this.transitionEndListener();
-        this.gestureStartListener();
     }
 
     showSearchPage() {
@@ -169,11 +147,9 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const isVisible = this.props.isFocused || !this.state.isScreenBlurred;
-        const shouldFreeze = this.props.isSmallScreenWidth && this.isSidebarLoaded && !isVisible;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
-        const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate={!shouldFreeze} />;
+        const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
 
         return (
             <View
@@ -230,20 +206,18 @@ class SidebarLinks extends React.Component {
                         )}
                     </TouchableOpacity>
                 </View>
-                <Freeze freeze={shouldFreeze}>
-                    {isLoading ? (
-                        skeletonPlaceholder
-                    ) : (
-                        <LHNOptionsList
-                            contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
-                            data={optionListItems}
-                            focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportId)}
-                            onSelectRow={this.showReportPage}
-                            shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                            optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
-                        />
-                    )}
-                </Freeze>
+                {isLoading ? (
+                    skeletonPlaceholder
+                ) : (
+                    <LHNOptionsList
+                        contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
+                        data={optionListItems}
+                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportId)}
+                        onSelectRow={this.showReportPage}
+                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                    />
+                )}
             </View>
         );
     }
