@@ -1407,9 +1407,8 @@ export default {
         copied: 'Copied!',
     },
     moderation: {
-        flagDescription:
-            'All flagged messages will be sent to a moderator for review. If a message is flagged at a level above Spam or Inconsiderate, it will immediately be hidden. Users may, however, choose to reveal the message while it is being reviewed if they choose. Dependent on the decision of the moderator, the message may or may not be permanently hidden or deleted, and the sender may be banned from posting temporarily or permanently.',
-        chooseAReason: 'Choose a reason below:',
+        flagDescription: 'All flagged messages will be sent to a moderator for review.',
+        chooseAReason: 'Choose a reason for flagging below:',
         spam: 'Spam',
         spamDescription: 'Unsolicited off-topic promotion',
         inconsiderate: 'Inconsiderate',
@@ -1425,8 +1424,8 @@ export default {
         flaggedContent: 'This message has been flagged as violating our community rules and the content has been hidden.',
         hideMessage: 'Hide message',
         revealMessage: 'Reveal message',
-        levelOneResult: 'Sends anonymous warning and message reported for review',
-        levelTwoResult: 'Message hidden and reported for review',
-        levelThreeResult: 'Message removed and reported for review',
+        levelOneResult: 'Sends anonymous warning and message reported for review.',
+        levelTwoResult: 'Message hidden from channel, plus anonymous warning and message reported for review.',
+        levelThreeResult: 'Message removed from channel plus anonymous warning and message reported for review.',
     },
 };

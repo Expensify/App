@@ -148,11 +148,11 @@ function FlagCommentPage(props) {
                     />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
-                        style={[styles.settingsPageBackground]}
+                        style={styles.settingsPageBackground}
                     >
                         <View style={styles.pageWrapper}>
-                            <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                <Text style={[styles.baseFontStyle]}>{props.translate('moderation.flagDescription')}</Text>
+                            <View style={styles.settingsPageBody}>
+                                <Text style={styles.baseFontStyle}>{props.translate('moderation.flagDescription')}</Text>
                             </View>
                         </View>
                         <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{props.translate('moderation.chooseAReason')}</Text>
