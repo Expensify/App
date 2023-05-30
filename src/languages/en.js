@@ -347,7 +347,7 @@ export default {
         settledPaypalMe: 'Paid using Paypal.me',
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: "I'll settle up elsewhere",
-        payExpenseElsewhere: "Pay elsewhere",
+        payExpenseElsewhere: 'Pay elsewhere',
         settlePaypalMe: 'Pay with PayPal.me',
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
