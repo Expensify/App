@@ -71,5 +71,6 @@ function EmojiSkinToneList(props) {
 }
 
 EmojiSkinToneList.propTypes = propTypes;
+EmojiSkinToneList.displayName = 'EmojiSkinToneList';
 
 export default withLocalize(EmojiSkinToneList);
