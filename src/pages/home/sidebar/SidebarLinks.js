@@ -230,10 +230,7 @@ class SidebarLinks extends React.Component {
                         )}
                     </TouchableOpacity>
                 </View>
-                <Freeze
-                    freeze={shouldFreeze}
-                    placeholder={null}
-                >
+                <Freeze freeze={shouldFreeze}>
                     {isLoading ? (
                         skeletonPlaceholder
                     ) : (

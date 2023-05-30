@@ -38,6 +38,27 @@ class LHNOptionsList extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
+        this.data = this.props.data;
+    }
+
+    shouldComponentUpdate(nextProps) {
+        if (nextProps.focusedIndex !== this.props.focusedIndex) {
+            return true;
+        }
+
+        if (nextProps.optionMode !== this.props.optionMode) {
+            return true;
+        }
+
+        if (nextProps.shouldDisableFocusOptions !== this.props.shouldDisableFocusOptions) {
+            return true;
+        }
+
+        if (!_.isEqual(nextProps.data, this.props.data)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -80,6 +101,11 @@ class LHNOptionsList extends Component {
     }
 
     render() {
+        const areArraysEqual = _.isEqual(this.props.data, this.data);
+        if (!areArraysEqual) {
+            this.data = this.props.data;
+        }
+
         return (
             <View style={[styles.flex1]}>
                 <FlatList
@@ -87,7 +113,7 @@ class LHNOptionsList extends Component {
                     keyboardShouldPersistTaps="always"
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
-                    data={this.props.data}
+                    data={this.data}
                     keyExtractor={(item) => item}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}

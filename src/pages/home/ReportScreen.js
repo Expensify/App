@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {PortalHost} from '@gorhom/portal';
@@ -137,8 +137,8 @@ class ReportScreen extends React.Component {
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
-            animationFinished: false,
         };
+        this.firstRenderRef = React.createRef();
     }
 
     componentDidMount() {
@@ -155,10 +155,6 @@ class ReportScreen extends React.Component {
         this.fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         Navigation.setIsReportScreenIsReady();
-
-        InteractionManager.runAfterInteractions(() => {
-            this.setState({animationFinished: true});
-        });
     }
 
     componentDidUpdate(prevProps) {
@@ -256,7 +252,8 @@ class ReportScreen extends React.Component {
         // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
         const shouldHideReport = ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas);
 
-        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.state.animationFinished;
+        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.firstRenderRef.current;
+        this.firstRenderRef.current = true;
 
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
         const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
