@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
+import CONST from "../../CONST"
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -38,6 +39,12 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }).isRequired,
+
+    /** The anchor alignment of the menu */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
 };
 
 const defaultProps = {
@@ -94,6 +101,7 @@ class ThreeDotsMenu extends Component {
                     onClose={this.hidePopoverMenu}
                     isVisible={this.state.isPopupMenuVisible}
                     anchorPosition={this.props.anchorPosition}
+                    anchorAlignment={this.props.anchorAlignment}
                     onItemSelected={this.hidePopoverMenu}
                     menuItems={this.props.menuItems}
                 />

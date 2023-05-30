@@ -18,6 +18,7 @@ import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
+import CONST from "../CONST"
 
 const propTypes = {
     /** Title of the Header */
@@ -62,6 +63,12 @@ const propTypes = {
         right: PropTypes.number,
         bottom: PropTypes.number,
         left: PropTypes.number,
+    }),
+
+    /** The anchor alignment of the menu */
+    threeDotsAnchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
     /** Whether we should show a close button */
@@ -125,6 +132,10 @@ const defaultProps = {
         vertical: 0,
         horizontal: 0,
     },
+    threeDotsAnchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    }
 };
 
 class HeaderWithCloseButton extends Component {
@@ -217,6 +228,7 @@ class HeaderWithCloseButton extends Component {
                                 menuItems={this.props.threeDotsMenuItems}
                                 onIconPress={this.props.onThreeDotsButtonPress}
                                 anchorPosition={this.props.threeDotsAnchorPosition}
+                                anchorAlignment={this.props.threeDotsAnchorAlignment}
                             />
                         )}
 

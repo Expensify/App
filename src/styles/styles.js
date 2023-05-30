@@ -2918,12 +2918,12 @@ const styles = {
     },
 
     threeDotsPopoverOffset: (windowWidth) => ({
-        vertical: 50,
+        vertical: 60,
         horizontal: windowWidth - 60,
     }),
 
     threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
-        vertical: 50,
+        vertical: 60,
         horizontal: windowWidth - 10,
     }),
 
