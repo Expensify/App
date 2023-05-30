@@ -61,17 +61,18 @@ const defaultProps = {
 
 class ValidateLoginPage extends Component {
     componentDidMount() {
-        // Validate login if
-        // - The user is not on passwordless beta
-        if (!Permissions.canUsePasswordlessLogins(this.props.betas)) {
+        const login = lodashGet(this.props, 'credentials.login', null);
+
+        // Legacy login validation for users not on passwordless beta
+        // A fresh session will not have the betas prop or login available
+        if (login && !Permissions.canUsePasswordlessLogins(this.props.betas)) {
             User.validateLogin(this.getAccountID(), this.getValidateCode());
             return;
         }
 
         const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
         const cachedAutoAuthState = lodashGet(this.props, 'session.autoAuthState', null);
-        const login = lodashGet(this.props, 'credentials.login', null);
-        if (!login && isSignedIn && cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
+        if (!login && isSignedIn && (cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || cachedAutoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
             Navigation.navigate(ROUTES.REPORT);
             return;
