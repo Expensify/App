@@ -353,6 +353,7 @@ export default {
         splitAmount: ({amount}) => `split ${amount}`,
         amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
+        payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerSettled: ({amount}) => `paid ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
