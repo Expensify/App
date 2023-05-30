@@ -66,7 +66,7 @@ function dismissError(policyID) {
 const WorkspaceInitialPage = (props) => {
     const policy = props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isUpdateCurrencyModalOpen, setIsUpdateCurrencyModalOpen] = useState(false);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
 
     /**
@@ -84,7 +84,7 @@ const WorkspaceInitialPage = (props) => {
      */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-        setIsUpdateCurrencyModalOpen(false);
+        setIsCurrencyModalOpen(false);
         ReimbursementAccount.navigateToBankAccountRoute(policy.id)
     }, [policy]);
     
@@ -249,12 +249,12 @@ const WorkspaceInitialPage = (props) => {
                         </OfflineWithFeedback>
                     </ScrollView>
                     <ConfirmModal
-                        title="Update Currency"
-                        isVisible={isUpdateCurrencyModalOpen}
+                        title={props.translate('workspace.common.updateCurrency')}
+                        isVisible={isCurrencyModalOpen}
                         onConfirm={confirmCurrencyChangeAndHideModal}
-                        onCancel={() => setIsUpdateCurrencyModalOpen(false)}
-                        prompt={`Adding a bank account is currently limited to Workspaces using USD as a default currency. Would you like you update ${policy.name}'s default currency to USD?`}
-                        confirmText="Update currency"
+                        onCancel={() => setIsCurrencyModalOpen(false)}
+                        prompt={props.translate('workspace.bankAccount.updateCurrencyPrompt')}
+                        confirmText={props.translate('workspace.bankAccount.confirmUpdateCurrency')}
                         cancelText={props.translate('common.cancel')}
                         danger
                     />

@@ -100,7 +100,6 @@ class ReimbursementAccountPage extends React.Component {
         this.continue = this.continue.bind(this);
         this.getDefaultStateForField = this.getDefaultStateForField.bind(this);
         this.goBack = this.goBack.bind(this);
-        this.isNavigating = false;
 
         // The first time we open this page, the props.reimbursementAccount has not been loaded from the server.
         // Calculating shouldShowContinueSetupButton on the default data doesn't make sense, and we should recalculate

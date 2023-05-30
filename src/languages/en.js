@@ -1067,8 +1067,6 @@ export default {
             reconcileCards: 'Reconcile cards',
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
-            growlMessageOnDelete: 'Workspace deleted',
-            growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             goToRoom: ({roomName}) => `Go to ${roomName} room`,
@@ -1200,6 +1198,9 @@ export default {
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
             clearProgress: 'Starting over will clear the progress you have made so far.',
             areYouSure: 'Are you sure?',
+            updateCurrency: 'Update currency title',
+            updateCurrencyPrompt: 'Update currency prompt',
+            confirmUpdateCurrency: 'Update currency button',
         },
     },
     getAssistancePage: {
