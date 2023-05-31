@@ -116,10 +116,6 @@ class Tooltip extends PureComponent {
             return this.props.children;
         }
 
-        if (!React.isValidElement(this.props.children)) {
-            throw Error('Children is not a valid element.');
-        }
-
         return (
             <>
                 {this.state.isRendered && (
@@ -149,7 +145,7 @@ class Tooltip extends PureComponent {
                         onHoverIn={this.showTooltip}
                         onHoverOut={this.hideTooltip}
                     >
-                        {React.Children.only(this.props.children)}
+                        {this.props.children}
                     </Hoverable>
                 </BoundsObserver>
             </>

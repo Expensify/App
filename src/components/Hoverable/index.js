@@ -68,10 +68,13 @@ class Hoverable extends Component {
     }
 
     render() {
-        const child = _.isFunction(this.props.children) ? this.props.children(this.state.isHovered) : this.props.children;
-
-        if (!React.isValidElement(child)) {
-            throw Error('Children is not a valid element.');
+        let child = this.props.children;
+        if (_.isFunction(this.props.children)) {
+            child = this.props.children(this.state.isHovered);
+        } else {
+            if (_.isArray(this.props.children) && this.props.children.length === 1) {
+                child = this.props.children[0];
+            }
         }
 
         return React.cloneElement(React.Children.only(child), {
