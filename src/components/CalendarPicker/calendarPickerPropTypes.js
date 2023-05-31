@@ -3,8 +3,8 @@ import moment from 'moment';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** An initial value of date */
-    value: PropTypes.objectOf(Date),
+    /** An initial value of date string */
+    value: PropTypes.string,
 
     /** A minimum date (oldest) allowed to select */
     minDate: PropTypes.objectOf(Date),

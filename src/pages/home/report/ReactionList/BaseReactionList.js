@@ -5,13 +5,15 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../../styles/styles';
 import HeaderReactionList from './HeaderReactionList';
-import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as UserUtils from '../../../../libs/UserUtils';
 import CONST from '../../../../CONST';
 import participantPropTypes from '../../../../components/participantPropTypes';
 import reactionPropTypes from './reactionPropTypes';
 import OptionRow from '../../../../components/OptionRow';
 import variables from '../../../../styles/variables';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /**
@@ -30,37 +32,6 @@ const propTypes = {
 const defaultProps = {
     hasUserReacted: false,
 };
-
-/**
- * Given an emoji item object, render a component based on its type.
- * Items with the code "SPACER" return nothing and are used to fill rows up to 8
- * so that the sticky headers function properly
- *
- * @param {Object} params
- * @param {Object} params.item
- * @return {React.Component}
- */
-const renderItem = ({item}) => (
-    <OptionRow
-        item={item}
-        boldStyle
-        isDisabled
-        style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
-        option={{
-            text: Str.removeSMSDomain(item.displayName),
-            alternateText: Str.removeSMSDomain(item.login),
-            participantsList: [item],
-            icons: [
-                {
-                    source: ReportUtils.getAvatar(item.avatar, item.login),
-                    name: item.login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                },
-            ],
-            keyForList: item.login,
-        }}
-    />
-);
 
 /**
  * Create a unique key for each action in the FlatList.
@@ -90,6 +61,42 @@ const BaseReactionList = (props) => {
     if (!props.isVisible) {
         return null;
     }
+
+    /**
+     * Given an emoji item object, render a component based on its type.
+     * Items with the code "SPACER" return nothing and are used to fill rows up to 8
+     * so that the sticky headers function properly
+     *
+     * @param {Object} params
+     * @param {Object} params.item
+     * @return {React.Component}
+     */
+    const renderItem = ({item}) => (
+        <OptionRow
+            item={item}
+            boldStyle
+            style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
+            hoverStyle={styles.hoveredComponentBG}
+            onSelectRow={() => {
+                props.onClose();
+                Navigation.navigate(ROUTES.getDetailsRoute(item.login));
+            }}
+            option={{
+                text: Str.removeSMSDomain(item.displayName),
+                alternateText: Str.removeSMSDomain(item.login),
+                participantsList: [item],
+                icons: [
+                    {
+                        source: UserUtils.getAvatar(item.avatar, item.login),
+                        name: item.login,
+                        type: CONST.ICON_TYPE_AVATAR,
+                    },
+                ],
+                keyForList: item.login,
+            }}
+        />
+    );
+
     return (
         <>
             <HeaderReactionList

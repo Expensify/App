@@ -44,9 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
-    },
+    iou: {},
 };
 class MoneyRequestAmountPage extends React.Component {
     constructor(props) {
@@ -66,7 +64,7 @@ class MoneyRequestAmountPage extends React.Component {
         const selectedAmountAsString = props.selectedAmount ? props.selectedAmount.toString() : '';
         this.state = {
             amount: selectedAmountAsString,
-            selectedCurrencyCode: props.iou.selectedCurrencyCode,
+            selectedCurrencyCode: _.isUndefined(props.iou.selectedCurrencyCode) ? CONST.CURRENCY.USD : props.iou.selectedCurrencyCode,
             shouldUpdateSelection: true,
             selection: {
                 start: selectedAmountAsString.length,
@@ -83,6 +81,14 @@ class MoneyRequestAmountPage extends React.Component {
             this.focusTextInput();
             this.getCurrencyFromRouteParams();
         });
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.iou.selectedCurrencyCode === this.props.iou.selectedCurrencyCode) {
+            return;
+        }
+
+        this.setState({selectedCurrencyCode: this.props.iou.selectedCurrencyCode});
     }
 
     componentWillUnmount() {
@@ -232,7 +238,7 @@ class MoneyRequestAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
-        if (!this.textInput.isFocused()) {
+        if (this.state.shouldUpdateSelection && !this.textInput.isFocused()) {
             this.textInput.focus();
         }
 
@@ -261,6 +267,9 @@ class MoneyRequestAmountPage extends React.Component {
      */
     updateLongPressHandlerState(value) {
         this.setState({shouldUpdateSelection: !value});
+        if (!value && !this.textInput.isFocused()) {
+            this.textInput.focus();
+        }
     }
 
     /**

@@ -130,11 +130,11 @@ describe('Sidebar', () => {
                         }),
                     )
 
-                    // Then no reports are rendered in the LHN
+                    // Then the report appears in the LHN
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                         const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        expect(optionRows).toHaveLength(0);
+                        expect(optionRows).toHaveLength(1);
                     })
 
                     // When the user is added to the policy rooms beta and the sidebar re-renders
@@ -144,7 +144,7 @@ describe('Sidebar', () => {
                         }),
                     )
 
-                    // Then there is one report rendered in the LHN
+                    // Then the report is still rendered in the LHN
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                         const optionRows = screen.queryAllByAccessibilityHint(hintText);

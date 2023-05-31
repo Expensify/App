@@ -36,15 +36,12 @@ const MentionUserRenderer = (props) => {
 
     return (
         <Text>
-            <Tooltip
-                absolute
-                text={loginWhithoutLeadingAt}
-            >
+            <Tooltip text={loginWhithoutLeadingAt}>
                 <Text
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     color={StyleUtils.getMentionTextColor(isOurMention)}
-                    style={StyleUtils.getMentionStyle(isOurMention)}
+                    style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention)]}
                     onPress={() => showUserDetails(loginWhithoutLeadingAt)}
                 >
                     <TNodeChildrenRenderer tnode={props.tnode} />
