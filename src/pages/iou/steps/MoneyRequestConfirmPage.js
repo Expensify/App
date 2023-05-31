@@ -13,6 +13,7 @@ import ROUTES from '../../../ROUTES';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import withLocalize from '../../../components/withLocalize';
 import ModalHeader from '../ModalHeader';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -118,6 +119,8 @@ const MoneyRequestConfirmPage = (props) => {
                     />
                     <MoneyRequestConfirmationList
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
+                        participants={props.iou.participants}
+                        iouAmount={props.iou.amount}
                         onConfirm={(selectedParticipants) => {
                             createTransaction(selectedParticipants);
                             ReportScrollManager.scrollToBottom();
@@ -135,6 +138,7 @@ const MoneyRequestConfirmPage = (props) => {
                         // the floating-action-button (since it is something that exists outside the context of a report).
                         canModifyParticipants={!_.isEmpty(reportID.current)}
                         policyID={props.report.policyID}
+                        bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                     />
                 </View>
             )}
@@ -142,7 +146,7 @@ const MoneyRequestConfirmPage = (props) => {
     );
 };
 
-MoneyRequestConfirmPage.displayName = 'IOUConfirmPage';
+MoneyRequestConfirmPage.displayName = 'MoneyRequestConfirmPage';
 MoneyRequestConfirmPage.propTypes = propTypes;
 MoneyRequestConfirmPage.defaultProps = defaultProps;
 

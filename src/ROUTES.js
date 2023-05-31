@@ -9,7 +9,6 @@ const REPORT = 'r';
 const IOU_REQUEST = 'request/new';
 const IOU_BILL = 'split/new';
 const IOU_SEND = 'send/new';
-const IOU_DETAILS = 'iou/details';
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
@@ -90,12 +89,8 @@ export default {
     getMoneyRequestConfirmationRoute: (iouType, reportID = '') => `${iouType}/new/confirmation/${reportID}`,
     getMoneyRequestCurrencyRoute: (iouType, reportID = '', currency, backTo) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
     getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
-    IOU_DETAILS,
-    IOU_DETAILS_ADD_BANK_ACCOUNT: `${IOU_DETAILS}/add-bank-account`,
-    IOU_DETAILS_ADD_DEBIT_CARD: `${IOU_DETAILS}/add-debit-card`,
-    IOU_DETAILS_ENABLE_PAYMENTS: `${IOU_DETAILS}/enable-payments`,
-    IOU_DETAILS_WITH_IOU_REPORT_ID: `${IOU_DETAILS}/:chatReportID/:iouReportID/`,
-    getIouDetailsRoute: (chatReportID, iouReportID) => `iou/details/${chatReportID}/${iouReportID}`,
+    SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
+    getSplitBillDetailsRoute: (reportID, reportActionID) => `r/${reportID}/split/${reportActionID}`,
     getNewTaskRoute: (reportID) => `${NEW_TASK}/${reportID}`,
     NEW_TASK_WITH_REPORT_ID: `${NEW_TASK}/:reportID?`,
     TASK_TITLE: 'r/:reportID/title',
@@ -120,11 +115,15 @@ export default {
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: (reportID) => `r/${reportID}/details`,
     REPORT_SETTINGS: 'r/:reportID/settings',
-    REPORT_SETTINGS_ROOM_NAME: 'r/:reportID/settings/room-name',
-    REPORT_SETTINGS_NOTIFICATION_PREFERENCES: 'r/:reportID/settings/notification-preferences',
     getReportSettingsRoute: (reportID) => `r/${reportID}/settings`,
+    REPORT_SETTINGS_ROOM_NAME: 'r/:reportID/settings/room-name',
     getReportSettingsRoomNameRoute: (reportID) => `r/${reportID}/settings/room-name`,
+    REPORT_SETTINGS_NOTIFICATION_PREFERENCES: 'r/:reportID/settings/notification-preferences',
     getReportSettingsNotificationPreferencesRoute: (reportID) => `r/${reportID}/settings/notification-preferences`,
+    REPORT_WELCOME_MESSAGE: 'r/:reportID/welcomeMessage',
+    getReportWelcomeMessageRoute: (reportID) => `r/${reportID}/welcomeMessage`,
+    REPORT_SETTINGS_WRITE_CAPABILITY: 'r/:reportID/settings/who-can-post',
+    getReportSettingsWriteCapabilityRoute: (reportID) => `r/${reportID}/settings/who-can-post`,
     TRANSITION_FROM_OLD_DOT: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
@@ -143,6 +142,7 @@ export default {
     WORKSPACE_SETTINGS: 'workspace/:policyID/settings',
     WORKSPACE_CARD: 'workspace/:policyID/card',
     WORKSPACE_REIMBURSE: 'workspace/:policyID/reimburse',
+    WORKSPACE_RATE_AND_UNIT: 'workspace/:policyID/rateandunit',
     WORKSPACE_BILLS: 'workspace/:policyID/bills',
     WORKSPACE_INVOICES: 'workspace/:policyID/invoices',
     WORKSPACE_TRAVEL: 'workspace/:policyID/travel',
@@ -154,6 +154,7 @@ export default {
     getWorkspaceSettingsRoute: (policyID) => `workspace/${policyID}/settings`,
     getWorkspaceCardRoute: (policyID) => `workspace/${policyID}/card`,
     getWorkspaceReimburseRoute: (policyID) => `workspace/${policyID}/reimburse`,
+    getWorkspaceRateAndUnitRoute: (policyID) => `workspace/${policyID}/rateandunit`,
     getWorkspaceBillsRoute: (policyID) => `workspace/${policyID}/bills`,
     getWorkspaceInvoicesRoute: (policyID) => `workspace/${policyID}/invoices`,
     getWorkspaceTravelRoute: (policyID) => `workspace/${policyID}/travel`,

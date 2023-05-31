@@ -26,6 +26,7 @@ import ModalHeader from '../ModalHeader';
 import ONYXKEYS from '../../../ONYXKEYS';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import reportPropTypes from '../../reportPropTypes';
+import optionPropTypes from '../../../components/optionPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 
 const propTypes = {
@@ -88,7 +89,7 @@ class MoneyRequestAmountPage extends React.Component {
         this.isEditing = lodashGet(props.route, 'path', '').includes('amount');
 
         const amount = this.isEditing ? props.iou.amount : 0;
-        const currency = lodashGet(props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD);
+        const currency = this.isEditing ? props.iou.currency : lodashGet(props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD);
         const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
         this.state = {
             amount: selectedAmountAsString,
@@ -110,7 +111,7 @@ class MoneyRequestAmountPage extends React.Component {
         } else {
             // Initialize money request data
             IOU.setMoneyRequestAmount(0);
-            IOU.setMoneyRequestCurrency(lodashGet(props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD));
+            IOU.setMoneyRequestCurrency(lodashGet(this.props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD));
             IOU.setMoneyRequestDescription('');
             const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
                 ? OptionsListUtils.getPolicyExpenseReportOptions(this.props.report)
@@ -138,7 +139,7 @@ class MoneyRequestAmountPage extends React.Component {
         }
 
         if (prevProps.iou.amount !== this.props.iou.amount) {
-            const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.iou.currency, this.props.iou.amount).toString();
+            const selectedAmountAsString = this.props.iou.amount ? CurrencyUtils.convertToWholeUnit(this.props.iou.currency, this.props.iou.amount).toString() : '';
             this.setState({
                 amount: selectedAmountAsString,
                 selection: {
@@ -306,7 +307,7 @@ class MoneyRequestAmountPage extends React.Component {
      * @param {String} key
      */
     updateAmountNumberPad(key) {
-        if (!this.textInput.isFocused()) {
+        if (this.state.shouldUpdateSelection && !this.textInput.isFocused()) {
             this.textInput.focus();
         }
 
@@ -335,6 +336,9 @@ class MoneyRequestAmountPage extends React.Component {
      */
     updateLongPressHandlerState(value) {
         this.setState({shouldUpdateSelection: !value});
+        if (!value && !this.textInput.isFocused()) {
+            this.textInput.focus();
+        }
     }
 
     /**
