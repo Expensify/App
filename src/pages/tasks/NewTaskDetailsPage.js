@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -20,15 +20,33 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Task title and description data */
+    task: PropTypes.shape({
+        title: PropTypes.string,
+        description: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     betas: [],
+    task: {},
 };
 
 const NewTaskPage = (props) => {
     const inputRef = useRef();
+    const [taskTitle, setTaskTitle] = useState(props.task.title);
+    const [taskDescription, setTaskDescription] = useState(props.task.description);
+
+    useEffect(() => {
+        if (taskTitle !== props.task.title) {
+            setTaskTitle(props.task.title);
+        }
+        if (taskDescription !== props.task.description) {
+            setTaskDescription(props.task.description);
+        }
+    }, [props.task, taskTitle, taskDescription]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -80,13 +98,18 @@ const NewTaskPage = (props) => {
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('newTaskPage.title')}
+                        defaultValue={props.task.title}
+                        value={taskTitle}
+                        onChangeText={(text) => setTaskTitle(text)}
                     />
                 </View>
                 <View style={styles.mb5}>
                     <TextInput
                         inputID="taskDescription"
-                        defaultValue=""
+                        defaultValue={props.task.description}
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        value={taskDescription}
+                        onChangeText={(text) => setTaskDescription(text)}
                     />
                 </View>
             </Form>
@@ -102,6 +125,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        task: {
+            key: ONYXKEYS.TASK,
         },
     }),
     withLocalize,
