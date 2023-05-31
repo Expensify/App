@@ -9,7 +9,6 @@ import Log from '../../../libs/Log';
 import * as Environment from '../../../libs/Environment/Environment';
 import CONST from '../../../CONST';
 
-// TODO: copied from CONFIG.js, refactor
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to lodashGet here to prevent headaches
 const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).trim();
@@ -19,12 +18,16 @@ const requiredPropTypes = {
 };
 
 const propTypes = {
+    // Prop to indicate if this is the desktop flow or not
     isDesktopFlow: PropTypes.bool,
 };
 const defaultProps = {
     isDesktopFlow: false,
 };
 
+/**
+ * Apple Sign In Configuration for Web
+ */
 const config = {
     clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONST.APPLE_SIGN_IN_SERVICE_ID),
     scope: 'name email',
@@ -35,6 +38,10 @@ const config = {
     usePopup: true,
 };
 
+/**
+ * Apple Sign In success and failure listeners
+ */
+
 const successListener = (event) => {
     const token = !Environment.isDevelopment() ? event.detail.id_token : lodashGet(Config, 'ASI_TOKEN_OVERRIDE', event.detail.id_token);
     Session.beginAppleSignIn(token);
@@ -44,6 +51,11 @@ const failureListener = (event) => {
     if (!event.detail || event.detail.error === 'popup_closed_by_user') return null;
     Log.warn(`Apple sign-in failed: ${event.detail}`);
 };
+
+/**
+ * Apple Sign In button for Web
+ * @returns {React.Component}
+ */
 
 function AppleSignInDiv({isDesktopFlow}) {
     useEffect(() => {

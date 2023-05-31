@@ -8,7 +8,7 @@ const propTypes = {
     onPress: PropTypes.func,
 
     /** The icon to render */
-    icon: PropTypes.element,
+    icon: PropTypes.func,
 };
 
 const defaultProps = {
