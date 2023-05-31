@@ -43,6 +43,10 @@ const propTypes = {
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
 
+    /** Extra styles to pass to View wrapper */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
@@ -56,6 +60,7 @@ const defaultProps = {
     onPress: undefined,
     onScaleChanged: () => {},
     onToggleKeyboard: () => {},
+    containerStyles: [],
 };
 
 const AttachmentView = (props) => {
@@ -124,18 +129,18 @@ const AttachmentView = (props) => {
     }
 
     return (
-        <View style={styles.defaultAttachmentView}>
+        <View style={[styles.defaultAttachmentView, ...props.containerStyles]}>
             <View style={styles.mr2}>
                 <Icon src={Expensicons.Paperclip} />
             </View>
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
             {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
-                <View style={styles.ml2}>
-                    <Tooltip text={props.translate('common.download')}>
+                <Tooltip text={props.translate('common.download')}>
+                    <View style={styles.ml2}>
                         <Icon src={Expensicons.Download} />
-                    </Tooltip>
-                </View>
+                    </View>
+                </Tooltip>
             )}
             {props.shouldShowLoadingSpinnerIcon && (
                 <View style={styles.ml2}>

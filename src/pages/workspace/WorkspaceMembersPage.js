@@ -21,13 +21,14 @@ import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../../components/OptionRow';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
@@ -94,6 +95,12 @@ class WorkspaceMembersPage extends React.Component {
     componentDidUpdate(prevProps) {
         if (prevProps.preferredLocale !== this.props.preferredLocale) {
             this.validate();
+        }
+
+        if (prevProps.policyMemberList !== this.props.policyMemberList) {
+            this.setState((prevState) => ({
+                selectedEmployees: _.intersection(prevState.selectedEmployees, _.keys(this.props.policyMemberList)),
+            }));
         }
 
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
@@ -337,7 +344,7 @@ class WorkspaceMembersPage extends React.Component {
                                 participantsList: [item],
                                 icons: [
                                     {
-                                        source: ReportUtils.getAvatar(item.avatar, item.login),
+                                        source: UserUtils.getAvatar(item.avatar, item.login),
                                         name: item.login,
                                         type: CONST.ICON_TYPE_AVATAR,
                                     },
@@ -381,21 +388,12 @@ class WorkspaceMembersPage extends React.Component {
         data = _.sortBy(data, (value) => value.displayName.toLowerCase());
         data = this.getMemberOptions(data, this.state.searchValue.trim().toLowerCase());
 
-        data = _.reject(data, (member) => {
-            if (!policyOwner || !currentUserLogin) {
-                return;
-            }
-
-            // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
-            if (PolicyUtils.isExpensifyTeam(policyOwner)) {
-                return;
-            }
-
-            // We don't want to show guides as policy members unless the user is not a guide. Some customers get confused when they
-            // see random people added to their policy, but guides having access to the policies help set them up.
-            const isCurrentUserExpensifyTeam = PolicyUtils.isExpensifyTeam(currentUserLogin);
-            return !isCurrentUserExpensifyTeam && PolicyUtils.isExpensifyTeam(member.login);
-        });
+        // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
+        // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
+        // see random people added to their policy, but guides having access to the policies help set them up.
+        if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+            data = _.reject(data, (member) => PolicyUtils.isExpensifyTeam(member.login));
+        }
 
         _.each(data, (member) => {
             if (member.login === this.props.session.email || member.login === this.props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -504,7 +502,7 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         personalDetails: {

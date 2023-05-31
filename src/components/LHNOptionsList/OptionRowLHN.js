@@ -77,9 +77,11 @@ const OptionRowLHN = (props) => {
     const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
-    const avatarTooltips = !optionItem.isChatRoom && !optionItem.isArchivedRoom ? _.pluck(optionItem.displayNamesWithTooltips, 'tooltip') : undefined;
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
+
+    // If the item is a thread within a workspace, we will show the subtitle as the second line instead of in a pill
+    const alternativeText = optionItem.isThread && optionItem.subtitle ? optionItem.subtitle : optionItem.alternateText;
 
     return (
         <OfflineWithFeedback
@@ -135,7 +137,7 @@ const OptionRowLHN = (props) => {
                                                 props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                 hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
-                                            avatarTooltips={optionItem.isPolicyExpenseChat ? [optionItem.subtitle] : avatarTooltips}
+                                            shouldShowTooltip={!optionItem.isChatRoom && !optionItem.isArchivedRoom}
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>
@@ -147,9 +149,11 @@ const OptionRowLHN = (props) => {
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
-                                            shouldUseFullTitle={optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport}
+                                            shouldUseFullTitle={
+                                                optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
+                                            }
                                         />
-                                        {optionItem.isChatRoom && (
+                                        {optionItem.isChatRoom && !optionItem.isThread && (
                                             <TextPill
                                                 style={textPillStyle}
                                                 accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
@@ -157,13 +161,13 @@ const OptionRowLHN = (props) => {
                                             />
                                         )}
                                     </View>
-                                    {optionItem.alternateText ? (
+                                    {alternativeText ? (
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
                                             accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.alternateText}
+                                            {alternativeText}
                                         </Text>
                                     ) : null}
                                 </View>

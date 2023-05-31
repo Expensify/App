@@ -4,11 +4,24 @@ import CONST from '../../../CONST';
 
 const stylePropTypeWithFunction = PropTypes.oneOfType([stylePropType, PropTypes.func]);
 
+/**
+ * Custom test for required props
+ * + accessibilityLabel is required when accessible is true
+ * @param {Object} props
+ * @returns {Error} Error if prop is required
+ */
+function requiredPropsCheck(props) {
+    if (props.accessible !== true || (props.accessibilityLabel !== undefined && typeof props.accessibilityLabel === 'string')) {
+        return;
+    }
+    return new Error(`Provide a valid string for accessibilityLabel prop when accessible is true`);
+}
+
 const pressablePropTypes = {
     /**
      * onPress callback
      */
-    onPress: PropTypes.func.isRequired,
+    onPress: PropTypes.func,
 
     /**
      * Specifies keyboard shortcut to trigger onPressHandler
@@ -92,7 +105,7 @@ const pressablePropTypes = {
      * @example 'Search'
      * @example 'Close'
      */
-    accessibilityLabel: PropTypes.string.isRequired,
+    accessibilityLabel: requiredPropsCheck,
 
     /**
      * Specifies the accessibility hint for the component
@@ -108,6 +121,7 @@ const pressablePropTypes = {
 };
 
 const defaultProps = {
+    onPress: undefined,
     keyboardShortcut: undefined,
     shouldUseHapticsOnPress: false,
     shouldUseHapticsOnLongPress: false,
@@ -119,6 +133,7 @@ const defaultProps = {
     enableInScreenReaderStates: CONST.SCREEN_READER_STATES.ALL,
     nextFocusRef: undefined,
     shouldUseAutoHitSlop: true,
+    accessible: true,
 };
 
 export default {
