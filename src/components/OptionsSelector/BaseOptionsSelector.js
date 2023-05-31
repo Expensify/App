@@ -9,7 +9,7 @@ import OptionsList from '../OptionsList';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withNavigationFocus from '../withNavigationFocus';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigationFocus';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
@@ -26,6 +26,7 @@ const propTypes = {
 
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
