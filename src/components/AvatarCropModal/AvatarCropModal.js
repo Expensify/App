@@ -410,13 +410,15 @@ const AvatarCropModal = (props) => {
                                 text={props.translate('common.rotate')}
                                 shiftVertical={-2}
                             >
-                                <Button
-                                    medium
-                                    icon={Expensicons.Rotate}
-                                    iconFill={themeColors.inverse}
-                                    iconStyles={[styles.mr0]}
-                                    onPress={rotateImage}
-                                />
+                                <View>
+                                    <Button
+                                        medium
+                                        icon={Expensicons.Rotate}
+                                        iconFill={themeColors.inverse}
+                                        iconStyles={[styles.mr0]}
+                                        onPress={rotateImage}
+                                    />
+                                </View>
                             </Tooltip>
                         </View>
                     </>
