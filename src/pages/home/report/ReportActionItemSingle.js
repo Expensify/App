@@ -21,6 +21,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import CONST from '../../../CONST';
 import SubscriptAvatar from '../../../components/SubscriptAvatar';
 import reportPropTypes from '../../reportPropTypes';
+import * as UserUtils from '../../../libs/UserUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -63,7 +64,7 @@ const showUserDetails = (email) => {
 const ReportActionItemSingle = (props) => {
     const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const {avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
-    const avatarSource = ReportUtils.getAvatar(avatar, actorEmail);
+    const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,

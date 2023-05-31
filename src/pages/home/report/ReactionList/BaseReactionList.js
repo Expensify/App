@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../../styles/styles';
 import HeaderReactionList from './HeaderReactionList';
-import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as UserUtils from '../../../../libs/UserUtils';
 import CONST from '../../../../CONST';
 import participantPropTypes from '../../../../components/participantPropTypes';
 import reactionPropTypes from './reactionPropTypes';
@@ -87,7 +87,7 @@ const BaseReactionList = (props) => {
                 participantsList: [item],
                 icons: [
                     {
-                        source: ReportUtils.getAvatar(item.avatar, item.login),
+                        source: UserUtils.getAvatar(item.avatar, item.login),
                         name: item.login,
                         type: CONST.ICON_TYPE_AVATAR,
                     },
