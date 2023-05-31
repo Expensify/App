@@ -3374,6 +3374,17 @@ const styles = {
         width: '100%',
         ...flex.flexRow,
     },
+
+    appleButtonContainer: { 
+        width: 40,
+        height: 40,
+        marginRight: 20,
+    },
+
+    signInButtonBase: {
+        margin: 10,
+        padding: 2,
+    }
 };
 
 export default styles;

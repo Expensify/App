@@ -1,11 +1,7 @@
 import React from 'react';
 import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
-
-const style = {
-    margin: 10,
-    padding: 2,
-};
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** The on press method */
@@ -23,7 +19,7 @@ const defaultProps = {
 const ButtonBase = ({onPress, icon}) => (
     <Pressable
         onPress={onPress}
-        style={style}
+        style={styles.signInButtonBase}
     >
         {icon}
     </Pressable>
