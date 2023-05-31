@@ -1210,7 +1210,7 @@ const styles = {
     },
 
     onlyEmojisTextLineHeight: {
-        lineHeight: variables.fontSizeOnlyEmojisHeight, 
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
     createMenuPositionSidebar: (windowHeight) => ({
