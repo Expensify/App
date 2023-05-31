@@ -304,9 +304,9 @@ function beginSignIn(login) {
  *
  * @param {String} login
  */
-function beginGoogleSignIn(authToken) {
+function beginGoogleSignIn(token) {
     const {optimisticData, successData, failureData} = signInAttemptState();
-    API.write('SignInWithGoogle', {authToken}, {optimisticData, successData, failureData});
+    API.write('SignInWithGoogle', {token}, {optimisticData, successData, failureData});
 }
 
 /**
