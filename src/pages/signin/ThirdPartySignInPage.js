@@ -13,6 +13,7 @@ import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
+    /** Which sign in provider we are using */
     signInProvider: PropTypes.oneOf(['google', 'apple']).isRequired,
 
     ...withLocalizePropTypes,

@@ -236,6 +236,11 @@ function resendLinkWithValidateCode(login = credentials.login) {
     API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
 }
 
+/**
+ * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls
+ *  @returns {Object}
+ */
+
 function signInAttemptState() {
     return {
         optimisticData: [

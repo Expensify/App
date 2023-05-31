@@ -5,6 +5,12 @@ import ButtonBase from '../ButtonBase';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
 
+const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
+
+/**
+ * Apple Sign In Configuration for Android
+ */
+
 const config = {
     clientId: CONST.APPLE_SIGN_IN_SERVICE_ID,
     redirectUri: CONST.APPLE_SIGN_IN_REDIRECT_URI,
@@ -12,7 +18,10 @@ const config = {
     scope: appleAuthAndroid.Scope.ALL,
 };
 
-const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
+/**
+ * Apple Sign In method for Android that returns authToken
+ * @returns {Promise<string>}
+ */
 
 function appleSignInRequest() {
     appleAuthAndroid.configure(config);
@@ -23,6 +32,11 @@ function appleSignInRequest() {
             throw e;
         });
 }
+
+/**
+ * Apple Sign In button for Android
+ * @returns {React.Component}
+ */
 
 const AppleSignIn = () => {
     const handleSignIn = () => {

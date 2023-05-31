@@ -6,6 +6,11 @@ import * as Session from '../../../libs/actions/Session';
 
 const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
 
+/**
+ * Apple Sign In method for iOS that returns identityToken
+ * @returns {Promise<string>}
+ */
+
 function appleSignInRequest() {
     return appleAuth
         .performRequest({
@@ -24,6 +29,11 @@ function appleSignInRequest() {
             }),
         );
 }
+
+/**
+ * Apple Sign In button for iOS
+ * @returns {React.Component}
+ */
 
 const AppleSignIn = () => {
     const handleSignIn = () => {
