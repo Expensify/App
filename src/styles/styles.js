@@ -1024,6 +1024,10 @@ const styles = {
         lineHeight: 16,
     },
 
+    lh20: {
+        lineHeight: 20,
+    },
+
     lh140Percent: {
         lineHeight: '140%',
     },
@@ -2093,12 +2097,6 @@ const styles = {
 
     reportSettingsVisibilityText: {
         textTransform: 'capitalize',
-    },
-
-    reportTransactionWrapper: {
-        paddingVertical: 8,
-        display: 'flex',
-        flexDirection: 'row',
     },
 
     settingsPageBackground: {

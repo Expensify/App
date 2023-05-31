@@ -583,51 +583,6 @@ function readOldestAction(reportID, reportActionID) {
 }
 
 /**
- * Gets the IOUReport and the associated report actions.
- *
- * @param {String} chatReportID
- * @param {Number} iouReportID
- */
-function openPaymentDetailsPage(chatReportID, iouReportID) {
-    API.read(
-        'OpenPaymentDetailsPage',
-        {
-            reportID: chatReportID,
-            iouReportID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-        },
-    );
-}
-
-/**
  * Gets transactions and data associated with the linked report (expense or IOU report)
  *
  * @param {String} chatReportID
@@ -1825,7 +1780,6 @@ export {
     openReportFromDeepLink,
     navigateToAndOpenReport,
     navigateToAndOpenChildReport,
-    openPaymentDetailsPage,
     updatePolicyRoomNameAndNavigate,
     openMoneyRequestsReportPage,
     clearPolicyRoomNameErrors,
