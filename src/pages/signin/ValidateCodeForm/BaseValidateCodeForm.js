@@ -168,6 +168,8 @@ class BaseValidateCodeForm extends React.Component {
                 this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
                 return;
             }
+
+            this.input2FA.blur();
         } else {
             if (!this.state.validateCode.trim()) {
                 this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
@@ -177,6 +179,8 @@ class BaseValidateCodeForm extends React.Component {
                 this.setState({formError: {validateCode: 'validateCodeForm.error.incorrectMagicCode'}});
                 return;
             }
+
+            this.inputValidateCode.blur();
         }
 
         this.setState({
