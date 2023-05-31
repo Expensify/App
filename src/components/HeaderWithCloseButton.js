@@ -18,7 +18,7 @@ import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
-import PinButton from './PinButton'
+import PinButton from './PinButton';
 
 const propTypes = {
     /** Title of the Header */
@@ -221,9 +221,7 @@ class HeaderWithCloseButton extends Component {
                             </Tooltip>
                         )}
 
-                        {this.props.shouldShowPinButton && (
-                            <PinButton report={this.props.report}/>
-                        )}
+                        {this.props.shouldShowPinButton && <PinButton report={this.props.report} />}
 
                         {this.props.shouldShowThreeDotsButton && (
                             <ThreeDotsMenu

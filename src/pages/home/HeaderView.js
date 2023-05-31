@@ -27,7 +27,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import PinButton from '../../components/PinButton'
+import PinButton from '../../components/PinButton';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -195,7 +195,7 @@ const HeaderView = (props) => {
                                     guideCalendarLink={guideCalendarLink}
                                 />
                             )}
-                            <PinButton report={props.report}/>
+                            <PinButton report={props.report} />
                             {shouldShowThreeDotsButton && (
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}

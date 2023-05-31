@@ -32,10 +32,10 @@ const PinButton = (props) => (
             />
         </Pressable>
     </Tooltip>
-    );
+);
 
 PinButton.displayName = 'PinButton';
 PinButton.propTypes = propTypes;
 PinButton.defaultProps = defaultProps;
 
-export default (withLocalize)(PinButton);
+export default withLocalize(PinButton);
