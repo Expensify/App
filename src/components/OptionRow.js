@@ -20,7 +20,6 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import variables from '../styles/variables';
 
 const propTypes = {
     /** Style for hovered state */
@@ -177,7 +176,6 @@ class OptionRow extends Component {
                             accessibilityRole="button"
                             hoverDimmingValue={1}
                             hoverStyle={this.props.hoverStyle}
-                            pressDimmingValue={variables.pressDimValue}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
