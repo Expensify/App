@@ -1730,7 +1730,7 @@ function flagComment(reportID, reportAction, severity) {
     const message = reportAction.message[0];
     let updatedDecision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
-        if (_.isEmpty(message.moderationDecisions) || message.moderationDecisions[0].decision !== CONST.MODERATOR_DECISION_PENDING_HIDE) {
+        if (_.isEmpty(message.moderationDecisions) || message.moderationDecisions[0].decision !== CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE) {
             updatedDecision = [
                 {
                     decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,

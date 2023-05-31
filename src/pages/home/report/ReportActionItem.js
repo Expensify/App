@@ -130,7 +130,10 @@ function ReportActionItem(props) {
         }
 
         // Right now we are only sending the latest moderationDecision to the frontend even though it is an array
-        const latestDecision = props.action.message[0].moderationDecisions[0];
+        let decisions = props.action.message[0].moderationDecisions;
+        if (decisions.length > 1) {
+            decisions = decisions.slice(-1)
+        }const latestDecision = decisions[0];
         if (latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
             setIsHidden(true);
         }
@@ -383,7 +386,7 @@ function ReportActionItem(props) {
                     wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
-                    hasBeenFlagged={moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_APPROVED && moderationDecision !== CONST.MODERATION.MODERATOR_DECISION_PENDING}
+                    hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
                 >
                     {content}
                 </ReportActionItemSingle>
