@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -24,6 +24,7 @@ import * as User from '../../../libs/actions/User';
 import FormHelpMessage from '../../../components/FormHelpMessage';
 import MagicCodeInput from '../../../components/MagicCodeInput';
 import Terms from '../Terms';
+import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -184,7 +185,7 @@ class BaseValidateCodeForm extends React.Component {
 
         const accountID = lodashGet(this.props, 'credentials.accountID');
         if (accountID) {
-            Session.signInWithValidateCode(accountID, this.state.validateCode, this.state.twoFactorAuthCode);
+            Session.signInWithValidateCode(accountID, this.state.validateCode, this.state.twoFactorAuthCode, this.props.preferredLocale);
         } else {
             Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode, this.props.preferredLocale);
         }
@@ -229,13 +230,17 @@ class BaseValidateCodeForm extends React.Component {
                             {this.state.linkSent ? (
                                 <Text style={[styles.mt2]}>{this.props.account.message ? this.props.translate(this.props.account.message) : ''}</Text>
                             ) : (
-                                <TouchableOpacity
+                                <PressableWithFeedback
                                     style={[styles.mt2]}
                                     onPress={this.resendValidateCode}
                                     underlayColor={themeColors.componentBG}
+                                    hoverDimmingValue={1}
+                                    pressDimmingValue={0.2}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={this.props.translate('validateCodeForm.magicCodeNotReceived')}
                                 >
                                     <Text style={[styles.link]}>{this.props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
-                                </TouchableOpacity>
+                                </PressableWithFeedback>
                             )}
                         </View>
                     </View>
@@ -248,7 +253,10 @@ class BaseValidateCodeForm extends React.Component {
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
-                        isLoading={this.props.account.isLoading}
+                        isLoading={
+                            this.props.account.isLoading &&
+                            this.props.account.loadingForm === (this.props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                        }
                         onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />

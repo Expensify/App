@@ -116,7 +116,7 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline && prevProps.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             this.fetchData();
         }
         if (!this.state.hasACHDataBeenLoaded) {
@@ -377,7 +377,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <ScreenWrapper>
                     <HeaderWithCloseButton
-                        title={this.props.translate('workspace.common.bankAccount')}
+                        title={this.props.translate('workspace.common.connectBankAccount')}
                         onCloseButtonPress={Navigation.dismissModal}
                         subtitle={policyName}
                     />

@@ -67,4 +67,7 @@ export default PropTypes.shape({
 
     /** The status of the current report */
     statusNum: PropTypes.oneOf(_.values(CONST.REPORT.STATUS)),
+
+    /** Which user role is capable of posting messages on the report */
+    writeCapability: PropTypes.oneOf(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
 });
