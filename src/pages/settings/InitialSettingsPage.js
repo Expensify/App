@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, ScrollView, Pressable} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -39,6 +39,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -325,9 +326,12 @@ class InitialSettingsPage extends React.Component {
                             <View style={styles.w100}>
                                 <View style={styles.avatarSectionWrapper}>
                                     <Tooltip text={this.props.translate('common.profile')}>
-                                        <Pressable
+                                        <PressableWithFeedback
                                             style={[styles.mb3]}
+                                            hoverDimmingValue={1}
                                             onPress={this.openProfileSettings}
+                                            accessibilityLabel={this.props.translate('common.profile')}
+                                            accessibilityRole="button"
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
@@ -336,11 +340,14 @@ class InitialSettingsPage extends React.Component {
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
-                                        </Pressable>
+                                        </PressableWithFeedback>
                                     </Tooltip>
-                                    <Pressable
+                                    <PressableWithFeedback
                                         style={[styles.mt1, styles.mw100]}
+                                        hoverDimmingValue={1}
                                         onPress={this.openProfileSettings}
+                                        accessibilityLabel={this.props.translate('common.profile')}
+                                        accessibilityRole="link"
                                     >
                                         <Tooltip text={this.props.translate('common.profile')}>
                                             <Text
@@ -352,7 +359,7 @@ class InitialSettingsPage extends React.Component {
                                                     : this.props.formatPhoneNumber(this.props.session.email)}
                                             </Text>
                                         </Tooltip>
-                                    </Pressable>
+                                    </PressableWithFeedback>
                                     {Boolean(this.props.currentUserPersonalDetails.displayName) && (
                                         <Text
                                             style={[styles.textLabelSupporting, styles.mt1]}
