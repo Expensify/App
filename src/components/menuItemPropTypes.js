@@ -108,8 +108,8 @@ const propTypes = {
     /** The ref to the menu item */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
-    /** Any adjustments to style when menu item is hovered */
-    hoverStyle: PropTypes.arrayOf(PropTypes.object),
+    /** Any adjustments to style when menu item is hovered or pressed */
+    hoverAndPressStyle: PropTypes.arrayOf(PropTypes.object),
 
     /** Text to display under the main item */
     furtherDetails: PropTypes.string,

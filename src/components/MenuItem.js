@@ -63,7 +63,7 @@ const defaultProps = {
     shouldStackHorizontally: false,
     avatarSize: undefined,
     shouldBlockSelection: false,
-    hoverStyle: [],
+    hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
 };
@@ -116,7 +116,7 @@ const MenuItem = (props) => {
                 props.style,
                 !props.interactive && styles.cursorDefault,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
-                hovered && props.hoverStyle,
+                (hovered || pressed) && props.hoverAndPressStyle,
                 ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
             ]}
             disabled={props.disabled}
