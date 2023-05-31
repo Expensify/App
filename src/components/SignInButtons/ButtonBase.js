@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 
 const style = {
@@ -8,7 +8,6 @@ const style = {
 };
 
 const propTypes = {
-    
     /** The on press method */
     onPress: PropTypes.func,
 
@@ -17,10 +16,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onPress: () => { },
+    onPress: () => {},
     icon: null,
 };
-
 
 const ButtonBase = ({onPress, icon}) => (
     <Pressable

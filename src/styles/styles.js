@@ -3368,7 +3368,7 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
-    
+
     loginButtonRow: {
         justifyContent: 'center',
         width: '100%',

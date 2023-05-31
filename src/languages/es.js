@@ -240,7 +240,7 @@ export default {
         alreadySignedIn: ({email}) => `Ya has iniciado sesión con ${email}.`,
         goBackMessage: ({provider}) => `No  ${provider}?`,
         continueWithMyCurrentSession: 'Continuar con mi sesión actual',
-        redirectToDesktopMessage: "Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.",
+        redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
         signInAgreementMessage: 'Al iniciar sesión, aceptas las',
         termsOfService: 'Términos de servicio',
         privacy: 'Privacidad',
