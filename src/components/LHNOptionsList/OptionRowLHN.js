@@ -84,6 +84,8 @@ const OptionRowLHN = (props) => {
     // If the item is a thread within a workspace, we will show the subtitle as the second line instead of in a pill
     const alternativeText = optionItem.isThread && optionItem.subtitle ? optionItem.subtitle : optionItem.alternateText;
 
+    const hoverStyle = !props.isFocused && props.hoverStyle;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -113,8 +115,8 @@ const OptionRowLHN = (props) => {
                         accessibilityLabel={optionItem.text}
                         accessibilityRole="button"
                         hoverDimmingValue={1}
-                        hoverStyle={props.hoverStyle}
-                        focusStyle={props.hoverStyle}
+                        hoverStyle={hoverStyle}
+                        focusStyle={hoverStyle}
                     >
                         <View
                             accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
