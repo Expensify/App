@@ -178,13 +178,15 @@ const Footer = (props) => {
                                     {_.map(column.rows, (row) => (
                                         <Hoverable key={row.translationPath}>
                                             {(hovered) => (
-                                                <TextLink
-                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                    href={row.link}
-                                                    onPress={row.onPress}
-                                                >
-                                                    {props.translate(row.translationPath)}
-                                                </TextLink>
+                                                <View>
+                                                    <TextLink
+                                                        style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                        href={row.link}
+                                                        onPress={row.onPress}
+                                                    >
+                                                        {props.translate(row.translationPath)}
+                                                    </TextLink>
+                                                </View>
                                             )}
                                         </Hoverable>
                                     ))}

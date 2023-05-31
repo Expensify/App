@@ -22,6 +22,7 @@ import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
 import withDrawerState from '../../../../components/withDrawerState';
 import * as TaskUtils from '../../../../libs/actions/Task';
+import * as Session from '../../../../libs/actions/Session';
 import * as App from '../../../../libs/actions/App';
 
 /**
@@ -35,6 +36,8 @@ const policySelector = (policy) =>
     };
 
 const propTypes = {
+    ...withLocalizePropTypes,
+
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
@@ -52,8 +55,6 @@ const propTypes = {
 
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -73,9 +74,11 @@ class FloatingActionButtonAndPopover extends React.Component {
 
         this.showCreateMenu = this.showCreateMenu.bind(this);
         this.hideCreateMenu = this.hideCreateMenu.bind(this);
+        this.interceptAnonymousUser = this.interceptAnonymousUser.bind(this);
 
         this.state = {
             isCreateMenuActive: false,
+            isAnonymousUser: Session.isAnonymousUser(),
         };
     }
 
@@ -163,6 +166,20 @@ class FloatingActionButtonAndPopover extends React.Component {
         });
     }
 
+    /**
+     * Checks if user is anonymous. If true, shows the sign in modal, else,
+     * executes the callback.
+     *
+     * @param {Function} callback
+     */
+    interceptAnonymousUser(callback) {
+        if (this.state.isAnonymousUser) {
+            Session.signOutAndRedirectToSignIn();
+        } else {
+            callback();
+        }
+    }
+
     render() {
         // Workspaces are policies with type === 'free'
         const workspaces = _.filter(this.props.allPolicies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE);
@@ -179,19 +196,19 @@ class FloatingActionButtonAndPopover extends React.Component {
                         {
                             icon: Expensicons.ChatBubble,
                             text: this.props.translate('sidebarScreen.newChat'),
-                            onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
+                            onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_CHAT)),
                         },
                         {
                             icon: Expensicons.Users,
                             text: this.props.translate('sidebarScreen.newGroup'),
-                            onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
+                            onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_GROUP)),
                         },
                         ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length
                             ? [
                                   {
                                       icon: Expensicons.Hashtag,
                                       text: this.props.translate('sidebarScreen.newRoom'),
-                                      onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
+                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM)),
                                   },
                               ]
                             : []),
@@ -200,7 +217,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Send,
                                       text: this.props.translate('iou.sendMoney'),
-                                      onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
+                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_SEND)),
                                   },
                               ]
                             : []),
@@ -209,7 +226,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.MoneyCircle,
                                       text: this.props.translate('iou.requestMoney'),
-                                      onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
+                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_REQUEST)),
                                   },
                               ]
                             : []),
@@ -218,7 +235,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Receipt,
                                       text: this.props.translate('iou.splitBill'),
-                                      onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
+                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_BILL)),
                                   },
                               ]
                             : []),
@@ -227,7 +244,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Task,
                                       text: this.props.translate('newTaskPage.assignTask'),
-                                      onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(),
+                                      onSelected: () => this.interceptAnonymousUser(() => TaskUtils.clearOutTaskInfoAndNavigate()),
                                   },
                               ]
                             : []),
@@ -239,7 +256,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                       iconHeight: 40,
                                       text: this.props.translate('workspace.new.newWorkspace'),
                                       description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                      onSelected: () => App.createWorkspaceAndNavigateToIt(),
+                                      onSelected: () => this.interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt()),
                                   },
                               ]
                             : []),

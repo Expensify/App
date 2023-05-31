@@ -618,7 +618,7 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {Object} newCustomUnit
  * @param {Number} lastModified
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
+function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -627,6 +627,13 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
+                        rates: {
+                            [newCustomUnit.rates.customUnitRateID]: {
+                                ...newCustomUnit.rates,
+                                errors: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
@@ -643,76 +650,8 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                     [newCustomUnit.customUnitID]: {
                         pendingAction: null,
                         errors: null,
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [currentCustomUnit.customUnitID]: {
-                        customUnitID: currentCustomUnit.customUnitID,
-                        name: currentCustomUnit.name,
-                        attributes: currentCustomUnit.attributes,
-                    },
-                },
-            },
-        },
-    ];
-
-    API.write(
-        'UpdateWorkspaceCustomUnit',
-        {
-            policyID,
-            lastModified,
-            customUnit: JSON.stringify(newCustomUnit),
-        },
-        {optimisticData, successData, failureData},
-    );
-}
-
-/**
- * @param {String} policyID
- * @param {Object} currentCustomUnitRate
- * @param {String} customUnitID
- * @param {Object} newCustomUnitRate
- * @param {Number} lastModified
- */
-function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnitID]: {
                         rates: {
-                            [newCustomUnitRate.customUnitRateID]: {
-                                ...newCustomUnitRate,
-                                errors: null,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnitID]: {
-                        rates: {
-                            [newCustomUnitRate.customUnitRateID]: {
+                            [newCustomUnit.rates.customUnitRateID]: {
                                 pendingAction: null,
                             },
                         },
@@ -728,10 +667,11 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [customUnitID]: {
+                    [currentCustomUnit.customUnitID]: {
+                        customUnitID: currentCustomUnit.customUnitID,
                         rates: {
-                            [currentCustomUnitRate.customUnitRateID]: {
-                                ...currentCustomUnitRate,
+                            [currentCustomUnit.rates.customUnitRateID]: {
+                                ...currentCustomUnit.rates,
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.reimburse.updateCustomUnitError'),
                             },
                         },
@@ -742,12 +682,12 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
     ];
 
     API.write(
-        'UpdateWorkspaceCustomUnitRate',
+        'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            customUnitID,
             lastModified,
-            customUnitRate: JSON.stringify(newCustomUnitRate),
+            customUnit: JSON.stringify(newCustomUnit),
+            customUnitRate: JSON.stringify(newCustomUnit.rates),
         },
         {optimisticData, successData, failureData},
     );
@@ -1138,8 +1078,7 @@ export {
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
     deleteWorkspace,
-    updateWorkspaceCustomUnit,
-    updateCustomUnitRate,
+    updateWorkspaceCustomUnitAndRate,
     updateLastAccessedWorkspace,
     clearDeleteMemberError,
     clearAddMemberError,

@@ -306,6 +306,9 @@ class Form extends React.Component {
                         child.props.onBlur(event);
                     }
                 },
+                onTouched: () => {
+                    this.setTouchedInput(inputID);
+                },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
                     this.setState(
