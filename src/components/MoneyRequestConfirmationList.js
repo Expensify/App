@@ -238,7 +238,6 @@ class MoneyRequestConfirmationList extends Component {
         const recipient = this.state.participants[0];
         const shouldShowPaypal = !_.isUndefined(recipient) && Boolean(recipient.payPalMeAddress)
 
-
         return shouldShowSettlementButton ? (
             <SettlementButton
                 isDisabled={shouldDisableButton}
