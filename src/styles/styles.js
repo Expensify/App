@@ -3383,6 +3383,7 @@ const styles = {
 
     signInButtonBase: {
         margin: 10,
+        marginTop: 0,
         padding: 2,
     },
 };

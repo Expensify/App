@@ -472,6 +472,11 @@ const CONST = {
     APPLE_SIGN_IN_SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
     APPLE_SIGN_IN_REDIRECT_URI: 'https://new.expensify.com/appleauth',
 
+    SIGN_IN_METHOD: {
+        APPLE: 'apple',
+        GOOGLE: 'google',
+    },
+
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
