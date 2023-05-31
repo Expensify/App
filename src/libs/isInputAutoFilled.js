@@ -5,5 +5,5 @@
  */
 export default function isInputAutoFilled(input) {
     if (!input.matches) return false;
-    return input.matches(':-webkit-autofill')
+    return input.matches(':-webkit-autofill');
 }
