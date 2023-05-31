@@ -23,8 +23,6 @@ import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
 import * as Report from '../Report';
-import DateUtils from '../../DateUtils';
-import signInWithGoogle from '../signInWithGoogle';
 
 let authTokenType = '';
 Onyx.connect({
@@ -300,60 +298,15 @@ function beginSignIn(login) {
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
 }
 
-function googleApiCallback(authToken) {
-    const optimisticData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {
-                validateCode: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('loginForm.cannotGetAccountDetails'),
-                },
-            },
-        },
-    ];
-    console.log(authToken);
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('SignInGoogle', {authToken}, {optimisticData, successData, failureData});
-}
-
 /**
  * Shows Google sign-in process, and if an auth token is successfully obtained,
  * passes the token on to the Expensify API to sign in with
  *
  * @param {String} login
  */
-function beginGoogleSignIn() {
-    signInWithGoogle(googleApiCallback);
+function beginGoogleSignIn(authToken) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithGoogle', {authToken}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -995,7 +948,6 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 export {
     beginSignIn,
     beginGoogleSignIn,
-    googleApiCallback,
     beginAppleSignIn,
     checkIfActionIsAllowed,
     updatePasswordAndSignin,
