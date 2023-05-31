@@ -24,6 +24,7 @@ export default {
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
             AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
+            GoogleSignInDesktop: ROUTES.GOOGLE_SIGN_IN,
 
             // Modal Screens
             Settings: {
