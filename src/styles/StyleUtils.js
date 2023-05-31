@@ -72,6 +72,15 @@ function getAvatarSize(size) {
 }
 
 /**
+ * Return the height of magic code input container
+ *
+ * @returns {Object}
+ */
+function getHeightOfMagicCodeInput() {
+    return {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth};
+}
+
+/**
  * Return the style from an empty avatar size constant
  *
  * @param {String} size
@@ -1025,6 +1034,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
     return {
         overflow: 'hidden',
         top: -(itemsHeight + padding),
+        height: itemsHeight,
     };
 }
 
@@ -1202,4 +1212,5 @@ export {
     getGoogleListViewStyle,
     getMentionStyle,
     getMentionTextColor,
+    getHeightOfMagicCodeInput,
 };
