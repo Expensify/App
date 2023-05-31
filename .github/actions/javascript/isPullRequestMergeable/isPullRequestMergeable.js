@@ -13,62 +13,66 @@ const run = function () {
     let isMergeable = false;
     let mergeabilityResolved = false;
     console.log(`Checking the mergeability of PR #${pullRequestNumber}`);
-    return GithubUtils.octokit.pulls.get({
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.APP_REPO,
-        pull_number: pullRequestNumber,
-    })
+    return GithubUtils.octokit.pulls
+        .get({
+            owner: GithubUtils.GITHUB_OWNER,
+            repo: GithubUtils.APP_REPO,
+            pull_number: pullRequestNumber,
+        })
         .then(({data}) => data.head.sha)
-        .then(headRef => promiseWhile(
-            () => !mergeabilityResolved && retryCount < MAX_RETRIES,
-            _.throttle(
-                () => Promise.all([
-                    GithubUtils.octokit.pulls.get({
-                        owner: GithubUtils.GITHUB_OWNER,
-                        repo: GithubUtils.APP_REPO,
-                        pull_number: pullRequestNumber,
-                    }),
-                    GithubUtils.octokit.checks.listForRef({
-                        owner: GithubUtils.GITHUB_OWNER,
-                        repo: GithubUtils.APP_REPO,
-                        ref: headRef,
-                    }),
-                ])
-                    .then(([prResponse, checksResponse]) => {
-                        const mergeable = prResponse.data.mergeable;
-                        const mergeableState = prResponse.data.mergeable_state;
-                        const areChecksComplete = _.every(checksResponse.data.check_runs, check => check.status === 'completed');
+        .then((headRef) =>
+            promiseWhile(
+                () => !mergeabilityResolved && retryCount < MAX_RETRIES,
+                _.throttle(
+                    () =>
+                        Promise.all([
+                            GithubUtils.octokit.pulls.get({
+                                owner: GithubUtils.GITHUB_OWNER,
+                                repo: GithubUtils.APP_REPO,
+                                pull_number: pullRequestNumber,
+                            }),
+                            GithubUtils.octokit.checks.listForRef({
+                                owner: GithubUtils.GITHUB_OWNER,
+                                repo: GithubUtils.APP_REPO,
+                                ref: headRef,
+                            }),
+                        ])
+                            .then(([prResponse, checksResponse]) => {
+                                const mergeable = prResponse.data.mergeable;
+                                const mergeableState = prResponse.data.mergeable_state;
+                                const areChecksComplete = _.every(checksResponse.data.check_runs, (check) => check.status === 'completed');
 
-                        if (_.isNull(mergeable)) {
-                            console.log('Pull request mergeability is not yet resolved...');
-                            retryCount++;
-                            return;
-                        }
+                                if (_.isNull(mergeable)) {
+                                    console.log('Pull request mergeability is not yet resolved...');
+                                    retryCount++;
+                                    return;
+                                }
 
-                        if (_.isEmpty(mergeableState)) {
-                            console.log('Pull request mergeable_state is not yet resolved...');
-                            retryCount++;
-                            return;
-                        }
+                                if (_.isEmpty(mergeableState)) {
+                                    console.log('Pull request mergeable_state is not yet resolved...');
+                                    retryCount++;
+                                    return;
+                                }
 
-                        if (!areChecksComplete) {
-                            console.log('Pull request checks are not yet complete...');
-                            retryCount++;
-                            return;
-                        }
+                                if (!areChecksComplete) {
+                                    console.log('Pull request checks are not yet complete...');
+                                    retryCount++;
+                                    return;
+                                }
 
-                        mergeabilityResolved = true;
-                        console.log(`Merge information for #${pullRequestNumber} - mergeable: ${mergeable}, mergeable_state: ${mergeableState}`);
-                        isMergeable = mergeable && mergeableState !== 'blocked';
-                    })
-                    .catch((githubError) => {
-                        mergeabilityResolved = true;
-                        console.error(`An error occurred fetching the PR from Github: ${JSON.stringify(githubError)}`);
-                        core.setFailed(githubError);
-                    }),
-                THROTTLE_DURATION,
+                                mergeabilityResolved = true;
+                                console.log(`Merge information for #${pullRequestNumber} - mergeable: ${mergeable}, mergeable_state: ${mergeableState}`);
+                                isMergeable = mergeable && mergeableState !== 'blocked';
+                            })
+                            .catch((githubError) => {
+                                mergeabilityResolved = true;
+                                console.error(`An error occurred fetching the PR from Github: ${JSON.stringify(githubError)}`);
+                                core.setFailed(githubError);
+                            }),
+                    THROTTLE_DURATION,
+                ),
             ),
-        ))
+        )
         .then(() => {
             if (retryCount >= MAX_RETRIES) {
                 console.error('Maximum retries reached, mergeability is undetermined, defaulting to false');

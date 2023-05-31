@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import * as Session from '../../libs/actions/Session';
@@ -24,6 +25,8 @@ import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
+import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
+import isInputAutoFilled from '../../libs/isInputAutoFilled';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -108,14 +111,18 @@ class LoginForm extends React.Component {
             formError: null,
         });
 
-        if (this.props.account.errors) {
+        if (this.props.account.errors || this.props.account.message) {
             Session.clearAccountMessages();
         }
 
         // Clear the "Account successfully closed" message when the user starts typing
-        if (this.props.closeAccount.success) {
+        if (this.props.closeAccount.success && !isInputAutoFilled(this.input)) {
             CloseAccount.setDefaultData();
         }
+    }
+
+    getSignInWithStyles() {
+        return this.props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
     }
 
     /**
@@ -144,10 +151,10 @@ class LoginForm extends React.Component {
             return;
         }
 
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
-        const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
-        if (!Str.isValidEmail(login) && !isValidPhoneLogin) {
+        if (!Str.isValidEmail(login) && !parsedPhoneNumber.possible) {
             if (ValidationUtils.isNumericWithSpecialChars(login)) {
                 this.setState({formError: 'common.error.phoneNumber'});
             } else {
@@ -161,17 +168,21 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        Session.beginSignIn(isValidPhoneLogin ? phoneLogin : login);
+        Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login);
     }
 
     render() {
         const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
         const serverErrorText = ErrorUtils.getLatestErrorMessage(this.props.account);
+        const hasError = !_.isEmpty(serverErrorText);
         return (
             <>
-                <View accessibilityLabel={this.props.translate('loginForm.loginForm')} style={[styles.mt3]}>
+                <View
+                    accessibilityLabel={this.props.translate('loginForm.loginForm')}
+                    style={[styles.mt3]}
+                >
                     <TextInput
-                        ref={el => (this.input = el)}
+                        ref={(el) => (this.input = el)}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="username"
@@ -184,29 +195,40 @@ class LoginForm extends React.Component {
                         autoCorrect={false}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         errorText={formErrorText}
+                        hasError={hasError}
                     />
                 </View>
                 {!_.isEmpty(this.props.account.success) && <Text style={[styles.formSuccess]}>{this.props.account.success}</Text>}
-                {!_.isEmpty(this.props.closeAccount.success) && (
-
+                {!_.isEmpty(this.props.closeAccount.success || this.props.account.message) && (
                     // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
-                    <DotIndicatorMessage style={[styles.mv2]} type="success" messages={{0: this.props.closeAccount.success}} />
+                    <DotIndicatorMessage
+                        style={[styles.mv2]}
+                        type="success"
+                        messages={{0: this.props.closeAccount.success || this.props.account.message}}
+                    />
                 )}
                 {
-
                     // We need to unmount the submit button when the component is not visible so that the Enter button
                     // key handler gets unsubscribed and does not conflict with the Password Form
                     this.props.isVisible && (
                         <View style={[styles.mt5]}>
                             <FormAlertWithSubmitButton
                                 buttonText={this.props.translate('common.continue')}
-                                isLoading={this.props.account.isLoading}
+                                isLoading={this.props.account.isLoading && this.props.account.loadingForm === CONST.FORMS.LOGIN_FORM}
                                 onSubmit={this.validateAndSubmitForm}
                                 message={serverErrorText}
                                 isAlertVisible={!_.isEmpty(serverErrorText)}
                                 containerStyles={[styles.mh0]}
                             />
-                            <GoogleSignInButton apiCallback={Session.googleApiCallback} />
+                            <View style={[this.getSignInWithStyles()]}>
+                                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, this.props.isSmallScreenWidth ? '' : styles.mb3, styles.mt2]}>
+                                    {this.props.translate('common.signInWith')}
+                                </Text>
+                                <View style={styles.loginButtonRow}>
+                                    <AppleSignIn />
+                                    <GoogleSignInButton apiCallback={Session.googleApiCallback} />
+                                </View>
+                            </View>
                         </View>
                     )
                 }

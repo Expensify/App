@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
@@ -11,22 +11,11 @@ import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
-    /**
-     * The default size of the reaction bubble is defined
-     * by the styles in styles.js. This scale factor can be used
-     * to make the bubble bigger or smaller.
-     */
-    sizeScale: PropTypes.number,
-
-    /**
-     * The default size of the icon is defined
-     * by the styles in styles.js. This scale factor can be used
-     * to make the icon bigger or smaller. The icon refers to the
-     * emoji.
-     */
-    iconSizeScale: PropTypes.number,
+    /** Whether it is for context menu so we can modify its style */
+    isContextMenu: PropTypes.bool,
 
     /**
      * Called when the user presses on the icon button.
@@ -49,14 +38,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-    sizeScale: 1,
-    iconSizeScale: 1,
+    isContextMenu: false,
     onWillShowPicker: () => {},
     onPressOpenPicker: undefined,
 };
 
 const AddReactionBubble = (props) => {
-    const ref = React.createRef();
+    const ref = useRef();
 
     const onPress = () => {
         const openPicker = (refParam, anchorOrigin) => {
@@ -79,51 +67,31 @@ const AddReactionBubble = (props) => {
     };
 
     return (
-        <Tooltip text={props.translate('emojiReactions.addReactionTooltip')} focusable={false}>
+        <Tooltip text={props.translate('emojiReactions.addReactionTooltip')}>
             <Pressable
                 ref={ref}
-                style={({
-                    hovered,
-                    pressed,
-                }) => [
-                    styles.emojiReactionBubble,
-                    StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.sizeScale),
-                ]}
-                onPress={onPress}
-
+                style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
+                onPress={Session.checkIfActionIsAllowed(onPress)}
                 // Prevent text input blur when Add reaction is clicked
-                onMouseDown={e => e.preventDefault()}
+                onMouseDown={(e) => e.preventDefault()}
             >
-                {({
-                    hovered,
-                    pressed,
-                }) => (
+                {({hovered, pressed}) => (
                     <>
                         {/* This (invisible) text will make the view have the same size as a regular
                             emoji reaction. We make the text invisible and put the
                             icon on top of it. */}
-                        <Text style={[
-                            styles.emojiReactionText,
-                            styles.opacity0,
-                            StyleUtils.getEmojiReactionTextStyle(props.sizeScale),
-                        ]}
-                        >
-                            {'\u2800\u2800'}
-                        </Text>
+                        <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon
                                 src={Expensicons.AddReaction}
-                                width={variables.iconSizeSmall * props.iconSizeScale}
-                                height={variables.iconSizeSmall * props.iconSizeScale}
-                                fill={StyleUtils.getIconFillColor(
-                                    getButtonState(hovered, pressed),
-                                )}
+                                width={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
+                                height={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
+                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>
                     </>
                 )}
             </Pressable>
-
         </Tooltip>
     );
 };

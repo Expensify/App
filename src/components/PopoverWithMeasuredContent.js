@@ -13,7 +13,7 @@ import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopover
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
-    ...(_.omit(popoverPropTypes, ['anchorPosition'])),
+    ..._.omit(popoverPropTypes, ['anchorPosition']),
 
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
@@ -21,15 +21,12 @@ const propTypes = {
         vertical: PropTypes.number.isRequired,
     }).isRequired,
 
-    /** Where the popover should be positioned relative to the anchor points. */
-    anchorOrigin: PropTypes.shape({
+    /** How the popover should be aligned. The value you passed will is the part of the component that will be aligned to the
+     * anchorPosition. ie: vertical:top means the top of the menu will be positioned in the anchorPosition */
+    anchorAlignment: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
-
-    /** A function with content to measure. This component will use this.props.children by default,
-    but in the case the children are not displayed, the measurement will not work. */
-    measureContent: PropTypes.func.isRequired,
 
     /** Static dimensions for the popover.
      * Note: When passed, it will skip dimensions measuring of the popover, and provided dimensions will be used to calculate the anchor position.
@@ -46,7 +43,7 @@ const defaultProps = {
     ...defaultPopoverProps,
 
     // Default positioning of the popover
-    anchorOrigin: {
+    anchorAlignment: {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
@@ -98,18 +95,13 @@ class PopoverWithMeasuredContent extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (this.props.isVisible
-            && (nextProps.windowWidth !== this.props.windowWidth
-            || nextProps.windowHeight !== this.props.windowHeight)) {
+        if (this.props.isVisible && (nextProps.windowWidth !== this.props.windowWidth || nextProps.windowHeight !== this.props.windowHeight)) {
             return true;
         }
 
         // This component does not require re-render until any prop or state changes as we get the necessary info
         // at first render. This component is attached to each message on the Chat list thus we prevent its re-renders
-        return !_.isEqual(
-            _.omit(this.props, ['windowWidth', 'windowHeight']),
-            _.omit(nextProps, ['windowWidth', 'windowHeight']),
-        ) || !_.isEqual(this.state, nextState);
+        return !_.isEqual(_.omit(this.props, ['windowWidth', 'windowHeight']), _.omit(nextProps, ['windowWidth', 'windowHeight'])) || !_.isEqual(this.state, nextState);
     }
 
     /**
@@ -130,13 +122,13 @@ class PopoverWithMeasuredContent extends Component {
      */
     calculateAdjustedAnchorPosition() {
         let horizontalConstraint;
-        switch (this.props.anchorOrigin.horizontal) {
+        switch (this.props.anchorAlignment.horizontal) {
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
                 horizontalConstraint = {left: this.props.anchorPosition.horizontal - this.popoverWidth};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 horizontalConstraint = {
-                    left: Math.floor(this.props.anchorPosition.horizontal - (this.popoverWidth / 2)),
+                    left: Math.floor(this.props.anchorPosition.horizontal - this.popoverWidth / 2),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
@@ -145,13 +137,13 @@ class PopoverWithMeasuredContent extends Component {
         }
 
         let verticalConstraint;
-        switch (this.props.anchorOrigin.vertical) {
+        switch (this.props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
                 verticalConstraint = {top: this.props.anchorPosition.vertical - this.popoverHeight};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.CENTER:
                 verticalConstraint = {
-                    top: Math.floor(this.props.anchorPosition.vertical - (this.popoverHeight / 2)),
+                    top: Math.floor(this.props.anchorPosition.vertical - this.popoverHeight / 2),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP:
@@ -167,41 +159,34 @@ class PopoverWithMeasuredContent extends Component {
 
     render() {
         const adjustedAnchorPosition = this.calculateAdjustedAnchorPosition();
-        const horizontalShift = computeHorizontalShift(
-            adjustedAnchorPosition.left,
-            this.popoverWidth,
-            this.props.windowWidth,
-        );
-        const verticalShift = computeVerticalShift(
-            adjustedAnchorPosition.top,
-            this.popoverHeight,
-            this.props.windowHeight,
-        );
-        const shifedAnchorPosition = {
+        const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, this.popoverWidth, this.props.windowWidth);
+        const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, this.popoverHeight, this.props.windowHeight);
+        const shiftedAnchorPosition = {
             left: adjustedAnchorPosition.left + horizontalShift,
             top: adjustedAnchorPosition.top + verticalShift,
         };
-        return this.state.isContentMeasured
-            ? (
-                <Popover
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    anchorPosition={shifedAnchorPosition}
-                >
-                    {this.props.measureContent()}
-                </Popover>
-            ) : (
-
-                /*
-                    This is an invisible view used to measure the size of the popover,
-                    before it ever needs to be displayed.
-                    We do this because we need to know its dimensions in order to correctly animate the popover,
-                    but we can't measure its dimensions without first rendering it.
-                */
-                <View style={styles.invisible} onLayout={this.measurePopover}>
-                    {this.props.children}
-                </View>
-            );
+        return this.state.isContentMeasured ? (
+            <Popover
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+                anchorPosition={shiftedAnchorPosition}
+            >
+                {this.props.children}
+            </Popover>
+        ) : (
+            /*
+                This is an invisible view used to measure the size of the popover,
+                before it ever needs to be displayed.
+                We do this because we need to know its dimensions in order to correctly animate the popover,
+                but we can't measure its dimensions without first rendering it.
+            */
+            <View
+                style={styles.invisible}
+                onLayout={this.measurePopover}
+            >
+                {this.props.children}
+            </View>
+        );
     }
 }
 

@@ -94,6 +94,22 @@ function canUsePasswordlessLogins(betas) {
     return _.contains(betas, CONST.BETAS.PASSWORDLESS) || _.contains(betas, CONST.BETAS.ALL);
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseTasks(betas) {
+    return _.contains(betas, CONST.BETAS.TASKS) || _.contains(betas, CONST.BETAS.ALL);
+}
+
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseThreads(betas) {
+    return _.contains(betas, CONST.BETAS.THREADS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseChronos,
     canUseIOU,
@@ -105,4 +121,6 @@ export default {
     canUsePolicyRooms,
     canUsePolicyExpenseChat,
     canUsePasswordlessLogins,
+    canUseTasks,
+    canUseThreads,
 };

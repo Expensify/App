@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as store from './store';
@@ -17,7 +18,8 @@ function resetFreePlanBankAccount(bankAccountID) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
 
-    API.write('RestartBankAccountSetup',
+    API.write(
+        'RestartBankAccountSetup',
         {
             bankAccountID,
             ownerEmail: store.getCredentials().login,
@@ -25,51 +27,51 @@ function resetFreePlanBankAccount(bankAccountID) {
         {
             optimisticData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.SET,
-                    key: ONYXKEYS.ONFIDO_TOKEN,
-                    value: '',
-                },
-                {
-                    onyxMethod: CONST.ONYX.METHOD.SET,
-                    key: ONYXKEYS.PLAID_DATA,
-                    value: PlaidDataProps.plaidDataDefaultProps,
-                },
-                {
-                    onyxMethod: CONST.ONYX.METHOD.SET,
-                    key: ONYXKEYS.PLAID_LINK_TOKEN,
-                    value: '',
-                },
-                {
-                    onyxMethod: CONST.ONYX.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-                },
-                {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {isLoading: true},
-                },
-                {
-                    onyxMethod: CONST.ONYX.METHOD.SET,
-                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-                    value: {},
+                    value: {
+                        shouldShowResetModal: false,
+                        isLoading: true,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
                 },
             ],
             successData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.ONFIDO_TOKEN,
+                    value: '',
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.PLAID_DATA,
+                    value: PlaidDataProps.plaidDataDefaultProps,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.PLAID_LINK_TOKEN,
+                    value: '',
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {isLoading: false},
+                    value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+                    value: {},
                 },
             ],
             failureData: [
                 {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: {isLoading: false},
+                    value: {isLoading: false, pendingAction: null},
                 },
             ],
-        });
+        },
+    );
 }
 
 export default resetFreePlanBankAccount;

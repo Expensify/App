@@ -104,7 +104,18 @@ class Onfido extends React.Component {
             onModalRequestClose: () => {
                 Log.hmmm('Onfido user closed the modal');
             },
-            language: this.props.preferredLocale,
+            language: {
+                // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
+                locale: this.props.preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : this.props.preferredLocale,
+
+                // Provide a custom phrase for the back button so that the first letter is capitalized,
+                // and translate the phrase while we're at it. See the issue and documentation for more context.
+                // https://github.com/Expensify/App/issues/17244
+                // https://documentation.onfido.com/sdk/web/#custom-languages
+                phrases: {
+                    'generic.back': this.props.translate('common.back'),
+                },
+            },
         });
 
         window.addEventListener('userAnalyticsEvent', (event) => {
@@ -113,9 +124,7 @@ class Onfido extends React.Component {
     }
 
     render() {
-        return (
-            <div id={CONST.ONFIDO.CONTAINER_ID} />
-        );
+        return <div id={CONST.ONFIDO.CONTAINER_ID} />;
     }
 }
 

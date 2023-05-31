@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
 import Icon from '../../components/Icon';
 import Text from '../../components/Text';
@@ -35,22 +36,22 @@ const socialsList = [
 
 const Socials = () => (
     <Text>
-        {_.map(socialsList, social => (
-            <Hoverable
-                key={social.link}
-            >
-                {hovered => (
-                    <TextLink
-                        style={styles.pr1}
-                        href={social.link}
-                    >
-                        <Icon
-                            src={social.iconURL}
-                            height={variables.iconSizeLarge}
-                            width={variables.iconSizeLarge}
-                            fill={hovered ? themeColors.link : themeColors.textLight}
-                        />
-                    </TextLink>
+        {_.map(socialsList, (social) => (
+            <Hoverable key={social.link}>
+                {(hovered) => (
+                    <View>
+                        <TextLink
+                            style={styles.pr1}
+                            href={social.link}
+                        >
+                            <Icon
+                                src={social.iconURL}
+                                height={variables.iconSizeLarge}
+                                width={variables.iconSizeLarge}
+                                fill={hovered ? themeColors.link : themeColors.textLight}
+                            />
+                        </TextLink>
+                    </View>
                 )}
             </Hoverable>
         ))}

@@ -7,28 +7,30 @@ const propTypes = {
     onSelectRow: PropTypes.func,
 
     /** Sections for the section list */
-    sections: PropTypes.arrayOf(PropTypes.shape({
-        /** Title of the section */
-        title: PropTypes.string,
+    sections: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** Title of the section */
+            title: PropTypes.string,
 
-        /** The initial index of this section given the total number of options in each section's data array */
-        indexOffset: PropTypes.number,
+            /** The initial index of this section given the total number of options in each section's data array */
+            indexOffset: PropTypes.number,
 
-        /** Array of options */
-        data: PropTypes.arrayOf(optionPropTypes),
+            /** Array of options */
+            data: PropTypes.arrayOf(optionPropTypes),
 
-        /** Whether this section should show or not */
-        shouldShow: PropTypes.bool,
+            /** Whether this section should show or not */
+            shouldShow: PropTypes.bool,
 
-        /** Whether this section items disabled for selection */
-        isDisabled: PropTypes.bool,
-    })).isRequired,
+            /** Whether this section items disabled for selection */
+            isDisabled: PropTypes.bool,
+        }),
+    ).isRequired,
 
     /** Value in the search input field */
     value: PropTypes.string.isRequired,
 
     /** Callback fired when text changes */
-    onChangeText: PropTypes.func.isRequired,
+    onChangeText: PropTypes.func,
 
     /** Limits the maximum number of characters that can be entered in input field */
     maxLength: PropTypes.number,
@@ -84,6 +86,9 @@ const propTypes = {
     /** If true, the text input will be below the options in the selector, not above. */
     shouldTextInputAppearBelowOptions: PropTypes.bool,
 
+    /** If false, the text input will not be shown at all. Defaults to true */
+    shouldShowTextInput: PropTypes.bool,
+
     /** Custom content to display in the footer instead of the default button. */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
@@ -98,6 +103,9 @@ const propTypes = {
 
     /** Key of the option that we should focus on when first opening the options list */
     initiallyFocusedOptionKey: PropTypes.string,
+
+    /** Whether to use default padding and flex styles for children */
+    shouldUseStyleForChildren: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -125,6 +133,9 @@ const defaultProps = {
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
     maxLength: undefined,
+    shouldShowTextInput: true,
+    onChangeText: () => {},
+    shouldUseStyleForChildren: true,
 };
 
 export {propTypes, defaultProps};

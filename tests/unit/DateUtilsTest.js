@@ -1,10 +1,11 @@
 import moment from 'moment';
 import Onyx from 'react-native-onyx';
+import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 
-const LOCALE = 'en';
+const LOCALE = CONST.LOCALES.EN;
 
 describe('DateUtils', () => {
     beforeAll(() => {

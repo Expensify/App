@@ -6,6 +6,8 @@ import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
+import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
+import AppleSignInDesktopPage from '../../../pages/signin/AppleSignInDesktopPage';
 
 const RootStack = createStackNavigator();
 
@@ -27,9 +29,19 @@ const PublicScreens = () => (
             component={ValidateLoginPage}
         />
         <RootStack.Screen
+            name="UnlinkLogin"
+            options={defaultScreenOptions}
+            component={UnlinkLoginPage}
+        />
+        <RootStack.Screen
             name="SetPassword"
             options={defaultScreenOptions}
             component={SetPasswordPage}
+        />
+        <RootStack.Screen
+            name="AppleSignInDesktop"
+            options={defaultScreenOptions}
+            component={AppleSignInDesktopPage}
         />
     </RootStack.Navigator>
 );

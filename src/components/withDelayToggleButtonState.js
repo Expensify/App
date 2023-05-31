@@ -62,21 +62,19 @@ export default function (WrappedComponent) {
 
     WithDelayToggleButtonState.displayName = `WithDelayToggleButtonState(${getComponentDisplayName(WrappedComponent)})`;
     WithDelayToggleButtonState.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
     WithDelayToggleButtonState.defaultProps = {
         forwardedRef: undefined,
     };
 
     return React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithDelayToggleButtonState {...props} forwardedRef={ref} />
+        <WithDelayToggleButtonState
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 }
 
-export {
-    withDelayToggleButtonStatePropTypes,
-};
+export {withDelayToggleButtonStatePropTypes};

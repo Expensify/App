@@ -10,7 +10,8 @@ import FixedFooter from './FixedFooter';
 
 const propTypes = {
     /** The asset to render */
-    animation: PropTypes.string,
+    // eslint-disable-next-line react/forbid-prop-types
+    animation: PropTypes.object,
 
     /** Heading of the confirmation page */
     heading: PropTypes.string,
@@ -37,7 +38,7 @@ const defaultProps = {
     shouldShowButton: false,
 };
 
-const ConfirmationPage = props => (
+const ConfirmationPage = (props) => (
     <>
         <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
             <Lottie
@@ -46,12 +47,8 @@ const ConfirmationPage = props => (
                 loop
                 style={styles.confirmationAnimation}
             />
-            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>
-                {props.heading}
-            </Text>
-            <Text style={styles.textAlignCenter}>
-                {props.description}
-            </Text>
+            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{props.heading}</Text>
+            <Text style={styles.textAlignCenter}>{props.description}</Text>
         </View>
         {props.shouldShowButton && (
             <FixedFooter>

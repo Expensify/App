@@ -20,7 +20,7 @@ function clearDownloads() {
         callback: (records) => {
             Onyx.disconnect(connectionID);
             const downloadsToDelete = {};
-            _.each(_.keys(records), recordKey => downloadsToDelete[recordKey] = null);
+            _.each(_.keys(records), (recordKey) => (downloadsToDelete[recordKey] = null));
             if (!_.isEmpty(downloadsToDelete)) {
                 Onyx.multiSet(downloadsToDelete);
             }
@@ -28,7 +28,4 @@ function clearDownloads() {
     });
 }
 
-export {
-    setDownload,
-    clearDownloads,
-};
+export {setDownload, clearDownloads};

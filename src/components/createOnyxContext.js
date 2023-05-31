@@ -9,13 +9,9 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-export default (onyxKeyName) => {
+export default (onyxKeyName, defaultValue) => {
     const Context = createContext();
-    const Provider = props => (
-        <Context.Provider value={props[onyxKeyName]}>
-            {props.children}
-        </Context.Provider>
-    );
+    const Provider = (props) => <Context.Provider value={props[onyxKeyName]}>{props.children}</Context.Provider>;
 
     Provider.propTypes = propTypes;
     Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
@@ -27,25 +23,34 @@ export default (onyxKeyName) => {
         },
     })(Provider);
 
-    const withOnyxKey = ({propName = onyxKeyName, transformValue} = {}) => (WrappedComponent) => {
-        const Consumer = forwardRef((props, ref) => (
-            <Context.Consumer>
-                {(value) => {
-                    const propsToPass = {
-                        ...props,
-                        [propName]: transformValue ? transformValue(value, props) : value,
-                    };
-                    return (
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        <WrappedComponent {...propsToPass} ref={ref} />
-                    );
-                }}
-            </Context.Consumer>
-        ));
+    const withOnyxKey =
+        ({propName = onyxKeyName, transformValue} = {}) =>
+        (WrappedComponent) => {
+            const Consumer = forwardRef((props, ref) => (
+                <Context.Consumer>
+                    {(value) => {
+                        const propsToPass = {
+                            ...props,
+                            [propName]: transformValue ? transformValue(value, props) : value,
+                        };
 
-        Consumer.displayName = `with${Str.UCFirst(onyxKeyName)}(${getComponentDisplayName(WrappedComponent)})`;
-        return Consumer;
-    };
+                        if (propsToPass[propName] === undefined && defaultValue) {
+                            propsToPass[propName] = defaultValue;
+                        }
+                        return (
+                            <WrappedComponent
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...propsToPass}
+                                ref={ref}
+                            />
+                        );
+                    }}
+                </Context.Consumer>
+            ));
 
-    return [withOnyxKey, ProviderWithOnyx];
+            Consumer.displayName = `with${Str.UCFirst(onyxKeyName)}(${getComponentDisplayName(WrappedComponent)})`;
+            return Consumer;
+        };
+
+    return [withOnyxKey, ProviderWithOnyx, Context];
 };

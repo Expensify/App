@@ -1,14 +1,14 @@
 import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -29,25 +29,20 @@ const defaultProps = {
     },
 };
 
-const ChangeExpensifyLoginLink = props => (
+const ChangeExpensifyLoginLink = (props) => (
     <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-        {!_.isEmpty(props.credentials.login) && (
-            <Text>
-                {props.translate('common.not')}
-                &nbsp;
-                {Str.removeSMSDomain(props.credentials.login)}
-                {'? '}
-            </Text>
-        )}
-        <TouchableOpacity
+        {!_.isEmpty(props.credentials.login) && <Text style={styles.mr1}>{props.translate('loginForm.notYou', {user: props.formatPhoneNumber(props.credentials.login)})}</Text>}
+        <PressableWithFeedback
             style={[styles.link]}
             onPress={props.onPress}
+            accessibilityRole="link"
+            accessibilityLabel={props.translate('common.goBack')}
         >
             <Text style={[styles.link]}>
                 {props.translate('common.goBack')}
                 {'.'}
             </Text>
-        </TouchableOpacity>
+        </PressableWithFeedback>
     </View>
 );
 

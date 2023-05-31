@@ -5,9 +5,9 @@ import {withOnyx} from 'react-native-onyx';
 import {View, Keyboard} from 'react-native';
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';
+import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
 import SwipeableView from '../../../components/SwipeableView';
 import OfflineIndicator from '../../../components/OfflineIndicator';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -16,6 +16,7 @@ import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import * as Session from '../../../libs/actions/Session';
 
 const propTypes = {
     /** Report object for the current report */
@@ -66,43 +67,35 @@ class ReportFooter extends React.Component {
 
     render() {
         const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors);
+        const isAllowedToComment = ReportUtils.isAllowedToComment(this.props.report);
+        const hideComposer = isArchivedRoom || !_.isEmpty(this.props.errors) || !isAllowedToComment;
 
         return (
             <>
                 {(isArchivedRoom || hideComposer) && (
                     <View style={[styles.chatFooter, this.props.isSmallScreenWidth ? styles.mb5 : null]}>
-                        {isArchivedRoom && (
-                            <ArchivedReportFooter
-                                report={this.props.report}
-                            />
-                        )}
+                        {isArchivedRoom && <ArchivedReportFooter report={this.props.report} />}
                         {!this.props.isSmallScreenWidth && (
-                            <View style={styles.offlineIndicatorRow}>
-                                {hideComposer && (
-                                    <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
-                                )}
-                            </View>
+                            <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
                         )}
                     </View>
                 )}
-                {(!hideComposer && this.props.shouldShowComposeInput) && (
+                {!hideComposer && (this.props.shouldShowComposeInput || !this.props.isSmallScreenWidth) && (
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                            <OfflineWithFeedback
-                                pendingAction={this.props.pendingAction}
-                                style={this.props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
-                                contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
-                            >
+                            {Session.isAnonymousUser() ? (
+                                <AnonymousReportFooter report={this.props.report} />
+                            ) : (
                                 <ReportActionCompose
                                     onSubmit={this.props.onSubmitComment}
                                     reportID={this.props.report.reportID.toString()}
                                     reportActions={this.props.reportActions}
                                     report={this.props.report}
+                                    pendingAction={this.props.pendingAction}
                                     isComposerFullSize={this.props.isComposerFullSize}
                                     disabled={this.props.shouldDisableCompose}
                                 />
-                            </OfflineWithFeedback>
+                            )}
                         </SwipeableView>
                     </View>
                 )}

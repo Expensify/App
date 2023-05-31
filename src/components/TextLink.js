@@ -11,11 +11,7 @@ const propTypes = {
     href: PropTypes.string,
 
     /** Text content child */
-    children: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.array,
-        PropTypes.object,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.string, PropTypes.array, PropTypes.object]).isRequired,
 
     /** Additional style props */
     style: stylePropTypes,
@@ -31,15 +27,15 @@ const defaultProps = {
     href: undefined,
     style: [],
     onPress: undefined,
-    onMouseDown: undefined,
+    onMouseDown: (event) => event.preventDefault(),
 };
 
 const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
     /**
-   * @param {Event} event
-   */
+     * @param {Event} event
+     */
     const openLink = (event) => {
         event.preventDefault();
         if (props.onPress) {
@@ -51,8 +47,8 @@ const TextLink = (props) => {
     };
 
     /**
-   * @param {Event} event
-   */
+     * @param {Event} event
+     */
     const openLinkIfEnterKeyPressed = (event) => {
         if (event.key !== 'Enter') {
             return;
