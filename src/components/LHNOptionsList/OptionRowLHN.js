@@ -109,12 +109,12 @@ const OptionRowLHN = (props) => {
                             styles.sidebarLinkInner,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
-                            hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
                         accessibilityLabel={optionItem.text}
                         accessibilityRole="button"
                         hoverDimmingValue={1}
-                        pressDimmingValue={0.8}
+                        hoverStyle={props.hoverStyle}
+                        focusStyle={props.hoverStyle}
                     >
                         <View
                             accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
