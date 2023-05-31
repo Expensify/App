@@ -3,7 +3,6 @@ import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
@@ -12,7 +11,6 @@ import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFull
 import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
 import * as StyleUtils from '../../styles/StyleUtils';
-import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -143,7 +141,6 @@ class Composer extends React.Component {
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
-        this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
         this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
         this.textRef = React.createRef(null);
@@ -165,7 +162,6 @@ class Composer extends React.Component {
         if (this.textInput) {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
-            this.textInput.addEventListener('keydown', this.putSelectionInClipboard);
         }
     }
 
@@ -318,7 +314,7 @@ class Composer extends React.Component {
                 // If HTML has emoji, then treat this as plain text.
                 if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
                     const plainText = event.clipboardData.getData('text/plain');
-                    this.paste(Str.htmlDecode(plainText));
+                    this.paste(plainText);
                     return;
                 }
                 fetch(embeddedImages[0].src)
@@ -358,7 +354,7 @@ class Composer extends React.Component {
 
         const plainText = event.clipboardData.getData('text/plain');
 
-        this.paste(Str.htmlDecode(plainText));
+        this.paste(plainText);
     }
 
     /**
@@ -373,19 +369,6 @@ class Composer extends React.Component {
         this.textInput.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
-    }
-
-    putSelectionInClipboard(event) {
-        // If anything happens that isn't cmd+c or cmd+x, ignore the event because it's not a copy command
-        if (!event.metaKey || (event.key !== 'c' && event.key !== 'x')) {
-            return;
-        }
-
-        // The user might have only highlighted a portion of the message to copy, so using the selection will ensure that
-        // the only stuff put into the clipboard is what the user selected.
-        const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
-
-        Clipboard.setHtml(selectedText, selectedText);
     }
 
     /**
