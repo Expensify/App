@@ -28,6 +28,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -135,7 +136,9 @@ const HeaderView = (props) => {
                             text={props.translate('common.back')}
                             shiftVertical={4}
                         >
-                            <Icon src={Expensicons.BackArrow} />
+                            <View>
+                                <Icon src={Expensicons.BackArrow} />
+                            </View>
                         </Tooltip>
                     </Pressable>
                 )}
@@ -195,7 +198,7 @@ const HeaderView = (props) => {
                             )}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
-                                    onPress={() => Report.togglePinnedState(props.report)}
+                                    onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report))}
                                     style={[styles.touchableButtonImage]}
                                 >
                                     <Icon

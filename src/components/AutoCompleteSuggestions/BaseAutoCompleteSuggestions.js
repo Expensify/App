@@ -44,6 +44,8 @@ const BaseAutoCompleteSuggestions = (props) => {
         </Pressable>
     );
 
+    const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT * props.suggestions.length;
+
     const animatedStyles = useAnimatedStyle(() => ({
         ...styles.autoCompleteSuggestionsContainer,
         ...StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, props.shouldIncludeReportRecipientLocalTimeHeight),
@@ -68,7 +70,7 @@ const BaseAutoCompleteSuggestions = (props) => {
                 renderItem={renderSuggestionMenuItem}
                 keyExtractor={props.keyExtractor}
                 removeClippedSubviews={false}
-                showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={innerHeight > rowHeight}
                 style={{flex: 1}}
             />
         </Animated.View>

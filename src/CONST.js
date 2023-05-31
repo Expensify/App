@@ -799,6 +799,8 @@ const CONST = {
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    // This is a placeholder for attachment which is uploading
+    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -1128,6 +1130,10 @@ const CONST = {
             /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
+
+        ROUTES: {
+            VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+        },
     },
 
     PRONOUNS: {
@@ -1203,6 +1209,7 @@ const CONST = {
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
+        WELCOME_MESSAGE: 'welcomeMessage',
     },
 
     FOOTER: {
@@ -2424,6 +2431,14 @@ const CONST = {
     // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
     // div and then remove it from copied contents in the getHTMLOfSelection() method.
     UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
+    MODERATION: {
+        MODERATOR_DECISION_PENDING: 'pending',
+        MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        MODERATOR_DECISION_APPROVED: 'approved',
+        MODERATOR_DECISION_HIDDEN: 'hidden',
+        FLAG_SEVERITY_SPAM: 'spam',
+        FLAG_SEVERITY_INCONSIDERATE: 'inconsiderate',
+    },
 };
 
 export default CONST;
