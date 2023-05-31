@@ -127,9 +127,6 @@ class ReportActionsView extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
-        const nextPolicy = nextProps.policies[`${ONYXKEYS.COLLECTION.POLICY}${nextProps.report.policyID}`];
-
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(nextProps.reportActions);
             return true;
@@ -178,6 +175,9 @@ class ReportActionsView extends React.Component {
         if (lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum') || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum')) {
             return true;
         }
+
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+        const nextPolicy = nextProps.policies[`${ONYXKEYS.COLLECTION.POLICY}${nextProps.report.policyID}`];
 
         if (lodashGet(policy, 'avatar') !== lodashGet(nextPolicy, 'avatar')) {
             return true;
