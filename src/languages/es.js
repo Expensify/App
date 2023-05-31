@@ -353,7 +353,7 @@ export default {
         amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
-        payerSettled: ({amount}) => `pagado ${amount}`,
+        payerSettled: ({amount}) => `pagó ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
