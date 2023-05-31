@@ -102,11 +102,6 @@ const NewTaskPage = (props) => {
     // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
-        if (!props.task.title) {
-            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskName'));
-            return;
-        }
-
         if (!props.task.shareDestination) {
             setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskDestination'));
             return;
