@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import reportPropTypes from '../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -20,6 +21,7 @@ import Icon from './Icon';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Button from './Button';
 import * as TaskUtils from '../libs/actions/Task';
+import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -34,7 +36,7 @@ const propTypes = {
 function TaskHeader(props) {
     const title = ReportUtils.getReportName(props.report);
     const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
-    const assigneeAvatar = ReportUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
     const isOpen = props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN;
     const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
     const parentReportID = props.report.parentReportID;
@@ -54,7 +56,7 @@ function TaskHeader(props) {
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {props.report.managerEmail && (
+                                {!_.isEmpty(props.report.managerEmail) && (
                                     <>
                                         <Avatar
                                             source={assigneeAvatar}
