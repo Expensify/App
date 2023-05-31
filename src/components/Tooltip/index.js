@@ -51,7 +51,7 @@ class Tooltip extends PureComponent {
      * @param {Object} bounds - updated bounds
      */
     updateBounds(bounds) {
-        if(bounds.width === 0) {
+        if (bounds.width === 0) {
             this.setState({isRendered: false});
         }
         this.setState({
