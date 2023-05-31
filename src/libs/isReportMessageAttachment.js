@@ -13,5 +13,5 @@ export default function isReportMessageAttachment({text, html}) {
     }
 
     const regex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
-    return text === CONST.ATTACHMENT_MESSAGE_TEXT && !!html.match(regex);
+    return text === CONST.ATTACHMENT_MESSAGE_TEXT && (!!html.match(regex) || html === CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML);
 }
