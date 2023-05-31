@@ -113,6 +113,7 @@ function ReportActionItem(props) {
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
+    const downloadedPreviews = useRef([]);
 
     const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
@@ -124,10 +125,12 @@ function ReportActionItem(props) {
     }, [isDraftEmpty]);
 
     useEffect(() => {
-        if (!ReportActionsUtils.containsLink(props.action)) {
+        const urls = ReportActionsUtils.getLinksInsideReport(props.action);
+        if (_.isEqual(downloadedPreviews.current, urls)) {
             return;
         }
 
+        downloadedPreviews.current = urls;
         Report.expandURLPreview(props.report.reportID, props.action.reportActionID);
     }, [props.action, props.report.reportID]);
 
@@ -339,7 +342,11 @@ function ReportActionItem(props) {
         return (
             <>
                 {children}
-                {!_.isEmpty(props.action.linkMetadata) && <LinkPreviewer linkMetadata={props.action.linkMetadata} />}
+                {!_.isEmpty(props.action.linkMetadata) && (
+                    <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                        <LinkPreviewer linkMetadata={props.action.linkMetadata} />
+                    </View>
+                )}
                 {hasReactions && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <ReportActionItemReactions

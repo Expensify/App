@@ -163,13 +163,25 @@ function getMostRecentIOURequestActionID(reportActions) {
 }
 
 /**
- * Returns true when the report action contains a link
+ * Returns array of links inside given report
  *
  * @param {reportAction} reportAction
  * @returns {Boolean}
  */
-function containsLink(reportAction) {
-    return !_.isEmpty(lodashGet(reportAction, ['message', 0, 'html']));
+function getLinksInsideReport(reportAction) {
+    const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
+
+    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
+
+    const urls = [];
+    let match = regex.exec(htmlContent);
+    
+    while (match !== null) {
+      urls.push(match[1]);
+      match = regex.exec(htmlContent);
+    }
+    
+    return urls;
 }
 
 /**
@@ -397,7 +409,7 @@ export {
     getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
-    containsLink,
+    getLinksInsideReport,
     isDeletedAction,
     shouldReportActionBeVisible,
     isReportActionDeprecated,
