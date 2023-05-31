@@ -15,6 +15,7 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import CONST from '../../../../CONST';
+import withNavigationFocus from '../../../../components/withNavigationFocus';
 
 const propTypes = {
     /* Onyx Props */
@@ -113,6 +114,7 @@ DateOfBirthPage.displayName = 'DateOfBirthPage';
 
 export default compose(
     withLocalize,
+    withNavigationFocus,
     withOnyx({
         privatePersonalDetails: {
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,

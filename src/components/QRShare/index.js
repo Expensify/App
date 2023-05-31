@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import QRCodeLibrary from 'react-native-qrcode-svg';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import defaultTheme from '../../styles/themes/default';
@@ -10,6 +9,7 @@ import compose from '../../libs/compose';
 import variables from '../../styles/variables';
 import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import {qrSharePropTypes, qrShareDefaultProps} from './propTypes';
+import QRCode from '../QRCode';
 
 const propTypes = {
     ...qrSharePropTypes,
@@ -22,7 +22,7 @@ class QRShare extends Component {
         super(props);
 
         this.state = {
-            qrCodeSize: 0,
+            qrCodeSize: 1,
         };
 
         this.onLayout = this.onLayout.bind(this);
@@ -30,8 +30,10 @@ class QRShare extends Component {
     }
 
     onLayout(event) {
+        const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
+
         this.setState({
-            qrCodeSize: event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2,
+            qrCodeSize: Math.max(1, containerWidth),
         });
     }
 
@@ -45,13 +47,7 @@ class QRShare extends Component {
                 style={styles.shareCodeContainer}
                 onLayout={this.onLayout}
             >
-                <View
-                    style={{
-                        alignSelf: 'stretch',
-                        height: 27,
-                        marginBottom: 20,
-                    }}
-                >
+                <View style={styles.expensifyQrLogo}>
                     <ExpensifyWordmark
                         fill={defaultTheme.borderFocus}
                         width="100%"
@@ -59,22 +55,18 @@ class QRShare extends Component {
                     />
                 </View>
 
-                <QRCodeLibrary
-                    value={this.props.url}
-                    logo={this.props.logo}
+                <QRCode
                     getRef={(svg) => (this.svg = svg)}
-                    logoBackgroundColor="transparent"
-                    logoSize={this.state.qrCodeSize * 0.3}
-                    logoBorderRadius={this.state.qrCodeSize}
+                    url={this.props.url}
+                    logo={this.props.logo}
                     size={this.state.qrCodeSize}
-                    backgroundColor={defaultTheme.highlightBG}
-                    color={defaultTheme.text}
                 />
 
                 <Text
                     family="EXP_NEW_KANSAS_MEDIUM"
-                    fontSize={22}
-                    style={{marginTop: 15}}
+                    fontSize={variables.fontSizeXLarge}
+                    numberOfLines={2}
+                    style={styles.qrShareTitle}
                 >
                     {this.props.title}
                 </Text>
@@ -82,8 +74,10 @@ class QRShare extends Component {
                 {this.props.subtitle && (
                     <Text
                         family="EXP_NEUE_BOLD"
-                        fontSize={13}
-                        style={{marginTop: 4}}
+                        fontSize={variables.fontSizeLabel}
+                        numberOfLines={1}
+                        style={styles.mt1}
+                        color={defaultTheme.textSupporting}
                     >
                         {this.props.subtitle}
                     </Text>

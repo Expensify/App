@@ -1,5 +1,6 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 /* eslint-disable max-len */
 export default {
@@ -8,6 +9,7 @@ export default {
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
+        buttonConfirm: 'Got it',
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
@@ -24,6 +26,7 @@ export default {
         zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Magic code',
+        twoFactorCode: 'Two factor code',
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
@@ -120,6 +123,7 @@ export default {
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveRoom: 'Leave room',
+        leaveThread: 'Leave thread',
         you: 'You',
         youAfterPreposition: 'you',
         your: 'your',
@@ -136,6 +140,12 @@ export default {
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
+        per: 'per',
+        mi: 'mile',
+        km: 'kilometer',
+    },
+    anonymousReportFooter: {
+        logoTagline: 'Join in on the discussion.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
@@ -151,7 +161,7 @@ export default {
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
-        notAllowedExtension: 'Attachments must be one of the following types:',
+        notAllowedExtension: 'This filetype is not allowed',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -169,6 +179,9 @@ export default {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+        redirectedToDesktopApp: "We've redirected you to the desktop app.",
+        youCanAlso: 'You can also',
+        openLinkInBrowser: 'open this link in your browser',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -253,10 +266,11 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         editComment: 'Edit comment',
-        deleteComment: 'Delete comment',
-        deleteConfirmation: 'Are you sure you want to delete this comment?',
+        deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
+        deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
+        flagAsOffensive: 'Flag as offensive',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -281,6 +295,9 @@ export default {
         sayHello: 'Say hello!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
+    mentionSuggestions: {
+        hereAlternateText: 'Notify everyone online in this room',
+    },
     newMessages: 'New messages',
     reportTypingIndicator: {
         isTyping: 'is typing...',
@@ -296,12 +313,18 @@ export default {
             `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
         [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
+    writeCapabilityPage: {
+        label: 'Who can post',
+        writeCapability: {
+            all: 'All members',
+            admins: 'Admins only',
+        },
+    },
     sidebarScreen: {
         fabAction: 'New chat',
         newChat: 'New chat',
         newGroup: 'New group',
         newRoom: 'New room',
-        headerChat: 'Chats',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
         fabNewChat: 'New chat (Floating action)',
@@ -333,6 +356,8 @@ export default {
         payerSettled: ({amount}) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
+        threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
+        threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -340,11 +365,14 @@ export default {
             genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
         },
     },
-    notificationPreferences: {
+    notificationPreferencesPage: {
+        header: 'Notification preferences',
         label: 'Notify me about new messages',
-        immediately: 'Immediately',
-        daily: 'Daily',
-        mute: 'Mute',
+        notificationPreferences: {
+            always: 'Immediately',
+            daily: 'Daily',
+            mute: 'Mute',
+        },
     },
     loginField: {
         numberHasNotBeenValidated: 'The number has not yet been validated. Click the button to resend the validation link via text.',
@@ -495,10 +523,39 @@ export default {
             newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         },
     },
+    twoFactorAuth: {
+        headerTitle: 'Two-factor authentication',
+        twoFactorAuthEnabled: 'Two-factor authentication enabled',
+        whatIsTwoFactorAuth: 'Two-factor authentication (2FA) helps keep your account safe. When logging in, you’ll need to enter a code generated by your preferred authenticator app.',
+        disableTwoFactorAuth: 'Disable two-factor authentication',
+        disableTwoFactorAuthConfirmation: 'Two-factor authentication keeps your account more secure. Are you sure you want to disable it?',
+        disabled: 'Two-factor authentication is now disabled',
+        noAuthenticatorApp: 'You’ll no longer require an authenticator app to log into Expensify.',
+        stepCodes: 'Recovery codes',
+        keepCodesSafe: 'Keep these recovery codes safe!',
+        codesLoseAccess:
+            'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two factor authentication will log you out of all other active sessions.',
+        stepVerify: 'Verify',
+        scanCode: 'Scan the QR code using your',
+        authenticatorApp: 'authenticator app',
+        addKey: 'Or add this secret key to your authenticator app:',
+        enterCode: 'Then enter the six digit code generated from your authenticator app.',
+        stepSuccess: 'Finished',
+        enabled: 'Two-factor authentication is now enabled!',
+        congrats: 'Congrats, now you’ve got that extra security.',
+        copyCodes: 'Copy codes',
+        copy: 'Copy',
+        disable: 'Disable',
+    },
+    twoFactorAuthForm: {
+        error: {
+            pleaseFillTwoFactorAuth: 'Please enter your two factor code',
+            incorrect2fa: 'Incorrect two factor authentication code. Please try again.',
+        },
+    },
     passwordConfirmationScreen: {
         passwordUpdated: 'Password updated!',
         allSet: 'You’re all set. Keep your new password safe.',
-        gotIt: 'Got it',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Get paid back via PayPal.',
@@ -560,6 +617,8 @@ export default {
         transferDetailBankAccount: 'Your money should arrive in the next 1-3 business days.',
         transferDetailDebitCard: 'Your money should arrive immediately.',
         failedTransfer: 'Your balance isn’t fully settled. Please transfer to a bank account.',
+        notHereSubTitle: 'Please transfer your balance from the payments page',
+        goToPayment: 'Go to Payments',
     },
     chooseTransferAccountPage: {
         chooseAccount: 'Choose account',
@@ -589,6 +648,10 @@ export default {
                 description: 'Only show unread sorted alphabetically',
             },
         },
+    },
+    welcomeMessagePage: {
+        welcomeMessage: 'Welcome message',
+        explainerText: 'Set a custom welcome message that will be sent to users when they join this room.',
     },
     languagePage: {
         language: 'Language',
@@ -625,7 +688,6 @@ export default {
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
-        twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         codeSent: 'Magic code sent!',
         error: {
@@ -640,7 +702,6 @@ export default {
         pleaseFillTwoFactorAuth: 'Please enter your two factor code',
         enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two factor authentication code to continue',
         forgot: 'Forgot?',
-        twoFactorCode: 'Two factor code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         error: {
             incorrectPassword: 'Incorrect password. Please try again.',
@@ -680,7 +741,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
-            hasInvalidCharacter: 'Name can only include letters and numbers.',
+            hasInvalidCharacter: 'Name can only include latin letters and numbers.',
             incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
@@ -711,7 +772,7 @@ export default {
         getMeOutOfHere: 'Get me out of here',
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
-        pageNotFound: 'That page is nowhere to be found.',
+        pageNotFound: 'Oops, this page cannot be found',
         noAccess: "You don't have access to this chat",
         goBackHome: 'Go back to Home page',
     },
@@ -724,7 +785,18 @@ export default {
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
         validateAccount: 'Verify account',
     },
-    stepCounter: ({step, total}) => `Step ${step} of ${total}`,
+    stepCounter: ({step, total, text}) => {
+        let result = `Step ${step}`;
+
+        if (total) {
+            result = `${result} of ${total}`;
+        }
+
+        if (text) {
+            result = `${result}: ${text}`;
+        }
+        return result;
+    },
     bankAccount: {
         accountNumber: 'Account number',
         routingNumber: 'Routing number',
@@ -741,7 +813,6 @@ export default {
             'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
-        buttonConfirm: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             noBankAccountSelected: 'Please choose an account',
@@ -979,17 +1050,18 @@ export default {
     },
     workspace: {
         common: {
-            card: 'Issue cards',
+            card: 'Cards',
             workspace: 'Workspace',
             edit: 'Edit workspace',
             delete: 'Delete workspace',
-            settings: 'General settings',
-            reimburse: 'Reimburse expenses',
-            bills: 'Pay bills',
-            invoices: 'Send invoices',
-            travel: 'Book travel',
-            members: 'Manage members',
-            bankAccount: 'Connect bank account',
+            settings: 'Settings',
+            reimburse: 'Reimbursements',
+            bills: 'Bills',
+            invoices: 'Invoices',
+            travel: 'Travel',
+            members: 'Members',
+            bankAccount: 'Bank account',
+            connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
@@ -999,6 +1071,7 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
+            goToRoom: ({roomName}) => `Go to ${roomName} room`,
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1049,6 +1122,7 @@ export default {
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: "You're all set to reimburse receipts from your bank account!",
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
+            invalidRateError: 'Please enter a valid rate',
         },
         bills: {
             manageYourBills: 'Manage your bills',
@@ -1096,6 +1170,7 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameIsTooLongError: `Your workspace name can be at most ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} characters long.`,
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             currencyInputDisabledText: "The default currency can't be changed because this workspace is linked to a USD bank account.",
@@ -1187,10 +1262,18 @@ export default {
         descriptionOptional: 'Description (optional)',
         shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
-        markAsComplete: 'Mark as complete',
+        markAsDone: 'Mark as done',
         markAsIncomplete: 'Mark as incomplete',
         pleaseEnterTaskAssignee: 'Please select an assignee',
         pleaseEnterTaskDestination: 'Please select a share destination',
+    },
+    task: {
+        completed: 'Completed',
+        messages: {
+            completed: 'Completed task',
+            canceled: 'Canceled task',
+            reopened: 'Reopened task',
+        },
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
@@ -1309,13 +1392,40 @@ export default {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+        prestyledText: 'Prestyled text',
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
     },
     threads: {
-        lastReply: 'Last Reply',
+        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
+    },
+    qrCodes: {
+        copyUrlToClipboard: 'Copy URL to clipboard',
+        copied: 'Copied!',
+    },
+    moderation: {
+        flagDescription: 'All flagged messages will be sent to a moderator for review.',
+        chooseAReason: 'Choose a reason for flagging below:',
+        spam: 'Spam',
+        spamDescription: 'Unsolicited off-topic promotion',
+        inconsiderate: 'Inconsiderate',
+        inconsiderateDescription: 'Insulting or disrespectful phrasing, with questionable intentions',
+        intimidation: 'Intimidation',
+        intimidationDescription: 'Aggressively pursuing an agenda over valid objections',
+        bullying: 'Bullying',
+        bullyingDescription: 'Targeting an individual to obtain obedience',
+        harassment: 'Harassment',
+        harassmentDescription: 'Racist, misogynistic, or other broadly discriminatory behavior',
+        assault: 'Assault',
+        assaultDescription: 'Specifically targeted emotional attack with the intention of harm',
+        flaggedContent: 'This message has been flagged as violating our community rules and the content has been hidden.',
+        hideMessage: 'Hide message',
+        revealMessage: 'Reveal message',
+        levelOneResult: 'Sends anonymous warning and message is reported for review.',
+        levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
+        levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
 };

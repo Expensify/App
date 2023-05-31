@@ -1,9 +1,8 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
@@ -11,11 +10,12 @@ import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
-import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
+import Text from '../Text';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -74,6 +74,9 @@ const propTypes = {
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
+    /** Should we calculate the caret position */
+    shouldCalculateCaretPosition: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -100,6 +103,7 @@ const defaultProps = {
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
+    shouldCalculateCaretPosition: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -128,6 +132,7 @@ class Composer extends React.Component {
                 start: initialValue.length,
                 end: initialValue.length,
             },
+            valueBeforeCaret: '',
         };
 
         this.paste = this.paste.bind(this);
@@ -135,8 +140,9 @@ class Composer extends React.Component {
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
-        this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
+        this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
+        this.textRef = React.createRef(null);
     }
 
     componentDidMount() {
@@ -155,7 +161,6 @@ class Composer extends React.Component {
         if (this.textInput) {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
-            this.textInput.addEventListener('keydown', this.putSelectionInClipboard);
         }
     }
 
@@ -190,6 +195,57 @@ class Composer extends React.Component {
 
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
+    }
+
+    // Get characters from the cursor to the next space or new line
+    getNextChars(str, cursorPos) {
+        // Get the substring starting from the cursor position
+        const substr = str.substring(cursorPos);
+
+        // Find the index of the next space or new line character
+        const spaceIndex = substr.search(/[ \n]/);
+
+        if (spaceIndex === -1) {
+            return substr;
+        }
+
+        // If there is a space or new line, return the substring up to the space or new line
+        return substr.substring(0, spaceIndex);
+    }
+
+    /**
+     *  Adds the cursor position to the selection change event.
+     *
+     * @param {Event} event
+     */
+    addCursorPositionToSelectionChange(event) {
+        if (this.props.shouldCalculateCaretPosition) {
+            const newValueBeforeCaret = event.target.value.slice(0, event.nativeEvent.selection.start);
+
+            this.setState(
+                {
+                    valueBeforeCaret: newValueBeforeCaret,
+                    caretContent: this.getNextChars(this.props.value, event.nativeEvent.selection.start),
+                },
+
+                () => {
+                    const customEvent = {
+                        nativeEvent: {
+                            selection: {
+                                start: event.nativeEvent.selection.start,
+                                end: event.nativeEvent.selection.end,
+                                positionX: this.textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
+                                positionY: this.textRef.current.offsetTop,
+                            },
+                        },
+                    };
+                    this.props.onSelectionChange(customEvent);
+                },
+            );
+            return;
+        }
+
+        this.props.onSelectionChange(event);
     }
 
     // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
@@ -257,7 +313,7 @@ class Composer extends React.Component {
                 // If HTML has emoji, then treat this as plain text.
                 if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
                     const plainText = event.clipboardData.getData('text/plain');
-                    this.paste(Str.htmlDecode(plainText));
+                    this.paste(plainText);
                     return;
                 }
                 fetch(embeddedImages[0].src)
@@ -297,7 +353,7 @@ class Composer extends React.Component {
 
         const plainText = event.clipboardData.getData('text/plain');
 
-        this.paste(Str.htmlDecode(plainText));
+        this.paste(plainText);
     }
 
     /**
@@ -312,19 +368,6 @@ class Composer extends React.Component {
         this.textInput.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
-    }
-
-    putSelectionInClipboard(event) {
-        // If anything happens that isn't cmd+c or cmd+x, ignore the event because it's not a copy command
-        if (!event.metaKey || (event.key !== 'c' && event.key !== 'x')) {
-            return;
-        }
-
-        // The user might have only highlighted a portion of the message to copy, so using the selection will ensure that
-        // the only stuff put into the clipboard is what the user selected.
-        const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
-
-        Clipboard.setHtml(selectedText, selectedText);
     }
 
     /**
@@ -359,6 +402,7 @@ class Composer extends React.Component {
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
+                width: computedStyle.width,
             });
             this.props.onNumberOfLinesChange(numberOfLines);
         });
@@ -369,29 +413,57 @@ class Composer extends React.Component {
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
 
+        // This code creates a hidden text component that helps track the caret position in the visible input.
+        const renderElementForCaretPosition = (
+            <View
+                style={{
+                    position: 'absolute',
+                    bottom: -2000,
+                    zIndex: -1,
+                    opacity: 0,
+                }}
+            >
+                <Text
+                    multiline
+                    style={[propStyles, this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {}, {maxWidth: this.state.width}]}
+                >
+                    {`${this.state.valueBeforeCaret} `}
+                    <Text
+                        numberOfLines={1}
+                        ref={this.textRef}
+                    >
+                        {`${this.state.caretContent}`}
+                    </Text>
+                </Text>
+            </View>
+        );
+
         // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
         return (
-            <RNTextInput
-                autoComplete="off"
-                autoCorrect={!Browser.isMobileSafari()}
-                placeholderTextColor={themeColors.placeholderText}
-                ref={(el) => (this.textInput = el)}
-                selection={this.state.selection}
-                onChange={this.shouldCallUpdateNumberOfLines}
-                onSelectionChange={this.onSelectionChange}
-                style={[
-                    propStyles,
+            <>
+                <RNTextInput
+                    autoComplete="off"
+                    autoCorrect={!Browser.isMobileSafari()}
+                    placeholderTextColor={themeColors.placeholderText}
+                    ref={(el) => (this.textInput = el)}
+                    selection={this.state.selection}
+                    onChange={this.shouldCallUpdateNumberOfLines}
+                    style={[
+                        propStyles,
 
-                    // We are hiding the scrollbar to prevent it from reducing the text input width,
-                    // so we can get the correct scroll height while calculating the number of lines.
-                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
-                ]}
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsWithoutStyles}
-                numberOfLines={this.state.numberOfLines}
-                disabled={this.props.isDisabled}
-                onKeyPress={this.handleKeyPress}
-            />
+                        // We are hiding the scrollbar to prevent it from reducing the text input width,
+                        // so we can get the correct scroll height while calculating the number of lines.
+                        this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                    ]}
+                    /* eslint-disable-next-line react/jsx-props-no-spreading */
+                    {...propsWithoutStyles}
+                    onSelectionChange={this.addCursorPositionToSelectionChange}
+                    numberOfLines={this.state.numberOfLines}
+                    disabled={this.props.isDisabled}
+                    onKeyPress={this.handleKeyPress}
+                />
+                {this.props.shouldCalculateCaretPosition && renderElementForCaretPosition}
+            </>
         );
     }
 }
