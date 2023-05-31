@@ -24,8 +24,8 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
-import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
+import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 
 const propTypes = {
@@ -226,7 +226,7 @@ class LoginForm extends React.Component {
                                 </Text>
                                 <View style={styles.loginButtonRow}>
                                     <AppleSignIn />
-                                    <GoogleSignIn />
+                                    <GoogleSignIn id="google-sign-in-main" />
                                 </View>
                             </View>
                         </View>

@@ -3375,7 +3375,7 @@ const styles = {
         ...flex.flexRow,
     },
 
-    appleButtonContainer: {
+    thirdPartyButtonContainer: {
         width: 40,
         height: 40,
         marginRight: 20,

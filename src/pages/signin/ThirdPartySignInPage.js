@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
+import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -38,7 +39,7 @@ function ThirdPartySignInPage(props) {
                 welcomeHeader={props.translate('welcomeText.getStarted')}
                 shouldShowWelcomeHeader
             >
-                {props.signInProvider === 'apple' ? <AppleSignIn isDesktopFlow /> : null}
+                {props.signInProvider === 'apple' ? <AppleSignIn isDesktopFlow /> : <GoogleSignIn id="google-sign-in-main" isDesktopFlow />}
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.goBackMessage', {provider: capitalize(props.signInProvider)})}</Text>
                 <TextLink
