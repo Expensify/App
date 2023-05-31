@@ -8,7 +8,6 @@ import styles from '../../../styles/styles';
 
 const propTypes = {...withLocalizePropTypes};
 
-
 const appleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.APPLE_SIGN_IN}`;
 const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
 

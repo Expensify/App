@@ -3375,7 +3375,7 @@ const styles = {
         ...flex.flexRow,
     },
 
-    appleButtonContainer: { 
+    appleButtonContainer: {
         width: 40,
         height: 40,
         marginRight: 20,
@@ -3384,7 +3384,7 @@ const styles = {
     signInButtonBase: {
         margin: 10,
         padding: 2,
-    }
+    },
 };
 
 export default styles;
