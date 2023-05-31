@@ -104,7 +104,7 @@ function MagicCodeInput(props) {
     const blurMagicCodeInput = () => {
         inputRefs.current[editIndex].blur();
         setFocusedIndex(undefined);
-    }
+    };
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
