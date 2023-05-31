@@ -40,7 +40,6 @@ import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
-import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -84,9 +83,6 @@ const propTypes = {
     /** The account manager report ID */
     accountManagerReportID: PropTypes.string,
 
-    /** The report ID of the last opened public room as anonymous user */
-    lastOpenedPublicRoomID: PropTypes.string,
-
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
@@ -107,7 +103,6 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     personalDetails: {},
-    lastOpenedPublicRoomID: null,
 };
 
 /**
@@ -198,13 +193,6 @@ class ReportScreen extends React.Component {
     }
 
     fetchReportIfNeeded() {
-        // Re-open the last opened public room if the user logged in
-        if (this.props.lastOpenedPublicRoomID && !Session.isAnonymousUser()) {
-            Report.setLastOpenedPublicRoom('');
-            Report.openReport(this.props.lastOpenedPublicRoomID);
-            return;
-        }
-
         const reportIDFromPath = getReportID(this.props.route);
 
         // Report ID will be empty when the reports collection is empty.
@@ -400,9 +388,6 @@ export default compose(
     withDrawerState,
     withNetwork(),
     withOnyx({
-        lastOpenedPublicRoomID: {
-            key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
-        },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
         },
