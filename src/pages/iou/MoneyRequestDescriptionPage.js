@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import TextInput from '../../components/TextInput';
@@ -12,12 +14,25 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
-import withMoneyRequest, {moneyRequestPropTypes} from './withMoneyRequest';
+import * as IOU from '../../libs/actions/IOU';
+import optionPropTypes from '../../components/optionPropTypes';
 
 const propTypes = {
-    moneyRequest: moneyRequestPropTypes.isRequired,
-
     ...withLocalizePropTypes,
+
+    /** Onyx Props */
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: PropTypes.shape({
+        comment: PropTypes.string,
+        participants: PropTypes.arrayOf(optionPropTypes),
+    }),
+};
+
+const defaultProps = {
+    iou: {
+        comment: '',
+        participants: [],
+    },
 };
 
 class MoneyRequestDescriptionPage extends Component {
@@ -30,7 +45,7 @@ class MoneyRequestDescriptionPage extends Component {
     componentDidMount() {
         const iouType = lodashGet(this.props.route, 'params.iouType', '');
         const reportID = lodashGet(this.props.route, 'params.reportID', '');
-        if (_.isEmpty(this.props.moneyRequest.participants) || this.props.moneyRequest.amount === 0) {
+        if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0) {
             Navigation.goBack();
             Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
         }
@@ -43,7 +58,7 @@ class MoneyRequestDescriptionPage extends Component {
      * @param {String} value.moneyRequestComment
      */
     updateComment(value) {
-        this.props.moneyRequest.setComment(value.moneyRequestComment.trim());
+        IOU.setMoneyRequestDescription(value.moneyRequestComment.trim());
         Navigation.goBack();
     }
 
@@ -72,7 +87,7 @@ class MoneyRequestDescriptionPage extends Component {
                         <TextInput
                             inputID="moneyRequestComment"
                             name="moneyRequestComment"
-                            defaultValue={this.props.moneyRequest.comment}
+                            defaultValue={this.props.iou.comment}
                             label={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
                             ref={(el) => (this.descriptionInputRef = el)}
                         />
@@ -84,5 +99,11 @@ class MoneyRequestDescriptionPage extends Component {
 }
 
 MoneyRequestDescriptionPage.propTypes = propTypes;
+MoneyRequestDescriptionPage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withMoneyRequest)(MoneyRequestDescriptionPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+    }),
+)(MoneyRequestDescriptionPage);

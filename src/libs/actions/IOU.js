@@ -1183,4 +1183,45 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     }
 }
 
-export {deleteMoneyRequest, splitBill, splitBillAndOpenReport, requestMoney, sendMoneyElsewhere, sendMoneyViaPaypal, payMoneyRequest, sendMoneyWithWallet};
+/**
+ * @param {Number} amount
+ */
+function setMoneyRequestAmount(amount) {
+    Onyx.merge(ONYXKEYS.IOU, {amount});
+}
+
+/**
+ * @param {String} currency
+ */
+function setMoneyRequestCurrency(currency) {
+    Onyx.merge(ONYXKEYS.IOU, {currency});
+}
+
+/**
+ * @param {String} comment
+ */
+function setMoneyRequestDescription(comment) {
+    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
+}
+
+/**
+ * @param {Object[]} participants
+ */
+function setMoneyRequestParticipants(participants) {
+    Onyx.merge(ONYXKEYS.IOU, {participants});
+}
+
+export {
+    deleteMoneyRequest,
+    splitBill,
+    splitBillAndOpenReport,
+    requestMoney,
+    sendMoneyElsewhere,
+    sendMoneyViaPaypal,
+    payMoneyRequest,
+    sendMoneyWithWallet,
+    setMoneyRequestAmount,
+    setMoneyRequestCurrency,
+    setMoneyRequestDescription,
+    setMoneyRequestParticipants,
+};

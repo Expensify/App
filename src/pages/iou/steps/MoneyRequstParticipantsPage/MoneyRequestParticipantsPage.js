@@ -1,7 +1,10 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import CONST from '../../../../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import MoneyRequestParticipantsSplitSelector from './MoneyRequestParticipantsSplitSelector';
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
@@ -11,13 +14,24 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import withMoneyRequest, {moneyRequestPropTypes} from '../../withMoneyRequest';
 import ModalHeader from '../../ModalHeader';
+import * as IOU from '../../../../libs/actions/IOU';
 
 const propTypes = {
-    moneyRequest: moneyRequestPropTypes.isRequired,
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: PropTypes.shape({
+        amount: PropTypes.number,
+        participants: PropTypes.arrayOf(optionPropTypes),
+    }),
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    iou: {
+        amount: 0,
+        participants: [],
+    },
 };
 
 const MoneyRequestParticipantsPage = (props) => {
@@ -30,7 +44,7 @@ const MoneyRequestParticipantsPage = (props) => {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (props.moneyRequest.amount === 0) {
+        if (props.iou.amount === 0) {
             Navigation.goBack();
             Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
         }
@@ -51,14 +65,14 @@ const MoneyRequestParticipantsPage = (props) => {
                     {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
                         <MoneyRequestParticipantsSplitSelector
                             onStepComplete={navigateToNextStep}
-                            participants={props.moneyRequest.participants}
-                            onAddParticipants={props.moneyRequest.setParticipants}
+                            participants={props.iou.participants}
+                            onAddParticipants={IOU.setMoneyRequestParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     ) : (
                         <MoneyRequestParticipantsSelector
                             onStepComplete={navigateToNextStep}
-                            onAddParticipants={props.moneyRequest.setParticipants}
+                            onAddParticipants={IOU.setMoneyRequestParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             iouType={iouType.current}
                         />
@@ -71,5 +85,13 @@ const MoneyRequestParticipantsPage = (props) => {
 
 MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
+MoneyRequestParticipantsPage.defaultProps = defaultProps;
 
-export default compose(withMoneyRequest, withLocalize)(MoneyRequestParticipantsPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        iou: {
+            key: ONYXKEYS.IOU,
+        },
+    }),
+)(MoneyRequestParticipantsPage);

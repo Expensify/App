@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
-import {MoneyRequestProvider} from '../../../pages/iou/withMoneyRequest';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -17,9 +16,9 @@ const defaultSubRouteOptions = {
  * @param {React.ReactElement} Provider a wrapper component with context provider to share data between screens
  * @returns {Function}
  */
-function createModalStackNavigator(screens, Provider) {
+function createModalStackNavigator(screens) {
     const ModalStackNavigator = createStackNavigator();
-    const children = (
+    return () => (
         <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
             {_.map(screens, (screen) => (
                 <ModalStackNavigator.Screen
@@ -31,79 +30,74 @@ function createModalStackNavigator(screens, Provider) {
             ))}
         </ModalStackNavigator.Navigator>
     );
-
-    return () => (Provider ? <Provider>{children}</Provider> : children);
 }
 
 // We use getComponent/require syntax so that file used by screens are not loaded until we need them.
-const MoneyRequestModalStackNavigator = createModalStackNavigator(
-    [
-        {
-            getComponent: () => {
-                const MoneyRequestAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
-                return MoneyRequestAmountPage;
-            },
-            name: 'Money_Request',
+const MoneyRequestModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const MoneyRequestAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
+            return MoneyRequestAmountPage;
         },
-        {
-            getComponent: () => {
-                const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
-                return MoneyRequestEditAmountPage;
-            },
-            name: 'Money_Request_Amount',
+        name: 'Money_Request',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
+            return MoneyRequestEditAmountPage;
         },
-        {
-            getComponent: () => {
-                const MoneyRequestParticipantsPage = require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default;
-                return MoneyRequestParticipantsPage;
-            },
-            name: 'Money_Request_Participants',
+        name: 'Money_Request_Amount',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestParticipantsPage = require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default;
+            return MoneyRequestParticipantsPage;
         },
-        {
-            getComponent: () => {
-                const MoneyRequestConfirmPage = require('../../../pages/iou/steps/MoneyRequestConfirmPage').default;
-                return MoneyRequestConfirmPage;
-            },
-            name: 'Money_Request_Confirmation',
+        name: 'Money_Request_Participants',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestConfirmPage = require('../../../pages/iou/steps/MoneyRequestConfirmPage').default;
+            return MoneyRequestConfirmPage;
         },
-        {
-            getComponent: () => {
-                const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
-                return IOUCurrencySelection;
-            },
-            name: 'Money_Request_Currency',
+        name: 'Money_Request_Confirmation',
+    },
+    {
+        getComponent: () => {
+            const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
+            return IOUCurrencySelection;
         },
-        {
-            getComponent: () => {
-                const MoneyRequestDescriptionPage = require('../../../pages/iou/MoneyRequestDescriptionPage').default;
-                return MoneyRequestDescriptionPage;
-            },
-            name: 'Money_Request_Description',
+        name: 'Money_Request_Currency',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestDescriptionPage = require('../../../pages/iou/MoneyRequestDescriptionPage').default;
+            return MoneyRequestDescriptionPage;
         },
-        {
-            getComponent: () => {
-                const AddPersonalBankAccountPage = require('../../../pages/AddPersonalBankAccountPage').default;
-                return AddPersonalBankAccountPage;
-            },
-            name: 'IOU_Send_Add_Bank_Account',
+        name: 'Money_Request_Description',
+    },
+    {
+        getComponent: () => {
+            const AddPersonalBankAccountPage = require('../../../pages/AddPersonalBankAccountPage').default;
+            return AddPersonalBankAccountPage;
         },
-        {
-            getComponent: () => {
-                const AddDebitCardPage = require('../../../pages/settings/Payments/AddDebitCardPage').default;
-                return AddDebitCardPage;
-            },
-            name: 'IOU_Send_Add_Debit_Card',
+        name: 'IOU_Send_Add_Bank_Account',
+    },
+    {
+        getComponent: () => {
+            const AddDebitCardPage = require('../../../pages/settings/Payments/AddDebitCardPage').default;
+            return AddDebitCardPage;
         },
-        {
-            getComponent: () => {
-                const EnablePaymentsPage = require('../../../pages/EnablePayments/EnablePaymentsPage').default;
-                return EnablePaymentsPage;
-            },
-            name: 'IOU_Send_Enable_Payments',
+        name: 'IOU_Send_Add_Debit_Card',
+    },
+    {
+        getComponent: () => {
+            const EnablePaymentsPage = require('../../../pages/EnablePayments/EnablePaymentsPage').default;
+            return EnablePaymentsPage;
         },
-    ],
-    MoneyRequestProvider,
-);
+        name: 'IOU_Send_Enable_Payments',
+    },
+]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([
     {

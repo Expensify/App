@@ -5,6 +5,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -12,7 +13,6 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {withNetwork} from '../../components/OnyxProvider';
-import withMoneyRequest, {moneyRequestPropTypes} from './withMoneyRequest';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import themeColors from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -37,13 +37,19 @@ const propTypes = {
         }),
     ),
 
-    moneyRequest: moneyRequestPropTypes.isRequired,
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: PropTypes.shape({
+        currency: PropTypes.string,
+    }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     currencyList: {},
+    iou: {
+        currency: CONST.CURRENCY.USD,
+    },
 };
 
 class IOUCurrencySelection extends Component {
@@ -81,7 +87,7 @@ class IOUCurrencySelection extends Component {
     }
 
     getSelectedCurrencyCode() {
-        return lodashGet(this.props.route, 'params.currency', this.props.moneyRequest.currency);
+        return lodashGet(this.props.route, 'params.currency', this.props.iou.currency);
     }
 
     /**
@@ -170,9 +176,9 @@ IOUCurrencySelection.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withMoneyRequest,
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+        iou: {key: ONYXKEYS.IOU},
     }),
     withNetwork(),
 )(IOUCurrencySelection);

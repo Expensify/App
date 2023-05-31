@@ -20,12 +20,13 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import withMoneyRequest, {moneyRequestPropTypes} from '../withMoneyRequest';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import withNavigation from '../../../components/withNavigation';
 import ModalHeader from '../ModalHeader';
 import ONYXKEYS from '../../../ONYXKEYS';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import reportPropTypes from '../../reportPropTypes';
+import * as IOU from '../../../libs/actions/IOU';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -41,8 +42,14 @@ const propTypes = {
     /** Personal details of all users */
     personalDetails: personalDetailsPropType,
 
-    moneyRequest: moneyRequestPropTypes.isRequired,
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: PropTypes.shape({
+        amount: PropTypes.number,
+        currency: PropTypes.string,
+        participants: PropTypes.arrayOf(optionPropTypes),
+    }),
 
+    ...withCurrentUserPersonalDetailsPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -55,6 +62,12 @@ const defaultProps = {
     },
     report: {},
     personalDetails: {},
+    iou: {
+        amount: 0,
+        currency: CONST.CURRENCY.USD,
+        participants: [],
+    },
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 class MoneyRequestAmountPage extends React.Component {
     constructor(props) {
@@ -74,10 +87,12 @@ class MoneyRequestAmountPage extends React.Component {
         this.reportID = lodashGet(props.route, 'params.reportID', '');
         this.isEditing = lodashGet(props.route, 'path', '').includes('amount');
 
-        const selectedAmountAsString = props.moneyRequest.amount ? CurrencyUtils.convertToWholeUnit(props.moneyRequest.currency, props.moneyRequest.amount).toString() : '';
+        const amount = this.isEditing ? props.iou.amount : 0;
+        const currency = lodashGet(props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD);
+        const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
         this.state = {
             amount: selectedAmountAsString,
-            selectedCurrencyCode: props.moneyRequest.currency,
+            selectedCurrencyCode: currency,
             shouldUpdateSelection: true,
             selection: {
                 start: selectedAmountAsString.length,
@@ -88,16 +103,19 @@ class MoneyRequestAmountPage extends React.Component {
 
     componentDidMount() {
         if (this.isEditing) {
-            if (_.isEmpty(this.props.moneyRequest.participants) || this.props.moneyRequest.amount === 0) {
+            if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0) {
                 Navigation.goBack();
                 Navigation.navigate(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
             }
         } else {
-            // Set the money request participants based on the report participants
+            // Initialize money request data
+            IOU.setMoneyRequestAmount(0);
+            IOU.setMoneyRequestCurrency(lodashGet(props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD));
+            IOU.setMoneyRequestDescription('');
             const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
                 ? OptionsListUtils.getPolicyExpenseReportOptions(this.props.report)
                 : OptionsListUtils.getParticipantsOptions(this.props.report, this.props.personalDetails);
-            this.props.moneyRequest.setParticipants(_.map(participants, (participant) => ({...participant, selected: true})));
+            IOU.setMoneyRequestParticipants(_.map(participants, (participant) => ({...participant, selected: true})));
         }
 
         this.focusTextInput();
@@ -115,12 +133,12 @@ class MoneyRequestAmountPage extends React.Component {
             this.setState({selectedCurrencyCode: currencyParam});
         }
 
-        if (prevProps.moneyRequest.currency !== this.props.moneyRequest.currency) {
-            this.setState({selectedCurrencyCode: this.props.moneyRequest.currency});
+        if (prevProps.iou.currency !== this.props.iou.currency) {
+            this.setState({selectedCurrencyCode: this.props.iou.currency});
         }
 
-        if (prevProps.moneyRequest.amount !== this.props.moneyRequest.amount) {
-            const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.moneyRequest.currency, this.props.moneyRequest.amount).toString();
+        if (prevProps.iou.amount !== this.props.iou.amount) {
+            const selectedAmountAsString = CurrencyUtils.convertToWholeUnit(this.props.iou.currency, this.props.iou.amount).toString();
             this.setState({
                 amount: selectedAmountAsString,
                 selection: {
@@ -428,8 +446,8 @@ class MoneyRequestAmountPage extends React.Component {
                                     style={[styles.w100, styles.mt5]}
                                     onPress={() => {
                                         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(this.state.selectedCurrencyCode, Number.parseFloat(this.state.amount));
-                                        this.props.moneyRequest.setAmount(amountInSmallestCurrencyUnits);
-                                        this.props.moneyRequest.setCurrency(this.state.selectedCurrencyCode);
+                                        IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
+                                        IOU.setMoneyRequestCurrency(this.state.selectedCurrencyCode);
                                         this.navigateToNextPage();
                                     }}
                                     pressOnEnter
@@ -451,13 +469,16 @@ MoneyRequestAmountPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNavigation,
-    withMoneyRequest,
+    withCurrentUserPersonalDetails,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        iou: {
+            key: ONYXKEYS.IOU,
         },
     }),
 )(MoneyRequestAmountPage);
