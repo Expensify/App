@@ -25,6 +25,7 @@ import FormHelpMessage from '../../../components/FormHelpMessage';
 import MagicCodeInput from '../../../components/MagicCodeInput';
 import Terms from '../Terms';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -239,6 +240,7 @@ class BaseValidateCodeForm extends React.Component {
                                 <Text style={[styles.mt2]}>{this.props.account.message ? this.props.translate(this.props.account.message) : ''}</Text>
                             ) : (
                                 <PressableWithFeedback
+                                    disabled={this.props.network.isOffline}
                                     style={[styles.mt2]}
                                     onPress={this.resendValidateCode}
                                     underlayColor={themeColors.componentBG}
@@ -247,7 +249,7 @@ class BaseValidateCodeForm extends React.Component {
                                     accessibilityRole="button"
                                     accessibilityLabel={this.props.translate('validateCodeForm.magicCodeNotReceived')}
                                 >
-                                    <Text style={[styles.link]}>{this.props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                                    <Text style={[StyleUtils.getDisabledLinkStyles(this.props.network.isOffline)]}>{this.props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                                 </PressableWithFeedback>
                             )}
                         </View>

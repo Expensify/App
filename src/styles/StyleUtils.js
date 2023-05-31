@@ -7,6 +7,7 @@ import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
 import * as UserUtils from '../libs/UserUtils';
+import cursor from './utilities/cursor';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -1161,6 +1162,23 @@ function getMentionTextColor(isOurMention) {
     return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
 }
 
+/**
+ * Returns link styles based on whether the link is disabled or not
+ * @param {Boolean} isDisabled
+ * @returns {Object}
+ */
+function getDisabledLinkStyles(isDisabled = false) {
+    const disabledLinkStyles = {
+        color: themeColors.textSupporting,
+        ...cursor.cursorDisabled,
+    };
+
+    return {
+        ...styles.link,
+        ...(isDisabled ? disabledLinkStyles : {}),
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1226,4 +1244,5 @@ export {
     getMentionStyle,
     getMentionTextColor,
     getHeightOfMagicCodeInput,
+    getDisabledLinkStyles,
 };
