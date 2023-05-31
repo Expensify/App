@@ -91,6 +91,9 @@ const GenericPressable = forwardRef((props, ref) => {
             if (isDisabled) {
                 return;
             }
+            if (!onPress) {
+                return;
+            }
             if (shouldUseHapticsOnPress) {
                 HapticFeedback.press();
             }
