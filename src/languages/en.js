@@ -1264,7 +1264,7 @@ export default {
         markAsDone: 'Mark as done',
         markAsIncomplete: 'Mark as incomplete',
         pleaseEnterTaskAssignee: 'Please select an assignee',
-        pleaseEnterTaskDestination: 'Please select a share destination',
+        pleaseEnterTaskDestination: 'Please select with whom you want to share',
     },
     task: {
         completed: 'Completed',

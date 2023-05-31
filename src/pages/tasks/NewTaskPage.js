@@ -66,19 +66,17 @@ const defaultProps = {
 const NewTaskPage = (props) => {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
-    const [submitError, setSubmitError] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState(props.translate('newTaskPage.confirmError'));
     const [parentReport, setParentReport] = React.useState({});
 
     useEffect(() => {
-        setSubmitError(false);
+        setErrorMessage('');
 
         // If we have an assignee, we want to set the assignee data
         // If there's an issue with the assignee chosen, we want to notify the user
         if (props.task.assignee) {
             const assigneeDetails = lodashGet(props.personalDetails, props.task.assignee);
             if (!assigneeDetails) {
-                setSubmitError(true);
                 return setErrorMessage(props.translate('newTaskPage.assigneeError'));
             }
             const displayDetails = TaskUtils.getAssignee(assigneeDetails);
@@ -104,8 +102,13 @@ const NewTaskPage = (props) => {
     // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
-        if (!props.task.title || !props.task.shareDestination) {
-            setSubmitError(true);
+        if (!props.task.title) {
+            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskName'));
+            return;
+        }
+
+        if (!props.task.shareDestination) {
+            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskDestination'));
             return;
         }
 
@@ -163,7 +166,7 @@ const NewTaskPage = (props) => {
                     </View>
                 </View>
                 <FormAlertWithSubmitButton
-                    isAlertVisible={submitError}
+                    isAlertVisible={!!errorMessage}
                     message={errorMessage}
                     onSubmit={() => onSubmit()}
                     enabledWhenOffline
