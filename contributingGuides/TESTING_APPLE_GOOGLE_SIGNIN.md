@@ -86,8 +86,20 @@ Add `NEW_EXPENSIFY_URL` to .env, and set it to the HTTPS URL where the web app c
 NEW_EXPENSIFY_URL=https://subdomain.ngrok.io
 ```
 
-This is required becase the desktop app needs to know the address of the web app, and must open it at
+This is required because the desktop app needs to know the address of the web app, and must open it at
 the HTTPS domain configured to work with Sign in with Apple.
+
+#### Set Environment to something other than "Development"
+
+The DeepLinkWrapper component will not handle deep links in the development environment. To be able to test deep linking, you must set the environment to something other than "Development".
+
+Within the `.env` file, set `envName` to something other than "Development", for example:
+
+```
+envName=Staging
+```
+
+Alternatively, within the `DeepLinkWrapper/index.website.js` file you can set the `CONFIG.ENVIRONMENT` to something other than "Development".
 
 #### Handle deep links in dev on MacOS
 

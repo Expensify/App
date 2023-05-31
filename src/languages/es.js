@@ -236,6 +236,15 @@ export default {
             body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
         },
     },
+    thirdPartySignIn: {
+        alreadySignedIn: ({email}) => `Ya has iniciado sesión con ${email}.`,
+        goBackMessage: ({provider}) => `No  ${provider}?`,
+        continueWithMyCurrentSession: 'Continuar con mi sesión actual',
+        redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
+        signInAgreementMessage: 'Al iniciar sesión, aceptas las',
+        termsOfService: 'Términos de servicio',
+        privacy: 'Privacidad',
+    },
     reportActionCompose: {
         addAction: 'Acción',
         dropToUpload: 'Suelta el archivo aquí para compartirlo',

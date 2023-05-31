@@ -4,6 +4,9 @@ import * as Session from '../../../libs/actions/Session';
 
 function AppleAuthWrapper() {
     useEffect(() => {
+        if (!appleAuth.isSupported) {
+            return;
+        }
         const listener = appleAuth.onCredentialRevoked(() => {
             Session.signOut();
         });

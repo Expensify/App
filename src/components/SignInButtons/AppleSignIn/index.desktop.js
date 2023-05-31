@@ -2,24 +2,18 @@ import React from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import ButtonBase from '../ButtonBase';
-import AppleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
 import CONFIG from '../../../CONFIG';
 import ROUTES from '../../../ROUTES';
+import styles from '../../../styles/styles';
 
 const propTypes = {...withLocalizePropTypes};
 
-const $appleButtonContainerStyle = {
-    width: 40,
-    height: 40,
-    marginRight: 20,
-};
-
-//
 const appleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.APPLE_SIGN_IN}`;
+const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
 
 const AppleSignIn = (props) => (
     <View
-        style={$appleButtonContainerStyle}
+        style={styles.appleButtonContainer}
         accessibilityRole="button"
         accessibilityLabel={props.translate('common.signInWithApple')}
     >
@@ -27,7 +21,7 @@ const AppleSignIn = (props) => (
             onPress={() => {
                 window.open(appleSignInWebRouteForDesktopFlow);
             }}
-            icon={<AppleLogoIcon />}
+            icon={appleLogoIcon}
         />
     </View>
 );

@@ -2,8 +2,9 @@ import React from 'react';
 import appleAuth from '@invertase/react-native-apple-authentication';
 import Log from '../../../libs/Log';
 import ButtonBase from '../ButtonBase';
-import AppleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
 import * as Session from '../../../libs/actions/Session';
+
+const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
 
 function appleSignInRequest() {
     return appleAuth
@@ -36,7 +37,7 @@ const AppleSignIn = () => {
     return (
         <ButtonBase
             onPress={handleSignIn}
-            icon={<AppleLogoIcon />}
+            icon={appleLogoIcon}
         />
     );
 };

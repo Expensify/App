@@ -2,7 +2,6 @@ import React from 'react';
 import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
 import Log from '../../../libs/Log';
 import ButtonBase from '../ButtonBase';
-import AppleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
 
@@ -12,6 +11,8 @@ const config = {
     responseType: appleAuthAndroid.ResponseType.ALL,
     scope: appleAuthAndroid.Scope.ALL,
 };
+
+const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
 
 function appleSignInRequest() {
     appleAuthAndroid.configure(config);
@@ -35,7 +36,7 @@ const AppleSignIn = () => {
     return (
         <ButtonBase
             onPress={handleSignIn}
-            icon={<AppleLogoIcon />}
+            icon={appleLogoIcon}
         />
     );
 };
