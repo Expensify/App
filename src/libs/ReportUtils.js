@@ -1277,9 +1277,58 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
     ];
 }
 
-function getIOUReportPreview(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
+/**
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {Number} amount - IOU total in cents
+ * @param {String} currency - IOU currency
+ * @param {String} comment - IOU comment
+ * @param {Array}  participants - An array with participants details.
+ * @param {String} transactionID
+ * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
+ * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
+ * @returns {Object}
+ */
+function getIOUReportActionOriginalMessage(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSendMoneyFlow = false) {
+    const IOUReportID = iouReportID || generateReportID();
+
+    const originalMessage = {
+        amount,
+        comment,
+        currency,
+        IOUTransactionID: transactionID,
+        IOUReportID,
+        type,
+    };
+
+    // We store amount, comment, currency in IOUDetails when type = pay
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY && isSendMoneyFlow) {
+        _.each(['amount', 'comment', 'currency'], (key) => {
+            delete originalMessage[key];
+        });
+        originalMessage.IOUDetails = {amount, comment, currency};
+        originalMessage.paymentType = paymentType;
+    }
+
+    // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
+    if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        delete originalMessage.IOUReportID;
+        originalMessage.participants = [currentUserEmail, ..._.pluck(participants, 'login')];
+    }
+
+    return originalMessage;
+}
+
+/**
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
+ * @param {Number} total - IOU total in cents
+ * @param {String} comment - IOU comment
+ * @param {String} currency - IOU currency
+ * @returns {Array}
+ */
+function getIOUReportPreview(type, total, comment, currency) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
-    const iouMessage = `Settled up ${amount} elsewhere`
+    const iouMessage = `Settled up ${amount} elsewhere`;
 
     return [
         {
@@ -1307,31 +1356,7 @@ function getIOUReportPreview(type, total, comment, currency, paymentType = '', i
  * @returns {Object}
  */
 function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false) {
-    const IOUReportID = iouReportID || generateReportID();
-
-    const originalMessage = {
-        amount,
-        comment,
-        currency,
-        IOUTransactionID: transactionID,
-        IOUReportID,
-        type,
-    };
-
-    // We store amount, comment, currency in IOUDetails when type = pay
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY && isSendMoneyFlow) {
-        _.each(['amount', 'comment', 'currency'], (key) => {
-            delete originalMessage[key];
-        });
-        originalMessage.IOUDetails = {amount, comment, currency};
-        originalMessage.paymentType = paymentType;
-    }
-
-    // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        delete originalMessage.IOUReportID;
-        originalMessage.participants = [currentUserEmail, ..._.pluck(participants, 'login')];
-    }
+    const originalMessage = getIOUReportActionOriginalMessage(type, amount, currency, comment, participants, transactionID, paymentType, iouReportID, isSendMoneyFlow);
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -1342,6 +1367,62 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(type, amount, comment, currency, paymentType, isSettlingUp),
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic IOU reportAction object for the main chat
+ *
+ * @param {String} type - IOUReportAction type. Can be oneOf(create, delete, pay, split).
+ * @param {Number} amount - IOU amount in cents.
+ * @param {String} currency
+ * @param {String} comment - User comment for the IOU.
+ * @param {Array}  participants - An array with participants details.
+ * @param {String} transactionID
+ * @param {String} [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, payPal, Expensify).
+ * @param {String} [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
+ * @param {Boolean} [isSettlingUp] - Whether we are settling up an IOU.
+ * @param {Boolean} [isSendMoneyFlow] - Whether this is send money flow
+ * @returns {Object}
+ */
+function buildOptimisticMainChatIOUReportAction(
+    type,
+    amount,
+    currency,
+    comment,
+    participants,
+    transactionID,
+    paymentType = '',
+    iouReportID = '',
+    isSettlingUp = false,
+    isSendMoneyFlow = false,
+) {
+    const parser = new ExpensiMark();
+    const commentText = getParsedComment(comment);
+    const textForNewComment = parser.htmlToText(commentText);
+    const textForNewCommentDecoded = Str.htmlDecode(textForNewComment);
+    const originalMessage = getIOUReportActionOriginalMessage(type, amount, currency, textForNewComment, participants, transactionID, paymentType, iouReportID, isSendMoneyFlow);
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
+        actorAccountID: currentUserAccountID,
+        actorEmail: currentUserEmail,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserEmail)),
+        isAttachment: false,
+        originalMessage,
+        message: getIOUReportPreview(type, amount, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
         person: [
             {
                 style: 'strong',
@@ -2127,59 +2208,6 @@ function isReportDataReady() {
     return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
 }
 
-function buildOptimisticMainChatIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false) {
-    const IOUReportID = iouReportID || generateReportID();
-    const parser = new ExpensiMark();
-    const commentText = getParsedComment(comment);
-    const textForNewComment = parser.htmlToText(commentText);
-    const textForNewCommentDecoded = Str.htmlDecode(textForNewComment);
-    const originalMessage = {
-        amount,
-        comment: textForNewComment,
-        currency,
-        IOUTransactionID: transactionID,
-        IOUReportID,
-        type,
-    };
-
-    // We store amount, comment, currency in IOUDetails when type = pay
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY && isSendMoneyFlow) {
-        _.each(['amount', 'comment', 'currency'], (key) => {
-            delete originalMessage[key];
-        });
-        originalMessage.IOUDetails = {amount, comment, currency};
-        originalMessage.paymentType = paymentType;
-    }
-
-    // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
-    if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        delete originalMessage.IOUReportID;
-        originalMessage.participants = [currentUserEmail, ..._.pluck(participants, 'login')];
-    }
-
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
-        actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
-        automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
-        isAttachment: false,
-        originalMessage,
-        message: getIOUReportPreview(type, amount, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
-        person: [
-            {
-                style: 'strong',
-                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
-                type: 'TEXT',
-            },
-        ],
-        reportActionID: NumberUtils.rand64(),
-        shouldShow: true,
-        created: DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2232,6 +2260,7 @@ export {
     buildOptimisticIOUReport,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticMainChatIOUReportAction,
     buildOptimisticReportPreview,
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
@@ -2241,6 +2270,8 @@ export {
     getChatByParticipantsAndPolicy,
     getAllPolicyReports,
     getIOUReportActionMessage,
+    getIOUReportActionOriginalMessage,
+    getIOUReportPreview,
     getDisplayNameForParticipant,
     isChatReport,
     isExpenseReport,
@@ -2266,5 +2297,4 @@ export {
     isAllowedToComment,
     getMoneyRequestAction,
     getBankAccountRoute,
-    buildOptimisticMainChatIOUReportAction
 };

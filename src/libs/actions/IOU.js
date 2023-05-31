@@ -900,7 +900,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         },
     };
-    
 
     const optimisticIOUReportData = {
         onyxMethod: Onyx.METHOD.SET,
@@ -992,12 +991,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     // Add an optimistic created action to the optimistic reportActions data
     optimisticReportActionsData.value[optimisticCreatedActionInIOUReport.reportActionID] = optimisticCreatedActionInIOUReport;
 
-    console.log('successData', successData);
-
     const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData, optimisticReportActionsInRegularChatReportData];
 
-
-    console.log('optimisticData', optimisticData);
     return {
         params: {
             iouReportID: optimisticIOUReport.reportID,
