@@ -1874,7 +1874,7 @@ export default {
     },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',
-        chooseAReason: 'Elige un motivo para marcar de abajo:',
+        chooseAReason: 'Elige abajo un motivo para reportarlo:',
         spam: 'Spam',
         spamDescription: 'Promoción fuera de tema no solicitada',
         inconsiderate: 'Desconsiderado',
@@ -1890,8 +1890,8 @@ export default {
         flaggedContent: 'Este mensaje ha sido marcado por violar las reglas de nuestra comunidad y el contenido se ha ocultado.',
         hideMessage: 'Ocultar mensaje',
         revealMessage: 'Revelar mensaje',
-        levelOneResult: 'Envia advertencia anónima y mensaje informado para revisión.',
-        levelTwoResult: 'Mensaje ocultado del canal más advertencia anónima y mensaje informado para revisión.',
-        levelThreeResult: 'Mensaje eliminado del canal más advertencia anónima y mensaje informado para revisión.',
+        levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
+        levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
+        levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
     },
 };

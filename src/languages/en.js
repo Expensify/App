@@ -1424,8 +1424,8 @@ export default {
         flaggedContent: 'This message has been flagged as violating our community rules and the content has been hidden.',
         hideMessage: 'Hide message',
         revealMessage: 'Reveal message',
-        levelOneResult: 'Sends anonymous warning and message reported for review.',
-        levelTwoResult: 'Message hidden from channel, plus anonymous warning and message reported for review.',
-        levelThreeResult: 'Message removed from channel plus anonymous warning and message reported for review.',
+        levelOneResult: 'Sends anonymous warning and message is reported for review.',
+        levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
+        levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
 };
