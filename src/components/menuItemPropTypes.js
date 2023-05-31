@@ -107,6 +107,15 @@ const propTypes = {
 
     /** The ref to the menu item */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Any adjustments to style when menu item is hovered or pressed */
+    hoverAndPressStyle: PropTypes.arrayOf(PropTypes.object),
+
+    /** Text to display under the main item */
+    furtherDetails: PropTypes.string,
+
+    /** An icon to display under the main item */
+    furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 };
 
 export default propTypes;

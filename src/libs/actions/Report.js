@@ -1682,30 +1682,34 @@ function setLastOpenedPublicRoom(reportID) {
  * @param {String} severity
  */
 function flagComment(reportID, reportAction, severity) {
-    let newDecision;
+    const message = reportAction.message[0];
+    let updatedDecision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
-        newDecision = {
-            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
-        };
+        if (_.isEmpty(message.moderationDecisions) || message.moderationDecisions[message.moderationDecisions.length - 1].decision !== CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE) {
+            updatedDecision = [
+                {
+                    decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
+                },
+            ];
+        }
     } else {
-        newDecision = {
-            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
-        };
+        updatedDecision = [
+            {
+                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+            },
+        ];
     }
 
-    const message = reportAction.message[0];
     const reportActionID = reportAction.reportActionID;
-
-    const updatedDecisions = [...(message.moderationDecisions || []), newDecision];
 
     const updatedMessage = {
         ...message,
-        moderationDecisions: updatedDecisions,
+        moderationDecisions: updatedDecision,
     };
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -1718,7 +1722,7 @@ function flagComment(reportID, reportAction, severity) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -1731,7 +1735,7 @@ function flagComment(reportID, reportAction, severity) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
