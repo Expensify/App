@@ -1,30 +1,89 @@
-import _ from 'underscore';
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { Text } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, { withLocalizePropTypes } from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import MenuItem from '../../components/MenuItem';
 import styles from '../../styles/styles';
-import * as Link from '../../libs/actions/Link';
 import withWindowDimensions, { windowDimensionsPropTypes } from '../../components/withWindowDimensions';
-import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
-import { CONTEXT_MENU_TYPES } from '../home/report/ContextMenu/ContextMenuActions';
-import { Text } from 'react-native';
+import Form from '../../components/Form';
+import ONYXKEYS from '../../ONYXKEYS';
+import TextInput from '../../components/TextInput';
+import AttachmentPicker from '../../components/AttachmentPicker';
 
 const propTypes = {
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
-const BugReport = (props) => {
+const validate = (formData) => {
+    const errors = {};
+
+    if (!formData.actionTried) {
+        errors.actionTried = true;
+    }
+
+    if (!formData.expectedBehavior) {
+        errors.expectedBehavior = true;
+    }
+
+    if (!formData.actualBehavior) {
+        errors.actualBehavior = true;
+    }
+
+    return errors;
+}
+
+const submitBugReport = (formData) => {
+    console.log('bug report is submitted', formData);
+}
+
+const BugReport = ({
+    translate,
+}) => {
     return (
         <ScreenWrapper>
-            <Text>Hello</Text>
+            <HeaderWithCloseButton
+                title={translate('bugReportForm.reportABug')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <Form
+                formID={ONYXKEYS.FORMS.BUG_REPORT_FORM}
+                validate={validate}
+                onSubmit={submitBugReport}
+                submitButtonText={translate('bugReportForm.submitBug')}
+                style={[styles.mh5, styles.flexGrow1]}
+            >
+                <TextInput
+                    inputID="actionTried"
+                    label={translate('bugReportForm.actionTried')}
+                    containerStyles={[{ height: 150 }]}
+                    multiline
+                />
+                <TextInput
+                    inputID="expectedBehavior"
+                    label={translate('bugReportForm.expectedBehavior')}
+                    containerStyles={[{ height: 150 }]}
+                    multiline
+                />
+                <TextInput
+                    inputID="actualBehavior"
+                    label={translate('bugReportForm.actualBehavior')}
+                    containerStyles={[{ height: 150 }]}
+                    multiline
+                />
+                <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                    {({ openPicker }) => (
+                        <Text>Hello</Text>
+                    )}
+                </AttachmentPicker>
+                {/* <FlatList data={imageUrls} renderItem={({item: url}) => <ImageItem url={url} />} /> */}
+            </Form>
         </ScreenWrapper>
     );
 };
@@ -32,4 +91,8 @@ const BugReport = (props) => {
 BugReport.propTypes = propTypes;
 BugReport.displayName = 'BugReport';
 
-export default compose(withWindowDimensions, withLocalize)(BugReport);
+export default compose(withWindowDimensions, withLocalize, withOnyx({
+    formData: {
+        key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+    },
+}),)(BugReport);

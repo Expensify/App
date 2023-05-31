@@ -1,4 +1,4 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import { CONST as COMMON_CONST } from 'expensify-common/lib/CONST';
 import CONST from '../CONST';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
@@ -67,7 +67,7 @@ export default {
         currentMonth: 'Current month',
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
-        addressLine: ({lineNumber}) => `Address line ${lineNumber}`,
+        addressLine: ({ lineNumber }) => `Address line ${lineNumber}`,
         personalAddress: 'Personal address',
         companyAddress: 'Company address',
         noPO: 'PO boxes and mail drop addresses are not allowed',
@@ -98,7 +98,7 @@ export default {
             acceptTerms: 'You must accept the Terms of Service to continue',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
-            characterLimit: ({limit}) => `Exceeds the maximum length of ${limit} characters`,
+            characterLimit: ({ limit }) => `Exceeds the maximum length of ${limit} characters`,
             dateInvalid: 'Please select a valid date',
             invalidCharacter: 'Invalid character',
         },
@@ -128,14 +128,14 @@ export default {
         youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
-        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
+        maxParticipantsReached: ({ count }) => `You've selected the maximum number (${count}) of participants.`,
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
         verify: 'Verify',
         yesContinue: 'Yes, continue',
         websiteExample: 'e.g. https://www.expensify.com',
-        zipCodeExampleFormat: ({zipSampleFormat}) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: ({ zipSampleFormat }) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
         with: 'with',
         shareCode: 'Share code',
@@ -225,8 +225,8 @@ export default {
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
-        newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
-        welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}`,
+        newFaceEnterMagicCode: ({ login }) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
+        welcomeEnterMagicCode: ({ login }) => `Please enter the magic code sent to ${login}`,
     },
     login: {
         hero: {
@@ -252,7 +252,7 @@ export default {
         ],
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
-        localTime: ({user, time}) => `It's ${time} for ${user}`,
+        localTime: ({ user, time }) => `It's ${time} for ${user}`,
         edited: '(edited)',
         emoji: 'Emoji',
         collapse: 'Collapse',
@@ -266,8 +266,8 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         editComment: 'Edit comment',
-        deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
-        deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
+        deleteAction: ({ action }) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
+        deleteConfirmation: ({ action }) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         flagAsOffensive: 'Flag as offensive',
@@ -279,12 +279,12 @@ export default {
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'You missed the party in ',
         beginningOfArchivedRoomPartTwo: ", there's nothing to see here.",
-        beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
+        beginningOfChatHistoryDomainRoomPartOne: ({ domainRoom }) => `Collaboration with everyone at ${domainRoom} starts here! 🎉\nUse `,
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
-        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
+        beginningOfChatHistoryAdminRoomPartOne: ({ workspaceName }) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
-        beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
-        beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
+        beginningOfChatHistoryAnnounceRoomPartOne: ({ workspaceName }) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
+        beginningOfChatHistoryAnnounceRoomPartTwo: ({ workspaceName }) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
         beginningOfChatHistory: 'This is the beginning of your chat with ',
@@ -306,12 +306,12 @@ export default {
     },
     reportArchiveReasons: {
         [CONST.REPORT.ARCHIVE_REASON.DEFAULT]: 'This chat room has been archived.',
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({displayName}) => `This workspace chat is no longer active because ${displayName} closed their account.`,
-        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({displayName, oldDisplayName}) =>
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED]: ({ displayName }) => `This workspace chat is no longer active because ${displayName} closed their account.`,
+        [CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED]: ({ displayName, oldDisplayName }) =>
             `This workspace chat is no longer active because ${oldDisplayName} has merged their account with ${displayName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({displayName, policyName}) =>
+        [CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY]: ({ displayName, policyName }) =>
             `This workspace chat is no longer active because ${displayName} is no longer a member of the ${policyName} workspace.`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({ policyName }) => `This workspace chat is no longer active because ${policyName} is no longer an active workspace.`,
     },
     writeCapabilityPage: {
         label: 'Who can post',
@@ -349,15 +349,15 @@ export default {
         settleExpensify: 'Pay with Expensify',
         settleElsewhere: "I'll settle up elsewhere",
         settlePaypalMe: 'Pay with PayPal.me',
-        requestAmount: ({amount}) => `request ${amount}`,
-        splitAmount: ({amount}) => `split ${amount}`,
-        amountEach: ({amount}) => `${amount} each`,
-        payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
-        payerSettled: ({amount}) => `settled up ${amount}`,
+        requestAmount: ({ amount }) => `request ${amount}`,
+        splitAmount: ({ amount }) => `split ${amount}`,
+        amountEach: ({ amount }) => `${amount} each`,
+        payerOwesAmount: ({ payer, amount }) => `${payer} owes ${amount}`,
+        payerSettled: ({ amount }) => `settled up ${amount}`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
-        threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
-        threadSentMoneyReportName: ({formattedAmount, comment}) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        threadRequestReportName: ({ formattedAmount, comment }) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
+        threadSentMoneyReportName: ({ formattedAmount, comment }) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         error: {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -384,10 +384,10 @@ export default {
         editImage: 'Edit photo',
         imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
-        sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
-        resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}) =>
+        sizeExceeded: ({ maxUploadSizeInMB }) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
+        resolutionConstraints: ({ minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx }) =>
             `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
-        notAllowedExtension: ({allowedExtensions}) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: ({ allowedExtensions }) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
     },
     profilePage: {
         profile: 'Profile',
@@ -415,7 +415,7 @@ export default {
         helpTextAfterEmail: ' from multiple email addresses.',
         pleaseVerify: 'Please verify this contact method',
         getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
-        enterMagicCode: ({contactMethod}) => `Please enter the magic code sent to ${contactMethod}`,
+        enterMagicCode: ({ contactMethod }) => `Please enter the magic code sent to ${contactMethod}`,
         setAsDefault: 'Set as default',
         yourDefaultContactMethod:
             'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
@@ -590,6 +590,14 @@ export default {
             password: 'Please enter your Expensify password',
         },
     },
+    bugReportForm: {
+        reportABug: 'Report a bug',
+        actionTried: "What did you try to do?",
+        expectedBehavior: "What did you expect to happen?",
+        actualBehavior: "What actually happened?",
+        submitBug: "Submit bug",
+        addAttachments: "Add attachments",
+    },
     paymentsPage: {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
@@ -606,9 +614,9 @@ export default {
         addBankAccountFailure: 'An unexpected error occurred while trying to add your bank account. Please try again.',
     },
     transferAmountPage: {
-        transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
+        transfer: ({ amount }) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant (Debit card)',
-        instantSummary: ({rate, minAmount}) => `${rate}% fee (${minAmount} minimum)`,
+        instantSummary: ({ rate, minAmount }) => `${rate}% fee (${minAmount} minimum)`,
         ach: '1-3 Business days (Bank account)',
         achSummary: 'No fee',
         whichAccount: 'Which account?',
@@ -723,7 +731,7 @@ export default {
         },
         cannotGetAccountDetails: "Couldn't retrieve account details, please try to sign in again.",
         loginForm: 'Login form',
-        notYou: ({user}) => `Not ${user}?`,
+        notYou: ({ user }) => `Not ${user}?`,
     },
     personalDetails: {
         error: {
@@ -739,20 +747,20 @@ export default {
         legalLastName: 'Legal last name',
         homeAddress: 'Home address',
         error: {
-            dateShouldBeBefore: ({dateString}) => `Date should be before ${dateString}.`,
-            dateShouldBeAfter: ({dateString}) => `Date should be after ${dateString}.`,
+            dateShouldBeBefore: ({ dateString }) => `Date should be before ${dateString}.`,
+            dateShouldBeAfter: ({ dateString }) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include latin letters and numbers.',
-            incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: ({ zipFormat }) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: ({login, loginType}) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
+        weSentYouMagicSignInLink: ({ login, loginType }) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
         resendLink: 'Resend link',
     },
     unlinkLoginForm: {
-        toValidateLogin: ({primaryLogin, secondaryLogin}) => `To validate ${secondaryLogin}, please resend the magic code from the Account Settings of ${primaryLogin}.`,
-        noLongerHaveAccess: ({primaryLogin}) => `If you no longer have access to ${primaryLogin}, please unlink your accounts.`,
+        toValidateLogin: ({ primaryLogin, secondaryLogin }) => `To validate ${secondaryLogin}, please resend the magic code from the Account Settings of ${primaryLogin}.`,
+        noLongerHaveAccess: ({ primaryLogin }) => `If you no longer have access to ${primaryLogin}, please unlink your accounts.`,
         unlink: 'Unlink',
         linkSent: 'Link sent!',
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
@@ -785,7 +793,7 @@ export default {
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
         validateAccount: 'Verify account',
     },
-    stepCounter: ({step, total, text}) => {
+    stepCounter: ({ step, total, text }) => {
         let result = `Step ${step}`;
 
         if (total) {
@@ -1071,7 +1079,7 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
-            goToRoom: ({roomName}) => `Go to ${roomName} room`,
+            goToRoom: ({ roomName }) => `Go to ${roomName} room`,
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1163,7 +1171,7 @@ export default {
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             inviteNoMembersError: 'Please select at least one member to invite',
-            welcomeNote: ({workspaceName}) =>
+            welcomeNote: ({ workspaceName }) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         editor: {
@@ -1235,11 +1243,11 @@ export default {
         publicDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
-        roomNameReservedError: ({reservedName}) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
+        roomNameReservedError: ({ reservedName }) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
         roomNameInvalidError: 'Room names can only include lowercase letters, numbers and hyphens',
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
-        renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
+        renamedRoomAction: ({ oldName, newName }) => ` renamed this room from ${oldName} to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
@@ -1348,8 +1356,8 @@ export default {
         noActivityYet: 'No activity yet',
     },
     chronos: {
-        oooEventSummaryFullDay: ({summary, dayCount, date}) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
-        oooEventSummaryPartialDay: ({summary, timePeriod, date}) => `${summary} from ${timePeriod} on ${date}`,
+        oooEventSummaryFullDay: ({ summary, dayCount, date }) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
+        oooEventSummaryPartialDay: ({ summary, timePeriod, date }) => `${summary} from ${timePeriod} on ${date}`,
     },
     footer: {
         features: 'Features',

@@ -1,6 +1,6 @@
-import React, {useRef} from 'react';
+import React, { useRef } from 'react';
 import CONST from '../../CONST';
-import {propTypes, defaultProps} from './attachmentPickerPropTypes';
+import { propTypes, defaultProps } from './attachmentPickerPropTypes';
 import * as FileUtils from '../../libs/fileDownload/FileUtils';
 
 /**
@@ -26,6 +26,7 @@ function getAcceptableFileTypes(type) {
  * @returns {JSX.Element}
  */
 function AttachmentPicker(props) {
+    console.log('attachment picker being rendered', props.children);
     const fileInput = useRef();
     const onPicked = useRef();
     return (
@@ -55,7 +56,7 @@ function AttachmentPicker(props) {
                 accept={getAcceptableFileTypes(props.type)}
             />
             {props.children({
-                openPicker: ({onPicked: newOnPicked}) => {
+                openPicker: ({ onPicked: newOnPicked }) => {
                     onPicked.current = newOnPicked;
                     fileInput.current.click();
                 },
