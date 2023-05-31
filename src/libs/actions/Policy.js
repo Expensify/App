@@ -7,11 +7,10 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import * as Localize from '../Localize';
-import Navigation from '../Navigation/Navigation';
+import Navigation, {navigationRef} from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
-import DateUtils from '../DateUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
@@ -214,7 +213,7 @@ function removeMembers(members, policyID) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill({errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericRemove')}})),
+            value: _.object(members, Array(members.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
     ];
     API.write(
@@ -369,9 +368,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
             value: _.object(
                 logins,
                 Array(logins.length).fill({
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.people.error.genericAdd'),
-                    },
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
                 }),
             ),
         },
@@ -481,9 +478,7 @@ function deleteWorkspaceAvatar(policyID) {
                     avatar: null,
                 },
                 errorFields: {
-                    avatar: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('avatarWithImagePicker.deleteWorkspaceError'),
-                    },
+                    avatar: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
                 },
             },
         },
@@ -553,9 +548,7 @@ function updateGeneralSettings(policyID, name, currency) {
                     generalSettings: null,
                 },
                 errorFields: {
-                    generalSettings: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.editor.genericFailureMessage'),
-                    },
+                    generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
             },
         },
@@ -627,7 +620,7 @@ function hideWorkspaceAlertMessage(policyID) {
  * @param {Object} newCustomUnit
  * @param {Number} lastModified
  */
-function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, lastModified) {
+function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustomUnit, lastModified) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -636,6 +629,13 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                 customUnits: {
                     [newCustomUnit.customUnitID]: {
                         ...newCustomUnit,
+                        rates: {
+                            [newCustomUnit.rates.customUnitRateID]: {
+                                ...newCustomUnit.rates,
+                                errors: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                        },
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
@@ -652,76 +652,8 @@ function updateWorkspaceCustomUnit(policyID, currentCustomUnit, newCustomUnit, l
                     [newCustomUnit.customUnitID]: {
                         pendingAction: null,
                         errors: null,
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [currentCustomUnit.customUnitID]: {
-                        customUnitID: currentCustomUnit.customUnitID,
-                        name: currentCustomUnit.name,
-                        attributes: currentCustomUnit.attributes,
-                    },
-                },
-            },
-        },
-    ];
-
-    API.write(
-        'UpdateWorkspaceCustomUnit',
-        {
-            policyID,
-            lastModified,
-            customUnit: JSON.stringify(newCustomUnit),
-        },
-        {optimisticData, successData, failureData},
-    );
-}
-
-/**
- * @param {String} policyID
- * @param {Object} currentCustomUnitRate
- * @param {String} customUnitID
- * @param {Object} newCustomUnitRate
- * @param {Number} lastModified
- */
-function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, newCustomUnitRate, lastModified) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnitID]: {
                         rates: {
-                            [newCustomUnitRate.customUnitRateID]: {
-                                ...newCustomUnitRate,
-                                errors: null,
-                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnitID]: {
-                        rates: {
-                            [newCustomUnitRate.customUnitRateID]: {
+                            [newCustomUnit.rates.customUnitRateID]: {
                                 pendingAction: null,
                             },
                         },
@@ -737,13 +669,12 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 customUnits: {
-                    [customUnitID]: {
+                    [currentCustomUnit.customUnitID]: {
+                        customUnitID: currentCustomUnit.customUnitID,
                         rates: {
-                            [currentCustomUnitRate.customUnitRateID]: {
-                                ...currentCustomUnitRate,
-                                errors: {
-                                    [DateUtils.getMicroseconds()]: Localize.translateLocal('workspace.reimburse.updateCustomUnitError'),
-                                },
+                            [currentCustomUnit.rates.customUnitRateID]: {
+                                ...currentCustomUnit.rates,
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.reimburse.updateCustomUnitError'),
                             },
                         },
                     },
@@ -753,12 +684,12 @@ function updateCustomUnitRate(policyID, currentCustomUnitRate, customUnitID, new
     ];
 
     API.write(
-        'UpdateWorkspaceCustomUnitRate',
+        'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            customUnitID,
             lastModified,
-            customUnitRate: JSON.stringify(newCustomUnitRate),
+            customUnit: JSON.stringify(newCustomUnit),
+            customUnitRate: JSON.stringify(newCustomUnit.rates),
         },
         {optimisticData, successData, failureData},
     );
@@ -1082,6 +1013,11 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
         if (transitionFromOldDot) {
             Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
         }
+
+        // Get the reportID associated with the newly created #admins room and route the user to that chat
+        const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
+        Navigation.setParams({reportID: adminsChatReportID}, routeKey);
+
         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
     });
 }
@@ -1156,8 +1092,7 @@ export {
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
     deleteWorkspace,
-    updateWorkspaceCustomUnit,
-    updateCustomUnitRate,
+    updateWorkspaceCustomUnitAndRate,
     updateLastAccessedWorkspace,
     clearDeleteMemberError,
     clearAddMemberError,

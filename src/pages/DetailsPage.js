@@ -28,6 +28,7 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import * as UserUtils from '../libs/UserUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -48,9 +49,13 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** Date login was validated, used to show info indicator status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     ...withLocalizePropTypes,
@@ -59,9 +64,7 @@ const propTypes = {
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
-    session: {
-        email: null,
-    },
+    loginList: {},
 };
 
 /**
@@ -93,7 +96,7 @@ class DetailsPage extends React.PureComponent {
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
+                avatar: UserUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
             };
         }
 
@@ -113,6 +116,8 @@ class DetailsPage extends React.PureComponent {
         const phoneNumber = getPhoneNumber(details);
         const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
+        const isCurrentUser = _.keys(this.props.loginList).includes(details.login);
+
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
@@ -131,7 +136,7 @@ class DetailsPage extends React.PureComponent {
                                 <View style={styles.avatarSectionWrapper}>
                                     <AttachmentModal
                                         headerTitle={details.displayName}
-                                        source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
+                                        source={UserUtils.getFullSizeAvatar(details.avatar, details.login)}
                                         isAuthTokenRequired
                                         originalFileName={details.originalFileName}
                                     >
@@ -144,7 +149,7 @@ class DetailsPage extends React.PureComponent {
                                                     <Avatar
                                                         containerStyles={[styles.avatarLarge, styles.mb3]}
                                                         imageStyles={[styles.avatarLarge]}
-                                                        source={ReportUtils.getAvatar(details.avatar, details.login)}
+                                                        source={UserUtils.getAvatar(details.avatar, details.login)}
                                                         size={CONST.AVATAR_SIZE.LARGE}
                                                     />
                                                 </OfflineWithFeedback>
@@ -187,7 +192,7 @@ class DetailsPage extends React.PureComponent {
                                     ) : null}
                                     {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
                                 </View>
-                                {details.login !== this.props.session.email && (
+                                {!isCurrentUser && (
                                     <MenuItem
                                         title={`${this.props.translate('common.message')}${details.displayName}`}
                                         icon={Expensicons.ChatBubble}
@@ -211,11 +216,11 @@ DetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
     }),
 )(DetailsPage);
