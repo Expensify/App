@@ -76,6 +76,7 @@ class SettlementButton extends React.Component {
 
     getButtonOptionsFromProps() {
         const buttonOptions = [];
+        const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: this.props.translate('iou.settleExpensify'),
@@ -93,18 +94,39 @@ class SettlementButton extends React.Component {
                 value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: ReportUtils.isExpenseReport(this.props.iouReport) ? this.props.translate('iou.payElsewhere') : this.props.translate('iou.settleElsewhere'),
+                text: isExpenseReport ? this.props.translate('iou.payExpenseElsewhere') : this.props.translate('iou.settleElsewhere'),
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-        if (!this.props.shouldShowPaymentOptions && this.props.nvp_lastPaymentMethod[this.props.policyID]) {
-            return [paymentMethods[this.props.nvp_lastPaymentMethod[this.props.policyID]]];
+        const canUseWallet = !isExpenseReport && this.props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas);
+
+        // To achieve the one tap pay experience we need to choose the correct payment type as default,
+        // if user already paid for some request or expense, let's use the last payment method or use default.
+        if (!this.props.shouldShowPaymentOptions) {
+            let paymentMethod = this.props.nvp_lastPaymentMethod[this.props.policyID];
+            if (!paymentMethod) {
+                // In case the user hasnt paid a request yet, let's default to VBBA payment type in case of expense reports
+                if (isExpenseReport) {
+                    paymentMethod = CONST.IOU.PAYMENT_TYPE.VBBA;
+                } else if (canUseWallet) {
+                    // If they have Wallet set up, use that one
+                    paymentMethod = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
+                } else {
+                    paymentMethod = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+                }
+            }
+
+            // In case the last payment method has been PayPal, but this request is made in currency unsupported by Paypal, default to Elsewhere
+            if (paymentMethod === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME && !_.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, this.props.currency)) {
+                paymentMethod = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+            }
+            return [paymentMethods[paymentMethod]];
         }
-        if (this.props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
+        if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        if (ReportUtils.isExpenseReport(this.props.iouReport)) {
+        if (isExpenseReport) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
         if (this.props.shouldShowPaypal && _.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, this.props.currency)) {
