@@ -113,7 +113,7 @@ function FlagCommentPage(props) {
     ];
 
     const flagComment = (severity) => {
-        let reportID = props.route.params.reportID;
+        let reportID = getReportID(props.route);
 
         // Handle threads if needed
         if (reportAction === undefined) {
