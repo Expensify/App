@@ -9,6 +9,7 @@ import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import themeColors from '../../../styles/themes/default';
 import * as Session from '../../../libs/actions/Session';
+import * as SignInModalActions from '../../../libs/actions/SignInModalActions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import ChangeExpensifyLoginLink from '../ChangeExpensifyLoginLink';
@@ -182,6 +183,12 @@ class BaseValidateCodeForm extends React.Component {
         this.setState({
             formError: {},
         });
+
+        if (this.props.isAnonymousUser) {
+            // Session.claimAccount
+            SignInModalActions.hideSignInModal();
+            return;
+        }
 
         const accountID = lodashGet(this.props, 'credentials.accountID');
         if (accountID) {

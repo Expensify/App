@@ -27,7 +27,7 @@ function SignInModal(props) {
             useNativeDriver
         >
             <HeaderWithCloseButton onCloseButtonPress={SignInModalActions.hideSignInModal} />
-            <SignInPage />
+            <SignInPage isAnonymousUser />
         </Modal>
     );
 }

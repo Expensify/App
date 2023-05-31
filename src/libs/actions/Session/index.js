@@ -84,7 +84,8 @@ function signOut() {
  * @return {boolean}
  */
 function isAnonymousUser() {
-    return authTokenType === 'anonymousAccount';
+    // return authTokenType === 'anonymousAccount';
+    return true;
 }
 
 function signOutAndRedirectToSignIn() {

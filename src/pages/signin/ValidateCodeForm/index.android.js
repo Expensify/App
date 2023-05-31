@@ -4,15 +4,18 @@ import BaseValidateCodeForm from './BaseValidateCodeForm';
 
 const defaultProps = {
     isVisible: false,
+    isAnonymousUser: false,
 };
 
 const propTypes = {
     isVisible: PropTypes.bool,
+    isAnonymousUser: PropTypes.bool,
 };
 const ValidateCodeForm = (props) => (
     <BaseValidateCodeForm
         isVisible={props.isVisible}
         autoComplete="sms-otp"
+        isAnonymousUser={props.isAnonymousUser}
     />
 );
 
