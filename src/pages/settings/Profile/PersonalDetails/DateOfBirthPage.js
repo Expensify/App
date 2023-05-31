@@ -1,7 +1,8 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
+import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -34,26 +35,15 @@ const defaultProps = {
     },
 };
 
-const DateOfBirthPage = ({translate, route, navigation, privatePersonalDetails}) => {
-    const [selectedYear, setSelectedYear] = useState('');
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
-
+const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
     /**
-     * Reads the year from route params. The year should be set on the route when navigating back from the calendar picker
+     * The year should be set on the route when navigating back from the year picker
      * This lets us pass the selected year without having to overwrite the value in Onyx
      */
-    useEffect(() => {
-        const getYearFromRouteParams = () => {
-            const {params} = route;
-            if (params && params.year) {
-                setSelectedYear(params.year);
-            }
-        };
-
-        navigation.addListener('focus', getYearFromRouteParams);
-        return () => navigation.removeListener('focus', getYearFromRouteParams);
-    }, [navigation, route]);
+    const dobYear = String(moment(privatePersonalDetails.dob).year());
+    const selectedYear = lodashGet(route.params, 'year', dobYear);
+    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
+    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
 
     /**
      * @param {Object} values
