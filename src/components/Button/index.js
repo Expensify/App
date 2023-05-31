@@ -32,9 +32,13 @@ const propTypes = {
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
 
-    /** Any additional styles to pass to the icon container. */
+    /** Any additional styles to pass to the left icon container. */
     // eslint-disable-next-line react/forbid-prop-types
     iconStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Any additional styles to pass to the right icon container. */
+    // eslint-disable-next-line react/forbid-prop-types
+    iconRightStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Small sized button */
     small: PropTypes.bool,
@@ -122,6 +126,7 @@ const defaultProps = {
     iconRight: Expensicons.ArrowRight,
     iconFill: themeColors.textLight,
     iconStyles: [],
+    iconRightStyles: [],
     isLoading: false,
     isDisabled: false,
     small: false,
@@ -230,7 +235,7 @@ class Button extends Component {
                         {textComponent}
                     </View>
                     {this.props.shouldShowRightIcon && (
-                        <View style={[styles.justifyContentCenter, styles.ml1, ...this.props.iconStyles]}>
+                        <View style={[styles.justifyContentCenter, styles.ml1, ...this.props.iconRightStyles]}>
                             <Icon
                                 src={this.props.iconRight}
                                 fill={this.props.iconFill}
