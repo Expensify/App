@@ -201,8 +201,8 @@ const styles = {
     mentionSuggestionsAvatarContainer: {
         width: 24,
         height: 24,
-        alignItems: "center",
-        justifyContent: "center"
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     mentionSuggestionsText: {

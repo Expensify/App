@@ -1078,7 +1078,7 @@ const CONST = {
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
-        MENTION_ICON: 'mention-icon'
+        MENTION_ICON: 'mention-icon',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
