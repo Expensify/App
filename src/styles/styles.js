@@ -1024,6 +1024,10 @@ const styles = {
         lineHeight: 16,
     },
 
+    lh20: {
+        lineHeight: 20,
+    },
+
     lh140Percent: {
         lineHeight: '140%',
     },
@@ -2095,12 +2099,6 @@ const styles = {
         textTransform: 'capitalize',
     },
 
-    reportTransactionWrapper: {
-        paddingVertical: 8,
-        display: 'flex',
-        flexDirection: 'row',
-    },
-
     settingsPageBackground: {
         flexDirection: 'column',
         width: '100%',
@@ -2157,7 +2155,6 @@ const styles = {
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
         width: 100,
-        height: 18,
         textAlign: 'center',
     },
 
