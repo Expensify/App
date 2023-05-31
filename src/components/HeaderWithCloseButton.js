@@ -178,7 +178,7 @@ class HeaderWithCloseButton extends Component {
                     )}
                     {this.props.shouldShowAvatarWithDisplay && (
                         <AvatarWithDisplayName
-                            report={this.props.parentReport ? this.props.parentReport : this.props.report}
+                            report={this.props.parentReport || this.props.report}
                             policies={this.props.policies}
                             personalDetails={this.props.personalDetails}
                         />
