@@ -18,6 +18,8 @@ import compose from '../../libs/compose';
 import launchCamera from './launchCamera';
 import CONST from '../../CONST';
 import * as FileUtils from '../../libs/fileDownload/FileUtils';
+import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
+import KeyboardShortcut from '../../libs/KeyboardShortcut';
 
 const propTypes = {
     ...basePropTypes,
@@ -98,6 +100,7 @@ class AttachmentPicker extends Component {
 
         this.state = {
             isVisible: false,
+            focusedIndex: -1,
         };
 
         this.menuItemData = [
@@ -125,6 +128,48 @@ class AttachmentPicker extends Component {
 
         this.close = this.close.bind(this);
         this.pickAttachment = this.pickAttachment.bind(this);
+        this.removeKeyboardListener = this.removeKeyboardListener.bind(this);
+        this.attachKeyboardListener = this.attachKeyboardListener.bind(this);
+    }
+
+    componentDidUpdate(prevState) {
+        if (this.state.isVisible === prevState.isVisible) {
+            return;
+        }
+
+        if (this.state.isVisible) {
+            this.attachKeyboardListener();
+        } else {
+            this.removeKeyboardListener();
+        }
+    }
+
+    componentWillUnmount() {
+        this.removeKeyboardListener();
+    }
+
+    attachKeyboardListener() {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        this.unsubscribeEnterKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (this.state.focusedIndex === -1) {
+                    return;
+                }
+                this.selectItem(this.menuItemData[this.state.focusedIndex]);
+                this.setState({focusedIndex: -1}); // Reset the focusedIndex on selecting any menu
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+        );
+    }
+
+    removeKeyboardListener() {
+        if (!this.unsubscribeEnterKey) {
+            return;
+        }
+        this.unsubscribeEnterKey();
     }
 
     /**
@@ -310,14 +355,21 @@ class AttachmentPicker extends Component {
                     onModalHide={this.onModalHide}
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                        {_.map(this.menuItemData, (item) => (
-                            <MenuItem
-                                key={item.textTranslationKey}
-                                icon={item.icon}
-                                title={this.props.translate(item.textTranslationKey)}
-                                onPress={() => this.selectItem(item)}
-                            />
-                        ))}
+                        <ArrowKeyFocusManager
+                            focusedIndex={this.state.focusedIndex}
+                            maxIndex={this.menuItemData.length - 1}
+                            onFocusedIndexChanged={(index) => this.setState({focusedIndex: index})}
+                        >
+                            {_.map(this.menuItemData, (item, menuIndex) => (
+                                <MenuItem
+                                    key={item.textTranslationKey}
+                                    icon={item.icon}
+                                    title={this.props.translate(item.textTranslationKey)}
+                                    onPress={() => this.selectItem(item)}
+                                    focused={this.state.focusedIndex === menuIndex}
+                                />
+                            ))}
+                        </ArrowKeyFocusManager>
                     </View>
                 </Popover>
                 {this.renderChildren()}

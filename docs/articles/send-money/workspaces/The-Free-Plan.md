@@ -25,12 +25,12 @@ Once you’ve created your Workspace, you will receive a message from Concierge 
 
 Once you’ve completed your company setup, you should have completed the following tasks:
 
-- Connected a business bank account (Settings menu > Click **_Connect bank account_** and follow the prompts).
+- Connected a business bank account (Settings menu > Click **_Bank account_** and follow the prompts).
 - Invited members to the workspace
 - Assigned Expensify Cards
 
 # Inviting Members to the Free Plan:
-- Navigate to the Settings Menu and click **_Manage members_** to invite your team. You can invite employees one at a time, or you can invite multiple users by listing out their email addresses separated by a comma
+- Navigate to the Settings Menu and click **_Members_** to invite your team. You can invite employees one at a time, or you can invite multiple users by listing out their email addresses separated by a comma
 - To use the Expensify Card, you must invite them to your workspace via your company email address (i.e., admin@companyemail.com and NOT admin@gmail.com).
 
 # Managing the Free Plan
