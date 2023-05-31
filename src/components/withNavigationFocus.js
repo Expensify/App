@@ -22,20 +22,19 @@ export default function withNavigationFocus(WrappedComponent) {
 
     WithNavigationFocus.displayName = `withNavigationFocus(${getComponentDisplayName(WrappedComponent)})`;
     WithNavigationFocus.propTypes = {
-        forwardedRef: PropTypes.oneOfType([
-            PropTypes.func,
-            PropTypes.shape({current: PropTypes.instanceOf(React.Component)}),
-        ]),
+        // eslint-disable-next-line react/forbid-prop-types
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
     };
     WithNavigationFocus.defaultProps = {
         forwardedRef: undefined,
     };
     return React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithNavigationFocus {...props} forwardedRef={ref} />
+        <WithNavigationFocus
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 }
 
-export {
-    withNavigationFocusPropTypes,
-};
+export {withNavigationFocusPropTypes};

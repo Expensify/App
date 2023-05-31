@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {TouchableWithoutFeedback, View} from 'react-native';
+import {View} from 'react-native';
 import PDF from 'react-native-pdf';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import styles from '../../styles/styles';
@@ -117,18 +117,11 @@ class PDFView extends Component {
             shouldRequestPassword: false,
             shouldShowLoadingIndicator: false,
         });
+        this.props.onLoadComplete();
     }
 
     render() {
-        const pdfStyles = [
-            styles.imageModalPDF,
-            StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight),
-        ];
-        const touchableStyles = [
-            styles.flex1,
-            this.props.style,
-            styles.w100,
-        ];
+        const pdfStyles = [styles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
@@ -138,32 +131,27 @@ class PDFView extends Component {
             pdfStyles.push(styles.invisible);
         }
 
-        const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth
-            ? [styles.w100, styles.flex1]
-            : [styles.alignItemsCenter, styles.flex1];
+        const containerStyles = this.state.shouldRequestPassword && this.props.isSmallScreenWidth ? [styles.w100, styles.flex1] : [styles.alignItemsCenter, styles.flex1];
 
         return (
             <View style={containerStyles}>
                 {this.state.failedToLoadPDF && (
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text style={[styles.textLabel, styles.textLarge]}>
-                            {this.props.translate('attachmentView.failedToLoadPDF')}
-                        </Text>
+                        <Text style={[styles.textLabel, styles.textLarge]}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
                     </View>
                 )}
                 {this.state.shouldAttemptPDFLoad && (
-                    <TouchableWithoutFeedback style={touchableStyles}>
-                        <PDF
-                            trustAllCerts={false}
-                            renderActivityIndicator={() => <FullScreenLoadingIndicator />}
-                            source={{uri: this.props.sourceURL}}
-                            style={pdfStyles}
-                            onError={this.handleFailureToLoadPDF}
-                            password={this.state.password}
-                            onLoadComplete={this.finishPDFLoad}
-                            onPageSingleTap={this.props.onPress}
-                        />
-                    </TouchableWithoutFeedback>
+                    <PDF
+                        trustAllCerts={false}
+                        renderActivityIndicator={() => <FullScreenLoadingIndicator />}
+                        source={{uri: this.props.sourceURL}}
+                        style={pdfStyles}
+                        onError={this.handleFailureToLoadPDF}
+                        password={this.state.password}
+                        onLoadComplete={this.finishPDFLoad}
+                        onPageSingleTap={this.props.onPress}
+                        onScaleChanged={this.props.onScaleChanged}
+                    />
                 )}
                 {this.state.shouldRequestPassword && (
                     <KeyboardAvoidingView style={styles.flex1}>
@@ -183,8 +171,4 @@ class PDFView extends Component {
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withKeyboardState,
-    withLocalize,
-)(PDFView);
+export default compose(withWindowDimensions, withKeyboardState, withLocalize)(PDFView);

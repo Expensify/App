@@ -15,6 +15,12 @@ const propTypes = {
     /** Handles press events like toggling attachment arrows natively */
     onPress: PropTypes.func,
 
+    /** Handles scale changed event in PDF component */
+    onScaleChanged: PropTypes.func,
+
+    /** Handles load complete event in PDF component */
+    onLoadComplete: PropTypes.func,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -23,6 +29,8 @@ const defaultProps = {
     style: {},
     onPress: () => {},
     onToggleKeyboard: () => {},
+    onScaleChanged: () => {},
+    onLoadComplete: () => {},
 };
 
 export {propTypes, defaultProps};

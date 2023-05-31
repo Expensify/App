@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -12,15 +12,12 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import {
-    baseQuickEmojiReactionsPropTypes,
-} from './QuickEmojiReactions/BaseQuickEmojiReactions';
+import {baseQuickEmojiReactionsPropTypes} from './QuickEmojiReactions/BaseQuickEmojiReactions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import getPreferredEmojiCode from './getPreferredEmojiCode';
-
-const ICON_SIZE_SCALE_FACTOR = 1.3;
+import * as EmojiUtils from '../../libs/EmojiUtils';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
@@ -33,7 +30,6 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
 };
 
 const defaultProps = {
@@ -50,7 +46,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 const MiniQuickEmojiReactions = (props) => {
-    const ref = React.createRef();
+    const ref = useRef();
 
     const openEmojiPicker = () => {
         props.onPressOpenPicker();
@@ -65,25 +61,19 @@ const MiniQuickEmojiReactions = (props) => {
 
     return (
         <View style={styles.flexRow}>
-            {_.map(CONST.QUICK_REACTIONS, emoji => (
+            {_.map(CONST.QUICK_REACTIONS, (emoji) => (
                 <BaseMiniContextMenuItem
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
-                    onPress={() => props.onEmojiSelected(emoji)}
+                    onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
                 >
-                    <Text style={[
-                        styles.emojiReactionText,
-                        StyleUtils.getEmojiReactionTextStyle(ICON_SIZE_SCALE_FACTOR),
-                    ]}
-                    >
-                        {getPreferredEmojiCode(emoji, props.preferredSkinTone)}
-                    </Text>
+                    <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={openEmojiPicker}
+                onPress={Session.checkIfActionIsAllowed(openEmojiPicker)}
                 isDelayButtonStateComplete={false}
                 tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >

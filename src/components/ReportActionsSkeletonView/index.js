@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import SkeletonViewLines from './SkeletonViewLines';
 import CONST from '../../CONST';
 
@@ -23,16 +24,34 @@ const ReportActionsSkeletonView = (props) => {
         const iconIndex = (index + 1) % 4;
         switch (iconIndex) {
             case 2:
-                skeletonViewLines.push(<SkeletonViewLines shouldAnimate={props.shouldAnimate} numberOfRows={2} key={`skeletonViewLines${index}`} />);
+                skeletonViewLines.push(
+                    <SkeletonViewLines
+                        shouldAnimate={props.shouldAnimate}
+                        numberOfRows={2}
+                        key={`skeletonViewLines${index}`}
+                    />,
+                );
                 break;
             case 0:
-                skeletonViewLines.push(<SkeletonViewLines shouldAnimate={props.shouldAnimate} numberOfRows={3} key={`skeletonViewLines${index}`} />);
+                skeletonViewLines.push(
+                    <SkeletonViewLines
+                        shouldAnimate={props.shouldAnimate}
+                        numberOfRows={3}
+                        key={`skeletonViewLines${index}`}
+                    />,
+                );
                 break;
             default:
-                skeletonViewLines.push(<SkeletonViewLines shouldAnimate={props.shouldAnimate} numberOfRows={1} key={`skeletonViewLines${index}`} />);
+                skeletonViewLines.push(
+                    <SkeletonViewLines
+                        shouldAnimate={props.shouldAnimate}
+                        numberOfRows={1}
+                        key={`skeletonViewLines${index}`}
+                    />,
+                );
         }
     }
-    return <>{skeletonViewLines}</>;
+    return <View>{skeletonViewLines}</View>;
 };
 
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';

@@ -17,30 +17,35 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceBillsVBAView = props => (
-    <>
-        <WorkspaceBillsFirstSection policyID={props.policyID} />
+const WorkspaceBillsVBAView = (props) => {
+    const reportsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`;
 
-        <Section
-            title={props.translate('workspace.bills.hassleFreeBills')}
-            icon={Illustrations.MoneyBadge}
-            menuItems={[
-                {
-                    title: props.translate('workspace.common.bills'),
-                    onPress: () => Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`),
-                    icon: Expensicons.Bill,
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    wrapperStyle: [styles.cardMenuItem],
-                },
-            ]}
-        >
-            <View style={[styles.mv3]}>
-                <Text>{props.translate('workspace.bills.VBACopy')}</Text>
-            </View>
-        </Section>
-    </>
-);
+    return (
+        <>
+            <WorkspaceBillsFirstSection policyID={props.policyID} />
+
+            <Section
+                title={props.translate('workspace.bills.hassleFreeBills')}
+                icon={Illustrations.MoneyBadge}
+                menuItems={[
+                    {
+                        title: props.translate('workspace.common.bills'),
+                        onPress: () => Link.openOldDotLink(reportsUrl),
+                        icon: Expensicons.Bill,
+                        shouldShowRightIcon: true,
+                        iconRight: Expensicons.NewWindow,
+                        wrapperStyle: [styles.cardMenuItem],
+                        link: () => Link.buildOldDotURL(reportsUrl),
+                    },
+                ]}
+            >
+                <View style={[styles.mv3]}>
+                    <Text>{props.translate('workspace.bills.VBACopy')}</Text>
+                </View>
+            </Section>
+        </>
+    );
+};
 
 WorkspaceBillsVBAView.propTypes = propTypes;
 WorkspaceBillsVBAView.displayName = 'WorkspaceBillsVBAView';

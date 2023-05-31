@@ -1,1 +1,1 @@
-export default visibility => ({visibility});
+export default (visibility) => ({visibility});

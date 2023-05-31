@@ -16,7 +16,7 @@ import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
-import withPolicy from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -56,6 +56,9 @@ const propTypes = {
     /** The guides call task ID to associate with the workspace page being shown */
     guidesCallTaskID: PropTypes.string,
 
+    /** The route where we navigate when the user press the back button */
+    backButtonRoute: PropTypes.string,
+
     /** Policy values needed in the component */
     policy: PropTypes.shape({
         name: PropTypes.string,
@@ -75,6 +78,7 @@ const defaultProps = {
     guidesCallTaskID: '',
     shouldUseScrollView: false,
     shouldSkipVBBACall: false,
+    backButtonRoute: '',
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -106,7 +110,10 @@ class WorkspacePageWithSections extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+            >
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
@@ -117,23 +124,19 @@ class WorkspacePageWithSections extends React.Component {
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={this.props.guidesCallTaskID}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                        onBackButtonPress={() => Navigation.navigate(this.props.backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
-                    {this.props.shouldUseScrollView
-                        ? (
-                            <ScrollViewWithContext
-                                keyboardShouldPersistTaps="handled"
-                                style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                            >
-                                <View style={[styles.w100, styles.flex1]}>
-
-                                    {this.props.children(hasVBA, policyID, isUsingECard)}
-
-                                </View>
-                            </ScrollViewWithContext>
-                        )
-                        : this.props.children(hasVBA, policyID, isUsingECard)}
+                    {this.props.shouldUseScrollView ? (
+                        <ScrollViewWithContext
+                            keyboardShouldPersistTaps="handled"
+                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                        >
+                            <View style={[styles.w100, styles.flex1]}>{this.props.children(hasVBA, policyID, isUsingECard)}</View>
+                        </ScrollViewWithContext>
+                    ) : (
+                        this.props.children(hasVBA, policyID, isUsingECard)
+                    )}
                     {this.props.footer}
                 </FullPageNotFoundView>
             </ScreenWrapper>
@@ -154,6 +157,6 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
 )(WorkspacePageWithSections);

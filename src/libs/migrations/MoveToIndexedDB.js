@@ -42,14 +42,13 @@ function applyMigration() {
     // Targeting existing Onyx keys in local storage or any key prefixed by a collection name
     const dataToMigrate = _.chain(window.localStorage)
         .keys()
-        .filter(key => onyxKeys.has(key) || _.some(onyxCollections, collectionKey => key.startsWith(collectionKey)))
-        .map(key => [key, JSON.parse(window.localStorage.getItem(key))])
+        .filter((key) => onyxKeys.has(key) || _.some(onyxCollections, (collectionKey) => key.startsWith(collectionKey)))
+        .map((key) => [key, JSON.parse(window.localStorage.getItem(key))])
         .object()
         .value();
 
     // Move the data in Onyx and only then delete it from local storage
-    return Onyx.multiSet(dataToMigrate)
-        .then(() => _.each(dataToMigrate, (value, key) => window.localStorage.removeItem(key)));
+    return Onyx.multiSet(dataToMigrate).then(() => _.each(dataToMigrate, (value, key) => window.localStorage.removeItem(key)));
 }
 
 /**

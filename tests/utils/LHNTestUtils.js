@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
@@ -65,6 +66,7 @@ const fakePersonalDetails = {
 };
 
 let lastFakeReportID = 0;
+let lastFakeReportActionID = 0;
 
 /**
  * @param {String[]} participants
@@ -75,11 +77,39 @@ let lastFakeReportID = 0;
 function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
+        type: CONST.REPORT.TYPE.CHAT,
         reportID: `${++lastFakeReportID}`,
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
         participants,
+    };
+}
+
+/**
+ * @param {String} actor
+ * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
+ * @returns {Object}
+ */
+function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 0) {
+    const timestamp = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
+
+    return {
+        actor,
+        actorAccountID: 1,
+        reportActionID: `${++lastFakeReportActionID}`,
+        shouldShow: true,
+        timestamp,
+        reportActionTimestamp: timestamp,
+        person: [
+            {
+                type: 'TEXT',
+                style: 'strong',
+                text: 'Email One',
+            },
+        ],
+        whisperedTo: [],
+        automatic: false,
     };
 }
 
@@ -98,6 +128,7 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
 function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft) {
     return {
         ...getFakeReport(['email1@test.com', 'email2@test.com'], 0, isUnread),
+        type: CONST.REPORT.TYPE.CHAT,
         chatType: isUserCreatedPolicyRoom ? CONST.REPORT.CHAT_TYPE.POLICY_ROOM : CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         statusNum: isArchived ? CONST.REPORT.STATUS.CLOSED : 0,
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.SUBMITTED : 0,
@@ -137,33 +168,41 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // are passed to the component. If this is not done, then all the locale props are missing
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
-    render((
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                LocaleContextProvider,
-            ]}
-        >
-            <ErrorBoundary>
-                <SidebarLinks
-                    onLinkClick={() => {}}
-                    insets={{
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                    }}
-                    isSmallScreenWidth={false}
-                    reportIDFromRoute={reportIDFromRoute}
-                />
-            </ErrorBoundary>
-        </ComposeProviders>
-    ));
+    render(
+        <ErrorBoundary>
+            <MockedSidebarLinks reportIDFromRoute={reportIDFromRoute} />
+        </ErrorBoundary>,
+    );
 }
 
-export {
-    fakePersonalDetails,
-    getDefaultRenderedSidebarLinks,
-    getAdvancedFakeReport,
-    getFakeReport,
+/**
+ * @param {String} [reportIDFromRoute]
+ * @returns {JSX.Element}
+ */
+function MockedSidebarLinks({reportIDFromRoute}) {
+    return (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+            <SidebarLinks
+                onLinkClick={() => {}}
+                insets={{
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                }}
+                isSmallScreenWidth={false}
+                reportIDFromRoute={reportIDFromRoute}
+            />
+        </ComposeProviders>
+    );
+}
+
+MockedSidebarLinks.propTypes = {
+    reportIDFromRoute: PropTypes.string,
 };
+
+MockedSidebarLinks.defaultProps = {
+    reportIDFromRoute: '',
+};
+
+export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};

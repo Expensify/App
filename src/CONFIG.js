@@ -17,9 +17,7 @@ const stagingExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGI
 const stagingSecureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
 const ngrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
 const secureNgrokURL = Url.addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
-const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(
-    Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/',
-));
+const secureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
 const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
@@ -64,6 +62,7 @@ export default {
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
         CONCIERGE_URL_PATHNAME: 'concierge/',
+        DEVPORTAL_URL_PATHNAME: '_devportal/',
         CONCIERGE_URL: `${expensifyURL}concierge/`,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,

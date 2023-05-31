@@ -8,10 +8,9 @@ import AddReactionBubble from '../AddReactionBubble';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
-import getPreferredEmojiCode from '../getPreferredEmojiCode';
 import Tooltip from '../../Tooltip';
-
-const EMOJI_BUBBLE_SCALE = 1.5;
+import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as Session from '../../../libs/actions/Session';
 
 const baseQuickEmojiReactionsPropTypes = {
     /**
@@ -47,24 +46,24 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
-const BaseQuickEmojiReactions = props => (
+const BaseQuickEmojiReactions = (props) => (
     <View style={styles.quickReactionsContainer}>
-        {_.map(CONST.QUICK_REACTIONS, emoji => (
-
-            // Note: focus is handled by the Pressable component in EmojiReactionBubble
-            <Tooltip text={`:${emoji.name}:`} key={emoji.name} focusable={false}>
-                <EmojiReactionBubble
-                    emojiCodes={[getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
-                    sizeScale={EMOJI_BUBBLE_SCALE}
-                    onPress={() => {
-                        props.onEmojiSelected(emoji);
-                    }}
-                />
+        {_.map(CONST.QUICK_REACTIONS, (emoji) => (
+            <Tooltip
+                text={`:${emoji.name}:`}
+                key={emoji.name}
+            >
+                <View>
+                    <EmojiReactionBubble
+                        emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
+                        isContextMenu
+                        onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
+                    />
+                </View>
             </Tooltip>
         ))}
         <AddReactionBubble
-            iconSizeScale={1.2}
-            sizeScale={EMOJI_BUBBLE_SCALE}
+            isContextMenu
             onPressOpenPicker={props.onPressOpenPicker}
             onWillShowPicker={props.onWillShowPicker}
             onSelectEmoji={props.onEmojiSelected}
@@ -81,6 +80,4 @@ export default withOnyx({
     },
 })(BaseQuickEmojiReactions);
 
-export {
-    baseQuickEmojiReactionsPropTypes,
-};
+export {baseQuickEmojiReactionsPropTypes};

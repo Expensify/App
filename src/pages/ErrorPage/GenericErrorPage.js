@@ -24,7 +24,7 @@ const propTypes = {
     onRefresh: PropTypes.func.isRequired,
 };
 
-const GenericErrorPage = props => (
+const GenericErrorPage = (props) => (
     <SafeAreaConsumer>
         {({paddingBottom}) => (
             <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(paddingBottom)]}>
@@ -39,15 +39,16 @@ const GenericErrorPage = props => (
                             />
                         </View>
                         <View style={styles.mb5}>
-                            <Text style={[styles.textHeadline]}>
-                                {props.translate('genericErrorPage.title')}
-                            </Text>
+                            <Text style={[styles.textHeadline]}>{props.translate('genericErrorPage.title')}</Text>
                         </View>
                         <View style={styles.mb5}>
                             <ErrorBodyText />
                             <Text>
                                 {`${props.translate('genericErrorPage.body.helpTextConcierge')} `}
-                                <TextLink href={`mailto:${CONST.EMAIL.CONCIERGE}`} style={[styles.link]}>
+                                <TextLink
+                                    href={`mailto:${CONST.EMAIL.CONCIERGE}`}
+                                    style={[styles.link]}
+                                >
                                     {CONST.EMAIL.CONCIERGE}
                                 </TextLink>
                             </Text>
@@ -75,7 +76,11 @@ const GenericErrorPage = props => (
                 </View>
                 <View styles={styles.alignSelfEnd}>
                     <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
-                        <LogoWordmark height={30} width={80} fill={defaultTheme.textLight} />
+                        <LogoWordmark
+                            height={30}
+                            width={80}
+                            fill={defaultTheme.textLight}
+                        />
                     </View>
                 </View>
             </View>

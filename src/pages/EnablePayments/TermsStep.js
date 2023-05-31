@@ -50,24 +50,33 @@ class TermsStep extends React.Component {
     }
 
     toggleDisclosure() {
-        this.setState(prevState => ({hasAcceptedDisclosure: !prevState.hasAcceptedDisclosure}), () => this.clearError());
+        this.setState(
+            (prevState) => ({hasAcceptedDisclosure: !prevState.hasAcceptedDisclosure}),
+            () => this.clearError(),
+        );
     }
 
     togglePrivacyPolicy() {
-        this.setState(prevState => ({
-            hasAcceptedPrivacyPolicyAndWalletAgreement: !prevState.hasAcceptedPrivacyPolicyAndWalletAgreement,
-        }), () => this.clearError());
+        this.setState(
+            (prevState) => ({
+                hasAcceptedPrivacyPolicyAndWalletAgreement: !prevState.hasAcceptedPrivacyPolicyAndWalletAgreement,
+            }),
+            () => this.clearError(),
+        );
     }
 
     render() {
-        const errorMessage = this.state.error ? this.props.translate('common.error.acceptTerms') : (ErrorUtils.getLatestErrorMessage(this.props.walletTerms) || '');
+        const errorMessage = this.state.error ? this.props.translate('common.error.acceptTerms') : ErrorUtils.getLatestErrorMessage(this.props.walletTerms) || '';
         return (
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('termsStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <ScrollView style={styles.flex1} contentContainerStyle={styles.ph5}>
+                <ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={styles.ph5}
+                >
                     <ShortTermsForm />
                     <LongTermsForm />
                     <CheckboxWithLabel
@@ -77,9 +86,7 @@ class TermsStep extends React.Component {
                         LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('termsStep.haveReadAndAgree')}`}
-                                <TextLink href="https://use.expensify.com/esignagreement">
-                                    {`${this.props.translate('termsStep.electronicDisclosures')}.`}
-                                </TextLink>
+                                <TextLink href="https://use.expensify.com/esignagreement">{`${this.props.translate('termsStep.electronicDisclosures')}.`}</TextLink>
                             </Text>
                         )}
                     />
@@ -90,31 +97,25 @@ class TermsStep extends React.Component {
                             <Text>
                                 {`${this.props.translate('termsStep.agreeToThe')} `}
 
-                                <TextLink href="https://use.expensify.com/privacy">
-                                    {`${this.props.translate('common.privacy')} `}
-                                </TextLink>
+                                <TextLink href="https://use.expensify.com/privacy">{`${this.props.translate('common.privacy')} `}</TextLink>
 
                                 {`${this.props.translate('common.and')} `}
 
-                                <TextLink href="https://use.expensify.com/walletagreement">
-                                    {`${this.props.translate('termsStep.walletAgreement')}.`}
-                                </TextLink>
+                                <TextLink href="https://use.expensify.com/walletagreement">{`${this.props.translate('termsStep.walletAgreement')}.`}</TextLink>
                             </Text>
                         )}
                     />
                     <FormAlertWithSubmitButton
                         buttonText={this.props.translate('termsStep.enablePayments')}
                         onSubmit={() => {
-                            if (!this.state.hasAcceptedDisclosure
-                                || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
+                            if (!this.state.hasAcceptedDisclosure || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
                                 this.setState({error: true});
                                 return;
                             }
 
                             this.setState({error: false});
                             BankAccounts.acceptWalletTerms({
-                                hasAcceptedTerms: this.state.hasAcceptedDisclosure
-                                    && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
+                                hasAcceptedTerms: this.state.hasAcceptedDisclosure && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
                                 chatReportID: this.props.walletTerms.chatReportID,
                             });
                         }}

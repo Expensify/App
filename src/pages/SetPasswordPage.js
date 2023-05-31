@@ -1,16 +1,11 @@
 import React, {Component} from 'react';
-import {
-    SafeAreaView,
-    View,
-} from 'react-native';
+import {View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {
-    propTypes as validateLinkPropTypes,
-    defaultProps as validateLinkDefaultProps,
-} from './ValidateLoginPage/validateLinkPropTypes';
+import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './ValidateLoginPage/validateLinkPropTypes';
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
@@ -21,7 +16,6 @@ import NewPasswordForm from './settings/NewPasswordForm';
 import FormAlertWithSubmitButton from '../components/FormAlertWithSubmitButton';
 import FormSubmit from '../components/FormSubmit';
 import * as ErrorUtils from '../libs/ErrorUtils';
-import OfflineIndicator from '../components/OfflineIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -104,8 +98,8 @@ class SetPasswordPage extends Component {
                         <View style={[styles.mb4]}>
                             <NewPasswordForm
                                 password={this.state.password}
-                                updatePassword={password => this.setState({password})}
-                                updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
+                                updatePassword={(password) => this.setState({password})}
+                                updateIsFormValid={(isValid) => this.setState({isFormValid: isValid})}
                             />
                         </View>
                         <View>
@@ -121,7 +115,6 @@ class SetPasswordPage extends Component {
                             />
                         </View>
                     </FormSubmit>
-                    <OfflineIndicator containerStyles={[styles.mv1]} />
                 </SignInPageLayout>
             </SafeAreaView>
         );

@@ -151,4 +151,5 @@ export {
     isAuthenticating,
     setIsAuthenticating,
     getCredentials,
+    checkRequiredData,
 };

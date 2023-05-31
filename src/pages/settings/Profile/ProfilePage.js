@@ -1,4 +1,3 @@
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
@@ -18,12 +17,12 @@ import CONST from '../../../CONST';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
-import * as ReportUtils from '../../../libs/ReportUtils';
+import * as UserUtils from '../../../libs/UserUtils';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as UserUtils from '../../../libs/UserUtils';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,6 +37,7 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -65,7 +65,7 @@ const ProfilePage = (props) => {
         },
         {
             description: props.translate('contacts.contactMethod'),
-            title: Str.removeSMSDomain(lodashGet(currentUserDetails, 'login', '')),
+            title: props.formatPhoneNumber(lodashGet(currentUserDetails, 'login', '')),
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
@@ -97,11 +97,12 @@ const ProfilePage = (props) => {
                     onClose={PersonalDetails.clearAvatarErrors}
                 >
                     <AvatarWithImagePicker
-                        isUsingDefaultAvatar={ReportUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                        source={ReportUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'login', ''))}
+                        isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
+                        source={UserUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'login', ''))}
                         onImageSelected={PersonalDetails.updateAvatar}
                         onImageRemoved={PersonalDetails.deleteAvatar}
-                        anchorPosition={styles.createMenuPositionProfile}
+                        anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
+                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                         size={CONST.AVATAR_SIZE.LARGE}
                     />
                 </OfflineWithFeedback>
@@ -134,6 +135,7 @@ ProfilePage.displayName = 'ProfilePage';
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withCurrentUserPersonalDetails,
     withOnyx({
         loginList: {

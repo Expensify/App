@@ -2,6 +2,16 @@
 @import 'colors';
 @import 'fonts';
 
+$color-appBG: $color-green-appBG;
+$color-highlightBG: $color-green-highlightBG;
+$color-borders: $color-green-borders;
+$color-icons: $color-green-icons;
+$color-text: $color-white;
+$color-link: $color-blue300;
+$color-link-hovered: $color-blue200;
+$color-success: $color-green400;
+$color-text-supporting: $color-light-gray-green;
+
 * {
     margin: 0;
     padding: 0;
@@ -63,11 +73,11 @@ html,
 body {
     height: 100%;
     min-height: 100%;
-    background: $color-darker-green;
+    background: $color-appBG;
 }
 
 hr {
-    background: $color-light-blue;
+    background: $color-borders;
     border: none;
     display: inline-block;
     width: 24px;
@@ -84,7 +94,7 @@ em {
 }
 
 a {
-    color: $color-light-blue;
+    color: $color-link;
     text-decoration: none;
 
     img {
@@ -98,7 +108,7 @@ h3,
 h4,
 h5,
 h6 {
-    color: $color-white;
+    color: $color-text;
     font-weight: bold;
     padding-bottom: 12px;
 }
@@ -134,7 +144,7 @@ textarea {
     font-weight: 400;
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     font-size: 16px;
-    color: $color-white;
+    color: $color-text;
 }
 
 button {
@@ -145,15 +155,15 @@ button {
     font-weight: bold;
 
     &.success {
-        background-color: $color-green;
-        color: $color-white;
+        background-color: $color-success;
+        color: $color-text;
         width: 100%;
         border-radius: 100px;
         padding-left: 20px;
         padding-right: 20px;
 
         &:hover {
-            background-color: desaturate($color-green, 15%);
+            background-color: desaturate($color-success, 15%);
             cursor: pointer;
         }
 
@@ -174,9 +184,9 @@ button {
 
 #lhn {
     position: fixed;
-    background-color: $color-darker-green;
+    background-color: $color-highlightBG;
     box-sizing: border-box;
-    border-right-color: $color-dark-green;
+    border-right-color: $color-borders;
     border-right-width: 1px;
     border-style: solid;
     width: 100%;
@@ -269,12 +279,13 @@ button {
         display: grid;
         grid-template-columns: 40px auto;
         cursor: pointer;
+        align-items: center;
     }
 
     .selected {
         cursor: auto;
         font-weight: bold;
-        color: $color-white;
+        color: $color-text;
     }
 
     .hide {
@@ -286,7 +297,6 @@ button {
 #content-area {
     display: flex;
     flex-direction: column;
-    background-color: $color-super-dark-green;
     min-height: 100vh;
     margin-left: 0;
     padding: 80px 24px 0px 24px;
@@ -324,9 +334,8 @@ button {
     .article {
         img {
             display: block;
-            margin-left: auto;
-            margin-right: auto;
-            padding-bottom: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
@@ -345,6 +354,33 @@ button {
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
+        }
+
+        h2,
+        h3 {
+            font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+        }
+
+        blockquote {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding-top: 20px;
+            padding-left: 5%;
+            border-left: 5px solid #1B5744;
+
+            em:before {
+                content: "\“\a";
+                white-space: pre;
+                font-size: 60px;
+                line-height: 1em;
+                color: #03d47c;
+            }
+
+            p:first-child {
+                font-size: large;
+                font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+                opacity: 0.8;
+            }
         }
     }
 
@@ -385,7 +421,7 @@ button {
 
     .selected-article {
         font-weight: bold;
-        color: $color-white;
+        color: $color-text;
     }
 
     .home-link {
@@ -412,11 +448,11 @@ button {
     padding: 28px;
     font-weight: 700;
     cursor: pointer;
-    color: $color-white;
-    background-color: $color-darker-green;
+    color: $color-text;
+    background-color: $color-highlightBG;
 
     &:hover {
-        background-color: darken($color-darker-green, 1%);
+        background-color: darken($color-highlightBG, 1%);
     }
 
     .row {
@@ -485,14 +521,9 @@ button {
     }
 }
 
-.icon {
-    color: $color-gray-green;
-    font-size: larger;
-    display: inline;
-
-    &.fa-angle-right {
-        padding-left: 4px;
-    }
+.base-icon {
+    width: 20px;
+    height: 20px;
 }
 
 .homepage {
@@ -609,7 +640,7 @@ button {
     }
 
     h3 {
-        color: $color-green;
+        color: $color-success;
         font-size: 17px;
         font-weight: 700;
         margin-bottom: 16px;
@@ -624,13 +655,13 @@ button {
             margin: 0 0 8px;
 
             a {
-                color: $color-white;
+                color: $color-text;
                 display: block;
                 padding: 4px 0;
                 word-break: break-word;
 
                 &:hover {
-                    color: $color-green;
+                    color: $color-success;
                 }
             }
         }
@@ -640,17 +671,17 @@ button {
         padding-bottom: 20px;
 
         a {
-            color: $color-white;
+            color: $color-text;
             display: inline-block;
 
             &:hover {
-                color: $color-green;
+                color: $color-success;
             }
         }
     }
 
     &__fine-print {
-        color: $color-gray-green;
+        color: $color-text-supporting;
         font-size: 10px;
 
         a {

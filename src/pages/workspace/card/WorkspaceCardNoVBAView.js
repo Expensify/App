@@ -18,7 +18,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardNoVBAView = props => (
+const WorkspaceCardNoVBAView = (props) => (
     <Section
         title={props.translate('workspace.card.header')}
         icon={Illustrations.CreditCardsNew}
@@ -36,7 +36,7 @@ const WorkspaceCardNoVBAView = props => (
             ]}
         />
         <Button
-            text={props.translate('workspace.common.bankAccount')}
+            text={props.translate('workspace.common.connectBankAccount')}
             onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
             icon={Expensicons.Bank}
             style={[styles.mt6]}

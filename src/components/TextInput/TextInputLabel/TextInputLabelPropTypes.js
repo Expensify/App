@@ -11,6 +11,9 @@ const propTypes = {
     /** Label scale */
     labelScale: PropTypes.instanceOf(Animated.Value).isRequired,
 
+    /** Whether the label is currently active or not */
+    isLabelActive: PropTypes.bool.isRequired,
+
     /** For attribute for label */
     for: PropTypes.string,
 };
@@ -19,7 +22,4 @@ const defaultProps = {
     for: '',
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

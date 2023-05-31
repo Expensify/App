@@ -5,10 +5,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Children to render. */
-    children: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.node,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
 };
 
 /**
@@ -18,12 +15,15 @@ const propTypes = {
  * @param {Object} props
  * @returns {React.Component}
  */
-const SafeAreaConsumer = props => (
+const SafeAreaConsumer = (props) => (
     <SafeAreaInsetsContext.Consumer>
         {(insets) => {
             const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
             return props.children({
-                paddingTop, paddingBottom, insets, safeAreaPaddingBottomStyle: {paddingBottom},
+                paddingTop,
+                paddingBottom,
+                insets,
+                safeAreaPaddingBottomStyle: {paddingBottom},
             });
         }}
     </SafeAreaInsetsContext.Consumer>

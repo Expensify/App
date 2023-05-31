@@ -7,12 +7,12 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
 import DateUtils from '../libs/DateUtils';
-import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import * as NumberFormatUtils from '../libs/NumberFormatUtils';
 import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
+import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 
 const LocaleContext = createContext(null);
 
@@ -29,11 +29,9 @@ const withLocalizePropTypes = {
     /** Formats a datetime to local date and time string */
     datetimeToCalendarTime: PropTypes.func.isRequired,
 
-    /** Returns a locally converted phone number without the country code */
-    toLocalPhone: PropTypes.func.isRequired,
-
-    /** Returns an internationally converted phone number with the country code */
-    fromLocalPhone: PropTypes.func.isRequired,
+    /** Returns a locally converted phone number for numbers from the same region
+     * and an internationally converted phone number with the country code for numbers from other regions */
+    formatPhoneNumber: PropTypes.func.isRequired,
 
     /** Gets the standard digit corresponding to a locale digit */
     fromLocaleDigit: PropTypes.func.isRequired,
@@ -51,10 +49,8 @@ const localeProviderPropTypes = {
 
     /** The current user's personalDetails */
     currentUserPersonalDetails: PropTypes.shape({
-
         /** Timezone of the current user */
         timezone: PropTypes.shape({
-
             /** Value of the selected timezone */
             selected: PropTypes.string,
         }),
@@ -62,7 +58,7 @@ const localeProviderPropTypes = {
 };
 
 const localeProviderDefaultProps = {
-    preferredLocale: CONST.DEFAULT_LOCALE,
+    preferredLocale: CONST.LOCALES.DEFAULT,
     currentUserPersonalDetails: {},
 };
 
@@ -77,8 +73,7 @@ class LocaleContextProvider extends React.Component {
             numberFormat: this.numberFormat.bind(this),
             datetimeToRelative: this.datetimeToRelative.bind(this),
             datetimeToCalendarTime: this.datetimeToCalendarTime.bind(this),
-            fromLocalPhone: this.fromLocalPhone.bind(this),
-            toLocalPhone: this.toLocalPhone.bind(this),
+            formatPhoneNumber: this.formatPhoneNumber.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
             toLocaleDigit: this.toLocaleDigit.bind(this),
             preferredLocale: this.props.preferredLocale,
@@ -114,31 +109,19 @@ class LocaleContextProvider extends React.Component {
     /**
      * @param {String} datetime - ISO-formatted datetime string
      * @param {Boolean} [includeTimezone]
+     * @param {Boolean} isLowercase
      * @returns {String}
      */
-    datetimeToCalendarTime(datetime, includeTimezone) {
-        return DateUtils.datetimeToCalendarTime(
-            this.props.preferredLocale,
-            datetime,
-            includeTimezone,
-            lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'),
-        );
+    datetimeToCalendarTime(datetime, includeTimezone, isLowercase = false) {
+        return DateUtils.datetimeToCalendarTime(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'), isLowercase);
     }
 
     /**
-     * @param {Number} number
+     * @param {String} phoneNumber
      * @returns {String}
      */
-    toLocalPhone(number) {
-        return LocalePhoneNumber.toLocalPhone(this.props.preferredLocale, number);
-    }
-
-    /**
-     * @param {Number} number
-     * @returns {String}
-     */
-    fromLocalPhone(number) {
-        return LocalePhoneNumber.fromLocalPhone(this.props.preferredLocale, number);
+    formatPhoneNumber(phoneNumber) {
+        return LocalePhoneNumber.formatPhoneNumber(phoneNumber);
     }
 
     /**
@@ -158,11 +141,7 @@ class LocaleContextProvider extends React.Component {
     }
 
     render() {
-        return (
-            <LocaleContext.Provider value={this.getContextValue()}>
-                {this.props.children}
-            </LocaleContext.Provider>
-        );
+        return <LocaleContext.Provider value={this.getContextValue()}>{this.props.children}</LocaleContext.Provider>;
     }
 }
 
@@ -183,8 +162,15 @@ Provider.displayName = 'withOnyx(LocaleContextProvider)';
 export default function withLocalize(WrappedComponent) {
     const WithLocalize = forwardRef((props, ref) => (
         <LocaleContext.Consumer>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            {translateUtils => <WrappedComponent {...translateUtils} {...props} ref={ref} />}
+            {(translateUtils) => (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...translateUtils}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                />
+            )}
         </LocaleContext.Consumer>
     ));
 
@@ -193,7 +179,4 @@ export default function withLocalize(WrappedComponent) {
     return WithLocalize;
 }
 
-export {
-    withLocalizePropTypes,
-    Provider as LocaleContextProvider,
-};
+export {withLocalizePropTypes, Provider as LocaleContextProvider};
