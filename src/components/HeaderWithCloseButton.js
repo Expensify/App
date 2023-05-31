@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, Keyboard, Pressable} from 'react-native';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import Header from './Header';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
@@ -19,7 +18,7 @@ import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
-import * as Report from '../libs/actions/Report';
+import PinButton from './PinButton'
 
 const propTypes = {
     /** Title of the Header */
@@ -223,17 +222,7 @@ class HeaderWithCloseButton extends Component {
                         )}
 
                         {this.props.shouldShowPinButton && (
-                            <Tooltip text={this.props.report.isPinned ? this.props.translate('common.unPin') : this.props.translate('common.pin')}>
-                                <Pressable
-                                    onPress={() => Report.togglePinnedState(this.props.report)}
-                                    style={[styles.touchableButtonImage]}
-                                >
-                                    <Icon
-                                        src={Expensicons.Pin}
-                                        fill={this.props.report.isPinned ? themeColors.heading : themeColors.icon}
-                                    />
-                                </Pressable>
-                            </Tooltip>
+                            <PinButton report={this.props.report}/>
                         )}
 
                         {this.props.shouldShowThreeDotsButton && (
