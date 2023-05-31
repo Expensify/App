@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -39,26 +39,24 @@ const defaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
-class ValidateLoginPage extends Component {
-    componentDidMount() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
-        if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
-            if (lodashGet(this.props, 'session.authToken')) {
+function ValidateLoginPage(props) {
+    useEffect(() => {
+        const accountID = lodashGet(props.route.params, 'accountID', '');
+        const validateCode = lodashGet(props.route.params, 'validateCode', '');
+        if (Permissions.canUsePasswordlessLogins(props.betas)) {
+            if (lodashGet(props, 'session.authToken')) {
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
                 Navigation.goBack(false);
             } else {
-                Session.signInWithValidateCodeAndNavigate(accountID, validateCode, this.props.preferredLocale);
+                Session.signInWithValidateCodeAndNavigate(accountID, validateCode, props.preferredLocale);
             }
         } else {
             User.validateLogin(accountID, validateCode);
         }
-    }
+    }, []);
 
-    render() {
-        return <FullScreenLoadingIndicator />;
-    }
+    return <FullScreenLoadingIndicator />;
 }
 
 ValidateLoginPage.propTypes = propTypes;
