@@ -121,7 +121,7 @@ const LinkPreviewer = (props) => {
                                         maxHeight: Math.min(image.height, maxImageSize),
 
                                         // Calculate maximum width when image is too tall, so it doesn't move away from left
-                                        maxWidth: (Math.min(image.height, maxImageSize) / image.height) * image.width,
+                                        maxWidth: Math.min((Math.min(image.height, maxImageSize) / image.height) * image.width, maxImageSize),
                                     },
                                 ]}
                                 resizeMode="contain"
