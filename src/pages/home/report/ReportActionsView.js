@@ -43,6 +43,8 @@ const propTypes = {
     policies: PropTypes.shape({
         /** avatar of the policy */
         avatar: PropTypes.string,
+        /** name of the policy */
+        name: PropTypes.string,
     }).isRequired,
 
     ...windowDimensionsPropTypes,
@@ -180,6 +182,10 @@ class ReportActionsView extends React.Component {
         const nextPolicy = nextProps.policies[`${ONYXKEYS.COLLECTION.POLICY}${nextProps.report.policyID}`];
 
         if (lodashGet(policy, 'avatar') !== lodashGet(nextPolicy, 'avatar')) {
+            return true;
+        }
+
+        if (lodashGet(policy, 'name') !== lodashGet(nextPolicy, 'name')) {
             return true;
         }
 
