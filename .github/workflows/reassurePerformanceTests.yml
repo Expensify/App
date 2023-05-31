@@ -32,6 +32,5 @@ jobs:
       - name: Add comment to PR
         uses: peter-evans/create-or-update-comment@v3
         with:
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body-path: '.reassure/output.md'
