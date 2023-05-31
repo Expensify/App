@@ -11,6 +11,7 @@ import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Which sign in provider we are using */
@@ -20,6 +21,11 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
 };
+
+/**
+ * Creates a function to capitalize the first letter of the providor
+ * being passed to the translate function.
+ */
 
 const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1);
 
@@ -38,7 +44,7 @@ function ThirdPartySignInPage(props) {
                 welcomeHeader={props.translate('welcomeText.getStarted')}
                 shouldShowWelcomeHeader
             >
-                {props.signInProvider === 'apple' ? <AppleSignIn isDesktopFlow /> : null}
+                {props.signInProvider === CONST.SIGN_IN_METHOD.APPLE ? <AppleSignIn isDesktopFlow /> : null}
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.goBackMessage', {provider: capitalize(props.signInProvider)})}</Text>
                 <TextLink

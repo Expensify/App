@@ -84,6 +84,7 @@ function AppleSignInDiv({isDesktopFlow}) {
             data-border-radius="50"
             data-width="279"
             data-height="52"
+            style={{cursor: 'pointer'}}
         />
     ) : (
         <div
@@ -94,6 +95,7 @@ function AppleSignInDiv({isDesktopFlow}) {
             data-border="false"
             data-border-radius="50"
             data-size="40"
+            style={{cursor: 'pointer'}}
         />
     );
 }
