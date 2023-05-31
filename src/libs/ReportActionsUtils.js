@@ -175,12 +175,12 @@ function getLinksInsideReport(reportAction) {
 
     const urls = [];
     let match = regex.exec(htmlContent);
-    
+
     while (match !== null) {
-      urls.push(match[1]);
-      match = regex.exec(htmlContent);
+        urls.push(match[1]);
+        match = regex.exec(htmlContent);
     }
-    
+
     return urls;
 }
 
