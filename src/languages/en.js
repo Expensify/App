@@ -1407,4 +1407,9 @@ export default {
         copyUrlToClipboard: 'Copy URL to clipboard',
         copied: 'Copied!',
     },
+    moderation: {
+        flaggedContent: 'This message has been flagged as violating our community rules and the content has been hidden.',
+        hideMessage: 'Hide message',
+        revealMessage: 'Reveal message',
+    },
 };
