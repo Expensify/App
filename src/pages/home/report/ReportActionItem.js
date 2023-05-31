@@ -132,8 +132,9 @@ function ReportActionItem(props) {
         // Right now we are only sending the latest moderationDecision to the frontend even though it is an array
         let decisions = props.action.message[0].moderationDecisions;
         if (decisions.length > 1) {
-            decisions = decisions.slice(-1)
-        }const latestDecision = decisions[0];
+            decisions = decisions.slice(-1);
+        }
+        const latestDecision = decisions[0];
         if (latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
             setIsHidden(true);
         }
