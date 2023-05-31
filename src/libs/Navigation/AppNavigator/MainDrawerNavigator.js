@@ -10,6 +10,8 @@ import Permissions from '../../Permissions';
 import Timing from '../../actions/Timing';
 import CONST from '../../../CONST';
 import * as App from '../../actions/App';
+import * as Report from '../../actions/Report';
+import * as Session from '../../actions/Session';
 
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
@@ -38,6 +40,9 @@ const propTypes = {
         }),
     ),
 
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: PropTypes.string,
+
     isFirstTimeNewExpensifyUser: PropTypes.bool,
 
     route: PropTypes.shape({
@@ -54,6 +59,7 @@ const defaultProps = {
     betas: [],
     policies: {},
     isFirstTimeNewExpensifyUser: false,
+    lastOpenedPublicRoomID: null,
 };
 
 /**
@@ -89,6 +95,15 @@ class MainDrawerNavigator extends Component {
         // When we have chat reports the moment this component got created
         // we know that the data was served from storage/cache
         this.isFromCache = _.size(props.reports) > 0;
+    }
+
+    componentDidMount() {
+        if (!this.props.lastOpenedPublicRoomID || Session.isAnonymousUser()) {
+            return;
+        }
+        // Re-open the last opened public room if the user logged in
+        Report.setLastOpenedPublicRoom('');
+        Report.openReport(this.props.lastOpenedPublicRoomID);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -171,5 +186,8 @@ export default withOnyx({
     },
     isFirstTimeNewExpensifyUser: {
         key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+    },
+    lastOpenedPublicRoomID: {
+        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
     },
 })(MainDrawerNavigator);

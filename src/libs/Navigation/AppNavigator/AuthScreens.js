@@ -157,7 +157,7 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
+        return nextProps.windowHeight !== this.props.windowHeight || nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
     componentWillUnmount() {
@@ -184,7 +184,10 @@ class AuthScreens extends React.Component {
         };
         const modalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: getNavigationModalCardStyle(this.props.isSmallScreenWidth),
+            cardStyle: getNavigationModalCardStyle({
+                windowHeight: this.props.windowHeight,
+                isSmallScreenWidth: this.props.isSmallScreenWidth,
+            }),
             cardStyleInterpolator: (props) => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
             cardOverlayEnabled: true,
 
