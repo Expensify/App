@@ -198,6 +198,13 @@ const styles = {
         fontSize: variables.fontSizeMedium,
     },
 
+    mentionSuggestionsAvatarContainer: {
+        width: 24,
+        height: 24,
+        alignItems: "center",
+        justifyContent: "center"
+    },
+
     mentionSuggestionsText: {
         fontSize: variables.fontSizeMedium,
         ...spacing.ml2,

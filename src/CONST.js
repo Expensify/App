@@ -834,7 +834,7 @@ const CONST = {
     AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         SUGGESTER_INNER_PADDING: 8,
-        ITEM_HEIGHT: 36,
+        ITEM_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
         MIN_AMOUNT_OF_ITEMS: 3,
         MAX_AMOUNT_OF_ITEMS: 5,
@@ -1078,6 +1078,7 @@ const CONST = {
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
+        MENTION_ICON: 'mention-icon'
     },
     OPTION_MODE: {
         COMPACT: 'compact',
