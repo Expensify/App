@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -23,6 +23,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import Terms from './Terms';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -191,12 +192,15 @@ class PasswordForm extends React.Component {
                         hasError={passwordFieldHasError}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                        <TouchableOpacity
+                        <PressableWithFeedback
                             style={[styles.mt2]}
                             onPress={this.resetPassword}
+                            accessibilityRole="link"
+                            accessibilityLabel={this.props.translate('passwordForm.forgot')}
+                            hoverDimmingValue={1}
                         >
                             <Text style={[styles.link]}>{this.props.translate('passwordForm.forgot')}</Text>
-                        </TouchableOpacity>
+                        </PressableWithFeedback>
                     </View>
                 </View>
 
