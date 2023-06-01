@@ -34,4 +34,4 @@ jobs:
         with:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           number: ${{ github.event.pull_request.number }}
-          body-file: '.reassure/output.md'
+          body: ${{ readFile('.reassure/output.md') }}
