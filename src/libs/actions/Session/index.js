@@ -22,13 +22,8 @@ import subscribeToReportCommentPushNotifications from '../../Notification/PushNo
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
+import * as SessionUtils from '../../SessionUtils';
 import * as Report from '../Report';
-
-let authTokenType = '';
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
-});
 
 let credentials = {};
 Onyx.connect({
@@ -82,14 +77,14 @@ function signOut() {
  * @return {boolean}
  */
 function isAnonymousUser() {
-    return authTokenType === 'anonymousAccount';
+    return SessionUtils.isAnonymousUser();
 }
 
 function signOutAndRedirectToSignIn() {
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
-    if (isAnonymousUser()) {
+    if (SessionUtils.isAnonymousUser()) {
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
@@ -911,6 +906,16 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
     API.write('TwoFactorAuth_Validate', {twoFactorAuthCode}, {optimisticData, successData, failureData});
 }
+
+Onyx.connect({
+    key: ONYXKEYS.IS_ACTION_FORBIDDEN,
+    callback: (isActionForbidden) => {
+        if (!isActionForbidden) {
+            return;
+        }
+        signOutAndRedirectToSignIn();
+    },
+});
 
 export {
     beginSignIn,

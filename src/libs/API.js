@@ -6,6 +6,7 @@ import * as SequentialQueue from './Network/SequentialQueue';
 import pkg from '../../package.json';
 import CONST from '../CONST';
 import * as Pusher from './Pusher/pusher';
+import * as SessionUtils from './SessionUtils';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -37,6 +38,10 @@ Request.use(Middleware.SaveResponseInOnyx);
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function write(command, apiCommandParameters = {}, onyxData = {}) {
+    if (!SessionUtils.checkIfActionIsAllowed(command)) {
+        return;
+    }
+
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);
@@ -91,6 +96,10 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  * @returns {Promise}
  */
 function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+    if (!SessionUtils.checkIfActionIsAllowed(command)) {
+        return Promise.reject();
+    }
+
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);
@@ -127,6 +136,10 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function read(command, apiCommandParameters, onyxData) {
+    if (!SessionUtils.checkIfActionIsAllowed(command)) {
+        return;
+    }
+
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.
