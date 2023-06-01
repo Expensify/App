@@ -513,12 +513,11 @@ function getShareDestination(reportID, reports, personalDetails) {
 /**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  * @param {string} taskReportID
- * @param {string} parentReportID
  * @param {string} taskTitle
  * @param {number} originalStateNum
  * @param {number} originalStatusNum
  */
-function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, originalStatusNum) {
+function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
     const message = `canceled task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
@@ -534,7 +533,7 @@ function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, o
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
@@ -543,7 +542,7 @@ function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, o
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
                 [optimisticReportActionID]: optimisticCancelReportAction,
             },
@@ -561,7 +560,7 @@ function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, o
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
                 [optimisticReportActionID]: null,
             },

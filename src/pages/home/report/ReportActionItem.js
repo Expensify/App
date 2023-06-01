@@ -230,9 +230,7 @@ function ReportActionItem(props) {
         ) {
             children = (
                 <TaskAction
-                    taskReportID={props.action.originalMessage.taskReportID.toString()}
                     actionName={props.action.actionName}
-                    isHovered={hovered}
                 />
             );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {

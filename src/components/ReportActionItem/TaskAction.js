@@ -1,27 +1,15 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** The ID of the associated taskReport */
-    taskReportID: PropTypes.string.isRequired,
-
-    /** Whether the task preview is hovered so we can modify its style */
-    isHovered: PropTypes.bool,
-
     /** Name of the reportAction action */
     actionName: PropTypes.string.isRequired,
 
@@ -43,7 +31,6 @@ const propTypes = {
 
 const defaultProps = {
     taskReport: {},
-    isHovered: false,
 };
 const TaskAction = (props) => {
     const taskReportName = props.taskReport.reportName || '';
