@@ -11,7 +11,7 @@ import Timing from '../../actions/Timing';
 import CONST from '../../../CONST';
 import * as App from '../../actions/App';
 import * as Report from '../../actions/Report';
-import * as Session from '../../actions/Session';
+import * as SessionUtils from '../../SessionUtils';
 
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
@@ -98,7 +98,7 @@ class MainDrawerNavigator extends Component {
     }
 
     componentDidMount() {
-        if (!this.props.lastOpenedPublicRoomID || Session.isAnonymousUser()) {
+        if (!this.props.lastOpenedPublicRoomID || SessionUtils.isAnonymousUser()) {
             return;
         }
         // Re-open the last opened public room if the user logged in

@@ -16,7 +16,7 @@ import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import * as Session from '../../../libs/actions/Session';
+import * as SessionUtils from '../../../libs/SessionUtils';
 
 const propTypes = {
     /** Report object for the current report */
@@ -83,7 +83,7 @@ class ReportFooter extends React.Component {
                 {!hideComposer && (this.props.shouldShowComposeInput || !this.props.isSmallScreenWidth) && (
                     <View style={[this.getChatFooterStyles(), this.props.isComposerFullSize && styles.chatFooterFullCompose]}>
                         <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                            {Session.isAnonymousUser() ? (
+                            {SessionUtils.isAnonymousUser() ? (
                                 <AnonymousReportFooter report={this.props.report} />
                             ) : (
                                 <ReportActionCompose

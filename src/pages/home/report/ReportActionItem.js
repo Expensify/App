@@ -54,6 +54,7 @@ import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import Permissions from '../../../libs/Permissions';
 import * as Session from '../../../libs/actions/Session';
+import * as SessionUtils from '../../../libs/SessionUtils';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
@@ -340,7 +341,7 @@ function ReportActionItem(props) {
                             reportActionID={props.action.reportActionID}
                             reactions={reactions}
                             toggleReaction={(emoji) => {
-                                if (Session.isAnonymousUser()) {
+                                if (SessionUtils.isAnonymousUser()) {
                                     hideContextMenu(false);
 
                                     InteractionManager.runAfterInteractions(() => {

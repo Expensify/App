@@ -71,15 +71,6 @@ function signOut() {
     Timing.clearData();
 }
 
-/**
- * Checks if the account is an anonymous account.
- *
- * @return {boolean}
- */
-function isAnonymousUser() {
-    return SessionUtils.isAnonymousUser();
-}
-
 function signOutAndRedirectToSignIn() {
     signOut();
     redirectToSignIn();
@@ -942,7 +933,6 @@ export {
     reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
-    isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
 };
