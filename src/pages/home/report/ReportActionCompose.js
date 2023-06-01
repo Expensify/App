@@ -231,7 +231,7 @@ function ReportActionCompose(props) {
 
     const isEmptyChat = useMemo(() => _.size(props.reportActions) === 1, [props.reportActions]);
 
-    const shouldAutoFocus = !props.modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat()) && props.shouldShowComposeInput;
+    const shouldAutoFocus = !props.modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && props.shouldShowComposeInput;
 
     /**
      * Updates the should clear state of the composer
@@ -997,7 +997,7 @@ function ReportActionCompose(props) {
                                                     isFullSizeComposerAvailable || props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
                                                 ]}
                                             >
-                                                {props.isComposerFullSize && isFullSizeComposerAvailable && (
+                                                {props.isComposerFullSize && (
                                                     <Tooltip text={props.translate('reportActionCompose.collapse')}>
                                                         <TouchableOpacity
                                                             onPress={(e) => {
@@ -1014,7 +1014,7 @@ function ReportActionCompose(props) {
                                                         </TouchableOpacity>
                                                     </Tooltip>
                                                 )}
-                                                {!props.isComposerFullSize && isFullComposerAvailable && (
+                                                {!props.isComposerFullSize && isFullSizeComposerAvailable && (
                                                     <Tooltip text={props.translate('reportActionCompose.expand')}>
                                                         <TouchableOpacity
                                                             onPress={(e) => {
