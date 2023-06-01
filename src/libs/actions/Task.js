@@ -220,10 +220,9 @@ function completeTask(taskReportID, taskTitle) {
 /**
  * Reopens a closed task
  * @param {string} taskReportID ReportID of the task
- * @param {string} parentReportID ReportID of the linked parent report of the task so we can add the action
  * @param {string} taskTitle Title of the task
  */
-function reopenTask(taskReportID, parentReportID, taskTitle) {
+function reopenTask(taskReportID, taskTitle) {
     const message = `reopened task: ${taskTitle}`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
@@ -238,7 +237,7 @@ function reopenTask(taskReportID, parentReportID, taskTitle) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             value: {
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
@@ -247,7 +246,7 @@ function reopenTask(taskReportID, parentReportID, taskTitle) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {[reopenedTaskReportAction.reportActionID]: reopenedTaskReportAction},
         },
     ];
@@ -264,7 +263,7 @@ function reopenTask(taskReportID, parentReportID, taskTitle) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {[reopenedTaskReportAction.reportActionID]: {pendingAction: null}},
         },
     ];

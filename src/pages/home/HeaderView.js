@@ -101,7 +101,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report.reportID, props.report.parentReportID, title),
+                onSelected: () => Task.reopenTask(props.report.reportID, title),
             });
         }
 
