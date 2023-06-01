@@ -19,10 +19,7 @@ function googleSignInRequest() {
     });
 
     GoogleSignin.signIn()
-        .then((response) => {
-            console.log('Google sign in response', response);
-            return response.idToken;
-        })
+        .then((response) => response.idToken)
         .then((token) => Session.beginGoogleSignIn(token))
         .catch((error) => {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -42,7 +39,7 @@ function googleSignInRequest() {
  * @returns {React.Component}
  */
 
-const GoogleSignIn = () => {
+function GoogleSignIn() {
     return (
         <ButtonBase
             onPress={googleSignInRequest}

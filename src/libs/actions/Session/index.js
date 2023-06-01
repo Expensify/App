@@ -302,7 +302,7 @@ function beginSignIn(login) {
  * Shows Google sign-in process, and if an auth token is successfully obtained,
  * passes the token on to the Expensify API to sign in with
  *
- * @param {String} login
+ * @param {String} token
  */
 function beginGoogleSignIn(token) {
     const {optimisticData, successData, failureData} = signInAttemptState();
