@@ -72,7 +72,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         new HtmlWebpackPlugin({
             template: 'web/index.html',
             filename: 'index.html',
-            splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvToLogoSuffix(envFile)}.svg`), 'utf-8'),
+            splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify.svg`), 'utf-8'),
             usePolyfillIO: platform === 'web',
             isStaging: envFile === '.env.staging',
         }),
