@@ -147,7 +147,7 @@ export default [
             Clipboard.setString(selection.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: () => {},
+        getDescription: (selection) => selection.replace('mailto:', ''),
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
