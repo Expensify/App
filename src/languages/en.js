@@ -144,6 +144,9 @@ export default {
         mi: 'mile',
         km: 'kilometer',
     },
+    anonymousReportFooter: {
+        logoTagline: 'Join in on the discussion.',
+    },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera access',
         expensifyDoesntHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap Settings to update permissions.",
@@ -267,6 +270,7 @@ export default {
         deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
+        flagAsOffensive: 'Flag as offensive',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',
@@ -1067,6 +1071,7 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
+            goToRoom: ({roomName}) => `Go to ${roomName} room`,
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
@@ -1387,6 +1392,7 @@ export default {
         workspaceName: 'Workspace name',
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
+        prestyledText: 'Prestyled text',
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
@@ -1399,5 +1405,27 @@ export default {
     qrCodes: {
         copyUrlToClipboard: 'Copy URL to clipboard',
         copied: 'Copied!',
+    },
+    moderation: {
+        flagDescription: 'All flagged messages will be sent to a moderator for review.',
+        chooseAReason: 'Choose a reason for flagging below:',
+        spam: 'Spam',
+        spamDescription: 'Unsolicited off-topic promotion',
+        inconsiderate: 'Inconsiderate',
+        inconsiderateDescription: 'Insulting or disrespectful phrasing, with questionable intentions',
+        intimidation: 'Intimidation',
+        intimidationDescription: 'Aggressively pursuing an agenda over valid objections',
+        bullying: 'Bullying',
+        bullyingDescription: 'Targeting an individual to obtain obedience',
+        harassment: 'Harassment',
+        harassmentDescription: 'Racist, misogynistic, or other broadly discriminatory behavior',
+        assault: 'Assault',
+        assaultDescription: 'Specifically targeted emotional attack with the intention of harm',
+        flaggedContent: 'This message has been flagged as violating our community rules and the content has been hidden.',
+        hideMessage: 'Hide message',
+        revealMessage: 'Reveal message',
+        levelOneResult: 'Sends anonymous warning and message is reported for review.',
+        levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
+        levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
 };

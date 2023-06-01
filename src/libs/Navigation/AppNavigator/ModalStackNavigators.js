@@ -111,6 +111,16 @@ const IOUSendModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const SplitDetailsModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SplitBillDetailsPage = require('../../../pages/iou/SplitBillDetailsPage').default;
+            return SplitBillDetailsPage;
+        },
+        name: 'SplitDetails_Root',
+    },
+]);
+
 const DetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -692,10 +702,21 @@ const YearPickerStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const FlagCommentStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const FlagCommentPage = require('../../../pages/FlagCommentPage').default;
+            return FlagCommentPage;
+        },
+        name: 'FlagComment_Root',
+    },
+]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     IOUSendModalStackNavigator,
+    SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,
@@ -712,4 +733,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
     YearPickerStackNavigator,
+    FlagCommentStackNavigator,
 };

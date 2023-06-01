@@ -8,7 +8,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as Expensicons from '../components/Icon/Expensicons';
-import hashCode from './hashCode';
 import Navigation from './Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as NumberUtils from './NumberUtils';
@@ -17,11 +16,11 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import Permissions from './Permissions';
 import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
-import * as defaultAvatars from '../components/Icon/DefaultAvatars';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
+import * as UserUtils from './UserUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -190,6 +189,24 @@ function canEditReportAction(reportAction) {
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
+}
+
+/**
+ * Can only flag if:
+ *
+ * - It was written by someone else
+ * - It's an ADDCOMMENT that is not an attachment
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function canFlagReportAction(reportAction) {
+    return (
+        reportAction.actorEmail !== sessionEmail &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
     );
 }
 
@@ -456,6 +473,11 @@ function isAllowedToComment(report) {
         return true;
     }
 
+    // If unauthenticated user opens public chat room using deeplink, they do not have policies available and they cannot comment
+    if (!allPolicies) {
+        return false;
+    }
+
     // If we've made it here, commenting on this report is restricted.
     // If the user is an admin, allow them to post.
     const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -645,36 +667,6 @@ function formatReportLastMessageText(lastMessageText) {
 }
 
 /**
- * Hashes provided string and returns a value between [0, range)
- * @param {String} login
- * @param {Number} range
- * @returns {Number}
- */
-function hashLogin(login, range) {
-    return Math.abs(hashCode(login.toLowerCase())) % range;
-}
-
-/**
- * Helper method to return the default avatar associated with the given login
- * @param {String} [login]
- * @returns {String}
- */
-function getDefaultAvatar(login = '') {
-    if (!login) {
-        return Expensicons.FallbackAvatar;
-    }
-    if (login === CONST.EMAIL.CONCIERGE) {
-        return Expensicons.ConciergeAvatar;
-    }
-
-    // There are 24 possible default avatars, so we choose which one this user has based
-    // on a simple hash of their login. Note that Avatar count starts at 1.
-    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT) + 1;
-
-    return defaultAvatars[`Avatar${loginHashBucket}`];
-}
-
-/**
  * Helper method to return the default avatar associated with the given login
  * @param {String} [workspaceName]
  * @returns {String}
@@ -699,102 +691,6 @@ function getWorkspaceAvatar(report) {
 }
 
 /**
- * Helper method to return old dot default avatar associated with login
- *
- * @param {String} [login]
- * @returns {String}
- */
-function getOldDotDefaultAvatar(login = '') {
-    if (login === CONST.EMAIL.CONCIERGE) {
-        return CONST.CONCIERGE_ICON_URL;
-    }
-
-    // There are 8 possible old dot default avatars, so we choose which one this user has based
-    // on a simple hash of their login. Note that Avatar count starts at 1.
-    const loginHashBucket = hashLogin(login, CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
-
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/avatar_${loginHashBucket}.png`;
-}
-
-/**
- * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
- * @param {String} [avatarURL] - the avatar source from user's personalDetails
- * @returns {Boolean}
- */
-function isDefaultAvatar(avatarURL) {
-    if (
-        _.isString(avatarURL) &&
-        (avatarURL.includes('images/avatars/avatar_') || avatarURL.includes('images/avatars/default-avatar_') || avatarURL.includes('images/avatars/user/default'))
-    ) {
-        return true;
-    }
-
-    // If null URL, we should also use a default avatar
-    if (!avatarURL) {
-        return true;
-    }
-    return false;
-}
-
-/**
- * Provided a source URL, if source is a default avatar, return the associated SVG.
- * Otherwise, return the URL pointing to a user-uploaded avatar.
- *
- * @param {String} [avatarURL] - the avatar source from user's personalDetails
- * @param {String} [login] - the email of the user
- * @returns {String|Function}
- */
-function getAvatar(avatarURL, login) {
-    if (isDefaultAvatar(avatarURL)) {
-        return getDefaultAvatar(login);
-    }
-    return avatarURL;
-}
-
-/**
- * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
- * This removes that part of the URL so the full version of the image can load.
- *
- * @param {String} [avatarURL]
- * @param {String} [login]
- * @returns {String|Function}
- */
-function getFullSizeAvatar(avatarURL, login) {
-    const source = getAvatar(avatarURL, login);
-    if (!_.isString(source)) {
-        return source;
-    }
-    return source.replace('_128', '');
-}
-
-/**
- * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
- * source URL (before the file type) if it doesn't exist there already.
- *
- * @param {String} avatarURL
- * @param {String} login
- * @returns {String|Function}
- */
-function getSmallSizeAvatar(avatarURL, login) {
-    const source = getAvatar(avatarURL, login);
-    if (!_.isString(source)) {
-        return source;
-    }
-
-    // Because other urls than CloudFront do not support dynamic image sizing (_SIZE suffix), the current source is already what we want to use here.
-    if (!CONST.CLOUDFRONT_DOMAIN_REGEX.test(source)) {
-        return source;
-    }
-
-    // If image source already has _128 at the end, the given avatar URL is already what we want to use here.
-    const lastPeriodIndex = source.lastIndexOf('.');
-    if (source.substring(lastPeriodIndex - 4, lastPeriodIndex) === '_128') {
-        return source;
-    }
-    return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
-}
-
-/**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  *
@@ -808,7 +704,7 @@ function getIconsForParticipants(participants, personalDetails) {
 
     for (let i = 0; i < participantsList.length; i++) {
         const login = participantsList[i];
-        const avatarSource = getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
+        const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
         participantDetails.push([login, lodashGet(personalDetails, [login, 'firstName'], ''), avatarSource]);
     }
 
@@ -859,25 +755,16 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         return [result];
     }
     if (isThread(report)) {
-        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
-        if (!parentReport) {
-            result.source = Expensicons.ActiveRoomAvatar;
-            return [result];
-        }
-
-        if (getChatType(parentReport)) {
-            result.source = getWorkspaceAvatar(parentReport);
-            result.type = CONST.ICON_TYPE_WORKSPACE;
-            result.name = getPolicyName(parentReport);
-            return [result];
-        }
-
         const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
-        result.source = getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail);
-        result.name = actorEmail;
-        return [result];
+        const actorIcon = {
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail),
+            name: actorEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        };
+
+        return [actorIcon];
     }
     if (isDomainRoom(report)) {
         result.source = Expensicons.DomainRoomAvatar;
@@ -909,7 +796,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         }
 
         const adminIcon = {
-            source: getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
             name: report.ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
         };
@@ -928,7 +815,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         const email = isPayer ? report.managerEmail : report.ownerEmail;
         return [
             {
-                source: getAvatar(lodashGet(personalDetails, [email, 'avatar']), email),
+                source: UserUtils.getAvatar(lodashGet(personalDetails, [email, 'avatar']), email),
                 name: email,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -952,7 +839,7 @@ function getPersonalDetailsForLogin(login) {
         (allPersonalDetails && allPersonalDetails[login]) || {
             login,
             displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            avatar: getDefaultAvatar(login),
+            avatar: UserUtils.getDefaultAvatar(login),
         }
     );
 }
@@ -1216,7 +1103,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
     const commentText = getParsedComment(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
     const attachmentInfo = isAttachment ? file : {};
-    const htmlForNewComment = isAttachment ? 'Uploading attachment...' : commentText;
+    const htmlForNewComment = isAttachment ? CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML : commentText;
 
     // Remove HTML from text when applying optimistic offline comment
     const textForNewComment = isAttachment ? CONST.ATTACHMENT_MESSAGE_TEXT : parser.htmlToText(htmlForNewComment);
@@ -1236,7 +1123,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
                 },
             ],
             automatic: false,
-            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
             created: DateUtils.getDBTime(),
             message: [
                 {
@@ -1400,7 +1287,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
 
     return [
         {
-            html: getParsedComment(iouMessage),
+            html: iouMessage,
             text: iouMessage,
             isEdited: false,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -1425,13 +1312,10 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  */
 function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false) {
     const IOUReportID = iouReportID || generateReportID();
-    const parser = new ExpensiMark();
-    const commentText = getParsedComment(comment);
-    const textForNewComment = parser.htmlToText(commentText);
-    const textForNewCommentDecoded = Str.htmlDecode(textForNewComment);
+
     const originalMessage = {
         amount,
-        comment: textForNewComment,
+        comment,
         currency,
         IOUTransactionID: transactionID,
         IOUReportID,
@@ -1458,10 +1342,10 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
-        message: getIOUReportActionMessage(type, amount, textForNewCommentDecoded, currency, paymentType, isSettlingUp),
+        message: getIOUReportActionMessage(type, amount, comment, currency, paymentType, isSettlingUp),
         person: [
             {
                 style: 'strong',
@@ -1511,7 +1395,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserEmail)),
         isAttachment: false,
         originalMessage,
         message: [
@@ -1589,6 +1473,7 @@ function buildOptimisticChatReport(
         stateNum: 0,
         statusNum: 0,
         visibility,
+        welcomeMessage: '',
     };
 }
 
@@ -1624,7 +1509,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
         shouldShow: true,
     };
@@ -1664,7 +1549,7 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -1683,7 +1568,7 @@ function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONS
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -1937,10 +1822,6 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
-        return false;
-    }
-
-    if (isUserCreatedPolicyRoom(report) && !Permissions.canUsePolicyRooms(betas)) {
         return false;
     }
 
@@ -2250,11 +2131,25 @@ function isReportDataReady() {
     return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
 }
 
+/**
+ * Returns the parentReport if the given report is a thread.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getParentReport(report) {
+    if (!report || !report.parentReportID) {
+        return {};
+    }
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
+    canFlagReportAction,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,
@@ -2281,7 +2176,6 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
-    getDefaultAvatar,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
@@ -2319,17 +2213,11 @@ export {
     isTaskReport,
     isMoneyRequestReport,
     chatIncludesChronos,
-    getAvatar,
-    isDefaultAvatar,
-    getOldDotDefaultAvatar,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
-    hashLogin,
     getDefaultWorkspaceAvatar,
     getCommentLength,
     getParsedComment,
-    getFullSizeAvatar,
-    getSmallSizeAvatar,
     getMoneyRequestOptions,
     canRequestMoney,
     getWhisperDisplayNames,
@@ -2343,4 +2231,5 @@ export {
     isAllowedToComment,
     getMoneyRequestAction,
     getBankAccountRoute,
+    getParentReport,
 };

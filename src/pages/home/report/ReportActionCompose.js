@@ -955,6 +955,7 @@ function ReportActionCompose(props) {
     const reportRecipient = props.personalDetails[participantsWithoutExpensifyEmails[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
     const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
+    const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
     return (
         <View
@@ -968,7 +969,7 @@ function ReportActionCompose(props) {
                 style={props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                 contentContainerStyle={props.isComposerFullSize ? styles.flex1 : {}}
             >
-                {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
+                {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
                 <View
                     style={[
                         shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,

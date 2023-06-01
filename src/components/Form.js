@@ -1,5 +1,5 @@
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import lodashGet from 'lodash/get';
-import React from 'react';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -87,120 +87,99 @@ const defaultProps = {
     style: [],
 };
 
-class Form extends React.Component {
-    constructor(props) {
-        super(props);
+const Form = (props) => {
+    const [errors, setErrors] = useState({});
+    const [inputValues, setInputValues] = useState({...props.draftValues});
+    const formRef = useRef(null);
+    const formContentRef = useRef(null);
+    const inputRefs = useRef({});
+    const touchedInputs = useRef({});
 
-        this.state = {
-            errors: {},
-            inputValues: {
-                ...props.draftValues,
-            },
-        };
-
-        this.formRef = React.createRef(null);
-        this.formContentRef = React.createRef(null);
-        this.inputRefs = {};
-        this.touchedInputs = {};
-
-        this.setTouchedInput = this.setTouchedInput.bind(this);
-        this.validate = this.validate.bind(this);
-        this.submit = this.submit.bind(this);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.preferredLocale === this.props.preferredLocale) {
-            return;
-        }
-
-        // Update the error messages if the language changes
-        this.validate(this.state.inputValues);
-    }
-
-    getErrorMessage() {
-        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(this.props.formState);
-        return this.props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
-    }
-
-    getFirstErroredInput() {
-        const hasStateErrors = !_.isEmpty(this.state.errors);
-        const hasErrorFields = !_.isEmpty(this.props.formState.errorFields);
-
-        if (!hasStateErrors && !hasErrorFields) {
-            return;
-        }
-
-        return _.first(_.keys(hasStateErrors ? this.state.erorrs : this.props.formState.errorFields));
-    }
-
-    /**
-     * @param {String} inputID - The inputID of the input being touched
-     */
-    setTouchedInput(inputID) {
-        this.touchedInputs[inputID] = true;
-    }
-
-    submit() {
-        // Return early if the form is already submitting to avoid duplicate submission
-        if (this.props.formState.isLoading) {
-            return;
-        }
-
-        // Touches all form inputs so we can validate the entire form
-        _.each(this.inputRefs, (inputRef, inputID) => (this.touchedInputs[inputID] = true));
-
-        // Validate form and return early if any errors are found
-        if (!_.isEmpty(this.validate(this.state.inputValues))) {
-            return;
-        }
-
-        // Call submit handler
-        this.props.onSubmit(this.state.inputValues);
-    }
+    const {validate, translate, onSubmit, children} = props;
 
     /**
      * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
      * @returns {Object} - An object containing the errors for each inputID, e.g. {inputID1: error1, inputID2: error2}
      */
-    validate(values) {
-        const trimmedStringValues = {};
-        _.each(values, (inputValue, inputID) => {
-            if (_.isString(inputValue)) {
-                trimmedStringValues[inputID] = inputValue.trim();
-            } else {
-                trimmedStringValues[inputID] = inputValue;
+    const onValidate = useCallback(
+        (values) => {
+            const trimmedStringValues = {};
+            _.each(values, (inputValue, inputID) => {
+                if (_.isString(inputValue)) {
+                    trimmedStringValues[inputID] = inputValue.trim();
+                } else {
+                    trimmedStringValues[inputID] = inputValue;
+                }
+            });
+
+            FormActions.setErrors(props.formID, null);
+            FormActions.setErrorFields(props.formID, null);
+
+            // Run any validations passed as a prop
+            const validationErrors = validate(trimmedStringValues);
+
+            // Validate the input for html tags. It should supercede any other error
+            _.each(trimmedStringValues, (inputValue, inputID) => {
+                // Return early if there is no value OR the value is not a string OR there are no HTML characters
+                if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
+                    return;
+                }
+
+                // Add a validation error here because it is a string value that contains HTML characters
+                validationErrors[inputID] = translate('common.error.invalidCharacter');
+            });
+
+            if (!_.isObject(validationErrors)) {
+                throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
             }
-        });
 
-        FormActions.setErrors(this.props.formID, null);
-        FormActions.setErrorFields(this.props.formID, null);
+            const touchedInputErrors = _.pick(validationErrors, (inputValue, inputID) => Boolean(touchedInputs.current[inputID]));
 
-        // Run any validations passed as a prop
-        const validationErrors = this.props.validate(trimmedStringValues);
-
-        // Validate the input for html tags. It should supercede any other error
-        _.each(trimmedStringValues, (inputValue, inputID) => {
-            // Return early if there is no value OR the value is not a string OR there are no HTML characters
-            if (!inputValue || !_.isString(inputValue) || inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX) === -1) {
-                return;
+            if (!_.isEqual(errors, touchedInputErrors)) {
+                setErrors(touchedInputErrors);
             }
 
-            // Add a validation error here because it is a string value that contains HTML characters
-            validationErrors[inputID] = this.props.translate('common.error.invalidCharacter');
-        });
+            return touchedInputErrors;
+        },
+        [errors, touchedInputs, props.formID, validate, translate],
+    );
 
-        if (!_.isObject(validationErrors)) {
-            throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
+    useEffect(() => {
+        onValidate(inputValues);
+    }, [onValidate, inputValues]);
+
+    const getErrorMessage = useCallback(() => {
+        const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
+        return props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
+    }, [props.formState]);
+
+    /**
+     * @param {String} inputID - The inputID of the input being touched
+     */
+    const setTouchedInput = useCallback(
+        (inputID) => {
+            touchedInputs.current[inputID] = true;
+        },
+        [touchedInputs],
+    );
+
+    const submit = useCallback(() => {
+        // Return early if the form is already submitting to avoid duplicate submission
+        if (props.formState.isLoading) {
+            return;
         }
 
-        const errors = _.pick(validationErrors, (inputValue, inputID) => Boolean(this.touchedInputs[inputID]));
+        // Touches all form inputs so we can validate the entire form
+        _.each(inputRefs.current, (inputRef, inputID) => (touchedInputs.current[inputID] = true));
 
-        if (!_.isEqual(errors, this.state.errors)) {
-            this.setState({errors});
+        // Validate form and return early if any errors are found
+        if (!_.isEmpty(onValidate(inputValues))) {
+            return;
         }
 
-        return errors;
-    }
+        // Call submit handler
+        onSubmit(inputValues);
+    }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs]);
 
     /**
      * Loops over Form's children and automatically supplies Form props to them
@@ -208,151 +187,152 @@ class Form extends React.Component {
      * @param {Array | Function | Node} children - An array containing all Form children
      * @returns {React.Component}
      */
-    childrenWrapperWithProps(children) {
-        return React.Children.map(children, (child) => {
-            // Just render the child if it is not a valid React element, e.g. text within a <Text> component
-            if (!React.isValidElement(child)) {
-                return child;
-            }
-
-            // Depth first traversal of the render tree as the input element is likely to be the last node
-            if (child.props.children) {
-                return React.cloneElement(child, {
-                    children: this.childrenWrapperWithProps(child.props.children),
-                });
-            }
-
-            // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
-            if (_.isFunction(child.type)) {
-                const childNode = new child.type(child.props);
-
-                // If the custom component has a render method, use it to get the nested children
-                const nestedChildren = _.isFunction(childNode.render) ? childNode.render() : childNode;
-
-                // Render the custom component if it's a valid React element
-                // If the custom component has nested children, Loop over them and supply From props
-                if (React.isValidElement(nestedChildren) || lodashGet(nestedChildren, 'props.children')) {
-                    return this.childrenWrapperWithProps(nestedChildren);
+    const childrenWrapperWithProps = useCallback(
+        (childNodes) =>
+            React.Children.map(childNodes, (child) => {
+                // Just render the child if it is not a valid React element, e.g. text within a <Text> component
+                if (!React.isValidElement(child)) {
+                    return child;
                 }
 
-                // Just render the child if it's custom component not a valid React element, or if it hasn't children
-                return child;
-            }
+                // Depth first traversal of the render tree as the input element is likely to be the last node
+                if (child.props.children) {
+                    return React.cloneElement(child, {
+                        children: childrenWrapperWithProps(child.props.children),
+                    });
+                }
 
-            // We check if the child has the inputID prop.
-            // We don't want to pass form props to non form components, e.g. View, Text, etc
-            if (!child.props.inputID) {
-                return child;
-            }
+                // Look for any inputs nested in a custom component, e.g AddressForm or IdentityForm
+                if (_.isFunction(child.type)) {
+                    const childNode = new child.type(child.props);
 
-            // We clone the child passing down all form props
-            const inputID = child.props.inputID;
-            let defaultValue;
+                    // If the custom component has a render method, use it to get the nested children
+                    const nestedChildren = _.isFunction(childNode.render) ? childNode.render() : childNode;
 
-            // We need to make sure that checkboxes have correct
-            // value assigned from the list of draft values
-            // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
-            if (_.isBoolean(this.props.draftValues[inputID])) {
-                defaultValue = this.props.draftValues[inputID];
-            } else {
-                defaultValue = this.props.draftValues[inputID] || child.props.defaultValue;
-            }
-
-            // We want to initialize the input value if it's undefined
-            if (_.isUndefined(this.state.inputValues[inputID])) {
-                this.state.inputValues[inputID] = defaultValue;
-            }
-
-            // We force the form to set the input value from the defaultValue props if there is a saved valid value
-            if (child.props.shouldUseDefaultValue) {
-                this.state.inputValues[inputID] = child.props.defaultValue;
-            }
-
-            if (!_.isUndefined(child.props.value)) {
-                this.state.inputValues[inputID] = child.props.value;
-            }
-
-            const errorFields = lodashGet(this.props.formState, 'errorFields', {});
-            const fieldErrorMessage =
-                _.chain(errorFields[inputID])
-                    .keys()
-                    .sortBy()
-                    .reverse()
-                    .map((key) => errorFields[inputID][key])
-                    .first()
-                    .value() || '';
-
-            return React.cloneElement(child, {
-                ref: (node) => {
-                    this.inputRefs[inputID] = node;
-
-                    const {ref} = child;
-                    if (_.isFunction(ref)) {
-                        ref(node);
+                    // Render the custom component if it's a valid React element
+                    // If the custom component has nested children, Loop over them and supply From props
+                    if (React.isValidElement(nestedChildren) || lodashGet(nestedChildren, 'props.children')) {
+                        return childrenWrapperWithProps(nestedChildren);
                     }
-                },
-                value: this.state.inputValues[inputID],
-                errorText: this.state.errors[inputID] || fieldErrorMessage,
-                onBlur: (event) => {
-                    // We delay the validation in order to prevent Checkbox loss of focus when
-                    // the user are focusing a TextInput and proceeds to toggle a CheckBox in
-                    // web and mobile web platforms.
-                    setTimeout(() => {
-                        this.setTouchedInput(inputID);
-                        this.validate(this.state.inputValues);
-                    }, 200);
 
-                    if (_.isFunction(child.props.onBlur)) {
-                        child.props.onBlur(event);
-                    }
-                },
-                onInputChange: (value, key) => {
-                    const inputKey = key || inputID;
-                    this.setState(
-                        (prevState) => ({
-                            inputValues: {
-                                ...prevState.inputValues,
+                    // Just render the child if it's custom component not a valid React element, or if it hasn't children
+                    return child;
+                }
+
+                // We check if the child has the inputID prop.
+                // We don't want to pass form props to non form components, e.g. View, Text, etc
+                if (!child.props.inputID) {
+                    return child;
+                }
+
+                // We clone the child passing down all form props
+                const inputID = child.props.inputID;
+                let defaultValue;
+
+                // We need to make sure that checkboxes have correct
+                // value assigned from the list of draft values
+                // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
+                if (_.isBoolean(props.draftValues[inputID])) {
+                    defaultValue = props.draftValues[inputID];
+                } else {
+                    defaultValue = props.draftValues[inputID] || child.props.defaultValue;
+                }
+
+                // We want to initialize the input value if it's undefined
+                if (_.isUndefined(inputValues[inputID])) {
+                    inputValues[inputID] = defaultValue;
+                }
+
+                // We force the form to set the input value from the defaultValue props if there is a saved valid value
+                if (child.props.shouldUseDefaultValue) {
+                    inputValues[inputID] = child.props.defaultValue;
+                }
+
+                if (!_.isUndefined(child.props.value)) {
+                    inputValues[inputID] = child.props.value;
+                }
+
+                const errorFields = lodashGet(props.formState, 'errorFields', {});
+                const fieldErrorMessage =
+                    _.chain(errorFields[inputID])
+                        .keys()
+                        .sortBy()
+                        .reverse()
+                        .map((key) => errorFields[inputID][key])
+                        .first()
+                        .value() || '';
+
+                return React.cloneElement(child, {
+                    ref: (node) => {
+                        inputRefs.current[inputID] = node;
+
+                        const {ref} = child;
+                        if (_.isFunction(ref)) {
+                            ref(node);
+                        }
+                    },
+                    value: inputValues[inputID],
+                    errorText: errors[inputID] || fieldErrorMessage,
+                    onBlur: (event) => {
+                        // We delay the validation in order to prevent Checkbox loss of focus when
+                        // the user are focusing a TextInput and proceeds to toggle a CheckBox in
+                        // web and mobile web platforms.
+                        setTimeout(() => {
+                            setTouchedInput(inputID);
+                            onValidate(inputValues);
+                        }, 200);
+
+                        if (_.isFunction(child.props.onBlur)) {
+                            child.props.onBlur(event);
+                        }
+                    },
+                    onTouched: () => {
+                        setTouchedInput(inputID);
+                    },
+                    onInputChange: (value, key) => {
+                        const inputKey = key || inputID;
+                        setInputValues((prevState) => {
+                            const newState = {
+                                ...prevState,
                                 [inputKey]: value,
-                            },
-                        }),
-                        () => this.validate(this.state.inputValues),
-                    );
+                            };
+                            onValidate(newState);
+                            return newState;
+                        });
 
-                    if (child.props.shouldSaveDraft) {
-                        FormActions.setDraftValues(this.props.formID, {[inputKey]: value});
-                    }
+                        if (child.props.shouldSaveDraft) {
+                            FormActions.setDraftValues(props.formID, {[inputKey]: value});
+                        }
 
-                    if (child.props.onValueChange) {
-                        child.props.onValueChange(value);
-                    }
-                },
-            });
-        });
-    }
+                        if (child.props.onValueChange) {
+                            child.props.onValueChange(value);
+                        }
+                    },
+                });
+            }),
+        [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput],
+    );
 
-    render() {
-        const scrollViewContent = (safeAreaPaddingBottomStyle) => (
+    const scrollViewContent = useCallback(
+        (safeAreaPaddingBottomStyle) => (
             <FormSubmit
-                ref={this.formContentRef}
-                style={StyleSheet.flatten([this.props.style, safeAreaPaddingBottomStyle])}
-                onSubmit={this.submit}
+                ref={formContentRef}
+                style={StyleSheet.flatten([props.style, safeAreaPaddingBottomStyle])}
+                onSubmit={submit}
             >
-                {this.childrenWrapperWithProps(_.isFunction(this.props.children) ? this.props.children({inputValues: this.state.inputValues}) : this.props.children)}
-                {this.props.isSubmitButtonVisible && (
+                {childrenWrapperWithProps(_.isFunction(children) ? children({inputValues}) : children)}
+                {props.isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
-                        buttonText={this.props.submitButtonText}
-                        isAlertVisible={_.size(this.state.errors) > 0 || Boolean(this.getErrorMessage()) || !_.isEmpty(this.props.formState.errorFields)}
-                        isLoading={this.props.formState.isLoading}
-                        message={_.isEmpty(this.props.formState.errorFields) ? this.getErrorMessage() : null}
-                        onSubmit={this.submit}
-                        footerContent={this.props.footerContent}
+                        buttonText={props.submitButtonText}
+                        isAlertVisible={_.size(errors) > 0 || Boolean(getErrorMessage()) || !_.isEmpty(props.formState.errorFields)}
+                        isLoading={props.formState.isLoading}
+                        message={_.isEmpty(props.formState.errorFields) ? getErrorMessage() : null}
+                        onSubmit={submit}
+                        footerContent={props.footerContent}
                         onFixTheErrorsLinkPressed={() => {
-                            const errors = !_.isEmpty(this.state.errors) ? this.state.errors : this.props.formState.errorFields;
-                            const focusKey = _.find(_.keys(this.inputRefs), (key) => _.keys(errors).includes(key));
-                            const focusInput = this.inputRefs[focusKey];
-
-                            const formRef = this.formRef.current;
-                            const formContentRef = this.formContentRef.current;
+                            const errorFields = !_.isEmpty(errors) ? errors : props.formState.errorFields;
+                            const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
+                            const focusInput = inputRefs.current[focusKey];
 
                             // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
                             Keyboard.dismiss();
@@ -361,7 +341,7 @@ class Form extends React.Component {
                             if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
                                 // We measure relative to the content root, not the scroll view, as that gives
                                 // consistent results across mobile and web
-                                focusInput.measureLayout(formContentRef, (x, y) => formRef.scrollTo({y: y - 10, animated: false}));
+                                focusInput.measureLayout(formContentRef.current, (x, y) => formRef.current.scrollTo({y: y - 10, animated: false}));
                             }
 
                             // Focus the input after scrolling, as on the Web it gives a slightly better visual result
@@ -370,42 +350,61 @@ class Form extends React.Component {
                             }
                         }}
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
-                        enabledWhenOffline={this.props.enabledWhenOffline}
-                        isSubmitActionDangerous={this.props.isSubmitActionDangerous}
+                        enabledWhenOffline={props.enabledWhenOffline}
+                        isSubmitActionDangerous={props.isSubmitActionDangerous}
                         disablePressOnEnter
                     />
                 )}
             </FormSubmit>
-        );
+        ),
+        [
+            childrenWrapperWithProps,
+            errors,
+            formContentRef,
+            formRef,
+            getErrorMessage,
+            inputRefs,
+            inputValues,
+            submit,
+            props.style,
+            children,
+            props.formState,
+            props.footerContent,
+            props.enabledWhenOffline,
+            props.isSubmitActionDangerous,
+            props.isSubmitButtonVisible,
+            props.submitButtonText,
+        ],
+    );
 
-        return (
-            <SafeAreaConsumer>
-                {({safeAreaPaddingBottomStyle}) =>
-                    this.props.scrollContextEnabled ? (
-                        <ScrollViewWithContext
-                            style={[styles.w100, styles.flex1]}
-                            contentContainerStyle={styles.flexGrow1}
-                            keyboardShouldPersistTaps="handled"
-                            ref={this.formRef}
-                        >
-                            {scrollViewContent(safeAreaPaddingBottomStyle)}
-                        </ScrollViewWithContext>
-                    ) : (
-                        <ScrollView
-                            style={[styles.w100, styles.flex1]}
-                            contentContainerStyle={styles.flexGrow1}
-                            keyboardShouldPersistTaps="handled"
-                            ref={this.formRef}
-                        >
-                            {scrollViewContent(safeAreaPaddingBottomStyle)}
-                        </ScrollView>
-                    )
-                }
-            </SafeAreaConsumer>
-        );
-    }
-}
+    return (
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) =>
+                props.scrollContextEnabled ? (
+                    <ScrollViewWithContext
+                        style={[styles.w100, styles.flex1]}
+                        contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="handled"
+                        ref={formRef}
+                    >
+                        {scrollViewContent(safeAreaPaddingBottomStyle)}
+                    </ScrollViewWithContext>
+                ) : (
+                    <ScrollView
+                        style={[styles.w100, styles.flex1]}
+                        contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="handled"
+                        ref={formRef}
+                    >
+                        {scrollViewContent(safeAreaPaddingBottomStyle)}
+                    </ScrollView>
+                )
+            }
+        </SafeAreaConsumer>
+    );
+};
 
+Form.displayName = 'Form';
 Form.propTypes = propTypes;
 Form.defaultProps = defaultProps;
 
