@@ -57,7 +57,7 @@ const TaskPreview = (props) => {
         (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) ||
         (props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
     const taskTitle = props.action.childReportName || props.taskReport.reportName;
-    const taskAssignee = props.action.childManagerEmail || props.taskReport.managerEmail;
+    const taskAssignee = props.action.childManagerEmail || props.taskReport.managerEmail || '';
     const htmlForTaskPreview = taskAssignee === '' ? `<comment>${taskTitle}</comment>` : `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>`;
     const parentReportID = props.action.parentReportID || props.taskReport.parentReportID;
 
