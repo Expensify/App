@@ -23,7 +23,7 @@ const defaultProps = {
 const PinButton = (props) => (
     <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
         <Pressable
-            onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report))}
+            onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned))}
             style={[styles.touchableButtonImage]}
         >
             <Icon
