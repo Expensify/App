@@ -17,12 +17,10 @@ import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
 
 let currentUserAccountID;
-let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
-        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -35,15 +33,15 @@ Onyx.connect({
 
 let myPersonalDetails;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        if (!val || !currentUserEmail) {
+        if (!val || !currentUserAccountID) {
             return;
         }
 
-        myPersonalDetails = val[currentUserEmail];
-    },
-});
+        myPersonalDetails = val[currentUserAccountID];
+    }
+})
 
 let allPolicies = [];
 Onyx.connect({
@@ -294,9 +292,9 @@ function openProfile() {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             timezone: newTimezoneData,
                         },
                     },
@@ -305,9 +303,9 @@ function openProfile() {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             timezone: oldTimezoneData,
                         },
                     },
