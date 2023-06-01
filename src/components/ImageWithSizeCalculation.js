@@ -52,7 +52,7 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     imageLoadingStart() {
-        // Fix the spinner showing when uploading twice the same image on android #17480
+        // Return early if the image has already loaded (this can happen when uploading the same image twice on Android)
         if (this.isLoaded) {
             return;
         }
