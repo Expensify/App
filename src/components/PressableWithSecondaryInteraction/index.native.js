@@ -28,6 +28,7 @@ const PressableWithSecondaryInteraction = (props) => {
             }}
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
+            activeOpacity={props.activeOpacity}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {..._.omit(props, 'onLongPress')}
         >
