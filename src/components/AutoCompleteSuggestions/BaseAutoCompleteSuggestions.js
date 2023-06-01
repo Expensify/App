@@ -47,7 +47,6 @@ const BaseAutoCompleteSuggestions = (props) => {
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT * props.suggestions.length;
 
     const animatedStyles = useAnimatedStyle(() => ({
-        ...styles.autoCompleteSuggestionsContainer,
         ...StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, props.shouldIncludeReportRecipientLocalTimeHeight),
     }));
 
@@ -61,7 +60,7 @@ const BaseAutoCompleteSuggestions = (props) => {
     return (
         <Animated.View
             ref={props.forwardedRef}
-            style={animatedStyles}
+            style={[styles.autoCompleteSuggestionsContainer,animatedStyles]}
             exiting={FadeOutDown.duration(100)}
         >
             <FlatList
