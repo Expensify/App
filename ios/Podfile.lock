@@ -23,14 +23,14 @@ PODS:
   - boost (1.76.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
-  - FBLazyVector (0.72.0-alpha.0)
-  - FBReactNativeSpec (0.72.0-alpha.0):
+  - FBLazyVector (0.72.0-alpha.fabio-fix-3)
+  - FBReactNativeSpec (0.72.0-alpha.fabio-fix-3):
     - RCT-Folly (= 2021.07.22.00)
-    - RCTRequired (= 0.72.0-alpha.0)
-    - RCTTypeSafety (= 0.72.0-alpha.0)
-    - React-Core (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - ReactCommon/turbomodule/core (= 0.72.0-alpha.0)
+    - RCTRequired (= 0.72.0-alpha.fabio-fix-3)
+    - RCTTypeSafety (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - ReactCommon/turbomodule/core (= 0.72.0-alpha.fabio-fix-3)
   - Firebase/Analytics (8.8.0):
     - Firebase/Core
   - Firebase/Core (8.8.0):
@@ -258,26 +258,26 @@ PODS:
     - fmt (~> 6.2.1)
     - glog
     - libevent
-  - RCTRequired (0.72.0-alpha.0)
-  - RCTTypeSafety (0.72.0-alpha.0):
-    - FBLazyVector (= 0.72.0-alpha.0)
-    - RCTRequired (= 0.72.0-alpha.0)
-    - React-Core (= 0.72.0-alpha.0)
-  - React (0.72.0-alpha.0):
-    - React-Core (= 0.72.0-alpha.0)
-    - React-Core/DevSupport (= 0.72.0-alpha.0)
-    - React-Core/RCTWebSocket (= 0.72.0-alpha.0)
-    - React-RCTActionSheet (= 0.72.0-alpha.0)
-    - React-RCTAnimation (= 0.72.0-alpha.0)
-    - React-RCTBlob (= 0.72.0-alpha.0)
-    - React-RCTImage (= 0.72.0-alpha.0)
-    - React-RCTLinking (= 0.72.0-alpha.0)
-    - React-RCTNetwork (= 0.72.0-alpha.0)
-    - React-RCTSettings (= 0.72.0-alpha.0)
-    - React-RCTText (= 0.72.0-alpha.0)
-    - React-RCTVibration (= 0.72.0-alpha.0)
-  - React-callinvoker (0.72.0-alpha.0)
-  - React-Codegen (0.72.0-alpha.0):
+  - RCTRequired (0.72.0-alpha.fabio-fix-3)
+  - RCTTypeSafety (0.72.0-alpha.fabio-fix-3):
+    - FBLazyVector (= 0.72.0-alpha.fabio-fix-3)
+    - RCTRequired (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core (= 0.72.0-alpha.fabio-fix-3)
+  - React (0.72.0-alpha.fabio-fix-3):
+    - React-Core (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/DevSupport (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTWebSocket (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTActionSheet (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTAnimation (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTBlob (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTImage (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTLinking (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTNetwork (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTSettings (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTText (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTVibration (= 0.72.0-alpha.fabio-fix-3)
+  - React-callinvoker (0.72.0-alpha.fabio-fix-3)
+  - React-Codegen (0.72.0-alpha.fabio-fix-3):
     - FBReactNativeSpec
     - hermes-engine
     - RCT-Folly
@@ -290,224 +290,224 @@ PODS:
     - React-rncore
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-  - React-Core (0.72.0-alpha.0):
+  - React-Core (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
-    - React-Core/Default (= 0.72.0-alpha.0)
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-Core/Default (= 0.72.0-alpha.fabio-fix-3)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/CoreModulesHeaders (0.72.0-alpha.0):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2021.07.22.00)
-    - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
-    - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
-    - SocketRocket (= 0.6.0)
-    - Yoga
-  - React-Core/Default (0.72.0-alpha.0):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2021.07.22.00)
-    - React-cxxreact (= 0.72.0-alpha.0)
-    - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
-    - SocketRocket (= 0.6.0)
-    - Yoga
-  - React-Core/DevSupport (0.72.0-alpha.0):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2021.07.22.00)
-    - React-Core/Default (= 0.72.0-alpha.0)
-    - React-Core/RCTWebSocket (= 0.72.0-alpha.0)
-    - React-cxxreact (= 0.72.0-alpha.0)
-    - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-jsinspector (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
-    - SocketRocket (= 0.6.0)
-    - Yoga
-  - React-Core/RCTActionSheetHeaders (0.72.0-alpha.0):
+  - React-Core/CoreModulesHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/RCTAnimationHeaders (0.72.0-alpha.0):
+  - React-Core/Default (0.72.0-alpha.fabio-fix-3):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2021.07.22.00)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
+    - React-hermes
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
+    - SocketRocket (= 0.6.0)
+    - Yoga
+  - React-Core/DevSupport (0.72.0-alpha.fabio-fix-3):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core/Default (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTWebSocket (= 0.72.0-alpha.fabio-fix-3)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
+    - React-hermes
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsinspector (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
+    - SocketRocket (= 0.6.0)
+    - Yoga
+  - React-Core/RCTActionSheetHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/RCTBlobHeaders (0.72.0-alpha.0):
+  - React-Core/RCTAnimationHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/RCTImageHeaders (0.72.0-alpha.0):
+  - React-Core/RCTBlobHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/RCTLinkingHeaders (0.72.0-alpha.0):
+  - React-Core/RCTImageHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/RCTNetworkHeaders (0.72.0-alpha.0):
+  - React-Core/RCTLinkingHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/RCTSettingsHeaders (0.72.0-alpha.0):
+  - React-Core/RCTNetworkHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/RCTTextHeaders (0.72.0-alpha.0):
+  - React-Core/RCTSettingsHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/RCTVibrationHeaders (0.72.0-alpha.0):
+  - React-Core/RCTTextHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - React-Core/Default
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-Core/RCTWebSocket (0.72.0-alpha.0):
+  - React-Core/RCTVibrationHeaders (0.72.0-alpha.fabio-fix-3):
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
-    - React-Core/Default (= 0.72.0-alpha.0)
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-Core/Default
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-hermes
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
     - Yoga
-  - React-CoreModules (0.72.0-alpha.0):
+  - React-Core/RCTWebSocket (0.72.0-alpha.fabio-fix-3):
+    - glog
+    - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
-    - RCTTypeSafety (= 0.72.0-alpha.0)
-    - React-Codegen (= 0.72.0-alpha.0)
-    - React-Core/CoreModulesHeaders (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
+    - React-Core/Default (= 0.72.0-alpha.fabio-fix-3)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
+    - React-hermes
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
+    - SocketRocket (= 0.6.0)
+    - Yoga
+  - React-CoreModules (0.72.0-alpha.fabio-fix-3):
+    - RCT-Folly (= 2021.07.22.00)
+    - RCTTypeSafety (= 0.72.0-alpha.fabio-fix-3)
+    - React-Codegen (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/CoreModulesHeaders (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
     - React-RCTBlob
-    - React-RCTImage (= 0.72.0-alpha.0)
-    - ReactCommon/turbomodule/core (= 0.72.0-alpha.0)
+    - React-RCTImage (= 0.72.0-alpha.fabio-fix-3)
+    - ReactCommon/turbomodule/core (= 0.72.0-alpha.fabio-fix-3)
     - SocketRocket (= 0.6.0)
-  - React-cxxreact (0.72.0-alpha.0):
+  - React-cxxreact (0.72.0-alpha.fabio-fix-3):
     - boost (= 1.76.0)
     - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
-    - React-callinvoker (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-jsinspector (= 0.72.0-alpha.0)
-    - React-logger (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
-    - React-runtimeexecutor (= 0.72.0-alpha.0)
-  - React-hermes (0.72.0-alpha.0):
+    - React-callinvoker (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsinspector (= 0.72.0-alpha.fabio-fix-3)
+    - React-logger (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
+    - React-runtimeexecutor (= 0.72.0-alpha.fabio-fix-3)
+  - React-hermes (0.72.0-alpha.fabio-fix-3):
     - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
     - RCT-Folly/Futures (= 2021.07.22.00)
-    - React-cxxreact (= 0.72.0-alpha.0)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
     - React-jsi
-    - React-jsiexecutor (= 0.72.0-alpha.0)
-    - React-jsinspector (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
-  - React-jsi (0.72.0-alpha.0):
+    - React-jsiexecutor (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsinspector (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
+  - React-jsi (0.72.0-alpha.fabio-fix-3):
     - boost (= 1.76.0)
     - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
-  - React-jsiexecutor (0.72.0-alpha.0):
+  - React-jsiexecutor (0.72.0-alpha.fabio-fix-3):
     - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
-    - React-cxxreact (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
-  - React-jsinspector (0.72.0-alpha.0)
-  - React-logger (0.72.0-alpha.0):
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
+  - React-jsinspector (0.72.0-alpha.fabio-fix-3)
+  - React-logger (0.72.0-alpha.fabio-fix-3):
     - glog
   - react-native-airship (15.2.3):
     - AirshipFrameworkProxy (= 2.0.5)
@@ -559,7 +559,7 @@ PODS:
     - React-Core
   - react-native-webview (11.23.0):
     - React-Core
-  - React-NativeModulesApple (0.72.0-alpha.0):
+  - React-NativeModulesApple (0.72.0-alpha.fabio-fix-3):
     - hermes-engine
     - React-callinvoker
     - React-Core
@@ -568,89 +568,89 @@ PODS:
     - React-runtimeexecutor
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-  - React-perflogger (0.72.0-alpha.0)
-  - React-RCTActionSheet (0.72.0-alpha.0):
-    - React-Core/RCTActionSheetHeaders (= 0.72.0-alpha.0)
-  - React-RCTAnimation (0.72.0-alpha.0):
+  - React-perflogger (0.72.0-alpha.fabio-fix-3)
+  - React-RCTActionSheet (0.72.0-alpha.fabio-fix-3):
+    - React-Core/RCTActionSheetHeaders (= 0.72.0-alpha.fabio-fix-3)
+  - React-RCTAnimation (0.72.0-alpha.fabio-fix-3):
     - RCT-Folly (= 2021.07.22.00)
-    - RCTTypeSafety (= 0.72.0-alpha.0)
-    - React-Codegen (= 0.72.0-alpha.0)
-    - React-Core/RCTAnimationHeaders (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - ReactCommon/turbomodule/core (= 0.72.0-alpha.0)
-  - React-RCTAppDelegate (0.72.0-alpha.0):
+    - RCTTypeSafety (= 0.72.0-alpha.fabio-fix-3)
+    - React-Codegen (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTAnimationHeaders (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - ReactCommon/turbomodule/core (= 0.72.0-alpha.fabio-fix-3)
+  - React-RCTAppDelegate (0.72.0-alpha.fabio-fix-3):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - React-RCTBlob (0.72.0-alpha.0):
+  - React-RCTBlob (0.72.0-alpha.fabio-fix-3):
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
-    - React-Codegen (= 0.72.0-alpha.0)
-    - React-Core/RCTBlobHeaders (= 0.72.0-alpha.0)
-    - React-Core/RCTWebSocket (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-RCTNetwork (= 0.72.0-alpha.0)
-    - ReactCommon/turbomodule/core (= 0.72.0-alpha.0)
-  - React-RCTImage (0.72.0-alpha.0):
+    - React-Codegen (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTBlobHeaders (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTWebSocket (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTNetwork (= 0.72.0-alpha.fabio-fix-3)
+    - ReactCommon/turbomodule/core (= 0.72.0-alpha.fabio-fix-3)
+  - React-RCTImage (0.72.0-alpha.fabio-fix-3):
     - RCT-Folly (= 2021.07.22.00)
-    - RCTTypeSafety (= 0.72.0-alpha.0)
-    - React-Codegen (= 0.72.0-alpha.0)
-    - React-Core/RCTImageHeaders (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-RCTNetwork (= 0.72.0-alpha.0)
-    - ReactCommon/turbomodule/core (= 0.72.0-alpha.0)
-  - React-RCTLinking (0.72.0-alpha.0):
-    - React-Codegen (= 0.72.0-alpha.0)
-    - React-Core/RCTLinkingHeaders (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - ReactCommon/turbomodule/core (= 0.72.0-alpha.0)
-  - React-RCTNetwork (0.72.0-alpha.0):
+    - RCTTypeSafety (= 0.72.0-alpha.fabio-fix-3)
+    - React-Codegen (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTImageHeaders (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-RCTNetwork (= 0.72.0-alpha.fabio-fix-3)
+    - ReactCommon/turbomodule/core (= 0.72.0-alpha.fabio-fix-3)
+  - React-RCTLinking (0.72.0-alpha.fabio-fix-3):
+    - React-Codegen (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTLinkingHeaders (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - ReactCommon/turbomodule/core (= 0.72.0-alpha.fabio-fix-3)
+  - React-RCTNetwork (0.72.0-alpha.fabio-fix-3):
     - RCT-Folly (= 2021.07.22.00)
-    - RCTTypeSafety (= 0.72.0-alpha.0)
-    - React-Codegen (= 0.72.0-alpha.0)
-    - React-Core/RCTNetworkHeaders (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - ReactCommon/turbomodule/core (= 0.72.0-alpha.0)
-  - React-RCTSettings (0.72.0-alpha.0):
+    - RCTTypeSafety (= 0.72.0-alpha.fabio-fix-3)
+    - React-Codegen (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTNetworkHeaders (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - ReactCommon/turbomodule/core (= 0.72.0-alpha.fabio-fix-3)
+  - React-RCTSettings (0.72.0-alpha.fabio-fix-3):
     - RCT-Folly (= 2021.07.22.00)
-    - RCTTypeSafety (= 0.72.0-alpha.0)
-    - React-Codegen (= 0.72.0-alpha.0)
-    - React-Core/RCTSettingsHeaders (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - ReactCommon/turbomodule/core (= 0.72.0-alpha.0)
-  - React-RCTText (0.72.0-alpha.0):
-    - React-Core/RCTTextHeaders (= 0.72.0-alpha.0)
-  - React-RCTVibration (0.72.0-alpha.0):
+    - RCTTypeSafety (= 0.72.0-alpha.fabio-fix-3)
+    - React-Codegen (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTSettingsHeaders (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - ReactCommon/turbomodule/core (= 0.72.0-alpha.fabio-fix-3)
+  - React-RCTText (0.72.0-alpha.fabio-fix-3):
+    - React-Core/RCTTextHeaders (= 0.72.0-alpha.fabio-fix-3)
+  - React-RCTVibration (0.72.0-alpha.fabio-fix-3):
     - RCT-Folly (= 2021.07.22.00)
-    - React-Codegen (= 0.72.0-alpha.0)
-    - React-Core/RCTVibrationHeaders (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - ReactCommon/turbomodule/core (= 0.72.0-alpha.0)
-  - React-rncore (0.72.0-alpha.0)
-  - React-runtimeexecutor (0.72.0-alpha.0):
-    - React-jsi (= 0.72.0-alpha.0)
-  - ReactCommon/turbomodule/bridging (0.72.0-alpha.0):
+    - React-Codegen (= 0.72.0-alpha.fabio-fix-3)
+    - React-Core/RCTVibrationHeaders (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - ReactCommon/turbomodule/core (= 0.72.0-alpha.fabio-fix-3)
+  - React-rncore (0.72.0-alpha.fabio-fix-3)
+  - React-runtimeexecutor (0.72.0-alpha.fabio-fix-3):
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+  - ReactCommon/turbomodule/bridging (0.72.0-alpha.fabio-fix-3):
     - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
-    - React-callinvoker (= 0.72.0-alpha.0)
-    - React-cxxreact (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-logger (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
-  - ReactCommon/turbomodule/core (0.72.0-alpha.0):
+    - React-callinvoker (= 0.72.0-alpha.fabio-fix-3)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-logger (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
+  - ReactCommon/turbomodule/core (0.72.0-alpha.fabio-fix-3):
     - DoubleConversion
     - glog
     - hermes-engine
     - RCT-Folly (= 2021.07.22.00)
-    - React-callinvoker (= 0.72.0-alpha.0)
-    - React-cxxreact (= 0.72.0-alpha.0)
-    - React-jsi (= 0.72.0-alpha.0)
-    - React-logger (= 0.72.0-alpha.0)
-    - React-perflogger (= 0.72.0-alpha.0)
+    - React-callinvoker (= 0.72.0-alpha.fabio-fix-3)
+    - React-cxxreact (= 0.72.0-alpha.fabio-fix-3)
+    - React-jsi (= 0.72.0-alpha.fabio-fix-3)
+    - React-logger (= 0.72.0-alpha.fabio-fix-3)
+    - React-perflogger (= 0.72.0-alpha.fabio-fix-3)
   - RNCAsyncStorage (1.17.11):
     - React-Core
   - RNCClipboard (1.5.1):
@@ -1047,8 +1047,8 @@ SPEC CHECKSUMS:
   boost: 57d2868c099736d80fcd648bf211b4431e51a558
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
-  FBLazyVector: d68522dabe9b675cb807d58ebd529e5f8c30813f
-  FBReactNativeSpec: d7c1d6af086ebe6359a9e89fae9b8f9deef4a6ad
+  FBLazyVector: 869a92c73006a31e38b87bcd58d72401e5993139
+  FBReactNativeSpec: 06ee2fc5b21ca8558833af3a854a577c1769b4a7
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
   FirebaseABTesting: 10cbce8db9985ae2e3847ea44e9947dd18f94e10
   FirebaseAnalytics: 5506ea8b867d8423485a84b4cd612d279f7b0b8a
@@ -1087,19 +1087,19 @@ SPEC CHECKSUMS:
   Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
-  RCTRequired: f0d06e13ac2f8f5966d638e15653a699da536182
-  RCTTypeSafety: 9ffca5ffdd561d041444e1b21328d18dbaaec826
-  React: c4b6a511dada19a0f4b9042f9b027339fb036782
-  React-callinvoker: 3efaf53883fff9420825e4365613d739c755e9e2
-  React-Codegen: 4fe7a3d3de44954430e98ab204db251bbdc61629
-  React-Core: a159834d572a315b1c9b16532649429e41a3c02a
-  React-CoreModules: 3869e2f7b728b16b98ee105970949c6a3080a402
-  React-cxxreact: 2b81689fdde28f7741773bd5f3a55f7017689744
-  React-hermes: 664784bbd84e980c18072fa3af1ff4bfee03c110
-  React-jsi: b1896e9ed045d059a7874fd1923e10455963e43d
-  React-jsiexecutor: 464613d6a420f677fde0ea6d96e79b9e3e75227e
-  React-jsinspector: c23bc161b4f088545c18d3d36cc4f05d3190b840
-  React-logger: bfa79f99a3b900c6446c41051c349cbaea41d8d2
+  RCTRequired: 5e52d984fce7d0960daeca5c287a710a062affe9
+  RCTTypeSafety: 2fa9b7c43d3d80f2235606a49260bf79253a7a9c
+  React: 22072bc8d5c5add46d85afef7f12553176d56733
+  React-callinvoker: 708c63be21144f7dfd995fbc04f2c7db21a3ba6f
+  React-Codegen: 7c23db37c2dbc1ff91bc8cc84fe889a30eb41ff2
+  React-Core: cd64915f9e075a5685cf0e1640ef54cf957805e8
+  React-CoreModules: 1d6ae57e33f27d34dd6b2e2ac9456ad4b1801300
+  React-cxxreact: 97267d0748019ee1e58cb7f4223eba6b09c42de2
+  React-hermes: 016c8950926b118be6556d458727896dede91321
+  React-jsi: b58019521790f409bc6e44b7b246bc8a256c1041
+  React-jsiexecutor: e5ba4efb19da83ab8786d55e9d60879f2958817c
+  React-jsinspector: 4b9f47b45e3d569ace25f4379aad6ff9ecfc2699
+  React-logger: 1f215bea3296c84ed97de3de2d730c1b979401f8
   react-native-airship: 25045092934bf6eabf483e803af0a6e31826b8b9
   react-native-blob-util: 99f4d79189252f597fe0d810c57a3733b1b1dea6
   react-native-cameraroll: 8ffb0af7a5e5de225fd667610e2979fc1f0c2151
@@ -1120,21 +1120,21 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
   react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
-  React-NativeModulesApple: b0acdaf456c7629adef52c77b2e30c46802e9e41
-  React-perflogger: 608c45ee5c6c14a50b69e4acad9b737d525489be
-  React-RCTActionSheet: 2adad38fa2f12eb97488e0f8edc00874219dfe44
-  React-RCTAnimation: f2854a2978af93bd5cfe0ee957b0fa997db71b59
-  React-RCTAppDelegate: c5a3f0d6eddea867c9e0fc933db3b8fdc9c55542
-  React-RCTBlob: bc6dc2695a7282010fd0545d4ecb50b4787126ab
-  React-RCTImage: 9801835b39d2189083421eec48bc2515a8d5db4d
-  React-RCTLinking: d84574bb8c5999266d9b29e738a5701369e78138
-  React-RCTNetwork: 9ab23444856b0f0d920e42646b64295328b88f7e
-  React-RCTSettings: 389023e6f57b437b10c5c21d61504297e8b093aa
-  React-RCTText: dd3e321870819b34adc90a6384416b27a0c496d0
-  React-RCTVibration: f1be1b063e6cb970315d86c73a0e9b1c1ede21cb
-  React-rncore: 985aaf1ec23fc01bb779e5cc95401ba4196c7c18
-  React-runtimeexecutor: 2cf35263113bc1ca0dcfc712b7a4aca6fc052aba
-  ReactCommon: 023975a1c61166c7f6f17afbfd599d7ae817aecb
+  React-NativeModulesApple: 9ff2ff8ff0a0f9a0ce368b444bca32dca9f4560c
+  React-perflogger: c76528f519a1bbfc1ad57b03db593427eff8c32d
+  React-RCTActionSheet: 2a0cac9424cae97115c4157a8e5f988c93487f18
+  React-RCTAnimation: 3c38f8182d2a3e6240a689a2e5d11000a5fd1265
+  React-RCTAppDelegate: f65f4e8353c26a359843e15a3aa31c4da1ef695d
+  React-RCTBlob: 36ba0bf904c15b8d62126276a09663485f12bc42
+  React-RCTImage: c91e99b2a9f48df2ee803f13bb7b2cc6797c6f45
+  React-RCTLinking: 292cb3d360d1c08b748b18cdcd676789dd141ce4
+  React-RCTNetwork: 66afd28778ea935ceb70b36415ba5e066188f36b
+  React-RCTSettings: 08fe6dd04bda1cedb4fcaf1119d885346083bb0c
+  React-RCTText: 3ec4f0b5532771d74da8287ecd48894712cf5770
+  React-RCTVibration: ae5e6c28a6af69b93e4a37237e28638d02949de6
+  React-rncore: 91c5489595a3d5966d4ad3baba7d174c924127a7
+  React-runtimeexecutor: d185ed95ca4d0c746500d6c78e0035efccb3fd7d
+  ReactCommon: 0aeeb979be6d88c1beb4861215c0f2ce249507ea
   RNCAsyncStorage: 8616bd5a58af409453ea4e1b246521bb76578d60
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
@@ -1156,7 +1156,7 @@ SPEC CHECKSUMS:
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  Yoga: a0f82bcf2458faec672e17afda20d94868f58903
+  Yoga: 8b64d5610cea2df472b5680d8fa331b954592be9
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
 PODFILE CHECKSUM: 89a1a16d2eecc6c8bd29d9d1e43ee2b4fd1a42a9
