@@ -1270,9 +1270,9 @@ export default {
     task: {
         completed: 'Completed',
         messages: {
-            completed: 'Completed task',
-            canceled: 'Canceled task',
-            reopened: 'Reopened task',
+            completed: 'completed task',
+            canceled: 'canceled task',
+            reopened: 'reopened task',
         },
     },
     statementPage: {
