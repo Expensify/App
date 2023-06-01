@@ -7,7 +7,7 @@ import * as Session from '../../../libs/actions/Session';
 const googleLogoIcon = require('../../../../assets/images/signIn/google-logo.svg').default;
 
 /**
- * Apple Sign In method for iOS that returns identityToken
+ * Google Sign In method for iOS and android that returns identityToken
  * @returns {Promise<string>}
  */
 
@@ -35,7 +35,7 @@ function googleSignInRequest() {
 }
 
 /**
- * Apple Sign In button for iOS
+ * Google Sign In button for iOS
  * @returns {React.Component}
  */
 
