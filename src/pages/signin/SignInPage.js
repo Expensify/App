@@ -87,6 +87,7 @@ function SignInPage({account, credentials}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {canUsePasswordlessLogins} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const safeAreaInsets = useSafeAreaInsets();
 
     useEffect(() => Performance.measureTTI(), []);
     useEffect(() => {
@@ -162,7 +163,7 @@ function SignInPage({account, credentials}) {
     ]);
 
     return (
-        <View style={[styles.signInPage]}>
+        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(safeAreaInsets, 1)]}>
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
