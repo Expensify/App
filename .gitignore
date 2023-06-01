@@ -94,3 +94,4 @@ storybook-static
 
 # E2E test reports
 tests/e2e/results/
+.reassure
