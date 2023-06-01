@@ -48,7 +48,6 @@ function EmojiSkinToneList(props) {
                 >
                     <View style={[styles.emojiItem, styles.justifyContentCenter]}>
                         <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>{currentSkinTone.code}</Text>
-
                     </View>
                     <Text style={[styles.emojiSkinToneTitle]}>{props.translate('emojiPicker.skinTonePickerLabel')}</Text>
                 </Pressable>

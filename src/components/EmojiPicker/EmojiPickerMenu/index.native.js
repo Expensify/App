@@ -201,31 +201,31 @@ class EmojiPickerMenu extends Component {
                         onPress={this.scrollToHeader}
                     />
                 )}
-                    <Animated.FlatList
-                        ref={(el) => (this.emojiList = el)}
-                        keyboardShouldPersistTaps="handled"
-                        data={this.state.filteredEmojis}
-                        renderItem={this.renderItem}
-                        keyExtractor={this.keyExtractor}
-                        numColumns={CONST.EMOJI_NUM_PER_ROW}
-                        style={[
+                <Animated.FlatList
+                    ref={(el) => (this.emojiList = el)}
+                    keyboardShouldPersistTaps="handled"
+                    data={this.state.filteredEmojis}
+                    renderItem={this.renderItem}
+                    keyExtractor={this.keyExtractor}
+                    numColumns={CONST.EMOJI_NUM_PER_ROW}
+                    style={[
                         StyleUtils.getEmojiPickerListHeight(isFiltered),
                         {
-                          width: this.props.windowWidth,
+                            width: this.props.windowWidth,
                         },
-                        ]}
-                        stickyHeaderIndices={this.state.headerIndices}
-                        getItemLayout={this.getItemLayout}
-                        showsVerticalScrollIndicator
-                        // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
-                        removeClippedSubviews={false}
-                        contentContainerStyle={styles.flexGrow1}
-                        ListEmptyComponent={
-                          <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
+                    ]}
+                    stickyHeaderIndices={this.state.headerIndices}
+                    getItemLayout={this.getItemLayout}
+                    showsVerticalScrollIndicator
+                    // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
+                    removeClippedSubviews={false}
+                    contentContainerStyle={styles.flexGrow1}
+                    ListEmptyComponent={
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
                             <Text style={[styles.disabledText]}>{this.props.translate('common.noResultsFound')}</Text>
-                          </View>
-                        }
-                    />
+                        </View>
+                    }
+                />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}

@@ -1134,19 +1134,19 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
  * @returns {Object}
  */
 function getEmojiPickerListHeight(hasAdditionalSpace, windowHeight) {
-  const style = {
-    paddingHorizontal: 16,
-    height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
-  }
-  
-  if(windowHeight){
-    const dim = hasAdditionalSpace ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT
-    return {
-      ...style,
-      maxHeight: windowHeight - dim
+    const style = {
+        paddingHorizontal: 16,
+        height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
     };
-  }
-  return style;
+
+    if (windowHeight) {
+        const dim = hasAdditionalSpace ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT;
+        return {
+            ...style,
+            maxHeight: windowHeight - dim,
+        };
+    }
+    return style;
 }
 
 /**

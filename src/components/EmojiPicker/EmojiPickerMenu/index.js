@@ -512,24 +512,24 @@ class EmojiPickerMenu extends Component {
                         onPress={this.scrollToHeader}
                     />
                 )}
-                    <FlatList
-                        ref={(el) => (this.emojiList = el)}
-                        data={this.state.filteredEmojis}
-                        renderItem={this.renderItem}
-                        keyExtractor={this.keyExtractor}
-                        numColumns={CONST.EMOJI_NUM_PER_ROW}
-                        style={StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight)}
-                        extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
-                        stickyHeaderIndices={this.state.headerIndices}
-                        onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
-                        getItemLayout={this.getItemLayout}
-                        contentContainerStyle={styles.flexGrow1}
-                        ListEmptyComponent={
-                          <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
-                            <Text style={[ styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>
-                          </View>
-                        }
-                    />
+                <FlatList
+                    ref={(el) => (this.emojiList = el)}
+                    data={this.state.filteredEmojis}
+                    renderItem={this.renderItem}
+                    keyExtractor={this.keyExtractor}
+                    numColumns={CONST.EMOJI_NUM_PER_ROW}
+                    style={StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight)}
+                    extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
+                    stickyHeaderIndices={this.state.headerIndices}
+                    onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
+                    getItemLayout={this.getItemLayout}
+                    contentContainerStyle={styles.flexGrow1}
+                    ListEmptyComponent={
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>
+                        </View>
+                    }
+                />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}

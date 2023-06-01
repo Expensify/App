@@ -165,17 +165,17 @@ class BaseModal extends PureComponent {
                         });
 
                         return (
-                          <View
-                            style={{
-                                ...styles.defaultModalContainer,
-                                ...modalContainerStyle,
-                                ...modalPaddingStyles,
-                            }}
-                            ref={this.props.forwardedRef}
-                            nativeID="no-drag-area"
-                        >
-                            {this.props.children}
-                        </View>
+                            <View
+                                style={{
+                                    ...styles.defaultModalContainer,
+                                    ...modalContainerStyle,
+                                    ...modalPaddingStyles,
+                                }}
+                                ref={this.props.forwardedRef}
+                                nativeID="no-drag-area"
+                            >
+                                {this.props.children}
+                            </View>
                         );
                     }}
                 </SafeAreaInsetsContext.Consumer>
