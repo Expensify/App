@@ -1024,6 +1024,12 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    furtherDetailsText: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSmall,
+        color: themeColors.textSupporting,
+    },
+
     lh16: {
         lineHeight: 16,
     },
