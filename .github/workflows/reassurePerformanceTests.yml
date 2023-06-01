@@ -29,9 +29,15 @@ jobs:
           npm install --force
           npx reassure --branch
 
+      - name: Read output.md
+        id: reassure
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: .reassure/output.md
+
       - name: Add comment to PR
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           number: ${{ github.event.pull_request.number }}
-          body: ${{ readFile('.reassure/output.md') }}
+          body: ${{ steps.reassure.outputs.content }}
