@@ -7,6 +7,7 @@ import reportPropTypes from '../pages/reportPropTypes';
 import participantPropTypes from './participantPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Tooltip from './Tooltip';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import SubscriptAvatar from './SubscriptAvatar';
@@ -61,24 +62,28 @@ const AvatarWithDisplayName = (props) => {
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {isExpenseReport ? (
-                        <SubscriptAvatar
-                            backgroundColor={themeColors.highlightBG}
-                            mainAvatar={icons[0]}
-                            secondaryAvatar={icons[1]}
-                            mainTooltip={props.report.ownerEmail}
-                            secondaryTooltip={subtitle}
-                            size={props.size}
-                        />
-                    ) : (
-                        <Avatar
-                            size={props.size}
-                            source={icons[0].source}
-                            type={icons[0].type}
-                            name={icons[0].name}
-                            containerStyles={avatarContainerStyle}
-                        />
-                    )}
+                    <Tooltip text={title}>
+                        <View>
+                            {isExpenseReport ? (
+                                <SubscriptAvatar
+                                    backgroundColor={themeColors.highlightBG}
+                                    mainAvatar={icons[0]}
+                                    secondaryAvatar={icons[1]}
+                                    mainTooltip={props.report.ownerEmail}
+                                    secondaryTooltip={subtitle}
+                                    size={props.size}
+                                />
+                            ) : (
+                                <Avatar
+                                    size={props.size}
+                                    source={icons[0].source}
+                                    type={icons[0].type}
+                                    name={icons[0].name}
+                                    containerStyles={avatarContainerStyle}
+                                />
+                            )}
+                        </View>
+                    </Tooltip>
                     <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                         <DisplayNames
                             fullTitle={title}

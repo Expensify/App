@@ -11,6 +11,7 @@ import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 import participantPropTypes from './participantPropTypes';
 import Avatar from './Avatar';
+import Tooltip from './Tooltip';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
@@ -113,19 +114,27 @@ const MoneyRequestHeader = (props) => {
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Avatar
-                            source={payeeAvatar}
-                            type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
-                            name={payeeName}
-                            size={CONST.AVATAR_SIZE.DEFAULT}
-                        />
+                        <Tooltip text={payeeName}>
+                            <View>
+                                <Avatar
+                                    source={payeeAvatar}
+                                    type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
+                                    name={payeeName}
+                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                />
+                            </View>
+                        </Tooltip>
                         <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
-                            <Text
-                                style={[styles.headerText, styles.pre]}
-                                numberOfLines={1}
-                            >
-                                {payeeName}
-                            </Text>
+                            <View style={[styles.alignItemsStart]}>
+                                <Tooltip text={payeeName}>
+                                    <Text
+                                        style={[styles.headerText, styles.pre]}
+                                        numberOfLines={1}
+                                    >
+                                        {payeeName}
+                                    </Text>
+                                </Tooltip>
+                            </View>
                             {isExpenseReport && (
                                 <Text
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
