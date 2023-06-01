@@ -31,7 +31,7 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
-    /** The credentials of the logged in person */
+    /** The credentials of the person logging in */
     credentials: PropTypes.shape({
         /** The email the user logged in with */
         login: PropTypes.string,
@@ -63,8 +63,9 @@ class ValidateLoginPage extends Component {
     componentDidMount() {
         const login = lodashGet(this.props, 'credentials.login', null);
 
-        // Legacy login validation for users not on passwordless beta
-        // A fresh session will not have the betas prop or login available
+        // Legacy login validation for users not on passwordless beta.
+        // A fresh session will not have credentials.login available and so also no user permission betas,
+        // so we skip the permissions check in that case.
         if (login && !Permissions.canUsePasswordlessLogins(this.props.betas)) {
             User.validateLogin(this.getAccountID(), this.getValidateCode());
             return;
