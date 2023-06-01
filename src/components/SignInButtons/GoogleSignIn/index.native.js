@@ -46,7 +46,7 @@ function GoogleSignIn() {
             icon={googleLogoIcon}
         />
     );
-};
+}
 
 GoogleSignIn.displayName = 'GoogleSignIn';
 

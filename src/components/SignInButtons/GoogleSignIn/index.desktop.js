@@ -8,7 +8,7 @@ import styles from '../../../styles/styles';
 
 const googleLogoIcon = require('../../../../assets/images/signIn/google-logo.svg').default;
 
-const propTypes = { ...withLocalizePropTypes };
+const propTypes = {...withLocalizePropTypes};
 
 const googleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.GOOGLE_SIGN_IN}`;
 
