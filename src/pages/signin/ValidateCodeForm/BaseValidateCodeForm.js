@@ -159,6 +159,10 @@ class BaseValidateCodeForm extends React.Component {
         const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
 
         if (requiresTwoFactorAuth) {
+            if (this.input2FA) {
+                this.input2FA.blur();
+            }
+
             if (!this.state.twoFactorAuthCode.trim()) {
                 this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
                 return;
@@ -168,9 +172,11 @@ class BaseValidateCodeForm extends React.Component {
                 this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
                 return;
             }
-
-            this.input2FA.blur();
         } else {
+            if (this.inputValidateCode) {
+                this.inputValidateCode.blur();
+            }
+
             if (!this.state.validateCode.trim()) {
                 this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
                 return;
@@ -179,8 +185,6 @@ class BaseValidateCodeForm extends React.Component {
                 this.setState({formError: {validateCode: 'validateCodeForm.error.incorrectMagicCode'}});
                 return;
             }
-
-            this.inputValidateCode.blur();
         }
 
         this.setState({
