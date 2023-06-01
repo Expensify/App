@@ -36,6 +36,7 @@ const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
     EMAIL: 'EMAIL',
+    REPORT: 'REPORT',
 };
 
 // A list of all the context actions in this menu.
@@ -90,7 +91,12 @@ export default [
         shouldShow: (type, reportAction) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
-            return isAttachment && message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID;
+            return (
+                isAttachment &&
+                message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML &&
+                reportAction.reportActionID &&
+                !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false)
+            );
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
@@ -147,7 +153,7 @@ export default [
             Clipboard.setString(selection.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: () => {},
+        getDescription: (selection) => selection.replace('mailto:', ''),
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
@@ -263,6 +269,30 @@ export default [
 
             // No popover to hide, call showDeleteConfirmModal immediately
             showDeleteModal(reportID, reportAction);
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'common.pin',
+        icon: Expensicons.Pin,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.togglePinnedState(reportID, false);
+            if (closePopover) {
+                hideContextMenu(false);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'common.unPin',
+        icon: Expensicons.Pin,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.togglePinnedState(reportID, true);
+            if (closePopover) {
+                hideContextMenu(false);
+            }
         },
         getDescription: () => {},
     },

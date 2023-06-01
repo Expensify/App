@@ -47,6 +47,14 @@ Onyx.connect({
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isCreatedAction(reportAction) {
+    return lodashGet(reportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = lodashGet(reportAction, 'message', []);
@@ -240,6 +248,10 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 
     if (isReportMessageAttachment(message)) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
+    }
+
+    if (isCreatedAction(lastVisibleAction)) {
+        return '';
     }
 
     const messageText = lodashGet(message, 'text', '');
