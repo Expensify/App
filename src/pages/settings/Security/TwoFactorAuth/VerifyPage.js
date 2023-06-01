@@ -18,7 +18,7 @@ import Clipboard from '../../../../libs/Clipboard';
 import FixedFooter from '../../../../components/FixedFooter';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import QRCode from '../../../../components/QRCode';
-import expensifyLogo from '../../../../../assets/images/expensify-logo-round-dark.png';
+import expensifyLogo from '../../../../../assets/images/expensify-logo-round-transparent.png';
 
 const propTypes = {
     ...withLocalizePropTypes,
