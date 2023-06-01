@@ -8,7 +8,10 @@ import CONST from '../CONST';
  */
 function modifyRoomName(roomName) {
     const modifiedRoomNameWithoutHash = roomName
-        .replace(/ /g, '-')
+        .toLowerCase()
+
+        // Replaces unsupported symbols with hyphens, this is useful when copying and pasting a room name that may contain an unsupported symbol
+        .replace(/[ .,;:"'!?<>&=$^+()[\]{}_\\/]/g, '-')
 
         // Replaces the smart dash on iOS devices with two hyphens
         .replace(/—/g, '--');
