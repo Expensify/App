@@ -6,6 +6,7 @@ import getComponentDisplayName from '../../../libs/getComponentDisplayName';
 import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
+import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 
 export default function (WrappedComponent) {
     const propTypes = {
@@ -15,15 +16,22 @@ export default function (WrappedComponent) {
 
         /** The report currently being looked at */
         report: reportPropTypes,
+
+        /** Indicated whether the report data is loading */
+        isLoadingReportData: PropTypes.bool,
     };
 
     const defaultProps = {
         forwardedRef: () => {},
         report: {},
+        isLoadingReportData: true,
     };
 
     class WithReportOrNotFound extends Component {
         render() {
+            if (this.props.isLoadingReportData && (_.isEmpty(this.props.report) || !this.props.report.reportID)) {
+                return <FullscreenLoadingIndicator />;
+            }
             if (_.isEmpty(this.props.report) || !this.props.report.reportID) {
                 return <NotFoundPage />;
             }
@@ -55,6 +63,9 @@ export default function (WrappedComponent) {
     return withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     })(withReportOrNotFound);
 }

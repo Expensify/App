@@ -282,6 +282,7 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
+                        isAuthTokenRequired={this.props.isAuthTokenRequired}
                         style={[styles.h100, styles.w100]}
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}

@@ -3,6 +3,7 @@ import {View, FlatList, PixelRatio} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import {Parser as HtmlParser} from 'htmlparser2';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -10,7 +11,6 @@ import CarouselActions from './CarouselActions';
 import Button from '../Button';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import AttachmentView from '../AttachmentView';
-import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -62,26 +62,11 @@ class AttachmentCarousel extends React.Component {
         this.updateZoomState = this.updateZoomState.bind(this);
         this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
 
-        this.state = this.makeInitialState();
+        this.state = this.createInitialState();
     }
 
     componentDidMount() {
         this.autoHideArrow();
-    }
-
-    /**
-     * Helps to navigate between next/previous attachments
-     * @param {Object} attachmentItem
-     * @returns {Object}
-     */
-    getAttachment(attachmentItem) {
-        const source = _.get(attachmentItem, 'source', '');
-        const file = _.get(attachmentItem, 'file', {name: ''});
-
-        return {
-            source,
-            file,
-        };
     }
 
     /**
@@ -159,38 +144,38 @@ class AttachmentCarousel extends React.Component {
     }
 
     /**
-     * Map report actions to attachment items and sets the initial carousel state
+     * Constructs the initial component state from report actions
      * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
      */
-    makeInitialState() {
-        let page = 0;
-        const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions), true);
-
-        /**
-         * Looping to filter out attachments and retrieve the src URL and name of attachments.
-         */
+    createInitialState() {
+        const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions));
         const attachments = [];
-        _.forEach(actions, ({originalMessage, message}) => {
-            // Check for attachment which hasn't been deleted
-            if (!originalMessage || !originalMessage.html || _.some(message, (m) => m.isEdited)) {
-                return;
-            }
-            const matches = [...originalMessage.html.matchAll(CONST.REGEX.ATTACHMENT_DATA)];
 
-            // matchAll captured both source url and name of the attachment
-            if (matches.length === 2) {
-                const [originalSource, name] = _.map(matches, (m) => m[2]);
-
-                // Update the image URL so the images can be accessed depending on the config environment.
-                // Eg: while using Ngrok the image path is from an Ngrok URL and not an Expensify URL.
-                const source = tryResolveUrlFromApiRoot(originalSource);
-                if (source === this.props.source) {
-                    page = attachments.length;
+        const htmlParser = new HtmlParser({
+            onopentag: (name, attribs) => {
+                if (name !== 'img' || !attribs.src) {
+                    return;
                 }
 
-                attachments.push({source, file: {name}});
-            }
+                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+
+                // By iterating actions in chronological order and prepending each attachment
+                // we ensure correct order of attachments even across actions with multiple attachments.
+                attachments.unshift({
+                    source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
+                    isAuthTokenRequired: Boolean(expensifySource),
+                    file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || attribs.src.split('/').pop()},
+                });
+            },
         });
+
+        _.forEach(actions, (action) => htmlParser.write(_.get(action, ['message', 0, 'html'])));
+        htmlParser.end();
+
+        const page = _.findIndex(attachments, (a) => a.source === this.props.source);
+        if (page === -1) {
+            throw new Error('Attachment not found');
+        }
 
         return {
             page,
@@ -209,7 +194,7 @@ class AttachmentCarousel extends React.Component {
         const nextIndex = this.state.page - deltaSlide;
         const nextItem = this.state.attachments[nextIndex];
 
-        if (!nextItem) {
+        if (!nextItem || !this.scrollRef.current) {
             return;
         }
 
@@ -220,7 +205,7 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Updates the page state when the user navigates between attachments
-     * @param {Array<{item: *, index: Number}>} viewableItems
+     * @param {Array<{item: {source, file}, index: Number}>} viewableItems
      */
     updatePage({viewableItems}) {
         // Since we can have only one item in view at a time, we can use the first item in the array
@@ -231,8 +216,7 @@ class AttachmentCarousel extends React.Component {
         }
 
         const page = entry.index;
-        const {source, file} = this.getAttachment(entry.item);
-        this.props.onNavigate({source: addEncryptedAuthTokenToURL(source), file});
+        this.props.onNavigate(entry.item);
         this.setState({page, isZoomed: false});
     }
 
@@ -258,26 +242,17 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Defines how a single attachment should be rendered
-     * @param {{ source: String, file: { name: String } }} item
+     * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String } }} item
      * @returns {JSX.Element}
      */
     renderItem({item}) {
-        const authSource = addEncryptedAuthTokenToURL(item.source);
-        if (!this.canUseTouchScreen) {
-            return (
-                <AttachmentView
-                    source={authSource}
-                    file={item.file}
-                />
-            );
-        }
-
         return (
             <AttachmentView
-                source={authSource}
+                source={item.source}
                 file={item.file}
-                onScaleChanged={this.updateZoomState}
-                onPress={this.toggleArrowsVisibility}
+                isAuthTokenRequired={item.isAuthTokenRequired}
+                onScaleChanged={this.canUseTouchScreen ? this.updateZoomState : undefined}
+                onPress={this.canUseTouchScreen ? this.toggleArrowsVisibility : undefined}
             />
         );
     }
@@ -296,8 +271,8 @@ class AttachmentCarousel extends React.Component {
                 {this.state.shouldShowArrow && (
                     <>
                         {!isBackDisabled && (
-                            <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.l2 : styles.l8]}>
-                                <Tooltip text={this.props.translate('common.previous')}>
+                            <Tooltip text={this.props.translate('common.previous')}>
+                                <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.l2 : styles.l8]}>
                                     <Button
                                         small
                                         innerStyles={[styles.arrowIcon]}
@@ -311,12 +286,12 @@ class AttachmentCarousel extends React.Component {
                                         onPressIn={this.cancelAutoHideArrow}
                                         onPressOut={this.autoHideArrow}
                                     />
-                                </Tooltip>
-                            </View>
+                                </View>
+                            </Tooltip>
                         )}
                         {!isForwardDisabled && (
-                            <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.r2 : styles.r8]}>
-                                <Tooltip text={this.props.translate('common.next')}>
+                            <Tooltip text={this.props.translate('common.next')}>
+                                <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.r2 : styles.r8]}>
                                     <Button
                                         small
                                         innerStyles={[styles.arrowIcon]}
@@ -330,8 +305,8 @@ class AttachmentCarousel extends React.Component {
                                         onPressIn={this.cancelAutoHideArrow}
                                         onPressOut={this.autoHideArrow}
                                     />
-                                </Tooltip>
-                            </View>
+                                </View>
+                            </Tooltip>
                         )}
                     </>
                 )}

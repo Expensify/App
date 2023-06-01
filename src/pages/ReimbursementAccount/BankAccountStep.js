@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView, TouchableWithoutFeedback, Linking} from 'react-native';
+import {View, ScrollView, Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -27,6 +27,7 @@ import ROUTES from '../../ROUTES';
 import Button from '../../components/Button';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     ...StepPropTypes,
@@ -93,7 +94,7 @@ const BankAccountStep = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={props.translate('workspace.common.bankAccount')}
+                    title={props.translate('workspace.common.connectBankAccount')}
                     subtitle={props.policyName}
                     stepCounter={subStep ? {step: 1, total: 5} : undefined}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -149,25 +150,21 @@ const BankAccountStep = (props) => {
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
                         <TextLink href="https://use.expensify.com/privacy">{props.translate('common.privacy')}</TextLink>
-                        <TouchableWithoutFeedback
-                            // eslint-disable-next-line max-len
+                        <PressableWithoutFeedback
                             onPress={() => Linking.openURL('https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/')}
+                            style={[styles.flexRow, styles.alignItemsCenter]}
+                            accessibilityLabel={props.translate('bankAccount.yourDataIsSecure')}
                         >
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.cursorPointer]}>
-                                <TextLink
-                                    // eslint-disable-next-line max-len
-                                    href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
-                                >
-                                    {props.translate('bankAccount.yourDataIsSecure')}
-                                </TextLink>
-                                <View style={[styles.ml1]}>
-                                    <Icon
-                                        src={Expensicons.Lock}
-                                        fill={colors.blue}
-                                    />
-                                </View>
+                            <TextLink href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/">
+                                {props.translate('bankAccount.yourDataIsSecure')}
+                            </TextLink>
+                            <View style={[styles.ml1]}>
+                                <Icon
+                                    src={Expensicons.Lock}
+                                    fill={colors.blue}
+                                />
                             </View>
-                        </TouchableWithoutFeedback>
+                        </PressableWithoutFeedback>
                     </View>
                 </ScrollView>
             </View>

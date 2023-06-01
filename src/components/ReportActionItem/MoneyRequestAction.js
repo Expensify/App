@@ -20,6 +20,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
+import refPropTypes from '../refPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -35,7 +36,7 @@ const propTypes = {
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
     /** Popover context menu anchor, used for showing context menu */
-    contextMenuAnchor: PropTypes.shape({current: PropTypes.elementType}),
+    contextMenuAnchor: refPropTypes,
 
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
@@ -90,10 +91,12 @@ const defaultProps = {
 };
 
 const MoneyRequestAction = (props) => {
-    const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
+    const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+
     const onIOUPreviewPressed = () => {
-        if (lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && hasMultipleParticipants) {
-            Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
+        if (isSplitBillAction) {
+            const reportActionID = lodashGet(props.action, 'reportActionID', '0');
+            Navigation.navigate(ROUTES.getSplitBillDetailsRoute(props.chatReportID, reportActionID));
             return;
         }
 
@@ -144,7 +147,7 @@ const MoneyRequestAction = (props) => {
             <IOUPreview
                 iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
-                isBillSplit={hasMultipleParticipants}
+                isBillSplit={isSplitBillAction}
                 action={props.action}
                 contextMenuAnchor={props.contextMenuAnchor}
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
