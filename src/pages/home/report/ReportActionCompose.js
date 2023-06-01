@@ -183,7 +183,6 @@ class ReportActionCompose extends React.Component {
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
-        this.setShouldBlockEmojiCalcToFalse = this.setShouldBlockEmojiCalcToFalse.bind(this);
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -194,6 +193,10 @@ class ReportActionCompose extends React.Component {
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
         this.shouldAutoFocus = !props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat()) && props.shouldShowComposeInput;
+
+        // These variables are used to decide whether to block the suggestions list from showing to prevent flickering
+        this.shouldBlockEmojiCalc = false;
+        this.shouldBlockMentionCalc = false;
 
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
@@ -285,6 +288,8 @@ class ReportActionCompose extends React.Component {
         this.setState({selection: e.nativeEvent.selection});
         if (!this.state.value || e.nativeEvent.selection.end < 1) {
             this.resetSuggestions();
+            this.shouldBlockEmojiCalc = false;
+            this.shouldBlockMentionCalc = false;
             return;
         }
         this.calculateEmojiSuggestion();
@@ -423,13 +428,6 @@ class ReportActionCompose extends React.Component {
         }
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    setShouldBlockEmojiCalcToFalse() {
-        if (this.state && this.state.shouldBlockEmojiCalc) {
-            this.setState({shouldBlockEmojiCalc: false});
-        }
-    }
-
     /**
      * Determines if we can show the task option
      * @param {Array} reportParticipants
@@ -513,10 +511,11 @@ class ReportActionCompose extends React.Component {
      * Calculates and cares about the content of an Emoji Suggester
      */
     calculateEmojiSuggestion() {
-        if (this.state.shouldBlockEmojiCalc) {
-            this.setState({shouldBlockEmojiCalc: false});
+        if (this.shouldBlockEmojiCalc) {
+            this.shouldBlockEmojiCalc = false;
             return;
         }
+
         const leftString = this.state.value.substring(0, this.state.selection.end);
         const colonIndex = leftString.lastIndexOf(':');
         const isCurrentlyShowingEmojiSuggestion = this.isEmojiCode(this.state.value, this.state.selection.end);
@@ -543,6 +542,11 @@ class ReportActionCompose extends React.Component {
     }
 
     calculateMentionSuggestion() {
+        if (this.shouldBlockMentionCalc) {
+            this.shouldBlockMentionCalc = false;
+            return;
+        }
+
         const valueAfterTheCursor = this.state.value.substring(this.state.selection.end);
         const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
 
@@ -917,7 +921,6 @@ class ReportActionCompose extends React.Component {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
-
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report) && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
@@ -927,6 +930,7 @@ class ReportActionCompose extends React.Component {
         const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
+        const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
         return (
             <View
@@ -940,7 +944,7 @@ class ReportActionCompose extends React.Component {
                     style={this.props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                     contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
                 >
-                    {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
+                    {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
                     <View
                         style={[
                             shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -955,7 +959,8 @@ class ReportActionCompose extends React.Component {
                             onConfirm={this.addAttachment}
                             onModalShow={() => this.setState({isAttachmentPreviewActive: true})}
                             onModalHide={() => {
-                                this.setShouldBlockEmojiCalcToFalse();
+                                this.shouldBlockEmojiCalc = false;
+                                this.shouldBlockMentionCalc = false;
                                 this.setState({isAttachmentPreviewActive: false});
                             }}
                         >
@@ -1036,10 +1041,11 @@ class ReportActionCompose extends React.Component {
                                                             icon: Expensicons.Paperclip,
                                                             text: this.props.translate('reportActionCompose.addAttachment'),
                                                             onSelected: () => {
-                                                                // Set a flag to block emoji calculation until we're finished using the file picker,
+                                                                // Set a flag to block suggestion calculation until we're finished using the file picker,
                                                                 // which will stop any flickering as the file picker opens on non-native devices.
                                                                 if (this.willBlurTextInputOnTapOutside) {
-                                                                    this.setState({shouldBlockEmojiCalc: true});
+                                                                    this.shouldBlockEmojiCalc = true;
+                                                                    this.shouldBlockMentionCalc = true;
                                                                 }
 
                                                                 openPicker({
@@ -1093,7 +1099,10 @@ class ReportActionCompose extends React.Component {
                                                     this.setIsFocused(false);
                                                     this.resetSuggestions();
                                                 }}
-                                                onClick={this.setShouldBlockEmojiCalcToFalse}
+                                                onClick={() => {
+                                                    this.shouldBlockEmojiCalc = false;
+                                                    this.shouldBlockMentionCalc = false;
+                                                }}
                                                 onPasteFile={displayFileInModal}
                                                 shouldClear={this.state.textInputShouldClear}
                                                 onClear={() => this.setTextInputShouldClear(false)}

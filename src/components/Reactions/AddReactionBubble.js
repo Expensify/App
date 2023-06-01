@@ -11,6 +11,7 @@ import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -70,7 +71,7 @@ const AddReactionBubble = (props) => {
             <Pressable
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
-                onPress={onPress}
+                onPress={Session.checkIfActionIsAllowed(onPress)}
                 // Prevent text input blur when Add reaction is clicked
                 onMouseDown={(e) => e.preventDefault()}
             >
