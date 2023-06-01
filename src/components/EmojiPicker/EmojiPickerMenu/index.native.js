@@ -201,11 +201,6 @@ class EmojiPickerMenu extends Component {
                         onPress={this.scrollToHeader}
                     />
                 )}
-                {this.state.filteredEmojis.length === 0 ? (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.emojiPickerListWithPadding, StyleUtils.getEmojiPickerListHeight(isFiltered)]}>
-                        <Text style={styles.disabledText}>{this.props.translate('common.noResultsFound')}</Text>
-                    </View>
-                ) : (
                     <Animated.FlatList
                         ref={(el) => (this.emojiList = el)}
                         keyboardShouldPersistTaps="handled"
@@ -213,14 +208,24 @@ class EmojiPickerMenu extends Component {
                         renderItem={this.renderItem}
                         keyExtractor={this.keyExtractor}
                         numColumns={CONST.EMOJI_NUM_PER_ROW}
-                        style={[styles.emojiPickerList, StyleUtils.getEmojiPickerListHeight(isFiltered)]}
+                        style={[
+                        StyleUtils.getEmojiPickerListHeight(isFiltered),
+                        {
+                          width: this.props.windowWidth,
+                        },
+                        ]}
                         stickyHeaderIndices={this.state.headerIndices}
                         getItemLayout={this.getItemLayout}
                         showsVerticalScrollIndicator
                         // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
                         removeClippedSubviews={false}
+                        contentContainerStyle={styles.flexGrow1}
+                        ListEmptyComponent={
+                          <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
+                            <Text style={[styles.disabledText]}>{this.props.translate('common.noResultsFound')}</Text>
+                          </View>
+                        }
                     />
-                )}
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}

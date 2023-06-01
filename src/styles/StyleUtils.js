@@ -1103,14 +1103,22 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
  * Gets the correct height for emoji picker list based on screen dimensions
  *
  * @param {Boolean} hasAdditionalSpace
- * @param {Boolean} isBrowserMobile
+ * @param {Number} windowHeight
  * @returns {Object}
  */
-function getEmojiPickerListHeight(hasAdditionalSpace, isBrowserMobile = false) {
-    const pickerListHeight = isBrowserMobile ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT_WEB : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT;
+function getEmojiPickerListHeight(hasAdditionalSpace, windowHeight) {
+  if(windowHeight){
+    const dim = hasAdditionalSpace ? 120 : 120 + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT
     return {
-        height: hasAdditionalSpace ? pickerListHeight + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : pickerListHeight,
+      paddingHorizontal: 16,
+      height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+      maxHeight: windowHeight - dim
     };
+  }
+  return {
+    paddingHorizontal: 16,
+    height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+  };
 }
 
 /**

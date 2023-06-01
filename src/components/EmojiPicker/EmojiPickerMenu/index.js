@@ -21,7 +21,6 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
-import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -493,7 +492,7 @@ class EmojiPickerMenu extends Component {
                 style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
-                <View style={[styles.ph4, styles.pb1, styles.pt2]}>
+                <View style={[styles.ph4, styles.pb1]}>
                     <TextInput
                         label={this.props.translate('common.search')}
                         onChangeText={this.filterEmojis}
@@ -513,35 +512,24 @@ class EmojiPickerMenu extends Component {
                         onPress={this.scrollToHeader}
                     />
                 )}
-                {this.state.filteredEmojis.length === 0 ? (
-                    <Text
-                        style={[
-                            styles.disabledText,
-                            styles.emojiPickerListWithPadding,
-                            styles.dFlex,
-                            styles.alignItemsCenter,
-                            styles.justifyContentCenter,
-                            styles.textLabel,
-                            styles.colorMuted,
-                            StyleUtils.getEmojiPickerListHeight(true, Browser.isMobile()),
-                        ]}
-                    >
-                        {this.props.translate('common.noResultsFound')}
-                    </Text>
-                ) : (
                     <FlatList
                         ref={(el) => (this.emojiList = el)}
                         data={this.state.filteredEmojis}
                         renderItem={this.renderItem}
                         keyExtractor={this.keyExtractor}
                         numColumns={CONST.EMOJI_NUM_PER_ROW}
-                        style={[styles.emojiPickerList, StyleUtils.getEmojiPickerListHeight(isFiltered, Browser.isMobile())]}
+                        style={StyleUtils.getEmojiPickerListHeight(isFiltered, this.props.windowHeight)}
                         extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]}
                         stickyHeaderIndices={this.state.headerIndices}
                         onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
                         getItemLayout={this.getItemLayout}
+                        contentContainerStyle={styles.flexGrow1}
+                        ListEmptyComponent={
+                          <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
+                            <Text style={[ styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>
+                          </View>
+                        }
                     />
-                )}
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}

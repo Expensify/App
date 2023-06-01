@@ -60,7 +60,7 @@ class EmojiSkinToneList extends Component {
     render() {
         const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
         return (
-            <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
+            <View style={[styles.flexRow, styles.p2, styles.ph4, styles.emojiPickerContainer]}>
                 {!this.state.isSkinToneListVisible && (
                     <Pressable
                         onPress={() => this.setState((prev) => ({isSkinToneListVisible: !prev.isSkinToneListVisible}))}

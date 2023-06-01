@@ -1,5 +1,5 @@
 import React from 'react';
-import {Dimensions, Keyboard} from 'react-native';
+import {Dimensions, Keyboard, Platform} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
@@ -8,6 +8,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
 import compose from '../../libs/compose';
 import * as Browser from '../../libs/Browser';
+import styles from '../../styles/styles';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -169,7 +170,8 @@ class EmojiPicker extends React.Component {
                 }}
                 outerStyle={Browser.isMobile() && {maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
                 anchorAlignment={this.state.emojiPopoverAnchorOrigin}
-                enableKeyboardAvoiding
+                innerContainerStyle={{paddingTop: 4, maxHeight: '95%'}}
+                avoidKeyboard
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
