@@ -66,7 +66,7 @@ const defaultProps = {
 const NewTaskPage = (props) => {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
-    const [errorMessage, setErrorMessage] = React.useState(props.translate('newTaskPage.confirmError'));
+    const [errorMessage, setErrorMessage] = React.useState('');
     const [parentReport, setParentReport] = React.useState({});
 
     useEffect(() => {
@@ -102,6 +102,17 @@ const NewTaskPage = (props) => {
     // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
+
+        if (!props.task.title && !props.task.shareDestination) {
+            setErrorMessage(props.translate('newTaskPage.confirmError'));
+            return;
+        }
+
+        if (!props.task.title) {
+            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskName'));
+            return;
+        }
+
         if (!props.task.shareDestination) {
             setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskDestination'));
             return;

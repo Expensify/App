@@ -1263,7 +1263,6 @@ export default {
         pleaseEnterTaskName: 'Please enter a title',
         markAsDone: 'Mark as done',
         markAsIncomplete: 'Mark as incomplete',
-        pleaseEnterTaskAssignee: 'Please select an assignee',
         pleaseEnterTaskDestination: 'Please select with whom you want to share',
     },
     task: {

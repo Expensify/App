@@ -1269,7 +1269,6 @@ export default {
         pleaseEnterTaskName: 'Por favor introduce un título',
         markAsDone: 'Marcar como hecho',
         markAsIncomplete: 'Marcar como incompleta',
-        pleaseEnterTaskAssignee: 'Por favor, asigna una persona a esta tarea',
         pleaseEnterTaskDestination: 'Por favor selecciona con quien deseas compartir',
     },
     task: {
