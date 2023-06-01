@@ -70,7 +70,7 @@ const ReportWelcomeText = (props) => {
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
                         <Text style={[styles.textStrong]}>
                             {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
-                            {lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail}
+                            {lodashGet(props.personalDetails, [props.report.ownerAccountID, 'firstName']) || props.report.ownerEmail}
                         </Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(props.report)}</Text>
@@ -129,7 +129,7 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(ReportWelcomeText);
