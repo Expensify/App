@@ -33,7 +33,7 @@ const envToLogoSuffixMap = {
 };
 
 function mapEnvToLogoSuffix(envFile) {
-    let env = envFile.split('.')[2];
+    let env = envFile.split('/').pop().split('.')[2];
     if (typeof env === 'undefined') {
         env = 'dev';
     }
