@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {useState, useCallback} from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -20,77 +20,57 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class EmojiSkinToneList extends Component {
-    constructor(props) {
-        super(props);
+function EmojiSkinToneList(props) {
+    const [highlightedIndex, setHighlightedIndex] = useState(null);
+    const [isSkinToneListVisible, setIsSkinToneListVisible] = useState(false);
 
-        this.updateSelectedSkinTone = this.updateSelectedSkinTone.bind(this);
-
-        this.state = {
-            highlightedIndex: -1,
-            isSkinToneListVisible: false,
-        };
-    }
-
-    componentDidMount() {
-        // Get the selected skinToneEmoji based on the index
-        const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
-        this.setState({highlightedIndex: selectedEmoji.skinTone});
-    }
-
-    componentDidUpdate(prevProps) {
-        // Update the highlighted skin tone only if the selected one changes
-        if (prevProps.preferredSkinTone === this.props.preferredSkinTone) {
-            return;
-        }
-
-        const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
-        this.setState({highlightedIndex: selectedEmoji.skinTone});
-    }
+    const toggleIsSkinToneListVisible = useCallback(() => {
+        setIsSkinToneListVisible((prev) => !prev);
+    }, []);
 
     /**
      * Pass the skinTone to props and hide the picker
      * @param {object} skinToneEmoji
      */
-    updateSelectedSkinTone(skinToneEmoji) {
-        this.setState((prev) => ({isSkinToneListVisible: !prev.isSkinToneListVisible, highlightedIndex: skinToneEmoji.skinTone}));
-        this.props.updatePreferredSkinTone(skinToneEmoji.skinTone);
+    function updateSelectedSkinTone(skinToneEmoji) {
+        toggleIsSkinToneListVisible();
+        setHighlightedIndex(skinToneEmoji.skinTone);
+        props.updatePreferredSkinTone(skinToneEmoji.skinTone);
     }
 
-    render() {
-        const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
-        return (
-            <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
-                {!this.state.isSkinToneListVisible && (
-                    <Pressable
-                        onPress={() => this.setState((prev) => ({isSkinToneListVisible: !prev.isSkinToneListVisible}))}
-                        style={[styles.flex1, styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
-                    >
-                        <View style={[styles.emojiItem, styles.justifyContentCenter]}>
-                            <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>{selectedEmoji.code}</Text>
-                        </View>
-                        <Text style={[styles.emojiSkinToneTitle]}>{this.props.translate('emojiPicker.skinTonePickerLabel')}</Text>
-                    </Pressable>
-                )}
-                {this.state.isSkinToneListVisible && (
-                    <View style={[styles.flexRow, styles.flex1]}>
-                        {_.map(Emojis.skinTones, (skinToneEmoji) => (
-                            <EmojiPickerMenuItem
-                                onPress={() => this.updateSelectedSkinTone(skinToneEmoji)}
-                                onHoverIn={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}
-                                onHoverOut={() => this.setState({highlightedIndex: selectedEmoji.skinTone})}
-                                key={skinToneEmoji.code}
-                                emoji={skinToneEmoji.code}
-                                isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex || skinToneEmoji.skinTone === selectedEmoji.skinTone}
-                            />
-                        ))}
+    const currentSkinTone = getSkinToneEmojiFromIndex(props.preferredSkinTone);
+    return (
+        <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
+            {!isSkinToneListVisible && (
+                <Pressable
+                    onPress={toggleIsSkinToneListVisible}
+                    style={[styles.flex1, styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
+                >
+                    <View style={[styles.emojiItem, styles.justifyContentCenter]}>
+                        <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>{currentSkinTone.code}</Text>
                     </View>
-                )}
-            </View>
-        );
-    }
+                    <Text style={[styles.emojiSkinToneTitle]}>{props.translate('emojiPicker.skinTonePickerLabel')}</Text>
+                </Pressable>
+            )}
+            {isSkinToneListVisible && (
+                <View style={[styles.flexRow, styles.flex1]}>
+                    {_.map(Emojis.skinTones, (skinToneEmoji) => (
+                        <EmojiPickerMenuItem
+                            onPress={() => updateSelectedSkinTone(skinToneEmoji)}
+                            onHoverIn={() => setHighlightedIndex(skinToneEmoji.skinTone)}
+                            onHoverOut={() => setHighlightedIndex(null)}
+                            key={skinToneEmoji.code}
+                            emoji={skinToneEmoji.code}
+                            isHighlighted={skinToneEmoji.skinTone === highlightedIndex || skinToneEmoji.skinTone === currentSkinTone.skinTone}
+                        />
+                    ))}
+                </View>
+            )}
+        </View>
+    );
 }
 
 EmojiSkinToneList.propTypes = propTypes;
+EmojiSkinToneList.displayName = 'EmojiSkinToneList';
 
 export default withLocalize(EmojiSkinToneList);
