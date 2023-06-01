@@ -1,8 +1,9 @@
 import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import SignInPageLayout from './SignInPageLayout';
@@ -18,6 +19,7 @@ import useLocalize from '../../hooks/useLocalize';
 import usePermissions from '../../hooks/usePermissions';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -160,7 +162,7 @@ function SignInPage({account, credentials}) {
     ]);
 
     return (
-        <SafeAreaView style={[styles.signInPage]}>
+        <View style={[styles.signInPage]}>
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
@@ -177,7 +179,7 @@ function SignInPage({account, credentials}) {
                 {shouldShowResendValidationForm && <ResendValidationForm />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
             </SignInPageLayout>
-        </SafeAreaView>
+        </View>
     );
 }
 

@@ -91,12 +91,12 @@ const defaultProps = {
 };
 
 const MoneyRequestAction = (props) => {
-    const hasMultipleParticipants = lodashGet(props.chatReport, 'participants', []).length > 1;
     const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
     const onIOUPreviewPressed = () => {
-        if (isSplitBillAction && hasMultipleParticipants) {
-            Navigation.navigate(ROUTES.getReportParticipantsRoute(props.chatReportID));
+        if (isSplitBillAction) {
+            const reportActionID = lodashGet(props.action, 'reportActionID', '0');
+            Navigation.navigate(ROUTES.getSplitBillDetailsRoute(props.chatReportID, reportActionID));
             return;
         }
 

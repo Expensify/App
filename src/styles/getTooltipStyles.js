@@ -57,14 +57,17 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  * @param {Number} yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
  * @param {Element} [tooltip] - The reference to the tooltip's root element
+ * @param {Number} tooltipTargetHeight - The height of the tooltip's target
  * @returns {Boolean}
  */
-function isOverlappingAtTop(xOffset, yOffset, tooltip) {
+function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetHeight) {
     if (typeof document.elementFromPoint !== 'function') {
         return false;
     }
 
-    const element = document.elementFromPoint(xOffset, yOffset);
+    // Use the vertical center of the target to prevent wrong element returned by elementFromPoint in case the target has a border radius.
+    const centerY = yOffset + tooltipTargetHeight / 2;
+    const element = document.elementFromPoint(xOffset, centerY);
     const tooltipRef = (tooltip && tooltip.current) || tooltip;
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
@@ -141,7 +144,7 @@ export default function getTooltipStyles(
         // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
         // Or the wrapped component is overlapping at top-left with another element
         // we'll display it beneath its wrapped component rather than above it as usual.
-        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip);
+        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetHeight);
 
         // When the tooltip size is ready, we can start animating the scale.
         scale = currentSize;

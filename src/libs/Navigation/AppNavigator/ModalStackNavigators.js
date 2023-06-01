@@ -111,34 +111,13 @@ const IOUSendModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
-const IOUDetailsModalStackNavigator = createModalStackNavigator([
+const SplitDetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const IOUDetailsModal = require('../../../pages/iou/IOUDetailsModal').default;
-            return IOUDetailsModal;
+            const SplitBillDetailsPage = require('../../../pages/iou/SplitBillDetailsPage').default;
+            return SplitBillDetailsPage;
         },
-        name: 'IOU_Details_Root',
-    },
-    {
-        getComponent: () => {
-            const AddPersonalBankAccountPage = require('../../../pages/AddPersonalBankAccountPage').default;
-            return AddPersonalBankAccountPage;
-        },
-        name: 'IOU_Details_Add_Bank_Account',
-    },
-    {
-        getComponent: () => {
-            const AddDebitCardPage = require('../../../pages/settings/Payments/AddDebitCardPage').default;
-            return AddDebitCardPage;
-        },
-        name: 'IOU_Details_Add_Debit_Card',
-    },
-    {
-        getComponent: () => {
-            const EnablePaymentsPage = require('../../../pages/EnablePayments/EnablePaymentsPage').default;
-            return EnablePaymentsPage;
-        },
-        name: 'IOU_Details_Enable_Payments',
+        name: 'SplitDetails_Root',
     },
 ]);
 
@@ -221,6 +200,16 @@ const TaskModalStackNavigator = createModalStackNavigator([
             return TaskAssigneeSelectorPage;
         },
         name: 'Task_Assignee',
+    },
+]);
+
+const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ReportWelcomeMessagePage = require('../../../pages/ReportWelcomeMessagePage').default;
+            return ReportWelcomeMessagePage;
+        },
+        name: 'Report_WelcomeMessage_Root',
     },
 ]);
 
@@ -557,6 +546,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const WorkspaceRateAndUnitPage = require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default;
+            return WorkspaceRateAndUnitPage;
+        },
+        name: 'Workspace_RateAndUnit',
+    },
+    {
+        getComponent: () => {
             const WorkspaceBillsPage = require('../../../pages/workspace/bills/WorkspaceBillsPage').default;
             return WorkspaceBillsPage;
         },
@@ -706,15 +702,26 @@ const YearPickerStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const FlagCommentStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const FlagCommentPage = require('../../../pages/FlagCommentPage').default;
+            return FlagCommentPage;
+        },
+        name: 'FlagComment_Root',
+    },
+]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     IOUSendModalStackNavigator,
-    IOUDetailsModalStackNavigator,
+    SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,
+    ReportWelcomeMessageModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
@@ -726,4 +733,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
     YearPickerStackNavigator,
+    FlagCommentStackNavigator,
 };
