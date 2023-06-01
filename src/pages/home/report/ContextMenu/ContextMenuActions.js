@@ -288,7 +288,7 @@ export default [
             if (closePopover) {
                 hideContextMenu(false);
             }
-    },
+        },
         getDescription: () => {},
     },
     {
