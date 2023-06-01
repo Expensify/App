@@ -13,8 +13,11 @@ const propTypes = {
     /** Name of the reportAction action */
     actionName: PropTypes.string.isRequired,
 
-    /* Onyx Props */
+    /** The ID of the associated taskReport */
+    // eslint-disable-next-line react/no-unused-prop-types -- This is used in the withOnyx HOC
+    taskReportID: PropTypes.string.isRequired,
 
+    /* Onyx Props */
     taskReport: PropTypes.shape({
         /** Title of the task */
         reportName: PropTypes.string,

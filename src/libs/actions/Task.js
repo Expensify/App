@@ -242,6 +242,7 @@ function reopenTask(taskReportID, taskTitle) {
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
                 lastActorEmail: reopenedTaskReportAction.actorEmail,
+                lastReadTime: reopenedTaskReportAction.created,
             },
         },
         {
