@@ -81,7 +81,10 @@ const NewTaskPage = (props) => {
         >
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.assignTask')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
+                onCloseButtonPress={() => {
+                    Navigation.dismissModal();
+                    TaskUtils.clearOutTaskInfo();
+                }}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
@@ -98,7 +101,6 @@ const NewTaskPage = (props) => {
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('newTaskPage.title')}
-                        defaultValue={props.task.title}
                         value={taskTitle}
                         onChangeText={(text) => setTaskTitle(text)}
                     />
