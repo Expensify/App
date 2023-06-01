@@ -5,14 +5,14 @@ import themeColors from '../styles/themes/default';
 import Icon from './Icon';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
+import reportPropTypes from '../pages/reportPropTypes';
 import * as Report from '../libs/actions/Report';
 import * as Expensicons from './Icon/Expensicons';
 import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     /** Report to pin */
-    report: iouReportPropTypes,
+    report: reportPropTypes,
     ...withLocalizePropTypes,
 };
 
