@@ -12,7 +12,7 @@ Onyx.connect({
 /**
  * Given a list of account IDs (as string) it will return an array of personal details objects.
  * @param {Array<string>} accountIDs  - Array of accountIDs
- * @param {number} currentUserAccountID
+ * @param {string} currentUserAccountID
  * @param {boolean} shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns {Array} - Array of personal detail objects
  */
@@ -21,7 +21,7 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
     _.each(
         _.filter(personalDetails, (detail) => accountIDs.includes(detail.accountID)),
         (detail) => {
-            if (shouldChangeUserDisplayName && currentUserAccountID.toString() === detail.accountID) {
+            if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 result.push({
                     ...detail,
                     displayName: Localize.translateLocal('common.you'),
