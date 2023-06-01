@@ -60,7 +60,7 @@ const BaseAutoCompleteSuggestions = (props) => {
     return (
         <Animated.View
             ref={props.forwardedRef}
-            style={[styles.autoCompleteSuggestionsContainer,animatedStyles]}
+            style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             exiting={FadeOutDown.duration(100)}
         >
             <FlatList
