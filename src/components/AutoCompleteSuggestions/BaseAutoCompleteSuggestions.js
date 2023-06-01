@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {Pressable} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming, FadeOutDown, Easing} from 'react-native-reanimated';
+import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 // We take FlatList from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {FlatList} from 'react-native-gesture-handler';
 import styles from '../../styles/styles';
@@ -58,7 +58,7 @@ const BaseAutoCompleteSuggestions = (props) => {
         <Animated.View
             ref={props.forwardedRef}
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
-            exiting={FadeOutDown.duration(100)}
+            exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
         >
             <FlatList
                 keyboardShouldPersistTaps="handled"
