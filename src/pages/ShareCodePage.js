@@ -9,7 +9,7 @@ import compose from '../libs/compose';
 import reportPropTypes from './reportPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
 import styles from '../styles/styles';
-import roomAvatar from '../../assets/images/avatars/room.png';
+import logo from '../../assets/images/expensify-logo-round-transparent.png';
 import * as ReportUtils from '../libs/ReportUtils';
 import MenuItem from '../components/MenuItem';
 import Clipboard from '../libs/Clipboard';
@@ -61,7 +61,7 @@ class ShareCodePage extends React.Component {
                             url={url}
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
                             subtitle={isReport ? subtitle : this.props.session.email}
-                            logo={isReport ? roomAvatar : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                            logo={isReport ? logo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
                         />
                     </View>
 

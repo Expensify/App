@@ -47,8 +47,9 @@ function QRCode(props) {
             value={props.url}
             size={props.size}
             logo={props.logo}
-            logoBackgroundColor="transparent"
+            logoBackgroundColor={props.backgroundColor}
             logoSize={props.size * 0.3}
+            logoMargin={props.size * 0.02}
             logoBorderRadius={props.size}
             backgroundColor={props.backgroundColor}
             color={props.color}
