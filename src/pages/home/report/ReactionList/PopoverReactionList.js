@@ -1,27 +1,20 @@
 import React from 'react';
 import {Dimensions} from 'react-native';
-
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import lodashMap from 'lodash/map';
-import lodashFilter from 'lodash/filter';
-import lodashFind from 'lodash/find';
-import lodashEach from 'lodash/each';
-import lodashIsEqual from 'lodash/isEqual';
-
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
-
 import BaseReactionList from './BaseReactionList';
 import compose from '../../../../libs/compose';
 import reportActionPropTypes from '../reportActionPropTypes';
 import ONYXKEYS from '../../../../ONYXKEYS';
-import getPreferredEmojiCode from '../../../../components/Reactions/getPreferredEmojiCode';
 import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import emojis from '../../../../../assets/emojis';
+import * as EmojiUtils from '../../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -32,26 +25,6 @@ const propTypes = {
 
 const defaultProps = {
     reportActions: {},
-};
-
-/**
- * Given an emoji object and a list of senders it will return an
- * array of emoji codes, that represents all used variations of the
- * emoji.
- * @param {{ name: string, code: string, types: string[] }} emoji
- * @param {Array} users
- * @return {string[]}
- * */
-const getUniqueEmojiCodes = (emoji, users) => {
-    const emojiCodes = [];
-    lodashEach(users, (user) => {
-        const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
-
-        if (emojiCode && !emojiCodes.includes(emojiCode)) {
-            emojiCodes.push(emojiCode);
-        }
-    });
-    return emojiCodes;
 };
 
 class PopoverReactionList extends React.Component {
@@ -105,13 +78,13 @@ class PopoverReactionList extends React.Component {
             this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition ||
             previousLocale !== nextLocale ||
             (this.state.isPopoverVisible &&
-                (!lodashIsEqual(prevSelectedReaction, selectedReaction) ||
+                (!_.isEqual(prevSelectedReaction, selectedReaction) ||
                     this.state.emojiName !== nextState.emojiName ||
                     this.state.emojiCount !== nextState.emojiCount ||
                     this.state.hasUserReacted !== nextState.hasUserReacted ||
                     this.state.reportActionID !== nextState.reportActionID ||
-                    !lodashIsEqual(this.state.emojiCodes, nextState.emojiCodes) ||
-                    !lodashIsEqual(this.state.users, nextState.users)))
+                    !_.isEqual(this.state.emojiCodes, nextState.emojiCodes) ||
+                    !_.isEqual(this.state.users, nextState.users)))
         );
     }
 
@@ -167,10 +140,10 @@ class PopoverReactionList extends React.Component {
      * @returns {Object}
      */
     getSelectedReaction(reportActions, reportActionID, emojiName) {
-        const reportAction = lodashFind(reportActions, (action) => action.reportActionID === reportActionID);
+        const reportAction = _.find(reportActions, (action) => action.reportActionID === reportActionID);
         const reactions = lodashGet(reportAction, ['message', 0, 'reactions'], []);
-        const reactionsWithCount = lodashFilter(reactions, (reaction) => reaction.users.length > 0);
-        return lodashFind(reactionsWithCount, (reaction) => reaction.emoji === emojiName);
+        const reactionsWithCount = _.filter(reactions, (reaction) => reaction.users.length > 0);
+        return _.find(reactionsWithCount, (reaction) => reaction.emoji === emojiName);
     }
 
     /**
@@ -189,9 +162,9 @@ class PopoverReactionList extends React.Component {
             };
         }
         const emojiCount = selectedReaction.users.length;
-        const reactionUsers = lodashMap(selectedReaction.users, (sender) => sender.accountID.toString());
-        const emoji = lodashFind(emojis, (e) => e.name === selectedReaction.emoji);
-        const emojiCodes = getUniqueEmojiCodes(emoji, selectedReaction.users);
+        const reactionUsers = _.map(selectedReaction.users, (sender) => sender.accountID.toString());
+        const emoji = _.find(emojis, (e) => e.name === selectedReaction.emoji);
+        const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, selectedReaction.users);
         const hasUserReacted = Report.hasAccountIDReacted(this.props.currentUserPersonalDetails.accountID, reactionUsers);
         const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
         return {
@@ -274,6 +247,7 @@ class PopoverReactionList extends React.Component {
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     disableAnimation={false}
+                    animationOutTiming={1}
                     shouldSetModalVisibility={false}
                     fullscreen
                 >

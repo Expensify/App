@@ -177,6 +177,9 @@ export default {
                     Workspace_Reimburse: {
                         path: ROUTES.WORKSPACE_REIMBURSE,
                     },
+                    Workspace_RateAndUnit: {
+                        path: ROUTES.WORKSPACE_RATE_AND_UNIT,
+                    },
                     Workspace_Bills: {
                         path: ROUTES.WORKSPACE_BILLS,
                     },
@@ -224,6 +227,14 @@ export default {
                     Report_Settings_Notification_Preferences: {
                         path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES,
                     },
+                    Report_Settings_Write_Capability: {
+                        path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY,
+                    },
+                },
+            },
+            Report_WelcomeMessage: {
+                screens: {
+                    Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE,
                 },
             },
             NewGroup: {
@@ -284,12 +295,9 @@ export default {
                     IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                 },
             },
-            IOU_Details: {
+            SplitDetails: {
                 screens: {
-                    IOU_Details_Root: ROUTES.IOU_DETAILS_WITH_IOU_REPORT_ID,
-                    IOU_Details_Enable_Payments: ROUTES.IOU_DETAILS_ENABLE_PAYMENTS,
-                    IOU_Details_Add_Bank_Account: ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT,
-                    IOU_Details_Add_Debit_Card: ROUTES.IOU_DETAILS_ADD_DEBIT_CARD,
+                    SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS,
                 },
             },
             Task_Details: {
@@ -317,6 +325,11 @@ export default {
             Select_Year: {
                 screens: {
                     YearPicker_Root: ROUTES.SELECT_YEAR,
+                },
+            },
+            Flag_Comment: {
+                screens: {
+                    FlagComment_Root: ROUTES.FLAG_COMMENT,
                 },
             },
             [SCREENS.NOT_FOUND]: '*',

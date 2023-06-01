@@ -83,7 +83,7 @@ class ValidateLoginPage extends Component {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode());
+        Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode(), this.props.preferredLocale);
     }
 
     componentDidUpdate() {
