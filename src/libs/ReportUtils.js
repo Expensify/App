@@ -2017,6 +2017,50 @@ function canRequestMoney(report) {
  * @param {Array} betas
  * @returns {Array}
  */
+function getMoneyRequestOptionsNew(report, reportParticipants, betas) {
+    // In the transaction thread, we do not allow any new money requests
+    if (ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report))) {
+        return [];
+    }
+
+    const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
+    const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+    const hasMultipleParticipants = participants.length > 1;
+
+    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas)) {
+        return [];
+    }
+
+    // Additional requests should be blocked for money request reports
+    if (isMoneyRequestReport(report)) {
+        return [];
+    }
+
+    // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
+    // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
+    // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
+    // There is no Split Bill option for Workspace chats
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
+        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+    }
+
+    // DM chats that only have 2 people will see the Send / Request money options.
+    // Workspace chats should only see the Request money option, as "easy overages" is not available.
+    return [
+        ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+
+        // Send money option should be visible only in DMs
+        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && participants.length === 1 ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+    ];
+}
+
+/**
+ * [Deprecated]
+ * @param {Object} report
+ * @param {Array} reportParticipants
+ * @param {Array} betas
+ * @returns {Array}
+ */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
     // In any thread, we do not allow any new money requests yet
     if (isThread(report)) {
@@ -2228,6 +2272,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    getMoneyRequestOptionsNew,
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
