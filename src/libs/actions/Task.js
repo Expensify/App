@@ -183,6 +183,7 @@ function completeTask(taskReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.APPROVED,
             },
         },
+        
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
@@ -233,12 +234,6 @@ function reopenTask(taskReportID, taskTitle) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
-            value: {
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
                 lastActorEmail: reopenedTaskReportAction.actorEmail,
