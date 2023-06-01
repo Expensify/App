@@ -46,7 +46,6 @@ const defaultProps = {
     isHovered: false,
 };
 const TaskAction = (props) => {
-    const taskReportID = props.taskReportID;
     const taskReportName = props.taskReport.reportName || '';
 
     let messageLinkText = '';
@@ -65,19 +64,12 @@ const TaskAction = (props) => {
     }
 
     return (
-        <Pressable
-            onPress={() => Navigation.navigate(ROUTES.getReportRoute(taskReportID))}
-            style={[styles.flexRow, styles.justifyContentBetween]}
-        >
+        <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                 <Text style={styles.chatItemMessageLink}>{messageLinkText}</Text>
                 <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
             </View>
-            <Icon
-                src={Expensicons.ArrowRight}
-                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-            />
-        </Pressable>
+        </>
     );
 };
 
