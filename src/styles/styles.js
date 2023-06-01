@@ -326,6 +326,7 @@ const styles = {
     textHero: {
         fontSize: variables.fontSizeHero,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        lineHeight: variables.lineHeightHero,
     },
 
     textStrong: {
@@ -343,6 +344,7 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     textHeadlineH1: {
@@ -350,6 +352,7 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeh1,
+        lineHeight: variables.lineHeightSizeh1,
     },
 
     textDecorationNoLine: {
@@ -730,6 +733,7 @@ const styles = {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     headerText: {
@@ -1017,6 +1021,12 @@ const styles = {
     textLabelSupporting: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+    },
+
+    furtherDetailsText: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSmall,
         color: themeColors.textSupporting,
     },
 
@@ -2041,6 +2051,7 @@ const styles = {
         ...headlineFont,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
         marginTop: 20,
         marginBottom: 8,
         textAlign: 'center',
@@ -2084,8 +2095,8 @@ const styles = {
         ...flex.dFlex,
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
-        ...spacing.mt4,
-        height: 170,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
 
     reportDetailsRoomInfo: {
@@ -3281,7 +3292,7 @@ const styles = {
     newKansasLarge: {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
-        lineHeight: 27,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     moneyRequestHeaderCheckmark: {

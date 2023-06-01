@@ -16,7 +16,7 @@ PODS:
     - Airship/Core
   - Airship/PreferenceCenter (16.11.3):
     - Airship/Core
-  - AirshipFrameworkProxy (2.0.5):
+  - AirshipFrameworkProxy (2.0.8):
     - Airship (= 16.11.3)
     - Airship/MessageCenter (= 16.11.3)
     - Airship/PreferenceCenter (= 16.11.3)
@@ -509,8 +509,8 @@ PODS:
   - React-jsinspector (0.72.0-alpha.fabio-fix-3)
   - React-logger (0.72.0-alpha.fabio-fix-3):
     - glog
-  - react-native-airship (15.2.3):
-    - AirshipFrameworkProxy (= 2.0.5)
+  - react-native-airship (15.2.6):
+    - AirshipFrameworkProxy (= 2.0.8)
     - React-Core
   - react-native-blob-util (0.17.3):
     - React-Core
@@ -1043,7 +1043,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Airship: c70eed50e429f97f5adb285423c7291fb7a032ae
-  AirshipFrameworkProxy: 2eefb77bb77b5120b0f48814b0d44439aa3ad415
+  AirshipFrameworkProxy: 7bc4130c668c6c98e2d4c60fe4c9eb61a999be99
   boost: 57d2868c099736d80fcd648bf211b4431e51a558
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
@@ -1100,7 +1100,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e5ba4efb19da83ab8786d55e9d60879f2958817c
   React-jsinspector: 4b9f47b45e3d569ace25f4379aad6ff9ecfc2699
   React-logger: 1f215bea3296c84ed97de3de2d730c1b979401f8
-  react-native-airship: 25045092934bf6eabf483e803af0a6e31826b8b9
+  react-native-airship: 5d19f4ba303481cf4101ff9dee9249ef6a8a6b64
   react-native-blob-util: 99f4d79189252f597fe0d810c57a3733b1b1dea6
   react-native-cameraroll: 8ffb0af7a5e5de225fd667610e2979fc1f0c2151
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
@@ -1161,4 +1161,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 89a1a16d2eecc6c8bd29d9d1e43ee2b4fd1a42a9
 
-COCOAPODS: 1.12.0
+COCOAPODS: 1.12.1
