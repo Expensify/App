@@ -38,5 +38,5 @@ jobs:
       - name: Add comment to PR
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           body: ${{ steps.reassure.outputs.content }}
