@@ -21,6 +21,7 @@ import PressableWithSecondaryInteraction from './PressableWithSecondaryInteracti
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import ControlSelection from '../libs/ControlSelection';
+import variables from '../styles/variables';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -62,6 +63,9 @@ const defaultProps = {
     shouldStackHorizontally: false,
     avatarSize: undefined,
     shouldBlockSelection: false,
+    hoverAndPressStyle: [],
+    furtherDetails: '',
+    furtherDetailsIcon: undefined,
 };
 
 const MenuItem = (props) => {
@@ -112,6 +116,7 @@ const MenuItem = (props) => {
                 props.style,
                 !props.interactive && styles.cursorDefault,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
+                (hovered || pressed) && props.hoverAndPressStyle,
                 ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
             ]}
             disabled={props.disabled}
@@ -186,6 +191,22 @@ const MenuItem = (props) => {
                                 >
                                     {props.description}
                                 </Text>
+                            )}
+                            {Boolean(props.furtherDetails) && (
+                                <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
+                                    <Icon
+                                        src={props.furtherDetailsIcon}
+                                        height={variables.iconSizeNormal}
+                                        width={variables.iconSizeNormal}
+                                        inline
+                                    />
+                                    <Text
+                                        style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
+                                        numberOfLines={2}
+                                    >
+                                        {props.furtherDetails}
+                                    </Text>
+                                </View>
                             )}
                         </View>
                     </View>
