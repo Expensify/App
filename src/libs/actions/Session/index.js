@@ -90,7 +90,7 @@ function signOutAndRedirectToSignIn() {
  * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 function checkIfActionIsAllowed(callback) {
-    if (isAnonymousUser()) {
+    if (SessionUtils.isAnonymousUser()) {
         return () => signOutAndRedirectToSignIn();
     }
     return callback;
