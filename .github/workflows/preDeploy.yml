@@ -74,11 +74,11 @@ jobs:
 
       - name: Check if merged pull request was an automatic version bump PR
         id: isAutomatedPullRequest
-        run: echo "::set-output name=IS_VERSION_BUMP_PR::${{ github.actor == 'OSBotify' }}"
+        run: echo "name=IS_VERSION_BUMP_PR::${{ github.actor == 'OSBotify' }}" >> $GITHUB_OUTPUT
 
       - name: Check if merged pull request has `CP Staging` label
         id: shouldCherryPick
-        run: echo "::set-output name=SHOULD_CHERRY_PICK::${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}"
+        run: echo "name=SHOULD_CHERRY_PICK::${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}" >> $GITHUB_OUTPUT
 
   skipDeploy:
     runs-on: ubuntu-latest
