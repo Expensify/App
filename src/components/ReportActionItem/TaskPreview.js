@@ -74,7 +74,7 @@ const TaskPreview = (props) => {
                         if (isTaskCompleted) {
                             TaskUtils.reopenTask(props.taskReportID, parentReportID, taskTitle);
                         } else {
-                            TaskUtils.completeTask(props.taskReportID, parentReportID, taskTitle);
+                            TaskUtils.completeTask(props.taskReportID, taskTitle);
                         }
                     }}
                 />

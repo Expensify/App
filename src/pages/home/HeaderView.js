@@ -92,7 +92,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
-                onSelected: () => Task.completeTask(props.report.reportID, props.report.parentReportID, title),
+                onSelected: () => Task.completeTask(props.report.reportID, title),
             });
         }
 

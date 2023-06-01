@@ -170,8 +170,8 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
 }
 
-function completeTask(taskReportID, parentReportID, taskTitle) {
-    const message = `Completed task: ${taskTitle}`;
+function completeTask(taskReportID, taskTitle) {
+    const message = `completed task: ${taskTitle}`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
     const optimisticData = [
@@ -185,16 +185,7 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
-            value: {
-                lastVisibleActionCreated: completedTaskReportAction.created,
-                lastMessageText: message,
-                lastActorEmail: completedTaskReportAction.actorEmail,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {[completedTaskReportAction.reportActionID]: completedTaskReportAction},
         },
     ];
@@ -211,7 +202,7 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {[completedTaskReportAction.reportActionID]: {pendingAction: null}},
         },
     ];
@@ -233,7 +224,7 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
  * @param {string} taskTitle Title of the task
  */
 function reopenTask(taskReportID, parentReportID, taskTitle) {
-    const message = `Reopened task: ${taskTitle}`;
+    const message = `reopened task: ${taskTitle}`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
     const optimisticData = [
@@ -529,7 +520,7 @@ function getShareDestination(reportID, reports, personalDetails) {
  * @param {number} originalStatusNum
  */
 function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, originalStatusNum) {
-    const message = `Canceled task: ${taskTitle}`;
+    const message = `canceled task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
 
