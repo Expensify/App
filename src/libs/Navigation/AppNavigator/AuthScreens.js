@@ -34,7 +34,7 @@ import * as App from '../../actions/App';
 import * as Download from '../../actions/Download';
 import * as Session from '../../actions/Session';
 
-let currentUserEmail;
+let currentAccountId;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -43,19 +43,19 @@ Onyx.connect({
             return;
         }
 
-        currentUserEmail = val.email;
+        currentAccountId = val.accountId;
     },
 });
 
 let timezone;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         if (!val || timezone) {
             return;
         }
 
-        timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
+        timezone = lodashGet(val, [currentAccountId, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -85,14 +85,14 @@ const modalScreenListeners = {
 const propTypes = {
     /** Session of currently logged in user */
     session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
+        accountID: PropTypes.string.isRequired,
     }),
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     session: {
-        email: null,
+        accountID: null,
     },
 };
 

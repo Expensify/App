@@ -239,7 +239,7 @@ function setUpPoliciesAndNavigate(session) {
         return;
     }
 
-    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
+    const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(currentUrl, session.accountID);
     const url = new URL(currentUrl);
     const exitTo = url.searchParams.get('exitTo');
 
