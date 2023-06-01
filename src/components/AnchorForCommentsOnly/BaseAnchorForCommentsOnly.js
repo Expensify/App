@@ -44,13 +44,14 @@ const BaseAnchorForCommentsOnly = (props) => {
         linkProps.href = props.href;
     }
     const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : styles.userSelectText;
+    const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
         <PressableWithSecondaryInteraction
             inline
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(
-                    Str.isValidEmailMarkdown(props.displayName) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                    isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                     event,
                     props.href,
                     lodashGet(linkRef, 'current'),
@@ -60,17 +61,14 @@ const BaseAnchorForCommentsOnly = (props) => {
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
         >
-            <Tooltip
-                containerStyles={[styles.dInline]}
-                text={props.href}
-            >
+            <Tooltip text={props.href}>
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
                     accessibilityRole="link"
                     hrefAttrs={{
                         rel: props.rel,
-                        target: props.target,
+                        target: isEmail ? '_self' : props.target,
                     }}
                     href={linkProps.href}
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
