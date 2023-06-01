@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -8,6 +8,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -31,15 +32,17 @@ const defaultProps = {
 const ChangeExpensifyLoginLink = (props) => (
     <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
         {!_.isEmpty(props.credentials.login) && <Text style={styles.mr1}>{props.translate('loginForm.notYou', {user: props.formatPhoneNumber(props.credentials.login)})}</Text>}
-        <TouchableOpacity
+        <PressableWithFeedback
             style={[styles.link]}
             onPress={props.onPress}
+            accessibilityRole="link"
+            accessibilityLabel={props.translate('common.goBack')}
         >
             <Text style={[styles.link]}>
                 {props.translate('common.goBack')}
                 {'.'}
             </Text>
-        </TouchableOpacity>
+        </PressableWithFeedback>
     </View>
 );
 

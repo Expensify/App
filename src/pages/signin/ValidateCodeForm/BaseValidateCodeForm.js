@@ -185,7 +185,7 @@ class BaseValidateCodeForm extends React.Component {
 
         const accountID = lodashGet(this.props, 'credentials.accountID');
         if (accountID) {
-            Session.signInWithValidateCode(accountID, this.state.validateCode, this.state.twoFactorAuthCode, this.props.preferredLocale);
+            Session.signInWithValidateCode(accountID, this.state.validateCode, this.props.preferredLocale, this.state.twoFactorAuthCode);
         } else {
             Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode, this.props.preferredLocale);
         }
