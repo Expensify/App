@@ -36,6 +36,7 @@ const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
     EMAIL: 'EMAIL',
+    REPORT: 'REPORT',
 };
 
 // A list of all the context actions in this menu.
@@ -263,6 +264,30 @@ export default [
 
             // No popover to hide, call showDeleteConfirmModal immediately
             showDeleteModal(reportID, reportAction);
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'common.pin',
+        icon: Expensicons.Pin,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.togglePinnedState(reportID, false);
+            if (closePopover) {
+                hideContextMenu(false);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'common.unPin',
+        icon: Expensicons.Pin,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.togglePinnedState(reportID, true);
+            if (closePopover) {
+                hideContextMenu(false);
+            }
         },
         getDescription: () => {},
     },
