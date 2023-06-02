@@ -767,21 +767,28 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 
         return [actorIcon];
     }
-    if (isDomainRoom(report)) {
-        result.source = Expensicons.DomainRoomAvatar;
-        return [result];
+    if (isDomainRoom(report)){
+        const workspaceName = Str.extractEmailDomain(report.ownerEmail);
+        const workspaceAvatarSource = getDefaultWorkspaceAvatar(workspaceName);
+        const workspaceIcon = {
+            source: workspaceAvatarSource,
+            type: CONST.ICON_TYPE_WORKSPACE,
+            name: workspaceName,
+        };
+
+        return [workspaceIcon];
+
     }
-    if (isAdminRoom(report)) {
-        result.source = Expensicons.AdminRoomAvatar;
-        return [result];
-    }
-    if (isAnnounceRoom(report)) {
-        result.source = Expensicons.AnnounceRoomAvatar;
-        return [result];
-    }
-    if (isChatRoom(report)) {
-        result.source = Expensicons.ActiveRoomAvatar;
-        return [result];
+    if (isChatRoom(report) || isAnnounceRoom(report) || isAdminRoom(report)) {
+        const workspaceName = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name']);
+        const workspaceAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
+        const workspaceIcon = {
+            source: workspaceAvatarSource,
+            type: CONST.ICON_TYPE_WORKSPACE,
+            name: workspaceName,
+        };
+
+        return [workspaceIcon];
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceName = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name']);
