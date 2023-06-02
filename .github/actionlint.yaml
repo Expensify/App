@@ -2,9 +2,5 @@
 self-hosted-runner:
   labels:
     - ubuntu-20.04-64core
-<<<<<<< HEAD
-    - ubuntu-20.04-64core-deploy
-=======
     - ubuntu-latest-16-cores
->>>>>>> 0b90c185a3 (Merge pull request #20056 from Expensify/andrew-turbo-button)
     - macos-12-xl
