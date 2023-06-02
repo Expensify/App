@@ -233,6 +233,10 @@ function ReportActionCompose(props) {
 
     const shouldAutoFocus = !props.modal.isVisible && (shouldFocusInputOnScreenFocus || isEmptyChat) && props.shouldShowComposeInput;
 
+    // These variables are used to decide whether to block the suggestions list from showing to prevent flickering
+    const shouldBlockEmojiCalc = useRef(false);
+    const shouldBlockMentionCalc = useRef(false);
+
     /**
      * Updates the should clear state of the composer
      */
@@ -251,7 +255,6 @@ function ReportActionCompose(props) {
     const [maxLines, setMaxLines] = useState(props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES);
     const [value, setValue] = useState(props.comment);
 
-    const [shouldBlockEmojiCalc, setShouldBlockEmojiCalc] = useState(false);
     const [composerHeight, setComposerHeight] = useState(0);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
 
@@ -284,8 +287,8 @@ function ReportActionCompose(props) {
     const participantsWithoutExpensifyEmails = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS), [reportParticipants]);
 
     const shouldShowReportRecipientLocalTime = useMemo(
-        () => ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report) && !props.isComposerFullSize,
-        [props.personalDetails, props.report, props.isComposerFullSize],
+        () => ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report, props.currentUserPersonalDetails.login) && !props.isComposerFullSize,
+        [props.personalDetails, props.report, props.currentUserPersonalDetails.login, props.isComposerFullSize],
     );
 
     const isBlockedFromConcierge = useMemo(
@@ -487,8 +490,8 @@ function ReportActionCompose(props) {
                 resetSuggestions();
                 return;
             }
-            if (shouldBlockEmojiCalc) {
-                setShouldBlockEmojiCalc(false);
+            if (shouldBlockEmojiCalc.current) {
+                shouldBlockEmojiCalc.current = false;
                 return;
             }
             const leftString = value.substring(0, selectionEnd);
@@ -521,7 +524,7 @@ function ReportActionCompose(props) {
         (personalDetails, searchValue = '') => {
             const suggestions = [];
 
-            if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue)) {
+            if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
                 suggestions.push({
                     text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
                     alternateText: props.translate('mentionSuggestions.hereAlternateText'),
@@ -564,6 +567,11 @@ function ReportActionCompose(props) {
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
             if (selectionEnd < 1) {
+                return;
+            }
+
+            if (shouldBlockMentionCalc.current) {
+                shouldBlockMentionCalc.current = false;
                 return;
             }
 
@@ -617,6 +625,8 @@ function ReportActionCompose(props) {
 
             if (!value || e.nativeEvent.selection.end < 1) {
                 resetSuggestions();
+                shouldBlockEmojiCalc.current = false;
+                shouldBlockMentionCalc.current = false;
                 return;
             }
 
@@ -679,13 +689,6 @@ function ReportActionCompose(props) {
             setSuggestionValues((prevState) => ({...prevState, shouldShowMentionSuggestionMenu: false}));
         }
     }, [suggestionValues.shouldShowEmojiSuggestionMenu, suggestionValues.shouldShowMentionSuggestionMenu]);
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    const updateShouldBlockEmojiCalcToFalse = useCallback(() => {
-        if (shouldBlockEmojiCalc) {
-            setShouldBlockEmojiCalc(false);
-        }
-    }, [shouldBlockEmojiCalc]);
 
     /**
      * Determines if we can show the task option
@@ -929,9 +932,10 @@ function ReportActionCompose(props) {
      * Event handler to update the state after the attachment preview is closed.
      */
     const attachmentPreviewClosed = useCallback(() => {
-        updateShouldBlockEmojiCalcToFalse();
+        shouldBlockEmojiCalc.current = false;
+        shouldBlockMentionCalc.current = false;
         setIsAttachmentPreviewActive(false);
-    }, [updateShouldBlockEmojiCalcToFalse]);
+    }, []);
 
     const onDropAttachment = useCallback(
         (e, displayFileInModal) => {
@@ -1062,10 +1066,10 @@ function ReportActionCompose(props) {
                                                         icon: Expensicons.Paperclip,
                                                         text: props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
-                                                            // Set a flag to block emoji calculation until we're finished using the file picker,
+                                                            // Set a flag to block suggestion calculation until we're finished using the file picker,
                                                             // which will stop any flickering as the file picker opens on non-native devices.
                                                             if (willBlurTextInputOnTapOutside) {
-                                                                setShouldBlockEmojiCalc(true);
+                                                                shouldBlockMentionCalc.current = true;
                                                             }
 
                                                             openPicker({
@@ -1103,7 +1107,10 @@ function ReportActionCompose(props) {
                                                 setIsFocused(false);
                                                 resetSuggestions();
                                             }}
-                                            onClick={updateShouldBlockEmojiCalcToFalse}
+                                            onClick={() => {
+                                                shouldBlockEmojiCalc.current = false;
+                                                shouldBlockMentionCalc.current = false;
+                                            }}
                                             onPasteFile={displayFileInModal}
                                             shouldClear={textInputShouldClear}
                                             onClear={() => setTextInputShouldClear(false)}
