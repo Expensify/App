@@ -121,10 +121,7 @@ const NewTaskPage = (props) => {
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.confirmTask')}
-                onCloseButtonPress={() => {
-                    Navigation.dismissModal();
-                    TaskUtils.clearOutTaskInfo();
-                }}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
