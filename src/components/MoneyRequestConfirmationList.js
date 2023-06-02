@@ -339,11 +339,9 @@ export default compose(
     withWindowDimensions,
     withCurrentUserPersonalDetails,
     withOnyx({
+        iou: {key: ONYXKEYS.IOU},
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        iou: {
-            key: ONYXKEYS.IOU,
         },
     }),
 )(MoneyRequestConfirmationList);

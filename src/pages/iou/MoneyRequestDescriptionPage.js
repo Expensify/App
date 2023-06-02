@@ -58,7 +58,7 @@ class MoneyRequestDescriptionPage extends Component {
      * @param {String} value.moneyRequestComment
      */
     updateComment(value) {
-        IOU.setMoneyRequestDescription(value.moneyRequestComment.trim());
+        IOU.setMoneyRequestDescription(value.moneyRequestComment);
         Navigation.goBack();
     }
 

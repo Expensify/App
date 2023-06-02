@@ -13,7 +13,6 @@ const defaultSubRouteOptions = {
  * Create a modal stack navigator with an array of sub-screens.
  *
  * @param {Object[]} screens array of screen config objects
- * @param {React.ReactElement} Provider a wrapper component with context provider to share data between screens
  * @returns {Function}
  */
 function createModalStackNavigator(screens) {

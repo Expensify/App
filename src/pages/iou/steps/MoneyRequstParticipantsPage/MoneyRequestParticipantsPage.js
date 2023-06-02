@@ -97,8 +97,6 @@ MoneyRequestParticipantsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
+        iou: {key: ONYXKEYS.IOU},
     }),
 )(MoneyRequestParticipantsPage);

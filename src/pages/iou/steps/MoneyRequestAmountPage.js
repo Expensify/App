@@ -1,9 +1,10 @@
 import React from 'react';
 import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -22,7 +23,6 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import withNavigation from '../../../components/withNavigation';
 import ModalHeader from '../ModalHeader';
-import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 
@@ -475,11 +475,9 @@ export default compose(
     withNavigation,
     withCurrentUserPersonalDetails,
     withOnyx({
+        iou: {key: ONYXKEYS.IOU},
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
-        iou: {
-            key: ONYXKEYS.IOU,
         },
     }),
 )(MoneyRequestAmountPage);
