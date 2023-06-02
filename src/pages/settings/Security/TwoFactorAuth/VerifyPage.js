@@ -7,6 +7,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
+import * as Session from '../../../../libs/actions/Session';
 import ROUTES from '../../../../ROUTES';
 import FullPageOfflineBlockingView from '../../../../components/BlockingViews/FullPageOfflineBlockingView';
 import styles from '../../../../styles/styles';
@@ -51,6 +52,10 @@ const defaultProps = {
 };
 
 function VerifyPage(props) {
+    useEffect(() => {
+        Session.clearAccountMessages();
+    }, []);
+
     useEffect(() => {
         if (!props.account.requiresTwoFactorAuth) {
             return;

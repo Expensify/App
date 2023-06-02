@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as EmojiUtils from '../../libs/EmojiUtils';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
@@ -65,14 +66,14 @@ const MiniQuickEmojiReactions = (props) => {
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
-                    onPress={() => props.onEmojiSelected(emoji)}
+                    onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
                 >
                     <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={openEmojiPicker}
+                onPress={Session.checkIfActionIsAllowed(openEmojiPicker)}
                 isDelayButtonStateComplete={false}
                 tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >
