@@ -34,6 +34,12 @@ const propTypes = {
     /** IOU amount */
     iouAmount: PropTypes.number.isRequired,
 
+    /** IOU comment */
+    iouComment: PropTypes.string,
+
+    /** IOU currency */
+    iouCurrencyCode: PropTypes.string,
+
     /** IOU type */
     iouType: PropTypes.string,
 
@@ -109,6 +115,8 @@ class MoneyRequestConfirmationList extends Component {
             selected: true,
         }));
 
+        this.currencyCode = this.props.iouCurrencyCode || this.props.iou.selectedCurrencyCode;
+
         this.state = {
             participants: formattedParticipants,
             didConfirm: false,
@@ -124,7 +132,7 @@ class MoneyRequestConfirmationList extends Component {
      */
     getSplitOrRequestOptions() {
         const text = this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-            amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode),
+            amount: CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.currencyCode),
         });
         return [
             {
@@ -157,7 +165,7 @@ class MoneyRequestConfirmationList extends Component {
      */
     getParticipantsWithAmount(participants) {
         const iouAmount = IOUUtils.calculateAmount(participants.length, this.props.iouAmount);
-        return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, this.props.iou.selectedCurrencyCode));
+        return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participants, CurrencyUtils.convertToDisplayString(iouAmount, this.currencyCode));
     }
 
     /**
@@ -197,7 +205,7 @@ class MoneyRequestConfirmationList extends Component {
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, this.props.iouAmount, true);
             const formattedPayeePersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 this.getPayeePersonalDetails(),
-                CurrencyUtils.convertToDisplayString(myIOUAmount, this.props.iou.selectedCurrencyCode),
+                CurrencyUtils.convertToDisplayString(myIOUAmount, this.currencyCode),
             );
 
             sections.push(
@@ -245,7 +253,7 @@ class MoneyRequestConfirmationList extends Component {
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={this.props.bankAccountRoute}
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                currency={this.props.iou.selectedCurrencyCode}
+                currency={this.currencyCode}
                 policyID={this.props.policyID}
             />
         ) : (
@@ -315,7 +323,7 @@ class MoneyRequestConfirmationList extends Component {
 
     render() {
         const canModifyParticipants = !this.props.isReadOnly && this.props.canModifyParticipants && this.props.hasMultipleParticipants;
-        const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.props.iou.selectedCurrencyCode);
+        const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.currencyCode);
 
         return (
             <OptionsSelector
@@ -345,7 +353,7 @@ class MoneyRequestConfirmationList extends Component {
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!this.props.isReadOnly}
-                    title={this.props.iou.comment}
+                    title={this.props.iouComment || this.props.iou.comment}
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                     style={[styles.moneyRequestMenuItem, styles.mb2]}
