@@ -3381,6 +3381,18 @@ const styles = {
         marginRight: 20,
     },
 
+    googleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginLeft: 12,
+        alignItems: 'center',
+    },
+
+    googlePillButtonContainer: {
+        height: 40,
+        width: 219,
+    },
+
     signInButtonBase: {
         margin: 10,
         padding: 2,
