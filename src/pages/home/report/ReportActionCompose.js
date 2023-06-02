@@ -906,7 +906,6 @@ class ReportActionCompose extends React.Component {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
-
         const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report) && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
@@ -916,6 +915,7 @@ class ReportActionCompose extends React.Component {
         const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
+        const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
         return (
             <View
@@ -929,7 +929,7 @@ class ReportActionCompose extends React.Component {
                     style={this.props.isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                     contentContainerStyle={this.props.isComposerFullSize ? styles.flex1 : {}}
                 >
-                    {shouldShowReportRecipientLocalTime && <ParticipantLocalTime participant={reportRecipient} />}
+                    {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
                     <View
                         style={[
                             shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
