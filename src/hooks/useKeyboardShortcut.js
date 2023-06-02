@@ -1,4 +1,4 @@
-import {useEffect, useRef, useCallback} from 'react';
+import {useEffect, experimental_useEffectEvent as useEffectEvent} from 'react';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 /**
@@ -10,13 +10,12 @@ import KeyboardShortcut from '../libs/KeyboardShortcut';
  */
 export default function useKeyboardShortcut(shortcut, callback, config = {}) {
     const {captureOnInputs = true, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = [], isActive = true} = config;
-
-    const subscription = useRef(null);
-    const subscribe = useCallback(
-        () =>
-            KeyboardShortcut.subscribe(
+    const handleEvent = useEffectEvent(() => callback());
+    useEffect(() => {
+        if (isActive) {
+            return KeyboardShortcut.subscribe(
                 shortcut.shortcutKey,
-                callback,
+                handleEvent,
                 shortcut.descriptionKey,
                 shortcut.modifiers,
                 captureOnInputs,
@@ -24,14 +23,9 @@ export default function useKeyboardShortcut(shortcut, callback, config = {}) {
                 priority,
                 shouldPreventDefault,
                 excludedNodes,
-            ),
-        [callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers, shortcut.shortcutKey, shouldBubble, shouldPreventDefault],
-    );
-
-    useEffect(() => {
-        const unsubscribe = subscription.current || (() => {});
-        unsubscribe();
-        subscription.current = isActive ? subscribe() : null;
-        return isActive ? subscription.current : () => {};
-    }, [isActive, subscribe]);
+            );
+        }
+        return () => {};
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [captureOnInputs, excludedNodes, isActive, priority, shortcut.descriptionKey, shortcut.modifiers, shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
 }
