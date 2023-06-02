@@ -28,7 +28,7 @@ module.exports = {
                     },
                     {
                         name: 'react-native',
-                        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback'],
+                        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
                         message: 'Please use PressableWithFeedback and/or PressableWithoutFeedback from src/components/Pressable instead',
                     },
                 ],
