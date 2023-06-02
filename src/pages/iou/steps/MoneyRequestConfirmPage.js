@@ -123,7 +123,7 @@ const MoneyRequestConfirmPage = (props) => {
 
     const participants = useMemo(
         () =>
-            props.iou.participants[0].isPolicyExpenseChat || props.iou.participants[0].isOwnPolicyExpenseChat
+            lodashGet(props.iou, ['participants', 0, 'isPolicyExpenseChat'], false) || lodashGet(props.iou, ['participants', 0, 'isOwnPolicyExpenseChat'], false)
                 ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
                 : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
         [props.iou.participants, props.personalDetails],
