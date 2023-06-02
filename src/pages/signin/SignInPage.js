@@ -88,7 +88,6 @@ class SignInPage extends Component {
             !this.props.account.validated &&
             !showEmailDeliveryFailurePage;
 
-
         // Show the old password form if
         // - A login has been entered
         // - AND an account exists and is validated for this login

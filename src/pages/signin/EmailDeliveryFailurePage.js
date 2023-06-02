@@ -35,21 +35,16 @@ const EmailDeliveryFailurePage = (props) => {
         <>
             <View style={[styles.mv3, styles.flexRow, styles.justifyContentetween]}>
                 <View style={[styles.flex1]}>
-                    <Text>
-                        {props.translate('emailDeliveryFailurePage.ourEmailProvider', {login})}
-                    </Text>
+                    <Text>{props.translate('emailDeliveryFailurePage.ourEmailProvider', {login})}</Text>
                     <Text style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>
-                            {props.translate('emailDeliveryFailurePage.confirmThat', {login})}
-                        </Text>
+                        <Text style={[styles.textStrong]}>{props.translate('emailDeliveryFailurePage.confirmThat', {login})}</Text>
                         {props.translate('emailDeliveryFailurePage.emailAliases')}
                     </Text>
                     <Text style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>
-                            {props.translate('emailDeliveryFailurePage.whitelistExpensify')}
-                        </Text>
+                        <Text style={[styles.textStrong]}>{props.translate('emailDeliveryFailurePage.whitelistExpensify')}</Text>
                         {props.translate('emailDeliveryFailurePage.youCanFindDirections')}
-                        <TextLink href="https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify/p1?new=1"
+                        <TextLink
+                            href="https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify/p1?new=1"
                             style={[styles.link]}
                         >
                             {props.translate('common.here')}
