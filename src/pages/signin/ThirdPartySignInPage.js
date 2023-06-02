@@ -39,14 +39,7 @@ function ThirdPartySignInPage(props) {
                 welcomeHeader={props.translate('welcomeText.getStarted')}
                 shouldShowWelcomeHeader
             >
-                {props.signInProvider === 'apple' ? (
-                    <AppleSignIn isDesktopFlow />
-                ) : (
-                    <GoogleSignIn
-                        id="google-sign-in-main"
-                        isDesktopFlow
-                    />
-                )}
+                {props.signInProvider === 'apple' ? <AppleSignIn isDesktopFlow /> : <GoogleSignIn isDesktopFlow />}
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.goBackMessage', {provider: capitalize(props.signInProvider)})}</Text>
                 <TextLink

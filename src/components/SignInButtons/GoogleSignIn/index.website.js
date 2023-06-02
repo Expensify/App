@@ -27,8 +27,9 @@ const defaultProps = {
  * @returns {React.Component}
  */
 
-function GoogleSignIn({id, translate, isDesktopFlow}) {
+function GoogleSignIn({translate, isDesktopFlow}) {
     const isFocused = useIsFocused();
+    const id = 'google-sign-in-main';
 
     const handleCredentialResponse = useCallback((response) => {
         Session.beginGoogleSignIn(response.credential);

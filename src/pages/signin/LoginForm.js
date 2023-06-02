@@ -226,7 +226,7 @@ class LoginForm extends React.Component {
                                 </Text>
                                 <View style={styles.loginButtonRow}>
                                     <AppleSignIn />
-                                    <GoogleSignIn id="google-sign-in-main" />
+                                    <GoogleSignIn />
                                 </View>
                             </View>
                         </View>
