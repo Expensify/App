@@ -94,6 +94,7 @@ const Form = (props) => {
     const formContentRef = useRef(null);
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
+    const isFirstRender = useRef(true);
 
     const {validate, translate, onSubmit, children} = props;
 
@@ -145,8 +146,17 @@ const Form = (props) => {
     );
 
     useEffect(() => {
+        // We want to skip Form validation on initial render.
+        // This also avoids a bug where we immediately clear server errors when the loading indicator unmounts and Form remounts with server errors.
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
         onValidate(inputValues);
-    }, [onValidate, inputValues]);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to revalidate the form on update if the preferred locale changed on another device so that errors get translated
+    }, [props.preferredLocale]);
 
     const getErrorMessage = useCallback(() => {
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
