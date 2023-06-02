@@ -2142,14 +2142,26 @@ const styles = {
         padding: 0,
     },
 
-    twoFactorAuthCodesBox: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: themeColors.highlightBG,
-        paddingVertical: 28,
-        paddingHorizontal: 60,
-        borderRadius: 16,
-        marginTop: 32,
+    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
+        let paddingHorizontal = styles.ph15;
+
+        if (isSmallScreenWidth) {
+            paddingHorizontal = styles.ph10;
+        }
+
+        if (isExtraSmallScreenWidth) {
+            paddingHorizontal = styles.ph4;
+        }
+
+        return {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: themeColors.highlightBG,
+            paddingVertical: 28,
+            borderRadius: 16,
+            marginTop: 32,
+            ...paddingHorizontal,
+        };
     },
 
     twoFactorLoadingContainer: {
