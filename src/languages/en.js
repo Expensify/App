@@ -26,7 +26,7 @@ export default {
         zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Magic code',
-        twoFactorCode: 'Two factor code',
+        twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
@@ -195,7 +195,7 @@ export default {
         requestNewCode: 'You can also',
         requestNewCodeLink: 'request a new code here',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
-        tfaRequiredTitle: 'Two factor authentication\nrequired',
+        tfaRequiredTitle: 'Two-factor authentication\nrequired',
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
     moneyRequestConfirmationList: {
@@ -534,7 +534,7 @@ export default {
         stepCodes: 'Recovery codes',
         keepCodesSafe: 'Keep these recovery codes safe!',
         codesLoseAccess:
-            'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two factor authentication will log you out of all other active sessions.',
+            'If you lose access to your authenticator app and don’t have these codes, you will lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
@@ -549,8 +549,8 @@ export default {
     },
     twoFactorAuthForm: {
         error: {
-            pleaseFillTwoFactorAuth: 'Please enter your two factor code',
-            incorrect2fa: 'Incorrect two factor authentication code. Please try again.',
+            pleaseFillTwoFactorAuth: 'Please enter your two-factor code',
+            incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
         },
     },
     passwordConfirmationScreen: {
@@ -693,20 +693,20 @@ export default {
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
-            pleaseFillTwoFactorAuth: 'Please enter your two factor code',
+            pleaseFillTwoFactorAuth: 'Please enter your two-factor code',
         },
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
         pleaseFillPassword: 'Please enter your password',
-        pleaseFillTwoFactorAuth: 'Please enter your two factor code',
-        enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two factor authentication code to continue',
+        pleaseFillTwoFactorAuth: 'Please enter your two-factor code',
+        enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two-factor authentication code to continue',
         forgot: 'Forgot?',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         error: {
             incorrectPassword: 'Incorrect password. Please try again.',
             incorrectLoginOrPassword: 'Incorrect login or password. Please try again.',
-            incorrect2fa: 'Incorrect two factor authentication code. Please try again.',
+            incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
             twoFactorAuthenticationEnabled: 'You have 2FA enabled on this account. Please sign in using your email or phone number.',
             invalidLoginOrPassword: 'Invalid login or password. Please try again or reset your password.',
             unableToResetPassword:
