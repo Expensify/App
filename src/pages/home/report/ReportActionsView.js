@@ -24,7 +24,7 @@ import reportPropTypes from '../../reportPropTypes';
 import * as ReactionList from './ReactionList/ReactionList';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import ONYXKEYS from '../../../ONYXKEYS';
+import { policyPropTypes } from "../../workspace/withPolicy";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -50,6 +50,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
+    ...policyPropTypes
 };
 
 const defaultProps = {
@@ -178,14 +179,11 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
-        const nextPolicy = nextProps.policies[`${ONYXKEYS.COLLECTION.POLICY}${nextProps.report.policyID}`];
-
-        if (lodashGet(policy, 'avatar') !== lodashGet(nextPolicy, 'avatar')) {
+        if (lodashGet(this.props, 'policy.avatar') !== lodashGet(nextProps, 'policy.avatar')) {
             return true;
         }
 
-        if (lodashGet(policy, 'name') !== lodashGet(nextPolicy, 'name')) {
+        if (lodashGet(this.props, 'policy.name') !== lodashGet(nextProps, 'policy.name')) {
             return true;
         }
 
