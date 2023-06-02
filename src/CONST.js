@@ -870,6 +870,9 @@ const CONST = {
         ADMIN: 'admin@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
     },
+    ACCOUNT_ID: {
+        CONCIERGE: '8392101',
+    },
 
     ENVIRONMENT: {
         DEV: 'development',
