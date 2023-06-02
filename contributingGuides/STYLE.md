@@ -630,7 +630,7 @@ In most cases, a custom hook is a better pattern to use than an HOC or Render Pr
 
 ## Should I wrap all my inline functions with `useCallback()` or move them out of the component if they have no dependencies?
 
-The answer depends on whether you need a stable reference for the function. If there are no dependencies, you could move the function out of the component. If there are dependencies, you could use `useCallback()` to ensure the reference updates only when the dependencies change. However, it's important to note that using `useCallback()` may have a performance penalty, although the trade-off is still debated. It's recommended to follow the guidance in the [React documentation](https://react.dev/reference/react/useCallback#should-you-add-usecallback-everywhere) and add the optimization only if necessary. Leave a code comment explaining the reasoning behind the chosen optimization to aid reviewers and future contributors.
+The answer depends on whether you need a stable reference for the function. If there are no dependencies, you could move the function out of the component. If there are dependencies, you could use `useCallback()` to ensure the reference updates only when the dependencies change. However, it's important to note that using `useCallback()` may have a performance penalty, although the trade-off is still debated. It's recommended to follow the guidance in the [React documentation](https://react.dev/reference/react/useCallback#should-you-add-usecallback-everywhere) and add the optimization only if necessary. Leave a code comment explaining the reasoning behind any usage of `useCallback()` or `useMemo()` to aid reviewers and future contributors.
 
 ## Why does `useState()` sometimes get initialized with a function?
 
