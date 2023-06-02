@@ -799,6 +799,8 @@ const CONST = {
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    // This is a placeholder for attachment which is uploading
+    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -2432,8 +2434,14 @@ const CONST = {
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        MODERATOR_DECISION_APPROVED: 'approved',
+        MODERATOR_DECISION_HIDDEN: 'hidden',
         FLAG_SEVERITY_SPAM: 'spam',
         FLAG_SEVERITY_INCONSIDERATE: 'inconsiderate',
+        FLAG_SEVERITY_INTIMIDATION: 'intimidation',
+        FLAG_SEVERITY_BULLYING: 'bullying',
+        FLAG_SEVERITY_HARASSMENT: 'harassment',
+        FLAG_SEVERITY_ASSAULT: 'assault',
     },
 };
 

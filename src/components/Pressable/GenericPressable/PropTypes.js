@@ -21,7 +21,7 @@ const pressablePropTypes = {
     /**
      * onPress callback
      */
-    onPress: PropTypes.func.isRequired,
+    onPress: PropTypes.func,
 
     /**
      * Specifies keyboard shortcut to trigger onPressHandler
@@ -121,6 +121,7 @@ const pressablePropTypes = {
 };
 
 const defaultProps = {
+    onPress: undefined,
     keyboardShortcut: undefined,
     shouldUseHapticsOnPress: false,
     shouldUseHapticsOnLongPress: false,

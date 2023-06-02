@@ -9,6 +9,7 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
+import * as UserUtils from '../UserUtils';
 
 /**
  * Clears out the task info from the store
@@ -495,7 +496,7 @@ function getAssignee(details) {
             subtitle: '',
         };
     }
-    const source = ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
+    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
     return {
         icons: [{source, type: 'avatar', name: details.login}],
         displayName: details.displayName,
