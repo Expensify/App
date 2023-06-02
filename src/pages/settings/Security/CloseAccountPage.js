@@ -45,7 +45,6 @@ function CloseAccountPage (props) {
     const [reasonForLeaving, setReasonForLeaving] = useState('');
 
     useEffect(() => {
-        CloseAccount.setDefaultData();
         return () => {
             CloseAccount.clearError();
         };
