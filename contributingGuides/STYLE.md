@@ -642,7 +642,7 @@ The short answer is no. A longer answer is that sometimes we need to check not o
 
 ## Are `useCallback()` and `useMemo()` basically the same thing?
 
-No! Is it easy to confuse `useCallback()` with a memoization helper like `_.memoize()` or `useMemo()`. It is really not the same at all. [`useCallback()` will return a cached function _definition_](https://react.dev/reference/react/useCallback) and will not save us any computational cost of running that function. So, if you are wrapping something in a `useCallback()` and then calling it in the render then it is better to use `useMemo()` to cache the actual **result** of calling that function and use it directly in the render.
+No! It is easy to confuse `useCallback()` with a memoization helper like `_.memoize()` or `useMemo()` but they are really not the same at all. [`useCallback()` will return a cached function _definition_](https://react.dev/reference/react/useCallback) and will not save us any computational cost of running that function. So, if you are wrapping something in a `useCallback()` and then calling it in the render then it is better to use `useMemo()` to cache the actual **result** of calling that function and use it directly in the render.
 
 ## What is the `exhaustive-deps` lint rule? Can I ignore it?
 
