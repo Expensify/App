@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';import {useIsFocused} from '@react-navigation/native';
+import {View} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
 
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
@@ -30,7 +31,7 @@ const $continueWithGoogleContainerStyle = {
     // alignItems: 'center',
 };
 
-function GoogleSignIn({ id, translate, isDesktopFlow }) {
+function GoogleSignIn({id, translate, isDesktopFlow}) {
     const isFocused = useIsFocused();
 
     const handleCredentialResponse = useCallback((response) => {
@@ -45,20 +46,21 @@ function GoogleSignIn({ id, translate, isDesktopFlow }) {
                 callback: handleCredentialResponse,
             });
             if (isDesktopFlow) {
-            google.accounts.id.renderButton(document.getElementById(id), {
-                theme: 'outline',
-                size: 'large',
-                type: 'standard',
-                shape: 'pill',
-            });
+                google.accounts.id.renderButton(document.getElementById(id), {
+                    theme: 'outline',
+                    size: 'large',
+                    type: 'standard',
+                    shape: 'pill',
+                });
             } else {
-            google.accounts.id.renderButton(document.getElementById(id), {
-                theme: 'outline',
-                size: 'large',
-                type: 'icon',
-                shape: 'circle',
-            });
-        }}
+                google.accounts.id.renderButton(document.getElementById(id), {
+                    theme: 'outline',
+                    size: 'large',
+                    type: 'icon',
+                    shape: 'circle',
+                });
+            }
+        }
     }, [id, handleCredentialResponse, isDesktopFlow]);
 
     React.useEffect(() => {
