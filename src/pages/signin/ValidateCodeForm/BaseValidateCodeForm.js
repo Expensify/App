@@ -93,11 +93,6 @@ class BaseValidateCodeForm extends React.Component {
         if (prevProps.isVisible && !this.props.isVisible && this.state.validateCode) {
             this.clearValidateCode();
         }
-
-        // Clear the code input if a new magic code was requested
-        if (this.props.isVisible && this.state.linkSent && this.props.account.message && this.state.validateCode) {
-            this.clearValidateCode();
-        }
         if (!prevProps.credentials.validateCode && this.props.credentials.validateCode) {
             this.setState({validateCode: this.props.credentials.validateCode});
         }
@@ -137,8 +132,9 @@ class BaseValidateCodeForm extends React.Component {
     resendValidateCode() {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
-        }
-        this.setState({formError: {}});
+        } 
+        this.setState({validateCode: '', formError: {}});
+        this.inputValidateCode.clear();
         User.resendValidateCode(this.props.credentials.login, true);
 
         // Give feedback to the user to let them know the email was sent so they don't spam the button.
