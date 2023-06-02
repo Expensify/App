@@ -70,7 +70,7 @@ class SignInPage extends Component {
         // Show the login form if
         // - A login has not been entered yet
         // - AND a validateCode has not been cached with sign in link
-        const showLoginForm = !Boolean(this.props.credentials.login) && !Boolean(this.props.credentials.validateCode);
+        const showLoginForm = !this.props.credentials.login && !this.props.credentials.validateCode;
 
         // Show the email delivery failure page if
         // - A login has been entered
@@ -85,7 +85,7 @@ class SignInPage extends Component {
             Boolean(this.props.credentials.login) &&
             Boolean(this.props.account.primaryLogin) &&
             this.props.account.primaryLogin !== this.props.credentials.login &&
-            !this.props.account.validated
+            !this.props.account.validated &&
             !showEmailDeliveryFailurePage;
 
 

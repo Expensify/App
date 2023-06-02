@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'underscore';
 import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -11,8 +10,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
-import networkPropTypes from '../../components/networkPropTypes';
-import {withNetwork} from '../../components/OnyxProvider';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -24,9 +21,6 @@ const propTypes = {
         login: PropTypes.string,
     }),
 
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     ...withLocalizePropTypes,
 };
 
@@ -37,7 +31,6 @@ const defaultProps = {
 const EmailDeliveryFailurePage = (props) => {
     // Replace spaces with "hard spaces" to prevent breaking the number
     const login = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
-    console.log("login: " + login);
     return (
         <>
             <View style={[styles.mv3, styles.flexRow, styles.justifyContentetween]}>
@@ -90,7 +83,6 @@ EmailDeliveryFailurePage.displayName = 'ResendValidationForm';
 
 export default compose(
     withLocalize,
-    withNetwork(),
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
     }),
