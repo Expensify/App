@@ -39,14 +39,6 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** avatar of the policy */
-        avatar: PropTypes.string,
-        /** name of the policy */
-        name: PropTypes.string,
-    }).isRequired,
-
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
