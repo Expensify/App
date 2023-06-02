@@ -1806,9 +1806,10 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
- * @returns {boolean}
+ * @param {Boolean} excludeEmptyChats
+ * @returns {Boolean}
  */
-function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies, excludeEmptyChats = false) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -1861,7 +1862,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     // Exclude empty chats
-    if (isChatReport(report) && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml)) {
+    if (excludeEmptyChats && isChatReport(report) && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml)) {
         return false;
     }
 
