@@ -43,7 +43,7 @@ const NewTaskDescriptionPage = (props) => {
      * @returns {Object}
      */
     function validate() {
-        // This field is optional and can be left blank, so we do not need to validate that it has a value.
+        // This field is optional and can be left blank, so we should not require validation for its value.
         return {};
     }
 
