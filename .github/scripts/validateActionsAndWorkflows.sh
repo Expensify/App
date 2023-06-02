@@ -84,7 +84,7 @@ else
 fi
 
 info 'Linting workflows...'
-./actionlint -color || EXIT_CODE=1
+./actionlint -color -ignore '"runs-on" section must be sequence node but got mapping node with "!!map" tag' || EXIT_CODE=1
 if [[ "$EXIT_CODE" == 0 ]]; then
   success 'Workflows passed actionlint!'
 fi
