@@ -3,6 +3,7 @@ import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-sign
 import Log from '../../../libs/Log';
 import ButtonBase from '../ButtonBase';
 import * as Session from '../../../libs/actions/Session';
+import CONST from '../../../CONST';
 
 const googleLogoIcon = require('../../../../assets/images/signIn/google-logo.svg').default;
 
@@ -13,8 +14,8 @@ const googleLogoIcon = require('../../../../assets/images/signIn/google-logo.svg
 
 function googleSignInRequest() {
     GoogleSignin.configure({
-        webClientId: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
-        iosClientId: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
+        webClientId: CONST.GOOGLE_SIGN_IN_WEB_CLIENT_ID,
+        iosClientId: CONST.GOOGLE_SIGN_IN_IOS_CLIENT_ID,
         offlineAccess: false,
     });
 

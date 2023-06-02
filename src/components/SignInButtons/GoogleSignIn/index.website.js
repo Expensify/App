@@ -10,6 +10,7 @@ import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
 
 const propTypes = {
+    /** Whether we're rendering in the Desktop Flow, if so show a different button */
     isDesktopFlow: PropTypes.bool,
 
     ...withLocalizePropTypes,
@@ -18,6 +19,13 @@ const propTypes = {
 const defaultProps = {
     isDesktopFlow: false,
 };
+
+/**
+ * Google Sign In button for Web
+ * Depending on the isDesktopFlow prop, it will render a different button (Icon or Pill)
+ * We have to load the gis script and then determine if the page is focused before rendering the button
+ * @returns {React.Component}
+ */
 
 function GoogleSignIn({id, translate, isDesktopFlow}) {
     const isFocused = useIsFocused();
