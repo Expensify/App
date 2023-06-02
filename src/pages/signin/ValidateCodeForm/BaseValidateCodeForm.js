@@ -132,7 +132,7 @@ class BaseValidateCodeForm extends React.Component {
     resendValidateCode() {
         if (this.input2FA) {
             this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
-        } 
+        }
         this.setState({validateCode: '', formError: {}});
         this.inputValidateCode.clear();
         User.resendValidateCode(this.props.credentials.login, true);
