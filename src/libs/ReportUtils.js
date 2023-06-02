@@ -1862,7 +1862,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     // Exclude empty chats
-    if (excludeEmptyChats && isChatReport(report) && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml)) {
+    if (excludeEmptyChats && isChatReport(report) && !isChatRoom(report) && !isThread(report) && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml)) {
         return false;
     }
 
