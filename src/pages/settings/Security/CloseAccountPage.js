@@ -44,11 +44,7 @@ function CloseAccountPage (props) {
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [reasonForLeaving, setReasonForLeaving] = useState('');
 
-    useEffect(() => {
-        return () => {
-            CloseAccount.clearError();
-        };
-    });
+    useEffect(() => () => CloseAccount.clearError());
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
