@@ -107,11 +107,11 @@ class SettlementButton extends React.Component {
         if (!this.props.shouldShowPaymentOptions) {
             let paymentMethod = this.props.nvp_lastPaymentMethod[this.props.policyID];
             if (!paymentMethod) {
-                // In case the user hasnt paid a request yet, let's default to VBBA payment type in case of expense reports
+                // In case the user hasn't paid a request yet, let's default to VBBA payment type in case of expense reports
                 if (isExpenseReport) {
                     paymentMethod = CONST.IOU.PAYMENT_TYPE.VBBA;
                 } else if (canUseWallet) {
-                    // If they have Wallet set up, use that one
+                    // If they have Wallet set up, use that payment method as default
                     paymentMethod = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
                 } else {
                     paymentMethod = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
