@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import {View} from 'react-native';import {useIsFocused} from '@react-navigation/native';
+
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import getUserLanguage from '../GetUserLanguage';
@@ -29,7 +30,9 @@ const $continueWithGoogleContainerStyle = {
     // alignItems: 'center',
 };
 
-function GoogleSignIn({id, translate, isDesktopFlow}) {
+function GoogleSignIn({ id, translate, isDesktopFlow }) {
+    const isFocused = useIsFocused();
+
     const handleCredentialResponse = useCallback((response) => {
         Session.beginGoogleSignIn(response.credential);
     }, []);
@@ -45,8 +48,8 @@ function GoogleSignIn({id, translate, isDesktopFlow}) {
             google.accounts.id.renderButton(document.getElementById(id), {
                 theme: 'outline',
                 size: 'large',
-                type: 'icon',
-                shape: 'circle',
+                type: 'standard',
+                shape: 'pill',
             });
             } else {
             google.accounts.id.renderButton(document.getElementById(id), {
@@ -65,8 +68,8 @@ function GoogleSignIn({id, translate, isDesktopFlow}) {
             script.src = 'https://accounts.google.com/gsi/client';
         } else {
             script.src = `https://accounts.google.com/gsi/client?h1${localeCode}`;
-            script.addEventListener('load', handleScriptLoad);
         }
+        script.addEventListener('load', handleScriptLoad);
         script.async = true;
         document.body.appendChild(script);
 
@@ -75,6 +78,10 @@ function GoogleSignIn({id, translate, isDesktopFlow}) {
             document.body.removeChild(script);
         };
     }, [handleScriptLoad, isDesktopFlow]);
+
+    if (!isFocused) {
+        return null;
+    }
 
     return isDesktopFlow ? (
         <View style={$continueWithGoogleContainerStyle}>
