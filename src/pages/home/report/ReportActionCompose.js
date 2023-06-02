@@ -460,7 +460,7 @@ class ReportActionCompose extends React.Component {
     getMentionOptions(personalDetails, searchValue = '') {
         const suggestions = [];
 
-        if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue)) {
+        if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
             suggestions.push({
                 text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
                 alternateText: this.props.translate('mentionSuggestions.hereAlternateText'),

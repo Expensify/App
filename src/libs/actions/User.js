@@ -135,6 +135,7 @@ function requestContactMethodValidateCode(contactMethod) {
                     validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: null,
+                        validateLogin: null,
                     },
                     pendingFields: {
                         validateCodeSent: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
