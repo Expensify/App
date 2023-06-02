@@ -666,96 +666,130 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
 }
 
 /**
- * @param {String} iouReportID
- * @param {Object} moneyRequestAction - the money request reportAction we are deleting
+ * @param {String} transactionID
+ * @param {Object} reportAction - the money request reportAction we are deleting
  * @param {Boolean} shouldCloseOnDelete
  */
-function deleteMoneyRequest(iouReportID, moneyRequestAction, shouldCloseOnDelete) {
-    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
-    const transactionID = moneyRequestAction.originalMessage.IOUTransactionID;
-    const amount = moneyRequestAction.originalMessage.amount;
+function deleteMoneyRequest(transactionID, reportAction) {
+    console.log('over here', transactionID, reportAction)
+    // STEP 1: Get all collections we're updating
+    const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+    const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
+    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
 
-    const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.DELETE,
-        amount,
-        moneyRequestAction.originalMessage.currency,
-        Str.htmlDecode(moneyRequestAction.originalMessage.comment),
-        [],
-        transactionID,
-        '',
-        iouReportID,
-    );
-
-    const currentUserEmail = optimisticIOUAction.actorEmail;
-    let updatedIOUReport = {};
-    if (ReportUtils.isExpenseReport(iouReportID)) {
-        updatedIOUReport = {...iouReport};
-
-        // Because of the Expense reports are stored as negative values, we add the total from the amount
-        updatedIOUReport.total += amount;
-    } else {
-        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, true);
-    }
-    updatedIOUReport.lastMessageText = optimisticIOUAction.message[0].text;
-    updatedIOUReport.lastMessageHtml = optimisticIOUAction.message[0].html;
-    updatedIOUReport.hasOutstandingIOU = updatedIOUReport.total !== 0;
-
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-            value: {
-                [moneyRequestAction.reportActionID]: null,
-                [optimisticIOUAction.reportActionID]: {
-                    ...optimisticIOUAction,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
+    // STEP 2: Update the reportAction
+    const updatedReportAction = {
+        [reportAction.reportActionID]: {
+            ...reportAction,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            previousMessage: reportAction.message,
+            message: {
+                type: 'COMMENT',
+                html: '',
+                text: '',
+                isEdited: true,
             },
+            errors: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-            value: updatedIOUReport,
-        },
+    };
+
+    // STEP 3: Update the iou report total and last message
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
+    const hasVisibleComments = lastMessageText.length > 0;
+
+    let updatedIOUReport = null;
+    if (hasVisibleComments) {
+        if (ReportUtils.isExpenseReport(iouReport.reportID)) {
+            updatedIOUReport = {...iouReport};
+    
+            // Because of the Expense reports are stored as negative values, we add the total from the amount
+            updatedIOUReport.total += transaction.amount;
+        } else {
+            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorEmail, transaction.amount, transaction.currency, true);
+        }
+
+        updatedIOUReport.lastMessageText = lastMessageText;
+        updatedIOUReport.lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, updatedReportAction).created;
+    }
+
+    // 1. [DONE] Update IOU action so that message is empty. 
+    // 2. (If there are no comments it should disappear. Otherwise it should show [Deleted request])
+    // 2. [DONE] Delete transaction.
+    // 3. If there's a transaction thread, MoneyRequestHeader should update to [Deleted request]
+    // 3. [DONE] Update iouReport total and last visible messages. Delete if no more comments.
+    // 5. [DONE] Update reportPreview. Delete if iouReport was deleted. Check how we'll do this in Auth.
+    // 6. [DONE] Update chatReport. Update last messages.
+    const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: null,
         },
-    ];
-    const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [optimisticIOUAction.reportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-            value: {
-                [moneyRequestAction.reportActionID]: moneyRequestAction,
-                [optimisticIOUAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
-                },
+                [updatedReportAction.reportActionID]: updatedReportAction,
             },
         },
         {
+            onyxMethod: hasVisibleComments ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: updatedIOUReport,
+        },
+        ...(!hasVisibleComments && {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-            value: iouReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transactions[transactionID],
-        },
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: null,
+            },
+        }),
+        ...(!hasVisibleComments && {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                hasOutstandingIOU: false,
+                iouReportID: null,
+                iouReportAmount: null,
+                lastMessageText: ReportActionsUtils.getLastVisibleMessageText(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}),
+                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).created,
+            },
+        }),
     ];
+    // const successData = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
+    //         value: {
+    //             [optimisticIOUAction.reportActionID]: {
+    //                 pendingAction: null,
+    //             },
+    //         },
+    //     },
+    // ];
+    // const failureData = [
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
+    //         value: {
+    //             [moneyRequestAction.reportActionID]: moneyRequestAction,
+    //             [optimisticIOUAction.reportActionID]: {
+    //                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
+    //             },
+    //         },
+    //     },
+    //     {
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+    //         value: iouReport,
+    //     },
+    //     {
+    //         onyxMethod: Onyx.METHOD.SET,
+    //         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+    //         value: transactions[transactionID],
+    //     },
+    // ];
 
     API.write(
         'DeleteMoneyRequest',
