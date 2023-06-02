@@ -9,7 +9,6 @@ import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
-import * as Report from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import SubscriptAvatar from '../../components/SubscriptAvatar';
@@ -28,8 +27,8 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
-import * as Session from '../../libs/actions/Session';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import PinButton from '../../components/PinButton';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -201,22 +200,7 @@ const HeaderView = (props) => {
                                     guideCalendarLink={guideCalendarLink}
                                 />
                             )}
-                            <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
-                                <PressableWithoutFeedback
-                                    onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report))}
-                                    style={[styles.touchableButtonImage]}
-                                    accessibilityLabel={props.translate('common.pin')}
-                                    accessibilityState={{
-                                        checked: props.report.isPinned,
-                                    }}
-                                    accessibilityRole="togglebutton"
-                                >
-                                    <Icon
-                                        src={Expensicons.Pin}
-                                        fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
-                                    />
-                                </PressableWithoutFeedback>
-                            </Tooltip>
+                            <PinButton report={props.report} />
                             {shouldShowThreeDotsButton && (
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
