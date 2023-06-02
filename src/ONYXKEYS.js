@@ -45,7 +45,7 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
-    // Contains all the personalDetails the user has access to [new version]
+    // Contains all the personalDetails the user has access to, keyed by accountID
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
     // Contains all the private personal details of the user
