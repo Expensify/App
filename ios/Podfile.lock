@@ -16,7 +16,7 @@ PODS:
     - Airship/Core
   - Airship/PreferenceCenter (16.11.3):
     - Airship/Core
-  - AirshipFrameworkProxy (2.0.5):
+  - AirshipFrameworkProxy (2.0.8):
     - Airship (= 16.11.3)
     - Airship/MessageCenter (= 16.11.3)
     - Airship/PreferenceCenter (= 16.11.3)
@@ -509,8 +509,8 @@ PODS:
   - React-jsinspector (0.71.2-alpha.3)
   - React-logger (0.71.2-alpha.3):
     - glog
-  - react-native-airship (15.2.3):
-    - AirshipFrameworkProxy (= 2.0.5)
+  - react-native-airship (15.2.6):
+    - AirshipFrameworkProxy (= 2.0.8)
     - React-Core
   - react-native-blob-util (0.17.3):
     - React-Core
@@ -1094,7 +1094,7 @@ SPEC CHECKSUMS:
   Permission-LocationWhenInUse: 3ba99e45c852763f730eabecec2870c2382b7bd4
   Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
-  RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
+  RCT-Folly: 0080d0a6ebf2577475bda044aa59e2ca1f909cda
   RCTRequired: e9e7b8b45aa9bedb2fdad71740adf07a7265b9be
   RCTTypeSafety: 9ae0e9206625e995f0df4d5b9ddc94411929fb30
   React: a71c8e1380f07e01de721ccd52bcf9c03e81867d
@@ -1108,7 +1108,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 6f986feb67cf66edff7f98090ca797a67d0a44fb
   React-jsinspector: 31517b1de3fadf93ad8558840a8974c7a7160bd3
   React-logger: b90aa6ed0dbc30717dc72d843af3cf4550297b22
-  react-native-airship: 25045092934bf6eabf483e803af0a6e31826b8b9
+  react-native-airship: 5d19f4ba303481cf4101ff9dee9249ef6a8a6b64
   react-native-blob-util: 99f4d79189252f597fe0d810c57a3733b1b1dea6
   react-native-cameraroll: 8ffb0af7a5e5de225fd667610e2979fc1f0c2151
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
@@ -1169,4 +1169,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 4ed1c7b099741c82e2b0411b95f6468e72be6c76
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.12.0
