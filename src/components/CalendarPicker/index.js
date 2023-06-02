@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {View, TouchableOpacity, Pressable} from 'react-native';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
