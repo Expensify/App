@@ -19,7 +19,7 @@ import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import ConfirmationPage from '../../components/ConfirmationPage';
-import FormHelpMessage from "../../components/FormHelpMessage";
+import FormHelpMessage from '../../components/FormHelpMessage';
 
 const propTypes = {
     /* Onyx Props */

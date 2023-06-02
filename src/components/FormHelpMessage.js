@@ -8,7 +8,7 @@ import Text from './Text';
 import colors from '../styles/colors';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
-import * as Localize from "../libs/Localize";
+import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /** Error or hint text. Ignored when children is not empty */
@@ -36,7 +36,7 @@ const FormHelpMessage = (props) => {
         return null;
     }
 
-    const translatedMessage = Localize.translateIfPhraseKey(props.message)
+    const translatedMessage = Localize.translateIfPhraseKey(props.message);
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style]}>
             {props.isError && (
