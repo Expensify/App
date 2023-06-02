@@ -95,32 +95,34 @@ function PressableWithDelayToggle(props) {
                 containerStyles={[styles.flexRow]}
                 text={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
             >
-                <Text
-                    suppressHighlighting
-                    style={[styles.mr1, ...props.textStyles]}
-                >
-                    {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
-                </Text>
-                <Pressable
-                    ref={props.innerRef}
-                    focusable
-                    accessibilityLabel={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
-                    onPress={updatePressState}
-                >
-                    {({hovered, pressed}) => (
-                        <>
-                            {props.icon && (
-                                <Icon
-                                    src={props.isDelayButtonStateComplete ? props.iconChecked : props.icon}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, props.isDelayButtonStateComplete))}
-                                    style={props.iconStyles}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
-                                />
-                            )}
-                        </>
-                    )}
-                </Pressable>
+                <>
+                    <Text
+                        suppressHighlighting
+                        style={[styles.mr1, ...props.textStyles]}
+                    >
+                        {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
+                    </Text>
+                    <Pressable
+                        ref={props.innerRef}
+                        focusable
+                        accessibilityLabel={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
+                        onPress={updatePressState}
+                    >
+                        {({hovered, pressed}) => (
+                            <>
+                                {props.icon && (
+                                    <Icon
+                                        src={props.isDelayButtonStateComplete ? props.iconChecked : props.icon}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, props.isDelayButtonStateComplete))}
+                                        style={props.iconStyles}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
+                                    />
+                                )}
+                            </>
+                        )}
+                    </Pressable>
+                </>
             </Tooltip>
         </PressableView>
     );
