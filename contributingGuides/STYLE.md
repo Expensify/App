@@ -628,9 +628,9 @@ We love React and learning about all the new features that are regularly being a
 
 In most cases, a custom hook is a better pattern to use than an HOC or Render Prop. They are easier to create, understand, use and document. However, there might still be a case for a HOC e.g. if you have a component that abstracts some conditional rendering logic.
 
-## Where should I put my inline functions? I'm getting a lint error related to `jsx-no-bind`...
+## Should I wrap all my inline functions with `useCallback()` or move them out of the component if they have no dependencies?
 
-If your inline function does not have any dependencies (i.e. props or state that it depends on) it can be removed from the component and moved to the top of the file. If it does have dependencies, then we should wrap it in `useCallback()` and pass the dependencies as an argument. At one time, we questioned whether there is some performance penalty to using `useCallback()` as a pre-optimization and the conclusion was that there is generally a higher potential cost to not using it vs. using it.
+The answer depends on whether you need a stable reference for the function. If there are no dependencies, you could move the function out of the component. If there are dependencies, you could use `useCallback()` to ensure the reference updates only when the dependencies change. However, it's important to note that using `useCallback()` may have a performance penalty, although the trade-off is still debated. It's recommended to follow the guidance in the [React documentation](https://react.dev/reference/react/useCallback#should-you-add-usecallback-everywhere) and add the optimization only if necessary. Leave a code comment explaining the reasoning behind the chosen optimization to aid reviewers and future contributors.
 
 ## Why does `useState()` sometimes get initialized with a function?
 
