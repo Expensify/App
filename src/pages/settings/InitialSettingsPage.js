@@ -332,7 +332,7 @@ class InitialSettingsPage extends React.Component {
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
+                                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
