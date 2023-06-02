@@ -30,9 +30,6 @@ const defaultProps = {
     textStyles: [],
 };
 
-CopyTextToClipboard.propTypes = propTypes;
-CopyTextToClipboard.defaultProps = defaultProps;
-
 const CopyTextToClipboard = ({ text, textStyles, translate, isDelayButtonStateComplete, toggleDelayButtonState }) => {
     const copyToClipboard = useCallback(() => {
         if (isDelayButtonStateComplete) {
@@ -65,5 +62,8 @@ const CopyTextToClipboard = ({ text, textStyles, translate, isDelayButtonStateCo
         </Text>
     );
 }
+
+CopyTextToClipboard.propTypes = propTypes;
+CopyTextToClipboard.defaultProps = defaultProps;
 
 export default compose(withLocalize, withDelayToggleButtonState)(CopyTextToClipboard);
