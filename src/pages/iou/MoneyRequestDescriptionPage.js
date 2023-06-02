@@ -44,6 +44,7 @@ class MoneyRequestDescriptionPage extends Component {
         this.reportID = lodashGet(props.route, 'params.reportID', '');
     }
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidMount() {
         if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0) {
             Navigation.goBack();
