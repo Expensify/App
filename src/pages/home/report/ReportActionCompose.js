@@ -461,7 +461,7 @@ class ReportActionCompose extends React.Component {
     getMentionOptions(personalDetails, searchValue = '') {
         const suggestions = [];
 
-        if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue)) {
+        if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
             suggestions.push({
                 text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
                 alternateText: this.props.translate('mentionSuggestions.hereAlternateText'),
@@ -911,7 +911,8 @@ class ReportActionCompose extends React.Component {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
         const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
-        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report) && !this.props.isComposerFullSize;
+        const shouldShowReportRecipientLocalTime =
+            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.login) && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
