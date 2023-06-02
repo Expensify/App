@@ -19,6 +19,11 @@ function googleSignInRequest() {
         offlineAccess: false,
     });
 
+    // The package on android can sign in without prompting
+    // the user which is not what we want. So we sign out
+    // before signing in to ensure the user is prompted.
+    GoogleSignin.signOut();
+
     GoogleSignin.signIn()
         .then((response) => response.idToken)
         .then((token) => Session.beginGoogleSignIn(token))
