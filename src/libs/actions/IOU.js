@@ -791,18 +791,18 @@ function deleteMoneyRequest(transactionID, reportAction) {
     //     },
     // ];
 
-    API.write(
-        'DeleteMoneyRequest',
-        {
-            transactionID,
-            reportActionID: optimisticIOUAction.reportActionID,
-        },
-        {optimisticData, successData, failureData},
-    );
+    // API.write(
+    //     'DeleteMoneyRequest',
+    //     {
+    //         transactionID,
+    //         reportActionID: optimisticIOUAction.reportActionID,
+    //     },
+    //     {optimisticData, successData, failureData},
+    // );
 
-    if (shouldCloseOnDelete) {
-        Navigation.navigate(ROUTES.getReportRoute(iouReportID));
-    }
+    // if (shouldCloseOnDelete) {
+    //     Navigation.navigate(ROUTES.getReportRoute(iouReportID));
+    // }
 }
 
 /**
