@@ -5,7 +5,7 @@ import * as Localize from './Localize';
 
 let personalDetails = [];
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (personalDetails = _.values(val)),
 });
 
