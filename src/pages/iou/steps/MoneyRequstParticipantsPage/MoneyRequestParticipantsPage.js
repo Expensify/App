@@ -9,7 +9,6 @@ import ROUTES from '../../../../ROUTES';
 import MoneyRequestParticipantsSplitSelector from './MoneyRequestParticipantsSplitSelector';
 import MoneyRequestParticipantsSelector from './MoneyRequestParticipantsSelector';
 import styles from '../../../../styles/styles';
-import optionPropTypes from '../../../../components/optionPropTypes';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -22,7 +21,14 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
         amount: PropTypes.number,
-        participants: PropTypes.arrayOf(optionPropTypes),
+        participants: PropTypes.arrayOf(
+            PropTypes.shape({
+                login: PropTypes.string,
+                isPolicyExpenseChat: PropTypes.bool,
+                isOwnPolicyExpenseChat: PropTypes.bool,
+                selected: PropTypes.bool,
+            }),
+        ),
     }),
 
     ...withLocalizePropTypes,

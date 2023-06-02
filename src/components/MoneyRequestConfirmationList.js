@@ -20,7 +20,6 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
-import * as IOU from '../libs/actions/IOU';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -28,6 +27,9 @@ const propTypes = {
 
     /** Callback to parent modal to send money */
     onSendMoney: PropTypes.func,
+
+    /** Callback to inform a participant is selected */
+    onSelectParticipant: PropTypes.func,
 
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
@@ -82,6 +84,7 @@ const propTypes = {
 const defaultProps = {
     onConfirm: () => {},
     onSendMoney: () => {},
+    onSelectParticipant: () => {},
     iou: {
         currency: CONST.CURRENCY.USD,
         comment: '',
@@ -107,7 +110,7 @@ class MoneyRequestConfirmationList extends Component {
             didConfirm: false,
         };
 
-        this.toggleOption = this.toggleOption.bind(this);
+        this.selectParticipant = this.selectParticipant.bind(this);
         this.confirm = this.confirm.bind(this);
     }
 
@@ -251,22 +254,15 @@ class MoneyRequestConfirmationList extends Component {
     }
 
     /**
-     * Toggle selected option's selected prop.
      * @param {Object} option
      */
-    toggleOption(option) {
+    selectParticipant(option) {
         // Return early if selected option is currently logged in user.
         if (option.login === this.props.session.email) {
             return;
         }
 
-        const newParticipants = _.map(this.props.participants, (participant) => {
-            if (participant.login === option.login) {
-                return {...participant, selected: !participant.selected};
-            }
-            return participant;
-        });
-        IOU.setMoneyRequestParticipants(newParticipants);
+        this.props.onSelectParticipant(option);
     }
 
     /**
@@ -300,7 +296,7 @@ class MoneyRequestConfirmationList extends Component {
             <OptionsSelector
                 sections={this.getSections()}
                 value=""
-                onSelectRow={canModifyParticipants ? this.toggleOption : undefined}
+                onSelectRow={canModifyParticipants ? this.selectParticipant : undefined}
                 onConfirmSelection={this.confirm}
                 selectedOptions={this.getSelectedOptions()}
                 canSelectMultipleOptions={canModifyParticipants}

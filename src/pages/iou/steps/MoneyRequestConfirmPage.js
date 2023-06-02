@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -14,12 +14,13 @@ import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import withLocalize from '../../../components/withLocalize';
 import ModalHeader from '../ModalHeader';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
-import optionPropTypes from '../../../components/optionPropTypes';
+import personalDetailsPropType from '../../personalDetailsPropType';
 
 const propTypes = {
     report: reportPropTypes,
@@ -29,14 +30,25 @@ const propTypes = {
         amount: PropTypes.number,
         currency: PropTypes.string,
         comment: PropTypes.string,
-        participants: PropTypes.arrayOf(optionPropTypes),
+        participants: PropTypes.arrayOf(
+            PropTypes.shape({
+                login: PropTypes.string,
+                isPolicyExpenseChat: PropTypes.bool,
+                isOwnPolicyExpenseChat: PropTypes.bool,
+                selected: PropTypes.bool,
+            }),
+        ),
     }),
+
+    /** Personal details of all users */
+    personalDetails: personalDetailsPropType,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    personalDetails: {},
     iou: {
         amount: 0,
         currency: CONST.CURRENCY.USD,
@@ -109,6 +121,11 @@ const MoneyRequestConfirmPage = (props) => {
         [props.iou.amount, props.iou.comment, props.iou.participants, props.iou.currency, props.currentUserPersonalDetails.login, props.report],
     );
 
+    const participants = useMemo(() => props.iou.participants[0].isPolicyExpenseChat || props.iou.participants[0].isOwnPolicyExpenseChat
+        ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
+        : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
+    [props.iou.participants, props.personalDetails]);
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
@@ -119,7 +136,7 @@ const MoneyRequestConfirmPage = (props) => {
                     />
                     <MoneyRequestConfirmationList
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                        participants={props.iou.participants}
+                        participants={participants}
                         iouAmount={props.iou.amount}
                         onConfirm={(selectedParticipants) => {
                             createTransaction(selectedParticipants);
@@ -128,6 +145,15 @@ const MoneyRequestConfirmPage = (props) => {
                         onSendMoney={(paymentMethodType) => {
                             sendMoney(paymentMethodType);
                             ReportScrollManager.scrollToBottom();
+                        }}
+                        onSelectParticipant={(option) => {
+                            const newParticipants = _.map(props.iou.participants, (participant) => {
+                                if (participant.login === option.login) {
+                                    return {...participant, selected: !participant.selected};
+                                }
+                                return participant;
+                            });
+                            IOU.setMoneyRequestParticipants(newParticipants);
                         }}
                         iouType={iouType.current}
                         reportID={reportID.current}
@@ -159,6 +185,9 @@ export default compose(
         },
         iou: {
             key: ONYXKEYS.IOU,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
 )(MoneyRequestConfirmPage);

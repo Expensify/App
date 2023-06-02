@@ -10,7 +10,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as IOUUtils from '../../../libs/IOUUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
@@ -24,9 +23,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes,
 import withNavigation from '../../../components/withNavigation';
 import ModalHeader from '../ModalHeader';
 import ONYXKEYS from '../../../ONYXKEYS';
-import personalDetailsPropType from '../../personalDetailsPropType';
 import reportPropTypes from '../../reportPropTypes';
-import optionPropTypes from '../../../components/optionPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 
 const propTypes = {
@@ -40,14 +37,18 @@ const propTypes = {
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
-    /** Personal details of all users */
-    personalDetails: personalDetailsPropType,
-
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
         amount: PropTypes.number,
         currency: PropTypes.string,
-        participants: PropTypes.arrayOf(optionPropTypes),
+        participants: PropTypes.arrayOf(
+            PropTypes.shape({
+                login: PropTypes.string,
+                isPolicyExpenseChat: PropTypes.bool,
+                isOwnPolicyExpenseChat: PropTypes.bool,
+                selected: PropTypes.bool,
+            }),
+        ),
     }),
 
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -62,7 +63,6 @@ const defaultProps = {
         },
     },
     report: {},
-    personalDetails: {},
     iou: {
         amount: 0,
         currency: CONST.CURRENCY.USD,
@@ -114,9 +114,9 @@ class MoneyRequestAmountPage extends React.Component {
             IOU.setMoneyRequestCurrency(lodashGet(this.props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD));
             IOU.setMoneyRequestDescription('');
             const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
-                ? OptionsListUtils.getPolicyExpenseReportOptions(this.props.report)
-                : OptionsListUtils.getParticipantsOptions(this.props.report, this.props.personalDetails);
-            IOU.setMoneyRequestParticipants(_.map(participants, (participant) => ({...participant, selected: true})));
+                ? [{reportID: this.props.report.reportID, isOwnPolicyExpenseChat: this.props.report.isOwnPolicyExpenseChat, selected: true}]
+                : _.map(this.props.report.participants, (participant) => ({login: participant, selected: true}));
+            IOU.setMoneyRequestParticipants(participants);
         }
 
         this.focusTextInput();
@@ -477,9 +477,6 @@ export default compose(
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
         },
         iou: {
             key: ONYXKEYS.IOU,

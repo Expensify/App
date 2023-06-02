@@ -13,7 +13,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import compose from '../../../../libs/compose';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
-import avatarPropTypes from '../../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -28,14 +27,10 @@ const propTypes = {
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
-            login: PropTypes.string.isRequired,
-            alternateText: PropTypes.string,
-            hasDraftComment: PropTypes.bool,
-            icons: PropTypes.arrayOf(avatarPropTypes),
-            searchText: PropTypes.string,
-            text: PropTypes.string,
-            keyForList: PropTypes.string,
-            reportID: PropTypes.string,
+            login: PropTypes.string,
+            isPolicyExpenseChat: PropTypes.bool,
+            isOwnPolicyExpenseChat: PropTypes.bool,
+            selected: PropTypes.bool,
         }),
     ),
 
@@ -103,7 +98,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
 
         sections.push({
             title: undefined,
-            data: this.props.participants,
+            data: OptionsListUtils.getParticipantsOptions(this.props.participants, this.props.personalDetails),
             shouldShow: true,
             indexOffset,
         });
@@ -177,7 +172,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
         if (isOptionInList) {
             newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.login === option.login);
         } else {
-            newSelectedOptions = [...this.props.participants, {...option, selected: true}];
+            newSelectedOptions = [...this.props.participants, {login: option.login, selected: true}];
         }
 
         this.props.onAddParticipants(newSelectedOptions);
