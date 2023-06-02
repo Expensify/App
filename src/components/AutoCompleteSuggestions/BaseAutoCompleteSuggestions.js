@@ -40,6 +40,7 @@ const BaseAutoCompleteSuggestions = (props) => {
             onMouseDown={(e) => e.preventDefault()}
             onPress={() => props.onSelect(index)}
             onLongPress={() => {}}
+            accessibilityLabel={props.accessibilityLabelExtractor(item, index)}
         >
             {props.renderSuggestionMenuItem(item, index)}
         </PressableWithFeedback>
