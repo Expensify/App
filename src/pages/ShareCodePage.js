@@ -62,6 +62,8 @@ class ShareCodePage extends React.Component {
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
                             subtitle={isReport ? subtitle : this.props.session.email}
                             logo={isReport ? expensifyLogo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                            logoRatio={isReport ? 0.22 : 0.25}
+                            logoMarginRatio={isReport ? 0.03 : 0.02}
                         />
                     </View>
 

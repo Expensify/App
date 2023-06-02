@@ -14,6 +14,14 @@ const propTypes = {
      */
     logo: PropTypes.oneOfType([PropTypes.shape({uri: PropTypes.string}), PropTypes.number, PropTypes.string]),
     /**
+     * The size ratio of logo to QR code
+     */
+    logoRatio: PropTypes.number,
+    /**
+     * The size ratio of margin around logo to QR code
+     */
+    logoMarginRatio: PropTypes.number,
+    /**
      * The QRCode size
      */
     size: PropTypes.number,
@@ -38,6 +46,8 @@ const defaultProps = {
     color: defaultTheme.text,
     backgroundColor: defaultTheme.highlightBG,
     getRef: undefined,
+    logoRatio: 0.25,
+    logoMarginRatio: 0.02,
 };
 
 function QRCode(props) {
@@ -48,8 +58,8 @@ function QRCode(props) {
             size={props.size}
             logo={props.logo}
             logoBackgroundColor={props.backgroundColor}
-            logoSize={props.size * 0.3}
-            logoMargin={props.size * 0.02}
+            logoSize={props.size * props.logoRatio}
+            logoMargin={props.size * props.logoMarginRatio}
             logoBorderRadius={props.size}
             backgroundColor={props.backgroundColor}
             color={props.color}
