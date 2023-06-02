@@ -3375,10 +3375,22 @@ const styles = {
         ...flex.flexRow,
     },
 
-    thirdPartyButtonContainer: {
+    appleButtonContainer: {
         width: 40,
         height: 40,
         marginRight: 20,
+    },
+
+    googleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginLeft: 12,
+        alignItems: 'center',
+    },
+
+    googlePillButtonContainer: {
+        height: 40,
+        width: 219,
     },
 
     signInButtonBase: {

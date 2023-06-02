@@ -7,6 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import getUserLanguage from '../GetUserLanguage';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
+import styles from '../../../styles/styles';
 
 const propTypes = {
     isDesktopFlow: PropTypes.bool,
@@ -16,19 +17,6 @@ const propTypes = {
 
 const defaultProps = {
     isDesktopFlow: false,
-};
-
-const $googleContainerStyle = {
-    height: 40,
-    width: 40,
-    alignItems: 'center',
-    marginLeft: 12,
-};
-
-const $continueWithGoogleContainerStyle = {
-    height: 40,
-    width: 219,
-    // alignItems: 'center',
 };
 
 function GoogleSignIn({id, translate, isDesktopFlow}) {
@@ -86,7 +74,7 @@ function GoogleSignIn({id, translate, isDesktopFlow}) {
     }
 
     return isDesktopFlow ? (
-        <View style={$continueWithGoogleContainerStyle}>
+        <View style={styles.googlePillButtonContainer}>
             <div
                 id={id}
                 accessibilityrole="button"
@@ -94,7 +82,7 @@ function GoogleSignIn({id, translate, isDesktopFlow}) {
             />
         </View>
     ) : (
-        <View style={$googleContainerStyle}>
+        <View style={styles.googleButtonContainer}>
             <div
                 id={id}
                 accessibilityrole="button"

@@ -14,7 +14,7 @@ const googleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL
 
 const GoogleSignIn = (props) => (
     <View
-        style={styles.thirdPartyButtonContainer}
+        style={styles.appleButtonContainer}
         accessibilityRole="button"
         accessibilityLabel={props.translate('common.signInWithGoogle')}
     >

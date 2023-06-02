@@ -18,7 +18,7 @@ const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg')
 
 const AppleSignIn = (props) => (
     <View
-        style={styles.thirdPartyButtonContainer}
+        style={styles.appleButtonContainer}
         accessibilityRole="button"
         accessibilityLabel={props.translate('common.signInWithApple')}
     >
