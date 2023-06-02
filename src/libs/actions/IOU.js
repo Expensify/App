@@ -15,6 +15,7 @@ import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
+import * as ErrorUtils from '../ErrorUtils';
 
 const chatReports = {};
 const iouReports = {};
@@ -186,9 +187,7 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewChatReport
                     ? {
                           errorFields: {
-                              createChat: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
-                              },
+                              createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                           },
                       }
                     : {}),
@@ -201,9 +200,7 @@ function buildOnyxDataForMoneyRequest(
                       key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                       value: {
                           errorFields: {
-                              createChat: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
-                              },
+                              createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                           },
                       },
                   },
@@ -213,9 +210,7 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                },
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
             },
         },
         {
@@ -225,9 +220,7 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewChatReport
                     ? {
                           [chatCreatedAction.reportActionID]: {
-                              errors: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                              },
+                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                       }
                     : {}),
@@ -243,16 +236,12 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewIOUReport
                     ? {
                           [iouCreatedAction.reportActionID]: {
-                              errors: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                              },
+                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                       }
                     : {
                           [iouAction.reportActionID]: {
-                              errors: {
-                                  [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                              },
+                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
                       }),
             },
@@ -359,14 +348,13 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     );
 
     // STEP 6: Make the request
-    const parsedComment = ReportUtils.getParsedComment(comment);
     API.write(
         'RequestMoney',
         {
             debtorEmail: payerEmail,
             amount,
             currency,
-            comment: parsedComment,
+            comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: optimisticTransaction.transactionID,
@@ -488,9 +476,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
                 [groupIOUReportAction.reportActionID]: {
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                    },
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                 },
             },
         },
@@ -498,9 +484,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
             value: {
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                },
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
             },
         },
     ];
@@ -511,9 +495,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
             value: {
                 errorFields: {
-                    createChat: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
-                    },
+                    createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                 },
             },
         });
@@ -645,7 +627,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
  */
 function splitBill(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID = '') {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID);
-    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write(
         'SplitBill',
@@ -654,7 +635,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
             amount,
             splits: JSON.stringify(splits),
             currency,
-            comment: parsedComment,
+            comment,
             transactionID: groupData.transactionID,
             reportActionID: groupData.reportActionID,
             createdReportActionID: groupData.createdReportActionID,
@@ -674,7 +655,6 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
  */
 function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency) {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency);
-    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -683,7 +663,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
             amount,
             splits: JSON.stringify(splits),
             currency,
-            comment: parsedComment,
+            comment,
             transactionID: groupData.transactionID,
             reportActionID: groupData.reportActionID,
             createdReportActionID: groupData.createdReportActionID,
@@ -770,9 +750,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
             value: {
                 [optimisticIOUAction.reportActionID]: {
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
-                    },
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
                 },
             },
         },
@@ -844,12 +822,11 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  */
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
     const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
-    const parsedComment = ReportUtils.getParsedComment(comment);
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
         requestorEmail: recipientEmail,
-        comment: parsedComment,
+        comment,
         idempotencyKey: Str.guid(),
     });
 
@@ -939,9 +916,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
-                    },
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
         },
@@ -949,9 +924,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
-                },
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
             },
         },
     ];
@@ -976,9 +949,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: optimisticChatReportData.key,
             value: {
                 errorFields: {
-                    createChat: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('report.genericCreateReportFailureMessage'),
-                    },
+                    createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                 },
             },
         });
@@ -1101,9 +1072,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: {
-                        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.other'),
-                    },
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
         },
@@ -1111,9 +1080,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {
-                errors: {
-                    [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericCreateFailureMessage'),
-                },
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
             },
         },
     ];
@@ -1194,7 +1161,11 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     };
     const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
-    API.write('PayMoneyRequest', params, {optimisticData, successData, failureData});
+    // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
+    // Expensify Wallets.
+    const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'PayMoneyRequestWithWallet' : 'PayMoneyRequest';
+
+    API.write(apiCommand, params, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
     if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));

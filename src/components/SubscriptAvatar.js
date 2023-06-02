@@ -47,7 +47,7 @@ const SubscriptAvatar = (props) => {
     const containerStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar;
 
     // Default the margin style to what is normal for small or normal sized avatars
-    let marginStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarMargin : styles.emptyAvatarMarginSmall;
+    let marginStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
 
     // Some views like the chat view require that there be no margins
     if (props.noMargin) {
@@ -56,27 +56,31 @@ const SubscriptAvatar = (props) => {
     return (
         <View style={[containerStyle, marginStyle]}>
             <Tooltip text={props.mainTooltip}>
-                <Avatar
-                    source={props.mainAvatar.source}
-                    size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                    name={props.mainAvatar.name}
-                    type={props.mainAvatar.type}
-                />
+                <View>
+                    <Avatar
+                        source={props.mainAvatar.source}
+                        size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                        name={props.mainAvatar.name}
+                        type={props.mainAvatar.type}
+                    />
+                </View>
             </Tooltip>
             <Tooltip text={props.secondaryTooltip}>
-                <Avatar
-                    imageStyles={null}
-                    containerStyles={[props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript]}
-                    iconAdditionalStyles={[
-                        StyleUtils.getAvatarBorderWidth(props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
-                        StyleUtils.getBorderColorStyle(props.backgroundColor),
-                    ]}
-                    source={props.secondaryAvatar.source}
-                    size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
-                    fill={themeColors.iconSuccessFill}
-                    name={props.secondaryAvatar.name}
-                    type={props.secondaryAvatar.type}
-                />
+                <View>
+                    <Avatar
+                        imageStyles={null}
+                        containerStyles={[props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript]}
+                        iconAdditionalStyles={[
+                            StyleUtils.getAvatarBorderWidth(props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
+                            StyleUtils.getBorderColorStyle(props.backgroundColor),
+                        ]}
+                        source={props.secondaryAvatar.source}
+                        size={props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
+                        fill={themeColors.iconSuccessFill}
+                        name={props.secondaryAvatar.name}
+                        type={props.secondaryAvatar.type}
+                    />
+                </View>
             </Tooltip>
         </View>
     );

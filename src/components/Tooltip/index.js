@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {PureComponent} from 'react';
-import {Animated, View} from 'react-native';
+import {Animated} from 'react-native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
@@ -9,8 +9,10 @@ import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
-// A "target" for the tooltip, i.e. an element that, when hovered over, triggers the tooltip to appear. The tooltip will
-// point towards this target.
+/**
+ * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
+ * wrapped element, which, upon hover, triggers the tooltip to be shown.
+ */
 class Tooltip extends PureComponent {
     constructor(props) {
         super(props);
@@ -49,6 +51,9 @@ class Tooltip extends PureComponent {
      * @param {Object} bounds - updated bounds
      */
     updateBounds(bounds) {
+        if (bounds.width === 0) {
+            this.setState({isRendered: false});
+        }
         this.setState({
             wrapperWidth: bounds.width,
             wrapperHeight: bounds.height,
@@ -113,37 +118,9 @@ class Tooltip extends PureComponent {
         if ((_.isEmpty(this.props.text) && this.props.renderTooltipContent == null) || !this.hasHoverSupport) {
             return this.props.children;
         }
-        let child = (
-            <View
-                ref={(el) => (this.wrapperView = el)}
-                onBlur={this.hideTooltip}
-                focusable={this.props.focusable}
-                style={this.props.containerStyles}
-            >
-                {this.props.children}
-            </View>
-        );
 
-        if (this.props.absolute && React.isValidElement(this.props.children)) {
-            child = React.cloneElement(React.Children.only(this.props.children), {
-                ref: (el) => {
-                    this.wrapperView = el;
-
-                    // Call the original ref, if any
-                    const {ref} = this.props.children;
-                    if (_.isFunction(ref)) {
-                        ref(el);
-                    }
-                },
-                onBlur: (el) => {
-                    this.hideTooltip();
-
-                    if (_.isFunction(this.props.children.props.onBlur)) {
-                        this.props.children.props.onBlur(el);
-                    }
-                },
-                focusable: true,
-            });
+        if (!React.isValidElement(this.props.children)) {
+            throw Error('Children is not a valid element.');
         }
 
         return (
@@ -172,12 +149,10 @@ class Tooltip extends PureComponent {
                     onBoundsChange={this.updateBounds}
                 >
                     <Hoverable
-                        absolute={this.props.absolute}
-                        containerStyles={this.props.containerStyles}
                         onHoverIn={this.showTooltip}
                         onHoverOut={this.hideTooltip}
                     >
-                        {child}
+                        {React.Children.only(this.props.children)}
                     </Hoverable>
                 </BoundsObserver>
             </>

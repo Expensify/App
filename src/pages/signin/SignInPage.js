@@ -1,9 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -20,6 +21,7 @@ import UnlinkLoginForm from './UnlinkLoginForm';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as Localize from '../../libs/Localize';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -83,8 +85,9 @@ class SignInPage extends Component {
             Boolean(this.props.credentials.login) &&
             Boolean(this.props.account.primaryLogin) &&
             this.props.account.primaryLogin !== this.props.credentials.login &&
-            !this.props.account.validated &&
+            !this.props.account.validated
             !showEmailDeliveryFailurePage;
+
 
         // Show the old password form if
         // - A login has been entered
@@ -107,7 +110,7 @@ class SignInPage extends Component {
         // - AND the login isn't an unvalidated secondary login
         // - AND the user is on the 'passwordless' beta
         const showValidateCodeForm =
-            (Boolean(this.props.credentials.login) || Boolean(this.props.credentials.validateCode)) &&
+            Boolean(this.props.credentials.login || this.props.credentials.validateCode) &&
             !showUnlinkLoginForm &&
             Permissions.canUsePasswordlessLogins(this.props.betas) &&
             !showEmailDeliveryFailurePage;
@@ -161,7 +164,9 @@ class SignInPage extends Component {
         }
 
         return (
-            <SafeAreaView style={[styles.signInPage]}>
+            // There is an issue SafeAreaView on Android where wrong insets flicker on app start.
+            // Can be removed once https://github.com/th3rdwave/react-native-safe-area-context/issues/364 is resolved.
+            <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(this.props.insets, 1)]}>
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
@@ -179,7 +184,7 @@ class SignInPage extends Component {
                     {showUnlinkLoginForm && <UnlinkLoginForm />}
                     {showEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
                 </SignInPageLayout>
-            </SafeAreaView>
+            </View>
         );
     }
 }
@@ -188,6 +193,7 @@ SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
 export default compose(
+    withSafeAreaInsets,
     withLocalize,
     withWindowDimensions,
     withOnyx({

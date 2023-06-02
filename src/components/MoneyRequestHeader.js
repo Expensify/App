@@ -27,6 +27,7 @@ import * as CurrencyUtils from '../libs/CurrencyUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
 import reportPropTypes from '../pages/reportPropTypes';
+import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -82,15 +83,18 @@ const MoneyRequestHeader = (props) => {
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerEmail);
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
-        : ReportUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
+        : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const isPayer = Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(props.report) && lodashGet(props.session, 'email', null) === props.report.managerEmail);
+    const isPayer =
+        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
                 shouldShowAvatarWithDisplay
-                shouldShowThreeDotsButton={!isSettled && props.isSingleTransactionView}
+                shouldShowPinButton={props.isSingleTransactionView}
+                shouldShowThreeDotsButton={!isPayer && !isSettled && props.isSingleTransactionView}
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,
@@ -99,7 +103,8 @@ const MoneyRequestHeader = (props) => {
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={moneyRequestReport}
+                report={props.report}
+                parentReport={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowCloseButton={false}
@@ -135,7 +140,7 @@ const MoneyRequestHeader = (props) => {
                     </View>
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
-                        {isSettled && (
+                        {!props.isSingleTransactionView && isSettled && (
                             <View style={styles.moneyRequestHeaderCheckmark}>
                                 <Icon
                                     src={Expensicons.Checkmark}
@@ -153,7 +158,7 @@ const MoneyRequestHeader = (props) => {
                                     iouReport={props.report}
                                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
                                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                                    addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                                    addBankAccountRoute={bankAccountRoute}
                                     shouldShowPaymentOptions
                                 />
                             </View>
@@ -169,7 +174,7 @@ const MoneyRequestHeader = (props) => {
                         iouReport={props.report}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                        addBankAccountRoute={ROUTES.IOU_DETAILS_ADD_BANK_ACCOUNT}
+                        addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                     />
                 )}
@@ -178,7 +183,9 @@ const MoneyRequestHeader = (props) => {
                 <>
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount}
-                        description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}`}
+                        shouldShowTitleIcon={isSettled}
+                        titleIcon={Expensicons.Checkmark}
+                        description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
                         titleStyle={styles.newKansasLarge}
                     />
                     <MenuItemWithTopDescription
