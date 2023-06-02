@@ -18,14 +18,14 @@ import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
-    /** The parameters needed to authenticate with a short lived token are in the URL */
+    /** The parameters needed to authenticate with a short-lived token are in the URL */
     route: PropTypes.shape({
         /** Each parameter passed via the URL */
         params: PropTypes.shape({
-            /** Short lived authToken to sign in a user */
+            /** Short-lived authToken to sign in a user */
             shortLivedAuthToken: PropTypes.string,
 
-            /** Short lived authToken to sign in as a user, if they are coming from the old mobile app */
+            /** Short-lived authToken to sign in as a user, if they are coming from the old mobile app */
             shortLivedToken: PropTypes.string,
 
             /** The email of the transitioning user */
@@ -35,7 +35,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
-    /** Whether the short lived auth token is valid */
+    /** Whether the short-lived auth token is valid */
     isTokenValid: PropTypes.bool,
 };
 
@@ -44,7 +44,6 @@ const defaultProps = {
 };
 
 const LogInWithShortLivedAuthTokenPage = (props) => {
-
     useEffect(() => {
         const email = lodashGet(props, 'route.params.email', '');
 
@@ -60,7 +59,9 @@ const LogInWithShortLivedAuthTokenPage = (props) => {
                 Navigation.navigate(exitTo);
             });
         }
-    }, []);
+        // The only dependencies of the effect are based on props.route
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.route]);
 
     if (props.isTokenValid) {
         return <FullScreenLoadingIndicator />;
@@ -97,6 +98,7 @@ const LogInWithShortLivedAuthTokenPage = (props) => {
 
 LogInWithShortLivedAuthTokenPage.propTypes = propTypes;
 LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;
+LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage';
 
 export default compose(
     withLocalize,
