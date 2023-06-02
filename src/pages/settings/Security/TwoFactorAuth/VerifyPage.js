@@ -110,6 +110,8 @@ function VerifyPage(props) {
                             <QRCode
                                 url={buildAuthenticatorUrl()}
                                 logo={expensifyLogo}
+                                logoRatio={0.22}
+                                logoMarginRatio={0.03}
                             />
                         </View>
                         <Text style={styles.mt5}>{props.translate('twoFactorAuth.addKey')}</Text>
