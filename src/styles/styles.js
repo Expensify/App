@@ -1229,6 +1229,10 @@ const styles = {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
+    onlyEmojisTextLineHeight: {
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
+    },
+
     createMenuPositionSidebar: (windowHeight) => ({
         horizontal: 18,
         vertical: windowHeight - 100,
@@ -2095,8 +2099,8 @@ const styles = {
         ...flex.dFlex,
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
-        ...spacing.mt4,
-        height: 170,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
 
     reportDetailsRoomInfo: {
@@ -2138,14 +2142,26 @@ const styles = {
         padding: 0,
     },
 
-    twoFactorAuthCodesBox: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: themeColors.highlightBG,
-        paddingVertical: 28,
-        paddingHorizontal: 60,
-        borderRadius: 16,
-        marginTop: 32,
+    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
+        let paddingHorizontal = styles.ph15;
+
+        if (isSmallScreenWidth) {
+            paddingHorizontal = styles.ph10;
+        }
+
+        if (isExtraSmallScreenWidth) {
+            paddingHorizontal = styles.ph4;
+        }
+
+        return {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: themeColors.highlightBG,
+            paddingVertical: 28,
+            borderRadius: 16,
+            marginTop: 32,
+            ...paddingHorizontal,
+        };
     },
 
     twoFactorLoadingContainer: {
