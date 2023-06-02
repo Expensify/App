@@ -57,7 +57,6 @@ const TaskPreview = (props) => {
         (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) ||
         (props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
     const taskTitle = props.action.taskTitle || props.taskReport.reportName;
-    const parentReportID = props.action.parentReportID || props.taskReport.parentReportID;
 
     return (
         <Pressable
