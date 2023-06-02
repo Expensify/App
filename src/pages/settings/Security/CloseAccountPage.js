@@ -1,7 +1,4 @@
-import React, {
-    useState,
-    useEffect,
-} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -40,7 +37,7 @@ const defaultProps = {
     },
 };
 
-function CloseAccountPage (props) {
+function CloseAccountPage(props) {
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [reasonForLeaving, setReasonForLeaving] = useState('');
 
@@ -90,35 +87,35 @@ function CloseAccountPage (props) {
             >
                 <View style={[styles.flexGrow1]}>
                     <Text>{props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                        <TextInput
-                            inputID="reasonForLeaving"
-                            multiline
-                            numberOfLines={6}
-                            textAlignVertical="top"
-                            label={props.translate('closeAccountPage.enterMessageHere')}
-                            containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
-                        />
-                        <Text style={[styles.mt5]}>
-                            {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.
-                        </Text>
-                        <TextInput
-                            inputID="phoneOrEmail"
-                            autoCapitalize="none"
-                            label={props.translate('closeAccountPage.enterDefaultContact')}
-                            containerStyles={[styles.mt5]}
-                            autoCorrect={false}
-                            keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
-                        />
-                        <ConfirmModal
-                            title={props.translate('closeAccountPage.closeAccountWarning')}
-                            onConfirm={onConfirm}
-                            onCancel={hideConfirmModal}
-                            isVisible={isConfirmModalVisible}
-                            prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                            confirmText={props.translate('common.yes')}
-                            cancelText={props.translate('common.cancel')}
-                            shouldShowCancelButton
-                        />
+                    <TextInput
+                        inputID="reasonForLeaving"
+                        multiline
+                        numberOfLines={6}
+                        textAlignVertical="top"
+                        label={props.translate('closeAccountPage.enterMessageHere')}
+                        containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
+                    />
+                    <Text style={[styles.mt5]}>
+                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.
+                    </Text>
+                    <TextInput
+                        inputID="phoneOrEmail"
+                        autoCapitalize="none"
+                        label={props.translate('closeAccountPage.enterDefaultContact')}
+                        containerStyles={[styles.mt5]}
+                        autoCorrect={false}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                    />
+                    <ConfirmModal
+                        title={props.translate('closeAccountPage.closeAccountWarning')}
+                        onConfirm={onConfirm}
+                        onCancel={hideConfirmModal}
+                        isVisible={isConfirmModalVisible}
+                        prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
+                        confirmText={props.translate('common.yes')}
+                        cancelText={props.translate('common.cancel')}
+                        shouldShowCancelButton
+                    />
                 </View>
             </Form>
         </ScreenWrapper>
