@@ -24,7 +24,7 @@ import reportPropTypes from '../../reportPropTypes';
 import * as ReactionList from './ReactionList/ReactionList';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import { policyPropTypes } from "../../workspace/withPolicy";
+import {policyPropTypes} from '../../workspace/withPolicy';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -42,7 +42,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
-    ...policyPropTypes
+    ...policyPropTypes,
 };
 
 const defaultProps = {
