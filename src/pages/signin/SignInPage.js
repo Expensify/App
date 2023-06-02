@@ -156,7 +156,7 @@ class SignInPage extends Component {
             welcomeText = this.props.isSmallScreenWidth
                 ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.enterPassword')}`
                 : this.props.translate('welcomeText.enterPassword');
-        } else if (showUnlinkLoginForm) {
+        } else if (showUnlinkLoginForm || showEmailDeliveryFailurePage) {
             welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.welcomeBack');
         } else if (!showResendValidationForm) {
             welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.getStarted');
