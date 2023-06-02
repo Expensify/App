@@ -76,9 +76,6 @@ export default {
     BETAS: 'betas',
 
     // NVP keys
-    // Contains the user's payPalMe address
-    NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
-
     // Contains the user's payPalMe data
     PAYPAL: 'paypal',
 
