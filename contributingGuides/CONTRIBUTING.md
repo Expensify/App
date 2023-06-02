@@ -43,9 +43,9 @@ Note: if you are hired for an Upwork job and have any job-specific questions, pl
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
+We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing or reporting a bug, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
 
-Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed. If you have not received payment after 8 days of the PR being deployed to production and there being no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
+Payment for your contributions and bug reports will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed. If you have not received payment after 8 days of the PR being deployed to production and there being no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
 
 New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously.
 
@@ -67,21 +67,21 @@ A job could be fixing a bug or working on a new feature. There are two ways you 
 #### Finding a job that Expensify posted
 This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) (you must be signed in to Upwork to view jobs). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view all open jobs in the Expensify/App GH repository by searching for GH issues with the [`Help Wanted` label](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22). Lastly, you can follow the [@ExpensifyOSS](https://twitter.com/ExpensifyOSS) Twitter account to see a live feed of jobs that are posted.
 
-#### Proposing a job that Expensify hasn't posted
-It’s possible that you found a new bug that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the bug (we do not compensate for reporting new feature requests). If the bug is fixed by a PR that is not associated with your bug report, then you will not be eligible for the corresponding compensation unless you can find the PR that fixed it and prove your bug report came first.
+#### Raising jobs and bugs
+It’s possible that you found a new bug that we haven’t posted as a job to the [GitHub repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to raise it and claim the bug bounty. If it's a valid bug that we choose to resolve by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying the bug (we do not compensate for reporting new feature requests). If the bug is fixed by a PR that is not associated with your bug report, then you will not be eligible for the corresponding compensation unless you can find the PR that fixed it and prove your bug report came first.
 - Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
 - Note about proposed bugs: Expensify has the right not to pay the $250 reward if the suggested bug has already been reported. Following, if more than one contributor proposes the same bug, the contributor who posted it first in the [#expensify-bugs](https://expensify.slack.com/archives/C049HHMV9SM) Slack channel is the one who is eligible for the bonus.
 - Note: whilst you may optionally propose a solution for that job on Slack, solutions are ultimately reviewed in GitHub. The onus is on you to propose the solution on GitHub, and/or ensure the issue creator will include a link to your proposal.
 
-Please follow these steps to propose a job:
+Please follow these steps to propose a job or raise a bug:
 
 1. Check to ensure a GH issue does not already exist for this job in the [New Expensify Issue list](https://github.com/Expensify/App/issues).
 2. Check to ensure the `Bug:` or `Feature Request:` was not already posted in Slack (specifically the #expensify-bugs or #expensify-open-source [Slack channels](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#slack-channels)). Use your best judgement by searching for similar titles and issue descriptions.
 3. If your bug or new feature matches with an existing issue, please comment on that Slack thread or GitHub issue with your findings if you think it will help solve the issue.
 4. If there is no existing GitHub issue or Upwork job, check if the issue is happening on prod (as opposed to only happening on dev)
 5. If the issue is just in dev then it means it's a new issue and has not been deployed to production. In this case, you should try to find the offending PR and comment in the issue tied to the PR and ask the assigned users to add the `DeployBlockerCash` label. If you can't find it, follow the reporting instructions in the next item, but note that the issue is a regression only found in dev and not in prod.
-6. If the issue happens in main, staging, or production then report the issue(s) in the #expensify-bugs Slack channel, prefixed with `Bug:` or `Feature Request:`. Please use the templates for bugs and feature requests that are bookmarked in the #expensify-bugs channel. View [this guide](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request. 
-  - **Important note/reminder**: never share any information pertaining to a customer of Expensify when describing the bug. This includes, and is not limited to, a customer's name, email, and contact information. 
+6. If the issue happens in main, staging, or production then report the issue(s) in the #expensify-bugs Slack channel, using the report bug workflow. You can do this by clicking 'Workflow > report Bug', or typing `/Report bug`. View [this guide](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_CREATE_A_PLAN.md) for help creating a plan when proposing a feature request.
+    - **Important note/reminder**: never share any information pertaining to a customer of Expensify when describing the bug. This includes, and is not limited to, a customer's name, email, and contact information. 
 7. The Expensify team will review your job proposal in the appropriate slack channel. If you've provided a quality proposal that we choose to implement, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
 8. If an external contributor other than yourself is hired to work on the issue, you will also be hired for the same job in Upwork to receive your payout. No additional work is required. If the issue is fixed internally, a dedicated job will be created to hire and pay you after the issue is fixed. 
 9. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 
@@ -181,9 +181,19 @@ Follow all the above above steps and processes. When you find a job you'd like t
 
 #### Guide on Acronyms used within Expensify Communication
 During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in slack or the GH issue if there are any that are not understood/known!
-- BZ: Bug Zero (Expensify internal team in charge of managing the GH issues related to our open-source project)
-- LHN: Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left hand side)
-- OP: Original Post (Most commonly the post in E/App GH issues that reports the bug)
-- GBR: Green Brick Road (UX Design Principle that utlizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
-- VBA: Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
-- NAB: Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
+- **ND/NewDot:** new.expensify.com
+- **OD/OldDot:** expensify.com
+- **BZ:** Bug Zero (Expensify internal team in charge of managing the GH issues related to our open-source project)
+- **LHN:** Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left hand side)
+- **OP:** Original Post (Most commonly the post in E/App GH issues that reports the bug)
+- **GBR:** Green Brick Road (UX Design Principle that utlizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
+- **RBR:** Red Brick Road (UX Design Principle that utlizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors) 
+- **VBA:** Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
+- **NAB:** Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
+- **LHN:** Left Hand Navigation
+- **IOU:** I owe you (used to describe payment requests between users)
+- **OTP:** One time password, or magic sign-in
+- **RHP:** Right Hand Panel (on larger screens, pages are often displayed docked to the right side of the screen)
+- **QA:** Quality Assurance
+- **GH:** GitHub
+- **LGTM:*** Looks good to me

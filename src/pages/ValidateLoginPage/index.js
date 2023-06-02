@@ -49,7 +49,7 @@ class ValidateLoginPage extends Component {
                 // because we don't want to block the user with the interstitial page.
                 Navigation.goBack(false);
             } else {
-                Session.signInWithValidateCodeAndNavigate(accountID, validateCode, null, this.props.preferredLocale);
+                Session.signInWithValidateCodeAndNavigate(accountID, validateCode, this.props.preferredLocale);
             }
         } else {
             User.validateLogin(accountID, validateCode);
