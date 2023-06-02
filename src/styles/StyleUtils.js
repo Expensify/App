@@ -966,6 +966,18 @@ function getFontSizeStyle(fontSize) {
 }
 
 /**
+ * Returns lineHeight style
+ *
+ * @param {Number} lineHeight
+ * @returns {Object}
+ */
+function getLineHeightStyle(lineHeight) {
+    return {
+        lineHeight,
+    };
+}
+
+/**
  * Gets the correct size for the empty state container based on screen dimensions
  *
  * @param {Boolean} isSmallScreenWidth
@@ -1208,6 +1220,7 @@ export {
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
     getFontSizeStyle,
+    getLineHeightStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
     getMentionStyle,
