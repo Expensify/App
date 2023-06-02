@@ -343,7 +343,7 @@ class InitialSettingsPage extends React.Component {
                                         </PressableWithFeedback>
                                     </Tooltip>
                                     <PressableWithFeedback
-                                        style={[styles.mt1, styles.mw100]}
+                                        wrapperStyle={[styles.mt1, styles.mw100]}
                                         hoverDimmingValue={1}
                                         onPress={this.openProfileSettings}
                                         accessibilityLabel={this.props.translate('common.profile')}
