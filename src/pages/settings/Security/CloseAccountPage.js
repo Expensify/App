@@ -41,7 +41,11 @@ function CloseAccountPage(props) {
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [reasonForLeaving, setReasonForLeaving] = useState('');
 
-    useEffect(() => () => CloseAccount.clearError());
+    // If you are new to hooks this might look weird but basically it is something that only runs when the component unmounts
+    // nothing runs on mount and we pass empty dependencies to prevent this from running on every re-render.
+    // TODO: We should refactor this so that the data in instead passed directly as a prop instead of "side loading" the data
+    // here, we left this as is during refactor to limit the breaking changes.
+    useEffect(() => () => CloseAccount.clearError(), []);
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
