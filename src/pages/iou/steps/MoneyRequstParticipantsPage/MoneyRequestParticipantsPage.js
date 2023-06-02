@@ -67,7 +67,7 @@ const MoneyRequestParticipantsPage = (props) => {
                 <View style={styles.flex1}>
                     <ModalHeader
                         title={props.translate('iou.cash')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current))}
                     />
                     {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
                         <MoneyRequestParticipantsSplitSelector

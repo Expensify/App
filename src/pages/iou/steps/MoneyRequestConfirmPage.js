@@ -135,7 +135,13 @@ const MoneyRequestConfirmPage = (props) => {
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <ModalHeader
                         title={props.translate('iou.cash')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => {
+                            if (reportID.current) {
+                                Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
+                            } else {
+                                Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
+                            }
+                        }}
                     />
                     <MoneyRequestConfirmationList
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}

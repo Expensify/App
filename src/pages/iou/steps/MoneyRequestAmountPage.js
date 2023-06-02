@@ -407,7 +407,7 @@ class MoneyRequestAmountPage extends React.Component {
                             <ModalHeader
                                 title={this.getTitleForStep()}
                                 shouldShowBackButton={this.isEditing}
-                                onBackButtonPress={Navigation.goBack}
+                                onBackButtonPress={() => Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID))}
                             />
                             <View
                                 nativeID={this.amountViewID}

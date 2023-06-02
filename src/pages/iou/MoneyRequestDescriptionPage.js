@@ -40,14 +40,14 @@ class MoneyRequestDescriptionPage extends Component {
         super(props);
 
         this.updateComment = this.updateComment.bind(this);
+        this.iouType = lodashGet(props.route, 'params.iouType', '');
+        this.reportID = lodashGet(props.route, 'params.reportID', '');
     }
 
     componentDidMount() {
-        const iouType = lodashGet(this.props.route, 'params.iouType', '');
-        const reportID = lodashGet(this.props.route, 'params.reportID', '');
         if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0) {
             Navigation.goBack();
-            Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
+            Navigation.navigate(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
         }
     }
 
@@ -72,7 +72,7 @@ class MoneyRequestDescriptionPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.description')}
                     shouldShowBackButton
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID))}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
