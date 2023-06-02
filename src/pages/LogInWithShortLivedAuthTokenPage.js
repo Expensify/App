@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useEffect} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -43,57 +43,57 @@ const defaultProps = {
     isTokenValid: true,
 };
 
-class LogInWithShortLivedAuthTokenPage extends Component {
-    componentDidMount() {
-        const email = lodashGet(this.props, 'route.params.email', '');
+const LogInWithShortLivedAuthTokenPage = (props) => {
+
+    useEffect(() => {
+        const email = lodashGet(props, 'route.params.email', '');
 
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
-        const shortLivedAuthToken = lodashGet(this.props, 'route.params.shortLivedAuthToken', '') || lodashGet(this.props, 'route.params.shortLivedToken', '');
+        const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '') || lodashGet(props, 'route.params.shortLivedToken', '');
         if (shortLivedAuthToken) {
             Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             return;
         }
-        const exitTo = lodashGet(this.props, 'route.params.exitTo', '');
+        const exitTo = lodashGet(props, 'route.params.exitTo', '');
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(exitTo);
             });
         }
+    }, []);
+
+    if (props.isTokenValid) {
+        return <FullScreenLoadingIndicator />;
     }
 
-    render() {
-        if (this.props.isTokenValid) {
-            return <FullScreenLoadingIndicator />;
-        }
-        return (
-            <View style={styles.deeplinkWrapperContainer}>
-                <View style={styles.deeplinkWrapperMessage}>
-                    <View style={styles.mb2}>
-                        <Icon
-                            width={200}
-                            height={164}
-                            src={Illustrations.RocketBlue}
-                        />
-                    </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge]}>{this.props.translate('deeplinkWrapper.launching')}</Text>
-                    <View style={styles.mt2}>
-                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
-                            {this.props.translate('deeplinkWrapper.expired')} <TextLink onPress={() => Navigation.navigate()}>{this.props.translate('deeplinkWrapper.signIn')}</TextLink>
-                        </Text>
-                    </View>
-                </View>
-                <View style={styles.deeplinkWrapperFooter}>
+    return (
+        <View style={styles.deeplinkWrapperContainer}>
+            <View style={styles.deeplinkWrapperMessage}>
+                <View style={styles.mb2}>
                     <Icon
-                        width={154}
-                        height={34}
-                        fill={colors.green}
-                        src={Expensicons.ExpensifyWordmark}
+                        width={200}
+                        height={164}
+                        src={Illustrations.RocketBlue}
                     />
                 </View>
+                <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
+                <View style={styles.mt2}>
+                    <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
+                        {props.translate('deeplinkWrapper.expired')} <TextLink onPress={() => Navigation.navigate()}>{props.translate('deeplinkWrapper.signIn')}</TextLink>
+                    </Text>
+                </View>
             </View>
-        );
-    }
-}
+            <View style={styles.deeplinkWrapperFooter}>
+                <Icon
+                    width={154}
+                    height={34}
+                    fill={colors.green}
+                    src={Expensicons.ExpensifyWordmark}
+                />
+            </View>
+        </View>
+    );
+};
 
 LogInWithShortLivedAuthTokenPage.propTypes = propTypes;
 LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;
