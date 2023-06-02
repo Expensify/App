@@ -29,7 +29,6 @@ const defaultProps = {
 };
 
 const EmailDeliveryFailurePage = (props) => {
-    // Replace spaces with "hard spaces" to prevent breaking the number
     const login = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
     return (
         <>
