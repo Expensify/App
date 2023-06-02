@@ -56,10 +56,10 @@ const TaskPreview = (props) => {
     const isTaskCompleted =
         (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) ||
         (props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
-    const taskTitle = props.action.childReportName || props.taskReport.reportName;
-    const taskAssignee = props.action.childManagerEmail || props.taskReport.managerEmail || '';
+    const taskTitle = props.taskReport.reportName || props.action.childReportName;
+    const taskAssignee = props.taskReport.managerEmail || props.action.childManagerEmail || '';
     const htmlForTaskPreview = taskAssignee === '' ? `<comment>${taskTitle}</comment>` : `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>`;
-    const parentReportID = props.action.parentReportID || props.taskReport.parentReportID;
+    const parentReportID = props.taskReport.parentReportID || props.action.parentReportID;
 
     return (
         <Pressable
