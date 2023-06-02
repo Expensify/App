@@ -99,7 +99,8 @@ class SettlementButton extends React.Component {
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
-        const canUseWallet = !isExpenseReport && this.props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas);
+        const canUseWallet =
+            !isExpenseReport && this.props.currency === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas);
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
@@ -121,7 +122,14 @@ class SettlementButton extends React.Component {
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME && !_.includes(CONST.PAYPAL_SUPPORTED_CURRENCIES, this.props.currency)) {
                 paymentMethod = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
             }
-            return [paymentMethods[paymentMethod]];
+
+            // No options are shown only in case of the report preview settlement button where we want to use same short button label for all the options
+            return [
+                {
+                    ...paymentMethods[paymentMethod],
+                    text: this.props.translate('iou.pay'),
+                },
+            ];
         }
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);

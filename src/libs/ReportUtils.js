@@ -2007,8 +2007,8 @@ function canRequestMoney(report) {
  * @returns {Array}
  */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
-    // In the transaction thread, we do not allow any new money requests
-    if (ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report))) {
+    // In any thread, we do not allow any new money requests yet
+    if (isThread(report)) {
         return [];
     }
 
