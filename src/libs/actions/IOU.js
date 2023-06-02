@@ -674,28 +674,28 @@ function deleteMoneyRequest(transactionID, reportAction) {
     console.log('over here', transactionID, reportAction)
     // STEP 1: Get all collections we're updating
     const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.originalMessage.IOUReportID}`];
     const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
 
     // STEP 2: Update the reportAction
     const updatedReportAction = {
         [reportAction.reportActionID]: {
-            ...reportAction,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
-            message: {
+            message: [{
                 type: 'COMMENT',
                 html: '',
                 text: '',
                 isEdited: true,
-            },
+            }],
             errors: null,
         },
     };
 
     // STEP 3: Update the iou report total and last message
     const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
+    console.log(lastMessageText)
     const hasVisibleComments = lastMessageText.length > 0;
 
     let updatedIOUReport = null;
@@ -704,9 +704,9 @@ function deleteMoneyRequest(transactionID, reportAction) {
             updatedIOUReport = {...iouReport};
     
             // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += transaction.amount;
+            updatedIOUReport.total += reportAction.originalMessage.amount;
         } else {
-            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorEmail, transaction.amount, transaction.currency, true);
+            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorEmail, reportAction.originalMessage.amount, reportAction.originalMessage.currency, true);
         }
 
         updatedIOUReport.lastMessageText = lastMessageText;
@@ -729,9 +729,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-            value: {
-                [updatedReportAction.reportActionID]: updatedReportAction,
-            },
+            value: updatedReportAction,
         },
         {
             onyxMethod: hasVisibleComments ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
@@ -791,15 +789,18 @@ function deleteMoneyRequest(transactionID, reportAction) {
     //     },
     // ];
 
-    // API.write(
-    //     'DeleteMoneyRequest',
-    //     {
-    //         transactionID,
-    //         reportActionID: optimisticIOUAction.reportActionID,
-    //     },
-    //     {optimisticData, successData, failureData},
-    // );
+    API.write(
+        'DeleteMoneyRequest',
+        {
+            transactionID,
+            reportActionID: reportAction.reportActionID,
+        },
+        {optimisticData},
+    );
 
+    if (!hasVisibleComments) {
+        Navigation.navigate(ROUTES.getReportRoute(iouReport.chatReportID));
+    }
     // if (shouldCloseOnDelete) {
     //     Navigation.navigate(ROUTES.getReportRoute(iouReportID));
     // }
