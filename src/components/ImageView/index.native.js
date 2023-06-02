@@ -187,20 +187,20 @@ class ImageView extends PureComponent {
                             // When we have a double click and the zoom scale is 1 then programmatically zoom the image
                             // but let the tap fall through to the parent so we can register a swipe down to dismiss
                             if (isDoubleClick) {
-                              this.zoom.centerOn({
-                                x: 0,
-                                y: 0,
-                                scale: 2,
-                                duration: 100,
-                              });
+                                this.zoom.centerOn({
+                                    x: 0,
+                                    y: 0,
+                                    scale: 2,
+                                    duration: 100,
+                                });
 
-                              // onMove will be called after the zoom animation.
-                              // So it's possible to zoom and swipe and stuck in between the images. 
-                              // Sending scale just when we actually trigger the animation makes this nearly impossible.
-                              // you should be really fast to catch in between state updates.
-                              // And this lucky case will be fixed by migration to UI thread only code 
-                              // with gesture handler and reanimated.
-                              this.props.onScaleChanged(2);
+                                // onMove will be called after the zoom animation.
+                                // So it's possible to zoom and swipe and stuck in between the images.
+                                // Sending scale just when we actually trigger the animation makes this nearly impossible.
+                                // you should be really fast to catch in between state updates.
+                                // And this lucky case will be fixed by migration to UI thread only code
+                                // with gesture handler and reanimated.
+                                this.props.onScaleChanged(2);
                             }
 
                             // We must be either swiping down or double tapping since we are at zoom scale 1
