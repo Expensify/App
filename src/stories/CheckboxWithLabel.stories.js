@@ -24,12 +24,12 @@ const WithErrors = Template.bind({});
 Default.args = {
     isChecked: true,
     label: 'Plain text label',
-    onPress: () => {},
+    onInputChange: () => {},
 };
 
 WithLabelComponent.args = {
     isChecked: true,
-    onPress: () => {},
+    onInputChange: () => {},
     LabelComponent: () => (
         <>
             <Text style={[styles.textLarge]}>Test</Text>
@@ -43,7 +43,7 @@ WithErrors.args = {
     isChecked: false,
     hasError: true,
     errorText: 'Please accept Terms before continuing.',
-    onPress: () => {},
+    onInputChange: () => {},
     label: 'I accept the Terms & Conditions',
 };
 

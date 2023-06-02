@@ -11,7 +11,6 @@ import * as ReportUtils from '../../../../libs/ReportUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import Text from '../../../../components/Text';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
 import avatarPropTypes from '../../../../components/avatarPropTypes';
@@ -214,7 +213,6 @@ class MoneyRequestParticipantsSplitSelector extends Component {
 
         return (
             <View style={[styles.flex1, styles.w100, this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {}]}>
-                <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>{this.props.translate('common.to')}</Text>
                 <OptionsSelector
                     canSelectMultipleOptions
                     sections={sections}
