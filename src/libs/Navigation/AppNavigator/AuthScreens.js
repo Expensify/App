@@ -85,7 +85,7 @@ const modalScreenListeners = {
 const propTypes = {
     /** Session of currently logged in user */
     session: PropTypes.shape({
-        accountID: PropTypes.string.isRequired,
+        accountID: PropTypes.number.isRequired,
     }),
     ...windowDimensionsPropTypes,
 };
@@ -116,6 +116,7 @@ class AuthScreens extends React.Component {
         });
 
         App.openApp();
+        console.log("this.props.session", this.props.session);
         App.setUpPoliciesAndNavigate(this.props.session);
         Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
