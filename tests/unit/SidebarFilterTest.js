@@ -6,6 +6,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
+import * as Report from '../../src/libs/actions/Report';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -136,6 +137,9 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
+
+                    // When the report has at least one ADDCOMMENT action to show in the LNH
+                    .then(() => Report.addComment(report.reportID, 'Hi, this is a comment'))
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
