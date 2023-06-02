@@ -126,3 +126,9 @@ Google allows the web app to be hosted at localhost, but according to the curren
 #### Visual differences
 
 Google's web button has a visible rectangular iframe around it when the app is running at `localhost`. When the app is hosted at an HTTPS address, this iframe is not shown.
+
+### Desktop
+
+#### Set Environment to something other than "Development"
+
+The DeepLinkWrapper component will not handle deep links in the development environment. To be able to test deep linking, you must set the environment to something other than "Development".
