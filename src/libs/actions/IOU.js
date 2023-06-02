@@ -738,14 +738,14 @@ function deleteMoneyRequest(transactionID, reportAction) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
         },
-        ...(!hasVisibleComments && {
+        ...(!hasVisibleComments ? [{
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [reportPreviewAction.reportActionID]: null,
             },
-        }),
-        ...(!hasVisibleComments && {
+        }] : []),
+        ...(!hasVisibleComments ? [{
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
@@ -755,7 +755,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
                 lastMessageText: ReportActionsUtils.getLastVisibleMessageText(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}),
                 lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).created,
             },
-        }),
+        }] : []),
     ];
     // const successData = [
     //     {
