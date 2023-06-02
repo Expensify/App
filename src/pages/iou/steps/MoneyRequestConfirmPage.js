@@ -121,10 +121,13 @@ const MoneyRequestConfirmPage = (props) => {
         [props.iou.amount, props.iou.comment, props.iou.participants, props.iou.currency, props.currentUserPersonalDetails.login, props.report],
     );
 
-    const participants = useMemo(() => props.iou.participants[0].isPolicyExpenseChat || props.iou.participants[0].isOwnPolicyExpenseChat
-        ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
-        : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
-    [props.iou.participants, props.personalDetails]);
+    const participants = useMemo(
+        () =>
+            props.iou.participants[0].isPolicyExpenseChat || props.iou.participants[0].isOwnPolicyExpenseChat
+                ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
+                : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
+        [props.iou.participants, props.personalDetails],
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
