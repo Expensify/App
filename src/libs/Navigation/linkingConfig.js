@@ -267,6 +267,11 @@ export default {
                     Details_Root: ROUTES.DETAILS,
                 },
             },
+            Profile: {
+                screens: {
+                    Profile_Root: ROUTES.PROFILE,
+                },
+            },
             Participants: {
                 screens: {
                     ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,

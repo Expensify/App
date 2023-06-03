@@ -131,6 +131,16 @@ const DetailsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const ProfileModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
+        },
+        name: 'Profile_Root',
+    },
+]);
+
 const ReportDetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -718,6 +728,7 @@ export {
     IOUSendModalStackNavigator,
     SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
+    ProfileModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,
