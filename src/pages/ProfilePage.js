@@ -28,6 +28,7 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import * as UserUtils from '../libs/UserUtils';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -126,7 +127,9 @@ class ProfilePage extends React.PureComponent {
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
                 >
-                    {details ? (
+                    {_.isEmpty(details) ? (
+                        <FullScreenLoadingIndicator style={styles.flex1} />
+                    ) : (
                         <ScrollView>
                             <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
@@ -197,7 +200,7 @@ class ProfilePage extends React.PureComponent {
                                 />
                             )}
                         </ScrollView>
-                    ) : null}
+                    )}
                 </View>
             </ScreenWrapper>
         );
