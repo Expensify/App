@@ -387,7 +387,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         optimisticReportData.value = {
             ...optimisticReportData.value,
             reportID: reportID.toString(),
-        }
+        };
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
