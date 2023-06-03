@@ -382,7 +382,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
 
     // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
     // and we need data to be available when we navigate to the chat page
-    if (_.isEmpty(allReports[reportID])) {
+    if (_.isEmpty(ReportUtils.getReport(reportID))) {
         optimisticReportData.onyxMethod = Onyx.METHOD.SET;
     }
 

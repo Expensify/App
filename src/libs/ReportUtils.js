@@ -1042,6 +1042,16 @@ function getReportName(report) {
 }
 
 /**
+ * Get the report for a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
+/**
  * Navigate to the details page of a given report
  *
  * @param {Object} report
@@ -2182,6 +2192,7 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
+    getReport,
     getReportIDFromLink,
     getRouteFromLink,
     navigateToDetailsPage,
