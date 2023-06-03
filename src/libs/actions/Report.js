@@ -386,7 +386,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         optimisticReportData.onyxMethod = Onyx.METHOD.SET;
         optimisticReportData.value = {
             ...optimisticReportData.value,
-            reportID,
+            reportID: reportID.toString(),
         }
     }
 
