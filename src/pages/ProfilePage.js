@@ -76,7 +76,8 @@ const defaultProps = {
  */
 const getPhoneNumber = (details) => {
     // If the user hasn't set a displayName, it is set to their phone number, so use that
-    const parsedPhoneNumber = parsePhoneNumber(details.displayName);
+    const displayName = lodashGet(details, 'displayName', '');
+    const parsedPhoneNumber = parsePhoneNumber(displayName);
     if (parsedPhoneNumber.possible) {
         return parsedPhoneNumber.number.e164;
     }
@@ -89,16 +90,19 @@ class ProfilePage extends React.PureComponent {
     render() {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const reportID = lodashGet(this.props.route.params, 'reportID', '');
-        const details = lodashGet(this.props.personalDetails, accountID);
-        console.log(details);
-
-        const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
+        const details = lodashGet(this.props.personalDetails, accountID, {});
+        const displayName = lodashGet(details, 'displayName', '');
+        const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
+        const originalFileName = lodashGet(details, 'originalFileName', '');
+        const login = lodashGet(details, 'login', '');
+        let pronouns = lodashGet(details, 'pronouns', '');
+        const timezone = lodashGet(details, 'timezone', {});
+        const isSMSLogin = login ? Str.isSMSLogin(login) : false;
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(reportID);
-        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
-        let pronouns = details.pronouns;
+        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([login]) && timezone;
 
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
             const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
@@ -106,9 +110,9 @@ class ProfilePage extends React.PureComponent {
         }
 
         const phoneNumber = getPhoneNumber(details);
-        const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
+        const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-        const isCurrentUser = _.keys(this.props.loginList).includes(details.login);
+        const isCurrentUser = _.keys(this.props.loginList).includes(login);
 
         return (
             <ScreenWrapper>
@@ -126,10 +130,10 @@ class ProfilePage extends React.PureComponent {
                         <ScrollView>
                             <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
-                                    headerTitle={details.displayName}
-                                    source={UserUtils.getFullSizeAvatar(details.avatar, details.login)}
+                                    headerTitle={displayName}
+                                    source={UserUtils.getFullSizeAvatar(avatar, login)}
                                     isAuthTokenRequired
-                                    originalFileName={details.originalFileName}
+                                    originalFileName={originalFileName}
                                 >
                                     {({show}) => (
                                         <PressableWithoutFocus
@@ -140,22 +144,22 @@ class ProfilePage extends React.PureComponent {
                                                 <Avatar
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={UserUtils.getAvatar(details.avatar, details.login)}
+                                                    source={UserUtils.getAvatar(avatar, login)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
                                         </PressableWithoutFocus>
                                     )}
                                 </AttachmentModal>
-                                {Boolean(details.displayName) && (
+                                {Boolean(displayName) && (
                                     <Text
                                         style={[styles.textHeadline, styles.mb6, styles.pre]}
                                         numberOfLines={1}
                                     >
-                                        {details.displayName}
+                                        {displayName}
                                     </Text>
                                 )}
-                                {details.login ? (
+                                {login ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                         <Text
                                             style={[styles.textLabelSupporting, styles.mb1]}
@@ -165,7 +169,7 @@ class ProfilePage extends React.PureComponent {
                                         </Text>
                                         <CommunicationsLink value={phoneOrEmail}>
                                             <Tooltip text={phoneOrEmail}>
-                                                <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
+                                                <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : login}</Text>
                                             </Tooltip>
                                         </CommunicationsLink>
                                     </View>
@@ -181,13 +185,13 @@ class ProfilePage extends React.PureComponent {
                                         <Text numberOfLines={1}>{pronouns}</Text>
                                     </View>
                                 ) : null}
-                                {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
+                                {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                             </View>
                             {!isCurrentUser && (
                                 <MenuItem
-                                    title={`${this.props.translate('common.message')}${details.displayName}`}
+                                    title={`${this.props.translate('common.message')}${displayName}`}
                                     icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.navigateToAndOpenReport([details.login])}
+                                    onPress={() => Report.navigateToAndOpenReport([login])}
                                     wrapperStyle={styles.breakAll}
                                     shouldShowRightIcon
                                 />
