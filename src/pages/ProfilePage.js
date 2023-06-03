@@ -92,24 +92,24 @@ class ProfilePage extends React.PureComponent {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const reportID = lodashGet(this.props.route.params, 'reportID', '');
         const details = lodashGet(this.props.personalDetails, accountID, {});
-        const displayName = lodashGet(details, 'displayName', '');
+        const displayName = details.displayName ? details.displayName : this.props.translate('common.hidden');
         const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
         const originalFileName = lodashGet(details, 'originalFileName', '');
         const login = lodashGet(details, 'login', '');
-        let pronouns = lodashGet(details, 'pronouns', '');
         const timezone = lodashGet(details, 'timezone', {});
-        const isSMSLogin = login ? Str.isSMSLogin(login) : false;
 
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(reportID);
         const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([login]) && timezone;
 
+        let pronouns = lodashGet(details, 'pronouns', '');
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
             const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
             pronouns = this.props.translate(`pronouns.${localeKey}`);
         }
 
+        const isSMSLogin = Str.isSMSLogin(login);
         const phoneNumber = getPhoneNumber(details);
         const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
@@ -118,7 +118,7 @@ class ProfilePage extends React.PureComponent {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('common.details')}
+                    title={this.props.translate('common.profile')}
                     shouldShowBackButton={shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal()}

@@ -44,6 +44,7 @@ export default {
         and: 'and',
         details: 'Details',
         privacy: 'Privacy',
+        hidden: 'Hidden',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
