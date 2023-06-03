@@ -13,7 +13,7 @@ const AnchorForCommentsOnly = (props) => (
         onPressOut={() => ControlSelection.unblock()}
         // HTML renderer root view display is flex. Using flex will force all child elements
         // to be block elements even when they have display inline added to them.
-        // This will affect elements like <a> which are inline by default. 
+        // This will affect elements like <a> which are inline by default.
         // Setting display block to the container view will solve that.
         containerStyles={styles.dBlock}
     />
