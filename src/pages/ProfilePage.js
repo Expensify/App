@@ -195,7 +195,7 @@ class ProfilePage extends React.PureComponent {
                                 ) : null}
                                 {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                             </View>
-                            {!isCurrentUser && (
+                            {!isCurrentUser && Boolean(login) && (
                                 <MenuItem
                                     title={`${this.props.translate('common.message')}${displayName}`}
                                     icon={Expensicons.ChatBubble}
