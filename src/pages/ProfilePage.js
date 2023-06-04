@@ -28,6 +28,7 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import * as UserUtils from '../libs/UserUtils';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const matchType = PropTypes.shape({
@@ -88,8 +89,12 @@ const getPhoneNumber = (details) => {
 };
 
 class ProfilePage extends React.PureComponent {
+    componentDidMount() {
+        PersonalDetails.openPublicProfilePage(this.props.route.params.accountID);
+    }
+
     render() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const accountID = lodashGet(this.props.route.params, 'accountID', 0);
         const reportID = lodashGet(this.props.route.params, 'reportID', '');
         const details = lodashGet(this.props.personalDetails, accountID, {});
         const displayName = details.displayName ? details.displayName : this.props.translate('common.hidden');

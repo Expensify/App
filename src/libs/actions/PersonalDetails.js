@@ -311,6 +311,14 @@ function openPersonalDetailsPage() {
 }
 
 /**
+ * Fetches public profile info about a given user
+ * @param {Number} accountID
+ */
+function openPublicProfilePage(accountID) {
+    API.read('OpenPublicProfilePage', {accountID});
+}
+
+/**
  * Updates the user's avatar image
  *
  * @param {File|Object} file
@@ -427,6 +435,7 @@ export {
     deleteAvatar,
     openMoneyRequestModalPage,
     openPersonalDetailsPage,
+    openPublicProfilePage,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
     updateLegalName,
