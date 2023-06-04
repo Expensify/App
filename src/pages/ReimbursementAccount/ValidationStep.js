@@ -41,7 +41,7 @@ const propTypes = {
 
     /** User's account who is setting up bank account */
     account: PropTypes.shape({
-        /** If user has Two factor authentication enabled */
+        /** If user has two-factor authentication enabled */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
 };
