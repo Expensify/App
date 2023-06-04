@@ -106,7 +106,7 @@ class ProfilePage extends React.PureComponent {
         // If we have a reportID param this means that we
         // arrived here via the ParticipantsPage and should be allowed to navigate back to it
         const shouldShowBackButton = Boolean(reportID);
-        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([login]) && timezone;
+        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([login]) && !_.isEmpty(timezone);
 
         let pronouns = lodashGet(details, 'pronouns', '');
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
