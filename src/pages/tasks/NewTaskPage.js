@@ -12,7 +12,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
-import TaskSelectorLink from '../../components/TaskSelectorLink';
+import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
@@ -126,42 +126,38 @@ const NewTaskPage = (props) => {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <View style={[styles.mt5, styles.ph5, styles.containerWithSpaceBetween]}>
-                <View>
-                    <View style={styles.mb5}>
-                        <TaskSelectorLink
-                            text={props.task.title}
-                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
-                            label="newTaskPage.title"
-                        />
-                    </View>
-                    <View style={styles.mb5}>
-                        <TaskSelectorLink
-                            text={props.task.description}
-                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
-                            label="newTaskPage.description"
-                        />
-                    </View>
-                    <View style={styles.mb5}>
-                        <TaskSelectorLink
-                            icons={assignee.icons}
-                            text={assignee.displayName}
-                            alternateText={assignee.subtitle}
-                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
-                            label="newTaskPage.assignee"
-                        />
-                    </View>
-                    <View style={styles.mb5}>
-                        <TaskSelectorLink
-                            icons={shareDestination.icons}
-                            text={shareDestination.displayName}
-                            alternateText={shareDestination.subtitle}
-                            onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
-                            label="newTaskPage.shareSomewhere"
-                            isShareDestination
-                            disabled={Boolean(props.task.parentReportID)}
-                        />
-                    </View>
+            <View style={[styles.mt5, styles.containerWithSpaceBetween]}>
+                <View style={styles.mb5}>
+                    <MenuItemWithTopDescription
+                        description={props.translate('newTaskPage.title')}
+                        title={props.task.title}
+                        onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
+                        shouldShowRightIcon
+                    />
+                    <MenuItemWithTopDescription
+                        description={props.translate('newTaskPage.description')}
+                        title={props.task.description}
+                        onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
+                        shouldShowRightIcon
+                    />
+                    <MenuItemWithTopDescription
+                        label={assignee.displayName ? props.translate('newTaskPage.assignee') : ''}
+                        description={assignee.displayName ? assignee.displayName : props.translate('newTaskPage.assignee')}
+                        title={assignee.subtitle || ""}
+                        icon={assignee.icons}
+                        onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
+                        shouldShowRightIcon
+                    />
+                </View>
+                <View style={styles.mb5}>
+                    <MenuItemWithTopDescription
+                        label={shareDestination.displayName ? props.translate('newTaskPage.shareSomewhere') : ''}
+                        description={shareDestination.displayName ? shareDestination.displayName : props.translate('newTaskPage.shareSomewhere')}
+                        title={shareDestination.subtitle || ""}
+                        icon={shareDestination.icons}
+                        onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
+                        shouldShowRightIcon
+                    />
                 </View>
                 <FormAlertWithSubmitButton
                     isAlertVisible={submitError}
@@ -169,7 +165,7 @@ const NewTaskPage = (props) => {
                     onSubmit={() => onSubmit()}
                     enabledWhenOffline
                     buttonText={props.translate('newTaskPage.confirmTask')}
-                    containerStyles={[styles.mh0, styles.mt5, styles.flex1]}
+                    containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5]}
                 />
             </View>
         </ScreenWrapper>

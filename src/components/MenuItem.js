@@ -75,7 +75,7 @@ const MenuItem = (props) => {
         [
             styles.flexShrink1,
             styles.popoverMenuText,
-            props.icon ? styles.ml3 : undefined,
+            props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
             props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined,
             styles.pre,
@@ -87,7 +87,7 @@ const MenuItem = (props) => {
     );
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
-        props.icon ? styles.ml3 : undefined,
+        props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
         props.descriptionTextStyle,
@@ -95,6 +95,8 @@ const MenuItem = (props) => {
     ]);
 
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const stylesWithoutPadding = _.isArray(props.style) ? _.map(props.style, style => _.omit(style, ['padding', 'paddingVertical', 'paddingHorizontal'])) : _.omit(props.style, ['padding', 'paddingVertical', 'paddingHorizontal']);
+    const paddingStyles = _.isArray(props.style) ? _.map(props.style, style => _.pick(style, ['padding', 'paddingVertical', 'paddingHorizontal'])) : _.pick(props.style, ['padding', 'paddingVertical', 'paddingHorizontal']);
 
     return (
         <PressableWithSecondaryInteraction
@@ -113,7 +115,7 @@ const MenuItem = (props) => {
             onPressOut={ControlSelection.unblock}
             onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => [
-                props.style,
+                paddingStyles,
                 !props.interactive && styles.cursorDefault,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 (hovered || pressed) && props.hoverAndPressStyle,
@@ -124,134 +126,148 @@ const MenuItem = (props) => {
         >
             {({hovered, pressed}) => (
                 <>
-                    <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        {Boolean(props.icon) && (
-                            <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
-                                {props.iconType === CONST.ICON_TYPE_ICON && (
-                                    <Icon
-                                        src={props.icon}
-                                        width={props.iconWidth}
-                                        height={props.iconHeight}
-                                        fill={
-                                            props.iconFill ||
-                                            StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true)
-                                        }
-                                    />
-                                )}
-                                {props.iconType === CONST.ICON_TYPE_WORKSPACE && (
-                                    <Avatar
-                                        imageStyles={[styles.alignSelfCenter]}
-                                        size={CONST.AVATAR_SIZE.DEFAULT}
-                                        source={props.icon}
-                                        fallbackIcon={props.fallbackIcon}
-                                        name={props.title}
-                                        type={CONST.ICON_TYPE_WORKSPACE}
-                                    />
-                                )}
-                                {props.iconType === CONST.ICON_TYPE_AVATAR && (
-                                    <Avatar
-                                        imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
-                                        source={props.icon}
-                                        fallbackIcon={props.fallbackIcon}
-                                    />
-                                )}
-                            </View>
-                        )}
-                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
-                            {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
-                                <Text
-                                    style={descriptionTextStyle}
-                                    numberOfLines={2}
-                                >
-                                    {props.description}
-                                </Text>
+                    {props.label &&
+                        <View style={props.icon ? styles.mb2 : null}>
+                            <Text style={StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre)}>{props.label}</Text>
+                        </View>
+                    }
+                    <View style={stylesWithoutPadding}>
+                        <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
+                            {Boolean(props.icon) && _.isArray(props.icon) && (
+                                <MultipleAvatars
+                                    icons={props.icon}
+                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG)]}
+                                />
                             )}
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {Boolean(props.title) && (
+                            {Boolean(props.icon) && !_.isArray(props.icon) && (
+                                <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
+                                    {props.iconType === CONST.ICON_TYPE_ICON && (
+                                        <Icon
+                                            src={props.icon}
+                                            width={props.iconWidth}
+                                            height={props.iconHeight}
+                                            fill={
+                                                props.iconFill ||
+                                                StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true)
+                                            }
+                                        />
+                                    )}
+                                    {props.iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                        <Avatar
+                                            imageStyles={[styles.alignSelfCenter]}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
+                                            source={props.icon}
+                                            fallbackIcon={props.fallbackIcon}
+                                            name={props.title}
+                                            type={CONST.ICON_TYPE_WORKSPACE}
+                                        />
+                                    )}
+                                    {props.iconType === CONST.ICON_TYPE_AVATAR && (
+                                        <Avatar
+                                            imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                            source={props.icon}
+                                            fallbackIcon={props.fallbackIcon}
+                                        />
+                                    )}
+                                </View>
+                            )}
+                            <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
+                                {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                     <Text
-                                        style={titleTextStyle}
-                                        numberOfLines={1}
+                                        style={descriptionTextStyle}
+                                        numberOfLines={2}
                                     >
-                                        {convertToLTR(props.title)}
+                                        {props.description}
                                     </Text>
                                 )}
-                                {Boolean(props.shouldShowTitleIcon) && (
-                                    <View style={[styles.ml2]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                    {Boolean(props.title) && (
+                                        <Text
+                                            style={titleTextStyle}
+                                            numberOfLines={1}
+                                        >
+                                            {convertToLTR(props.title)}
+                                        </Text>
+                                    )}
+                                    {Boolean(props.shouldShowTitleIcon) && (
+                                        <View style={[styles.ml2]}>
+                                            <Icon
+                                                src={props.titleIcon}
+                                                fill={themeColors.iconSuccessFill}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                                {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
+                                    <Text
+                                        style={descriptionTextStyle}
+                                        numberOfLines={2}
+                                    >
+                                        {props.description}
+                                    </Text>
+                                )}
+                                {Boolean(props.furtherDetails) && (
+                                    <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
                                         <Icon
-                                            src={props.titleIcon}
-                                            fill={themeColors.iconSuccessFill}
+                                            src={props.furtherDetailsIcon}
+                                            height={variables.iconSizeNormal}
+                                            width={variables.iconSizeNormal}
+                                            inline
                                         />
+                                        <Text
+                                            style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
+                                            numberOfLines={2}
+                                        >
+                                            {props.furtherDetails}
+                                        </Text>
                                     </View>
                                 )}
                             </View>
-                            {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
-                                <Text
-                                    style={descriptionTextStyle}
-                                    numberOfLines={2}
-                                >
-                                    {props.description}
-                                </Text>
+                        </View>
+                        <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
+                            {Boolean(props.badgeText) && (
+                                <Badge
+                                    text={props.badgeText}
+                                    badgeStyles={[styles.alignSelfCenter, props.brickRoadIndicator ? styles.mr2 : undefined, props.focused || hovered || pressed ? styles.hoveredButton : {}]}
+                                />
                             )}
-                            {Boolean(props.furtherDetails) && (
-                                <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
-                                    <Icon
-                                        src={props.furtherDetailsIcon}
-                                        height={variables.iconSizeNormal}
-                                        width={variables.iconSizeNormal}
-                                        inline
-                                    />
-                                    <Text
-                                        style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
-                                        numberOfLines={2}
-                                    >
-                                        {props.furtherDetails}
-                                    </Text>
+                            {/* Since subtitle can be of type number, we should allow 0 to be shown */}
+                            {(props.subtitle || props.subtitle === 0) && (
+                                <View style={[styles.justifyContentCenter, styles.mr1]}>
+                                    <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
                                 </View>
                             )}
+                            {!_.isEmpty(props.floatRightAvatars) && (
+                                <View style={[styles.justifyContentCenter, props.brickRoadIndicator ? styles.mr2 : undefined]}>
+                                    <MultipleAvatars
+                                        isHovered={hovered}
+                                        isPressed={pressed}
+                                        icons={props.floatRightAvatars}
+                                        size={props.avatarSize || fallbackAvatarSize}
+                                        fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
+                                        shouldStackHorizontally={props.shouldStackHorizontally}
+                                    />
+                                </View>
+                            )}
+                            {Boolean(props.brickRoadIndicator) && (
+                                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
+                                    />
+                                </View>
+                            )}
+                            {Boolean(props.shouldShowRightIcon) && (
+                                <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
+                                    <Icon
+                                        src={props.iconRight}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
+                                    />
+                                </View>
+                            )}
+                            {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                         </View>
-                    </View>
-                    <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
-                        {Boolean(props.badgeText) && (
-                            <Badge
-                                text={props.badgeText}
-                                badgeStyles={[styles.alignSelfCenter, props.brickRoadIndicator ? styles.mr2 : undefined, props.focused || hovered || pressed ? styles.hoveredButton : {}]}
-                            />
-                        )}
-                        {/* Since subtitle can be of type number, we should allow 0 to be shown */}
-                        {(props.subtitle || props.subtitle === 0) && (
-                            <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                <Text style={[styles.textLabelSupporting, props.style]}>{props.subtitle}</Text>
-                            </View>
-                        )}
-                        {!_.isEmpty(props.floatRightAvatars) && (
-                            <View style={[styles.justifyContentCenter, props.brickRoadIndicator ? styles.mr2 : undefined]}>
-                                <MultipleAvatars
-                                    isHovered={hovered}
-                                    isPressed={pressed}
-                                    icons={props.floatRightAvatars}
-                                    size={props.avatarSize || fallbackAvatarSize}
-                                    fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
-                                    shouldStackHorizontally={props.shouldStackHorizontally}
-                                />
-                            </View>
-                        )}
-                        {Boolean(props.brickRoadIndicator) && (
-                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={props.brickRoadIndicator === 'error' ? colors.red : colors.green}
-                                />
-                            </View>
-                        )}
-                        {Boolean(props.shouldShowRightIcon) && (
-                            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
-                                <Icon
-                                    src={props.iconRight}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
-                                />
-                            </View>
-                        )}
-                        {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                     </View>
                 </>
             )}
