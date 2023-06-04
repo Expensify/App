@@ -152,7 +152,7 @@ class ProfilePage extends React.PureComponent {
                                                 <Avatar
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={UserUtils.getAvatar(avatar, login)}
+                                                    source={avatar}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
