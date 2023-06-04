@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -15,6 +16,7 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
+
 
 const propTypes = {
     /** Beta features list */
@@ -37,11 +39,13 @@ const defaultProps = {
 const NewTaskPage = (props) => {
     const inputRef = useRef();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
-    const [taskDescription, setTaskDescription] = useState(props.task.description);
+    const [taskDescription, setTaskDescription] = useState(props.task.description || '');
 
     useEffect(() => {
         setTaskTitle(props.task.title);
-        setTaskDescription(props.task.description);
+        if (_.isString(props.task.description)) {
+            setTaskDescription(props.task.description);
+        }
     }, [props.task]);
 
     /**
@@ -101,7 +105,6 @@ const NewTaskPage = (props) => {
                 <View style={styles.mb5}>
                     <TextInput
                         inputID="taskDescription"
-                        defaultValue={props.task.description || ''}
                         label={props.translate('newTaskPage.descriptionOptional')}
                         value={taskDescription}
                         onChangeText={(text) => setTaskDescription(text)}
