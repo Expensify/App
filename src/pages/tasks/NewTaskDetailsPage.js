@@ -40,13 +40,9 @@ const NewTaskPage = (props) => {
     const [taskDescription, setTaskDescription] = useState(props.task.description);
 
     useEffect(() => {
-        if (taskTitle !== props.task.title) {
-            setTaskTitle(props.task.title);
-        }
-        if (taskDescription !== props.task.description) {
-            setTaskDescription(props.task.description);
-        }
-    }, [props.task, taskTitle, taskDescription]);
+        setTaskTitle(props.task.title);
+        setTaskDescription(props.task.description);
+    }, [props.task]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
