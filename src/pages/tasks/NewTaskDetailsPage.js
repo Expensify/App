@@ -101,6 +101,7 @@ const NewTaskPage = (props) => {
                 <View style={styles.mb5}>
                     <TextInput
                         inputID="taskDescription"
+                        defaultValue={props.task.description || ''}
                         label={props.translate('newTaskPage.descriptionOptional')}
                         value={taskDescription}
                         onChangeText={(text) => setTaskDescription(text)}
