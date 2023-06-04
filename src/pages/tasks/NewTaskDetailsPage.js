@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -16,7 +15,6 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
-
 
 const propTypes = {
     /** Beta features list */
@@ -43,9 +41,7 @@ const NewTaskPage = (props) => {
 
     useEffect(() => {
         setTaskTitle(props.task.title);
-        if (_.isString(props.task.description)) {
-            setTaskDescription(props.task.description);
-        }
+        setTaskDescription(props.task.description || '');
     }, [props.task]);
 
     /**
@@ -99,7 +95,7 @@ const NewTaskPage = (props) => {
                         inputID="taskTitle"
                         label={props.translate('newTaskPage.title')}
                         value={taskTitle}
-                        onChangeText={(text) => setTaskTitle(text)}
+                        onValueChange={(value) => setTaskTitle(value)}
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -107,7 +103,7 @@ const NewTaskPage = (props) => {
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         value={taskDescription}
-                        onChangeText={(text) => setTaskDescription(text)}
+                        onValueChange={(value) => setTaskDescription(value)}
                     />
                 </View>
             </Form>
