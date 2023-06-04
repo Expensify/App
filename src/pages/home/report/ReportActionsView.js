@@ -24,7 +24,6 @@ import reportPropTypes from '../../reportPropTypes';
 import * as ReactionList from './ReactionList/ReactionList';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
-import {policyPropTypes} from '../../workspace/withPolicy';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -39,14 +38,23 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
-    ...policyPropTypes,
 };
 
 const defaultProps = {
     reportActions: [],
+    policy: null,
 };
 
 class ReportActionsView extends React.Component {
