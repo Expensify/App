@@ -52,8 +52,8 @@ class ValidateLoginPage extends Component {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
-        // A fresh session will not have credentials.login available and so also no user permission betas,
-        // so we skip the permissions check in that case.
+        // A fresh session will not have credentials.login and user permission betas available.
+        // In that case, we directly allow users to go through password less flow
         if (!login || Permissions.canUsePasswordlessLogins(this.props.betas)) {
             if (lodashGet(this.props, 'session.authToken')) {
                 // If already signed in, do not show the validate code if not on web,

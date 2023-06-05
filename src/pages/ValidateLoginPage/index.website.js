@@ -63,9 +63,8 @@ class ValidateLoginPage extends Component {
     componentDidMount() {
         const login = lodashGet(this.props, 'credentials.login', null);
 
-        // Legacy login validation for users not on passwordless beta.
-        // A fresh session will not have credentials.login available and so also no user permission betas,
-        // so we skip the permissions check in that case.
+        // A fresh session will not have credentials.login and user permission betas available.
+        // In that case, we directly allow users to go through password less flow
         if (login && !Permissions.canUsePasswordlessLogins(this.props.betas)) {
             User.validateLogin(this.getAccountID(), this.getValidateCode());
             return;
