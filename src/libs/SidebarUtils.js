@@ -29,7 +29,7 @@ Onyx.connect({
 
 let personalDetails;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (personalDetails = val),
 });
 
@@ -232,7 +232,7 @@ function getOptionData(reportID) {
         isMoneyRequestReport: false,
     };
 
-    const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
+    const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList[0] || {};
 
     result.isThread = ReportUtils.isThread(report);
@@ -267,7 +267,12 @@ function getOptionData(reportID) {
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
 
     let lastMessageTextFromReport = '';
-    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
+    if (
+        ReportUtils.isReportMessageAttachment({
+            text: report.lastMessageText,
+            html: report.lastMessageHtml,
+        })
+    ) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
