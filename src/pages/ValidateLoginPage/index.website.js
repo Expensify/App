@@ -83,7 +83,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(getAccountID(), getValidateCode(), null, props.preferredLocale);
+        Session.signInWithValidateCode(getAccountID(), getValidateCode(), props.preferredLocale);
     }, []);
 
     useEffect(() => {
@@ -101,20 +101,21 @@ function ValidateLoginPage(props) {
 
     const getValidateCode = () => lodashGet(props.route.params, 'validateCode', '');
 
-    const isTfaRequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
+    const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
     const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
+    const currentAuthState = getAutoAuthState();
     return (
         <>
-            {getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
-            {getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && (!isTfaRequired || isSignedIn) && <AbracadabraModal />}
-            {getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isTfaRequired && !isSignedIn && <TfaRequiredModal />}
-            {getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
+            {currentAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
+            {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <TfaRequiredModal />}
+            {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && isSignedIn && <AbracadabraModal />}
+            {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
                 <ValidateCodeModal
                     accountID={getAccountID()}
                     code={getValidateCode()}
                 />
             )}
-            {getAutoAuthState() === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
+            {currentAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
         </>
     );
 }
