@@ -1,5 +1,5 @@
 import {View, ScrollView} from 'react-native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
