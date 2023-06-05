@@ -11,7 +11,6 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import Tooltip from '../Tooltip';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import styles from '../../styles/styles';
-import stylePropTypes from '../../styles/stylePropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps as anchorForCommentsOnlyDefaultProps} from './anchorForCommentsOnlyPropTypes';
 
@@ -22,7 +21,7 @@ const propTypes = {
     /** Press out handler for the link */
     onPressOut: PropTypes.func,
 
-    containerStyles: stylePropTypes,
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...anchorForCommentsOnlyPropTypes,
     ...windowDimensionsPropTypes,
@@ -31,7 +30,7 @@ const propTypes = {
 const defaultProps = {
     onPressIn: undefined,
     onPressOut: undefined,
-    containerStyles: {},
+    containerStyles: [],
     ...anchorForCommentsOnlyDefaultProps,
 };
 
@@ -51,7 +50,7 @@ const BaseAnchorForCommentsOnly = (props) => {
     const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
-        <View style={props.containerStyles}>
+        <View style={[...props.containerStyles]}>
             <PressableWithSecondaryInteraction
                 inline
                 onSecondaryInteraction={(event) => {

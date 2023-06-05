@@ -15,7 +15,7 @@ const AnchorForCommentsOnly = (props) => (
         // to be block elements even when they have display inline added to them.
         // This will affect elements like <a> which are inline by default.
         // Setting display block to the container view will solve that.
-        containerStyles={styles.dBlock}
+        containerStyles={[styles.dBlock]}
     />
 );
 
