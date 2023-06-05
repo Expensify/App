@@ -1174,8 +1174,8 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     reportAction.reportAction.childReportID = taskReportID;
     reportAction.reportAction.parentReportID = parentReportID;
     reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
-    reportAction.reportAction.taskTitle = taskTitle;
-    reportAction.reportAction.taskAssignee = taskAssignee;
+    reportAction.reportAction.childReportName = taskTitle;
+    reportAction.reportAction.childManagerEmail = taskAssignee;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
 
