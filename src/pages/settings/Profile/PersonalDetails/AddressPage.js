@@ -96,7 +96,7 @@ const validate = (translate, isUsaForm, values) => {
     }
 
     return errors;
-}
+};
 
 /**
  * Submit form to update user's first and last legal name
@@ -109,7 +109,7 @@ const updateAddress = (values) => {
 const AddressPage = (props) => {
     const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(props.privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
     const isUsaForm = countryISO === CONST.COUNTRY.US;
-    
+
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [countryISO, 'samples'], '');
     const zipFormat = props.translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
@@ -118,88 +118,89 @@ const AddressPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-             <HeaderWithCloseButton
-                 title={props.translate('privatePersonalDetails.homeAddress')}
-                 shouldShowBackButton
-                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
-                 onCloseButtonPress={() => Navigation.dismissModal(true)}
-             />
-             <Form
-                 style={[styles.flexGrow1, styles.ph5]}
-                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                 validate={values => validate(props.translate, isUsaForm, values)}
-                 onSubmit={updateAddress}
-                 submitButtonText={props.translate('common.save')}
-                 enabledWhenOffline
-             >
-                 <View style={styles.mb4}>
-                     <AddressSearch
-                         inputID="addressLine1"
-                         label={props.translate('common.addressLine', {lineNumber: 1})}
-                         defaultValue={street1 || ''}
-                         isLimitedToUSA={false}
-                         renamedInputKeys={{
-                             street: 'addressLine1',
-                             street2: 'addressLine2',
-                             city: 'city',
-                             state: 'state',
-                             zipCode: 'zipPostCode',
-                             country: 'country',
-                         }}
-                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                     />
-                 </View>
-                 <View style={styles.mb4}>
-                     <TextInput
-                         inputID="addressLine2"
-                         label={props.translate('common.addressLine', {lineNumber: 2})}
-                         defaultValue={street2 || ''}
-                         maxLength={CONST.FORM_CHARACTER_LIMIT}
-                     />
-                 </View>
-                 <View style={styles.mb4}>
-                     <TextInput
-                         inputID="city"
-                         label={props.translate('common.city')}
-                         defaultValue={address.city || ''}
-                         maxLength={CONST.FORM_CHARACTER_LIMIT}
-                     />
-                 </View>
-                 <View style={styles.mb4}>
-                     {isUsaForm ? (
-                         <StatePicker
-                             inputID="state"
-                             defaultValue={address.state || ''}
-                         />
-                     ) : (
-                         <TextInput
-                             inputID="state"
-                             label={props.translate('common.stateOrProvince')}
-                             defaultValue={address.state || ''}
-                             maxLength={CONST.FORM_CHARACTER_LIMIT}
-                         />
-                     )}
-                 </View>
-                 <View style={styles.mb4}>
-                     <TextInput
-                         inputID="zipPostCode"
-                         label={props.translate('common.zipPostCode')}
-                         autoCapitalize="characters"
-                         defaultValue={address.zip || ''}
-                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                         hint={zipFormat}
-                     />
-                 </View>
-                 <View>
-                     <CountryPicker
-                         inputID="country"
-                         onValueChange={setCountryISO}
-                         defaultValue={PersonalDetails.getCountryISO(address.country)}
-                     />
-                 </View>
-             </Form>
-         </ScreenWrapper>);
-}
+            <HeaderWithCloseButton
+                title={props.translate('privatePersonalDetails.homeAddress')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <Form
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                validate={(values) => validate(props.translate, isUsaForm, values)}
+                onSubmit={updateAddress}
+                submitButtonText={props.translate('common.save')}
+                enabledWhenOffline
+            >
+                <View style={styles.mb4}>
+                    <AddressSearch
+                        inputID="addressLine1"
+                        label={props.translate('common.addressLine', {lineNumber: 1})}
+                        defaultValue={street1 || ''}
+                        isLimitedToUSA={false}
+                        renamedInputKeys={{
+                            street: 'addressLine1',
+                            street2: 'addressLine2',
+                            city: 'city',
+                            state: 'state',
+                            zipCode: 'zipPostCode',
+                            country: 'country',
+                        }}
+                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                    />
+                </View>
+                <View style={styles.mb4}>
+                    <TextInput
+                        inputID="addressLine2"
+                        label={props.translate('common.addressLine', {lineNumber: 2})}
+                        defaultValue={street2 || ''}
+                        maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    />
+                </View>
+                <View style={styles.mb4}>
+                    <TextInput
+                        inputID="city"
+                        label={props.translate('common.city')}
+                        defaultValue={address.city || ''}
+                        maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    />
+                </View>
+                <View style={styles.mb4}>
+                    {isUsaForm ? (
+                        <StatePicker
+                            inputID="state"
+                            defaultValue={address.state || ''}
+                        />
+                    ) : (
+                        <TextInput
+                            inputID="state"
+                            label={props.translate('common.stateOrProvince')}
+                            defaultValue={address.state || ''}
+                            maxLength={CONST.FORM_CHARACTER_LIMIT}
+                        />
+                    )}
+                </View>
+                <View style={styles.mb4}>
+                    <TextInput
+                        inputID="zipPostCode"
+                        label={props.translate('common.zipPostCode')}
+                        autoCapitalize="characters"
+                        defaultValue={address.zip || ''}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                        hint={zipFormat}
+                    />
+                </View>
+                <View>
+                    <CountryPicker
+                        inputID="country"
+                        onValueChange={setCountryISO}
+                        defaultValue={PersonalDetails.getCountryISO(address.country)}
+                    />
+                </View>
+            </Form>
+        </ScreenWrapper>
+    );
+};
 
 AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
