@@ -4,7 +4,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 const _ = require('underscore');
 const custom = require('../config/webpack/webpack.common')({
-    envFile: '../.env.production',
+    envFile: '.env.production',
 });
 
 const env = dotenv.config({path: path.resolve(__dirname, '../.env.staging')}).parsed;
