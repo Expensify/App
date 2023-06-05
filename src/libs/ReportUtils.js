@@ -866,7 +866,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 }
 
 /**
- * @param {Object} participants
+ * @param {Array} participants
  * @param {Boolean} isMultipleParticipantReport
  * @returns {Array}
  */
