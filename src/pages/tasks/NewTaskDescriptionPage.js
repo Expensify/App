@@ -54,6 +54,7 @@ const NewTaskDescriptionPage = (props) => {
      * @returns {Object}
      */
     function validate() {
+        // This field is optional and can be left blank, so we should not require validation for its value.
         return {};
     }
 
@@ -81,7 +82,7 @@ const NewTaskDescriptionPage = (props) => {
         >
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.description')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
@@ -97,7 +98,7 @@ const NewTaskDescriptionPage = (props) => {
                     <TextInput
                         defaultValue={props.task.description}
                         inputID="taskDescription"
-                        label={props.translate('newTaskPage.description')}
+                        label={props.translate('newTaskPage.descriptionOptional')}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}

@@ -259,6 +259,14 @@ const styles = {
         textDecorationLine: 'underline',
     },
 
+    textUnderlinePositionUnder: {
+        textUnderlinePosition: 'under',
+    },
+
+    textDecorationSkipInkNone: {
+        textDecorationSkipInk: 'none',
+    },
+
     label: {
         fontSize: variables.fontSizeLabel,
         lineHeight: variables.lineHeightLarge,
@@ -1229,6 +1237,10 @@ const styles = {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
+    onlyEmojisTextLineHeight: {
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
+    },
+
     createMenuPositionSidebar: (windowHeight) => ({
         horizontal: 18,
         vertical: windowHeight - 100,
@@ -2138,14 +2150,26 @@ const styles = {
         padding: 0,
     },
 
-    twoFactorAuthCodesBox: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: themeColors.highlightBG,
-        paddingVertical: 28,
-        paddingHorizontal: 60,
-        borderRadius: 16,
-        marginTop: 32,
+    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
+        let paddingHorizontal = styles.ph15;
+
+        if (isSmallScreenWidth) {
+            paddingHorizontal = styles.ph10;
+        }
+
+        if (isExtraSmallScreenWidth) {
+            paddingHorizontal = styles.ph4;
+        }
+
+        return {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: themeColors.highlightBG,
+            paddingVertical: 28,
+            borderRadius: 16,
+            marginTop: 32,
+            ...paddingHorizontal,
+        };
     },
 
     twoFactorLoadingContainer: {

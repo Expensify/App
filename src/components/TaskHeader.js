@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -22,6 +22,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Button from './Button';
 import * as TaskUtils from '../libs/actions/Task';
 import * as UserUtils from '../libs/UserUtils';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -50,9 +51,13 @@ function TaskHeader(props) {
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
-                    <TouchableOpacity
+                    <PressableWithFeedback
                         onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                         disabled={!isOpen}
+                        accessibilityRole="button"
+                        accessibilityLabel={props.translate('newTaskPage.assignee')}
+                        hoverDimmingValue={1}
+                        pressDimmingValue={0.2}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -97,7 +102,7 @@ function TaskHeader(props) {
                                 )}
                             </View>
                         </View>
-                    </TouchableOpacity>
+                    </PressableWithFeedback>
                 </View>
             </View>
             <MenuItemWithTopDescription
