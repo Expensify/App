@@ -101,7 +101,7 @@ function translateIfPhraseKey(message) {
     try {
         // check if error message has a variable parameter
         const [phrase, variables] = _.isArray(message) ? message : [message];
-        return translateLocal(phrase,variables);
+        return translateLocal(phrase, variables);
     } catch (error) {
         return message;
     }
