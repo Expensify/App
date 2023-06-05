@@ -97,7 +97,7 @@ const ReportActionItemFragment = (props) => {
             }
             const {html, text} = props.fragment;
 
-            if (props.fragment.isDeletedParentAction) {
+            if ((!props.network.isOffline && props.isCommentThread && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
 

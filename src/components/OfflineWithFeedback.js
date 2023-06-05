@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {withNetwork} from './OnyxProvider';
+import CONST from '../CONST';
 import networkPropTypes from './networkPropTypes';
 import stylePropTypes from '../styles/stylePropTypes';
 import styles from '../styles/styles';
@@ -24,6 +25,9 @@ import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
 const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
+    /** Determine whether to hide the component's children if deletion is pending */
+    hideOnDelete: PropTypes.bool,
 
     /** The errors to display  */
     // eslint-disable-next-line react/forbid-prop-types
@@ -55,6 +59,7 @@ const propTypes = {
 
 const defaultProps = {
     pendingAction: null,
+    hideOnDelete: true,
     errors: null,
     shouldShowErrorMessages: true,
     onClose: () => {},
@@ -88,7 +93,7 @@ const OfflineWithFeedback = (props) => {
     const isAddError = hasErrors && props.pendingAction === 'add';
     const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
-    const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
+    const hideChildren = props.hideOnDelete && !props.network.isOffline && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
     let children = props.children;
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
