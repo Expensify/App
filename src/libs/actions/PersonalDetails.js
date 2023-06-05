@@ -317,7 +317,45 @@ function openPersonalDetailsPage() {
  * @param {Number} accountID
  */
 function openPublicProfilePage(accountID) {
-    API.read('OpenPublicProfilePage', {accountID});
+    API.read(
+        'OpenPublicProfilePage',
+        {accountID},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [accountID]: {
+                            isLoading: true,
+                        },
+                    },
+                },
+            ],
+            successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [accountID]: {
+                            isLoading: false,
+                        },
+                    },
+                },
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [accountID]: {
+                            isLoading: false,
+                        },
+                    },
+                },
+            ],
+        },
+    );
 }
 
 /**

@@ -30,6 +30,9 @@ import AutoUpdateTime from '../components/AutoUpdateTime';
 import * as UserUtils from '../libs/UserUtils';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import BlockingView from '../components/BlockingViews/BlockingView';
+import * as Illustrations from '../components/Icon/Illustrations';
+import variables from '../styles/variables';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -119,6 +122,8 @@ function ProfilePage(props) {
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const isCurrentUser = _.keys(props.loginList).includes(login);
+    const hasMinimumDetails = !_.isEmpty(details.displayName) && !_.isEmpty(details.avatar);
+    const isLoading = lodashGet(details, 'isLoading', false) && !hasMinimumDetails;
 
     return (
         <ScreenWrapper>
@@ -132,9 +137,7 @@ function ProfilePage(props) {
                 pointerEvents="box-none"
                 style={[styles.containerWithSpaceBetween]}
             >
-                {_.isEmpty(details) ? (
-                    <FullScreenLoadingIndicator style={styles.flex1} />
-                ) : (
+                {hasMinimumDetails && (
                     <ScrollView>
                         <View style={styles.avatarSectionWrapper}>
                             <AttachmentModal
@@ -205,6 +208,15 @@ function ProfilePage(props) {
                             />
                         )}
                     </ScrollView>
+                )}
+                {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
+                {!hasMinimumDetails && !isLoading && (
+                    <BlockingView
+                        icon={Illustrations.ToddBehindCloud}
+                        iconWidth={variables.modalTopIconWidth}
+                        iconHeight={variables.modalTopIconHeight}
+                        title={props.translate('notFound.notHere')}
+                    />
                 )}
             </View>
         </ScreenWrapper>
