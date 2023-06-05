@@ -8,6 +8,7 @@ import positioning from './utilities/positioning';
 import styles from './styles';
 import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
+import * as Browser from '../libs/Browser';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -1185,6 +1186,16 @@ function getMentionTextColor(isOurMention) {
     return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
 }
 
+/**
+ * Returns style object for the mobile on WEB
+ * @param {Number} windowHeight
+ * @param {Number} viewportOffsetTop
+ * @returns {Object}
+ */
+function getOuterModalStyle(windowHeight, viewportOffsetTop) {
+    return Browser.isMobile() && {maxHeight: windowHeight, marginTop: viewportOffsetTop};
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1251,4 +1262,5 @@ export {
     getMentionStyle,
     getMentionTextColor,
     getHeightOfMagicCodeInput,
+    getOuterModalStyle,
 };
