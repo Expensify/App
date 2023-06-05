@@ -225,7 +225,7 @@ function getParticipantsOptions(participants, personalDetails) {
             ],
             payPalMeAddress: lodashGet(detail, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(detail, 'phoneNumber', ''),
-            selected: participant.login,
+            selected: participant.selected,
         };
     });
 }
