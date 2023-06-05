@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
@@ -53,52 +53,6 @@ const defaultProps = {
 };
 
 /**
- * @param {Function} translate - translate function
- * @param {Boolean} isUSAForm - selected country ISO code is US
- * @param {Object} values - form input values
- * @returns {Object} - An object containing the errors for each inputID
- */
-const validate = (translate, isUsaForm, values) => {
-    const errors = {};
-
-    const requiredFields = ['addressLine1', 'city', 'country', 'state'];
-
-    // Check "State" dropdown is a valid state if selected Country is USA.
-    if (isUsaForm && !COMMON_CONST.STATES[values.state]) {
-        errors.state = translate('common.error.fieldRequired');
-    }
-
-    // Add "Field required" errors if any required field is empty
-    _.each(requiredFields, (fieldKey) => {
-        if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
-            return;
-        }
-        errors[fieldKey] = translate('common.error.fieldRequired');
-    });
-
-    // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-    const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
-
-    // The postal code system might not exist for a country, so no regex either for them.
-    const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
-    const zipFormat = lodashGet(countryRegexDetails, 'samples');
-
-    if (countrySpecificZipRegex) {
-        if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
-            if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
-                errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
-            } else {
-                errors.zipPostCode = translate('common.error.fieldRequired');
-            }
-        }
-    } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
-        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
-    }
-
-    return errors;
-};
-
-/**
  * Submit form to update user's first and last legal name
  * @param {Object} values - form input values
  */
@@ -106,15 +60,59 @@ const updateAddress = (values) => {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim(), values.country);
 };
 
-const AddressPage = (props) => {
+function AddressPage(props) {
+    const {translate} = props;
     const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(props.privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
-    const isUsaForm = countryISO === CONST.COUNTRY.US;
+    const isUSAForm = countryISO === CONST.COUNTRY.US;
 
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [countryISO, 'samples'], '');
-    const zipFormat = props.translate('common.zipCodeExampleFormat', {zipSampleFormat});
+    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     const address = lodashGet(props.privatePersonalDetails, 'address') || {};
     const [street1, street2] = (address.street || '').split('\n');
+
+    const validate = useCallback(
+        (values) => {
+            const errors = {};
+
+            const requiredFields = ['addressLine1', 'city', 'country', 'state'];
+
+            // Check "State" dropdown is a valid state if selected Country is USA.
+            if (isUSAForm && !COMMON_CONST.STATES[values.state]) {
+                errors.state = translate('common.error.fieldRequired');
+            }
+
+            // Add "Field required" errors if any required field is empty
+            _.each(requiredFields, (fieldKey) => {
+                if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
+                    return;
+                }
+                errors[fieldKey] = translate('common.error.fieldRequired');
+            });
+
+            // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
+            const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
+
+            // The postal code system might not exist for a country, so no regex either for them.
+            const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
+            const countryZipFormat = lodashGet(countryRegexDetails, 'samples');
+
+            if (countrySpecificZipRegex) {
+                if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
+                    if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
+                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
+                    } else {
+                        errors.zipPostCode = translate('common.error.fieldRequired');
+                    }
+                }
+            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
+                errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
+            }
+
+            return errors;
+        },
+        [translate, isUSAForm],
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -127,7 +125,7 @@ const AddressPage = (props) => {
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                validate={(values) => validate(props.translate, isUsaForm, values)}
+                validate={validate}
                 onSubmit={updateAddress}
                 submitButtonText={props.translate('common.save')}
                 enabledWhenOffline
@@ -166,7 +164,7 @@ const AddressPage = (props) => {
                     />
                 </View>
                 <View style={styles.mb4}>
-                    {isUsaForm ? (
+                    {isUSAForm ? (
                         <StatePicker
                             inputID="state"
                             defaultValue={address.state || ''}
@@ -200,7 +198,7 @@ const AddressPage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
