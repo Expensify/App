@@ -12,8 +12,8 @@ describe('DateUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: 999},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {999: {timezone: {selected: 'Etc/UTC'}}},
+                [ONYXKEYS.SESSION]: {email: 'current@user.com'},
+                [ONYXKEYS.PERSONAL_DETAILS]: {'current@user.com': {timezone: {selected: 'Etc/UTC'}}},
             },
         });
         return waitForPromisesToResolve();
