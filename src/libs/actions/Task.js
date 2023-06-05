@@ -326,7 +326,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {reportName: report.reportName, description: report.description, assignee: report.assignee},
+            value: {reportName: report.reportName, description: report.description, assignee: report.managerEmail},
         },
     ];
 
@@ -366,8 +366,8 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             taskReportID: report.reportID,
             title: reportName,
-            description: description.trim(),
-            assignee: assignee || report.assignee,
+            description: (description || report.description).trim(),
+            assignee: assignee || report.managerEmail,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
         },

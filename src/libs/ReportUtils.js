@@ -1042,6 +1042,16 @@ function getReportName(report) {
 }
 
 /**
+ * Get the report for a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
+/**
  * Navigate to the details page of a given report
  *
  * @param {Object} report
@@ -1164,8 +1174,8 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     reportAction.reportAction.childReportID = taskReportID;
     reportAction.reportAction.parentReportID = parentReportID;
     reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
-    reportAction.reportAction.taskTitle = taskTitle;
-    reportAction.reportAction.taskAssignee = taskAssignee;
+    reportAction.reportAction.childReportName = taskTitle;
+    reportAction.reportAction.childManagerEmail = taskAssignee;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
 
@@ -2179,6 +2189,7 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
+    getReport,
     getReportIDFromLink,
     getRouteFromLink,
     navigateToDetailsPage,
