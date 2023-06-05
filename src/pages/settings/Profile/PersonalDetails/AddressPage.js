@@ -58,7 +58,7 @@ const defaultProps = {
  */
 function updateAddress(values) {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim(), values.country);
-};
+}
 
 function AddressPage(props) {
     const {translate} = props;
@@ -71,6 +71,12 @@ function AddressPage(props) {
     const address = lodashGet(props.privatePersonalDetails, 'address') || {};
     const [street1, street2] = (address.street || '').split('\n');
 
+    /**
+     * @param {Function} translate - translate function
+     * @param {Boolean} isUSAForm - selected country ISO code is US
+     * @param {Object} values - form input values
+     * @returns {Object} - An object containing the errors for each inputID
+     */
     const validate = useCallback(
         (values) => {
             const errors = {};
