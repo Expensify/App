@@ -72,8 +72,8 @@ const EmojiPicker = forwardRef((props, ref) => {
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', measureEmojiPopoverAnchorPositionAndUpdateState);
         return () => {
             emojiPopoverDimensionListener.remove();
-        }
-    }, [isEmojiPickerVisible, emojiPopoverAnchor]);
+        };
+    }, [isEmojiPickerVisible, emojiPopoverAnchor, measureEmojiPopoverAnchorPositionAndUpdateState]);
 
     /**
      * Hide the emoji picker menu.
@@ -82,11 +82,11 @@ const EmojiPicker = forwardRef((props, ref) => {
      */
     const hideEmojiPicker = (isNavigating) => {
         if (isNavigating) {
-            setOnModalHide( () => {});
+            setOnModalHide(() => {});
         }
         setEmojiPopoverAnchor(null);
         setIsEmojiPickerVisible(false);
-    }
+    };
 
     /**
      * Focus the search input in the emoji picker.
@@ -96,7 +96,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             return;
         }
         emojiSearchInput.current.focus();
-    }
+    };
 
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
@@ -117,7 +117,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         if (_.isFunction(onEmojiSelected)) {
             onEmojiSelected(emoji, emojiObject);
         }
-    }
+    };
 
     useImperativeHandle(ref, () => ({showEmojiPicker}));
 
@@ -145,7 +145,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
-                ref={el => emojiSearchInput.current = el}
+                ref={(el) => (emojiSearchInput.current = el)}
             />
         </PopoverWithMeasuredContent>
     );
