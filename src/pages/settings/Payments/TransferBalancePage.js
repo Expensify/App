@@ -65,7 +65,7 @@ const defaultProps = {
     walletTransfer: {},
 };
 
-const TransferBalancePage = (props) => {
+function TransferBalancePage(props) {
     const paymentTypes = [
         {
             key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
@@ -243,7 +243,7 @@ const TransferBalancePage = (props) => {
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
-};
+}
 
 TransferBalancePage.propTypes = propTypes;
 TransferBalancePage.defaultProps = defaultProps;
