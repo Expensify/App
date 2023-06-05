@@ -3,6 +3,8 @@ import lodashGet from 'lodash/get';
 /**
  * Determine if the transitioning user is logging in as a new user.
  *
+ * @deprecated Use isLoggingInAsNewUserWithAccountID instead.
+ *
  * @param {String} transitionURL
  * @param {String} sessionEmail
  * @returns {Boolean}
@@ -30,8 +32,6 @@ function isLoggingInAsNewUser(transitionURL, sessionEmail) {
 
 /**
  * Determine if the transitioning user is logging in as a new user.
- *
- * This is a new version of the function that uses accountID instead of email.
  *
  * @param {String} transitionURL
  * @param {Number} sessionAccountID

@@ -34,7 +34,7 @@ import * as App from '../../actions/App';
 import * as Download from '../../actions/Download';
 import * as Session from '../../actions/Session';
 
-let currentAccountId;
+let currentAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -43,7 +43,7 @@ Onyx.connect({
             return;
         }
 
-        currentAccountId = val.accountId;
+        currentAccountID = val.accountID;
     },
 });
 
@@ -55,7 +55,7 @@ Onyx.connect({
             return;
         }
 
-        timezone = lodashGet(val, [currentAccountId, 'timezone'], {});
+        timezone = lodashGet(val, [currentAccountID, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
