@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow'];
+const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
 const defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
@@ -65,7 +65,7 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
-module.exports = ({caller}) => {
+export default ({caller}) => {
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
     // For jest, it will be babel-jest

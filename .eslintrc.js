@@ -1,7 +1,10 @@
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier'],
-    plugins: ['react-hooks'],
-    parser: 'babel-eslint',
+    extends: ['expensify', 'airbnb-typescript', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
+    plugins: ['@typescript-eslint', 'react-hooks'],
+    parser: '@typescript-eslint/parser',
+    parserOptions: {
+        project: './tsconfig.json',
+    },
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', '.git/**'],
     env: {
         jest: true,
@@ -9,7 +12,7 @@ module.exports = {
     settings: {
         'import/resolver': {
             node: {
-                extensions: ['.js', '.website.js', '.desktop.js', '.native.js', '.ios.js', '.android.js', '.config.js'],
+                extensions: ['.ts', '.tsx', '.js', '.jsx'],
             },
         },
     },
@@ -17,6 +20,15 @@ module.exports = {
         __DEV__: 'readonly',
     },
     rules: {
+        "import/no-extraneous-dependencies": "off",
+        'rulesdir/onyx-props-must-have-default': 'off',
+        'react/jsx-filename-extension': [1, {extensions: ['.tsx', '.ts', '.jsx', '.js']}],
+        "@typescript-eslint/no-var-requires": "off",
+        '@typescript-eslint/no-non-null-assertion': 'error',
+        '@typescript-eslint/no-explicit-any': 'error',
+        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+        'es/no-nullish-coalescing-operators': 'off',
+        'es/no-optional-chaining': 'off',
         'no-restricted-imports': [
             'error',
             {
@@ -40,4 +52,22 @@ module.exports = {
             },
         ],
     },
+    overrides: [
+        {
+            files: ['*.ts', '*.tsx'],
+            rules: {
+                'no-restricted-imports': [
+                    'error',
+                    {
+                        paths: [
+                            {
+                                name: 'lodash/get',
+                                message: 'Please use optional chaining and nullish coalescing instead.',
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+    ],
 };
