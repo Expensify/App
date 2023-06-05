@@ -29,11 +29,19 @@ jobs:
           npm install --force
           npx reassure --branch
 
-      - name: Read output.md
+      - name: Read output.json
         id: reassure
         uses: juliangruber/read-file-action@v1
         with:
-          path: .reassure/output.md
+          path: .reassure/output.json
+
+      - name: Validate output.json
+        id: validateReassureOutput
+        uses: ArekChr/App/.github/actions/javascript/validateReassureOutput@feat/reassure
+        with:
+          DURATION_DEVIATION_PERCENTAGE: 20
+          COUNT_DEVIATION: 1
+          REGRESSION_OUTPUT: ${{ steps.reassure.outputs.content }}
 
       - name: Add comment to PR
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
