@@ -1,4 +1,4 @@
-const {notarize} = require('electron-notarize');
+const {notarize} = require('@electron/notarize');
 const electron = require('../config/electronBuilder.config');
 
 exports.default = function notarizing(context) {
