@@ -151,7 +151,10 @@ function addSMSDomainIfPhoneNumber(login) {
  */
 function getAvatarsForLogins(logins, personalDetails) {
     return _.map(logins, (login) => {
-        const userPersonalDetail = lodashGet(personalDetails, login, {login, avatar: ''});
+        const userPersonalDetail = lodashGet(personalDetails, login, {
+            login,
+            avatar: '',
+        });
         return {
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
             type: CONST.ICON_TYPE_AVATAR,
@@ -161,7 +164,34 @@ function getAvatarsForLogins(logins, personalDetails) {
 }
 
 /**
- * Returns the personal details for an array of logins
+ * Returns the personal details for an array of accountIDs
+ *
+ * @param {Array} accountIDs
+ * @param {Object} personalDetails
+ * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
+ */
+function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
+    const personalDetailsForAccountIDs = {};
+    if (!personalDetails) {
+        return personalDetailsForAccountIDs;
+    }
+    _.chain(accountIDs)
+        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+        .compact()
+        .each((accountID) => {
+            const personalDetail = personalDetails[accountID];
+
+            if (personalDetail && accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+            }
+
+            personalDetailsForAccountIDs[accountID] = personalDetail;
+        });
+    return personalDetailsForAccountIDs;
+}
+
+/**
+ * [Deprecated] Returns the personal details for an array of logins
  *
  * @param {Array} logins
  * @param {Object} personalDetails
@@ -173,7 +203,6 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
         return personalDetailsForLogins;
     }
     _.chain(logins)
-
         // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
         .compact()
         .each((login) => {
@@ -402,7 +431,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         isPolicyExpenseChat: false,
     };
 
-    const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
+    const personalDetailMap = getPersonalDetailsForAccountIDs(logins, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const personalDetail = personalDetailList[0] || {};
     let hasMultipleParticipants = personalDetailList.length > 1;
@@ -437,7 +466,12 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
         let lastMessageTextFromReport = '';
-        if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
+        if (
+            ReportUtils.isReportMessageAttachment({
+                text: report.lastMessageText,
+                html: report.lastMessageHtml,
+            })
+        ) {
             lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
         } else {
             lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
@@ -649,7 +683,12 @@ function getOptions(
     }
 
     // Always exclude already selected options and the currently logged in user
-    const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
+    const loginOptionsToExclude = [
+        ...selectedOptions,
+        {
+            login: currentUserLogin,
+        },
+    ];
 
     _.each(excludeLogins, (login) => {
         loginOptionsToExclude.push({login});
@@ -867,7 +906,6 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  * @param {Array} [excludeLogins]
  * @param {Boolean} [includeOwnedWorkspaceChats]
  * @returns {Object}
- *
  */
 
 function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
@@ -945,20 +983,21 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
 export {
     addSMSDomainIfPhoneNumber,
+    getAllReportErrors,
     getAvatarsForLogins,
+    getHeaderMessage,
+    getIOUConfirmationOptionsFromParticipants,
+    getIOUConfirmationOptionsFromPayeePersonalDetail,
+    getMemberInviteOptions,
+    getNewChatOptions,
+    getParticipantsOptions,
+    getPersonalDetailsForAccountIDs,
+    getPersonalDetailsForLogins,
+    getPolicyExpenseReportOptions,
+    getSearchOptions,
+    getSearchText,
+    getShareDestinationOptions,
     isCurrentUser,
     isPersonalDetailsReady,
-    getSearchOptions,
-    getNewChatOptions,
-    getShareDestinationOptions,
-    getMemberInviteOptions,
-    getHeaderMessage,
-    getPersonalDetailsForLogins,
-    getIOUConfirmationOptionsFromPayeePersonalDetail,
-    getIOUConfirmationOptionsFromParticipants,
-    getSearchText,
-    getAllReportErrors,
-    getPolicyExpenseReportOptions,
-    getParticipantsOptions,
     isSearchStringMatch,
 };
