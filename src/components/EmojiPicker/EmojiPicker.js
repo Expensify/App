@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
 import {Dimensions, Keyboard} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
@@ -10,7 +10,7 @@ const DEFAULT_ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
-function EmojiPicker () {
+const EmojiPicker = forwardRef((props, ref) => {
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
         horizontal: 0,
@@ -22,17 +22,44 @@ function EmojiPicker () {
     const [emojiPopoverAnchor, setEmojiPopoverAnchor] = useState(null);
     const emojiSearchInput = useRef();
 
-    function measureEmojiPopoverAnchorPosition() {
+    function measureEmojiPopoverAnchorPosition(anchorComponent) {
         return new Promise((resolve) => {
-            if (!emojiPopoverAnchor) {
+            if (!anchorComponent) {
                 return resolve({horizontal: 0, vertical: 0});
             }
-            emojiPopoverAnchor.measureInWindow((x, y, width) => resolve({horizontal: x + width, vertical: y}));
+            anchorComponent.measureInWindow((x, y, width) => resolve({horizontal: x + width, vertical: y}));
+        });
+    }
+
+    /**
+     * Show the emoji picker menu.
+     *
+     * @param {Function} [onModalHideValue=() => {}] - Run a callback when Modal hides.
+     * @param {Function} [onEmojiSelectedValue=() => {}] - Run a callback when Emoji selected.
+     * @param {Element} emojiPopoverAnchorValue - Element to which Popover is anchored
+     * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
+     * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
+     */
+    function showEmojiPicker(onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}) {
+        setOnModalHide(() => onModalHideValue);
+        setOnEmojiSelected(() => onEmojiSelectedValue);
+        setEmojiPopoverAnchor(emojiPopoverAnchorValue);
+
+        if (emojiPopoverAnchorValue) {
+            // Drop focus to avoid blue focus ring.
+            emojiPopoverAnchorValue.blur();
+        }
+
+        measureEmojiPopoverAnchorPosition(emojiPopoverAnchorValue).then((value) => {
+            onWillShow();
+            setIsEmojiPickerVisible(true);
+            setEmojiPopoverAnchorPosition(value);
+            setEmojiPopoverAnchorOrigin(anchorOrigin || DEFAULT_ANCHOR_ORIGIN);
         });
     }
 
     function measureEmojiPopoverAnchorPositionAndUpdateState() {
-        measureEmojiPopoverAnchorPosition().then((value) => {
+        measureEmojiPopoverAnchorPosition(emojiPopoverAnchor).then((value) => {
             setEmojiPopoverAnchorPosition(value);
         });
     }
@@ -46,7 +73,7 @@ function EmojiPicker () {
         return () => {
             emojiPopoverDimensionListener.remove();
         }
-    }, [isEmojiPickerVisible]);
+    }, [isEmojiPickerVisible, emojiPopoverAnchor]);
 
     /**
      * Hide the emoji picker menu.
@@ -65,37 +92,10 @@ function EmojiPicker () {
      * Focus the search input in the emoji picker.
      */
     const focusEmojiSearchInput = () => {
-        if (!emojiSearchInput) {
+        if (!emojiSearchInput.current) {
             return;
         }
-        emojiSearchInput.focus();
-    }
-
-    /**
-     * Show the emoji picker menu.
-     *
-     * @param {Function} [onModalHideValue=() => {}] - Run a callback when Modal hides.
-     * @param {Function} [onEmojiSelectedValue=() => {}] - Run a callback when Emoji selected.
-     * @param {Element} emojiPopoverAnchorValue - Element to which Popover is anchored
-     * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
-     * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
-     */
-    function showEmojiPicker(onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}) {
-        setOnModalHide(onModalHideValue);
-        setOnEmojiSelected(onEmojiSelectedValue);
-        setEmojiPopoverAnchor(emojiPopoverAnchorValue);
-
-        if (emojiPopoverAnchor) {
-            // Drop focus to avoid blue focus ring.
-            emojiPopoverAnchor.blur();
-        }
-
-        measureEmojiPopoverAnchorPosition().then((value) => {
-            onWillShow();
-            setIsEmojiPickerVisible(true);
-            setEmojiPopoverAnchorPosition(value);
-            setEmojiPopoverAnchorOrigin(anchorOrigin || DEFAULT_ANCHOR_ORIGIN);
-        });
+        emojiSearchInput.current.focus();
     }
 
     /**
@@ -118,6 +118,8 @@ function EmojiPicker () {
             onEmojiSelected(emoji, emojiObject);
         }
     }
+
+    useImperativeHandle(ref, () => ({showEmojiPicker}));
 
     // There is no way to disable animations and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
@@ -143,10 +145,10 @@ function EmojiPicker () {
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
-                ref={emojiSearchInput}
+                ref={el => emojiSearchInput.current = el}
             />
         </PopoverWithMeasuredContent>
     );
-}
+});
 
 export default EmojiPicker;
