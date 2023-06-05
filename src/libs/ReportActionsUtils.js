@@ -173,12 +173,13 @@ function getMostRecentIOURequestActionID(reportActions) {
 /**
  * Returns array of links inside given report
  *
- * @param {object} reportAction
+ * @param {Object} reportAction
  * @returns {Boolean}
  */
 function extractLinksFromMessageHtml(reportAction) {
     const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
 
+    // Regex to get link in href prop inside of <a/> component
     const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
 
     if (!htmlContent) {
