@@ -2449,6 +2449,12 @@ const CONST = {
         FLAG_SEVERITY_ASSAULT: 'assault',
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    QR: {
+        DEFAULT_LOGO_SIZE_RATIO: 0.25,
+        DEFAULT_LOGO_MARGIN_RATIO: 0.02,
+        EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
+        EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
+    },
 };
 
 export default CONST;
