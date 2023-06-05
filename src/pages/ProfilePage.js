@@ -139,7 +139,7 @@ class ProfilePage extends React.PureComponent {
                             <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
                                     headerTitle={displayName}
-                                    source={UserUtils.getFullSizeAvatar(avatar, login)}
+                                    source={UserUtils.getFullSizeAvatar(avatar, login || accountID)}
                                     isAuthTokenRequired
                                     originalFileName={originalFileName}
                                 >
@@ -152,7 +152,7 @@ class ProfilePage extends React.PureComponent {
                                                 <Avatar
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={avatar}
+                                                    source={UserUtils.getAvatar(avatar, login || accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
