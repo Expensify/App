@@ -249,6 +249,7 @@ const TransferBalancePage = (props) => {
 
 TransferBalancePage.propTypes = propTypes;
 TransferBalancePage.defaultProps = defaultProps;
+TransferBalancePage.displayName = 'TransferBalancePage';
 
 export default compose(
     withLocalize,
