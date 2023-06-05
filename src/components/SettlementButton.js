@@ -123,11 +123,11 @@ class SettlementButton extends React.Component {
                 paymentMethod = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
             }
 
-            // In case of the settlement button in the report preview component, we do not show options ans the labels is simply "Pay".
+            // In case of the settlement button in the report preview component, we do not show payment options and the label for Wallet and ACH type is simply "Pay".
             return [
                 {
                     ...paymentMethods[paymentMethod],
-                    text: this.props.translate('iou.pay'),
+                    text: paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ? this.props.translate('iou.payExpenseElsewhere') : this.props.translate('iou.pay'),
                 },
             ];
         }
