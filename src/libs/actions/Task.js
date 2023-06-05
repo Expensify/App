@@ -325,7 +325,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 reportName,
-                description: (description || report.description).trim(),
+                description: description.trim(),
                 managerEmail: assignee || report.managerEmail,
             },
         },
@@ -380,7 +380,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             taskReportID: report.reportID,
             title: reportName,
-            description: (description || report.description).trim(),
+            description: description.trim(),
             assignee: assignee || report.assignee,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,

@@ -18,6 +18,7 @@ import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
+import PinButton from './PinButton';
 
 const propTypes = {
     /** Title of the Header */
@@ -49,6 +50,9 @@ const propTypes = {
 
     /** Whether we should show a get assistance (question mark) button */
     shouldShowGetAssistanceButton: PropTypes.bool,
+
+    /** Whether we should show a pin button */
+    shouldShowPinButton: PropTypes.bool,
 
     /** Whether we should show a more options (threedots) button */
     shouldShowThreeDotsButton: PropTypes.bool,
@@ -83,6 +87,9 @@ const propTypes = {
     /** Whether we should show an avatar */
     shouldShowAvatarWithDisplay: PropTypes.bool,
 
+    /** Parent report, if provided it will override props.report for AvatarWithDisplay */
+    parentReport: iouReportPropTypes,
+
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report: iouReportPropTypes,
 
@@ -112,10 +119,12 @@ const defaultProps = {
     shouldShowDownloadButton: false,
     shouldShowGetAssistanceButton: false,
     shouldShowThreeDotsButton: false,
+    shouldShowPinButton: false,
     shouldShowCloseButton: true,
     shouldShowStepCounter: true,
     shouldShowAvatarWithDisplay: false,
     report: null,
+    parentReport: null,
     policies: {},
     personalDetails: {},
     guidesCallTaskID: '',
@@ -168,7 +177,7 @@ class HeaderWithCloseButton extends Component {
                     )}
                     {this.props.shouldShowAvatarWithDisplay && (
                         <AvatarWithDisplayName
-                            report={this.props.report}
+                            report={this.props.parentReport || this.props.report}
                             policies={this.props.policies}
                             personalDetails={this.props.personalDetails}
                         />
@@ -211,6 +220,8 @@ class HeaderWithCloseButton extends Component {
                                 </Pressable>
                             </Tooltip>
                         )}
+
+                        {this.props.shouldShowPinButton && <PinButton report={this.props.report} />}
 
                         {this.props.shouldShowThreeDotsButton && (
                             <ThreeDotsMenu
