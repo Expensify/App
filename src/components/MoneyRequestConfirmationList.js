@@ -241,12 +241,13 @@ class MoneyRequestConfirmationList extends Component {
             <SettlementButton
                 isDisabled={shouldDisableButton}
                 onPress={this.confirm}
-                shouldShowPaypal={Boolean(recipient.payPalMeAddress)}
+                shouldShowPaypal={Boolean(recipient && recipient.payPalMeAddress)}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={this.props.bankAccountRoute}
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                 currency={this.props.iou.selectedCurrencyCode}
                 policyID={this.props.policyID}
+                shouldShowPaymentOptions
             />
         ) : (
             <ButtonWithDropdownMenu

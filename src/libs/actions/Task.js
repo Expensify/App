@@ -325,7 +325,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 reportName,
-                description: (description || report.description).trim(),
+                description: description.trim(),
                 managerEmail: assignee || report.managerEmail,
             },
         },
@@ -380,7 +380,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             taskReportID: report.reportID,
             title: reportName,
-            description: (description || report.description).trim(),
+            description: description.trim(),
             assignee: assignee || report.assignee,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
@@ -442,21 +442,24 @@ function setShareDestinationValue(shareDestination) {
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  * @param {string} assignee
  * @param {string} shareDestination
+ * @param {boolean} isCurrentUser
  */
 
-function setAssigneeValue(assignee, shareDestination) {
-    let newChat = {};
-    const chat = ReportUtils.getChatByParticipants([assignee]);
-    if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport([assignee]);
-    }
-    const reportID = chat ? chat.reportID : newChat.reportID;
+function setAssigneeValue(assignee, shareDestination, isCurrentUser = false) {
+    if (!isCurrentUser) {
+        let newChat = {};
+        const chat = ReportUtils.getChatByParticipants([assignee]);
+        if (!chat) {
+            newChat = ReportUtils.buildOptimisticChatReport([assignee]);
+        }
+        const reportID = chat ? chat.reportID : newChat.reportID;
 
-    if (!shareDestination) {
-        setShareDestinationValue(reportID);
-    }
+        if (!shareDestination) {
+            setShareDestinationValue(reportID);
+        }
 
-    Report.openReport(reportID, [assignee], newChat);
+        Report.openReport(reportID, [assignee], newChat);
+    }
 
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee});
