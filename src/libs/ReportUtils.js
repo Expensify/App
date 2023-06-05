@@ -1859,7 +1859,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
     }
 
     // Exclude empty chats between two users
-    if (excludeEmptyChats && report.participants.length < 3 && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml) && isChatReport(report) && !isChatRoom(report) && !isThread(report)) {
+    if (excludeEmptyChats && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml) && !_.isEmpty(report.participants) && report.participants.length < 3 && isChatReport(report) && !isChatRoom(report) && !isThread(report)) {
         return false;
     }
 
