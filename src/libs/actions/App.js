@@ -40,8 +40,8 @@ Onyx.connect({
         }
 
         myPersonalDetails = val[currentUserAccountID];
-    }
-})
+    },
+});
 
 let allPolicies = [];
 Onyx.connect({
