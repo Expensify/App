@@ -1700,7 +1700,14 @@ function flagComment(reportID, reportAction, severity) {
                 },
             ];
         }
-    } else {
+    } else if (severity === CONST.MODERATION.FLAG_SEVERITY_ASSAULT || severity === CONST.MODERATION.FLAG_SEVERITY_HARASSMENT) {
+        updatedDecision = [
+            {
+                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+            },
+        ];
+    }
+    else {
         updatedDecision = [
             {
                 decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
