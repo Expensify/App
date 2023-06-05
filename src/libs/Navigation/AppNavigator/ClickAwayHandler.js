@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Navigation from '../Navigation';
 import styles from '../../../styles/styles';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Whether a modal is currently being displayed */
@@ -18,7 +18,7 @@ const ClickAwayHandler = (props) => {
     }
 
     return (
-        <Pressable
+        <PressableWithoutFeedback
             style={styles.navigationModalOverlay}
             onPress={() => Navigation.dismissModal()}
         />
