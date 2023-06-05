@@ -130,7 +130,7 @@ function VerifyPage(props) {
                                 icon={Expensicons.Copy}
                                 inline={false}
                                 onPress={() => Clipboard.setString(props.account.twoFactorAuthSecretKey)}
-                                styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                styles={[styles.button, styles.buttonMedium]}
                                 textStyles={[styles.buttonMediumText]}
                             />
                         </View>
