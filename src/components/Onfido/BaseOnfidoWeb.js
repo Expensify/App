@@ -132,7 +132,7 @@ function Onfido(props) {
             preferredLocale: props.preferredLocale,
             translate: props.translate
         });
-    }, []);
+    }, [props.sdkToken, props.onSuccess, props.onError, props.onUserExit, props.preferredLocale, props.translate]);
 
     return <div id={CONST.ONFIDO.CONTAINER_ID} />;
 }
