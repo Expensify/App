@@ -114,6 +114,7 @@ const MoneyRequestAction = (props) => {
                 '',
                 CONST.POLICY.OWNER_EMAIL_FAKE,
                 CONST.POLICY.OWNER_EMAIL_FAKE,
+                CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
                 false,
                 '',
                 undefined,

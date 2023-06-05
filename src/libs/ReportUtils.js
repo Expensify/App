@@ -1436,6 +1436,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {String} chatType
  * @param {String} policyID
  * @param {String} ownerEmail
+ * @param {String} ownerAccountID
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
@@ -1450,6 +1451,7 @@ function buildOptimisticChatReport(
     chatType = '',
     policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
     ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
+    ownerAccountID = CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
@@ -1471,6 +1473,7 @@ function buildOptimisticChatReport(
         lastVisibleActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
+        ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
         parentReportActionID,
         parentReportID,
@@ -1619,6 +1622,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         policyID,
         null,
+        null,
         false,
         policyName,
         null,
@@ -1632,14 +1636,14 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
 
-    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, null, false, policyName);
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
     const adminsReportActionData = {
         [adminsCreatedAction.reportActionID]: adminsCreatedAction,
     };
 
-    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, currentUserAccountID, true, policyName);
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
     const expenseReportActionData = {
