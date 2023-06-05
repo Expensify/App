@@ -1,6 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+// eslint-disable-next-line no-restricted-imports
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
