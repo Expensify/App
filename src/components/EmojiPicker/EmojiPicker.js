@@ -58,22 +58,20 @@ const EmojiPicker = forwardRef((props, ref) => {
         });
     }
 
-    function measureEmojiPopoverAnchorPositionAndUpdateState() {
-        measureEmojiPopoverAnchorPosition(emojiPopoverAnchor).then((value) => {
-            setEmojiPopoverAnchorPosition(value);
-        });
-    }
-
     useEffect(() => {
         if (isEmojiPickerVisible) {
             Keyboard.dismiss();
         }
 
-        const emojiPopoverDimensionListener = Dimensions.addEventListener('change', measureEmojiPopoverAnchorPositionAndUpdateState);
+        const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
+            measureEmojiPopoverAnchorPosition(emojiPopoverAnchor).then((value) => {
+                setEmojiPopoverAnchorPosition(value);
+            });
+        });
         return () => {
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, emojiPopoverAnchor, measureEmojiPopoverAnchorPositionAndUpdateState]);
+    }, [isEmojiPickerVisible, emojiPopoverAnchor]);
 
     /**
      * Hide the emoji picker menu.
