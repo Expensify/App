@@ -130,7 +130,7 @@ function Onfido(props) {
             onError: props.onError,
             onUserExit: props.onUserExit,
             preferredLocale: props.preferredLocale,
-            translate: props.translate
+            translate: props.translate,
         });
     }, [props.sdkToken, props.onSuccess, props.onError, props.onUserExit, props.preferredLocale, props.translate]);
 
@@ -138,4 +138,4 @@ function Onfido(props) {
 }
 
 Onfido.propTypes = propTypes;
-export default withLocalize(Onfido)
+export default withLocalize(Onfido);
