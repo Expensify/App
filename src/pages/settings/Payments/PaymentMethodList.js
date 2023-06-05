@@ -134,16 +134,19 @@ function isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, p
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 function PaymentMethodList(props) {
+    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, filterType, network, onPress, payPalMeData, shouldShowSelectedState, selectedMethodID, translate} =
+        props;
+
     const filteredPaymentMethods = useMemo(() => {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        const filteredCardList = _.filter(props.cardList, (card) => card.accountData.additionalData.isP2PDebitCard);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, filteredCardList, props.payPalMeData);
+        const filteredCardList = _.filter(cardList, (card) => card.accountData.additionalData.isP2PDebitCard);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList, payPalMeData);
 
-        if (!_.isEmpty(props.filterType)) {
-            combinedPaymentMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === props.filterType);
+        if (!_.isEmpty(filterType)) {
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterType);
         }
 
-        if (!props.network.isOffline) {
+        if (!network.isOffline) {
             combinedPaymentMethods = _.filter(
                 combinedPaymentMethods,
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(paymentMethod.errors),
@@ -152,22 +155,22 @@ function PaymentMethodList(props) {
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, (paymentMethod) => ({
             ...paymentMethod,
-            onPress: (e) => props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
-            iconFill: isPaymentMethodActive(props.actionPaymentMethodType, props.activePaymentMethodID, paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-            wrapperStyle: isPaymentMethodActive(props.actionPaymentMethodType, props.activePaymentMethodID, paymentMethod)
+            onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
+            iconFill: isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod)
                 ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)]
                 : null,
             disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         }));
 
         return combinedPaymentMethods;
-    }, [props.actionPaymentMethodType, props.activePaymentMethodID, props.bankAccountList, props.cardList, props.filterType, props.network, props.onPress, props.payPalMeData]);
+    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, filterType, network, onPress, payPalMeData]);
 
     /**
      * Show add first payment copy when payment methods are
      * @return {React.Component}
      */
-    const renderListEmptyComponent = useCallback(() => <Text style={[styles.popoverMenuItem]}>{props.translate('paymentMethodList.addFirstPaymentMethod')}</Text>, [props.translate]);
+    const renderListEmptyComponent = useCallback(() => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>, [translate]);
 
     /**
      * Create a menuItem for each passed paymentMethod
@@ -194,14 +197,14 @@ function PaymentMethodList(props) {
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
-                    badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? props.translate('paymentMethodList.defaultPaymentMethod') : null}
+                    badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={item.wrapperStyle}
-                    shouldShowSelectedState={props.shouldShowSelectedState}
-                    isSelected={props.selectedMethodID === item.methodID}
+                    shouldShowSelectedState={shouldShowSelectedState}
+                    isSelected={selectedMethodID === item.methodID}
                 />
             </OfflineWithFeedback>
         ),
-        [props.shouldShowSelectedState, props.selectedMethodID, filteredPaymentMethods, props.translate],
+        [shouldShowSelectedState, selectedMethodID, filteredPaymentMethods, translate],
     );
 
     return (
@@ -210,14 +213,14 @@ function PaymentMethodList(props) {
                 data={filteredPaymentMethods}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.key}
-                ListEmptyComponent={renderListEmptyComponent(props.translate)}
+                ListEmptyComponent={renderListEmptyComponent(translate)}
                 ListHeaderComponent={props.listHeaderComponent}
             />
             {props.shouldShowAddPaymentMethodButton && (
                 <FormAlertWrapper>
                     {(isOffline) => (
                         <Button
-                            text={props.translate('paymentMethodList.addPaymentMethod')}
+                            text={translate('paymentMethodList.addPaymentMethod')}
                             icon={Expensicons.CreditCard}
                             onPress={props.onPress}
                             isDisabled={props.isLoadingPaymentMethods || isOffline}
