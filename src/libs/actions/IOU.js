@@ -671,12 +671,12 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  * @param {Boolean} shouldCloseOnDelete
  */
 function deleteMoneyRequest(transactionID, reportAction) {
-    console.log('over here', transactionID, reportAction)
     // STEP 1: Get all collections we're updating
     const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.originalMessage.IOUReportID}`];
     const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
+    const transactionThreadID = reportAction.childReportID;
 
     // STEP 2: Update the reportAction
     const updatedReportAction = {
@@ -694,12 +694,11 @@ function deleteMoneyRequest(transactionID, reportAction) {
     };
 
     // STEP 3: Update the iou report total and last message
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
-    console.log(lastMessageText)
-    const hasVisibleComments = lastMessageText.length > 0;
+    const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
+    const iouReportHasVisibleComments = iouReportLastMessageText.length > 0;
 
     let updatedIOUReport = null;
-    if (hasVisibleComments) {
+    if (iouReportHasVisibleComments) {
         if (ReportUtils.isExpenseReport(iouReport.reportID)) {
             updatedIOUReport = {...iouReport};
     
@@ -709,9 +708,12 @@ function deleteMoneyRequest(transactionID, reportAction) {
             updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorEmail, reportAction.originalMessage.amount, reportAction.originalMessage.currency, true);
         }
 
-        updatedIOUReport.lastMessageText = lastMessageText;
+        updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, updatedReportAction).created;
     }
+
+    // STEP 4: Check if the transaction thread has visible comments
+    const transactionThreadHasVisibleComments = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length > 0 : false;
 
     // 1. [DONE] Update IOU action so that message is empty. 
     // 2. (If there are no comments it should disappear. Otherwise it should show [Deleted request])
@@ -732,18 +734,18 @@ function deleteMoneyRequest(transactionID, reportAction) {
             value: updatedReportAction,
         },
         {
-            onyxMethod: hasVisibleComments ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+            onyxMethod: iouReportHasVisibleComments ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
         },
-        ...(!hasVisibleComments ? [{
+        ...(!iouReportHasVisibleComments ? [{
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [reportPreviewAction.reportActionID]: null,
             },
         }] : []),
-        ...(!hasVisibleComments ? [{
+        ...(!iouReportHasVisibleComments ? [{
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
@@ -754,6 +756,11 @@ function deleteMoneyRequest(transactionID, reportAction) {
                 lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).created,
             },
         }] : []),
+        ...(!transactionThreadHasVisibleComments ? [{
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+            value: null,
+        }] : [])
     ];
     // const successData = [
     //     {
@@ -798,7 +805,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
         {optimisticData},
     );
 
-    if (!hasVisibleComments) {
+    if (!iouReportHasVisibleComments || !transactionThreadHasVisibleComments) {
         Navigation.navigate(ROUTES.getReportRoute(iouReport.chatReportID));
     }
     // if (shouldCloseOnDelete) {
