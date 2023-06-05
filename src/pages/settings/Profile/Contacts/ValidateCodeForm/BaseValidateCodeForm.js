@@ -170,7 +170,6 @@ function BaseValidateCodeForm(props) {
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateLogin')}
             >
                 <Button
-                    disabled={props.network.isOffline}
                     text={props.translate('common.verify')}
                     onPress={validateAndSubmitForm}
                     style={[styles.mt4]}
