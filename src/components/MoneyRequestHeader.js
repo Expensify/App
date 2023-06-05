@@ -93,6 +93,7 @@ const MoneyRequestHeader = (props) => {
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
                 shouldShowAvatarWithDisplay
+                shouldShowPinButton={props.isSingleTransactionView}
                 shouldShowThreeDotsButton={!isPayer && !isSettled && props.isSingleTransactionView}
                 threeDotsMenuItems={[
                     {
@@ -102,7 +103,8 @@ const MoneyRequestHeader = (props) => {
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={moneyRequestReport}
+                report={props.report}
+                parentReport={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowCloseButton={false}

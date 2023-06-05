@@ -219,20 +219,24 @@ const {firstName, lastName} = state;
 ...
 
 // Bad
-const UserInfo = ({name, email}) => (
-	<View>
-		<Text>Name: {name}</Text>
-		<Text>Email: {email}</Text>
-	</View>
-);
+function UserInfo({name, email}) {
+    return (
+        <View>
+            <Text>Name: {name}</Text>
+            <Text>Email: {email}</Text>
+        </View>
+    );
+}
 
 // Good
-const UserInfo = props => (
-    <View>
-        <Text>Name: {props.name}</Text>
-        <Text>Email: {props.email}</Text>
-    </View>
-);
+function UserInfo(props) {
+    return (
+        <View>
+            <Text>Name: {props.name}</Text>
+            <Text>Email: {props.email}</Text>
+        </View>
+    );
+}
 ```
 
 ## Named vs Default Exports in ES6 - When to use what?
@@ -480,7 +484,7 @@ When writing a function component you must ALWAYS add a `displayName` property a
 
 ```javascript
 
-    const Avatar = (props) => {...};
+    function Avatar(props) {...};
 
     Avatar.propTypes = propTypes;
     Avatar.defaultProps = defaultProps;
@@ -534,6 +538,36 @@ There are several ways to use and declare refs and we prefer the [callback metho
 ## Are we allowed to use [insert brand new React feature]? Why or why not?
 
 We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to the most stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. That said, if you aren't sure if we have adopted something please ask us first.
+
+# React Hooks: Frequently Asked Questions
+
+## Are Hooks a Replacement for HOCs or Render Props?
+
+In most cases, a custom hook is a better pattern to use than an HOC or Render Prop. They are easier to create, understand, use and document. However, there might still be a case for a HOC e.g. if you have a component that abstracts some conditional rendering logic.
+
+## Should I wrap all my inline functions with `useCallback()` or move them out of the component if they have no dependencies?
+
+The answer depends on whether you need a stable reference for the function. If there are no dependencies, you could move the function out of the component. If there are dependencies, you could use `useCallback()` to ensure the reference updates only when the dependencies change. However, it's important to note that using `useCallback()` may have a performance penalty, although the trade-off is still debated. You might choose to do nothing at all if there is no obvious performance downside to declaring a function inline. It's recommended to follow the guidance in the [React documentation](https://react.dev/reference/react/useCallback#should-you-add-usecallback-everywhere) and add the optimization only if necessary. If it's not obvious why such an optimization (i.e. `useCallback()` or `useMemo()`) would be used, leave a code comment explaining the reasoning to aid reviewers and future contributors.
+
+## Why does `useState()` sometimes get initialized with a function?
+
+React saves the initial state once and ignores it on the next renders. However, if you pass the result of a function to `useState()` or call a function directly e.g. `useState(doExpensiveThings())` it will *still run on every render*. This can hurt performance depending on what work the function is doing. As an optimization, we can pass an initializer function instead of a value e.g. `useState(doExpensiveThings)` or `useState(() => doExpensiveThings())`.
+
+## Is there an equivalent to `componentDidUpdate()` when using hooks?
+
+The short answer is no. A longer answer is that sometimes we need to check not only that a dependency has changed, but how it has changed in order to run a side effect. For example, a prop had a value of an empty string on a previous render, but now is non-empty. The generally accepted practice is to store the "previous" value in a `ref` so the comparison can be made in a `useEffect()` call.
+
+## Are `useCallback()` and `useMemo()` basically the same thing?
+
+No! It is easy to confuse `useCallback()` with a memoization helper like `_.memoize()` or `useMemo()` but they are really not the same at all. [`useCallback()` will return a cached function _definition_](https://react.dev/reference/react/useCallback) and will not save us any computational cost of running that function. So, if you are wrapping something in a `useCallback()` and then calling it in the render then it is better to use `useMemo()` to cache the actual **result** of calling that function and use it directly in the render.
+
+## What is the `exhaustive-deps` lint rule? Can I ignore it?
+
+A `useEffect()` that does not include referenced props or state in its dependency array is [usually a mistake](https://legacy.reactjs.org/docs/hooks-faq.html#is-it-safe-to-omit-functions-from-the-list-of-dependencies) as often we want effects to re-run when those dependencies change. However, there are some cases where we might actually only want to re-run the effect when only some of those dependencies change. We determined the best practice here should be to allow disabling the “next line” with a comment `//eslint-disable-next-line react-hooks/exhaustive-deps` and an additional comment explanation so the next developer can understand why the rule was not used.
+
+## Should I declare my components with arrow functions (`const`) or the `function` keyword?
+
+There are pros and cons of each, but ultimately we have standardized on using the `function` keyword to align things more with modern React conventions. There are also some minor cognitive overhead benefits in that you don't need to think about adding and removing brackets when encountering an implicit return. The `function` syntax also has the benefit of being able to be hoisted where arrow functions do not.
 
 # Onyx Best Practices
 
