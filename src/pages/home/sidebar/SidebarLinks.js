@@ -32,6 +32,8 @@ import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
+import * as Session from '../../../libs/actions/Session';
+import Button from '../../../components/Button';
 import * as UserUtils from '../../../libs/UserUtils';
 
 const propTypes = {
@@ -106,6 +108,7 @@ class SidebarLinks extends React.Component {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
+
         Navigation.navigate(ROUTES.SEARCH);
     }
 
@@ -114,6 +117,7 @@ class SidebarLinks extends React.Component {
             // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
             return;
         }
+
         Navigation.navigate(ROUTES.SETTINGS);
     }
 
@@ -165,7 +169,7 @@ class SidebarLinks extends React.Component {
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
-                            onPress={this.showSearchPage}
+                            onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
@@ -173,14 +177,25 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={this.showSettingsPage}
+                        onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
                     >
-                        <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                            <AvatarWithIndicator
-                                source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
-                                tooltipText={this.props.translate('common.settings')}
-                            />
-                        </OfflineWithFeedback>
+                        {Session.isAnonymousUser() ? (
+                            <View style={styles.signInButtonAvatar}>
+                                <Button
+                                    medium
+                                    success
+                                    text={this.props.translate('common.signIn')}
+                                    onPress={() => Session.signOutAndRedirectToSignIn()}
+                                />
+                            </View>
+                        ) : (
+                            <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                                <AvatarWithIndicator
+                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                                    tooltipText={this.props.translate('common.settings')}
+                                />
+                            </OfflineWithFeedback>
+                        )}
                     </TouchableOpacity>
                 </View>
                 {isLoading ? (

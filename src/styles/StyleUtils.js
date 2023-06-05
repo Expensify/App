@@ -55,6 +55,12 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
 };
 
+const emptyAvatarStyles = {
+    [CONST.AVATAR_SIZE.SMALL]: styles.emptyAvatarSmall,
+    [CONST.AVATAR_SIZE.MEDIUM]: styles.emptyAvatarMedium,
+    [CONST.AVATAR_SIZE.LARGE]: styles.emptyAvatarLarge,
+};
+
 /**
  * Return the style size from an avatar size constant
  *
@@ -63,6 +69,25 @@ const avatarSizes = {
  */
 function getAvatarSize(size) {
     return avatarSizes[size];
+}
+
+/**
+ * Return the height of magic code input container
+ *
+ * @returns {Object}
+ */
+function getHeightOfMagicCodeInput() {
+    return {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth};
+}
+
+/**
+ * Return the style from an empty avatar size constant
+ *
+ * @param {String} size
+ * @returns {Object}
+ */
+function getEmptyAvatarStyle(size) {
+    return emptyAvatarStyles[size];
 }
 
 /**
@@ -941,6 +966,18 @@ function getFontSizeStyle(fontSize) {
 }
 
 /**
+ * Returns lineHeight style
+ *
+ * @param {Number} lineHeight
+ * @returns {Object}
+ */
+function getLineHeightStyle(lineHeight) {
+    return {
+        lineHeight,
+    };
+}
+
+/**
  * Gets the correct size for the empty state container based on screen dimensions
  *
  * @param {Boolean} isSmallScreenWidth
@@ -1009,6 +1046,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
     return {
         overflow: 'hidden',
         top: -(itemsHeight + padding),
+        height: itemsHeight,
     };
 }
 
@@ -1129,6 +1167,7 @@ export {
     getAvatarExtraFontSizeStyle,
     getAvatarBorderWidth,
     getAvatarBorderStyle,
+    getEmptyAvatarStyle,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
@@ -1181,8 +1220,10 @@ export {
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
     getFontSizeStyle,
+    getLineHeightStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
     getMentionStyle,
     getMentionTextColor,
+    getHeightOfMagicCodeInput,
 };
