@@ -4,6 +4,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import Navigation from '../Navigation';
 import styles from '../../../styles/styles';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import * as Localize from '../../Localize';
 
 const propTypes = {
     /** Whether a modal is currently being displayed */
@@ -21,6 +22,8 @@ const ClickAwayHandler = (props) => {
         <PressableWithoutFeedback
             style={styles.navigationModalOverlay}
             onPress={() => Navigation.dismissModal()}
+            accessibilityRole="button"
+            accessibilityLabel={Localize.translateLocal('common.close')}
         />
     );
 };
