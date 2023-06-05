@@ -123,7 +123,7 @@ class SettlementButton extends React.Component {
                 paymentMethod = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
             }
 
-            // No options are shown only in case of the report preview settlement button where we want to use same short button label for all the options
+            // In case of the settlement button in the report preview component, we do not show options ans the labels is simply "Pay".
             return [
                 {
                     ...paymentMethods[paymentMethod],
