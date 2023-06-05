@@ -2095,8 +2095,8 @@ const styles = {
         ...flex.dFlex,
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
-        paddingHorizontal: 20,
-        paddingBottom: 20,
+        ...spacing.mt4,
+        height: 170,
     },
 
     reportDetailsRoomInfo: {
