@@ -177,6 +177,9 @@ class AttachmentCarousel extends React.Component {
             throw new Error('Attachment not found');
         }
 
+        // Update the parent modal's state with the source and name from the mapped attachments
+        this.props.onNavigate(attachments[page]);
+
         return {
             page,
             attachments,
