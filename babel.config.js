@@ -65,7 +65,7 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
-export default ({caller}) => {
+module.exports = ({caller}) => {
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
     // For jest, it will be babel-jest
