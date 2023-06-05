@@ -1858,8 +1858,8 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         return false;
     }
 
-    // Exclude empty chats
-    if (excludeEmptyChats && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml) && isChatReport(report) && !isChatRoom(report) && !isThread(report)) {
+    // Exclude empty chats between two users
+    if (excludeEmptyChats && report.participants.length < 3 && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml) && isChatReport(report) && !isChatRoom(report) && !isThread(report)) {
         return false;
     }
 
