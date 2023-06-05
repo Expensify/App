@@ -89,7 +89,7 @@ const MoneyRequestHeader = (props) => {
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowPaypal = !isExpenseReport && Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']));
+    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
