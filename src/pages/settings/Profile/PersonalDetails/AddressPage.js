@@ -54,7 +54,7 @@ const defaultProps = {
 
 /**
  * @param {Function} translate - translate function
- * @param {Boolean} isUsaForm - selected country ISO code is US
+ * @param {Boolean} isUSAForm - selected country ISO code is US
  * @param {Object} values - form input values
  * @returns {Object} - An object containing the errors for each inputID
  */
