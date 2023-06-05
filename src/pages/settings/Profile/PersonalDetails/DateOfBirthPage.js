@@ -1,7 +1,8 @@
-import React, {Component} from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
+import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -15,7 +16,6 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import CONST from '../../../../CONST';
-import withNavigationFocus from '../../../../components/withNavigationFocus';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,114 +34,75 @@ const defaultProps = {
     },
 };
 
-class DateOfBirthPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.validate = this.validate.bind(this);
-        this.updateDateOfBirth = this.updateDateOfBirth.bind(this);
-        this.getYearFromRouteParams = this.getYearFromRouteParams.bind(this);
-        this.minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-        this.maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
-
-        this.state = {
-            selectedYear: '',
-        };
-    }
-
-    componentDidMount() {
-        this.getYearFromRouteParams();
-    }
-
-    componentDidUpdate(prevProps) {
-        // When we're navigating back from Year page. We need to update the selected year from the URL
-        if (prevProps.isFocused || !this.props.isFocused) {
-            return;
-        }
-
-        this.getYearFromRouteParams();
-    }
-
+const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
     /**
-     * Function to be called to read year from params - necessary to read passed year from the Year picker which is a separate screen
-     * It allows to display selected year in the calendar picker without overwriting this value in Onyx
+     * The year should be set on the route when navigating back from the year picker
+     * This lets us pass the selected year without having to overwrite the value in Onyx
      */
-    getYearFromRouteParams() {
-        const {params} = this.props.route;
-        if (params && params.year) {
-            this.setState({selectedYear: params.year});
-        }
-    }
-
-    /**
-     * Submit form to update user's first and last legal name
-     * @param {Object} values
-     * @param {String} values.dob - date of birth
-     */
-    updateDateOfBirth(values) {
-        PersonalDetails.updateDateOfBirth(values.dob);
-    }
+    const dobYear = String(moment(privatePersonalDetails.dob).year());
+    const selectedYear = lodashGet(route.params, 'year', dobYear);
+    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
+    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
 
     /**
      * @param {Object} values
      * @param {String} values.dob - date of birth
      * @returns {Object} - An object containing the errors for each inputID
      */
-    validate(values) {
-        const errors = {};
-        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
-        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
+    const validate = useCallback(
+        (values) => {
+            const errors = {};
+            const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+            const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
 
-        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-            errors.dob = this.props.translate('common.error.fieldRequired');
-        }
-        const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
-        if (dateError) {
-            errors.dob = dateError;
-        }
+            if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
+                errors.dob = translate('common.error.fieldRequired');
+            }
+            const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
+            if (dateError) {
+                errors.dob = dateError;
+            }
 
-        return errors;
-    }
+            return errors;
+        },
+        [translate],
+    );
 
-    render() {
-        const privateDetails = this.props.privatePersonalDetails || {};
-
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('common.dob')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <HeaderWithCloseButton
+                title={translate('common.dob')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <Form
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
+                validate={validate}
+                onSubmit={PersonalDetails.updateDateOfBirth}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
+            >
+                <NewDatePicker
+                    inputID="dob"
+                    label={translate('common.date')}
+                    defaultValue={privatePersonalDetails.dob || ''}
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    selectedYear={selectedYear}
                 />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.DATE_OF_BIRTH_FORM}
-                    validate={this.validate}
-                    onSubmit={this.updateDateOfBirth}
-                    submitButtonText={this.props.translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <NewDatePicker
-                        inputID="dob"
-                        label={this.props.translate('common.date')}
-                        defaultValue={privateDetails.dob || ''}
-                        minDate={this.minDate}
-                        maxDate={this.maxDate}
-                        selectedYear={this.state.selectedYear}
-                    />
-                </Form>
-            </ScreenWrapper>
-        );
-    }
-}
+            </Form>
+        </ScreenWrapper>
+    );
+};
 
 DateOfBirthPage.propTypes = propTypes;
 DateOfBirthPage.defaultProps = defaultProps;
+DateOfBirthPage.displayName = 'DateOfBirthPage';
 
 export default compose(
     withLocalize,
-    withNavigationFocus,
     withOnyx({
         privatePersonalDetails: {
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
