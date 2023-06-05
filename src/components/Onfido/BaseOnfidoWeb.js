@@ -17,24 +17,6 @@ const propTypes = {
     ...onfidoPropTypes,
 };
 
-function Onfido(props) {
-    useEffect(() => {
-        initializeOnfido({
-            sdkToken: props.sdkToken,
-            onSuccess: props.onSuccess,
-            onError: props.onError,
-            onUserExit: props.onUserExit,
-            preferredLocale: props.preferredLocale,
-            translate: props.translate
-        });
-    }, []);
-
-    return <div id={CONST.ONFIDO.CONTAINER_ID} />;
-}
-
-Onfido.propTypes = propTypes;
-export default withLocalize(Onfido)
-
 function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate}) {
     OnfidoSDK.init({
         token: sdkToken,
@@ -139,3 +121,21 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
         Log.hmmm('Receiving Onfido analytic event', event.detail);
     });
 }
+
+function Onfido(props) {
+    useEffect(() => {
+        initializeOnfido({
+            sdkToken: props.sdkToken,
+            onSuccess: props.onSuccess,
+            onError: props.onError,
+            onUserExit: props.onUserExit,
+            preferredLocale: props.preferredLocale,
+            translate: props.translate
+        });
+    }, []);
+
+    return <div id={CONST.ONFIDO.CONTAINER_ID} />;
+}
+
+Onfido.propTypes = propTypes;
+export default withLocalize(Onfido)
