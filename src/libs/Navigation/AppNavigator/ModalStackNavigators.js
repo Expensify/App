@@ -233,8 +233,8 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const DetailsPage = require('../../../pages/DetailsPage').default;
-            return DetailsPage;
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
         },
         name: 'ReportParticipants_Details',
     },
