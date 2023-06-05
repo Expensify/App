@@ -57,9 +57,10 @@ const OptionRowLHN = (props) => {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
     React.useEffect(() => {
-        if (optionItem && optionItem.isPinned) {
-            ReportActionContextMenu.hideContextMenu(false);
+        if (!optionItem || !optionItem.isPinned) {
+            return;
         }
+        ReportActionContextMenu.hideContextMenu(false);
     }, [optionItem]);
 
     if (!optionItem) {
