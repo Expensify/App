@@ -56,6 +56,7 @@ const SignInPageContent = (props) => (
                             <Text
                                 style={[
                                     styles.loginHeroHeader,
+                                    StyleUtils.getLineHeightStyle(variables.lineHeightSignInHeroXSmall),
                                     StyleUtils.getFontSizeStyle(variables.fontSizeSignInHeroXSmall),
                                     !props.welcomeText ? styles.mb5 : {},
                                     !props.isSmallScreenWidth ? styles.textAlignLeft : {},

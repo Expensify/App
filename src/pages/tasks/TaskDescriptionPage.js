@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -37,23 +36,7 @@ const defaultProps = {
 };
 
 function TaskDescriptionPage(props) {
-    /**
-     * @param {Object} values
-     * @param {String} values.description
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
-
-            if (_.isEmpty(values.description)) {
-                errors.description = props.translate('common.error.fieldRequired');
-            }
-
-            return errors;
-        },
-        [props],
-    );
+    const validate = useCallback(() => ({}), []);
 
     const submit = useCallback(
         (values) => {
@@ -89,7 +72,7 @@ function TaskDescriptionPage(props) {
                     <TextInput
                         inputID="description"
                         name="description"
-                        label={props.translate('newTaskPage.description')}
+                        label={props.translate('newTaskPage.descriptionOptional')}
                         defaultValue={(props.task.report && props.task.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />
