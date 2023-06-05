@@ -1193,7 +1193,7 @@ function getMentionTextColor(isOurMention) {
  * @returns {Object}
  */
 function getOuterModalStyle(windowHeight, viewportOffsetTop) {
-    return Browser.isMobile() && {maxHeight: windowHeight, marginTop: viewportOffsetTop};
+    return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
 export {
