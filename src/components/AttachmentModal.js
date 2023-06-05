@@ -49,7 +49,7 @@ const propTypes = {
     originalFileName: PropTypes.string,
 
     /** A function as a child to pass modal launching methods to */
-    children: PropTypes.func.isRequired,
+    children: PropTypes.func,
 
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
@@ -73,6 +73,7 @@ const defaultProps = {
     onConfirm: null,
     defaultOpen: false,
     originalFileName: '',
+    children: null,
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
@@ -341,7 +342,7 @@ class AttachmentModal extends PureComponent {
                     shouldShowCancelButton={false}
                 />
 
-                {this.props.children({
+                {this.props.children && this.props.children({
                     displayFileInModal: this.validateAndDisplayFileToUpload,
                     show: () => {
                         this.setState({isModalOpen: true});
