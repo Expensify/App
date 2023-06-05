@@ -78,7 +78,10 @@ const UnlinkLoginForm = (props) => {
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <PressableWithFeedback accessibilityLabel={props.translate('common.back')} onPress={() => redirectToSignIn()}>
+                <PressableWithFeedback
+                    accessibilityLabel={props.translate('common.back')}
+                    onPress={() => redirectToSignIn()}
+                >
                     <Text style={[styles.link]}>{props.translate('common.back')}</Text>
                 </PressableWithFeedback>
                 <Button
