@@ -61,6 +61,7 @@ function ReportWelcomeMessagePage(props) {
                     title={props.translate('welcomeMessagePage.welcomeMessage')}
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal()}
+                    shouldShowBackButton
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
