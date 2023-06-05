@@ -202,7 +202,6 @@ function AddressPage(props) {
 
 AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
-AddressPage.displayName = 'AddressPage';
 
 export default compose(
     withLocalize,
