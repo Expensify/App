@@ -18,7 +18,6 @@ import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 
@@ -98,7 +97,6 @@ function getChatType(report) {
 function getReportParticipantsTitle(logins) {
     return (
         _.chain(logins)
-
             // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
             .compact()
             .map((login) => Str.removeSMSDomain(login))
@@ -757,7 +755,6 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     }
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-
         const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
         const actorIcon = {
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail),
@@ -827,22 +824,25 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 }
 
 /**
- * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
- * @param {String} login
+ * @param {String} accountID
  * @returns {Object}
  */
-function getPersonalDetailsForLogin(login) {
-    if (!login) {
+function getPersonalDetailsForAccountID(accountID) {
+    if (!accountID) {
         return {};
     }
-    return (
-        (allPersonalDetails && allPersonalDetails[login]) || {
-            login,
-            displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            avatar: UserUtils.getDefaultAvatar(login),
-        }
-    );
+
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        return {
+            login: CONST.EMAIL.CONCIERGE,
+            displayName: CONST.CONCIERGE_CHAT_NAME,
+            avatar: CONST.CONCIERGE_ICON_URL,
+        };
+    }
+
+    return (allPersonalDetails && allPersonalDetails[accountID]) || {};
 }
 
 /**
@@ -856,7 +856,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
     if (!login) {
         return '';
     }
-    const personalDetails = getPersonalDetailsForLogin(login);
+    const personalDetails = getPersonalDetailsForAccountID(login);
 
     const longName = personalDetails.displayName;
 
@@ -871,22 +871,26 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
  * @returns {Array}
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
-    return _.map(participants, (participant) => {
-        const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
-        const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
+    const res = _.chain(participants)
+        .compact()
+        .map((participant) => {
+            const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
+            const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
 
-        let pronouns = participant.pronouns;
-        if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
-            const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-            pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
-        }
+            let pronouns = participant.pronouns;
+            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+                const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+                pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
+            }
 
-        return {
-            displayName,
-            tooltip,
-            pronouns,
-        };
-    });
+            return {
+                displayName,
+                tooltip,
+                pronouns,
+            };
+        })
+        .value();
+    return res;
 }
 
 /**
@@ -976,7 +980,10 @@ function getMoneyRequestReportName(report) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
 
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+    return Localize.translateLocal('iou.payerOwesAmount', {
+        payer: payerName,
+        amount: formattedAmount,
+    });
 }
 
 /**
@@ -1252,7 +1259,10 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, total,
  * @returns {Array}
  */
 function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
-    const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
+    const amount = NumberFormatUtils.format(preferredLocale, total / 100, {
+        style: 'currency',
+        currency,
+    });
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
@@ -1615,7 +1625,6 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         false,
         policyName,
         null,
-
         // #announce contains all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
@@ -2146,91 +2155,91 @@ function getParentReport(report) {
 }
 
 export {
-    getReportParticipantsTitle,
-    isReportMessageAttachment,
-    findLastAccessedReport,
-    canEditReportAction,
-    canFlagReportAction,
-    canDeleteReportAction,
-    canLeaveRoom,
-    sortReportsByLastRead,
-    isDefaultRoom,
-    isAdminRoom,
-    isAnnounceRoom,
-    isUserCreatedPolicyRoom,
-    isChatRoom,
-    getChatRoomSubtitle,
-    getPolicyName,
-    getPolicyType,
-    isArchivedRoom,
-    isPolicyExpenseChatAdmin,
-    isPublicRoom,
-    isPublicAnnounceRoom,
-    isConciergeChatReport,
-    isCurrentUserTheOnlyParticipant,
-    hasAutomatedExpensifyEmails,
-    hasExpensifyGuidesEmails,
-    hasOutstandingIOU,
-    isIOUOwnedByCurrentUser,
-    getMoneyRequestTotal,
-    canShowReportRecipientLocalTime,
-    formatReportLastMessageText,
-    chatIncludesConcierge,
-    isPolicyExpenseChat,
-    getIconsForParticipants,
-    getIcons,
-    getRoomWelcomeMessage,
-    getDisplayNamesWithTooltips,
-    getReportName,
-    getReportIDFromLink,
-    getRouteFromLink,
-    navigateToDetailsPage,
-    generateReportID,
-    hasReportNameError,
-    isUnread,
-    isUnreadWithMention,
-    buildOptimisticWorkspaceChats,
-    buildOptimisticTaskReport,
+    buildOptimisticAddCommentReportAction,
     buildOptimisticChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticEditedTaskReportAction,
-    buildOptimisticIOUReport,
     buildOptimisticExpenseReport,
+    buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
-    buildOptimisticTaskReportAction,
-    buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
-    shouldReportBeInOptionList,
+    buildOptimisticTaskReport,
+    buildOptimisticTaskReportAction,
+    buildOptimisticWorkspaceChats,
+    canDeleteReportAction,
+    canEditReportAction,
+    canFlagReportAction,
+    canLeaveRoom,
+    canRequestMoney,
+    canSeeDefaultRoom,
+    canShowReportRecipientLocalTime,
+    chatIncludesChronos,
+    chatIncludesConcierge,
+    findLastAccessedReport,
+    formatReportLastMessageText,
+    generateReportID,
+    getAllPolicyReports,
+    getBankAccountRoute,
     getChatByParticipants,
     getChatByParticipantsAndPolicy,
-    getAllPolicyReports,
-    getIOUReportActionMessage,
-    getDisplayNameForParticipant,
-    isChatReport,
-    isExpenseReport,
-    isIOUReport,
-    isTaskReport,
-    isMoneyRequestReport,
-    chatIncludesChronos,
-    getNewMarkerReportActionID,
-    canSeeDefaultRoom,
-    getDefaultWorkspaceAvatar,
+    getChatRoomSubtitle,
     getCommentLength,
-    getParsedComment,
+    getDefaultWorkspaceAvatar,
+    getDisplayNameForParticipant,
+    getDisplayNamesWithTooltips,
+    getIcons,
+    getIconsForParticipants,
+    getIOUReportActionMessage,
+    getMoneyRequestAction,
     getMoneyRequestOptions,
-    canRequestMoney,
+    getMoneyRequestTotal,
+    getNewMarkerReportActionID,
+    getParentReport,
+    getParsedComment,
+    getPolicyName,
+    getPolicyType,
+    getReportIDFromLink,
+    getReportName,
+    getReportParticipantsTitle,
+    getRoomWelcomeMessage,
+    getRouteFromLink,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
-    isThread,
-    isThreadParent,
-    isThreadFirstChat,
-    shouldReportShowSubscript,
-    isReportDataReady,
-    isSettled,
+    hasAutomatedExpensifyEmails,
+    hasExpensifyGuidesEmails,
+    hasOutstandingIOU,
+    hasReportNameError,
+    isAdminRoom,
     isAllowedToComment,
-    getMoneyRequestAction,
-    getBankAccountRoute,
-    getParentReport,
+    isAnnounceRoom,
+    isArchivedRoom,
+    isChatReport,
+    isChatRoom,
+    isConciergeChatReport,
+    isCurrentUserTheOnlyParticipant,
+    isDefaultRoom,
+    isExpenseReport,
+    isIOUOwnedByCurrentUser,
+    isIOUReport,
+    isMoneyRequestReport,
+    isPolicyExpenseChat,
+    isPolicyExpenseChatAdmin,
+    isPublicAnnounceRoom,
+    isPublicRoom,
+    isReportDataReady,
+    isReportMessageAttachment,
+    isSettled,
+    isTaskReport,
+    isThread,
+    isThreadFirstChat,
+    isThreadParent,
+    isUnread,
+    isUnreadWithMention,
+    isUserCreatedPolicyRoom,
+    navigateToDetailsPage,
+    shouldReportBeInOptionList,
+    shouldReportShowSubscript,
+    sortReportsByLastRead,
 };
