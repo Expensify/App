@@ -100,6 +100,13 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, allReports, betas, policies));
+    if (_.isEmpty(reportsToDisplay)) {
+        // Display Concierge chat report when there is no report to be displayed
+        const conciergeChatReport = _.find(allReports, ReportUtils.isConciergeChatReport);
+        if (conciergeChatReport) {
+            reportsToDisplay.push(conciergeChatReport);
+        }
+    }
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {

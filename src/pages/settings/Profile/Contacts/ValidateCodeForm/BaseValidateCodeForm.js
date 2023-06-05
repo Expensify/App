@@ -79,6 +79,8 @@ function BaseValidateCodeForm(props) {
      */
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(props.contactMethod);
+        setValidateCode('');
+        inputValidateCodeRef.current.focus();
     };
 
     /**

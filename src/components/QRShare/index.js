@@ -60,6 +60,8 @@ class QRShare extends Component {
                     url={this.props.url}
                     logo={this.props.logo}
                     size={this.state.qrCodeSize}
+                    logoRatio={this.props.logoRatio}
+                    logoMarginRatio={this.props.logoMarginRatio}
                 />
 
                 <Text
