@@ -119,7 +119,7 @@ const defaultProps = {
     shouldShowGetAssistanceButton: false,
     shouldShowThreeDotsButton: false,
     shouldShowPinButton: false,
-    shouldShowCloseButton: true,
+    shouldShowCloseButton: false,
     shouldShowStepCounter: true,
     shouldShowBackButton: true,
     shouldShowAvatarWithDisplay: false,
