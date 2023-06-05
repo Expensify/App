@@ -338,6 +338,7 @@ function MagicCodeInput(props) {
                                 onFocus={onFocus}
                                 caretHidden={isMobileSafariOrIOS}
                                 inputStyle={[isMobileSafariOrIOS ? styles.magicCodeInputTransparent : undefined]}
+                                textInputContainerStyles={[isMobileSafariOrIOS ? styles.borderNone : undefined]}
                             />
                         </View>
                     </View>
