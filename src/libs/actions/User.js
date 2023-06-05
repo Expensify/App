@@ -31,13 +31,13 @@ Onyx.connect({
 
 let myPersonalDetails = {};
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        if (!val || !currentEmail) {
+        if (!val || !currentUserAccountID) {
             return;
         }
 
-        myPersonalDetails = val[currentEmail];
+        myPersonalDetails = val[currentUserAccountID];
     },
 });
 
