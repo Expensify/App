@@ -686,16 +686,17 @@ function markCommentAsUnread(reportID, reportActionCreated) {
 /**
  * Toggles the pinned state of the report.
  *
- * @param {Object} report
+ * @param {Object} reportID
+ * @param {Boolean} isPinnedChat
  */
-function togglePinnedState(report) {
-    const pinnedValue = !report.isPinned;
+function togglePinnedState(reportID, isPinnedChat) {
+    const pinnedValue = !isPinnedChat;
 
     // Optimistically pin/unpin the report before we send out the command
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {isPinned: pinnedValue},
         },
     ];
@@ -703,7 +704,7 @@ function togglePinnedState(report) {
     API.write(
         'TogglePinnedChat',
         {
-            reportID: report.reportID,
+            reportID,
             pinnedValue,
         },
         {optimisticData},
