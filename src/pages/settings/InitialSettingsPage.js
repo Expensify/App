@@ -328,7 +328,6 @@ class InitialSettingsPage extends React.Component {
                                     <Tooltip text={this.props.translate('common.profile')}>
                                         <PressableWithFeedback
                                             style={[styles.mb3]}
-                                            hoverDimmingValue={1}
                                             onPress={this.openProfileSettings}
                                             accessibilityLabel={this.props.translate('common.profile')}
                                             accessibilityRole="button"
@@ -344,7 +343,6 @@ class InitialSettingsPage extends React.Component {
                                     </Tooltip>
                                     <PressableWithFeedback
                                         wrapperStyle={[styles.mt1, styles.mw100]}
-                                        hoverDimmingValue={1}
                                         onPress={this.openProfileSettings}
                                         accessibilityLabel={this.props.translate('common.profile')}
                                         accessibilityRole="link"
