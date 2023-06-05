@@ -66,6 +66,9 @@ function getLoginListBrickRoadIndicator(loginList) {
 
 /**
  * Hashes provided string and returns a value between [0, range)
+ *
+ * @deprecated Use hashAccountID instead.
+ *
  * @param {String} login
  * @param {Number} range
  * @returns {Number}
@@ -75,7 +78,40 @@ function hashLogin(login, range) {
 }
 
 /**
+ * Hashes provided string and returns a value between [0, range)
+ * @param {String} accountID
+ * @param {Number} range
+ * @returns {Number}
+ */
+function hashAccountID(accountID, range) {
+    return Math.abs(hashCode(accountID)) % range;
+}
+
+/**
+ * Helper method to return the default avatar associated with the given account ID
+ * @param {String} [accountID]
+ * @returns {String}
+ */
+function getDefaultAvatarWithAccountID(accountID = '') {
+    if (!accountID) {
+        return Expensicons.FallbackAvatar;
+    }
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        return Expensicons.ConciergeAvatar;
+    }
+
+    // There are 24 possible default avatars, so we choose which one this user has based
+    // on a simple hash of their login. Note that Avatar count starts at 1.
+    const loginHashBucket = hashAccountID(accountID, CONST.DEFAULT_AVATAR_COUNT) + 1;
+
+    return defaultAvatars[`Avatar${loginHashBucket}`];
+}
+
+/**
  * Helper method to return the default avatar associated with the given login
+ *
+ * @deprecated Use getDefaultAvatarWithAccountID instead.
+ *
  * @param {String} [login]
  * @returns {String}
  */
@@ -132,6 +168,18 @@ function isDefaultAvatar(avatarURL) {
         return true;
     }
     return false;
+}
+
+/**
+ * Provided a source URL, if source is a default avatar, return the associated SVG.
+ * Otherwise, return the URL pointing to a user-uploaded avatar.
+ *
+ * @param {String} avatarURL - the avatar source from user's personalDetails
+ * @param {String} accountID - the account ID of the user
+ * @returns {String|Function}
+ */
+function getAvatarWithAccountID(avatarURL, accountID) {
+    return isDefaultAvatar(avatarURL) ? getDefaultAvatarWithAccountID(accountID) : avatarURL;
 }
 
 /**
@@ -207,9 +255,11 @@ export {
     hasLoginListInfo,
     getLoginListBrickRoadIndicator,
     getDefaultAvatar,
+    getDefaultAvatarWithAccountID,
     getDefaultAvatarURL,
     isDefaultAvatar,
     getAvatar,
+    getAvatarWithAccountID,
     getAvatarUrl,
     getSmallSizeAvatar,
     getFullSizeAvatar,
