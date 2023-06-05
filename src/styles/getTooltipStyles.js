@@ -50,8 +50,17 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 }
 
 /**
- * Determines if there is an overlapping element at the top of a given coordinate.
- *
+ * Determines if there is an overlapping element at the top of both given coordinates.
+ *                    (targetCenterX, y)
+ *                            |
+ *                            v
+ *                        _ _ _ _ _
+ *                       |         |
+ *                       |         |
+ * (x, targetCenterY) -> |         |
+ *                       |         |
+ *                       |_ _ _ _ _|
+ * 
  * @param {Number} xOffset - The distance between the left edge of the window
  *                           and the left edge of the wrapped component.
  * @param {Number} yOffset - The distance between the top edge of the window
@@ -66,8 +75,8 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, toolt
         return false;
     }
 
-    // Use the vertical position of the target to prevent wrong element returned by elementFromPoint
-    // in case the target has a border radius or is a multiline text.
+    // Use the x and y center position of the target to prevent wrong element
+    // returned by elementFromPoint in case the target has a border radius or is a multiline text.
     const targetCenterX = xOffset + tooltipTargetWidth / 2;
     const targetCenterY = yOffset + tooltipTargetHeight / 2;
     const elementAtTargetCenterX = document.elementFromPoint(targetCenterX, yOffset);
