@@ -89,6 +89,7 @@ const MoneyRequestHeader = (props) => {
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithCloseButton
@@ -153,7 +154,7 @@ const MoneyRequestHeader = (props) => {
                                 <SettlementButton
                                     currency={props.report.currency}
                                     policyID={props.report.policyID}
-                                    shouldShowPaypal={Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']))}
+                                    shouldShowPaypal={shouldShowPaypal}
                                     chatReportID={props.chatReport.reportID}
                                     iouReport={props.report}
                                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
@@ -169,7 +170,7 @@ const MoneyRequestHeader = (props) => {
                     <SettlementButton
                         currency={props.report.currency}
                         policyID={props.report.policyID}
-                        shouldShowPaypal={false}
+                        shouldShowPaypal={shouldShowPaypal}
                         chatReportID={props.report.chatReportID}
                         iouReport={props.report}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
