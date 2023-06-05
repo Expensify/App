@@ -95,8 +95,12 @@ const MenuItem = (props) => {
     ]);
 
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
-    const stylesWithoutPadding = _.isArray(props.style) ? _.map(props.style, style => _.omit(style, ['padding', 'paddingVertical', 'paddingHorizontal'])) : _.omit(props.style, ['padding', 'paddingVertical', 'paddingHorizontal']);
-    const paddingStyles = _.isArray(props.style) ? _.map(props.style, style => _.pick(style, ['padding', 'paddingVertical', 'paddingHorizontal'])) : _.pick(props.style, ['padding', 'paddingVertical', 'paddingHorizontal']);
+    const stylesWithoutPadding = _.isArray(props.style)
+        ? _.map(props.style, (style) => _.omit(style, ['padding', 'paddingVertical', 'paddingHorizontal']))
+        : _.omit(props.style, ['padding', 'paddingVertical', 'paddingHorizontal']);
+    const paddingStyles = _.isArray(props.style)
+        ? _.map(props.style, (style) => _.pick(style, ['padding', 'paddingVertical', 'paddingHorizontal']))
+        : _.pick(props.style, ['padding', 'paddingVertical', 'paddingHorizontal']);
 
     return (
         <PressableWithSecondaryInteraction
@@ -126,11 +130,11 @@ const MenuItem = (props) => {
         >
             {({hovered, pressed}) => (
                 <>
-                    {props.label &&
+                    {props.label && (
                         <View style={props.icon ? styles.mb2 : null}>
                             <Text style={StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre)}>{props.label}</Text>
                         </View>
-                    }
+                    )}
                     <View style={stylesWithoutPadding}>
                         <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
                             {Boolean(props.icon) && _.isArray(props.icon) && (

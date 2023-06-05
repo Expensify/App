@@ -22,11 +22,7 @@ const propTypes = {
     onPress: PropTypes.func,
 
     /** Icon to display on the left side of component */
-    icon: PropTypes.oneOfType([
-        PropTypes.elementType, 
-        PropTypes.string, 
-        PropTypes.arrayOf(avatarPropTypes)
-    ]),
+    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
 
     /** Icon Width */
     iconWidth: PropTypes.number,

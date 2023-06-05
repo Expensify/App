@@ -143,7 +143,7 @@ const NewTaskPage = (props) => {
                     <MenuItemWithTopDescription
                         label={assignee.displayName ? props.translate('newTaskPage.assignee') : ''}
                         description={assignee.displayName ? assignee.displayName : props.translate('newTaskPage.assignee')}
-                        title={assignee.subtitle || ""}
+                        title={assignee.subtitle || ''}
                         icon={assignee.icons}
                         onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
                         shouldShowRightIcon
@@ -153,7 +153,7 @@ const NewTaskPage = (props) => {
                     <MenuItemWithTopDescription
                         label={shareDestination.displayName ? props.translate('newTaskPage.shareSomewhere') : ''}
                         description={shareDestination.displayName ? shareDestination.displayName : props.translate('newTaskPage.shareSomewhere')}
-                        title={shareDestination.subtitle || ""}
+                        title={shareDestination.subtitle || ''}
                         icon={shareDestination.icons}
                         onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                         shouldShowRightIcon
