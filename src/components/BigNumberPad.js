@@ -32,12 +32,7 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-const BigNumberPad = ({
-    numberPressed,
-    longPressHandlerStateChanged,
-    nativeID,
-    toLocaleDigit,
-}) => {
+const BigNumberPad = ({numberPressed, longPressHandlerStateChanged, nativeID, toLocaleDigit}) => {
     const [timer, setTimer] = useState(null);
 
     /**
@@ -46,15 +41,18 @@ const BigNumberPad = ({
      *
      * @param {String} key
      */
-    const handleLongPress = useCallback((key) => {
-        if (key !== '<') return;
+    const handleLongPress = useCallback(
+        (key) => {
+            if (key !== '<') return;
 
-        longPressHandlerStateChanged(true);
-        const newTimer = setInterval(() => {
-            numberPressed(key);
-        }, 100);
-        setTimer(newTimer);
-    }, [longPressHandlerStateChanged, numberPressed]);
+            longPressHandlerStateChanged(true);
+            const newTimer = setInterval(() => {
+                numberPressed(key);
+            }, 100);
+            setTimer(newTimer);
+        },
+        [longPressHandlerStateChanged, numberPressed],
+    );
 
     return (
         <View
@@ -96,5 +94,6 @@ const BigNumberPad = ({
 
 BigNumberPad.propTypes = propTypes;
 BigNumberPad.defaultProps = defaultProps;
+BigNumberPad.displayName = 'BigNumberPad';
 
 export default withLocalize(BigNumberPad);
