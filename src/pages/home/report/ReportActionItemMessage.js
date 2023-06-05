@@ -36,7 +36,7 @@ const ReportActionItemMessage = (props) => (
                     key={`actionFragment-${props.action.reportActionID}-${index}`}
                     fragment={fragment}
                     isAttachment={props.action.isAttachment}
-                    isCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
+                    hasCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
                     attachmentInfo={props.action.attachmentInfo}
                     pendingAction={props.action.pendingAction}
                     source={lodashGet(props.action, 'originalMessage.source')}

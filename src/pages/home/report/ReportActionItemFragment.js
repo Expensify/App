@@ -97,7 +97,9 @@ const ReportActionItemFragment = (props) => {
             }
             const {html, text} = props.fragment;
 
-            if ((!props.network.isOffline && props.isCommentThread && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
+            // Threaded messages display a [Deleted message] note instead of being hidden altogether.
+            // When not offline we want to immediately display this message whilst the delete action is pending
+            if ((!props.network.isOffline && props.hasCommentThread && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
 
