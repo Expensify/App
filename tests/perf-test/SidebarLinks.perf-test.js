@@ -50,12 +50,11 @@ test('simple Sidebar render with hundred of reports', () => {
         const [render, setRender] = React.useState([]);
 
         React.useEffect(() => {
-            setRender(r => r + 1)
-        },[])
+            setRender((r) => r + 1);
+        }, []);
 
-        return <LHNTestUtils.MockedSidebarLinks />
-
-    }
+        return <LHNTestUtils.MockedSidebarLinks />;
+    };
 
     return waitForPromisesToResolve()
         .then(() =>
