@@ -54,28 +54,29 @@ const defaultProps = {
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails) => {
-    const {participants} = report;
+    const {participantAccountIDs} = report;
 
-    return _.chain(participants)
-        .map((login) => {
-            const userLogin = Str.removeSMSDomain(login);
-            const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
+    return _.chain(participantAccountIDs)
+        .map((accountID) => {
+            const userPersonalDetail = lodashGet(personalDetails, accountID, {avatar: ''});
+            const userLogin = Str.removeSMSDomain(userPersonalDetail.login);
 
             return {
                 alternateText: userLogin,
                 displayName: userPersonalDetail.displayName,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(userPersonalDetail.avatar, login),
-                        name: login,
+                        source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
+                        name: userPersonalDetail.login,
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
                 keyForList: userLogin,
-                login,
+                accountID,
+                login: userPersonalDetail.login,
                 text: userPersonalDetail.displayName,
-                tooltipText: userLogin,
-                participantsList: [{login, displayName: userPersonalDetail.displayName}],
+                tooltipText: userPersonalDetail.login,
+                participantsList: [{accountID, login: userPersonalDetail.login, displayName: userPersonalDetail.displayName}],
             };
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
@@ -138,7 +139,7 @@ export default compose(
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(ReportParticipantsPage);
