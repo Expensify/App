@@ -144,6 +144,8 @@ class DetailsPage extends React.PureComponent {
                                             <PressableWithoutFocus
                                                 style={styles.noOutline}
                                                 onPress={show}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={this.props.translate('common.profile')}
                                             >
                                                 <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                                     <Avatar

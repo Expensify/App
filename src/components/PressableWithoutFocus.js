@@ -1,6 +1,6 @@
 import React from 'react';
-import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
+import GenericPressable from './Pressable/GenericPressable';
 
 const propTypes = {
     /** Element that should be clickable  */
@@ -42,14 +42,14 @@ class PressableWithoutFocus extends React.Component {
 
     render() {
         return (
-            <Pressable
+            <GenericPressable
                 onPress={this.pressAndBlur}
                 onLongPress={this.props.onLongPress}
                 ref={(el) => (this.pressableRef = el)}
                 style={this.props.styles}
             >
                 {this.props.children}
-            </Pressable>
+            </GenericPressable>
         );
     }
 }

@@ -8,6 +8,7 @@ import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
@@ -63,6 +64,8 @@ const ImageRenderer = (props) => {
                             styles={[styles.noOutline, styles.alignItemsStart]}
                             onPress={show}
                             onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                            accessibilityRole="button"
+                            accessibilityLabel={props.translate('common.attachment')}
                         >
                             <ThumbnailImage
                                 previewSourceURL={previewSource}
@@ -79,7 +82,7 @@ const ImageRenderer = (props) => {
     );
 };
 
-ImageRenderer.propTypes = htmlRendererPropTypes;
+ImageRenderer.propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default ImageRenderer;
+export default withLocalize(ImageRenderer);
