@@ -105,6 +105,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
                         }),
                     )
 
@@ -117,7 +118,7 @@ describe('Sidebar', () => {
             );
         });
 
-        it('includes or excludes policy expense chats depending on the beta', () => {
+        it('includes or excludes policy expensechats depending on the beta', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a policy expense report
@@ -138,7 +139,7 @@ describe('Sidebar', () => {
                         }),
                     )
 
-                    // When the report has at least one ADDCOMMENT action to show in the LNH
+                    // When the report has at least one ADDCOMMENT action to be rendered in the LNH
                     .then(() => Report.addComment(report.reportID, 'Hi, this is a comment'))
 
                     // Then no reports are rendered in the LHN
