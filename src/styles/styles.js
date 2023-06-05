@@ -264,7 +264,7 @@ const styles = {
     },
 
     textDecorationSkipInkNone: {
-        textDecorationSkipInk: 'none'
+        textDecorationSkipInk: 'none',
     },
 
     label: {
