@@ -963,8 +963,7 @@ function claimAnonymousAccount(validateCode, preferredLocale = CONST.LOCALES.DEF
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
-                // TODO: Use correct authTokenType
-                authTokenType: 'cool',
+                authTokenType: '',
             },
         },
         {
