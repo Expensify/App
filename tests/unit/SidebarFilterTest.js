@@ -95,9 +95,9 @@ describe('Sidebar', () => {
 
             // Given a new report
             const report = {
-                ... LHNTestUtils.getFakeReport(['emptychat+1@test.com', 'emptychat+2@test.com'], 0),
+                ...LHNTestUtils.getFakeReport(['emptychat+1@test.com', 'emptychat+2@test.com'], 0),
                 hasDraft: true,
-            }
+            };
 
             return (
                 waitForPromisesToResolve()
