@@ -120,7 +120,7 @@ function ReportActionItem(props) {
     }, [isDraftEmpty]);
 
     useEffect(() => {
-        const urls = ReportActionsUtils.getLinksInsideReport(props.action);
+        const urls = ReportActionsUtils.extractLinksFromMessageHtml(props.action);
         if (_.isEqual(downloadedPreviews.current, urls)) {
             return;
         }

@@ -173,23 +173,19 @@ function getMostRecentIOURequestActionID(reportActions) {
 /**
  * Returns array of links inside given report
  *
- * @param {reportAction} reportAction
+ * @param {object} reportAction
  * @returns {Boolean}
  */
-function getLinksInsideReport(reportAction) {
+function extractLinksFromMessageHtml(reportAction) {
     const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
 
     const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
 
-    const urls = [];
-    let match = regex.exec(htmlContent);
-
-    while (match !== null) {
-        urls.push(match[1]);
-        match = regex.exec(htmlContent);
+    if (!htmlContent) {
+        return;
     }
 
-    return urls;
+    return _.map([...htmlContent.matchAll(regex)], (match) => match[1]);
 }
 
 /**
@@ -421,7 +417,7 @@ export {
     getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
-    getLinksInsideReport,
+    extractLinksFromMessageHtml,
     isDeletedAction,
     shouldReportActionBeVisible,
     isReportActionDeprecated,
