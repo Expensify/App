@@ -144,20 +144,13 @@ const NewChatPage = (props) => {
             newSelectedOptions = [...selectedOptions, option];
         }
 
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            searchTerm,
-            [],
-            excludedGroupEmails,
-        );
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, searchTerm, [], excludedGroupEmails);
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
         setFilteredUserToInvite(userToInvite);
-    }
+    };
 
     /**
      * Creates a new 1:1 chat with the option and the current user,
@@ -167,7 +160,7 @@ const NewChatPage = (props) => {
      */
     const createChat = (option) => {
         Report.navigateToAndOpenReport([option.login]);
-    }
+    };
 
     /**
      * Creates a new group chat with all the selected options and the current user,
@@ -183,7 +176,7 @@ const NewChatPage = (props) => {
             return;
         }
         Report.navigateToAndOpenReport(userLogins);
-    }
+    };
 
     useEffect(() => {
         updateOptionsWithSearchTerm(searchTerm);
