@@ -1,5 +1,6 @@
 import {measurePerformance} from 'reassure';
 import Onyx from 'react-native-onyx';
+import React from 'react';
 import _ from 'underscore';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
@@ -45,6 +46,17 @@ test('simple Sidebar render with hundred of reports', () => {
     });
     const mockOnyxReports = _.assign({}, ...mockReports);
 
+    const TestRegression = () => {
+        const [render, setRender] = React.useState([]);
+
+        React.useEffect(() => {
+            setRender(r => r + 1)
+        },[])
+
+        return <LHNTestUtils.MockedSidebarLinks />
+
+    }
+
     return waitForPromisesToResolve()
         .then(() =>
             Onyx.multiSet({
@@ -53,5 +65,5 @@ test('simple Sidebar render with hundred of reports', () => {
                 ...mockOnyxReports,
             }),
         )
-        .then(() => measurePerformance(<LHNTestUtils.MockedSidebarLinks />));
+        .then(() => measurePerformance(<TestRegression />));
 });
