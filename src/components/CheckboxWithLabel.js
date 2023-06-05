@@ -114,6 +114,7 @@ const CheckboxWithLabel = (props) => {
                     hoverDimmingValue={variables.checkboxLabelHoverOpacity}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.noSelect, styles.w100]}
                     wrapperStyle={[styles.ml3, styles.pr2, styles.w100, styles.flexWrap, styles.flexShrink1]}
+                    accessibilityLabel="CheckBox"
                 >
                     {props.label && <Text style={[styles.ml1]}>{props.label}</Text>}
                     {LabelComponent && <LabelComponent />}
