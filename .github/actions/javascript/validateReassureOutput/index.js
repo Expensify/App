@@ -1,4 +1,14 @@
-const core = require('@actions/core');
+/**
+ * NOTE: This is a compiled file. DO NOT directly edit this file.
+ */
+module.exports =
+/******/ (() => { // webpackBootstrap
+/******/ 	var __webpack_modules__ = ({
+
+/***/ 688:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(186);
 
 const run = () => {
     const regressionOutput = JSON.parse(core.getInput('REGRESSION_OUTPUT', {required: true}));
@@ -10,10 +20,8 @@ const run = () => {
         return true;
     }
 
-    console.log(`Processing ${regressionOutput.countChanged.length} measurements...`);
-
-    for (let i = 0; i < regressionOutput.countChanged.length; i++) {
-        const measurement = regressionOutput.countChanged[i];
+    for (let i; regressionOutput.countChanged.length > i; i++) {
+        const measurement = regressionOutput.countChanged[i]
         const baseline = measurement.baseline;
         const current = measurement.current;
 
