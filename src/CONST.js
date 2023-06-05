@@ -325,7 +325,10 @@ const CONST = {
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
                 DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: 'k',
+                    modifierFlags: keyModifierShiftCommand,
+                },
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -366,8 +369,14 @@ const CONST = {
             modifiers: ['CTRL'],
             trigger: {
                 DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                [PLATFORM_OS_MACOS]: {
+                    input: keyInputEnter,
+                    modifierFlags: keyModifierCommand,
+                },
+                [PLATFORM_IOS]: {
+                    input: keyInputEnter,
+                    modifierFlags: keyModifierCommand,
+                },
             },
         },
         COPY: {
@@ -868,6 +877,9 @@ const CONST = {
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
         ADMIN: 'admin@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
+    },
+    ACCOUNT_ID: {
+        CONCIERGE: '8392101',
     },
 
     ENVIRONMENT: {
