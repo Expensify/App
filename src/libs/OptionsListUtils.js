@@ -206,9 +206,11 @@ function isPersonalDetailsReady(personalDetails) {
  * @returns {Array}
  */
 function getParticipantsOptions(participants, personalDetails) {
+    const details = getPersonalDetailsForLogins(_.pluck(participants, 'login'), personalDetails);
     return _.map(participants, (participant) => {
-        const detail = getPersonalDetailsForLogins([participant.login], personalDetails)[participant.login];
+        const detail = details[participant.login];
         return {
+            login: participant.login,
             keyForList: detail.login,
             text: detail.displayName,
             firstName: lodashGet(detail, 'firstName', ''),
@@ -223,7 +225,7 @@ function getParticipantsOptions(participants, personalDetails) {
             ],
             payPalMeAddress: lodashGet(detail, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(detail, 'phoneNumber', ''),
-            ...participant,
+            selected: participant.login,
         };
     });
 }
