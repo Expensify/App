@@ -917,15 +917,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
         },
     ];
 
-    API.write(
-        'TwoFactorAuth_Validate',
-        {twoFactorAuthCode},
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+    API.write('TwoFactorAuth_Validate', {twoFactorAuthCode}, {optimisticData, successData, failureData});
 }
 
 function claimAnonymousAccount(validateCode, preferredLocale = CONST.LOCALES.DEFAULT) {
