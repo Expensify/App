@@ -109,7 +109,6 @@ const PronounsPage = (props) => {
         loadPronouns();
     }, [loadPronouns]);
 
-
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
