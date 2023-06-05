@@ -1175,9 +1175,7 @@ const CONST = {
         ];
     },
     get EXPENSIFY_ACCOUNT_IDS() {
-        return [
-            this.ACCOUNT_ID.CONCIERGE,
-        ];
+        return [this.ACCOUNT_ID.CONCIERGE];
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
