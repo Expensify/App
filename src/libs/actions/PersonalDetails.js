@@ -172,7 +172,7 @@ function updateLegalName(legalFirstName, legalLastName) {
 /**
  * @param {String} dob - date of birth
  */
-function updateDateOfBirth(dob) {
+function updateDateOfBirth({dob}) {
     API.write(
         'UpdateDateOfBirth',
         {dob},

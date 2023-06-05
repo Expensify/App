@@ -347,14 +347,13 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     );
 
     // STEP 6: Make the request
-    const parsedComment = ReportUtils.getParsedComment(comment);
     API.write(
         'RequestMoney',
         {
             debtorEmail: payerEmail,
             amount,
             currency,
-            comment: parsedComment,
+            comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: optimisticTransaction.transactionID,
@@ -627,7 +626,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
  */
 function splitBill(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID = '') {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID);
-    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write(
         'SplitBill',
@@ -636,7 +634,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
             amount,
             splits: JSON.stringify(splits),
             currency,
-            comment: parsedComment,
+            comment,
             transactionID: groupData.transactionID,
             reportActionID: groupData.reportActionID,
             createdReportActionID: groupData.createdReportActionID,
@@ -656,7 +654,6 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
  */
 function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency) {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency);
-    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -665,7 +662,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
             amount,
             splits: JSON.stringify(splits),
             currency,
-            comment: parsedComment,
+            comment,
             transactionID: groupData.transactionID,
             reportActionID: groupData.reportActionID,
             createdReportActionID: groupData.createdReportActionID,
@@ -824,12 +821,11 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  */
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
     const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
-    const parsedComment = ReportUtils.getParsedComment(comment);
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
         requestorEmail: recipientEmail,
-        comment: parsedComment,
+        comment,
         idempotencyKey: Str.guid(),
     });
 

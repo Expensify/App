@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
@@ -204,4 +205,34 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     );
 }
 
-export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction};
+/**
+ * @param {String} [reportIDFromRoute]
+ * @returns {JSX.Element}
+ */
+function MockedSidebarLinks({reportIDFromRoute}) {
+    return (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+            <SidebarLinks
+                onLinkClick={() => {}}
+                insets={{
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                }}
+                isSmallScreenWidth={false}
+                reportIDFromRoute={reportIDFromRoute}
+            />
+        </ComposeProviders>
+    );
+}
+
+MockedSidebarLinks.propTypes = {
+    reportIDFromRoute: PropTypes.string,
+};
+
+MockedSidebarLinks.defaultProps = {
+    reportIDFromRoute: '',
+};
+
+export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};

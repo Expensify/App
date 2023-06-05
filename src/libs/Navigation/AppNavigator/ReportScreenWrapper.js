@@ -12,6 +12,8 @@ import reportPropTypes from '../../../pages/reportPropTypes';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import {withNavigationPropTypes} from '../../../components/withNavigation';
 import * as App from '../../actions/App';
+import * as Report from '../../actions/Report';
+import * as Session from '../../actions/Session';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -30,6 +32,11 @@ const propTypes = {
             type: PropTypes.string,
         }),
     ),
+
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: PropTypes.string,
+
+    isFirstTimeNewExpensifyUser: PropTypes.bool,
 
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
@@ -50,6 +57,8 @@ const defaultProps = {
     reports: {},
     betas: [],
     policies: {},
+    isFirstTimeNewExpensifyUser: false,
+    lastOpenedPublicRoomID: null,
 };
 
 /**
@@ -58,11 +67,12 @@ const defaultProps = {
  * @param {Object} reports
  * @param {Boolean} [ignoreDefaultRooms]
  * @param {Object} policies
+ * @param {Boolean} isFirstTimeNewExpensifyUser
  * @param {Boolean} openOnAdminRoom
  * @returns {Number}
  */
-const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, openOnAdminRoom) => {
-    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, openOnAdminRoom);
+const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) => {
+    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom);
 
     return lodashGet(lastReport, 'reportID');
 };
@@ -74,7 +84,13 @@ class ReportScreenWrapper extends Component {
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
         if (!lodashGet(this.props.route, 'params.reportID', null)) {
-            const reportID = getLastAccessedReportID(this.props.reports, !Permissions.canUseDefaultRooms(this.props.betas), this.props.policies, this.props.route.params.openOnAdminRoom);
+            const reportID = getLastAccessedReportID(
+                this.props.reports,
+                !Permissions.canUseDefaultRooms(this.props.betas),
+                this.props.policies,
+                this.props.isFirstTimeNewExpensifyUser,
+                this.props.route.params.openOnAdminRoom,
+            );
 
             // It's possible that props.reports aren't fully loaded yet
             // in that case the reportID is undefined
@@ -84,6 +100,15 @@ class ReportScreenWrapper extends Component {
                 App.confirmReadyToOpenApp();
             }
         }
+    }
+
+    componentDidMount() {
+        if (!this.props.lastOpenedPublicRoomID || Session.isAnonymousUser()) {
+            return;
+        }
+        // Re-open the last opened public room if the user logged in
+        Report.setLastOpenedPublicRoom('');
+        Report.openReport(this.props.lastOpenedPublicRoomID);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -132,5 +157,11 @@ export default withOnyx({
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    isFirstTimeNewExpensifyUser: {
+        key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+    },
+    lastOpenedPublicRoomID: {
+        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
     },
 })(ReportScreenWrapper);

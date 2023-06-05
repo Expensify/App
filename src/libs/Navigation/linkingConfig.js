@@ -333,6 +333,11 @@ export default {
                             WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
                         },
                     },
+                    Flag_Comment: {
+                        screens: {
+                            FlagComment_Root: ROUTES.FLAG_COMMENT,
+                        },
+                    },
                 },
             },
         },
