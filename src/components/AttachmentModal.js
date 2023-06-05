@@ -36,6 +36,9 @@ const propTypes = {
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
 
+    /** Whether the modal should be open by default */
+    defaultOpen: PropTypes.bool,
+
     /** Optional callback to fire when we want to do something after modal show. */
     onModalShow: PropTypes.func,
 
@@ -68,6 +71,7 @@ const propTypes = {
 const defaultProps = {
     source: '',
     onConfirm: null,
+    defaultOpen: false,
     originalFileName: '',
     isAuthTokenRequired: false,
     allowDownload: false,
@@ -82,7 +86,7 @@ class AttachmentModal extends PureComponent {
         super(props);
 
         this.state = {
-            isModalOpen: false,
+            isModalOpen: this.props.defaultOpen,
             shouldLoadAttachment: false,
             isAttachmentInvalid: false,
             isAuthTokenRequired: props.isAuthTokenRequired,
