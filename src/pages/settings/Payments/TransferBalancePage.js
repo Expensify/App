@@ -66,7 +66,6 @@ const defaultProps = {
 };
 
 const TransferBalancePage = (props) => {
-
     const paymentTypes = [
         {
             key: CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT,
@@ -135,7 +134,7 @@ const TransferBalancePage = (props) => {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
     };
 
-    if  (props.walletTransfer.shouldShowSuccess && !props.walletTransfer.loading) {
+    if (props.walletTransfer.shouldShowSuccess && !props.walletTransfer.loading) {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -167,8 +166,7 @@ const TransferBalancePage = (props) => {
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = !_.isEmpty(props.walletTransfer.errors) ? _.chain(props.walletTransfer.errors).values().first().value() : '';
 
-    const shouldShowTransferView =
-        PaymentUtils.hasExpensifyPaymentMethod(props.cardList, props.bankAccountList) && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+    const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(props.cardList, props.bankAccountList) && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
     return (
         <ScreenWrapper>
