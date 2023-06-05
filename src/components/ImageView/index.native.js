@@ -19,6 +19,9 @@ const propTypes = {
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
 
+    /** Handles scale changed event in image zoom component. Used on native only */
+    onScaleChanged: PropTypes.func.isRequired,
+
     /** Function for handle on press */
     onPress: PropTypes.func,
 
@@ -190,12 +193,21 @@ class ImageView extends PureComponent {
                                     scale: 2,
                                     duration: 100,
                                 });
+
+                                // onMove will be called after the zoom animation.
+                                // So it's possible to zoom and swipe and stuck in between the images.
+                                // Sending scale just when we actually trigger the animation makes this nearly impossible.
+                                // you should be really fast to catch in between state updates.
+                                // And this lucky case will be fixed by migration to UI thread only code
+                                // with gesture handler and reanimated.
+                                this.props.onScaleChanged(2);
                             }
 
                             // We must be either swiping down or double tapping since we are at zoom scale 1
                             return false;
                         }}
                         onMove={({scale}) => {
+                            this.props.onScaleChanged(scale);
                             this.imageZoomScale = scale;
                         }}
                     >

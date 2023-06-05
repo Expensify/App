@@ -882,11 +882,6 @@ export default () => ({
         },
         {
             onyxMethod: 'merge',
-            key: 'nvp_paypalMeAddress',
-            value: '',
-        },
-        {
-            onyxMethod: 'merge',
             key: 'preferredEmojiSkinTone',
             value: -1,
         },

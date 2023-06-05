@@ -37,7 +37,7 @@ const propTypes = {
     /** Function for handle on press */
     onPress: PropTypes.func,
 
-    /** Handles scale changed event in PDF component */
+    /** Handles scale changed event */
     onScaleChanged: PropTypes.func,
 
     /** Notify parent that the UI should be modified to accommodate keyboard */
@@ -111,6 +111,7 @@ const AttachmentView = (props) => {
     if (isImage || (props.file && Str.isImage(props.file.name))) {
         const children = (
             <ImageView
+                onScaleChanged={props.onScaleChanged}
                 url={props.source}
                 isAuthTokenRequired={isImage && props.isAuthTokenRequired}
             />
