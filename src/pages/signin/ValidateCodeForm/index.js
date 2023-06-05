@@ -4,18 +4,20 @@ import BaseValidateCodeForm from './BaseValidateCodeForm';
 
 const defaultProps = {
     isVisible: false,
-    isAnonymousUser: false,
+    isAnonymous: false,
 };
 
 const propTypes = {
     isVisible: PropTypes.bool,
-    isAnonymousUser: PropTypes.bool,
+
+    /** Whether the user is anonymous. True when opening the Sign-In Page from the modal */
+    isAnonymous: PropTypes.bool,
 };
 const ValidateCodeForm = (props) => (
     <BaseValidateCodeForm
         isVisible={props.isVisible}
         autoComplete="one-time-code"
-        isAnonymousUser={props.isAnonymousUser}
+        isAnonymous={props.isAnonymous}
     />
 );
 

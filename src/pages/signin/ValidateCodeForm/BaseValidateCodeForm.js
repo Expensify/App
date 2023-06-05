@@ -9,7 +9,6 @@ import Button from '../../../components/Button';
 import Text from '../../../components/Text';
 import themeColors from '../../../styles/themes/default';
 import * as Session from '../../../libs/actions/Session';
-import * as SignInModalActions from '../../../libs/actions/SignInModalActions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import ChangeExpensifyLoginLink from '../ChangeExpensifyLoginLink';
@@ -28,6 +27,9 @@ import Terms from '../Terms';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
+    /** Whether the user is anonymous. True when opening the Sign-In Page from the modal */
+    isAnonymous: PropTypes.bool,
+
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
@@ -59,6 +61,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isAnonymous: false,
     account: {},
     credentials: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
@@ -149,7 +152,10 @@ class BaseValidateCodeForm extends React.Component {
      * Clears local and Onyx sign in states
      */
     clearSignInData() {
-        this.setState({twoFactorAuthCode: '', formError: {}});
+        this.setState({
+            twoFactorAuthCode: '',
+            formError: {},
+        });
         Session.clearSignInData();
     }
 
@@ -192,9 +198,8 @@ class BaseValidateCodeForm extends React.Component {
             formError: {},
         });
 
-        if (this.props.isAnonymousUser) {
-            // Session.claimAccount
-            SignInModalActions.hideSignInModal();
+        if (this.props.isAnonymous) {
+            Session.claimAnonymousAccount(this.state.validateCode, this.props.preferredLocale);
             return;
         }
 
