@@ -163,8 +163,9 @@ const WorkspaceInitialPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithCloseButton
                         title={props.translate('workspace.common.workspace')}

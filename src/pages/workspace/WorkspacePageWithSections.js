@@ -6,6 +6,7 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
+import * as Policy from '../../libs/actions/Policy';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -115,8 +116,9 @@ class WorkspacePageWithSections extends React.Component {
                 shouldEnablePickerAvoiding={false}
             >
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
+                    subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
                     <HeaderWithCloseButton
                         title={this.props.headerText}

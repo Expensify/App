@@ -1076,6 +1076,7 @@ export default {
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
+            notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}) => `Ir a la sala ${roomName}`,
         },
         emptyWorkspace: {

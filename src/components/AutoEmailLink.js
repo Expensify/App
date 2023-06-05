@@ -1,0 +1,41 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import _ from 'underscore';
+import {CONST} from 'expensify-common/lib/CONST';
+import Text from './Text';
+import TextLink from './TextLink';
+import styles from '../styles/styles';
+
+const propTypes = {
+    text: PropTypes.string.isRequired,
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+};
+
+const defaultProps = {
+    style: [],
+};
+
+const AutoEmailLink = (props) => (
+    <Text style={props.style}>
+        {_.map(props.text.split(CONST.REG_EXP.EXTRACT_EMAIL), (str, index) => {
+            if (CONST.REG_EXP.EMAIL.test(str)) {
+                return (
+                    <TextLink
+                        key={`${index}-${str}`}
+                        href={`mailto:${str}`}
+                        style={[styles.link]}
+                    >
+                        {str}
+                    </TextLink>
+                );
+            }
+
+            return <Text key={`${index}-${str}`}>{str}</Text>;
+        })}
+    </Text>
+);
+
+AutoEmailLink.displayName = 'AutoEmailLink';
+AutoEmailLink.propTypes = propTypes;
+AutoEmailLink.defaultProps = defaultProps;
+export default AutoEmailLink;
