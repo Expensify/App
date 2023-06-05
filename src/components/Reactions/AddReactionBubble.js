@@ -12,7 +12,7 @@ import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as Session from '../../libs/actions/Session';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -69,7 +69,7 @@ const AddReactionBubble = (props) => {
 
     return (
         <Tooltip text={props.translate('emojiReactions.addReactionTooltip')}>
-            <PressableWithoutFeedback
+            <PressableWithFeedback
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
                 onPress={Session.checkIfActionIsAllowed(onPress)}
@@ -77,6 +77,7 @@ const AddReactionBubble = (props) => {
                 onMouseDown={(e) => e.preventDefault()}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
                 accessibilityRole="button"
+                hoverDimmingValue={1}
             >
                 {({hovered, pressed}) => (
                     <>
@@ -94,7 +95,7 @@ const AddReactionBubble = (props) => {
                         </View>
                     </>
                 )}
-            </PressableWithoutFeedback>
+            </PressableWithFeedback>
         </Tooltip>
     );
 };
