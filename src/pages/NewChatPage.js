@@ -44,7 +44,7 @@ const defaultProps = {
     reports: {},
 };
 
-const NewChatPage = (props) => {
+function NewChatPage(props) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
