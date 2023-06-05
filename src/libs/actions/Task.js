@@ -183,7 +183,7 @@ function completeTask(taskReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.APPROVED,
             },
         },
-        
+
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
