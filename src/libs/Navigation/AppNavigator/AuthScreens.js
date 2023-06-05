@@ -261,6 +261,16 @@ class AuthScreens extends React.Component {
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />
+
+                <RootStack.Screen
+                    name="Report_Attachments"
+                    options={commonScreenOptions}
+                    getComponent={() => {
+                        const ReportAttachments = require('../../../pages/home/report/ReportAttachments').default;
+                        return ReportAttachments;
+                    }}
+                    listeners={modalScreenListeners}
+                />
             </RootStack.Navigator>
         );
     }

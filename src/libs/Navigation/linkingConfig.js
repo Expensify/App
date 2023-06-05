@@ -23,6 +23,7 @@ export default {
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
+                    Report_Attachments: ROUTES.REPORT_ATTACHMENT,
                 },
             },
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
@@ -340,6 +341,7 @@ export default {
                     },
                 },
             },
+            [SCREENS.NOT_FOUND]: '*',
         },
     },
 };
