@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -27,69 +27,31 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-class PronounsPage extends Component {
-    constructor(props) {
-        super(props);
+const PronounsPage = (props) => {
+    const {currentUserPersonalDetails, translate} = props;
 
-        this.loadPronouns = this.loadPronouns.bind(this);
-        this.onChangeText = this.onChangeText.bind(this);
-        this.getFilteredPronouns = this.getFilteredPronouns.bind(this);
-        this.updatePronouns = this.updatePronouns.bind(this);
-        this.initiallyFocusedOption = {};
-
-        this.loadPronouns();
-        this.state = {
-            searchValue: this.initiallyFocusedOption.text || '',
-        };
-    }
-
-    componentDidUpdate(prevProps) {
-        // If the pronouns have changed, we need to update the pronouns list because refreshing the page
-        // breaks the component lifecycle, so we need to "manually" reset the component.
-        if (prevProps.currentUserPersonalDetails.pronouns === this.props.currentUserPersonalDetails.pronouns) {
-            return;
-        }
-
-        this.onChangeText();
-        this.loadPronouns();
-    }
-
-    onChangeText(searchValue = '') {
-        this.setState({searchValue});
-    }
-
-    /**
-     * Returns the pronouns list filtered by searchValue needed for the OptionsSelector.
-     * Empty array is returned if the searchValue is empty.
-     *
-     * @returns {Array}
-     */
-    getFilteredPronouns() {
-        const searchedValue = this.state.searchValue.trim();
-        if (searchedValue.length === 0) {
-            return [];
-        }
-        return _.filter(this.pronounsList, (pronous) => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
-    }
+    const [initiallyFocusedOption, setInitiallyFocusedOption] = useState({});
+    const [searchValue, setSearchValue] = useState('');
+    const [pronounsList, setPronounsList] = useState([]);
 
     /**
      * Loads the pronouns list from the translations and adds the green checkmark icon to the currently selected value.
      *
      * @returns {void}
      */
-    loadPronouns() {
-        const currentPronouns = lodashGet(this.props.currentUserPersonalDetails, 'pronouns', '');
+    const loadPronouns = useCallback(() => {
+        const currentPronouns = lodashGet(currentUserPersonalDetails, 'pronouns', '');
 
-        this.pronounsList = _.chain(this.props.translate('pronouns'))
+        const pronouns = _.chain(translate('pronouns'))
             .map((value, key) => {
                 const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
                 const isCurrentPronouns = fullPronounKey === currentPronouns;
 
                 if (isCurrentPronouns) {
-                    this.initiallyFocusedOption = {
+                    setInitiallyFocusedOption({
                         text: value,
                         keyForList: key,
-                    };
+                    });
                 }
 
                 return {
@@ -106,52 +68,81 @@ class PronounsPage extends Component {
             })
             .sortBy((pronoun) => pronoun.text.toLowerCase())
             .value();
-    }
+
+        setPronounsList(pronouns);
+    }, [currentUserPersonalDetails, translate]);
+
+    const onChangeText = (value = '') => {
+        setSearchValue(value);
+    };
 
     /**
      * @param {Object} selectedPronouns
      */
-    updatePronouns(selectedPronouns) {
-        PersonalDetails.updatePronouns(selectedPronouns.keyForList === this.initiallyFocusedOption.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
-    }
+    const updatePronouns = (selectedPronouns) => {
+        PersonalDetails.updatePronouns(selectedPronouns.keyForList === initiallyFocusedOption.keyForList ? '' : lodashGet(selectedPronouns, 'value', ''));
+    };
 
-    render() {
-        const filteredPronounsList = this.getFilteredPronouns();
-        const headerMessage = this.state.searchValue.trim() && !filteredPronounsList.length ? this.props.translate('common.noResultsFound') : '';
+    /**
+     * Pronouns list filtered by searchValue needed for the OptionsSelector.
+     * Empty array if the searchValue is empty.
+     */
+    const filteredPronounsList = useMemo(() => {
+        const searchedValue = searchValue.trim();
+        if (searchedValue.length === 0) {
+            return [];
+        }
+        return _.filter(pronounsList, (pronous) => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
+    }, [pronounsList, searchValue]);
 
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('pronounsPage.pronouns')}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
-                        <Text style={[styles.ph5, styles.mb3]}>{this.props.translate('pronounsPage.isShownOnProfile')}</Text>
-                        <OptionsSelector
-                            textInputLabel={this.props.translate('pronounsPage.pronouns')}
-                            placeholderText={this.props.translate('pronounsPage.placeholderText')}
-                            headerMessage={headerMessage}
-                            sections={[{data: filteredPronounsList, indexOffset: 0}]}
-                            value={this.state.searchValue}
-                            onSelectRow={this.updatePronouns}
-                            onChangeText={this.onChangeText}
-                            optionHoveredStyle={styles.hoveredComponentBG}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            shouldFocusOnSelectRow
-                            shouldHaveOptionSeparator
-                            initiallyFocusedOptionKey={this.initiallyFocusedOption.keyForList}
-                        />
-                    </>
-                )}
-            </ScreenWrapper>
-        );
-    }
-}
+    const headerMessage = useMemo(
+        () => (searchValue.trim() && !filteredPronounsList.length ? translate('common.noResultsFound') : ''),
+        [filteredPronounsList.length, searchValue, translate],
+    );
+
+    useEffect(() => {
+        setSearchValue(initiallyFocusedOption.text);
+    }, [initiallyFocusedOption]);
+
+    useEffect(() => {
+        onChangeText();
+        loadPronouns();
+    }, [loadPronouns]);
+
+
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            {({safeAreaPaddingBottomStyle}) => (
+                <>
+                    <HeaderWithCloseButton
+                        title={translate('pronounsPage.pronouns')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    />
+                    <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
+                    <OptionsSelector
+                        textInputLabel={translate('pronounsPage.pronouns')}
+                        placeholderText={translate('pronounsPage.placeholderText')}
+                        headerMessage={headerMessage}
+                        sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                        value={searchValue}
+                        onSelectRow={updatePronouns}
+                        onChangeText={onChangeText}
+                        optionHoveredStyle={styles.hoveredComponentBG}
+                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        shouldFocusOnSelectRow
+                        shouldHaveOptionSeparator
+                        initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
+                    />
+                </>
+            )}
+        </ScreenWrapper>
+    );
+};
 
 PronounsPage.propTypes = propTypes;
 PronounsPage.defaultProps = defaultProps;
+PronounsPage.displayName = 'PronounsPage';
 
 export default compose(withLocalize, withCurrentUserPersonalDetails)(PronounsPage);
