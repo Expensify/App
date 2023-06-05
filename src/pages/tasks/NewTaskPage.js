@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -171,7 +172,7 @@ const NewTaskPage = (props) => {
                     </View>
                 </View>
                 <FormAlertWithSubmitButton
-                    isAlertVisible={!!errorMessage}
+                    isAlertVisible={!_.isEmpty(errorMessage)}
                     message={errorMessage}
                     onSubmit={() => onSubmit()}
                     enabledWhenOffline
