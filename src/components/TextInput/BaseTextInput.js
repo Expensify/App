@@ -77,30 +77,6 @@ function BaseTextInput(props) {
         };
     }, [props.autoFocus, props.disableKeyboard, props.shouldDelayFocus]);
 
-    /*
-        componentDidUpdate(prevProps) {
-        // Activate or deactivate the label when value is changed programmatically from outside
-        const inputValue = _.isUndefined(props.value) ? this.input.value : props.value;
-        if ((_.isUndefined(inputValue) || props.value === inputValue) && _.isEqual(prevProps.selection, props.selection)) {
-            return;
-        }
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({value: inputValue, selection: props.selection});
-
-        // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
-        if (inputValue === '') {
-            this.input.clear();
-        }
-
-        if (inputValue) {
-            this.activateLabel();
-        } else if (!props.isFocused) {
-            this.deactivateLabel();
-        }
-    }
-    */
-
     const propIsDisabled = props.disabled;
     const propOnPress = props.onPress;
     const onPress = useCallback(
@@ -123,23 +99,23 @@ function BaseTextInput(props) {
     const animateLabel = useCallback(
         (translateY, scale) => {
             Animated.parallel([
-                Animated.spring(props.labelTranslateY, {
+                Animated.spring(labelTranslateY, {
                     toValue: translateY,
                     duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver: true,
                 }),
-                Animated.spring(props.labelScale, {
+                Animated.spring(labelScale, {
                     toValue: scale,
                     duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver: true,
                 }),
             ]).start();
         },
-        [props.labelScale, props.labelTranslateY],
+        [labelScale, labelTranslateY],
     );
 
     const activateLabel = useCallback(() => {
-        if (props.value.length < 0 || isLabelActive) {
+        if (props.value.length < 0 || isLabelActive.current) {
             return;
         }
 
@@ -198,6 +174,21 @@ function BaseTextInput(props) {
         },
         [props.autoGrowHeight, props.multiline],
     );
+
+    useEffect(() => {
+        // Activate or deactivate the label when value is changed programmatically from outside
+
+        // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
+        if (props.value === '') {
+            input.current.clear();
+        }
+
+        if (props.value) {
+            activateLabel();
+        } else if (!isFocused) {
+            deactivateLabel();
+        }
+    }, [activateLabel, deactivateLabel, isFocused, props.value]);
 
     // I feel like this is the region where imperative functions are starting:
 
