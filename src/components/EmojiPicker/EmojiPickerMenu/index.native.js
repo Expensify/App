@@ -189,7 +189,7 @@ class EmojiPickerMenu extends Component {
         const isFiltered = this.emojis.length !== this.state.filteredEmojis.length;
         return (
             <View style={styles.emojiPickerContainer}>
-                <View style={[styles.ph4, styles.pb1]}>
+                <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                     <TextInput
                         label={this.props.translate('common.search')}
                         onChangeText={this.filterEmojis}

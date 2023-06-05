@@ -3,6 +3,7 @@ import {Dimensions, Keyboard} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
+import styles from '../../styles/styles';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
@@ -173,7 +174,7 @@ class EmojiPicker extends React.Component {
                 }}
                 outerStyle={Browser.isMobile() && {maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
                 anchorAlignment={this.state.emojiPopoverAnchorOrigin}
-                innerContainerStyle={{paddingTop: 4, maxHeight: '95%'}}
+                innerContainerStyle={styles.popoverInnerContainer}
                 avoidKeyboard
             >
                 <EmojiPickerMenu

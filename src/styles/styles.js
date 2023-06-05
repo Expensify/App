@@ -1284,6 +1284,11 @@ const styles = {
         color: themeColors.heading,
     },
 
+    popoverInnerContainer: {
+      paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
+      maxHeight: '95%'
+    },
+
     menuItemTextContainer: {
         minHeight: variables.componentSizeNormal,
     },
@@ -1615,17 +1620,6 @@ const styles = {
 
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
-    },
-
-    emojiPickerList: {
-        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
-        width: '100%',
-        ...spacing.ph4,
-    },
-    emojiPickerListWithPadding: {
-        height: CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT,
-        width: '100%',
-        ...spacing.ph4,
     },
 
     emojiHeaderContainer: {

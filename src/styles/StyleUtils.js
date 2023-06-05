@@ -6,6 +6,7 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
+import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
 
 const workspaceColorOptions = [
@@ -1147,7 +1148,7 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
  */
 function getEmojiPickerListHeight(hasAdditionalSpace, windowHeight) {
     const style = {
-        paddingHorizontal: 16,
+        ...spacing.ph4,
         height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
     };
 

@@ -2448,7 +2448,7 @@ const CONST = {
         FLAG_SEVERITY_HARASSMENT: 'harassment',
         FLAG_SEVERITY_ASSAULT: 'assault',
     },
-    EMOJI_PICKER_TEXT_INPUT_SIZES: 140,
+    EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
 };
 
 export default CONST;
