@@ -83,7 +83,7 @@ class ValidateLoginPage extends Component {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode(), null, this.props.preferredLocale);
+        Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode(), this.props.preferredLocale);
     }
 
     componentDidUpdate() {
@@ -117,20 +117,21 @@ class ValidateLoginPage extends Component {
     }
 
     render() {
-        const isTfaRequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
+        const is2FARequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
         const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
+        const currentAuthState = this.getAutoAuthState();
         return (
             <>
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && (!isTfaRequired || isSignedIn) && <AbracadabraModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isTfaRequired && !isSignedIn && <TfaRequiredModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
+                {currentAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <TfaRequiredModal />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && isSignedIn && <AbracadabraModal />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
                     <ValidateCodeModal
                         accountID={this.getAccountID()}
                         code={this.getValidateCode()}
                     />
                 )}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
             </>
         );
     }
