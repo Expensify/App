@@ -827,7 +827,7 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    CATEGORY_SHORTCUT_BAR_HEIGHT: 40,
+    CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
     },
@@ -2448,7 +2448,7 @@ const CONST = {
         FLAG_SEVERITY_HARASSMENT: 'harassment',
         FLAG_SEVERITY_ASSAULT: 'assault',
     },
-    EMOJI_PICKER_TEXT_INPUT_SIZES: 130,
+    EMOJI_PICKER_TEXT_INPUT_SIZES: 140,
 };
 
 export default CONST;

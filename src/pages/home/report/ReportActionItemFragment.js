@@ -114,11 +114,13 @@ const ReportActionItemFragment = (props) => {
 
                 return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
             }
+            const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
+
             return (
                 <Text
                     family="EMOJI_TEXT_FONT"
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
+                    style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
                     {convertToLTR(Str.htmlDecode(text))}
                     {Boolean(props.fragment.isEdited) && (
@@ -129,7 +131,7 @@ const ReportActionItemFragment = (props) => {
                         >
                             <Text
                                 selectable={false}
-                                style={[styles.w1, styles.userSelectNone]}
+                                style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.w1, styles.userSelectNone]}
                             >
                                 {' '}
                             </Text>
