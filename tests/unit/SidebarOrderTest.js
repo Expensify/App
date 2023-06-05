@@ -102,12 +102,15 @@ describe('Sidebar', () => {
             // Given three unread reports in the recently updated order of 3, 2, 1
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                lastMessageHtml: 'unread message from report 1',
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                lastMessageHtml: 'unread message from report 2',
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                lastMessageHtml: 'unread message from report 3',
             };
 
             return (
@@ -141,10 +144,17 @@ describe('Sidebar', () => {
             // And the currently viewed report is the first report
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                lastMessageHtml: 'unread message from report 1',
                 hasDraft: true,
             };
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                lastMessageHtml: 'unread message from report 2',
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                lastMessageHtml: 'unread message from report 3',
+            };
             const reportIDFromRoute = report1.reportID;
             LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
             return (
@@ -180,9 +190,18 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given three reports in the recently updated order of 3, 2, 1
-            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3);
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                lastMessageHtml: 'unread message from report 1',
+            };
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                lastMessageHtml: 'unread message from report 2',
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                lastMessageHtml: 'unread message from report 3',
+            };
 
             return (
                 waitForPromisesToResolve()
@@ -221,12 +240,19 @@ describe('Sidebar', () => {
             // Given three reports in the recently updated order of 3, 2, 1
             // And the second report has a draft
             // And the currently viewed report is the second report
-            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3);
+            const report1 = {
+                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 3),
+                lastMessageHtml: 'unread message from report 1',
+            };
             const report2 = {
                 ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 2),
+                lastMessageHtml: 'unread message from report 2',
                 hasDraft: true,
             };
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1);
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com'], 1),
+                lastMessageHtml: 'unread message from report 3',
+            };
             const reportIDFromRoute = report2.reportID;
             LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
 
@@ -525,12 +551,19 @@ describe('Sidebar', () => {
             // Given three reports, with the first report being archived
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                lastMessageHtml: 'message from report 1',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
+            const report2 = {
+                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
+                lastMessageHtml: 'message from report 2',
+            };
+            const report3 = {
+                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']),
+                lastMessageHtml: 'message from report 3',
+            };
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS, CONST.BETAS.POLICY_EXPENSE_CHAT];
@@ -747,14 +780,17 @@ describe('Sidebar', () => {
             const lastVisibleActionCreated = DateUtils.getDBTime();
             const report1 = {
                 ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                lastMessageHtml: 'message from report 1',
                 lastVisibleActionCreated,
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
+                lastMessageHtml: 'message from report 2',
                 lastVisibleActionCreated,
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']),
+                lastMessageHtml: 'message from report 3',
                 lastVisibleActionCreated,
             };
 
