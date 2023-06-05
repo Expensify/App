@@ -11,7 +11,7 @@ import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as CurrentDate from './actions/CurrentDate';
 
-let currentAccountID;
+let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -20,15 +20,15 @@ Onyx.connect({
             return;
         }
 
-        currentAccountID = val.accountID;
+        currentUserEmail = val.email;
     },
 });
 
 let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    key: ONYXKEYS.PERSONAL_DETAILS,
     callback: (val) => {
-        timezone = lodashGet(val, [currentAccountID, 'timezone'], CONST.DEFAULT_TIME_ZONE);
+        timezone = lodashGet(val, [currentUserEmail, 'timezone'], CONST.DEFAULT_TIME_ZONE);
     },
 });
 
