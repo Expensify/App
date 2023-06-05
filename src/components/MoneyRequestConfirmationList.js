@@ -324,6 +324,7 @@ class MoneyRequestConfirmationList extends Component {
     render() {
         const canModifyParticipants = !this.props.isReadOnly && this.props.canModifyParticipants && this.props.hasMultipleParticipants;
         const formattedAmount = CurrencyUtils.convertToDisplayString(this.props.iouAmount, this.currencyCode);
+        const titleForDescription = this.props.iouComment || this.props.iouComment === '' ? this.props.iouComment : this.props.iou.comment;
 
         return (
             <OptionsSelector
@@ -353,7 +354,7 @@ class MoneyRequestConfirmationList extends Component {
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!this.props.isReadOnly}
-                    title={this.props.iouComment || this.props.iou.comment}
+                    title={titleForDescription}
                     description={this.props.translate('common.description')}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                     style={[styles.moneyRequestMenuItem, styles.mb2]}
