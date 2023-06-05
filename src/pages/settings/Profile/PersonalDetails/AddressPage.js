@@ -56,7 +56,7 @@ const defaultProps = {
  * Submit form to update user's first and last legal name
  * @param {Object} values - form input values
  */
-const updateAddress = (values) => {
+function updateAddress(values) {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim(), values.country);
 };
 
