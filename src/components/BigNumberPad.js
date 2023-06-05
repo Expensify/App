@@ -40,6 +40,12 @@ const BigNumberPad = ({
 }) => {
     const [timer, setTimer] = useState(null);
 
+    /**
+     * Handle long press key on number pad.
+     * Only handles the '<' key and starts the continuous input timer.
+     *
+     * @param {String} key
+     */
     const handleLongPress = useCallback((key) => {
         if (key !== '<') return;
 
@@ -61,6 +67,8 @@ const BigNumberPad = ({
                     style={[styles.flexRow, styles.mt3]}
                 >
                     {_.map(row, (column, columnIndex) => {
+                        // Adding margin between buttons except first column to
+                        // avoid unccessary space before the first column.
                         const marginLeft = columnIndex > 0 ? styles.ml3 : {};
                         return (
                             <Button
