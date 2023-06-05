@@ -796,6 +796,7 @@ const CONST = {
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
         URL: 'url',
+        DEFAULT: 'default',
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
