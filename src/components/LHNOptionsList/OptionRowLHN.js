@@ -56,13 +56,15 @@ const defaultProps = {
 const OptionRowLHN = (props) => {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
+    React.useEffect(() => {
+        if (optionItem) {
+            ReportActionContextMenu.hideContextMenu(false);
+        }
+    }, [optionItem.isPinned]);
+
     if (!optionItem) {
         return null;
     }
-
-    React.useEffect(() => {
-        ReportActionContextMenu.hideContextMenu(false);
-    }, [optionItem.isPinned]);
 
     let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
