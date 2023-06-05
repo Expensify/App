@@ -247,6 +247,7 @@ class MoneyRequestConfirmationList extends Component {
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                 currency={this.props.iou.selectedCurrencyCode}
                 policyID={this.props.policyID}
+                shouldShowPaymentOptions
             />
         ) : (
             <ButtonWithDropdownMenu
