@@ -234,9 +234,9 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (27.3.0)
-  - onfido-react-native-sdk (7.3.0):
-    - Onfido (= 27.3.0)
+  - Onfido (27.4.0)
+  - onfido-react-native-sdk (7.4.0):
+    - Onfido (= 27.4.0)
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1573,8 +1573,8 @@ SPEC CHECKSUMS:
   lottie-ios: c55158d67d0629a260625cc2ded2052b829e3c3e
   lottie-react-native: 6f8247a4056c8b47bcb0a543bee2730ba167c921
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: e3117cd61ac93df6d2c315f4a93c9ad724fd8786
-  onfido-react-native-sdk: db95b9b75bae989aa44dfe794974c48e6d176ce1
+  Onfido: e36f284b865adcf99d9c905590a64ac09d4a576b
+  onfido-react-native-sdk: 448b08db971604fb7bcbbd30a779421b5a4a2dd2
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Permission-Camera: bf6791b17c7f614b6826019fcfdcc286d3a107f6
   Permission-LocationAccuracy: 76df17de5c6b8bc2eee34e61ee92cdd7a864c73d

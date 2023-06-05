@@ -53,7 +53,7 @@
     "@formatjs/intl-pluralrules": "^5.2.2",
     "@gorhom/portal": "^1.0.14",
     "@oguzhnatly/react-native-image-manipulator": "github:WoLewicki/react-native-image-manipulator#a05c092862c3fd135420fee76cb9fed4d962c722",
-    "@onfido/react-native-sdk": "git+https://github.com/j-piasecki/onfido-react-native-sdk.git#b62a8bc35b47c9146176268582f31a2614463553",
+    "@onfido/react-native-sdk": "git+https://github.com/j-piasecki/onfido-react-native-sdk.git#75d4bbf16cb6ebf0a025efc42b3e9638cf57cb28",
     "@react-native-async-storage/async-storage": "git+https://github.com/j-piasecki/react-native-async-storage.git#6007b9465cd8f27266c89be25e305489947ebf41",
     "@react-native-camera-roll/camera-roll": "5.4.0",
     "@react-native-clipboard/clipboard": "git+https://github.com/j-piasecki/react-native-clipboard.git#6377e106140124a24b0648c42d91d976dbbbdf26",
