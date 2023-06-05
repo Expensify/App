@@ -33,7 +33,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
-        /** login passed via route /a/:accountID */
+        /** accountID passed via route /a/:accountID */
         accountID: PropTypes.string,
 
         /** report ID passed */
