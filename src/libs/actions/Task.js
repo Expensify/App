@@ -588,6 +588,14 @@ function isTaskCanceled(taskReport) {
     return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
 }
 
+/**
+ * Closes the current open task modal and clears out the task info from the store.
+ */
+function dismissModalAndClearOutTaskInfo() {
+    Navigation.dismissModal();
+    clearOutTaskInfo();
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -605,4 +613,5 @@ export {
     getShareDestination,
     cancelTask,
     isTaskCanceled,
+    dismissModalAndClearOutTaskInfo,
 };

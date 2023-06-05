@@ -71,7 +71,7 @@ const NewTaskDescriptionPage = (props) => {
         >
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.description')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
