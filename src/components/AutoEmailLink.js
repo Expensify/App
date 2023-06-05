@@ -23,14 +23,21 @@ const AutoEmailLink = (props) => (
                     <TextLink
                         key={`${index}-${str}`}
                         href={`mailto:${str}`}
-                        style={[styles.link]}
+                        style={styles.link}
                     >
                         {str}
                     </TextLink>
                 );
             }
 
-            return <Text key={`${index}-${str}`}>{str}</Text>;
+            return (
+                <Text
+                    style={props.style}
+                    key={`${index}-${str}`}
+                >
+                    {str}
+                </Text>
+            );
         })}
     </Text>
 );
