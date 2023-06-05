@@ -118,5 +118,6 @@ const Checkbox = (props) => {
 
 Checkbox.propTypes = propTypes;
 Checkbox.defaultProps = defaultProps;
+Checkbox.displayName = 'Checkbox';
 
 export default Checkbox;
