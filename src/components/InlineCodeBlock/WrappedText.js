@@ -17,7 +17,7 @@ import CONST from '../../CONST';
  * @returns {Array<String[]>}
  */
 function getTextMatrix(text) {
-    return _.map(text.split('\n'), (row) => _.without(row.split(CONST.REGEX.EMOJI_WORD_SPLITTER), ''));
+    return _.map(text.split('\n'), (row) => _.without(row.split(CONST.REGEX.SPACE_OR_EMOJI), ''));
 }
 
 const propTypes = {
