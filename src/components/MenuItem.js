@@ -22,6 +22,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import ControlSelection from '../libs/ControlSelection';
 import variables from '../styles/variables';
+import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -104,7 +105,7 @@ const MenuItem = (props) => {
 
     return (
         <PressableWithSecondaryInteraction
-            onPress={(e) => {
+            onPress={Session.checkIfActionIsAllowed((e) => {
                 if (props.disabled || !props.interactive) {
                     return;
                 }
@@ -114,7 +115,7 @@ const MenuItem = (props) => {
                 }
 
                 props.onPress(e);
-            }}
+            })}
             onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={ControlSelection.unblock}
             onSecondaryInteraction={props.onSecondaryInteraction}

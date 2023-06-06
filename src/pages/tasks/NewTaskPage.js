@@ -68,7 +68,7 @@ const NewTaskPage = (props) => {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
     const [submitError, setSubmitError] = React.useState(false);
-    const [errorMessage, setErrorMessage] = React.useState(props.translate('newTaskPage.confirmError'));
+    const [errorMessage, setErrorMessage] = React.useState('newTaskPage.confirmError');
     const [parentReport, setParentReport] = React.useState({});
 
     useEffect(() => {
@@ -80,7 +80,7 @@ const NewTaskPage = (props) => {
             const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForLogins([props.task.assignee], props.personalDetails), props.task.assignee);
             if (!assigneeDetails) {
                 setSubmitError(true);
-                return setErrorMessage(props.translate('newTaskPage.assigneeError'));
+                return setErrorMessage('newTaskPage.assigneeError');
             }
             const displayDetails = TaskUtils.getAssignee(assigneeDetails);
             setAssignee(displayDetails);
@@ -122,7 +122,7 @@ const NewTaskPage = (props) => {
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title={props.translate('newTaskPage.confirmTask')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
