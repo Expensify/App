@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -13,6 +13,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Current user session */
@@ -54,10 +55,10 @@ function TaskDescriptionPage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('newTaskPage.task')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                 onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
             />
             <Form
