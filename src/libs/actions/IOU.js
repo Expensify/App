@@ -666,7 +666,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
     const transactionThreadID = reportAction.childReportID;
 
-    const shouldDeleteTransactionThread = transactionThreadID ? _.isEmpty(ReportActionsUtils.getLastVisibleAction(transactionThreadID)) : false;
+    const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
     const shouldShowDeletedRequestMessage = transactionThreadID && !shouldDeleteTransactionThread;
     const updatedReportAction = {
         [reportAction.reportActionID]: {
