@@ -133,7 +133,7 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: [],
-    parentReportAcions: {},
+    parentReportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
