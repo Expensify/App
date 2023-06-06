@@ -215,7 +215,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action));
+    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action) || lodashGet(action, ['message', 0, 'isDeletedParentAction'], false));
 
     if (_.isEmpty(visibleActions)) {
         return {};
