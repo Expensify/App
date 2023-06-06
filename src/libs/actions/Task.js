@@ -9,6 +9,7 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
+import * as UserUtils from '../UserUtils';
 
 /**
  * Clears out the task info from the store
@@ -61,7 +62,13 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
-            value: optimisticTaskReport,
+            value: {
+                ...optimisticTaskReport,
+                pendingFields: {
+                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                isOptimisticReport: true,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -80,7 +87,18 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
+                },
+                isOptimisticReport: false,
+            },
+        },
+    ];
 
     const failureData = [
         {
@@ -307,7 +325,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 reportName,
-                description: (description || report.description).trim(),
+                description: description.trim(),
                 managerEmail: assignee || report.managerEmail,
             },
         },
@@ -322,7 +340,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {reportName: report.reportName, description: report.description, assignee: report.assignee},
+            value: {reportName: report.reportName, description: report.description, assignee: report.managerEmail},
         },
     ];
 
@@ -363,7 +381,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             taskReportID: report.reportID,
             title: reportName,
             description: (description || report.description).trim(),
-            assignee: assignee || report.assignee,
+            assignee: assignee || report.managerEmail,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
         },
@@ -424,21 +442,24 @@ function setShareDestinationValue(shareDestination) {
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  * @param {string} assignee
  * @param {string} shareDestination
+ * @param {boolean} isCurrentUser
  */
 
-function setAssigneeValue(assignee, shareDestination) {
-    let newChat = {};
-    const chat = ReportUtils.getChatByParticipants([assignee]);
-    if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport([assignee]);
-    }
-    const reportID = chat ? chat.reportID : newChat.reportID;
+function setAssigneeValue(assignee, shareDestination, isCurrentUser = false) {
+    if (!isCurrentUser) {
+        let newChat = {};
+        const chat = ReportUtils.getChatByParticipants([assignee]);
+        if (!chat) {
+            newChat = ReportUtils.buildOptimisticChatReport([assignee]);
+        }
+        const reportID = chat ? chat.reportID : newChat.reportID;
 
-    if (!shareDestination) {
-        setShareDestinationValue(reportID);
-    }
+        if (!shareDestination) {
+            setShareDestinationValue(reportID);
+        }
 
-    Report.openReport(reportID, [assignee], newChat);
+        Report.openReport(reportID, [assignee], newChat);
+    }
 
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee});
@@ -478,7 +499,7 @@ function getAssignee(details) {
             subtitle: '',
         };
     }
-    const source = ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
+    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
     return {
         icons: [{source, type: 'avatar', name: details.login}],
         displayName: details.displayName,
@@ -567,6 +588,14 @@ function isTaskCanceled(taskReport) {
     return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
 }
 
+/**
+ * Closes the current open task modal and clears out the task info from the store.
+ */
+function dismissModalAndClearOutTaskInfo() {
+    Navigation.dismissModal();
+    clearOutTaskInfo();
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -584,4 +613,5 @@ export {
     getShareDestination,
     cancelTask,
     isTaskCanceled,
+    dismissModalAndClearOutTaskInfo,
 };

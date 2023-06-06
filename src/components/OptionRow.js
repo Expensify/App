@@ -115,7 +115,7 @@ class OptionRow extends Component {
     }
 
     render() {
-        let touchableRef = null;
+        let pressableRef = null;
         const textStyle = this.props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
         const textUnreadStyle = this.props.boldStyle || this.props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
         const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style, styles.pre);
@@ -148,13 +148,13 @@ class OptionRow extends Component {
                 <Hoverable>
                     {(hovered) => (
                         <PressableWithFeedback
-                            ref={(el) => (touchableRef = el)}
+                            ref={(el) => (pressableRef = el)}
                             onPress={(e) => {
                                 this.setState({isDisabled: true});
                                 if (e) {
                                     e.preventDefault();
                                 }
-                                let result = this.props.onSelectRow(this.props.option, touchableRef);
+                                let result = this.props.onSelectRow(this.props.option, pressableRef);
                                 if (!(result instanceof Promise)) {
                                     result = Promise.resolve();
                                 }
@@ -209,7 +209,9 @@ class OptionRow extends Component {
                                             tooltipEnabled={this.props.showTitleTooltip}
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
-                                            shouldUseFullTitle={this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport}
+                                            shouldUseFullTitle={
+                                                this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport || this.props.option.isThread
+                                            }
                                         />
                                         {this.props.option.alternateText ? (
                                             <Text

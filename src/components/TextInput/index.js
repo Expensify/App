@@ -1,6 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import * as styleConst from './styleConst';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 
@@ -17,6 +18,11 @@ class TextInput extends React.Component {
 
     render() {
         const isLabeledMultiline = Boolean(this.props.label.length) && this.props.multiline;
+        const labelAnimationStyle = {
+            '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,
+            '--active-label-scale': `${styleConst.ACTIVE_LABEL_SCALE}`,
+            '--label-transition-duration': `${styleConst.LABEL_ANIMATION_DURATION}ms`,
+        };
 
         return (
             <BaseTextInput
@@ -36,6 +42,7 @@ class TextInput extends React.Component {
                     this.props.innerRef.current = el;
                 }}
                 inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...this.props.inputStyle]}
+                textInputContainerStyles={[labelAnimationStyle, ...this.props.textInputContainerStyles]}
             />
         );
     }

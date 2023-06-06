@@ -796,9 +796,12 @@ const CONST = {
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
         URL: 'url',
+        DEFAULT: 'default',
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    // This is a placeholder for attachment which is uploading
+    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -1119,15 +1122,16 @@ const CONST = {
             // eslint-disable-next-line no-misleading-character-class
             /[\n\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
-        // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
-        EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
-
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
         MENTION_REPLACER:
             // eslint-disable-next-line no-misleading-character-class
             /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
+
+        ROUTES: {
+            VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+        },
     },
 
     PRONOUNS: {
@@ -1203,6 +1207,7 @@ const CONST = {
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
+        WELCOME_MESSAGE: 'welcomeMessage',
     },
 
     FOOTER: {
@@ -1294,7 +1299,6 @@ const CONST = {
 
     USA_COUNTRY_NAME,
     SPACE_LENGTH: 1,
-    SPACE: 1,
 
     ALL_COUNTRIES: {
         AF: 'Afghanistan',
@@ -2424,6 +2428,24 @@ const CONST = {
     // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
     // div and then remove it from copied contents in the getHTMLOfSelection() method.
     UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
+    MODERATION: {
+        MODERATOR_DECISION_PENDING: 'pending',
+        MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        MODERATOR_DECISION_APPROVED: 'approved',
+        MODERATOR_DECISION_HIDDEN: 'hidden',
+        FLAG_SEVERITY_SPAM: 'spam',
+        FLAG_SEVERITY_INCONSIDERATE: 'inconsiderate',
+        FLAG_SEVERITY_INTIMIDATION: 'intimidation',
+        FLAG_SEVERITY_BULLYING: 'bullying',
+        FLAG_SEVERITY_HARASSMENT: 'harassment',
+        FLAG_SEVERITY_ASSAULT: 'assault',
+    },
+    QR: {
+        DEFAULT_LOGO_SIZE_RATIO: 0.25,
+        DEFAULT_LOGO_MARGIN_RATIO: 0.02,
+        EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
+        EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
+    },
 };
 
 export default CONST;
