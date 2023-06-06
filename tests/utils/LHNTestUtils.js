@@ -26,55 +26,64 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const fakePersonalDetails = {
-    'email1@test.com': {
+    1: {
+        accountID: 1,
         login: 'email1@test.com',
         displayName: 'Email One',
         avatar: 'none',
         firstName: 'One',
     },
-    'email2@test.com': {
+    2: {
+        accountID: 2,
         login: 'email2@test.com',
         displayName: 'Email Two',
         avatar: 'none',
         firstName: 'Two',
     },
-    'email3@test.com': {
+    3: {
+        accountID: 3,
         login: 'email3@test.com',
         displayName: 'Email Three',
         avatar: 'none',
         firstName: 'Three',
     },
-    'email4@test.com': {
+    4: {
+        accountID: 4,
         login: 'email4@test.com',
         displayName: 'Email Four',
         avatar: 'none',
         firstName: 'Four',
     },
-    'email5@test.com': {
+    5: {
+        accountID: 5,
         login: 'email5@test.com',
         displayName: 'Email Five',
         avatar: 'none',
         firstName: 'Five',
     },
-    'email6@test.com': {
+    6: {
+        accountID: 6,
         login: 'email6@test.com',
         displayName: 'Email Six',
         avatar: 'none',
         firstName: 'Six',
     },
-    'email7@test.com': {
+    7: {
+        accountID: 7,
         login: 'email7@test.com',
         displayName: 'Email Seven',
         avatar: 'none',
         firstName: 'Seven',
     },
-    'email8@test.com': {
+    8: {
+        accountID: 8,
         login: 'email8@test.com',
         displayName: 'Email Eight',
         avatar: 'none',
         firstName: 'Eight',
     },
-    'email9@test.com': {
+    9: {
+        accountID: 9,
         login: 'email9@test.com',
         displayName: 'Email Nine',
         avatar: 'none',
