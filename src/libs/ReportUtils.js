@@ -193,6 +193,24 @@ function canEditReportAction(reportAction) {
 }
 
 /**
+ * Can only flag if:
+ *
+ * - It was written by someone else
+ * - It's an ADDCOMMENT that is not an attachment
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function canFlagReportAction(reportAction) {
+    return (
+        reportAction.actorEmail !== sessionEmail &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
+    );
+}
+
+/**
  * Whether the Money Request report is settled
  *
  * @param {String} reportID
@@ -223,7 +241,7 @@ function canDeleteReportAction(reportAction, reportID) {
         return true;
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {});
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
     return policy.role === CONST.POLICY.ROLE.ADMIN;
 }
 
@@ -619,10 +637,11 @@ function hasExpensifyEmails(emails) {
  * Whether the time row should be shown for a report.
  * @param {Array<Object>} personalDetails
  * @param {Object} report
+ * @param {String} login
  * @return {Boolean}
  */
-function canShowReportRecipientLocalTime(personalDetails, report) {
-    const reportParticipants = _.without(lodashGet(report, 'participants', []), sessionEmail);
+function canShowReportRecipientLocalTime(personalDetails, report, login) {
+    const reportParticipants = _.without(lodashGet(report, 'participants', []), login);
     const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
     const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
     const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
@@ -645,7 +664,7 @@ function canShowReportRecipientLocalTime(personalDetails, report) {
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return Str.htmlDecode(String(lastMessageText)).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return Str.htmlDecode(String(lastMessageText)).trim().replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -957,7 +976,7 @@ function getMoneyRequestReportName(report) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
 
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+    return Localize.translateLocal(report.hasOutstandingIOU ? 'iou.payerOwesAmount' : 'iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
 }
 
 /**
@@ -1020,6 +1039,16 @@ function getReportName(report) {
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
     return _.map(participantsWithoutCurrentUser, (login) => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
+}
+
+/**
+ * Get the report for a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
 /**
@@ -1145,8 +1174,8 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     reportAction.reportAction.childReportID = taskReportID;
     reportAction.reportAction.parentReportID = parentReportID;
     reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
-    reportAction.reportAction.taskTitle = taskTitle;
-    reportAction.reportAction.taskAssignee = taskAssignee;
+    reportAction.reportAction.childReportName = taskTitle;
+    reportAction.reportAction.childManagerEmail = taskAssignee;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
 
@@ -1236,9 +1265,6 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
     let paymentMethodMessage;
     switch (paymentType) {
-        case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-            paymentMethodMessage = '!';
-            break;
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
             paymentMethodMessage = ' elsewhere';
             break;
@@ -1261,7 +1287,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            iouMessage = isSettlingUp ? `settled up ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+            iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             break;
         default:
             break;
@@ -1992,8 +2018,8 @@ function canRequestMoney(report) {
  * @returns {Array}
  */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
-    // In the transaction thread, we do not allow any new money requests
-    if (ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report))) {
+    // In any thread, we do not allow any new money requests yet
+    if (isThread(report)) {
         return [];
     }
 
@@ -2113,11 +2139,25 @@ function isReportDataReady() {
     return !_.isEmpty(allReports) && _.some(_.keys(allReports), (key) => allReports[key].reportID);
 }
 
+/**
+ * Returns the parentReport if the given report is a thread.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getParentReport(report) {
+    if (!report || !report.parentReportID) {
+        return {};
+    }
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
+    canFlagReportAction,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,
@@ -2149,6 +2189,7 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
+    getReport,
     getReportIDFromLink,
     getRouteFromLink,
     navigateToDetailsPage,
@@ -2199,4 +2240,5 @@ export {
     isAllowedToComment,
     getMoneyRequestAction,
     getBankAccountRoute,
+    getParentReport,
 };

@@ -327,6 +327,11 @@ export default {
                     YearPicker_Root: ROUTES.SELECT_YEAR,
                 },
             },
+            Flag_Comment: {
+                screens: {
+                    FlagComment_Root: ROUTES.FLAG_COMMENT,
+                },
+            },
             [SCREENS.NOT_FOUND]: '*',
         },
     },

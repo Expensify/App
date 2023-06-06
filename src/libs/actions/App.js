@@ -18,7 +18,7 @@ import * as Session from './Session';
 import * as Browser from '../Browser';
 
 let currentUserAccountID;
-let currentUserEmail = '';
+let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {

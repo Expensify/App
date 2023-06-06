@@ -374,6 +374,12 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
+                    name="Flag_Comment"
+                    options={modalScreenOptions}
+                    component={ModalStackNavigators.FlagCommentStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={SCREENS.NOT_FOUND}
                     options={{headerShown: false}}
                     component={NotFoundPage}

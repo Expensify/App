@@ -966,6 +966,18 @@ function getFontSizeStyle(fontSize) {
 }
 
 /**
+ * Returns lineHeight style
+ *
+ * @param {Number} lineHeight
+ * @returns {Object}
+ */
+function getLineHeightStyle(lineHeight) {
+    return {
+        lineHeight,
+    };
+}
+
+/**
  * Gets the correct size for the empty state container based on screen dimensions
  *
  * @param {Boolean} isSmallScreenWidth
@@ -1026,6 +1038,8 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, ho
  * @returns {Object}
  */
 function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeReportRecipientLocalTimeHeight) {
+    'worklet';
+
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
     const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
 
@@ -1208,6 +1222,7 @@ export {
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
     getFontSizeStyle,
+    getLineHeightStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
     getMentionStyle,

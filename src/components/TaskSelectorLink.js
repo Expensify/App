@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';

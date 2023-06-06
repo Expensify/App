@@ -403,7 +403,7 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     });
 }
 
-function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
+function signInWithValidateCode(accountID, code, preferredLocale = CONST.LOCALES.DEFAULT, twoFactorAuthCode = '') {
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
@@ -479,8 +479,8 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
-    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode, preferredLocale);
+function signInWithValidateCodeAndNavigate(accountID, validateCode, preferredLocale = CONST.LOCALES.DEFAULT, twoFactorAuthCode = '') {
+    signInWithValidateCode(accountID, validateCode, preferredLocale, twoFactorAuthCode);
     Navigation.navigate(ROUTES.HOME);
 }
 

@@ -159,6 +159,14 @@ const IOUPreview = (props) => {
         showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
     };
 
+    const getPreviewHeaderText = () => {
+        if (props.isBillSplit) {
+            return props.translate('iou.split');
+        }
+
+        return `${props.translate('iou.cash')}${!props.iouReport.hasOutstandingIOU ? ` • ${props.translate('iou.settledExpensify')}` : ''}`;
+    };
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -174,7 +182,7 @@ const IOUPreview = (props) => {
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewHeaderText()}</Text>
                             {Boolean(getSettledMessage()) && (
                                 <>
                                     <Icon
