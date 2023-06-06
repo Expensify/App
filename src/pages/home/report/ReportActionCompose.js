@@ -798,7 +798,7 @@ class ReportActionCompose extends React.Component {
 
         const suggestionsExist = this.state.suggestedEmojis.length > 0 || this.state.suggestedMentions.length > 0;
 
-        if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
+        if (((!e.shiftKey && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
             e.preventDefault();
             if (this.state.suggestedEmojis.length > 0) {
                 this.insertSelectedEmoji(this.state.highlightedEmojiIndex);
@@ -808,6 +808,7 @@ class ReportActionCompose extends React.Component {
             }
             return;
         }
+
         if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
             e.preventDefault();
             if (suggestionsExist) {

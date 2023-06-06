@@ -10,7 +10,6 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
-const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
@@ -1297,7 +1296,6 @@ const CONST = {
     TFA_CODE_LENGTH: 6,
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 
-    USA_COUNTRY_NAME,
     SPACE_LENGTH: 1,
 
     ALL_COUNTRIES: {
