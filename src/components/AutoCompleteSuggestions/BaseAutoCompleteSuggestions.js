@@ -1,6 +1,5 @@
-import React from 'react';
-import {View} from 'react-native';
-
+import React, {useEffect} from 'react';
+import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 // We take FlatList from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {FlatList} from 'react-native-gesture-handler';
 import styles from '../../styles/styles';
@@ -26,6 +25,7 @@ const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
 };
 
 const BaseAutoCompleteSuggestions = (props) => {
+    const rowHeight = useSharedValue(0);
     /**
      * Render a suggestion menu item component.
      * @param {Object} params
@@ -46,13 +46,21 @@ const BaseAutoCompleteSuggestions = (props) => {
         </PressableWithFeedback>
     );
 
-    const rowHeight = measureHeightOfSuggestionRows(props.suggestions.length, props.isSuggestionPickerLarge);
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT * props.suggestions.length;
+    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, props.shouldIncludeReportRecipientLocalTimeHeight));
+
+    useEffect(() => {
+        rowHeight.value = withTiming(measureHeightOfSuggestionRows(props.suggestions.length, props.isSuggestionPickerLarge), {
+            duration: 100,
+            easing: Easing.inOut(Easing.ease),
+        });
+    }, [props.suggestions.length, props.isSuggestionPickerLarge, rowHeight]);
 
     return (
-        <View
+        <Animated.View
             ref={props.forwardedRef}
-            style={[styles.autoCompleteSuggestionsContainer, StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight, props.shouldIncludeReportRecipientLocalTimeHeight)]}
+            style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
+            exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
         >
             <FlatList
                 keyboardShouldPersistTaps="handled"
@@ -63,7 +71,7 @@ const BaseAutoCompleteSuggestions = (props) => {
                 showsVerticalScrollIndicator={innerHeight > rowHeight}
                 style={{flex: 1}}
             />
-        </View>
+        </Animated.View>
     );
 };
 

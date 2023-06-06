@@ -61,6 +61,7 @@ class BaseReportActionContextMenu extends React.Component {
                 this.props.anchor,
                 this.props.isChronosReport,
                 this.props.reportID,
+                this.props.isPinnedChat,
             );
 
         /**
