@@ -87,6 +87,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
 
@@ -130,6 +133,7 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: [],
+    parentReportAcions: {},
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
