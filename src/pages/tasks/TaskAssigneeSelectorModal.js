@@ -74,6 +74,7 @@ const TaskAssigneeSelectorModal = (props) => {
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
+    const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
 
     useEffect(() => {
         const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, false);
@@ -81,10 +82,11 @@ const TaskAssigneeSelectorModal = (props) => {
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);
         setFilteredUserToInvite(results.userToInvite);
+        setFilteredCurrentUserOption(results.currentUserOption);
     }, [props]);
 
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
@@ -94,11 +96,12 @@ const TaskAssigneeSelectorModal = (props) => {
             false,
         );
 
-        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
+        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), searchValue));
 
         setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
+        setFilteredCurrentUserOption(currentUserOption);
     }, [props, searchValue]);
 
     useEffect(() => {
@@ -122,6 +125,16 @@ const TaskAssigneeSelectorModal = (props) => {
         const sectionsList = [];
         let indexOffset = 0;
 
+        if (filteredCurrentUserOption) {
+            sectionsList.push({
+                title: props.translate('newTaskPage.assignMe'),
+                data: [filteredCurrentUserOption],
+                shouldShow: true,
+                indexOffset,
+            });
+            indexOffset += 1;
+        }
+
         sectionsList.push({
             title: props.translate('common.recents'),
             data: filteredRecentReports,
@@ -136,18 +149,18 @@ const TaskAssigneeSelectorModal = (props) => {
             shouldShow: filteredPersonalDetails?.length > 0,
             indexOffset,
         });
-        indexOffset += filteredRecentReports?.length;
+        indexOffset += filteredPersonalDetails?.length;
 
         if (filteredUserToInvite) {
             sectionsList.push({
                 data: [filteredUserToInvite],
-                shouldShow: filteredUserToInvite?.length > 0,
+                shouldShow: true,
                 indexOffset,
             });
         }
 
         return sectionsList;
-    }, [filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, props]);
+    }, [filteredCurrentUserOption, filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, props]);
 
     const selectReport = (option) => {
         if (!option) {
@@ -159,7 +172,7 @@ const TaskAssigneeSelectorModal = (props) => {
         if (!props.route.params && option.login) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setAssigneeValue(option.login, props.task.shareDestination);
+            TaskUtils.setAssigneeValue(option.login, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             return Navigation.goBack();
         }
 
@@ -167,7 +180,7 @@ const TaskAssigneeSelectorModal = (props) => {
         if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
             // There was an issue where sometimes a new assignee didn't have a DM thread
             // This would cause the app to crash, so we need to make sure we have a DM thread
-            TaskUtils.setAssigneeValue(option.login, props.task.shareDestination);
+            TaskUtils.setAssigneeValue(option.login, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             // Pass through the selected assignee
             TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', '', option.login);
         }

@@ -246,6 +246,8 @@ class ReportScreen extends React.Component {
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
         const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
 
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+
         return (
             <ScreenWrapper style={screenWrapperStyle}>
                 <FullPageNotFoundView
@@ -315,6 +317,7 @@ class ReportScreen extends React.Component {
                                 report={this.props.report}
                                 isComposerFullSize={this.props.isComposerFullSize}
                                 parentViewHeight={this.state.skeletonViewContainerHeight}
+                                policy={policy}
                             />
                         )}
 

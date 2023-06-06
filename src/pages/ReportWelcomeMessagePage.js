@@ -77,6 +77,7 @@ function ReportWelcomeMessagePage(props) {
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
+                            textAlignVertical="top"
                         />
                     </View>
                 </Form>

@@ -38,12 +38,22 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reportActions: [],
+    policy: null,
 };
 
 class ReportActionsView extends React.Component {
@@ -161,6 +171,14 @@ class ReportActionsView extends React.Component {
         }
 
         if (lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum') || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum')) {
+            return true;
+        }
+
+        if (lodashGet(this.props, 'policy.avatar') !== lodashGet(nextProps, 'policy.avatar')) {
+            return true;
+        }
+
+        if (lodashGet(this.props, 'policy.name') !== lodashGet(nextProps, 'policy.name')) {
             return true;
         }
 

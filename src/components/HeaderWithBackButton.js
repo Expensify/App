@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View, Keyboard, Pressable} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import styles from '../styles/styles';
 import Header from './Header';
 import Navigation from '../libs/Navigation/Navigation';
@@ -18,6 +18,7 @@ import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import PinButton from './PinButton';
 
 const propTypes = {
@@ -162,7 +163,7 @@ class HeaderWithBackButton extends Component {
                 <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                     {this.props.shouldShowBackButton && (
                         <Tooltip text={this.props.translate('common.back')}>
-                            <Pressable
+                            <PressableWithoutFeedback
                                 onPress={() => {
                                     if (this.props.isKeyboardShown) {
                                         Keyboard.dismiss();
@@ -170,9 +171,11 @@ class HeaderWithBackButton extends Component {
                                     this.props.onBackButtonPress();
                                 }}
                                 style={[styles.touchableButtonImage]}
+                                accessibilityRole="button"
+                                accessibilityLabel={this.props.translate('common.back')}
                             >
                                 <Icon src={Expensicons.BackArrow} />
-                            </Pressable>
+                            </PressableWithoutFeedback>
                         </Tooltip>
                     )}
                     {this.props.shouldShowAvatarWithDisplay && (
@@ -191,7 +194,7 @@ class HeaderWithBackButton extends Component {
                     <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                         {this.props.shouldShowDownloadButton && (
                             <Tooltip text={this.props.translate('common.download')}>
-                                <Pressable
+                                <PressableWithoutFeedback
                                     onPress={(e) => {
                                         // Blur the pressable in case this button triggers a Growl notification
                                         // We do not want to overlap Growl with the Tooltip (#15271)
@@ -199,25 +202,27 @@ class HeaderWithBackButton extends Component {
                                         this.triggerButtonCompleteAndDownload();
                                     }}
                                     style={[styles.touchableButtonImage]}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={this.props.translate('common.download')}
                                 >
                                     <Icon
                                         src={Expensicons.Download}
                                         fill={StyleUtils.getIconFillColor(getButtonState(false, false, this.props.isDelayButtonStateComplete))}
                                     />
-                                </Pressable>
+                                </PressableWithoutFeedback>
                             </Tooltip>
                         )}
 
                         {this.props.shouldShowGetAssistanceButton && (
                             <Tooltip text={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}>
-                                <Pressable
+                                <PressableWithoutFeedback
                                     onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
                                     style={[styles.touchableButtonImage]}
                                     accessibilityRole="button"
                                     accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
                                 >
                                     <Icon src={Expensicons.QuestionMark} />
-                                </Pressable>
+                                </PressableWithoutFeedback>
                             </Tooltip>
                         )}
 
@@ -233,14 +238,14 @@ class HeaderWithBackButton extends Component {
 
                         {this.props.shouldShowCloseButton && (
                             <Tooltip text={this.props.translate('common.close')}>
-                                <Pressable
+                                <PressableWithoutFeedback
                                     onPress={this.props.onCloseButtonPress}
                                     style={[styles.touchableButtonImage]}
                                     accessibilityRole="button"
                                     accessibilityLabel={this.props.translate('common.close')}
                                 >
                                     <Icon src={Expensicons.Close} />
-                                </Pressable>
+                                </PressableWithoutFeedback>
                             </Tooltip>
                         )}
                     </View>

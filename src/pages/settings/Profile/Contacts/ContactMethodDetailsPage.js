@@ -230,7 +230,7 @@ class ContactMethodDetailsPage extends Component {
                             <DotIndicatorMessage
                                 type="success"
                                 style={[styles.mb3]}
-                                messages={{0: this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
+                                messages={{0: ['contacts.enterMagicCode', {contactMethod: formattedContactMethod}]}}
                             />
                             <ValidateCodeForm
                                 contactMethod={contactMethod}

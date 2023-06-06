@@ -20,6 +20,7 @@ import * as Session from '../../libs/actions/Session';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import ConfirmationPage from '../../components/ConfirmationPage';
 import ROUTES from '../../ROUTES';
+import FormHelpMessage from '../../components/FormHelpMessage';
 
 const propTypes = {
     /* Onyx Props */
@@ -200,7 +201,10 @@ class PasswordPage extends Component {
                                 {shouldShowNewPasswordPrompt && <Text style={[styles.textLabelSupporting, styles.mt1]}>{this.props.translate('passwordPage.newPasswordPrompt')}</Text>}
                             </View>
                             {_.every(this.state.errors, (error) => !error) && !_.isEmpty(this.props.account.errors) && (
-                                <Text style={styles.formError}>{ErrorUtils.getLatestErrorMessage(this.props.account)}</Text>
+                                <FormHelpMessage
+                                    isError
+                                    message={ErrorUtils.getLatestErrorMessage(this.props.account)}
+                                />
                             )}
                         </ScrollView>
                         <FixedFooter style={[styles.flexGrow0]}>

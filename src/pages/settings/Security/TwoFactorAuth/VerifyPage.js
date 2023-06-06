@@ -17,6 +17,8 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import TextLink from '../../../../components/TextLink';
 import Clipboard from '../../../../libs/Clipboard';
 import FixedFooter from '../../../../components/FixedFooter';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import QRCode from '../../../../components/QRCode';
 import expensifyLogo from '../../../../../assets/images/expensify-logo-round-transparent.png';
@@ -121,10 +123,13 @@ function VerifyPage(props) {
                         <Text style={styles.mt5}>{props.translate('twoFactorAuth.addKey')}</Text>
                         <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             {Boolean(props.account.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(props.account.twoFactorAuthSecretKey)}</Text>}
-                            <Button
+                            <PressableWithDelayToggle
                                 text={props.translate('twoFactorAuth.copy')}
+                                icon={Expensicons.Copy}
+                                inline={false}
                                 onPress={() => Clipboard.setString(props.account.twoFactorAuthSecretKey)}
-                                medium
+                                styles={[styles.button, styles.buttonMedium]}
+                                textStyles={[styles.buttonMediumText]}
                             />
                         </View>
                         <Text style={styles.mt11}>{props.translate('twoFactorAuth.enterCode')}</Text>

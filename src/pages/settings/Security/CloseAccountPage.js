@@ -3,7 +3,10 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
@@ -17,8 +20,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Form from '../../../components/Form';
 import CONST from '../../../CONST';
 import ConfirmModal from '../../../components/ConfirmModal';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /** Session of currently logged in user */
@@ -117,7 +118,7 @@ class CloseAccountPage extends Component {
                             label={this.props.translate('closeAccountPage.enterDefaultContact')}
                             containerStyles={[styles.mt5]}
                             autoCorrect={false}
-                            keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                            keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}
                         />
                         <ConfirmModal
                             title={this.props.translate('closeAccountPage.closeAccountWarning')}

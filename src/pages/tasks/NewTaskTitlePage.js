@@ -78,6 +78,8 @@ const NewTaskTitlePage = (props) => {
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.title')}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <Form

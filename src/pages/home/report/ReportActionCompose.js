@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+// eslint-disable-next-line no-restricted-imports
 import {View, TouchableOpacity, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -621,7 +622,7 @@ class ReportActionCompose extends React.Component {
         const commentBeforeColon = this.state.value.slice(0, this.state.colonIndex);
         const emojiObject = this.state.suggestedEmojis[highlightedEmojiIndex];
         const emojiCode = emojiObject.types && emojiObject.types[this.props.preferredSkinTone] ? emojiObject.types[this.props.preferredSkinTone] : emojiObject.code;
-        const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end).replace(CONST.REGEX.EMOJI_REPLACER, CONST.SPACE);
+        const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end);
 
         this.updateComment(`${commentBeforeColon}${emojiCode} ${this.trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
         // In some Android phones keyboard, the text to search for the emoji is not cleared
