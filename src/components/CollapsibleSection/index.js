@@ -1,11 +1,12 @@
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Collapsible from './Collapsible';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Title of the Collapsible section */
@@ -38,13 +39,22 @@ class CollapsibleSection extends React.Component {
 
         return (
             <View style={styles.mt4}>
-                <TouchableOpacity
+                <PressableWithFeedback
                     onPress={this.toggleSection}
                     style={[styles.pb4, styles.flexRow]}
+                    accessibilityRole="button"
+                    accessibilityLabel={this.props.title}
+                    hoverDimmingValue={1}
+                    pressDimmingValue={0.2}
                 >
-                    <Text style={[styles.flex1, styles.textStrong]}>{this.props.title}</Text>
+                    <Text
+                        selectable={false}
+                        style={[styles.flex1, styles.textStrong]}
+                    >
+                        {this.props.title}
+                    </Text>
                     <Icon src={src} />
-                </TouchableOpacity>
+                </PressableWithFeedback>
                 <View style={styles.collapsibleSectionBorder} />
 
                 <Collapsible isOpened={this.state.isExpanded}>

@@ -76,7 +76,7 @@ function TaskTitlePage(props) {
                 title={props.translate('newTaskPage.task')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
