@@ -146,7 +146,7 @@ const OptionRowLHN = (props) => {
                         ]}
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
-                        >
+                    >
                         <View
                             style={sidebarInnerRowStyle}
                             accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
