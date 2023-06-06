@@ -14,6 +14,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
 import * as TaskUtils from '../../libs/actions/Task';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Task Report Info */
@@ -75,7 +76,7 @@ function TaskTitlePage(props) {
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.task')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                 onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
             />
             <Form

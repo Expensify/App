@@ -124,7 +124,7 @@ const NewTaskPage = (props) => {
                 title={props.translate('newTaskPage.confirmTask')}
                 onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK_DETAILS)}
             />
             <View style={[styles.mt5, styles.ph5, styles.containerWithSpaceBetween]}>
                 <View>

@@ -80,7 +80,7 @@ const NewTaskTitlePage = (props) => {
                 title={props.translate('newTaskPage.title')}
                 onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}

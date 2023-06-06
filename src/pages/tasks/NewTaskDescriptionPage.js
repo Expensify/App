@@ -72,7 +72,7 @@ const NewTaskDescriptionPage = (props) => {
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.description')}
                 onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}

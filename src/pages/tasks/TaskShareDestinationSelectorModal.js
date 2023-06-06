@@ -18,6 +18,7 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
 import * as TaskUtils from '../../libs/actions/Task';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -143,7 +144,7 @@ const TaskShareDestinationSelectorModal = (props) => {
                 <>
                     <HeaderWithBackButton
                         title={props.translate('newTaskPage.shareSomewhere')}
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
