@@ -40,7 +40,7 @@ const EmailDeliveryFailurePage = (props) => {
                         {props.translate('emailDeliveryFailurePage.emailAliases')}
                     </Text>
                     <Text style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>{props.translate('emailDeliveryFailurePage.whitelistExpensify')}</Text>
+                        <Text style={[styles.textStrong]}>{props.translate('emailDeliveryFailurePage.ensureYourEmailClient')}</Text>
                         {props.translate('emailDeliveryFailurePage.youCanFindDirections')}
                         <TextLink
                             href="https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify/p1?new=1"

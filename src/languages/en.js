@@ -761,7 +761,7 @@ export default {
         ourEmailProvider: ({login}) => `Our email provider has temporarily suspended emails to ${login} due to delivery issues. To unblock your login, please follow these steps:`,
         confirmThat: ({login}) => `Confirm that ${login} is spelled correctly and is a real, deliverable email address. `,
         emailAliases: 'Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.',
-        whitelistExpensify: 'Whitelist expensify.com from your email client. ',
+        ensureYourEmailClient: 'Ensure your email client allows expensify.com emails. ',
         youCanFindDirections: 'You can find directions on how to complete this step ',
         helpConfigure: ' but you may need your IT department to help configure your email settings.',
         onceTheAbove: 'Once the above steps are completed, please reach out to ',
