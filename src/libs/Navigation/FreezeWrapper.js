@@ -20,10 +20,10 @@ function FreezeWrapper(props) {
     const screenIndexRef = useRef(null);
     const isFocused = useIsFocused();
     const navigation = useNavigation();
-    const route = useRoute();
+    const currentRoute = useRoute();
 
     useEffect(() => {
-        const index = lodashFindIndex(navigation.getState().routes, (o) => o.key === route.key);
+        const index = lodashFindIndex(navigation.getState().routes, (route) => route.key === currentRoute.key);
         screenIndexRef.current = index;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
