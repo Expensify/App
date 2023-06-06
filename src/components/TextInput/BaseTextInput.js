@@ -190,8 +190,6 @@ function BaseTextInput(props) {
         }
     }, [activateLabel, deactivateLabel, isFocused, props.value]);
 
-    // I feel like this is the region where imperative functions are starting:
-
     const propOnInputChange = props.onInputChange;
     /**
      * Set Value & activateLabel
