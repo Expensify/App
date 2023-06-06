@@ -97,6 +97,7 @@ class Checkbox extends React.Component {
                             this.props.isChecked && styles.checkedContainer,
                             this.props.hasError && styles.borderColorDanger,
                             this.props.disabled && styles.cursorDisabled,
+                            this.props.isChecked && styles.borderColorFocus,
                         ]}
                         // Used as CSS selector to customize focus-visible style
                         dataSet={{checkbox: true}}
