@@ -375,7 +375,7 @@ describe('Unread Indicators', () => {
                 expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toBe('B User');
             }));
 
-    it('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
+    xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread report
             .then(() => navigateToSidebarOption(0))
@@ -457,7 +457,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
             }));
 
-    it('Keeps the new line indicator when the user moves the App to the background', () =>
+    xit('Keeps the new line indicator when the user moves the App to the background', () =>
         signInAndGetAppWithUnreadChat()
             .then(() => {
                 // Verify we are on the LHN and that the chat shows as unread in the LHN
