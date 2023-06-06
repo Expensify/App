@@ -8,10 +8,11 @@ import Text from './Text';
 import colors from '../styles/colors';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
+import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /** Error or hint text. Ignored when children is not empty */
-    message: PropTypes.string,
+    message: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
 
     /** Children to render next to dot indicator */
     children: PropTypes.node,
@@ -35,6 +36,7 @@ const FormHelpMessage = (props) => {
         return null;
     }
 
+    const translatedMessage = Localize.translateIfPhraseKey(props.message);
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, ...props.style]}>
             {props.isError && (
@@ -44,7 +46,7 @@ const FormHelpMessage = (props) => {
                 />
             )}
             <View style={[styles.flex1, props.isError && styles.ml2]}>
-                {props.children || <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>{props.message}</Text>}
+                {props.children || <Text style={[props.isError ? styles.formError : styles.formHelp, styles.mb0]}>{translatedMessage}</Text>}
             </View>
         </View>
     );
