@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 
 const propTypes = {
     /** Source image */
-    avatarSource: PropTypes.oneOfType([PropTypes.object, PropTypes.number]),
+    avatarSource: PropTypes.oneOfType([PropTypes.object, PropTypes.func]),
     /** User's name */
     name: PropTypes.string,
     /** User's handle */
