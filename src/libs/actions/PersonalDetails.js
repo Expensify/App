@@ -375,7 +375,7 @@ function updateAvatar(file) {
  */
 function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserAccountID);
+    const defaultAvatar = UserUtils.getDefaultAvatarURL(`${currentUserAccountID}`);
 
     API.write(
         'DeleteUserAvatar',
