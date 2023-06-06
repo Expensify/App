@@ -334,7 +334,6 @@ class AttachmentCarousel extends React.Component {
                         // promotes the natural feeling of swiping left/right to go to the next/previous image
                         // We don't want to invert the list for desktop/web because this interferes with mouse
                         // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
-                        // inverted={this.canUseTouchScreen}
                         decelerationRate="fast"
                         showsHorizontalScrollIndicator={false}
                         bounces={false}
