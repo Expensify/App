@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithDelayToggle from './PressableWithDelayToggle';
@@ -21,9 +21,9 @@ const defaultProps = {
 };
 
 const CopyTextToClipboard = (props) => {
-    const copyToClipboard = () => {
+    const copyToClipboard = useCallback(() => {
         Clipboard.setString(props.text);
-    }
+    }, [props.text]);
 
     return (
         <PressableWithDelayToggle
@@ -39,5 +39,6 @@ const CopyTextToClipboard = (props) => {
 
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;
+CopyTextToClipboard.displayName = 'CopyTextToClipboard';
 
 export default withLocalize(CopyTextToClipboard);
