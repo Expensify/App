@@ -148,7 +148,7 @@ function BaseValidateCodeForm(props) {
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
-                            messages={{0: props.translate('resendValidationForm.linkHasBeenResent')}}
+                            messages={{0: 'resendValidationForm.linkHasBeenResent'}}
                         />
                     )}
                 </View>
