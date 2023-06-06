@@ -1873,8 +1873,6 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
         excludeEmptyChats &&
         _.isEmpty(report.lastMessageText) &&
         _.isEmpty(report.lastMessageHtml) &&
-        !_.isEmpty(report.participants) &&
-        report.participants.length < 3 &&
         isChatReport(report) &&
         !isChatRoom(report) &&
         !isThread(report)
