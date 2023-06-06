@@ -473,7 +473,7 @@ class BasePaymentsPage extends React.Component {
                                         showConfirmDeleteContent: true,
                                     });
                                 }}
-                                style={[shouldShowMakeDefaultButton && styles.mt4]}
+                                style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                                 text={this.props.translate('common.delete')}
                                 danger
                             />
