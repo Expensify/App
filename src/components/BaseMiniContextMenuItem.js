@@ -1,4 +1,4 @@
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -7,6 +7,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
 import variables from '../styles/variables';
 import Tooltip from './Tooltip';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /**
@@ -48,9 +49,8 @@ const defaultProps = {
  */
 const BaseMiniContextMenuItem = (props) => (
     <Tooltip text={props.tooltipText}>
-        <Pressable
+        <PressableWithoutFeedback
             ref={props.innerRef}
-            focusable
             onPress={props.onPress}
             accessibilityLabel={props.tooltipText}
             style={({hovered, pressed}) => [
@@ -63,7 +63,7 @@ const BaseMiniContextMenuItem = (props) => (
                     {_.isFunction(props.children) ? props.children(pressableState) : props.children}
                 </View>
             )}
-        </Pressable>
+        </PressableWithoutFeedback>
     </Tooltip>
 );
 
