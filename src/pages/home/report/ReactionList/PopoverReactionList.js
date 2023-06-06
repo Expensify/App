@@ -15,6 +15,7 @@ import withCurrentUserPersonalDetails from '../../../../components/withCurrentUs
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import emojis from '../../../../../assets/emojis';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -70,8 +71,8 @@ class PopoverReactionList extends React.Component {
     shouldComponentUpdate(nextProps, nextState) {
         const selectedReaction = this.getSelectedReaction(nextProps.reportActions, nextState.reportActionID, nextState.emojiName);
         const {emojiCount, emojiCodes, hasUserReacted, users} = this.getReactionInformation(selectedReaction);
-        const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
-        const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
+        const previousLocale = lodashGet(this.props, 'preferredLocale', CONST.LOCALES.DEFAULT);
+        const nextLocale = lodashGet(nextProps, 'preferredLocale', CONST.LOCALES.DEFAULT);
 
         return (
             this.state.isPopoverVisible !== nextState.isPopoverVisible ||
