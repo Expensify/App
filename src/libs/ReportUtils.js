@@ -989,6 +989,10 @@ function getMoneyRequestReportName(report) {
  * @returns {String}
  */
 function getTransactionReportName(reportAction) {
+    if (lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false)) {
+        return Localize.translateLocal('parentReportAction.deletedRequest');
+    }
+
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
         formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
         comment: lodashGet(reportAction, 'originalMessage.comment'),
