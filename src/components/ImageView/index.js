@@ -12,6 +12,10 @@ const propTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
+    /** Handles scale changed event in image zoom component. Used on native only */
+    // eslint-disable-next-line react/no-unused-prop-types
+    onScaleChanged: PropTypes.func.isRequired,
+
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
     ...windowDimensionsPropTypes,
@@ -282,6 +286,7 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
+                        isAuthTokenRequired={this.props.isAuthTokenRequired}
                         style={[styles.h100, styles.w100]}
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}

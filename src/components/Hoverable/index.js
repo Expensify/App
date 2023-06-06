@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View} from 'react-native';
 import {propTypes, defaultProps} from './hoverablePropTypes';
 
 /**
@@ -69,61 +68,54 @@ class Hoverable extends Component {
     }
 
     render() {
-        if (this.props.absolute && React.isValidElement(this.props.children)) {
-            return React.cloneElement(React.Children.only(this.props.children), {
-                ref: (el) => {
-                    this.wrapperView = el;
-
-                    // Call the original ref, if any
-                    const {ref} = this.props.children;
-                    if (_.isFunction(ref)) {
-                        ref(el);
-                    }
-                },
-                onMouseEnter: (el) => {
-                    this.setIsHovered(true);
-
-                    if (_.isFunction(this.props.children.props.onMouseEnter)) {
-                        this.props.children.props.onMouseEnter(el);
-                    }
-                },
-                onMouseLeave: (el) => {
-                    this.setIsHovered(false);
-
-                    if (_.isFunction(this.props.children.props.onMouseLeave)) {
-                        this.props.children.props.onMouseLeave(el);
-                    }
-                },
-                onBlur: (el) => {
-                    if (!this.wrapperView.contains(el.relatedTarget)) {
-                        this.setIsHovered(false);
-                    }
-
-                    if (_.isFunction(this.props.children.props.onBlur)) {
-                        this.props.children.props.onBlur(el);
-                    }
-                },
-            });
+        let child = this.props.children;
+        if (_.isArray(this.props.children) && this.props.children.length === 1) {
+            child = this.props.children[0];
         }
-        return (
-            <View
-                style={this.props.containerStyles}
-                ref={(el) => (this.wrapperView = el)}
-                onMouseEnter={() => this.setIsHovered(true)}
-                onMouseLeave={() => this.setIsHovered(false)}
-                onBlur={(el) => {
-                    if (this.wrapperView.contains(el.relatedTarget)) {
-                        return;
-                    }
-                    this.setIsHovered(false);
-                }}
-            >
-                {
-                    // If this.props.children is a function, call it to provide the hover state to the children.
-                    _.isFunction(this.props.children) ? this.props.children(this.state.isHovered) : this.props.children
+
+        if (_.isFunction(child)) {
+            child = child(this.state.isHovered);
+        }
+
+        return React.cloneElement(React.Children.only(child), {
+            ref: (el) => {
+                this.wrapperView = el;
+
+                // Call the original ref, if any
+                const {ref} = child;
+                if (_.isFunction(ref)) {
+                    ref(el);
+                    return;
                 }
-            </View>
-        );
+
+                if (_.isObject(ref)) {
+                    ref.current = el;
+                }
+            },
+            onMouseEnter: (el) => {
+                this.setIsHovered(true);
+
+                if (_.isFunction(child.props.onMouseEnter)) {
+                    child.props.onMouseEnter(el);
+                }
+            },
+            onMouseLeave: (el) => {
+                this.setIsHovered(false);
+
+                if (_.isFunction(child.props.onMouseLeave)) {
+                    child.props.onMouseLeave(el);
+                }
+            },
+            onBlur: (el) => {
+                if (!this.wrapperView.contains(el.relatedTarget)) {
+                    this.setIsHovered(false);
+                }
+
+                if (_.isFunction(child.props.onBlur)) {
+                    child.props.onBlur(el);
+                }
+            },
+        });
     }
 }
 

@@ -2,6 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+// eslint-disable-next-line no-restricted-imports
 import {TouchableOpacity, View, StyleSheet, InteractionManager} from 'react-native';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
@@ -144,7 +145,7 @@ class OptionRow extends Component {
                 errors={this.props.option.allReportErrors}
                 shouldShowErrorMessages={false}
             >
-                <Hoverable containerStyles={[this.props.isDisabled ? styles.userSelectNone : null]}>
+                <Hoverable>
                     {(hovered) => (
                         <TouchableOpacity
                             ref={(el) => (touchableRef = el)}
@@ -206,7 +207,9 @@ class OptionRow extends Component {
                                             tooltipEnabled={this.props.showTitleTooltip}
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
-                                            shouldUseFullTitle={this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport}
+                                            shouldUseFullTitle={
+                                                this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport || this.props.option.isThread
+                                            }
                                         />
                                         {this.props.option.alternateText ? (
                                             <Text

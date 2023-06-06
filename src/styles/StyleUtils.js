@@ -6,7 +6,7 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
-import * as ReportUtils from '../libs/ReportUtils';
+import * as UserUtils from '../libs/UserUtils';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -55,6 +55,12 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
 };
 
+const emptyAvatarStyles = {
+    [CONST.AVATAR_SIZE.SMALL]: styles.emptyAvatarSmall,
+    [CONST.AVATAR_SIZE.MEDIUM]: styles.emptyAvatarMedium,
+    [CONST.AVATAR_SIZE.LARGE]: styles.emptyAvatarLarge,
+};
+
 /**
  * Return the style size from an avatar size constant
  *
@@ -63,6 +69,25 @@ const avatarSizes = {
  */
 function getAvatarSize(size) {
     return avatarSizes[size];
+}
+
+/**
+ * Return the height of magic code input container
+ *
+ * @returns {Object}
+ */
+function getHeightOfMagicCodeInput() {
+    return {height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth};
+}
+
+/**
+ * Return the style from an empty avatar size constant
+ *
+ * @param {String} size
+ * @returns {Object}
+ */
+function getEmptyAvatarStyle(size) {
+    return emptyAvatarStyles[size];
 }
 
 /**
@@ -162,7 +187,7 @@ function getAvatarBorderStyle(size, type) {
  * @returns {Object}
  */
 function getDefaultWorkspaceAvatarColor(workspaceName) {
-    const colorHash = ReportUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
+    const colorHash = UserUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
@@ -321,7 +346,9 @@ function getAutoGrowHeightInputStyle(textInputHeight, maxHeight) {
     return {
         ...styles.pr0,
         ...styles.overflowHidden,
-        height: maxHeight,
+        // maxHeight is not of the input only but the of the whole input container
+        // which also includes the top padding and bottom border
+        height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
     };
 }
 
@@ -939,6 +966,18 @@ function getFontSizeStyle(fontSize) {
 }
 
 /**
+ * Returns lineHeight style
+ *
+ * @param {Number} lineHeight
+ * @returns {Object}
+ */
+function getLineHeightStyle(lineHeight) {
+    return {
+        lineHeight,
+    };
+}
+
+/**
  * Gets the correct size for the empty state container based on screen dimensions
  *
  * @param {Boolean} isSmallScreenWidth
@@ -999,6 +1038,8 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, ho
  * @returns {Object}
  */
 function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeReportRecipientLocalTimeHeight) {
+    'worklet';
+
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
     const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
 
@@ -1007,6 +1048,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
     return {
         overflow: 'hidden',
         top: -(itemsHeight + padding),
+        height: itemsHeight,
     };
 }
 
@@ -1127,6 +1169,7 @@ export {
     getAvatarExtraFontSizeStyle,
     getAvatarBorderWidth,
     getAvatarBorderStyle,
+    getEmptyAvatarStyle,
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
@@ -1179,8 +1222,10 @@ export {
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
     getFontSizeStyle,
+    getLineHeightStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
     getMentionStyle,
     getMentionTextColor,
+    getHeightOfMagicCodeInput,
 };
