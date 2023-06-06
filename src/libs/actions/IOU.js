@@ -749,6 +749,16 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         }] : []),
     ];
 
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [reportAction.reportActionID]: {pendingAction: null},
+            },
+        },
+    ]
+
     // const successData = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
@@ -789,7 +799,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             transactionID,
             reportActionID: reportAction.reportActionID,
         },
-        {optimisticData},
+        {optimisticData, successData},
     );
 
     if (isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
