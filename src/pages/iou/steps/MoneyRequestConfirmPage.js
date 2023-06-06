@@ -123,7 +123,7 @@ const MoneyRequestConfirmPage = (props) => {
 
     const participants = useMemo(
         () =>
-            lodashGet(props.iou, ['participants', 0, 'isPolicyExpenseChat'], false) || lodashGet(props.iou, ['participants', 0, 'isOwnPolicyExpenseChat'], false)
+            Boolean(lodashGet(props.iou, ['participants', 0, 'reportID'], 0))
                 ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
                 : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
         // The rule can't recognize that we are accessing participants from props.iou, so let's ignore the warning
