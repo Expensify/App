@@ -62,18 +62,19 @@ const AvatarWithDisplayName = (props) => {
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Tooltip text={title}>
-                        <View>
-                            {isExpenseReport ? (
-                                <SubscriptAvatar
-                                    backgroundColor={themeColors.highlightBG}
-                                    mainAvatar={icons[0]}
-                                    secondaryAvatar={icons[1]}
-                                    mainTooltip={props.report.ownerEmail}
-                                    secondaryTooltip={subtitle}
-                                    size={props.size}
-                                />
-                            ) : (
+                    {isExpenseReport ? (
+                        <SubscriptAvatar
+                            backgroundColor={themeColors.highlightBG}
+                            mainAvatar={icons[0]}
+                            secondaryAvatar={icons[1]}
+                            mainTooltip={props.report.ownerEmail}
+                            secondaryTooltip={subtitle}
+                            size={props.size}
+                            noMargin
+                        />
+                    ) : (
+                        <Tooltip text={props.report.ownerEmail}>
+                            <View>
                                 <Avatar
                                     size={props.size}
                                     source={icons[0].source}
@@ -81,9 +82,9 @@ const AvatarWithDisplayName = (props) => {
                                     name={icons[0].name}
                                     containerStyles={avatarContainerStyle}
                                 />
-                            )}
-                        </View>
-                    </Tooltip>
+                            </View>
+                        </Tooltip>
+                    )}
                     <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                         <DisplayNames
                             fullTitle={title}
@@ -91,7 +92,7 @@ const AvatarWithDisplayName = (props) => {
                             tooltipEnabled
                             numberOfLines={1}
                             textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isExpenseReport || props.isAnonymous}
+                            shouldUseFullTitle={props.isAnonymous}
                         />
                         {!_.isEmpty(subtitle) && (
                             <Text

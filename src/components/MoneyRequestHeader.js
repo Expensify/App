@@ -82,7 +82,6 @@ const MoneyRequestHeader = (props) => {
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerEmail);
-    const payeeTooltipName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : moneyRequestReport.managerEmail;
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
         : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
@@ -118,7 +117,7 @@ const MoneyRequestHeader = (props) => {
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Tooltip text={payeeTooltipName}>
+                        <Tooltip text={isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : moneyRequestReport.managerEmail}>
                             <View>
                                 <Avatar
                                     source={payeeAvatar}
@@ -130,7 +129,7 @@ const MoneyRequestHeader = (props) => {
                         </Tooltip>
                         <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                             <View style={[styles.alignItemsStart]}>
-                                <Tooltip text={payeeTooltipName}>
+                                <Tooltip text={isExpenseReport ? '' : moneyRequestReport.managerEmail}>
                                     <Text
                                         style={[styles.headerText, styles.pre]}
                                         numberOfLines={1}
