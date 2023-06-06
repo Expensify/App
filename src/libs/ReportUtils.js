@@ -21,7 +21,6 @@ import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAva
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
-import * as ReportActionsUtils from './ReportActionsUtils'
 
 let sessionEmail;
 Onyx.connect({
