@@ -5,7 +5,7 @@ import Tooltip from '../Tooltip';
 import { propTypes, defaultProps } from './userDetailsTooltipPropTypes';
 import styles from '../../styles/styles';
 
-const UserDetailsTooltip = (props) => {
+function UserDetailsTooltip(props){
     const { avatarSource, name, handle, children } = props
 
     return (
