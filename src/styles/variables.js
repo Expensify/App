@@ -37,6 +37,7 @@ export default {
     avatarSizeSmaller: 24,
     avatarSizeMidSubscript: 18,
     avatarSizeSubscript: 20,
+    avatarSizeMentionIcon: 16,
     avatarSizeSmallSubscript: 14,
     defaultAvatarPreviewSize: 360,
     fontSizeOnlyEmojis: 30,

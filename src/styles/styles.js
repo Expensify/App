@@ -179,6 +179,7 @@ const styles = {
         position: 'absolute',
         left: 0,
         right: 0,
+        paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
     },
 
     autoCompleteSuggestionContainer: {
@@ -197,10 +198,25 @@ const styles = {
         fontSize: variables.fontSizeMedium,
     },
 
+    mentionSuggestionsAvatarContainer: {
+        width: 24,
+        height: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     mentionSuggestionsText: {
         fontSize: variables.fontSizeMedium,
-        flex: 1,
         ...spacing.ml2,
+    },
+
+    mentionSuggestionsDisplayName: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+    },
+
+    mentionSuggestionsHandle: {
+        color: themeColors.textSupporting,
     },
 
     unitCol: {
