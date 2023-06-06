@@ -59,7 +59,7 @@ let currentUserPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        currentUserPersonalDetails = lodashGet(val, currentUserEmail, {});
+        currentUserPersonalDetails = lodashGet(val, currentUserAccountID, {});
         allPersonalDetails = val;
     },
 });
@@ -1129,12 +1129,12 @@ function buildOptimisticAddCommentReportAction(text, file) {
             person: [
                 {
                     style: 'strong',
-                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    text: lodashGet(allPersonalDetails, [currentUserAccountID, 'displayName'], currentUserEmail),
                     type: 'TEXT',
                 },
             ],
             automatic: false,
-            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
+            avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
             created: DateUtils.getDBTime(),
             message: [
                 {
@@ -1350,7 +1350,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(type, amount, comment, currency, paymentType, isSettlingUp),
@@ -1388,6 +1388,7 @@ function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
             linkedReportID: iouReportID,
         },
         actorEmail: currentUserEmail,
+        actorAccountID: currentUserAccountID,
     };
 }
 
@@ -1403,7 +1404,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: [
@@ -1416,7 +1417,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
         person: [
             {
                 style: 'strong',
-                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserAccountID),
                 type: 'TEXT',
             },
         ],
@@ -1513,11 +1514,11 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                text: lodashGet(allPersonalDetails, [currentUserAccountID, 'displayName'], currentUserEmail),
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         shouldShow: true,
     };
@@ -1553,11 +1554,11 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                text: lodashGet(allPersonalDetails, [currentUserAccountID, 'displayName'], currentUserEmail),
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -1576,7 +1577,7 @@ function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONS
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -1599,7 +1600,7 @@ function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONS
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                text: lodashGet(allPersonalDetails, [currentUserAccountID, 'displayName'], currentUserEmail),
             },
         ],
         reportActionID: NumberUtils.rand64(),
