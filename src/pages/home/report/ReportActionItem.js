@@ -308,7 +308,7 @@ function ReportActionItem(props) {
                                 style={styles.buttonSmallText}
                                 selectable={false}
                             >
-                                {isHidden ? 'Reveal message' : 'Hide message'}
+                                {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                             </Text>
                         </Button>
                     )}
