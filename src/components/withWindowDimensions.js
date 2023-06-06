@@ -14,6 +14,9 @@ const windowDimensionsPropTypes = {
     // Height of the window
     windowHeight: PropTypes.number.isRequired,
 
+    // Is the window width extra narrow, like on a Fold mobile device?
+    isExtraSmallScreenWidth: PropTypes.bool.isRequired,
+
     // Is the window width narrow, like on a mobile device?
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -75,6 +78,7 @@ class WindowDimensionsProvider extends React.Component {
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
+                    const isExtraSmallScreenWidth = this.state.windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
                     const isSmallScreenWidth = this.state.windowWidth <= variables.mobileResponsiveWidthBreakpoint;
                     const isMediumScreenWidth = !isSmallScreenWidth && this.state.windowWidth <= variables.tabletResponsiveWidthBreakpoint;
                     const isLargeScreenWidth = !isSmallScreenWidth && !isMediumScreenWidth;
@@ -83,6 +87,7 @@ class WindowDimensionsProvider extends React.Component {
                             value={{
                                 windowHeight: this.state.windowHeight + getWindowHeightAdjustment(insets),
                                 windowWidth: this.state.windowWidth,
+                                isExtraSmallScreenWidth,
                                 isSmallScreenWidth,
                                 isMediumScreenWidth,
                                 isLargeScreenWidth,

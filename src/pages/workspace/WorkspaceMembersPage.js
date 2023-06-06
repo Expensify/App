@@ -1,6 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+// eslint-disable-next-line no-restricted-imports
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -453,7 +454,7 @@ class WorkspaceMembersPage extends React.Component {
                                     onPress={this.askForConfirmationToRemove}
                                 />
                             </View>
-                            <View style={[styles.w100, styles.pv4, styles.ph5]}>
+                            <View style={[styles.w100, styles.pv3, styles.ph5]}>
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}

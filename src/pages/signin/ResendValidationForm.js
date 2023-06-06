@@ -81,7 +81,7 @@ const ResendValidationForm = (props) => {
                 <DotIndicatorMessage
                     style={[styles.mb5, styles.flex0]}
                     type="success"
-                    messages={{0: props.translate(props.account.message)}}
+                    messages={{0: props.account.message}}
                 />
             )}
             {!_.isEmpty(props.account.errors) && (
