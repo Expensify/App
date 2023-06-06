@@ -66,32 +66,32 @@ function getLoginListBrickRoadIndicator(loginList) {
 
 /**
  * Hashes provided string and returns a value between [0, range)
- * @param {String} login
+ * @param {String} text
  * @param {Number} range
  * @returns {Number}
  */
-function hashLogin(login, range) {
-    return Math.abs(hashCode(login.toLowerCase())) % range;
+function hashText(text, range) {
+    return Math.abs(hashCode(text.toLowerCase())) % range;
 }
 
 /**
- * Helper method to return the default avatar associated with the given login
- * @param {String} [login]
+ * Helper method to return the default avatar associated with the given accountID
+ * @param {Number} [accountID]
  * @returns {String}
  */
-function getDefaultAvatar(login = '') {
-    if (!login) {
+function getDefaultAvatar(accountID = -1) {
+    if (accountID <= 0) {
         return Expensicons.FallbackAvatar;
     }
-    if (login === CONST.EMAIL.CONCIERGE) {
+    if (accountID === CONST.EMAIL.CONCIERGE) {
         return Expensicons.ConciergeAvatar;
     }
 
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple hash of their login. Note that Avatar count starts at 1.
-    const loginHashBucket = hashLogin(login, CONST.DEFAULT_AVATAR_COUNT) + 1;
+    const accountIDHashBucket = hashText(accountID.toString(), CONST.DEFAULT_AVATAR_COUNT) + 1;
 
-    return defaultAvatars[`Avatar${loginHashBucket}`];
+    return defaultAvatars[`Avatar${accountIDHashBucket}`];
 }
 
 /**
@@ -101,17 +101,17 @@ function getDefaultAvatar(login = '') {
  * @param {Boolean} [isNewDot]
  * @returns {String}
  */
-function getDefaultAvatarURL(login = '', isNewDot = false) {
-    if (login === CONST.EMAIL.CONCIERGE) {
+function getDefaultAvatarURL(accountID = '', isNewDot = false) {
+    if (accountID === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
-    // The default avatar for a user is based on a simple hash of their login.
+    // The default avatar for a user is based on a simple hash of their accountID.
     // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
-    const loginHashBucket = hashLogin(login, isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
+    const accountIDHashBucket = hashText(accountID, isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
     const avatarPrefix = isNewDot ? `default-avatar` : `avatar`;
 
-    return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${loginHashBucket}.png`;
+    return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
 }
 
 /**
@@ -139,11 +139,11 @@ function isDefaultAvatar(avatarURL) {
  * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
  * @param {String} avatarURL - the avatar source from user's personalDetails
- * @param {String} login - the email of the user
+ * @param {Number} accountID - the accountID of the user
  * @returns {String|Function}
  */
-function getAvatar(avatarURL, login) {
-    return isDefaultAvatar(avatarURL) ? getDefaultAvatar(login) : avatarURL;
+function getAvatar(avatarURL, accountID) {
+    return isDefaultAvatar(avatarURL) ? getDefaultAvatar(accountID) : avatarURL;
 }
 
 /**
@@ -151,11 +151,11 @@ function getAvatar(avatarURL, login) {
  * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
  * @param {String} avatarURL - the avatar source from user's personalDetails
- * @param {String} login - the email of the user
+ * @param {Number} accountID - the accountID of the user
  * @returns {String}
  */
-function getAvatarUrl(avatarURL, login) {
-    return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(login, true) : avatarURL;
+function getAvatarUrl(avatarURL, accountID) {
+    return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(accountID, true) : avatarURL;
 }
 
 /**
@@ -163,11 +163,11 @@ function getAvatarUrl(avatarURL, login) {
  * This removes that part of the URL so the full version of the image can load.
  *
  * @param {String} [avatarURL]
- * @param {String} [login]
+ * @param {Number} [accountID]
  * @returns {String|Function}
  */
-function getFullSizeAvatar(avatarURL, login) {
-    const source = getAvatar(avatarURL, login);
+function getFullSizeAvatar(avatarURL, accountID) {
+    const source = getAvatar(avatarURL, accountID);
     if (!_.isString(source)) {
         return source;
     }
@@ -179,11 +179,11 @@ function getFullSizeAvatar(avatarURL, login) {
  * source URL (before the file type) if it doesn't exist there already.
  *
  * @param {String} avatarURL
- * @param {String} login
+ * @param {Number} accountID
  * @returns {String|Function}
  */
-function getSmallSizeAvatar(avatarURL, login) {
-    const source = getAvatar(avatarURL, login);
+function getSmallSizeAvatar(avatarURL, accountID) {
+    const source = getAvatar(avatarURL, accountID);
     if (!_.isString(source)) {
         return source;
     }
@@ -202,7 +202,7 @@ function getSmallSizeAvatar(avatarURL, login) {
 }
 
 export {
-    hashLogin,
+    hashText,
     hasLoginListError,
     hasLoginListInfo,
     getLoginListBrickRoadIndicator,
