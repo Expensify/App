@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -59,37 +59,32 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
 };
 
-class MoneyRequestParticipantsSplitSelector extends Component {
-    constructor(props) {
-        super(props);
+function MoneyRequestParticipantsSplitSelector(props) {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [newChatOptions, setNewChatOptions] = useState({
+        recentReports: [],
+        personalDetails: [],
+        userToInvite: null,
+    });
 
-        this.toggleOption = this.toggleOption.bind(this);
-        this.finalizeParticipants = this.finalizeParticipants.bind(this);
-        this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
-
+    function updateOptionsWithSearchTerm (newSearchTerm = '') {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
-            '',
+            newSearchTerm,
             props.participants,
             CONST.EXPENSIFY_EMAILS,
         );
-
-        this.state = {
-            searchTerm: '',
+        setSearchTerm(newSearchTerm);
+        setNewChatOptions({
             recentReports,
             personalDetails,
-            userToInvite,
-        };
+            userToInvite
+        });
     }
 
-    componentDidUpdate(prevProps) {
-        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
-            return;
-        }
-        this.updateOptionsWithSearchTerm(this.state.searchTerm);
-    }
+    const maxParticipantsReached = props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -97,145 +92,132 @@ class MoneyRequestParticipantsSplitSelector extends Component {
      * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
-    getSections(maxParticipantsReached) {
-        const sections = [];
+    const sections = useMemo(() => {
+        const newSections = [];
         let indexOffset = 0;
 
-        sections.push({
+        newSections.push({
             title: undefined,
-            data: this.props.participants,
+            data: props.participants,
             shouldShow: true,
             indexOffset,
         });
-        indexOffset += this.props.participants.length;
+        indexOffset += props.participants.length;
 
         if (maxParticipantsReached) {
-            return sections;
+            return newSections;
         }
 
-        sections.push({
-            title: this.props.translate('common.recents'),
-            data: this.state.recentReports,
-            shouldShow: !_.isEmpty(this.state.recentReports),
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite
+        } = newChatOptions;
+
+        newSections.push({
+            title: props.translate('common.recents'),
+            data: recentReports,
+            shouldShow: !_.isEmpty(recentReports),
             indexOffset,
         });
-        indexOffset += this.state.recentReports.length;
+        indexOffset += recentReports.length;
 
-        sections.push({
-            title: this.props.translate('common.contacts'),
-            data: this.state.personalDetails,
-            shouldShow: !_.isEmpty(this.state.personalDetails),
+        newSections.push({
+            title: props.translate('common.contacts'),
+            data: personalDetails,
+            shouldShow: !_.isEmpty(personalDetails),
             indexOffset,
         });
-        indexOffset += this.state.personalDetails.length;
+        indexOffset += personalDetails.length;
 
-        if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
-            sections.push({
+        if (userToInvite && !OptionsListUtils.isCurrentUser(userToInvite)) {
+            newSections.push({
                 undefined,
-                data: [this.state.userToInvite],
+                data: [userToInvite],
                 shouldShow: true,
                 indexOffset,
             });
         }
 
-        return sections;
-    }
-
-    updateOptionsWithSearchTerm(searchTerm = '') {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.betas,
-            searchTerm,
-            this.props.participants,
-            CONST.EXPENSIFY_EMAILS,
-        );
-        this.setState({
-            searchTerm,
-            userToInvite,
-            recentReports,
-            personalDetails,
-        });
-    }
-
-    /**
-     * Once a single or more users are selected, navigates to next step
-     */
-    finalizeParticipants() {
-        this.props.onStepComplete();
-    }
+        return newSections;
+    }, [props.translate, props.participants, newChatOptions, maxParticipantsReached])
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    toggleOption(option) {
-        const isOptionInList = _.some(this.props.participants, (selectedOption) => selectedOption.login === option.login);
+    function toggleOption(option) {
+        const isOptionInList = _.some(props.participants, (selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.login === option.login);
+            newSelectedOptions = _.reject(props.participants, (selectedOption) => selectedOption.login === option.login);
         } else {
-            newSelectedOptions = [...this.props.participants, option];
+            newSelectedOptions = [...props.participants, option];
         }
 
-        this.props.onAddParticipants(newSelectedOptions);
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            isOptionInList ? searchTerm : '',
+            newSelectedOptions,
+            CONST.EXPENSIFY_EMAILS,
+        );
 
-        this.setState((prevState) => {
-            const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-                this.props.reports,
-                this.props.personalDetails,
-                this.props.betas,
-                isOptionInList ? prevState.searchTerm : '',
-                newSelectedOptions,
-                CONST.EXPENSIFY_EMAILS,
-            );
-            return {
-                recentReports,
-                personalDetails,
-                userToInvite,
-                searchTerm: isOptionInList ? prevState.searchTerm : '',
-            };
+        setNewChatOptions({
+            recentReports,
+            personalDetails,
+            userToInvite
         });
+        props.onAddParticipants(newSelectedOptions)
     }
 
-    render() {
-        const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-        const sections = this.getSections(maxParticipantsReached);
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            this.state.personalDetails.length + this.state.recentReports.length !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchTerm,
-            maxParticipantsReached,
-        );
-        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
-
-        return (
-            <View style={[styles.flex1, styles.w100, this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {}]}>
-                <OptionsSelector
-                    canSelectMultipleOptions
-                    sections={sections}
-                    selectedOptions={this.props.participants}
-                    value={this.state.searchTerm}
-                    onSelectRow={this.toggleOption}
-                    onChangeText={this.updateOptionsWithSearchTerm}
-                    headerMessage={headerMessage}
-                    boldStyle
-                    shouldShowConfirmButton
-                    confirmButtonText={this.props.translate('common.next')}
-                    onConfirmSelection={this.finalizeParticipants}
-                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                    safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
-                    shouldShowOptions={isOptionsDataReady}
-                />
-            </View>
-        );
+    /**
+     * Once a single or more users are selected, navigates to next step
+     */
+    function finalizeParticipants() {
+        props.onStepComplete();
     }
-}
+
+    const headerMessage = OptionsListUtils.getHeaderMessage(
+        newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+        Boolean(newChatOptions.userToInvite),
+        searchTerm,
+        maxParticipantsReached,
+    );
+    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
+
+    useEffect(() => {
+        updateOptionsWithSearchTerm(searchTerm);
+    }, [props.reports, props.personalDetails, searchTerm])
+
+    return (
+        <View style={[styles.flex1, styles.w100, props.participants.length > 0 ? props.safeAreaPaddingBottomStyle : {}]}>
+            <OptionsSelector
+                canSelectMultipleOptions
+                sections={sections}
+                selectedOptions={props.participants}
+                value={searchTerm}
+                onSelectRow={toggleOption}
+                onChangeText={setSearchTerm}
+                headerMessage={headerMessage}
+                boldStyle
+                shouldShowConfirmButton
+                confirmButtonText={props.translate('common.next')}
+                onConfirmSelection={finalizeParticipants}
+                textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
+                shouldShowOptions={isOptionsDataReady}
+            />
+        </View>
+    );
+};
 
 MoneyRequestParticipantsSplitSelector.propTypes = propTypes;
 MoneyRequestParticipantsSplitSelector.defaultProps = defaultProps;
+MoneyRequestParticipantsSplitSelector.displayName = 'MoneyRequestParticipantsSplitSelector';
 
 export default compose(
     withLocalize,
