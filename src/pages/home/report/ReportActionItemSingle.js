@@ -14,7 +14,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -22,6 +21,7 @@ import CONST from '../../../CONST';
 import SubscriptAvatar from '../../../components/SubscriptAvatar';
 import reportPropTypes from '../../reportPropTypes';
 import * as UserUtils from '../../../libs/UserUtils';
+import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
     /** All the data of the action */
@@ -67,7 +67,7 @@ const showUserDetails = (email) => {
 
 const ReportActionItemSingle = (props) => {
     const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
+    const {avatar, displayName, pendingFields, handle} = props.personalDetails[actorEmail] || {};
     const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -100,14 +100,18 @@ const ReportActionItemSingle = (props) => {
                             noMargin
                         />
                     ) : (
-                        <Tooltip text={actorEmail}>
+                        <UserDetailsTooltip 
+                            handle={handle}
+                            name={displayName}
+                            avatarSource={avatarSource}
+                        >
                             <View>
                                 <Avatar
                                     containerStyles={[styles.actionAvatar]}
                                     source={avatarSource}
                                 />
                             </View>
-                        </Tooltip>
+                        </UserDetailsTooltip>
                     )}
                 </OfflineWithFeedback>
             </Pressable>
@@ -123,8 +127,10 @@ const ReportActionItemSingle = (props) => {
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.reportActionID}-${index}`}
+                                    handle={handle}
+                                    name={displayName}
+                                    avatarSource={avatarSource}
                                     fragment={fragment}
-                                    tooltipText={actorEmail}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
                                     isSingleLine
