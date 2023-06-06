@@ -2059,12 +2059,17 @@ function getMoneyRequestOptionsNew(report, reportParticipants, betas) {
 
     // DM chats that only have 2 people will see the Send / Request money options.
     // Workspace chats should only see the Request money option, as "easy overages" is not available.
-    return [
-        ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
+    const requestTypes = [];
+    if (canRequestMoney(report)) {
+        requestTypes.push(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
+    }
 
-        // Send money option should be visible only in DMs
-        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && participants.length === 1 ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
-    ];
+    const shouldAddRequestSend = Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && participants.length === 1;
+    if (shouldAddRequestSend) {
+        requestTypes.push(CONST.IOU.MONEY_REQUEST_TYPE.SEND);
+    }
+
+    return requestTypes;
 }
 
 /**
