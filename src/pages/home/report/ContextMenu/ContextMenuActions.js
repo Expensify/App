@@ -237,8 +237,8 @@ export default [
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnread) => type === CONTEXT_MENU_TYPES.REPORT && isUnread,
-        onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction.created);
+        onPress: (closePopover, {reportID}) => {
+            Report.readNewestAction(reportID);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
