@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback} from 'react';
+import React, {useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
 import {Dimensions, Keyboard} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
@@ -55,7 +55,7 @@ const EmojiPicker = forwardRef((props, ref) => {
      * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
      * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
      */
-    const showEmojiPicker = useCallback((onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}) => {
+    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         emojiPopoverAnchor.current = emojiPopoverAnchorValue;
@@ -71,30 +71,30 @@ const EmojiPicker = forwardRef((props, ref) => {
             setEmojiPopoverAnchorPosition(value);
             emojiPopoverAnchorOrigin.current = anchorOrigin || DEFAULT_ANCHOR_ORIGIN;
         });
-    });
+    };
 
     /**
      * Hide the emoji picker menu.
      *
      * @param {Boolean} isNavigating
      */
-    const hideEmojiPicker = useCallback((isNavigating) => {
+    const hideEmojiPicker = (isNavigating) => {
         if (isNavigating) {
             onModalHide.current = () => {};
         }
         emojiPopoverAnchor.current = null;
         setIsEmojiPickerVisible(false);
-    });
+    };
 
     /**
      * Focus the search input in the emoji picker.
      */
-    const focusEmojiSearchInput = useCallback(() => {
+    const focusEmojiSearchInput = () => {
         if (!emojiSearchInput.current) {
             return;
         }
         emojiSearchInput.current.focus();
-    });
+    };
 
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
@@ -102,7 +102,7 @@ const EmojiPicker = forwardRef((props, ref) => {
      * @param {String} emoji
      * @param {Object} emojiObject
      */
-    const selectEmoji = useCallback((emoji, emojiObject) => {
+    const selectEmoji = (emoji, emojiObject) => {
         // Prevent fast click / multiple emoji selection;
         // The first click will hide the emoji picker by calling the hideEmojiPicker() function
         // and in that function the emojiPopoverAnchor ref to will be set to null (synchronously)
@@ -115,7 +115,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         if (_.isFunction(onEmojiSelected.current)) {
             onEmojiSelected.current(emoji, emojiObject);
         }
-    });
+    };
 
     useImperativeHandle(ref, () => ({showEmojiPicker}));
 
