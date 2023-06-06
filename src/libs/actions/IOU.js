@@ -263,8 +263,7 @@ function buildOnyxDataForMoneyRequest(
  */
 function requestMoney(report, amount, currency, payeeEmail, participant, comment) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
-    // reportID exist if we request money in a policyExpenseChat
-    const isPolicyExpenseChat = Boolean(participant.reportID);
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
