@@ -217,7 +217,7 @@ function canFlagReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isSettled(reportID) {
-    return !lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'hasOutstandingIOU']);
+    return lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'stateNum']) === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
 
 /**
