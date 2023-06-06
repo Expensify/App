@@ -16,6 +16,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
+import * as CurrencyUtils from '../CurrencyUtils';
 
 let allReports;
 Onyx.connect({
@@ -691,12 +692,13 @@ function deleteMoneyRequest(transactionID, reportAction) {
         },
     };
 
-    // STEP 3: Update the iou report total and last message
+    // STEP 3: Update the iouReport and reportPreview
     const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
     const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
     const shouldDeleteIOUReport = iouReportLastMessageText.length === 0 && (!transactionThreadID || shouldDeleteTransactionThread);
 
     let updatedIOUReport = null;
+    let updatedReportPreviewAction = null;
     if (!shouldDeleteIOUReport) {
         if (ReportUtils.isExpenseReport(iouReport.reportID)) {
             updatedIOUReport = {...iouReport};
@@ -709,6 +711,11 @@ function deleteMoneyRequest(transactionID, reportAction) {
 
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, updatedReportAction).created;
+
+        updatedReportPreviewAction = {...reportPreviewAction};
+        const messageText = Localize.translateLocal('iou.payerOwesAmount', {payer: updatedIOUReport.managerEmail, amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency)});
+        updatedReportPreviewAction.message[0].text = messageText;
+        updatedReportPreviewAction.message[0].html = messageText;
     }
 
     const optimisticData = [
@@ -732,13 +739,13 @@ function deleteMoneyRequest(transactionID, reportAction) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
         },
-        ...(shouldDeleteIOUReport ? [{
+        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [reportPreviewAction.reportActionID]: null,
+                [reportPreviewAction.reportActionID]: updatedReportPreviewAction,
             },
-        }] : []),
+        },
         ...(shouldDeleteIOUReport ? [{
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
