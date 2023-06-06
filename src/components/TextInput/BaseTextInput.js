@@ -31,7 +31,8 @@ function dismissKeyboardWhenBackgrounded(nextAppState) {
 }
 
 function BaseTextInput(props) {
-    const initialActiveLabel = props.forceActiveLabel || props.value.length > 0 || Boolean(props.prefixCharacter);
+    const inputValue = props.value || '';
+    const initialActiveLabel = props.forceActiveLabel || inputValue.length > 0 || Boolean(props.prefixCharacter);
 
     const [isFocused, setIsFocused] = useState(false);
     const [labelTranslateY] = useState(() => new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y));
@@ -115,27 +116,26 @@ function BaseTextInput(props) {
     );
 
     const activateLabel = useCallback(() => {
-        if (props.value.length < 0 || isLabelActive.current) {
+        if (inputValue.length < 0 || isLabelActive.current) {
             return;
         }
 
         animateLabel(styleConst.ACTIVE_LABEL_TRANSLATE_Y, styleConst.ACTIVE_LABEL_SCALE);
         isLabelActive.current = true;
-    }, [animateLabel, props.value.length]);
+    }, [animateLabel, inputValue]);
 
     const deactivateLabel = useCallback(() => {
-        if (props.forceActiveLabel || props.value.length !== 0 || props.prefixCharacter) {
+        if (props.forceActiveLabel || inputValue.length !== 0 || props.prefixCharacter) {
             return;
         }
 
         animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
-    }, [animateLabel, props.forceActiveLabel, props.prefixCharacter, props.value.length]);
+    }, [animateLabel, props.forceActiveLabel, props.prefixCharacter, inputValue]);
 
     const propOnFocus = props.onFocus;
     const onFocus = useCallback(
         (event) => {
-            console.log('onFocus');
             if (propOnFocus) {
                 propOnFocus(event);
             }
@@ -179,16 +179,16 @@ function BaseTextInput(props) {
         // Activate or deactivate the label when value is changed programmatically from outside
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
-        if (props.value === '') {
+        if (inputValue === '') {
             input.current.clear();
         }
 
-        if (props.value || isFocused) {
+        if (inputValue || isFocused) {
             activateLabel();
         } else if (!isFocused) {
             deactivateLabel();
         }
-    }, [activateLabel, deactivateLabel, isFocused, props.value]);
+    }, [activateLabel, deactivateLabel, inputValue, isFocused]);
 
     const propOnInputChange = props.onInputChange;
     /**
