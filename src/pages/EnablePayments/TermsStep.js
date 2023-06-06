@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -28,12 +28,12 @@ const defaultProps = {
     walletTerms: {},
 };
 
-const TermsStep = ({translate, walletTerms}) => {
+function TermsStep(props) {
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
     const [error, setError] = useState(false);
 
-    const errorMessage = useMemo(() => error ? 'common.error.acceptTerms' : ErrorUtils.getLatestErrorMessage(walletTerms) || '', [error, walletTerms]);
+    const errorMessage = error ? 'common.error.acceptTerms' : ErrorUtils.getLatestErrorMessage(props.walletTerms) || '';
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
@@ -55,7 +55,7 @@ const TermsStep = ({translate, walletTerms}) => {
     return (
         <>
             <HeaderWithCloseButton
-                title={translate('termsStep.headerTitle')}
+                title={props.translate('termsStep.headerTitle')}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <ScrollView
@@ -70,8 +70,8 @@ const TermsStep = ({translate, walletTerms}) => {
                     onInputChange={toggleDisclosure}
                     LabelComponent={() => (
                         <Text>
-                            {`${translate('termsStep.haveReadAndAgree')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('termsStep.electronicDisclosures')}.`}</TextLink>
+                            {`${props.translate('termsStep.haveReadAndAgree')}`}
+                            <TextLink href="https://use.expensify.com/esignagreement">{`${props.translate('termsStep.electronicDisclosures')}.`}</TextLink>
                         </Text>
                     )}
                 />
@@ -80,18 +80,18 @@ const TermsStep = ({translate, walletTerms}) => {
                     onInputChange={togglePrivacyPolicy}
                     LabelComponent={() => (
                         <Text>
-                            {`${translate('termsStep.agreeToThe')} `}
+                            {`${props.translate('termsStep.agreeToThe')} `}
 
-                            <TextLink href="https://use.expensify.com/privacy">{`${translate('common.privacy')} `}</TextLink>
+                            <TextLink href="https://use.expensify.com/privacy">{`${props.translate('common.privacy')} `}</TextLink>
 
-                            {`${translate('common.and')} `}
+                            {`${props.translate('common.and')} `}
 
-                            <TextLink href="https://use.expensify.com/walletagreement">{`${translate('termsStep.walletAgreement')}.`}</TextLink>
+                            <TextLink href="https://use.expensify.com/walletagreement">{`${props.translate('termsStep.walletAgreement')}.`}</TextLink>
                         </Text>
                     )}
                 />
                 <FormAlertWithSubmitButton
-                    buttonText={translate('termsStep.enablePayments')}
+                    buttonText={props.translate('termsStep.enablePayments')}
                     onSubmit={() => {
                         if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
                             setError(true);
@@ -101,7 +101,7 @@ const TermsStep = ({translate, walletTerms}) => {
                         setError(false);
                         BankAccounts.acceptWalletTerms({
                             hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            chatReportID: walletTerms.chatReportID,
+                            chatReportID: props.walletTerms.chatReportID,
                         });
                     }}
                     message={errorMessage}
@@ -111,7 +111,7 @@ const TermsStep = ({translate, walletTerms}) => {
             </ScrollView>
         </>
     );
-};
+}
 
 TermsStep.displayName = "TermsPage";
 TermsStep.propTypes = propTypes;
