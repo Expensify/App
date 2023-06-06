@@ -672,7 +672,6 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
  */
 function deleteMoneyRequest(transactionID, reportAction) {
     // STEP 1: Get all collections we're updating
-    const transaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.originalMessage.IOUReportID}`];
     const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
@@ -693,12 +692,20 @@ function deleteMoneyRequest(transactionID, reportAction) {
         },
     };
 
+    // transaction - always delete
+    // transactionThread - show [Request deleted] header if thread has comments, otherwise thread doesn't exist
+    // requestPreview - delete if transactionThread doesn't exist, otherwise show [Request deleted] message
+    // iou/expense report - delete if last requestPreview is deleted, otherwise update header to show $0 total
+    // reportPreview - delete if iou/expense report is deleted, otherwise show ${user} owes $X
+    // chatReport - never delete
+
     // STEP 3: Update the iou report total and last message
     const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
     const iouReportHasVisibleComments = iouReportLastMessageText.length > 0;
+    const shouldDeleteIOUReport = transactionThreadID && !iouReportHasVisibleComments;
 
     let updatedIOUReport = null;
-    if (iouReportHasVisibleComments) {
+    if (!shouldDeleteIOUReport) {
         if (ReportUtils.isExpenseReport(iouReport.reportID)) {
             updatedIOUReport = {...iouReport};
     
@@ -711,9 +718,6 @@ function deleteMoneyRequest(transactionID, reportAction) {
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, updatedReportAction).created;
     }
-
-    // STEP 4: Check if the transaction thread has visible comments
-    const transactionThreadHasVisibleComments = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length > 0 : false;
 
     // 1. [DONE] Update IOU action so that message is empty. 
     // 2. (If there are no comments it should disappear. Otherwise it should show [Deleted request])
@@ -734,7 +738,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
             value: updatedReportAction,
         },
         {
-            onyxMethod: iouReportHasVisibleComments ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+            onyxMethod: (iouReportHasVisibleComments || transactionThreadHasVisibleComments) ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
         },
