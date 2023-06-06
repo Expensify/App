@@ -1,4 +1,4 @@
-import React, {useMemo, useCallback} from 'react';
+import React, {useMemo} from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -57,44 +57,46 @@ const defaultProps = {
     shouldDisableCompose: false,
 };
 
-const ReportFooter = ({report, reportActions, isOffline, onSubmitComment, errors, pendingAction, shouldShowComposeInput, shouldDisableCompose, isSmallScreenWidth, isComposerFullSize}) => {
+function ReportFooter(props) {
     /**
      * @returns {Object}
      */
-    const getChatFooterStyles = useCallback(
+    const getChatFooterStyles = useMemo(
         () => ({
             ...styles.chatFooter,
-            minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0,
+            minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0,
         }),
-        [isOffline],
+        [props.isOffline],
     );
 
-    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report), [report]);
-    const isAllowedToComment = useMemo(() => ReportUtils.isAllowedToComment(report), [report]);
-    const hideComposer = useMemo(() => isArchivedRoom || !_.isEmpty(errors) || !isAllowedToComment, [isArchivedRoom, errors, isAllowedToComment]);
+    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
+    const isAllowedToComment = useMemo(() => ReportUtils.isAllowedToComment(props.report), [props.report]);
+    const hideComposer = useMemo(() => isArchivedRoom || !_.isEmpty(props.errors) || !isAllowedToComment, [isArchivedRoom, props.errors, isAllowedToComment]);
 
     return (
         <>
             {(isArchivedRoom || hideComposer) && (
-                <View style={[styles.chatFooter, isSmallScreenWidth ? styles.mb5 : null]}>
-                    {isArchivedRoom && <ArchivedReportFooter report={report} />}
-                    {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
+                <View style={[styles.chatFooter, props.isSmallScreenWidth ? styles.mb5 : null]}>
+                    {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
+                    {!props.isSmallScreenWidth && (
+                        <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
+                    )}
                 </View>
             )}
-            {!hideComposer && (shouldShowComposeInput || !isSmallScreenWidth) && (
-                <View style={[getChatFooterStyles(), isComposerFullSize && styles.chatFooterFullCompose]}>
+            {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
+                <View style={[getChatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         {Session.isAnonymousUser() ? (
-                            <AnonymousReportFooter report={report} />
+                            <AnonymousReportFooter report={props.report} />
                         ) : (
                             <ReportActionCompose
-                                onSubmit={onSubmitComment}
-                                reportID={report.reportID.toString()}
-                                reportActions={reportActions}
-                                report={report}
-                                pendingAction={pendingAction}
-                                isComposerFullSize={isComposerFullSize}
-                                disabled={shouldDisableCompose}
+                                onSubmit={props.onSubmitComment}
+                                reportID={props.report.reportID.toString()}
+                                reportActions={props.reportActions}
+                                report={props.report}
+                                pendingAction={props.pendingAction}
+                                isComposerFullSize={props.isComposerFullSize}
+                                disabled={props.shouldDisableCompose}
                             />
                         )}
                     </SwipeableView>
@@ -102,7 +104,7 @@ const ReportFooter = ({report, reportActions, isOffline, onSubmitComment, errors
             )}
         </>
     );
-};
+}
 
 ReportFooter.displayName = 'ReportFooter';
 ReportFooter.propTypes = propTypes;
