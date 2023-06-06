@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -32,7 +32,7 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-const BigNumberPad = ({numberPressed, longPressHandlerStateChanged, nativeID, toLocaleDigit}) => {
+function BigNumberPad (props) {
     const [timer, setTimer] = useState(null);
 
     /**
@@ -41,23 +41,23 @@ const BigNumberPad = ({numberPressed, longPressHandlerStateChanged, nativeID, to
      *
      * @param {String} key
      */
-    const handleLongPress = useCallback(
-        (key) => {
-            if (key !== '<') return;
+    const handleLongPress = (key) => {
+        if (key !== '<') {
+            return;
+        }
 
-            longPressHandlerStateChanged(true);
-            const newTimer = setInterval(() => {
-                numberPressed(key);
-            }, 100);
-            setTimer(newTimer);
-        },
-        [longPressHandlerStateChanged, numberPressed],
-    );
+        props.longPressHandlerStateChanged(true);
+
+        const newTimer = setInterval(() => {
+            props.numberPressed(key);
+        }, 100);
+        setTimer(newTimer);
+    };
 
     return (
         <View
             style={[styles.flexColumn, styles.w100]}
-            nativeID={nativeID}
+            nativeID={props.nativeID}
         >
             {_.map(padNumbers, (row, rowIndex) => (
                 <View
@@ -73,14 +73,14 @@ const BigNumberPad = ({numberPressed, longPressHandlerStateChanged, nativeID, to
                                 key={column}
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
-                                text={column === '<' ? column : toLocaleDigit(column)}
+                                text={column === '<' ? column : props.toLocaleDigit(column)}
                                 onLongPress={() => handleLongPress(column)}
-                                onPress={() => numberPressed(column)}
+                                onPress={() => props.numberPressed(column)}
                                 onPressIn={ControlSelection.block}
                                 onPressOut={() => {
                                     clearInterval(timer);
                                     ControlSelection.unblock();
-                                    longPressHandlerStateChanged(false);
+                                    props.longPressHandlerStateChanged(false);
                                 }}
                                 onMouseDown={(e) => e.preventDefault()}
                             />
