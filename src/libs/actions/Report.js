@@ -663,7 +663,7 @@ function readNewestAction(reportID) {
  * Sets the last read time on a report
  *
  * @param {String} reportID
- * @param {String} reportActionCreated
+ * @param {String} [reportActionCreated]
  */
 function markCommentAsUnread(reportID, reportActionCreated= '') {
 
