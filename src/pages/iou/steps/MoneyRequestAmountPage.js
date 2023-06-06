@@ -114,7 +114,7 @@ class MoneyRequestAmountPage extends React.Component {
             IOU.setMoneyRequestCurrency(lodashGet(this.props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD));
             IOU.setMoneyRequestDescription('');
             const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
-                ? [{reportID: this.props.report.reportID, isOwnPolicyExpenseChat: this.props.report.isOwnPolicyExpenseChat, selected: true}]
+                ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
                 : _.map(this.props.report.participants, (participant) => ({login: participant, selected: true}));
             IOU.setMoneyRequestParticipants(participants);
         }
