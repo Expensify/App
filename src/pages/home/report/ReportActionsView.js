@@ -94,9 +94,7 @@ class ReportActionsView extends React.Component {
             }
         });
 
-        if (this.isReportFullyVisible()) {
-            this.openReportIfNecessary();
-        }
+        this.openReportIfNecessary();
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
