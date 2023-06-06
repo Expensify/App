@@ -222,7 +222,8 @@ export default [
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat) => type === CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.markCommentAsUnread(reportID, reportAction.created);
             if (closePopover) {

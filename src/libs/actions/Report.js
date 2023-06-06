@@ -665,7 +665,7 @@ function readNewestAction(reportID) {
  * @param {String} reportID
  * @param {String} [reportActionCreated]
  */
-function markCommentAsUnread(reportID, reportActionCreated= '') {
+function markCommentAsUnread(reportID, reportActionCreated = '') {
     // If no action created date is provided, use the last action's
     const actionCreationTime = reportActionCreated || allReports[reportID].lastVisibleActionCreated;
 

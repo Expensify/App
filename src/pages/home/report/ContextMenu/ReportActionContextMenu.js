@@ -37,7 +37,21 @@ function showContextMenu(
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow, onHide, isArchivedRoom, isChronosReport, isPinnedChat, isUnreadChat);
+    contextMenuRef.current.showContextMenu(
+        type,
+        event,
+        selection,
+        contextMenuAnchor,
+        reportID,
+        reportAction,
+        draftMessage,
+        onShow,
+        onHide,
+        isArchivedRoom,
+        isChronosReport,
+        isPinnedChat,
+        isUnreadChat,
+    );
 }
 
 /**
