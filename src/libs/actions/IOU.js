@@ -25,18 +25,6 @@ Onyx.connect({
     callback: (val) => (allReports = val),
 });
 
-let transactions = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        transactions = val;
-    },
-});
-
 function buildOnyxDataForMoneyRequest(
     chatReport,
     iouReport,
