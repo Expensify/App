@@ -23,6 +23,7 @@ import TwoFactorAuthForm from './TwoFactorAuthForm';
 import QRCode from '../../../../components/QRCode';
 import expensifyLogo from '../../../../../assets/images/expensify-logo-round-transparent.png';
 import CONST from '../../../../CONST';
+import defaultTheme from '../../../../styles/themes/default';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -120,6 +121,7 @@ function VerifyPage(props) {
                                 logo={expensifyLogo}
                                 logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
                                 logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
+                                backgroundColor={defaultTheme.appBG}
                             />
                         </View>
                         <Text style={styles.mt5}>{props.translate('twoFactorAuth.addKey')}</Text>
