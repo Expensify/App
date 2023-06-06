@@ -45,6 +45,9 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    // Contains all the personalDetails the user has access to, keyed by accountID
+    PERSONAL_DETAILS_LIST: 'personalDetailsList',
+
     // Contains all the private personal details of the user
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
@@ -76,9 +79,6 @@ export default {
     BETAS: 'betas',
 
     // NVP keys
-    // Contains the user's payPalMe address
-    NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
-
     // Contains the user's payPalMe data
     PAYPAL: 'paypal',
 
