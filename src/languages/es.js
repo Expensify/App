@@ -1279,9 +1279,9 @@ export default {
     task: {
         completed: 'Completada',
         messages: {
-            completed: 'Tarea completada',
-            canceled: 'Tarea cancelada',
-            reopened: 'Tarea reabrir',
+            completed: 'tarea completada',
+            canceled: 'tarea cancelada',
+            reopened: 'tarea reabrir',
         },
     },
     statementPage: {
