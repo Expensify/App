@@ -1,4 +1,5 @@
 import React, {useRef, useState, useCallback} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {View, TouchableWithoutFeedback, Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../../CONST';
