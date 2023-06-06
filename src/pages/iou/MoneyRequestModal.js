@@ -23,7 +23,7 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as ReportScrollManager from '../../libs/ReportScrollManager';
-import useOnNetworkReconnect from '../../components/hooks/useOnNetworkReconnect';
+import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
@@ -113,10 +113,17 @@ const MoneyRequestModal = (props) => {
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
-        IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
         IOU.setMoneyRequestDescription('');
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- props.currentUserPersonalDetails will always exist from Onyx and we don't want this effect to run again
     }, []);
+
+    // We update selected currency when PersonalDetails.openMoneyRequestModalPage finishes
+    // props.currentUserPersonalDetails might be stale data or might not exist if user is signing in
+    useEffect(() => {
+        if (_.isUndefined(props.currentUserPersonalDetails.localCurrencyCode)) {
+            return;
+        }
+        IOU.setIOUSelectedCurrency(props.currentUserPersonalDetails.localCurrencyCode);
+    }, [props.currentUserPersonalDetails.localCurrencyCode]);
 
     // User came back online, so let's refetch the currency details based on location
     useOnNetworkReconnect(PersonalDetails.openMoneyRequestModalPage);
@@ -292,6 +299,7 @@ const MoneyRequestModal = (props) => {
     );
     const amountButtonText = isEditingAmountAfterConfirm ? props.translate('common.save') : props.translate('common.next');
     const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.MoneyRequestParticipants;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.report);
 
     return (
         <ScreenWrapper
@@ -311,8 +319,9 @@ const MoneyRequestModal = (props) => {
                                     >
                                         {modalHeader}
                                         <MoneyRequestAmountPage
-                                            onStepComplete={(value) => {
-                                                const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(props.iou.selectedCurrencyCode, Number.parseFloat(value));
+                                            onStepComplete={(value, selectedCurrencyCode) => {
+                                                const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(selectedCurrencyCode, Number.parseFloat(value));
+                                                IOU.setIOUSelectedCurrency(selectedCurrencyCode);
                                                 setAmount(amountInSmallestCurrencyUnits);
                                                 navigateToNextStep();
                                             }}
@@ -320,6 +329,7 @@ const MoneyRequestModal = (props) => {
                                             hasMultipleParticipants={props.hasMultipleParticipants}
                                             selectedAmount={CurrencyUtils.convertToWholeUnit(props.iou.selectedCurrencyCode, amount)}
                                             navigation={props.navigation}
+                                            route={props.route}
                                             iouType={props.iouType}
                                             buttonText={amountButtonText}
                                         />
@@ -367,6 +377,8 @@ const MoneyRequestModal = (props) => {
                                             // the floating-action-button (since it is something that exists outside the context of a report).
                                             canModifyParticipants={!_.isEmpty(reportID)}
                                             navigateToStep={navigateToStep}
+                                            policyID={props.report.policyID}
+                                            bankAccountRoute={bankAccountRoute}
                                         />
                                     </AnimatedStep>
                                 )}

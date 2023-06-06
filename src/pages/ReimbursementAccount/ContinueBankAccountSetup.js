@@ -50,7 +50,7 @@ const ContinueBankAccountSetup = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
                 <HeaderWithCloseButton
-                    title={props.translate('workspace.common.bankAccount')}
+                    title={props.translate('workspace.common.connectBankAccount')}
                     subtitle={props.policyName}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={Navigation.goBack}

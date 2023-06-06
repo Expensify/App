@@ -7,7 +7,6 @@ import * as IOU from '../../src/libs/actions/IOU';
 import * as TestHelper from '../utils/TestHelper';
 import DateUtils from '../../src/libs/DateUtils';
 import * as NumberUtils from '../../src/libs/NumberUtils';
-import * as Localize from '../../src/libs/Localize';
 import * as ReportActions from '../../src/libs/actions/ReportActions';
 import * as Report from '../../src/libs/actions/Report';
 
@@ -657,7 +656,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                         expect(transaction.errors).toBeTruthy();
-                                        expect(_.values(transaction.errors)[0]).toBe(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
+                                        expect(_.values(transaction.errors)[0]).toBe('iou.error.genericCreateFailureMessage');
                                         resolve();
                                     },
                                 });
@@ -1178,7 +1177,7 @@ describe('actions/IOU', () => {
                                     expect(iouReport.chatReportID).toBe(chatReport.reportID);
 
                                     expect(chatReport.pendingFields).toBeFalsy();
-                                    expect(chatReport.pendingFields).toBeFalsy();
+                                    expect(iouReport.pendingFields).toBeFalsy();
 
                                     // expect(iouReport.status).toBe(CONST.REPORT.STATUS.SUBMITTED);
                                     // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
@@ -1230,7 +1229,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     fetch.pause();
-                    IOU.payMoneyRequestElsewhere(chatReport, iouReport, {login: iouReport.ownerEmail});
+                    IOU.payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
                     return waitForPromisesToResolve();
                 })
                 .then(

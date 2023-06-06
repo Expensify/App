@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {debounce} from 'lodash';
 import CONST from '../CONST';
@@ -14,47 +14,27 @@ const propTypes = {
     onExceededMaxCommentLength: PropTypes.func.isRequired,
 };
 
-class ExceededCommentLength extends PureComponent {
-    constructor(props) {
-        super(props);
+function ExceededCommentLength(props) {
+    const [commentLength, setCommentLength] = useState(0);
+    const updateCommentLength = useMemo(
+        () =>
+            debounce((comment, onExceededMaxCommentLength) => {
+                const newCommentLength = ReportUtils.getCommentLength(comment);
+                setCommentLength(newCommentLength);
+                onExceededMaxCommentLength(newCommentLength > CONST.MAX_COMMENT_LENGTH);
+            }, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME),
+        [],
+    );
 
-        this.state = {
-            commentLength: 0,
-        };
+    useEffect(() => {
+        updateCommentLength(props.comment, props.onExceededMaxCommentLength);
+    }, [props.comment, props.onExceededMaxCommentLength, updateCommentLength]);
 
-        // By debouncing, we defer the calculation until there is a break in typing
-        this.updateCommentLength = debounce(this.updateCommentLength.bind(this), CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME);
+    if (commentLength <= CONST.MAX_COMMENT_LENGTH) {
+        return null;
     }
 
-    componentDidMount() {
-        this.updateCommentLength();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.comment === this.props.comment) {
-            return;
-        }
-
-        this.updateCommentLength();
-    }
-
-    updateCommentLength() {
-        const commentLength = ReportUtils.getCommentLength(this.props.comment);
-        this.setState({commentLength});
-        this.props.onExceededMaxCommentLength(commentLength > CONST.MAX_COMMENT_LENGTH);
-    }
-
-    render() {
-        if (this.state.commentLength <= CONST.MAX_COMMENT_LENGTH) {
-            return null;
-        }
-
-        return (
-            <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>
-                {`${this.state.commentLength}/${CONST.MAX_COMMENT_LENGTH}`}
-            </Text>
-        );
-    }
+    return <Text style={[styles.textMicro, styles.textDanger, styles.chatItemComposeSecondaryRow, styles.mlAuto, styles.pl2]}>{`${commentLength}/${CONST.MAX_COMMENT_LENGTH}`}</Text>;
 }
 
 ExceededCommentLength.propTypes = propTypes;

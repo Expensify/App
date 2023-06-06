@@ -37,7 +37,7 @@ const propTypes = {
     /** Function for handle on press */
     onPress: PropTypes.func,
 
-    /** Handles scale changed event in PDF component */
+    /** Handles scale changed event */
     onScaleChanged: PropTypes.func,
 
     /** Notify parent that the UI should be modified to accommodate keyboard */
@@ -111,6 +111,7 @@ const AttachmentView = (props) => {
     if (isImage || (props.file && Str.isImage(props.file.name))) {
         const children = (
             <ImageView
+                onScaleChanged={props.onScaleChanged}
                 url={props.source}
                 isAuthTokenRequired={isImage && props.isAuthTokenRequired}
             />
@@ -136,11 +137,11 @@ const AttachmentView = (props) => {
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
             {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
-                <View style={styles.ml2}>
-                    <Tooltip text={props.translate('common.download')}>
+                <Tooltip text={props.translate('common.download')}>
+                    <View style={styles.ml2}>
                         <Icon src={Expensicons.Download} />
-                    </Tooltip>
-                </View>
+                    </View>
+                </Tooltip>
             )}
             {props.shouldShowLoadingSpinnerIcon && (
                 <View style={styles.ml2}>

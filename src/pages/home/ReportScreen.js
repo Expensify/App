@@ -13,7 +13,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as Report from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
-import Permissions from '../../libs/Permissions';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import CONST from '../../CONST';
@@ -231,10 +230,8 @@ class ReportScreen extends React.Component {
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
-        // Users not in the Default Room or Policy Room Betas can't view the report
-        const shouldHideReport =
-            (ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas)) ||
-            (ReportUtils.isUserCreatedPolicyRoom(this.props.report) && !Permissions.canUsePolicyRooms(this.props.betas));
+        // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
+        const shouldHideReport = ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas);
 
         // When the ReportScreen is not open/in the viewport, we want to "freeze" it for performance reasons
         const shouldFreeze = this.props.isSmallScreenWidth && this.props.isDrawerOpen;
@@ -244,6 +241,10 @@ class ReportScreen extends React.Component {
         // the moment the ReportScreen becomes unfrozen we want to start the animation of the placeholder skeleton content
         // (which is shown, until all the actual views of the ReportScreen have been rendered)
         const shouldAnimate = !shouldFreeze;
+        const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
+        const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
+
+        const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
 
         return (
             <ScreenWrapper style={screenWrapperStyle}>
@@ -266,7 +267,7 @@ class ReportScreen extends React.Component {
                     }
                 >
                     <FullPageNotFoundView
-                        shouldShow={(!reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
+                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
@@ -281,11 +282,13 @@ class ReportScreen extends React.Component {
                                     errors={addWorkspaceRoomOrChatErrors}
                                     shouldShowErrorMessages={false}
                                 >
-                                    {ReportUtils.isMoneyRequestReport(this.props.report) ? (
+                                    {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
                                         <MoneyRequestHeader
                                             report={this.props.report}
                                             policies={this.props.policies}
                                             personalDetails={this.props.personalDetails}
+                                            isSingleTransactionView={isSingleTransactionView}
+                                            parentReportAction={parentReportAction}
                                         />
                                     ) : (
                                         <HeaderView
@@ -337,6 +340,7 @@ class ReportScreen extends React.Component {
                                     isComposerFullSize={this.props.isComposerFullSize}
                                     isDrawerOpen={this.props.isDrawerOpen}
                                     parentViewHeight={this.state.skeletonViewContainerHeight}
+                                    policy={policy}
                                 />
                             )}
 
@@ -356,6 +360,7 @@ class ReportScreen extends React.Component {
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
+                                        policies={this.props.policies}
                                     />
                                 </>
                             )}

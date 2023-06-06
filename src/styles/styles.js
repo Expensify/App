@@ -259,6 +259,14 @@ const styles = {
         textDecorationLine: 'underline',
     },
 
+    textUnderlinePositionUnder: {
+        textUnderlinePosition: 'under',
+    },
+
+    textDecorationSkipInkNone: {
+        textDecorationSkipInk: 'none',
+    },
+
     label: {
         fontSize: variables.fontSizeLabel,
         lineHeight: variables.lineHeightLarge,
@@ -326,6 +334,7 @@ const styles = {
     textHero: {
         fontSize: variables.fontSizeHero,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        lineHeight: variables.lineHeightHero,
     },
 
     textStrong: {
@@ -343,6 +352,7 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     textHeadlineH1: {
@@ -350,6 +360,7 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeh1,
+        lineHeight: variables.lineHeightSizeh1,
     },
 
     textDecorationNoLine: {
@@ -726,6 +737,13 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    headerAnonymousFooter: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -1014,8 +1032,18 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    furtherDetailsText: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSmall,
+        color: themeColors.textSupporting,
+    },
+
     lh16: {
         lineHeight: 16,
+    },
+
+    lh20: {
+        lineHeight: 20,
     },
 
     lh140Percent: {
@@ -1209,20 +1237,24 @@ const styles = {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
-    createMenuPositionSidebar: {
-        left: 18,
-        bottom: 100,
+    onlyEmojisTextLineHeight: {
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
-    createMenuPositionProfile: {
-        right: 18,
-        top: 180,
-    },
+    createMenuPositionSidebar: (windowHeight) => ({
+        horizontal: 18,
+        vertical: windowHeight - 100,
+    }),
 
-    createMenuPositionReportActionCompose: {
-        left: 18 + variables.sideBarWidth,
-        bottom: 75,
-    },
+    createMenuPositionProfile: (windowWidth) => ({
+        horizontal: windowWidth - 355,
+        vertical: 250,
+    }),
+
+    createMenuPositionReportActionCompose: (windowHeight) => ({
+        horizontal: 18 + variables.sideBarWidth,
+        vertical: windowHeight - 75,
+    }),
 
     createMenuPositionRightSidepane: {
         right: 18,
@@ -1868,6 +1900,16 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarMedium: {
+        height: variables.avatarSizeMedium,
+        width: variables.avatarSizeMedium,
+    },
+
+    emptyAvatarLarge: {
+        height: variables.avatarSizeLarge,
+        width: variables.avatarSizeLarge,
+    },
+
     emptyAvatarMargin: {
         marginRight: variables.avatarChatSpacing,
     },
@@ -2021,6 +2063,7 @@ const styles = {
         ...headlineFont,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
         marginTop: 20,
         marginBottom: 8,
         textAlign: 'center',
@@ -2064,8 +2107,8 @@ const styles = {
         ...flex.dFlex,
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
-        ...spacing.mt4,
-        height: 170,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
 
     reportDetailsRoomInfo: {
@@ -2077,12 +2120,6 @@ const styles = {
 
     reportSettingsVisibilityText: {
         textTransform: 'capitalize',
-    },
-
-    reportTransactionWrapper: {
-        paddingVertical: 8,
-        display: 'flex',
-        flexDirection: 'row',
     },
 
     settingsPageBackground: {
@@ -2106,6 +2143,96 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         width: '100%',
+    },
+
+    twoFactorAuthSection: {
+        backgroundColor: themeColors.appBG,
+        padding: 0,
+    },
+
+    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
+        let paddingHorizontal = styles.ph15;
+
+        if (isSmallScreenWidth) {
+            paddingHorizontal = styles.ph10;
+        }
+
+        if (isExtraSmallScreenWidth) {
+            paddingHorizontal = styles.ph4;
+        }
+
+        return {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: themeColors.highlightBG,
+            paddingVertical: 28,
+            borderRadius: 16,
+            marginTop: 32,
+            ...paddingHorizontal,
+        };
+    },
+
+    twoFactorLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 210,
+    },
+
+    twoFactorAuthCodesContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        height: 148,
+    },
+
+    twoFactorAuthCode: {
+        fontFamily: fontFamily.MONOSPACE,
+        width: 100,
+        textAlign: 'center',
+    },
+
+    twoFactorAuthCodesButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 12,
+        marginTop: 20,
+    },
+
+    twoFactorAuthCodesButton: {
+        minWidth: 100,
+    },
+
+    twoFactorAuthFooter: {
+        marginTop: 'auto',
+    },
+
+    anonymousRoomFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 20,
+        marginBottom: 20,
+        backgroundColor: themeColors.activeComponentBG,
+        flexWrap: 'wrap',
+        gap: 8,
+        borderRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+    },
+
+    anonymousRoomFooterLogo: {
+        width: 88,
+        marginLeft: 0,
+        height: 20,
+    },
+
+    signInButtonAvatar: {
+        width: 80,
+    },
+
+    anonymousRoomFooterSignInButton: {
+        width: 125,
     },
 
     roomHeaderAvatarSize: {
@@ -2385,7 +2512,6 @@ const styles = {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
-        marginTop: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
@@ -2404,12 +2530,7 @@ const styles = {
 
     iouPreviewBoxAvatar: {
         marginRight: -10,
-        marginBottom: -10,
-    },
-
-    iouPreviewBoxAvatarHover: {
-        borderColor: themeColors.border,
-        backgroundColor: themeColors.border,
+        marginBottom: 0,
     },
 
     iouPreviewBoxCheckmark: {
@@ -2824,15 +2945,15 @@ const styles = {
         flex: 1,
     },
 
-    threeDotsPopoverOffset: {
-        top: 50,
-        right: 60,
-    },
+    threeDotsPopoverOffset: (windowWidth) => ({
+        vertical: 50,
+        horizontal: windowWidth - 60,
+    }),
 
-    threeDotsPopoverOffsetNoCloseButton: {
-        top: 50,
-        right: 10,
-    },
+    threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
+        vertical: 50,
+        horizontal: windowWidth - 10,
+    }),
 
     invert: {
         // It's important to invert the Y AND X axis to prevent a react native issue that can lead to ANRs on android 13
@@ -3178,12 +3299,11 @@ const styles = {
     },
 
     datePickerPopover: {
-        position: 'absolute',
         backgroundColor: themeColors.appBG,
         width: '100%',
         alignSelf: 'center',
-        top: 60,
         zIndex: 100,
+        marginTop: 8,
     },
 
     loginHeroHeader: {
@@ -3196,7 +3316,7 @@ const styles = {
     newKansasLarge: {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
-        lineHeight: 27,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     moneyRequestHeaderCheckmark: {
@@ -3219,6 +3339,7 @@ const styles = {
     whisper: {
         backgroundColor: themeColors.cardBG,
     },
+
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
     },
@@ -3244,6 +3365,12 @@ const styles = {
         backgroundColor: themeColors.highlightBG,
     },
 
+    splashScreenHider: {
+        backgroundColor: themeColors.splashBG,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     headerEnvBadge: {
         marginLeft: 0,
         marginBottom: 2,
@@ -3257,6 +3384,17 @@ const styles = {
         fontSize: 7,
         fontWeight: fontWeightBold,
         lineHeight: undefined,
+    },
+
+    expensifyQrLogo: {
+        alignSelf: 'stretch',
+        height: 27,
+        marginBottom: 20,
+    },
+
+    qrShareTitle: {
+        marginTop: 15,
+        textAlign: 'center',
     },
 };
 

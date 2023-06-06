@@ -17,6 +17,9 @@ import ReportActionItem from './ReportActionItem';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
+    /** Flag to show, hide the thread divider line */
+    shouldHideThreadDividerLine: PropTypes.bool,
+
     /** The id of the report */
     reportID: PropTypes.string.isRequired,
 
@@ -35,6 +38,7 @@ const propTypes = {
 const defaultProps = {
     report: {},
     parentReportActions: {},
+    shouldHideThreadDividerLine: false,
     ...withParentReportActionDefaultProps,
 };
 
@@ -60,12 +64,12 @@ const ReportActionItemParentAction = (props) => {
                         action={parentReportAction}
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}
-                        shouldDisplayNewMarker={false}
+                        shouldDisplayNewMarker={props.shouldDisplayNewMarker}
                         index={0}
                     />
                 )}
             </View>
-            <View style={[styles.threadDividerLine]} />
+            {!props.shouldHideThreadDividerLine && <View style={[styles.threadDividerLine]} />}
         </OfflineWithFeedback>
     );
 };

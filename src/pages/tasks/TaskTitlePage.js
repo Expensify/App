@@ -47,7 +47,7 @@ function TaskTitlePage(props) {
             const errors = {};
 
             if (_.isEmpty(values.title)) {
-                errors.title = props.translate('common.error.fieldRequired');
+                errors.title = props.translate('newTaskPage.pleaseEnterTaskName');
             }
 
             return errors;
@@ -76,7 +76,7 @@ function TaskTitlePage(props) {
                 title={props.translate('newTaskPage.task')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}

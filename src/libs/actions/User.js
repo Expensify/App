@@ -15,7 +15,7 @@ import * as SequentialQueue from '../Network/SequentialQueue';
 import PusherUtils from '../PusherUtils';
 import * as Report from './Report';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import DateUtils from '../DateUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
 
@@ -135,6 +135,7 @@ function requestContactMethodValidateCode(contactMethod) {
                     validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: null,
+                        validateLogin: null,
                     },
                     pendingFields: {
                         validateCodeSent: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -165,9 +166,7 @@ function requestContactMethodValidateCode(contactMethod) {
                 [contactMethod]: {
                     validateCodeSent: false,
                     errorFields: {
-                        validateCodeSent: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                        },
+                        validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
                     pendingFields: {
                         validateCodeSent: null,
@@ -266,9 +265,7 @@ function deleteContactMethod(contactMethod, loginList) {
                 [contactMethod]: {
                     ...oldLoginData,
                     errorFields: {
-                        deletedLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.deleteContactMethod'),
-                        },
+                        deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
                         deletedLogin: null,
@@ -352,9 +349,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        addedLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.addContactMethod'),
-                        },
+                        addedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.addContactMethod'),
                     },
                     pendingFields: {
                         addedLogin: null,
@@ -419,6 +414,14 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                ...CONST.DEFAULT_ACCOUNT_DATA,
+                isLoading: true,
+            },
+        },
     ];
     const successData = [
         {
@@ -432,6 +435,11 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
     ];
     const failureData = [
         {
@@ -440,15 +448,18 @@ function validateSecondaryLogin(contactMethod, validateCode) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        validateLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'),
-                        },
+                        validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
                     },
                     pendingFields: {
                         validateLogin: null,
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
         },
     ];
 
@@ -488,11 +499,6 @@ function isBlockedFromConcierge(blockedFromConciergeNVP) {
  */
 function addPaypalMeAddress(address) {
     const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-            value: address,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PAYPAL,
@@ -535,11 +541,6 @@ function deletePaypalMeAddress() {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-            value: '',
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PAYPAL,
             value: {},
         },
@@ -578,6 +579,10 @@ function subscribeToUserEventsUsingMultipleEventType() {
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
+            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            if (!currentUserAccountID) {
+                return;
+            }
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
         });
@@ -594,6 +599,10 @@ function subscribeToUserDeprecatedEvents() {
     // Receive any relevant Onyx updates from the server
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.ONYX_API_UPDATE, currentUserAccountID, (pushJSON) => {
         SequentialQueue.getCurrentRequest().then(() => {
+            // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
+            if (!currentUserAccountID) {
+                return;
+            }
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
         });
@@ -817,9 +826,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
                         defaultLogin: null,
                     },
                     errorFields: {
-                        defaultLogin: {
-                            [DateUtils.getMicroseconds()]: Localize.translateLocal('contacts.genericFailureMessages.setDefaultContactMethod'),
-                        },
+                        defaultLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.setDefaultContactMethod'),
                     },
                 },
             },

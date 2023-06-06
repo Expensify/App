@@ -9,7 +9,7 @@ import compose from '../libs/compose';
 import reportPropTypes from './reportPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../components/withCurrentUserPersonalDetails';
 import styles from '../styles/styles';
-import roomAvatar from '../../assets/images/avatars/room.png';
+import expensifyLogo from '../../assets/images/expensify-logo-round-transparent.png';
 import * as ReportUtils from '../libs/ReportUtils';
 import MenuItem from '../components/MenuItem';
 import Clipboard from '../libs/Clipboard';
@@ -17,6 +17,7 @@ import * as Expensicons from '../components/Icon/Expensicons';
 import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
 import ContextMenuItem from '../components/ContextMenuItem';
+import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -37,8 +38,9 @@ class ShareCodePage extends React.Component {
 
     render() {
         const isReport = this.props.report != null && this.props.report.reportID != null;
+        const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
 
-        const url = isReport ? `${CONST.NEW_EXPENSIFY_URL}r/${this.props.report.reportID}` : `${CONST.NEW_EXPENSIFY_URL}details?login=${this.props.session.email}`;
+        const url = isReport ? `${CONST.NEW_EXPENSIFY_URL}r/${this.props.report.reportID}` : `${CONST.NEW_EXPENSIFY_URL}details?login=${encodeURIComponent(this.props.session.email)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
@@ -58,8 +60,10 @@ class ShareCodePage extends React.Component {
                             ref={this.qrCodeRef}
                             url={url}
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
-                            subtitle={isReport ? ReportUtils.getPolicyName(this.props.report) : this.props.session.email}
-                            logo={isReport ? roomAvatar : this.props.currentUserPersonalDetails.avatar}
+                            subtitle={isReport ? subtitle : this.props.session.email}
+                            logo={isReport ? expensifyLogo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                            logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                            logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                         />
                     </View>
 

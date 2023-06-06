@@ -23,9 +23,6 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     secondAvatarStyle: PropTypes.arrayOf(PropTypes.object),
 
-    /** Tooltip for the Avatar */
-    avatarTooltips: PropTypes.arrayOf(PropTypes.string),
-
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon: PropTypes.func,
 
@@ -43,25 +40,33 @@ const propTypes = {
 
     /** Whether avatars are displayed within a reportAction */
     isInReportAction: PropTypes.bool,
+
+    /** Whether to show the toolip text */
+    shouldShowTooltip: PropTypes.bool,
+
+    /** Whether avatars are displayed with the highlighted background color instead of the app background color. This is primarily the case for IOU previews. */
+    shouldUseCardBackground: PropTypes.bool,
 };
 
 const defaultProps = {
     icons: [],
     size: CONST.AVATAR_SIZE.DEFAULT,
     secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
-    avatarTooltips: [],
     fallbackIcon: undefined,
     shouldStackHorizontally: false,
     isHovered: false,
     isPressed: false,
     isFocusMode: false,
     isInReportAction: false,
+    shouldShowTooltip: true,
+    shouldUseCardBackground: false,
 };
 
 const MultipleAvatars = (props) => {
     let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
     const singleAvatarStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
+    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [];
 
     if (!props.icons.length) {
         return null;
@@ -69,8 +74,8 @@ const MultipleAvatars = (props) => {
 
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
         return (
-            <View style={avatarContainerStyles}>
-                <Tooltip text={props.avatarTooltips[0]}>
+            <Tooltip text={tooltipTexts[0]}>
+                <View style={avatarContainerStyles}>
                     <Avatar
                         source={props.icons[0].source}
                         size={props.size}
@@ -78,8 +83,8 @@ const MultipleAvatars = (props) => {
                         name={props.icons[0].name}
                         type={props.icons[0].type}
                     />
-                </Tooltip>
-            </View>
+                </View>
+            </Tooltip>
         );
     }
 
@@ -107,50 +112,68 @@ const MultipleAvatars = (props) => {
             {props.shouldStackHorizontally ? (
                 <>
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
-                        <View
+                        <Tooltip
                             key={`stackedAvatars-${index}`}
-                            style={[
-                                styles.justifyContentCenter,
-                                styles.alignItemsCenter,
-                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInReportAction),
-                                StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
-                                icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
-                            ]}
+                            text={tooltipTexts[index]}
                         >
-                            <Avatar
-                                source={icon.source || props.fallbackIcon}
-                                fill={themeColors.iconSuccessFill}
-                                size={props.size}
-                                name={icon.name}
-                                type={icon.type}
-                            />
-                        </View>
+                            <View
+                                style={[
+                                    styles.justifyContentCenter,
+                                    styles.alignItemsCenter,
+                                    StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                        isHovered: props.isHovered,
+                                        isPressed: props.isPressed,
+                                        isInReportAction: props.isInReportAction,
+                                        shouldUseCardBackground: props.shouldUseCardBackground,
+                                    }),
+                                    StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
+                                    icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
+                                ]}
+                            >
+                                <Avatar
+                                    source={icon.source || props.fallbackIcon}
+                                    fill={themeColors.iconSuccessFill}
+                                    size={props.size}
+                                    name={icon.name}
+                                    type={icon.type}
+                                />
+                            </View>
+                        </Tooltip>
                     ))}
                     {props.icons.length > 4 && (
-                        <View
-                            style={[
-                                styles.alignItemsCenter,
-                                styles.justifyContentCenter,
-                                StyleUtils.getHorizontalStackedAvatarBorderStyle(props.isHovered, props.isPressed, props.isInReportAction),
-
-                                // Set overlay background color with RGBA value so that the text will not inherit opacity
-                                StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
-                                StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
-                                props.icons[3].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[3].type) : {},
-                            ]}
+                        <Tooltip
+                            // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
+                            text={tooltipTexts.slice(3, 10).join(', ')}
                         >
-                            <View style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}>
-                                <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${props.icons.length - 4}`}</Text>
+                            <View
+                                style={[
+                                    styles.alignItemsCenter,
+                                    styles.justifyContentCenter,
+                                    StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                        isHovered: props.isHovered,
+                                        isPressed: props.isPressed,
+                                        isInReportAction: props.isInReportAction,
+                                        shouldUseCardBackground: props.shouldUseCardBackground,
+                                    }),
+
+                                    // Set overlay background color with RGBA value so that the text will not inherit opacity
+                                    StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.overlay, variables.overlayOpacity),
+                                    StyleUtils.getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWidth),
+                                    props.icons[3].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[3].type) : {},
+                                ]}
+                            >
+                                <View
+                                    style={[styles.justifyContentCenter, styles.alignItemsCenter, StyleUtils.getHeight(oneAvatarSize.height), StyleUtils.getWidthStyle(oneAvatarSize.width)]}
+                                >
+                                    <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${props.icons.length - 4}`}</Text>
+                                </View>
                             </View>
-                        </View>
+                        </Tooltip>
                     )}
                 </>
             ) : (
                 <View style={singleAvatarStyles}>
-                    <Tooltip
-                        text={props.avatarTooltips[0]}
-                        absolute
-                    >
+                    <Tooltip text={tooltipTexts[0]}>
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
@@ -165,10 +188,7 @@ const MultipleAvatars = (props) => {
                     </Tooltip>
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
-                            <Tooltip
-                                text={props.avatarTooltips[1]}
-                                absolute
-                            >
+                            <Tooltip text={tooltipTexts[1]}>
                                 <View>
                                     <Avatar
                                         source={props.icons[1].source || props.fallbackIcon}
@@ -181,10 +201,7 @@ const MultipleAvatars = (props) => {
                                 </View>
                             </Tooltip>
                         ) : (
-                            <Tooltip
-                                text={props.avatarTooltips.slice(1).join(', ')}
-                                absolute
-                            >
+                            <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                 <View style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                                     <Text
                                         selectable={false}
