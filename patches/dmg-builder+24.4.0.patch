@@ -1,0 +1,17 @@
+diff --git a/node_modules/dmg-builder/out/dmgUtil.js b/node_modules/dmg-builder/out/dmgUtil.js
+index 13156bb..358e055 100644
+--- a/node_modules/dmg-builder/out/dmgUtil.js
++++ b/node_modules/dmg-builder/out/dmgUtil.js
+@@ -36,11 +36,7 @@ async function detach(name) {
+         await (0, builder_util_1.exec)("hdiutil", ["detach", "-quiet", name]);
+     }
+     catch (e) {
+-        await new Promise((resolve, reject) => {
+-            setTimeout(() => {
+-                (0, builder_util_1.exec)("hdiutil", ["detach", "-force", name]).then(resolve).catch(reject);
+-            }, 1000);
+-        });
++        await builder_util_1.retry(() => (0, builder_util_1.exec)("hdiutil", ["detach", "-force", name]), 5, 1000, 500);
+     }
+ }
+ exports.detach = detach;
