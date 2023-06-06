@@ -701,7 +701,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
         }
 
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
-        updatedIOUReport.lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, updatedReportAction).created;
+        updatedIOUReport.lastVisibleActionCreated = lastVisibleAction.created;
 
         updatedReportPreviewAction = {...reportPreviewAction};
         const messageText = Localize.translateLocal('iou.payerOwesAmount', {payer: updatedIOUReport.managerEmail, amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency)});
