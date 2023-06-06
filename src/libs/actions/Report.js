@@ -380,6 +380,16 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         params.shouldRetry = false;
     }
 
+    // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
+    // and we need data to be available when we navigate to the chat page
+    if (_.isEmpty(ReportUtils.getReport(reportID))) {
+        optimisticReportData.onyxMethod = Onyx.METHOD.SET;
+        optimisticReportData.value = {
+            ...optimisticReportData.value,
+            reportID: reportID.toString(),
+        };
+    }
+
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
@@ -394,23 +404,20 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             isOptimisticReport: true,
         };
 
-        // Add a created action, unless we are creating a thread
-        if (parentReportActionID === '0') {
-            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
-            onyxData.optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
-            });
-            onyxData.successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-            });
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        onyxData.optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+        });
+        onyxData.successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
 
-            // Add the createdReportActionID parameter to the API call
-            params.createdReportActionID = optimisticCreatedAction.reportActionID;
-        }
+        // Add the createdReportActionID parameter to the API call
+        params.createdReportActionID = optimisticCreatedAction.reportActionID;
 
         // If we are creating a thread, ensure the report action has childReportID property added
         if (newReportObject.parentReportID && parentReportActionID) {
