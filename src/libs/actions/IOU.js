@@ -25,6 +25,13 @@ Onyx.connect({
     callback: (val) => (allReports = val),
 });
 
+let allTransactions;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (val) => (allTransactions = val),
+});
+
 function buildOnyxDataForMoneyRequest(
     chatReport,
     iouReport,
@@ -664,7 +671,12 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.originalMessage.IOUReportID}`];
     const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
+    let transactionThread = null;
+    if (transactionThreadID) {
+        transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`];
+    }
 
     const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
     const shouldShowDeletedRequestMessage = transactionThreadID && !shouldDeleteTransactionThread;
@@ -759,39 +771,42 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         },
     ]
 
-    // const successData = [
-    //     {
-    //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-    //         value: {
-    //             [optimisticIOUAction.reportActionID]: {
-    //                 pendingAction: null,
-    //             },
-    //         },
-    //     },
-    // ];
-    // const failureData = [
-    //     {
-    //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
-    //         value: {
-    //             [moneyRequestAction.reportActionID]: moneyRequestAction,
-    //             [optimisticIOUAction.reportActionID]: {
-    //                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
-    //             },
-    //         },
-    //     },
-    //     {
-    //         onyxMethod: Onyx.METHOD.MERGE,
-    //         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-    //         value: iouReport,
-    //     },
-    //     {
-    //         onyxMethod: Onyx.METHOD.SET,
-    //         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    //         value: transactions[transactionID],
-    //     },
-    // ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction,
+        },
+        ...(shouldDeleteTransactionThread ? [{
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+            value: transactionThread,
+        }] : []),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            value: {
+                [reportAction.reportActionID]: reportAction,
+            },
+        },
+        {
+            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: iouReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            },
+        },
+        ...(shouldDeleteIOUReport ? [{
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: chatReport,
+        }] : []),
+    ];
 
     API.write(
         'DeleteMoneyRequest',
@@ -799,7 +814,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             transactionID,
             reportActionID: reportAction.reportActionID,
         },
-        {optimisticData, successData},
+        {optimisticData, successData, failureData},
     );
 
     if (isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
