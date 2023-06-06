@@ -958,8 +958,8 @@ function claimAnonymousAccount(validateCode, preferredLocale = CONST.LOCALES.DEF
             },
         },
 
-        // We need to manually set the authTokenType to NOT be anonymous
         {
+            // We need to manually set the authTokenType to NOT be anonymous
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
