@@ -694,8 +694,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
     // STEP 3: Update the iou report total and last message
     const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
     const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
-    const iouReportHasVisibleComments = iouReportLastMessageText.length > 0;
-    const shouldDeleteIOUReport = transactionThreadID && !iouReportHasVisibleComments;
+    const shouldDeleteIOUReport = iouReportLastMessageText.length === 0 && (!transactionID || shouldDeleteTransactionThread);
 
     let updatedIOUReport = null;
     if (!shouldDeleteIOUReport) {
@@ -711,13 +710,6 @@ function deleteMoneyRequest(transactionID, reportAction) {
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, updatedReportAction).created;
     }
-
-    // [DONE] transaction - always delete
-    // [DONE - missing header part] transactionThread - show [Request deleted] header if thread has comments, otherwise delete
-    // requestPreview - delete if transactionThread doesn't exist, otherwise show [Request deleted] message
-    // iou/expense report - delete if last requestPreview is deleted, otherwise update header to show $0 total
-    // reportPreview - delete if iou/expense report is deleted, otherwise show ${user} owes $X
-    // chatReport - never delete
     
     const optimisticData = [
         {
@@ -736,24 +728,23 @@ function deleteMoneyRequest(transactionID, reportAction) {
             value: updatedReportAction,
         },
         {
-            onyxMethod: (iouReportHasVisibleComments || transactionThreadHasVisibleComments) ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
+            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
         },
-        ...(!iouReportHasVisibleComments ? [{
-            onyxMethod: Onyx.METHOD.MERGE,
+        ...(shouldDeleteIOUReport ? [{
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [reportPreviewAction.reportActionID]: null,
             },
         }] : []),
-        ...(!iouReportHasVisibleComments ? [{
+        ...(shouldDeleteIOUReport ? [{
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 hasOutstandingIOU: false,
                 iouReportID: null,
-                iouReportAmount: null,
                 lastMessageText: ReportActionsUtils.getLastVisibleMessageText(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}),
                 lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).created,
             },
