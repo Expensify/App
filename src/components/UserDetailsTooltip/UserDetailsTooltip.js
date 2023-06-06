@@ -6,21 +6,19 @@ import { propTypes, defaultProps } from './userDetailsTooltipPropTypes';
 import styles from '../../styles/styles';
 
 function UserDetailsTooltip(props){
-    const { avatarSource, name, handle, children } = props
-
     return (
         <Tooltip
             renderTooltipContent={()=> (
                     <View style={styles.alignItemsCenter}>
                         <Avatar
                             containerStyles={[styles.actionAvatar]}
-                            source={avatarSource}
+                            source={props.avatarSource}
                         />
-                        {Boolean(name.trim()) ? <Text>{name}</Text> : ''}
-                        {Boolean(handle.trim()) ? <Text>@{handle}</Text> : ''}
+                        {Boolean(props.name.trim()) ? <Text>{props.name}</Text> : ''}
+                        {Boolean(props.handle.trim()) ? <Text>@{props.handle}</Text> : ''}
                     </View>
                 )}
-        >{children}</Tooltip>
+        >{props.children}</Tooltip>
     )
 }
 
