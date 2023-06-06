@@ -241,7 +241,7 @@ function canDeleteReportAction(reportAction, reportID) {
         return true;
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {});
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
     return policy.role === CONST.POLICY.ROLE.ADMIN;
 }
 
@@ -664,7 +664,7 @@ function canShowReportRecipientLocalTime(personalDetails, report, login) {
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return Str.htmlDecode(String(lastMessageText)).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return Str.htmlDecode(String(lastMessageText)).trim().replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
