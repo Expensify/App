@@ -187,7 +187,7 @@ class SidebarLinks extends React.Component {
                                     medium
                                     success
                                     text={this.props.translate('common.signIn')}
-                                    onPress={() => SignInModalActions.showSignInModal()}
+                                    onPress={SignInModalActions.showSignInModal}
                                 />
                             </View>
                         ) : (

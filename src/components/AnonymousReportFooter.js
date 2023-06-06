@@ -44,7 +44,7 @@ const AnonymousReportFooter = (props) => (
                     medium
                     success
                     text={props.translate('common.signIn')}
-                    onPress={() => SignInModalActions.showSignInModal()}
+                    onPress={SignInModalActions.showSignInModal}
                 />
             </View>
         </View>
