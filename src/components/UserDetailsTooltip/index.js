@@ -16,8 +16,8 @@ const UserDetailsTooltip = (props) => {
                             containerStyles={[styles.actionAvatar]}
                             source={avatarSource}
                         />
-                        {name && <Text>{name}</Text>}
-                        {handle && <Text>@{handle}</Text>}
+                        {(name.trim() != "") && <Text>{name}</Text>}
+                        {(handle.trim() != "") && <Text>@{handle}</Text>}
                     </View>
                 )}
         >{children}</Tooltip>
