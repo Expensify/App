@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -67,32 +67,13 @@ function MoneyRequestParticipantsSplitSelector(props) {
         userToInvite: null,
     });
 
-    function updateOptionsWithSearchTerm (newSearchTerm = '') {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            newSearchTerm,
-            props.participants,
-            CONST.EXPENSIFY_EMAILS,
-        );
-        setSearchTerm(newSearchTerm);
-        setNewChatOptions({
-            recentReports,
-            personalDetails,
-            userToInvite
-        });
-    }
-
-    const maxParticipantsReached = props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-
     /**
      * Returns the sections needed for the OptionsSelector
      *
      * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
-    const sections = useMemo(() => {
+    const getSections = (maxParticipantsReached) => {
         const newSections = [];
         let indexOffset = 0;
 
@@ -140,13 +121,13 @@ function MoneyRequestParticipantsSplitSelector(props) {
         }
 
         return newSections;
-    }, [props.translate, props.participants, newChatOptions, maxParticipantsReached])
+    }
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    function toggleOption(option) {
+    const toggleOption = (option) => {
         const isOptionInList = _.some(props.participants, (selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
@@ -177,10 +158,11 @@ function MoneyRequestParticipantsSplitSelector(props) {
     /**
      * Once a single or more users are selected, navigates to next step
      */
-    function finalizeParticipants() {
+    const finalizeParticipants = () => {
         props.onStepComplete();
     }
 
+    const maxParticipantsReached = props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
         newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
         Boolean(newChatOptions.userToInvite),
@@ -189,9 +171,23 @@ function MoneyRequestParticipantsSplitSelector(props) {
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
 
+    const sections = getSections(maxParticipantsReached);
+
     useEffect(() => {
-        updateOptionsWithSearchTerm(searchTerm);
-    }, [props.reports, props.personalDetails, searchTerm])
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            searchTerm,
+            props.participants,
+            CONST.EXPENSIFY_EMAILS,
+        );
+        setNewChatOptions({
+            recentReports,
+            personalDetails,
+            userToInvite
+        });
+    }, [props.betas, props.reports, props.participants, props.personalDetails, searchTerm])
 
     return (
         <View style={[styles.flex1, styles.w100, props.participants.length > 0 ? props.safeAreaPaddingBottomStyle : {}]}>
