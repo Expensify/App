@@ -41,7 +41,7 @@ Onyx.init({keys: ONYXKEYS});
 describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS]: participantsPersonalDetails,
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
             [ONYXKEYS.SESSION]: {email: currentUserEmail},
             [ONYXKEYS.COUNTRY_CODE]: 1,
             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
@@ -329,7 +329,7 @@ describe('ReportUtils', () => {
         const participants = _.keys(participantsPersonalDetails);
 
         beforeAll(() => {
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [currentUserEmail]: {
                     login: currentUserEmail,
                 },

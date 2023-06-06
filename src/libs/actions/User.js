@@ -31,7 +31,7 @@ Onyx.connect({
 
 let myPersonalDetails = {};
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         if (!val || !currentEmail) {
             return;
@@ -785,7 +785,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [newDefaultContactMethod]: {
                     ...myPersonalDetails,
@@ -833,7 +833,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [newDefaultContactMethod]: null,
                 [oldDefaultContactMethod]: {...myPersonalDetails},

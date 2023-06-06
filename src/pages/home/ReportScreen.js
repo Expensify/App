@@ -393,7 +393,7 @@ export default compose(
             key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(ReportScreen);

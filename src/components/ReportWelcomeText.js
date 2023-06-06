@@ -129,7 +129,7 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(ReportWelcomeText);

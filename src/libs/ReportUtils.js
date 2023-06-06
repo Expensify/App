@@ -57,7 +57,7 @@ Onyx.connect({
 let allPersonalDetails;
 let currentUserPersonalDetails;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         currentUserPersonalDetails = lodashGet(val, currentUserEmail, {});
         allPersonalDetails = val;
@@ -827,7 +827,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 }
 
 /**
- * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
  * @param {String} login
  * @returns {Object}

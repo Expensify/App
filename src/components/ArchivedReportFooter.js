@@ -81,7 +81,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reportClosedAction: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,

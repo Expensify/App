@@ -1252,7 +1252,7 @@ export default compose(
             selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,

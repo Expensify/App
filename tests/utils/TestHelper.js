@@ -62,7 +62,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
                     [login]: buildPersonalDetails(login, accountID, firstName),
                 },
@@ -189,7 +189,7 @@ function getGlobalFetchMock() {
  * @returns {Promise}
  */
 function setPersonalDetails(login, accountID) {
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [login]: buildPersonalDetails(login, accountID),
     });
     return waitForPromisesToResolve();

@@ -261,7 +261,7 @@ describe('OptionsListUtils', () => {
             },
         });
         Onyx.registerLogger(() => {});
-        return waitForPromisesToResolve().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, PERSONAL_DETAILS));
+        return waitForPromisesToResolve().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
     });
 
     it('getSearchOptions()', () => {
@@ -290,7 +290,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports[1].text).toBe('Mister Fantastic');
 
         return waitForPromisesToResolve()
-            .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS, PERSONAL_DETAILS_WITH_PERIODS))
+            .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
             .then(() => {
                 // When we filter again but provide a searchValue that should match with periods
                 results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barryallen@expensify.com');

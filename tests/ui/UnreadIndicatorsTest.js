@@ -185,7 +185,7 @@ function signInAndGetAppWithUnreadChat() {
                 8: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
                 9: TestHelper.buildTestReportComment(USER_B_EMAIL, reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
             });
 
@@ -331,7 +331,7 @@ describe('Unread Indicators', () => {
                     },
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                         value: {
                             [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
                         },

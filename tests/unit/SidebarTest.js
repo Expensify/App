@@ -58,7 +58,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -100,7 +100,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
                         }),

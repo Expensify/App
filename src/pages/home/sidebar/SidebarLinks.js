@@ -315,7 +315,7 @@ export default compose(
             selector: chatReportSelector,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             selector: personalDetailsSelector,
         },
         priorityMode: {

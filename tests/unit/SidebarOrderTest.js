@@ -60,7 +60,7 @@ describe('Sidebar', () => {
                     // When Onyx is updated with some personal details
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                         }),
                     )
 
@@ -84,7 +84,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -116,7 +116,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -153,7 +153,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -190,7 +190,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -236,7 +236,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -280,7 +280,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -316,7 +316,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -377,7 +377,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.SESSION]: {email: currentlyLoggedInUserEmail},
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -429,7 +429,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -488,7 +488,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -542,7 +542,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -578,7 +578,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -632,7 +632,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -717,7 +717,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.SESSION]: {email: currentlyLoggedInUserEmail},
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
@@ -765,7 +765,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,

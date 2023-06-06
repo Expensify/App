@@ -200,7 +200,7 @@ export default compose(
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
