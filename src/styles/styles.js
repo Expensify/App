@@ -745,7 +745,7 @@ const styles = {
     },
 
     headerGap: {
-        height: 12,
+        height: CONST.DESKTOP_HEADER_HEIGHT,
     },
 
     pushTextRight: {
