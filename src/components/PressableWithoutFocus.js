@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import GenericPressable from './Pressable/GenericPressable';
+import genericPressablePropTypes from './Pressable/GenericPressable/PropTypes';
 
 const propTypes = {
     /** Element that should be clickable  */
@@ -15,6 +16,9 @@ const propTypes = {
     /** Styles that should be passed to touchable container */
     // eslint-disable-next-line react/forbid-prop-types
     styles: PropTypes.arrayOf(PropTypes.object),
+    
+    /** Proptypes of pressable component used for implementation */
+    ...genericPressablePropTypes.pressablePropTypes,
 };
 
 const defaultProps = {
