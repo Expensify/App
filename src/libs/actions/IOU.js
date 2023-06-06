@@ -694,7 +694,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
     // STEP 3: Update the iou report total and last message
     const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
     const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
-    const shouldDeleteIOUReport = iouReportLastMessageText.length === 0 && (!transactionID || shouldDeleteTransactionThread);
+    const shouldDeleteIOUReport = iouReportLastMessageText.length === 0 && (!transactionThreadID || shouldDeleteTransactionThread);
 
     let updatedIOUReport = null;
     if (!shouldDeleteIOUReport) {
@@ -710,7 +710,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, updatedReportAction).created;
     }
-    
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -793,7 +793,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
         {optimisticData},
     );
 
-    if (!iouReportHasVisibleComments || !transactionThreadHasVisibleComments) {
+    if (shouldDeleteIOUReport || shouldDeleteTransactionThread) {
         Navigation.navigate(ROUTES.getReportRoute(iouReport.chatReportID));
     }
     // if (shouldCloseOnDelete) {
