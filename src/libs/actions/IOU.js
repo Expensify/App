@@ -677,7 +677,6 @@ function deleteMoneyRequest(transactionID, reportAction) {
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
     const transactionThreadID = reportAction.childReportID;
 
-    // STEP 2: Update the reportAction
     const updatedReportAction = {
         [reportAction.reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -692,14 +691,8 @@ function deleteMoneyRequest(transactionID, reportAction) {
         },
     };
 
-    // transaction - always delete
-    // transactionThread - show [Request deleted] header if thread has comments, otherwise thread doesn't exist
-    // requestPreview - delete if transactionThread doesn't exist, otherwise show [Request deleted] message
-    // iou/expense report - delete if last requestPreview is deleted, otherwise update header to show $0 total
-    // reportPreview - delete if iou/expense report is deleted, otherwise show ${user} owes $X
-    // chatReport - never delete
-
     // STEP 3: Update the iou report total and last message
+    const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
     const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
     const iouReportHasVisibleComments = iouReportLastMessageText.length > 0;
     const shouldDeleteIOUReport = transactionThreadID && !iouReportHasVisibleComments;
@@ -719,19 +712,24 @@ function deleteMoneyRequest(transactionID, reportAction) {
         updatedIOUReport.lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, updatedReportAction).created;
     }
 
-    // 1. [DONE] Update IOU action so that message is empty. 
-    // 2. (If there are no comments it should disappear. Otherwise it should show [Deleted request])
-    // 2. [DONE] Delete transaction.
-    // 3. If there's a transaction thread, MoneyRequestHeader should update to [Deleted request]
-    // 3. [DONE] Update iouReport total and last visible messages. Delete if no more comments.
-    // 5. [DONE] Update reportPreview. Delete if iouReport was deleted. Check how we'll do this in Auth.
-    // 6. [DONE] Update chatReport. Update last messages.
+    // [DONE] transaction - always delete
+    // [DONE - missing header part] transactionThread - show [Request deleted] header if thread has comments, otherwise delete
+    // requestPreview - delete if transactionThread doesn't exist, otherwise show [Request deleted] message
+    // iou/expense report - delete if last requestPreview is deleted, otherwise update header to show $0 total
+    // reportPreview - delete if iou/expense report is deleted, otherwise show ${user} owes $X
+    // chatReport - never delete
+    
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: null,
         },
+        ...(shouldDeleteTransactionThread ? [{
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+            value: null,
+        }] : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
@@ -760,11 +758,6 @@ function deleteMoneyRequest(transactionID, reportAction) {
                 lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).created,
             },
         }] : []),
-        ...(!transactionThreadHasVisibleComments ? [{
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-            value: null,
-        }] : [])
     ];
     // const successData = [
     //     {
