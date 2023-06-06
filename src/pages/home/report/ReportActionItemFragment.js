@@ -2,6 +2,7 @@ import React, {memo} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
@@ -57,6 +58,9 @@ const propTypes = {
     // Additional styles to add after local styles
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Name of the action. example: ADDCOMMENT, POLICYCHANGELOG_ADD_EMPLOYEE  */
+    actionName: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -76,6 +80,7 @@ const defaultProps = {
     tooltipText: '',
     source: '',
     style: [],
+    actionName: '',
 };
 
 const ReportActionItemFragment = (props) => {
@@ -107,7 +112,8 @@ const ReportActionItemFragment = (props) => {
             const differByLineBreaksOnly = Str.replaceAll(html, '<br />', '\n') === text;
 
             // Only render HTML if we have html in the fragment
-            if (!differByLineBreaksOnly) {
+            // Policy changelog messages should always be rendered as text
+            if (!differByLineBreaksOnly && !_.contains(_.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), props.actionName)) {
                 const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
                 const editedTag = props.fragment.isEdited ? `<edited ${isPendingDelete ? 'deleted' : ''}></edited>` : '';
                 const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);

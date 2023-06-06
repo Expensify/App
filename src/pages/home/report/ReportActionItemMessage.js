@@ -40,6 +40,7 @@ const ReportActionItemMessage = (props) => (
                     source={lodashGet(props.action, 'originalMessage.source')}
                     loading={props.action.isLoading}
                     style={props.style}
+                    actionName={props.action.actionName}
                 />
             ))
         ) : (
