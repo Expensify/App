@@ -9,14 +9,19 @@ function UserDetailsTooltip(props){
 
     const renderTooltipContent = useCallback(() => {
         return (
-            <View style={styles.alignItemsCenter}>
-                <Avatar
-                    containerStyles={[styles.actionAvatar]}
-                    source={props.avatarSource}
-                />
-                {Boolean(props.name.trim()) ? <Text>{props.name}</Text> : ''}
-                {Boolean(props.handle.trim()) ? <Text>@{props.handle}</Text> : ''}
-            </View>
+            <View style={[styles.alignItemsCenter, styles.ph2]}>
+                <View style={styles.flexRow}>
+                    <Avatar
+                        containerStyles={[styles.actionAvatar]}
+                        source={props.avatarSource}
+                    />
+                </View>
+
+                {Boolean(props.name.trim()) ? <Text style={[styles.mt1, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{props.name}</Text> : ''}
+
+                {Boolean(props.handle.trim()) ? <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>@{props.handle}</Text> : ''}
+
+        </View>
         );
       }, [props.avatarSource, props.name, props.handle]);
 
