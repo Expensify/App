@@ -20,7 +20,7 @@ const propTypes = {
     title: PropTypes.string.isRequired,
 
     /** Subtitle message below the title */
-    subtitle: PropTypes.string.isRequired,
+    subtitle: PropTypes.string,
 
     /** Link message below the subtitle */
     link: PropTypes.string,
@@ -40,6 +40,7 @@ const propTypes = {
 
 const defaultProps = {
     iconColor: themeColors.offline,
+    subtitle: '',
     shouldShowLink: false,
     link: 'notFound.goBackHome',
     iconWidth: variables.iconSizeSuperLarge,
