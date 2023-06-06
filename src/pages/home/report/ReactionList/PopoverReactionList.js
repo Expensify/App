@@ -68,8 +68,8 @@ class PopoverReactionList extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        const prevSelectedReaction = this.getSelectedReaction(this.props.reportActions, this.state.reportActionID, this.state.emojiName);
         const selectedReaction = this.getSelectedReaction(nextProps.reportActions, nextState.reportActionID, nextState.emojiName);
+        const {emojiCount, emojiCodes, hasUserReacted, users} = this.getReactionInformation(selectedReaction);
         const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
         const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
 
@@ -78,13 +78,12 @@ class PopoverReactionList extends React.Component {
             this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition ||
             previousLocale !== nextLocale ||
             (this.state.isPopoverVisible &&
-                (!_.isEqual(prevSelectedReaction, selectedReaction) ||
+                (this.state.reportActionID !== nextState.reportActionID ||
                     this.state.emojiName !== nextState.emojiName ||
-                    this.state.emojiCount !== nextState.emojiCount ||
-                    this.state.hasUserReacted !== nextState.hasUserReacted ||
-                    this.state.reportActionID !== nextState.reportActionID ||
-                    !_.isEqual(this.state.emojiCodes, nextState.emojiCodes) ||
-                    !_.isEqual(this.state.users, nextState.users)))
+                    this.state.emojiCount !== emojiCount ||
+                    this.state.hasUserReacted !== hasUserReacted ||
+                    !_.isEqual(this.state.emojiCodes, emojiCodes) ||
+                    !_.isEqual(this.state.users, users)))
         );
     }
 
