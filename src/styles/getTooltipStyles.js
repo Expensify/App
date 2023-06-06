@@ -154,7 +154,7 @@ export default function getTooltipStyles(
     if (isTooltipSizeReady) {
         // Determine if the tooltip should display below the wrapped component.
         // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
-        // Or the wrapped component is overlapping at top-left with another element
+        // Or the wrapped component is overlapping at top-center with another element
         // we'll display it beneath its wrapped component rather than above it as usual.
         shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth);
 
