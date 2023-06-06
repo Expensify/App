@@ -378,6 +378,8 @@ class ReimbursementAccountPage extends React.Component {
                 <ScreenWrapper>
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.common.connectBankAccount')}
+                        shouldShowBackButton
+                        onBackButtonPress={Navigation.goBack}
                         onCloseButtonPress={Navigation.dismissModal}
                         subtitle={policyName}
                     />
