@@ -1,11 +1,12 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Whether checkbox is checked */
@@ -34,6 +35,9 @@ const propTypes = {
 
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+
+    /** A ref to forward to the Pressable */
+    accessibilityLabel: PropTypes.string,
 };
 
 const defaultProps = {
@@ -45,6 +49,7 @@ const defaultProps = {
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
+    accessibilityLabel: 'checkbox',
 };
 
 class Checkbox extends React.Component {
@@ -95,7 +100,7 @@ class Checkbox extends React.Component {
 
     render() {
         return (
-            <Pressable
+            <PressableWithFeedback
                 disabled={this.props.disabled}
                 onPress={this.firePressHandlerOnClick}
                 onMouseDown={this.props.onMouseDown}
@@ -103,12 +108,15 @@ class Checkbox extends React.Component {
                 onBlur={this.onBlur}
                 ref={this.props.forwardedRef}
                 onPressOut={this.onBlur}
-                style={this.props.style}
+                style={[this.props.style, styles.userSelectNone]}
                 onKeyDown={this.handleSpaceKey}
                 accessibilityRole="checkbox"
                 accessibilityState={{
                     checked: this.props.isChecked,
                 }}
+                accessibilityLabel={this.props.accessibilityLabel}
+                hoverDimmingValue={1}
+                pressDimmingValue={1}
             >
                 {this.props.children ? (
                     this.props.children
@@ -133,7 +141,7 @@ class Checkbox extends React.Component {
                         )}
                     </View>
                 )}
-            </Pressable>
+            </PressableWithFeedback>
         );
     }
 }
