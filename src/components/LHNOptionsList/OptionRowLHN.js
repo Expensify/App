@@ -144,10 +144,12 @@ const OptionRowLHN = (props) => {
                             props.isFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
-                    >
+                        accessibilityRole="button"
+                        accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
+                        >
                         <View
-                            accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
                             style={sidebarInnerRowStyle}
+                            accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!_.isEmpty(optionItem.icons) &&

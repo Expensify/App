@@ -58,6 +58,8 @@ const EmojiReactionBubble = (props) => (
         enableLongPressWithHover={props.isSmallScreenWidth}
         // Prevent text input blur when emoji reaction is clicked
         onMouseDown={(e) => e.preventDefault()}
+        accessibilityRole="button"
+        accessibilityLabel={props.emojiCodes.join('')}
     >
         <Text style={[styles.emojiReactionBubbleText, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
         {props.count > 0 && <Text style={[styles.reactionCounterText, styles.userSelectNone, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}

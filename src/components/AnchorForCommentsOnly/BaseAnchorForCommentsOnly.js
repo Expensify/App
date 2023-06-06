@@ -60,12 +60,13 @@ const BaseAnchorForCommentsOnly = (props) => {
             onPress={linkProps.onPress}
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
+            accessibilityRole="link"
+            accessibilityLabel={props.href}
         >
             <Tooltip text={props.href}>
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
-                    accessibilityRole="link"
                     hrefAttrs={{
                         rel: props.rel,
                         target: isEmail ? '_self' : props.target,
