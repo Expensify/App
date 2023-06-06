@@ -17,7 +17,7 @@ import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
 
 let currentUserAccountID;
-let currentUserEmail = '';
+let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {

@@ -115,7 +115,6 @@ const MultipleAvatars = (props) => {
                         <Tooltip
                             key={`stackedAvatars-${index}`}
                             text={tooltipTexts[index]}
-                            absolute
                         >
                             <View
                                 style={[
@@ -145,7 +144,6 @@ const MultipleAvatars = (props) => {
                         <Tooltip
                             // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
                             text={tooltipTexts.slice(3, 10).join(', ')}
-                            absolute
                         >
                             <View
                                 style={[
