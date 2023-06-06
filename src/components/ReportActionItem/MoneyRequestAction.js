@@ -21,6 +21,7 @@ import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
+import RenderHTML from '../RenderHTML';
 
 const propTypes = {
     /** All the data of the action */
@@ -131,6 +132,7 @@ const MoneyRequestAction = (props) => {
     };
 
     let shouldShowPendingConversionMessage = false;
+    const isDeletedParentAction = lodashGet(props.action, ['message', 0, 'isDeletedParentAction'], false);
     if (
         !_.isEmpty(props.iouReport) &&
         !_.isEmpty(props.reportActions) &&
@@ -143,7 +145,9 @@ const MoneyRequestAction = (props) => {
     }
 
     return (
-        <>
+        isDeletedParentAction ? (
+            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedRequest')}</comment>`} />
+        ) : (
             <IOUPreview
                 iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
@@ -156,7 +160,7 @@ const MoneyRequestAction = (props) => {
                 containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
                 isHovered={props.isHovered}
             />
-        </>
+        )
     );
 };
 

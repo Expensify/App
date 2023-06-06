@@ -1399,6 +1399,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        deletedRequest: '[Deleted request]',
     },
     threads: {
         lastReply: 'Last reply',

@@ -1865,6 +1865,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        deletedRequest: '[Pedido eliminado]',
     },
     threads: {
         lastReply: 'Última respuesta',

@@ -666,22 +666,24 @@ function deleteMoneyRequest(transactionID, reportAction) {
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
     const transactionThreadID = reportAction.childReportID;
 
+    const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
+    const shouldShowDeletedRequestMessage = transactionThreadID && !shouldDeleteTransactionThread;
     const updatedReportAction = {
         [reportAction.reportActionID]: {
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: shouldShowDeletedRequestMessage ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: reportAction.message,
             message: [{
                 type: 'COMMENT',
                 html: '',
                 text: '',
                 isEdited: true,
+                isDeletedParentAction: shouldShowDeletedRequestMessage,
             }],
             errors: null,
         },
     };
 
     // STEP 3: Update the iouReport and reportPreview
-    const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
     const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
     const shouldDeleteIOUReport = iouReportLastMessageText.length === 0 && (!transactionThreadID || shouldDeleteTransactionThread);
 
@@ -745,6 +747,7 @@ function deleteMoneyRequest(transactionID, reportAction) {
             },
         }] : []),
     ];
+
     // const successData = [
     //     {
     //         onyxMethod: Onyx.METHOD.MERGE,
