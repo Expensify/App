@@ -7,6 +7,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
+import * as Session from '../../../../libs/actions/Session';
 import ROUTES from '../../../../ROUTES';
 import FullPageOfflineBlockingView from '../../../../components/BlockingViews/FullPageOfflineBlockingView';
 import styles from '../../../../styles/styles';
@@ -16,9 +17,12 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import TextLink from '../../../../components/TextLink';
 import Clipboard from '../../../../libs/Clipboard';
 import FixedFooter from '../../../../components/FixedFooter';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import QRCode from '../../../../components/QRCode';
-import expensifyLogo from '../../../../../assets/images/expensify-logo-round-dark.png';
+import expensifyLogo from '../../../../../assets/images/expensify-logo-round-transparent.png';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -51,6 +55,10 @@ const defaultProps = {
 };
 
 function VerifyPage(props) {
+    useEffect(() => {
+        Session.clearAccountMessages();
+    }, []);
+
     useEffect(() => {
         if (!props.account.requiresTwoFactorAuth) {
             return;
@@ -110,15 +118,20 @@ function VerifyPage(props) {
                             <QRCode
                                 url={buildAuthenticatorUrl()}
                                 logo={expensifyLogo}
+                                logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
+                                logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
                             />
                         </View>
                         <Text style={styles.mt5}>{props.translate('twoFactorAuth.addKey')}</Text>
                         <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             {Boolean(props.account.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(props.account.twoFactorAuthSecretKey)}</Text>}
-                            <Button
+                            <PressableWithDelayToggle
                                 text={props.translate('twoFactorAuth.copy')}
+                                icon={Expensicons.Copy}
+                                inline={false}
                                 onPress={() => Clipboard.setString(props.account.twoFactorAuthSecretKey)}
-                                medium
+                                styles={[styles.button, styles.buttonMedium]}
+                                textStyles={[styles.buttonMediumText]}
                             />
                         </View>
                         <Text style={styles.mt11}>{props.translate('twoFactorAuth.enterCode')}</Text>
