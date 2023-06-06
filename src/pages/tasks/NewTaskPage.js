@@ -147,9 +147,8 @@ const NewTaskPage = (props) => {
                         icon={assignee.icons}
                         onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
                         shouldShowRightIcon
+                        style={styles.popoverMenuItem}
                     />
-                </View>
-                <View style={styles.mb5}>
                     <MenuItemWithTopDescription
                         label={shareDestination.displayName ? props.translate('newTaskPage.shareSomewhere') : ''}
                         description={shareDestination.displayName ? shareDestination.displayName : props.translate('newTaskPage.shareSomewhere')}
