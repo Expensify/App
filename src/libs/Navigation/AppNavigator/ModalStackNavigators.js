@@ -469,6 +469,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsReportBug = require('../../../pages/settings/ReportBug').default;
+            return SettingsReportBug;
+        },
+        name: 'Settings_Bug_Report',
+    },
+    {
+        getComponent: () => {
             const SettingsPaymentsPage = require('../../../pages/settings/Payments/PaymentsPage').default;
             return SettingsPaymentsPage;
         },

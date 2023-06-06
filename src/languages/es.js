@@ -592,6 +592,14 @@ export default {
             password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
+    bugReportForm: {
+        reportABug: 'Reportar un error',
+        actionTried: "What did you try to do?",
+        expectedBehavior: "What did you expect to happen?",
+        actualBehavior: "What actually happened?",
+        submitBug: "Submit bug",
+        addAttachments: "Add attachments",
+    },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',

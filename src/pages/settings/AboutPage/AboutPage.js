@@ -64,7 +64,9 @@ const AboutPage = (props) => {
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
             icon: Expensicons.Bug,
-            action: Report.navigateToConciergeChat,
+            action: () => {
+                Navigation.navigate(ROUTES.SETTINGS_BUG_REPORT);
+            },
         },
     ];
 

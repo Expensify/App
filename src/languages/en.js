@@ -592,6 +592,14 @@ export default {
             password: 'Please enter your Expensify password',
         },
     },
+    bugReportForm: {
+        reportABug: 'Report a bug',
+        actionTried: "What did you try to do?",
+        expectedBehavior: "What did you expect to happen?",
+        actualBehavior: "What actually happened?",
+        submitBug: "Submit bug",
+        addAttachments: "Add attachments",
+    },
     paymentsPage: {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',

@@ -118,6 +118,10 @@ export default {
                         path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
                         exact: true,
                     },
+                    Settings_Bug_Report: {
+                        path: ROUTES.SETTINGS_BUG_REPORT,
+                        exact: true,
+                    },
                     Settings_ContactMethods: {
                         path: ROUTES.SETTINGS_CONTACT_METHODS,
                         exact: true,
