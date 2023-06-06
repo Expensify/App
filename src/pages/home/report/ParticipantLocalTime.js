@@ -53,7 +53,7 @@ class ParticipantLocalTime extends PureComponent {
     }
 
     render() {
-        const reportRecipientDisplayName = this.props.participant.firstName || this.props.participant.displayName;
+        const reportRecipientDisplayName = lodashGet(this.props, 'participant.firstName') || lodashGet(this.props, 'participant.displayName');
 
         return (
             <View style={[styles.chatItemComposeSecondaryRow]}>
