@@ -20,15 +20,23 @@ module.exports = {
         __DEV__: 'readonly',
     },
     rules: {
-        "import/no-extraneous-dependencies": "off",
+        'import/extensions': 'off',
+        'import/no-extraneous-dependencies': 'off',
         'rulesdir/onyx-props-must-have-default': 'off',
         'react/jsx-filename-extension': [1, {extensions: ['.tsx', '.ts', '.jsx', '.js']}],
-        "@typescript-eslint/no-var-requires": "off",
+        '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-non-null-assertion': 'error',
         '@typescript-eslint/no-explicit-any': 'error',
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
         'es/no-nullish-coalescing-operators': 'off',
         'es/no-optional-chaining': 'off',
+        'no-restricted-syntax': [
+            'error',
+            {
+                selector: 'TSEnumDeclaration',
+                message: "Please don't declare enums, use union types instead.",
+            },
+        ],
         'no-restricted-imports': [
             'error',
             {
@@ -36,7 +44,7 @@ module.exports = {
                     {
                         name: 'react-native',
                         importNames: ['useWindowDimensions'],
-                        message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead',
+                        message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead.',
                     },
                     {
                         name: 'react-native',
