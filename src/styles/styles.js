@@ -1232,6 +1232,14 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    leftPanelContainer: {
+        maxWidth: variables.leftPaneMaxWidth,
+    },
+
+    rightPanelContainer: {
+        width: variables.sideBarWidth,
+    },
+
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
         lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -1398,11 +1406,6 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
-
-        // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
-        // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
-        // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        ...userSelect.userSelectText,
     },
 
     appContentHeader: {
@@ -1740,6 +1743,15 @@ const styles = {
         marginTop: 5,
         marginRight: 4,
     },
+
+    navigationModalCard: (isSmallScreenWidth) => ({
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        backgroundColor: 'transparent',
+        height: '100%',
+    }),
 
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
@@ -2665,6 +2677,15 @@ const styles = {
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
+    },
+
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
+    cardStyleNavigator: {
+        overflow: 'hidden',
+        height: '100%',
     },
 
     fullscreenCard: {
