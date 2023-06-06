@@ -21,6 +21,7 @@ import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAva
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import * as ReportActionsUtils from './ReportActionsUtils'
 
 let sessionEmail;
 Onyx.connect({
@@ -989,7 +990,7 @@ function getMoneyRequestReportName(report) {
  * @returns {String}
  */
 function getTransactionReportName(reportAction) {
-    if (lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false)) {
+    if (ReportActionsUtils.isDeletedParentAction(reportAction)) {
         return Localize.translateLocal('parentReportAction.deletedRequest');
     }
 

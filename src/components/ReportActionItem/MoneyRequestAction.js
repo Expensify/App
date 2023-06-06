@@ -132,7 +132,7 @@ const MoneyRequestAction = (props) => {
     };
 
     let shouldShowPendingConversionMessage = false;
-    const isDeletedParentAction = lodashGet(props.action, ['message', 0, 'isDeletedParentAction'], false);
+    const isDeletedParentAction = ReportUtils.isDeletedParentAction(props.action);
     if (
         !_.isEmpty(props.iouReport) &&
         !_.isEmpty(props.reportActions) &&

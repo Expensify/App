@@ -52,6 +52,14 @@ function isDeletedAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isDeletedParentAction(reportAction) {
+    return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isMoneyRequestAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
@@ -215,7 +223,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action) || lodashGet(action, ['message', 0, 'isDeletedParentAction'], false));
+    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action) || isDeletedParentAction(action));
 
     if (_.isEmpty(visibleActions)) {
         return {};
@@ -301,8 +309,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
-    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
-    return !isDeleted || isPending || isDeletedParentAction;
+    return !isDeleted || isPending || isDeletedParentAction(reportAction);
 }
 
 /**
@@ -414,4 +421,5 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isDeletedParentAction,
 };
