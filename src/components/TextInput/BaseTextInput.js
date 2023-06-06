@@ -135,13 +135,13 @@ function BaseTextInput(props) {
     const propOnFocus = props.onFocus;
     const onFocus = useCallback(
         (event) => {
+            console.log('onFocus');
             if (propOnFocus) {
                 propOnFocus(event);
             }
             setIsFocused(true);
-            activateLabel();
         },
-        [activateLabel, propOnFocus],
+        [propOnFocus],
     );
 
     const propOnBlur = props.onBlur;
@@ -183,7 +183,7 @@ function BaseTextInput(props) {
             input.current.clear();
         }
 
-        if (props.value) {
+        if (props.value || isFocused) {
             activateLabel();
         } else if (!isFocused) {
             deactivateLabel();
