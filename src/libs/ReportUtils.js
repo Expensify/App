@@ -866,7 +866,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 }
 
 /**
- * @param {Object} participants
+ * @param {Array} participants
  * @param {Boolean} isMultipleParticipantReport
  * @returns {Array}
  */
@@ -1436,6 +1436,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {String} chatType
  * @param {String} policyID
  * @param {String} ownerEmail
+ * @param {String} ownerAccountID
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
@@ -1450,6 +1451,7 @@ function buildOptimisticChatReport(
     chatType = '',
     policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
     ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
+    ownerAccountID = CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
@@ -1471,6 +1473,7 @@ function buildOptimisticChatReport(
         lastVisibleActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
+        ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
         parentReportActionID,
         parentReportID,
@@ -1619,6 +1622,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         policyID,
         null,
+        null,
         false,
         policyName,
         null,
@@ -1632,14 +1636,23 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
 
-    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatData = buildOptimisticChatReport(
+        [currentUserEmail],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        policyID,
+        null,
+        null,
+        false,
+        policyName,
+    );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
     const adminsReportActionData = {
         [adminsCreatedAction.reportActionID]: adminsCreatedAction,
     };
 
-    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, currentUserAccountID, true, policyName);
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
     const expenseReportActionData = {
@@ -2017,6 +2030,55 @@ function canRequestMoney(report) {
  * @param {Array} betas
  * @returns {Array}
  */
+function getMoneyRequestOptionsNew(report, reportParticipants, betas) {
+    // In the transaction thread, we do not allow any new money requests
+    if (ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report))) {
+        return [];
+    }
+
+    const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
+    const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+    const hasMultipleParticipants = participants.length > 1;
+
+    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas)) {
+        return [];
+    }
+
+    // Additional requests should be blocked for money request reports
+    if (isMoneyRequestReport(report)) {
+        return [];
+    }
+
+    // User created policy rooms and default rooms like #admins or #announce will always have the Split Bill option
+    // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
+    // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
+    // There is no Split Bill option for Workspace chats
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
+        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+    }
+
+    // DM chats that only have 2 people will see the Send / Request money options.
+    // Workspace chats should only see the Request money option, as "easy overages" is not available.
+    const requestTypes = [];
+    if (canRequestMoney(report)) {
+        requestTypes.push(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
+    }
+
+    const shouldAddRequestSend = Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && participants.length === 1;
+    if (shouldAddRequestSend) {
+        requestTypes.push(CONST.IOU.MONEY_REQUEST_TYPE.SEND);
+    }
+
+    return requestTypes;
+}
+
+/**
+ * @deprecated Please use getMoneyRequestOptionsNew instead
+ * @param {Object} report
+ * @param {Array} reportParticipants
+ * @param {Array} betas
+ * @returns {Array}
+ */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
     // In any thread, we do not allow any new money requests yet
     if (isThread(report)) {
@@ -2228,6 +2290,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    getMoneyRequestOptionsNew,
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,

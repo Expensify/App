@@ -161,7 +161,35 @@ function getAvatarsForLogins(logins, personalDetails) {
 }
 
 /**
- * Returns the personal details for an array of logins
+ * Returns the personal details for an array of accountIDs
+ *
+ * @param {Array} accountIDs
+ * @param {Object} personalDetails
+ * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
+ */
+function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
+    const personalDetailsForAccountIDs = {};
+    if (!personalDetails) {
+        return personalDetailsForAccountIDs;
+    }
+    _.chain(accountIDs)
+
+        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+        .compact()
+        .each((accountID) => {
+            const personalDetail = personalDetails[accountID];
+
+            if (personalDetail && accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+                personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
+            }
+
+            personalDetailsForAccountIDs[accountID] = personalDetail;
+        });
+    return personalDetailsForAccountIDs;
+}
+
+/**
+ * @deprecated Please use getPersonalDetailsForAccountIDs instead
  *
  * @param {Array} logins
  * @param {Object} personalDetails
@@ -960,6 +988,7 @@ export {
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
+    getPersonalDetailsForAccountIDs,
     getPersonalDetailsForLogins,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,

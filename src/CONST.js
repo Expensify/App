@@ -617,6 +617,7 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 79,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
+        OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
     },
     COMPOSER: {
@@ -870,6 +871,9 @@ const CONST = {
         ADMIN: 'admin@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
     },
+    ACCOUNT_ID: {
+        CONCIERGE: '8392101',
+    },
 
     ENVIRONMENT: {
         DEV: 'development',
@@ -1050,6 +1054,7 @@ const CONST = {
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
+        OWNER_ACCOUNT_ID_FAKE: 0,
     },
 
     CUSTOM_UNITS: {
@@ -1168,6 +1173,9 @@ const CONST = {
             this.EMAIL.INTEGRATION_TESTING_CREDS,
             this.EMAIL.ADMIN,
         ];
+    },
+    get EXPENSIFY_ACCOUNT_IDS() {
+        return [this.ACCOUNT_ID.CONCIERGE];
     },
 
     // Auth limit is 60k for the column but we store edits and other metadata along the html so let's use a lower limit to accommodate for it.
