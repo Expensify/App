@@ -3,3 +3,4 @@ self-hosted-runner:
   labels:
     - ubuntu-20.04-64core
     - macos-12-xl
+    - macos-13
