@@ -342,12 +342,13 @@ class AttachmentModal extends PureComponent {
                     shouldShowCancelButton={false}
                 />
 
-                {this.props.children && this.props.children({
-                    displayFileInModal: this.validateAndDisplayFileToUpload,
-                    show: () => {
-                        this.setState({isModalOpen: true});
-                    },
-                })}
+                {this.props.children &&
+                    this.props.children({
+                        displayFileInModal: this.validateAndDisplayFileToUpload,
+                        show: () => {
+                            this.setState({isModalOpen: true});
+                        },
+                    })}
             </>
         );
     }

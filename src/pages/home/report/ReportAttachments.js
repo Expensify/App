@@ -27,7 +27,8 @@ function ReportAttachments(props) {
             defaultOpen
             reportID={reportID}
             source={source}
-            onModalHide={Navigation.dismissModal} />
+            onModalHide={Navigation.dismissModal}
+        />
     );
 }
 
