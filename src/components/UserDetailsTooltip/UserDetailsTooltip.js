@@ -11,7 +11,7 @@ const UserDetailsTooltip = (props) => {
     return (
         <Tooltip
             renderTooltipContent={()=> (
-                    <View style={{alignItems: 'center'}}>
+                    <View style={styles.alignItemsCenter}>
                         <Avatar
                             containerStyles={[styles.actionAvatar]}
                             source={avatarSource}
