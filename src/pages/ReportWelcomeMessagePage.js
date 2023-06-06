@@ -44,7 +44,7 @@ function ReportWelcomeMessagePage(props) {
     }, []);
 
     const submitForm = useCallback(() => {
-        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage);
+        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage.trim());
     }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
 
     return (
