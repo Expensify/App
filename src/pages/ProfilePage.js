@@ -122,8 +122,8 @@ function ProfilePage(props) {
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const isCurrentUser = _.keys(props.loginList).includes(login);
-    const hasMinimumDetails = !_.isEmpty(details.displayName) && !_.isEmpty(details.avatar);
-    const isLoading = lodashGet(details, 'isLoading', false) && !hasMinimumDetails;
+    const hasMinimumDetails = !_.isEmpty(details.avatar);
+    const isLoading = lodashGet(details, 'isLoading', false);
 
     return (
         <ScreenWrapper>
