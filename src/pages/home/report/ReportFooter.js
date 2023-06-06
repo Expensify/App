@@ -58,20 +58,11 @@ const defaultProps = {
 };
 
 function ReportFooter(props) {
-    /**
-     * @returns {Object}
-     */
-    const getChatFooterStyles = useMemo(
-        () => ({
-            ...styles.chatFooter,
-            minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0,
-        }),
-        [props.isOffline],
-    );
+    const getChatFooterStyles = () => ({...styles.chatFooter, minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0});
 
-    const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
-    const isAllowedToComment = useMemo(() => ReportUtils.isAllowedToComment(props.report), [props.report]);
-    const hideComposer = useMemo(() => isArchivedRoom || !_.isEmpty(props.errors) || !isAllowedToComment, [isArchivedRoom, props.errors, isAllowedToComment]);
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const isAllowedToComment = ReportUtils.isAllowedToComment(props.report);
+    const hideComposer = isArchivedRoom || !_.isEmpty(props.errors) || !isAllowedToComment;
 
     return (
         <>
