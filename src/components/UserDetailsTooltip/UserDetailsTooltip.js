@@ -6,7 +6,7 @@ import { propTypes, defaultProps } from './userDetailsTooltipPropTypes';
 import styles from '../../styles/styles';
 
 function UserDetailsTooltip(props){
-    
+
     const renderTooltipContent = useCallback(() => {
         return (
             <View style={styles.alignItemsCenter}>
@@ -21,7 +21,9 @@ function UserDetailsTooltip(props){
       }, [props.avatarSource, props.name, props.handle]);
 
     return (
-        <Tooltip renderTooltipContent={renderTooltipContent}>{props.children}</Tooltip>
+        <Tooltip renderTooltipContent={renderTooltipContent}>
+            {props.children}
+        </Tooltip>
     )
 }
 
