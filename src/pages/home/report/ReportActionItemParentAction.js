@@ -37,16 +37,13 @@ const propTypes = {
 };
 const defaultProps = {
     report: {},
-    parentReportActions: {},
     shouldHideThreadDividerLine: false,
     ...withParentReportActionDefaultProps,
 };
 
 const ReportActionItemParentAction = (props) => {
-    const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
-
     // In case of transaction threads, we do not want to render the parent report action.
-    if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+    if (ReportActionsUtils.isTransactionThread(props.parentReportAction)) {
         return null;
     }
     return (
@@ -58,10 +55,10 @@ const ReportActionItemParentAction = (props) => {
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
-                {parentReportAction && (
+                {props.parentReportAction && (
                     <ReportActionItem
                         report={props.report}
-                        action={parentReportAction}
+                        action={props.parentReportAction}
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={props.shouldDisplayNewMarker}

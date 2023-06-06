@@ -26,8 +26,6 @@ import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
-import withParentReportAction, {withParentReportActionDefaultProps, withParentReportActionPropTypes} from '../../components/withParentReportAction';
-import reportActionPropTypes from './report/reportActionPropTypes';
 import PinButton from '../../components/PinButton';
 
 const propTypes = {
@@ -49,25 +47,17 @@ const propTypes = {
         guideCalendarLink: PropTypes.string,
     }),
 
-    /** The report actions from the parent report */
-    // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
-    // eslint-disable-next-line react/no-unused-prop-types
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
-    ...withParentReportActionPropTypes,
 };
 
 const defaultProps = {
     personalDetails: {},
-    parentReportActions: {},
     report: null,
     account: {
         guideCalendarLink: null,
     },
     parentReport: {},
-    ...withParentReportActionDefaultProps,
 };
 
 const HeaderView = (props) => {
@@ -217,7 +207,6 @@ HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
 export default compose(
-    withParentReportAction,
     withWindowDimensions,
     withLocalize,
     withOnyx({
@@ -228,10 +217,6 @@ export default compose(
                     guideCalendarLink: account.guideCalendarLink,
                     primaryLogin: account.primaryLogin,
                 },
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            canEvict: false,
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
