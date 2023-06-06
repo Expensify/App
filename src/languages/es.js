@@ -347,12 +347,14 @@ export default {
         settledPaypalMe: 'Pagado con PayPal.me',
         settleExpensify: 'Pagar con Expensify',
         settleElsewhere: 'Voy a pagar de otra forma',
+        payExpenseElsewhere: 'Pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
         requestAmount: ({amount}) => `solicitar ${amount}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
         amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
-        payerSettled: ({amount}) => `pagado ${amount}`,
+        payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
+        payerSettled: ({amount}) => `pagó ${amount}`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -1277,9 +1279,9 @@ export default {
     task: {
         completed: 'Completada',
         messages: {
-            completed: 'Tarea completada',
-            canceled: 'Tarea cancelada',
-            reopened: 'Tarea reabrir',
+            completed: 'tarea completada',
+            canceled: 'tarea cancelada',
+            reopened: 'tarea reabrir',
         },
     },
     statementPage: {

@@ -259,6 +259,14 @@ const styles = {
         textDecorationLine: 'underline',
     },
 
+    textUnderlinePositionUnder: {
+        textUnderlinePosition: 'under',
+    },
+
+    textDecorationSkipInkNone: {
+        textDecorationSkipInk: 'none',
+    },
+
     label: {
         fontSize: variables.fontSizeLabel,
         lineHeight: variables.lineHeightLarge,

@@ -10,7 +10,6 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
-const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
@@ -796,6 +795,7 @@ const CONST = {
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
         URL: 'url',
+        DEFAULT: 'default',
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
@@ -1121,9 +1121,6 @@ const CONST = {
             // eslint-disable-next-line no-misleading-character-class
             /[\n\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
-        // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
-        EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
-
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
         MENTION_REPLACER:
             // eslint-disable-next-line no-misleading-character-class
@@ -1299,9 +1296,7 @@ const CONST = {
     TFA_CODE_LENGTH: 6,
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 
-    USA_COUNTRY_NAME,
     SPACE_LENGTH: 1,
-    SPACE: 1,
 
     ALL_COUNTRIES: {
         AF: 'Afghanistan',
