@@ -116,9 +116,6 @@ const propTypes = {
 
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
-
-    /** Flag to indicate whether or not the title should be displayed using multiple lines. */
-    shouldShowMultilineTitle: PropTypes.bool,
 };
 
 export default propTypes;
