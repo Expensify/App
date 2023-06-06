@@ -41,26 +41,6 @@ class LHNOptionsList extends Component {
         this.data = this.props.data;
     }
 
-    shouldComponentUpdate(nextProps) {
-        if (nextProps.focusedIndex !== this.props.focusedIndex) {
-            return true;
-        }
-
-        if (nextProps.optionMode !== this.props.optionMode) {
-            return true;
-        }
-
-        if (nextProps.shouldDisableFocusOptions !== this.props.shouldDisableFocusOptions) {
-            return true;
-        }
-
-        if (!_.isEqual(nextProps.data, this.props.data)) {
-            return true;
-        }
-
-        return false;
-    }
-
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
