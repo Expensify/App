@@ -40,7 +40,7 @@ function ParticipantLocalTime(props) {
             }, 1000),
         );
         return () => {
-            clearTimeout(timer);
+            clearInterval(timer);
         };
     }, [participant, preferredLocale]);
 
