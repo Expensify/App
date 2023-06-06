@@ -10,23 +10,28 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 jest.mock('../../src/libs/Permissions');
 
 const currentUserEmail = 'bjorn@vikings.net';
+const currentUserAccountID = 5;
 const participantsPersonalDetails = {
-    'ragnar@vikings.net': {
+    1: {
+        accountID: 1,
         displayName: 'Ragnar Lothbrok',
         firstName: 'Ragnar',
         login: 'ragnar@vikings.net',
     },
-    'floki@vikings.net': {
+    2: {
+        accountID: 2,
         login: 'floki@vikings.net',
         displayName: 'floki@vikings.net',
     },
-    'lagertha@vikings.net': {
+    3: {
+        accountID: 3,
         displayName: 'Lagertha Lothbrok',
         firstName: 'Lagertha',
         login: 'lagertha@vikings.net',
         pronouns: 'She/her',
     },
-    '+18332403627@expensify.sms': {
+    4: {
+        accountID: 4,
         login: '+18332403627@expensify.sms',
         displayName: '(833) 240-3627',
     },
@@ -42,7 +47,7 @@ describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
-            [ONYXKEYS.SESSION]: {email: currentUserEmail},
+            [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
             [ONYXKEYS.COUNTRY_CODE]: 1,
             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
         });
@@ -330,7 +335,8 @@ describe('ReportUtils', () => {
 
         beforeAll(() => {
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [currentUserEmail]: {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
                     login: currentUserEmail,
                 },
             });

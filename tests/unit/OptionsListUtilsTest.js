@@ -109,45 +109,55 @@ describe('OptionsListUtils', () => {
     // And a set of personalDetails some with existing reports and some without
     const PERSONAL_DETAILS = {
         // These exist in our reports
-        'reedrichards@expensify.com': {
+        1: {
+            accountID: 1,
             displayName: 'Mister Fantastic',
             login: 'reedrichards@expensify.com',
         },
-        'tonystark@expensify.com': {
+        2: {
+            accountID: 2,
             displayName: 'Iron Man',
             login: 'tonystark@expensify.com',
         },
-        'peterparker@expensify.com': {
+        3: {
+            accountID: 3,
             displayName: 'Spider-Man',
             login: 'peterparker@expensify.com',
         },
-        'tchalla@expensify.com': {
+        4: {
+            accountID: 4,
             displayName: 'Black Panther',
             login: 'tchalla@expensify.com',
         },
-        'suestorm@expensify.com': {
+        5: {
+            accountID: 5,
             displayName: 'Invisible Woman',
             login: 'suestorm@expensify.com',
         },
-        'thor@expensify.com': {
+        6: {
+            accountID: 6,
             displayName: 'Thor',
             login: 'thor@expensify.com',
         },
-        'steverogers@expensify.com': {
+        7: {
+            accountID: 7,
             displayName: 'Captain America',
             login: 'steverogers@expensify.com',
         },
-        'mistersinister@marauders.com': {
+        8: {
+            accountID: 8,
             displayName: 'Mr Sinister',
             login: 'mistersinister@marauders.com',
         },
 
         // These do not exist in reports at all
-        'natasharomanoff@expensify.com': {
+        9: {
+            accountID: 9,
             displayName: 'Black Widow',
             login: 'natasharomanoff@expensify.com',
         },
-        'brucebanner@expensify.com': {
+        10: {
+            accountID: 10,
             displayName: 'The Incredible Hulk',
             login: 'brucebanner@expensify.com',
         },
@@ -209,7 +219,8 @@ describe('OptionsListUtils', () => {
     const PERSONAL_DETAILS_WITH_CONCIERGE = {
         ...PERSONAL_DETAILS,
 
-        'concierge@expensify.com': {
+        999: {
+            accountID: 999,
             displayName: 'Concierge',
             login: 'concierge@expensify.com',
         },
@@ -218,7 +229,8 @@ describe('OptionsListUtils', () => {
     const PERSONAL_DETAILS_WITH_CHRONOS = {
         ...PERSONAL_DETAILS,
 
-        'chronos@expensify.com': {
+        1000: {
+            accountID: 1000,
             displayName: 'Chronos',
             login: 'chronos@expensify.com',
         },
@@ -227,7 +239,8 @@ describe('OptionsListUtils', () => {
     const PERSONAL_DETAILS_WITH_RECEIPTS = {
         ...PERSONAL_DETAILS,
 
-        'receipts@expensify.com': {
+        1001: {
+            accountID: 1001,
             displayName: 'Receipts',
             login: 'receipts@expensify.com',
         },
@@ -236,7 +249,8 @@ describe('OptionsListUtils', () => {
     const PERSONAL_DETAILS_WITH_PERIODS = {
         ...PERSONAL_DETAILS,
 
-        'barry.allen@expensify.com': {
+        1002: {
+            accountID: 1002,
             displayName: 'The Flash',
             login: 'barry.allen@expensify.com',
         },
