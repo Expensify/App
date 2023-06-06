@@ -2068,7 +2068,7 @@ function getMoneyRequestOptionsNew(report, reportParticipants, betas) {
 }
 
 /**
- * [Deprecated]
+ * @deprecated Please use getMoneyRequestOptionsNew instead
  * @param {Object} report
  * @param {Array} reportParticipants
  * @param {Array} betas

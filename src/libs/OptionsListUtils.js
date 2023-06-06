@@ -189,7 +189,7 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
 }
 
 /**
- * [Deprecated] Returns the personal details for an array of logins
+ * @deprecated Please use getPersonalDetailsForAccountIDs instead
  *
  * @param {Array} logins
  * @param {Object} personalDetails
