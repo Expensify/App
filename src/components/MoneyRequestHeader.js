@@ -100,7 +100,7 @@ const MoneyRequestHeader = (props) => {
                     {
                         icon: Expensicons.Trashcan,
                         text: props.translate('common.delete'),
-                        onSelected: () => IOU.deleteMoneyRequest(props.parentReportAction.originalMessage.IOUTransactionID, props.parentReportAction),
+                        onSelected: () => IOU.deleteMoneyRequest(props.parentReportAction.originalMessage.IOUTransactionID, props.parentReportAction, true),
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
