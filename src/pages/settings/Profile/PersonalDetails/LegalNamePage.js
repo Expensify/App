@@ -45,26 +45,23 @@ function LegalNamePage(props) {
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
 
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
+    const validate = useCallback((values) => {
+        const errors = {};
 
-            if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
-                errors.legalFirstName = 'privatePersonalDetails.error.hasInvalidCharacter';
-            } else if (_.isEmpty(values.legalFirstName)) {
-                errors.legalFirstName = 'common.error.fieldRequired';
-            }
+        if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
+            errors.legalFirstName = 'privatePersonalDetails.error.hasInvalidCharacter';
+        } else if (_.isEmpty(values.legalFirstName)) {
+            errors.legalFirstName = 'common.error.fieldRequired';
+        }
 
-            if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
-                errors.legalLastName = 'privatePersonalDetails.error.hasInvalidCharacter';
-            } else if (_.isEmpty(values.legalLastName)) {
-                errors.legalLastName = 'common.error.fieldRequired';
-            }
+        if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
+            errors.legalLastName = 'privatePersonalDetails.error.hasInvalidCharacter';
+        } else if (_.isEmpty(values.legalLastName)) {
+            errors.legalLastName = 'common.error.fieldRequired';
+        }
 
-            return errors;
-        },
-        [],
-    );
+        return errors;
+    }, []);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>

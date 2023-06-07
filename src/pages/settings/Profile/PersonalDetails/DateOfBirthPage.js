@@ -49,24 +49,21 @@ const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
      * @param {String} values.dob - date of birth
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
-            const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
-            const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
+    const validate = useCallback((values) => {
+        const errors = {};
+        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
 
-            if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-                errors.dob = 'common.error.fieldRequired';
-            }
-            const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
-            if (dateError) {
-                errors.dob = dateError;
-            }
+        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
+            errors.dob = 'common.error.fieldRequired';
+        }
+        const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
+        if (dateError) {
+            errors.dob = dateError;
+        }
 
-            return errors;
-        },
-        [],
-    );
+        return errors;
+    }, []);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
