@@ -181,6 +181,10 @@ function completeTask(taskReportID, taskTitle) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.APPROVED,
+                lastVisibleActionCreated: completedTaskReportAction.created,
+                lastMessageText: message,
+                lastActorEmail: completedTaskReportAction.actorEmail,
+                lastReadTime: completedTaskReportAction.created,
             },
         },
 
