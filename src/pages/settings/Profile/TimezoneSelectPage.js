@@ -15,6 +15,7 @@ import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import SelectionListRadio from '../../../components/SelectionListRadio';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -128,7 +129,7 @@ class TimezoneSelectPage extends Component {
                             title={this.props.translate('timezonePage.timezone')}
                             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
                         />
-                        <OptionsSelector
+                        <SelectionListRadio
                             textInputLabel={this.props.translate('timezonePage.timezone')}
                             value={this.state.timezoneInputText}
                             onChangeText={this.filterShownTimezones}
