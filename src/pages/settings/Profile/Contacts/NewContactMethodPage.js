@@ -82,19 +82,19 @@ function NewContactMethodPage(props) {
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail)) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.contactMethodRequired'));
+            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
         }
 
         if (!_.isEmpty(values.phoneOrEmail) && !(parsePhoneNumber(phoneLogin).possible || Str.isValidEmail(values.phoneOrEmail))) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.invalidContactMethod'));
+            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
         }
 
         if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
+            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
         }
 
         if (!Permissions.canUsePasswordlessLogins(props.betas) && _.isEmpty(values.password)) {
-            errors.password = props.translate('contacts.genericFailureMessages.passwordRequired');
+            errors.password = 'contacts.genericFailureMessages.passwordRequired';
         }
 
         return errors;
