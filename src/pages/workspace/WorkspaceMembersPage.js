@@ -118,10 +118,18 @@ class WorkspaceMembersPage extends React.Component {
      */
     getWorkspaceMembers() {
         /**
-         * We filter clientMemberEmails to only pass members without errors
-         * Otherwise, the members with errors would immediately be removed before the user has a chance to read the error
+         * Create a list of member emails by filtering for members without errors, then mapping each policy member accountID to the login from the personalDetail object.
+         * TODO: Clean up OpenWorkspaceMembersPage so we can pass accountIDs instead of emails.
+         *
+         * We filter clientMemberEmails to only pass members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
          */
-        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, (member) => _.isEmpty(member.errors)));
+        const clientMemberEmails = _.chain(this.props.policyMembers)
+            .filter((member) => _.isEmpty(member.errors))
+            .keys()
+            .map((accountID) => this.props.personalDetails[accountID])
+            .compact()
+            .value();
+
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
     }
 
