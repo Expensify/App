@@ -4,6 +4,7 @@
         "module": "commonjs",
         "types": ["react-native", "jest"],
         "lib": [
+            "DOM",
             "es2019",
             "es2020.bigint",
             "es2020.date",
