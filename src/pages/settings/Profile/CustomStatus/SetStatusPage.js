@@ -7,7 +7,7 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
-import {BigEmojiPicker} from '../../../../components/CustomStatus/BigEmojiPicker';
+import BigEmojiPicker from '../../../../components/CustomStatus/BigEmojiPicker';
 
 function SetStatusPage() {
     return (
