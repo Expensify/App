@@ -24,6 +24,9 @@ const propTypes = {
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Content container styles for OptionsList */
+    contentContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationFocusPropTypes,
@@ -32,6 +35,7 @@ const propTypes = {
 const defaultProps = {
     shouldDelayFocus: false,
     safeAreaPaddingBottomStyle: {},
+    contentContainerStyles: [],
     ...optionsSelectorDefaultProps,
 };
 
@@ -325,7 +329,7 @@ class BaseOptionsSelector extends Component {
                         this.props.onLayout();
                     }
                 }}
-                contentContainerStyles={shouldShowFooter ? undefined : [this.props.safeAreaPaddingBottomStyle]}
+                contentContainerStyles={[!shouldShowFooter && this.props.safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 isLoading={!this.props.shouldShowOptions}
             />
         );
