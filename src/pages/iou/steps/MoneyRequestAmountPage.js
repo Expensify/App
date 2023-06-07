@@ -81,6 +81,7 @@ class MoneyRequestAmountPage extends React.Component {
         this.stripSpacesFromAmount = this.stripSpacesFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
+        this.navigateBack = this.navigateBack.bind(this);
         this.amountViewID = 'amountView';
         this.numPadContainerViewID = 'numPadContainerView';
         this.numPadViewID = 'numPadView';
