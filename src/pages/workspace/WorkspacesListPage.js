@@ -217,7 +217,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY,
         },
         policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

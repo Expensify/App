@@ -5,14 +5,14 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
 /**
- * Checks if we have any errors stored within the POLICY_MEMBER_LIST. Determines whether we should show a red brick road error or not.
- * Data structure: {email: {role:'user', errors: []}, email2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
+ * Checks if we have any errors stored within the POLICY_MEMBERS. Determines whether we should show a red brick road error or not.
+ * Data structure: {accountID: {role:'user', errors: []}, accountID2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
  *
- * @param {Object} policyMemberList
+ * @param {Object} policyMembers
  * @returns {Boolean}
  */
-function hasPolicyMemberError(policyMemberList) {
-    return _.some(policyMemberList, (member) => !_.isEmpty(member.errors));
+function hasPolicyMemberError(policyMembers) {
+    return _.some(policyMembers, (member) => !_.isEmpty(member.errors));
 }
 
 /**
@@ -53,12 +53,12 @@ function hasCustomUnitsError(policy) {
  *
  * @param {Object} policy
  * @param {String} policy.id
- * @param {Object} policyMembers
+ * @param {Object} policyMembersCollection
  * @returns {String}
  */
-function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
-    const policyMemberList = lodashGet(policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {});
-    if (hasPolicyMemberError(policyMemberList) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
+function getPolicyBrickRoadIndicatorStatus(policy, policyMembersCollection) {
+    const policyMembers = lodashGet(policyMembersCollection, `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`, {});
+    if (hasPolicyMemberError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return '';
