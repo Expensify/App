@@ -93,7 +93,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     validate(values) {
         const errors = {};
         const decimalSeparator = this.props.toLocaleDigit('.');
-        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
+        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,3})?$`, 'i');
         if (!rateValueRegex.test(values.rate)) {
             errors.rate = this.props.translate('workspace.reimburse.invalidRateError');
         }
@@ -105,7 +105,6 @@ class WorkspaceRateAndUnitPage extends React.Component {
         const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
         return (
             <WorkspacePageWithSections
-                shouldUseScrollView
                 headerText={this.props.translate('workspace.reimburse.trackDistance')}
                 route={this.props.route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
@@ -125,9 +124,9 @@ class WorkspaceRateAndUnitPage extends React.Component {
                         <OfflineWithFeedback
                             errors={{
                                 ...lodashGet(distanceCustomUnit, 'errors', {}),
-                                ...lodashGet(distanceCustomRate.errors, 'errors', {}),
+                                ...lodashGet(distanceCustomRate, 'errors', {}),
                             }}
-                            pendingAction={distanceCustomUnit.pendingAction || distanceCustomRate.pendingAction}
+                            pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
                             onClose={() =>
                                 Policy.clearCustomUnitErrors(this.props.policy.id, lodashGet(distanceCustomUnit, 'customUnitID', ''), lodashGet(distanceCustomRate, 'customUnitRateID', ''))
                             }

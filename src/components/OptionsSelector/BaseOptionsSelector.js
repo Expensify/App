@@ -9,11 +9,13 @@ import OptionsList from '../OptionsList';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigationFocus';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -24,6 +26,7 @@ const propTypes = {
 
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
@@ -57,7 +60,7 @@ class BaseOptionsSelector extends Component {
             enterConfig.shortcutKey,
             () => {
                 const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption) {
+                if (!focusedOption || !this.props.isFocused) {
                     return;
                 }
                 if (this.props.canSelectMultipleOptions) {
@@ -275,7 +278,8 @@ class BaseOptionsSelector extends Component {
     }
 
     render() {
-        const shouldShowFooter = (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
+        const shouldShowFooter =
+            !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const textInput = (
@@ -374,4 +378,4 @@ class BaseOptionsSelector extends Component {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default withLocalize(BaseOptionsSelector);
+export default compose(withLocalize, withNavigationFocus)(BaseOptionsSelector);

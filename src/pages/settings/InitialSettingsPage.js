@@ -11,7 +11,7 @@ import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -314,10 +314,7 @@ class InitialSettingsPage extends React.Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.settings')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
+                        <HeaderWithBackButton title={this.props.translate('common.settings')} />
                         <ScrollView
                             contentContainerStyle={safeAreaPaddingBottomStyle}
                             style={[styles.settingsPageBackground]}
@@ -332,7 +329,7 @@ class InitialSettingsPage extends React.Component {
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
+                                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>

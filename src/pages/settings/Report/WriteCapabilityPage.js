@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import styles from '../../../styles/styles';
 import OptionsList from '../../../components/OptionsList';
@@ -38,11 +38,10 @@ const WriteCapabilityPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('writeCapabilityPage.label')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID))}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
             />
             <OptionsList
                 sections={[{data: writeCapabilityOptions}]}

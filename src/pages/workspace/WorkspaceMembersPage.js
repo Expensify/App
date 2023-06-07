@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -28,7 +28,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
@@ -353,7 +353,7 @@ class WorkspaceMembersPage extends React.Component {
                                 participantsList: [item],
                                 icons: [
                                     {
-                                        source: ReportUtils.getAvatar(item.avatar, item.login),
+                                        source: UserUtils.getAvatar(item.avatar, item.login),
                                         name: item.login,
                                         type: CONST.ICON_TYPE_AVATAR,
                                     },
@@ -423,17 +423,15 @@ class WorkspaceMembersPage extends React.Component {
                         shouldShow={_.isEmpty(this.props.policy)}
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('workspace.common.members')}
                             subtitle={policyName}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
                             onBackButtonPress={() => {
                                 this.updateSearchValue('');
-                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+                                Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
                             }}
                             shouldShowGetAssistanceButton
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            shouldShowBackButton
                         />
                         <ConfirmModal
                             danger
@@ -462,7 +460,7 @@ class WorkspaceMembersPage extends React.Component {
                                     onPress={this.askForConfirmationToRemove}
                                 />
                             </View>
-                            <View style={[styles.w100, styles.pv4, styles.ph5]}>
+                            <View style={[styles.w100, styles.pv3, styles.ph5]}>
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}
