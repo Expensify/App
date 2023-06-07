@@ -173,11 +173,13 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
         return personalDetailsForLogins;
     }
     _.chain(accountIDs)
+        // NOTE: this comment is possibly legacy, we need to verify if it's still true
         // Somehow it's possible for the accountIDs coming from report.participantAccountIDs to contain undefined values so we use compact to remove them.
         .compact()
         .each((accountID) => {
             let personalDetail = personalDetails[accountID];
             if (!personalDetail) {
+                // NOTE: this can possibly be changed to 'hidden' 
                 personalDetail = {
                     accountID,
                     avatar: UserUtils.getDefaultAvatar(accountID),

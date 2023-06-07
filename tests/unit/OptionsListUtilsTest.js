@@ -181,6 +181,7 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 11,
+            // NOTE: possibly remove 'participants' field in the future
             participants: ['concierge@expensify.com'],
             participantAccountIDs: [999],
             reportName: 'Concierge',
