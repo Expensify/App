@@ -82,6 +82,10 @@ let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
+        if (!val) {
+            return;
+        }
+
         currentUserAccountID = val.accountID;
     },
 });
