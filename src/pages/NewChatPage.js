@@ -216,7 +216,7 @@ function NewChatPage(props) {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 NewChatPage.propTypes = propTypes;
 NewChatPage.defaultProps = defaultProps;
