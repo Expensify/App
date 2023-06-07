@@ -114,6 +114,7 @@ export default {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
         POLICY_MEMBER_LIST: 'policyMemberList_',
+        POLICY_MEMBERS: 'policyMembers_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
