@@ -18,6 +18,7 @@ import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
 import ContextMenuItem from '../components/ContextMenuItem';
 import * as UserUtils from '../libs/UserUtils';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -49,7 +50,7 @@ class ShareCodePage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 />
 
                 <ScrollView style={[styles.flex1, styles.mt3]}>
