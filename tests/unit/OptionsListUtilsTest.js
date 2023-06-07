@@ -276,9 +276,10 @@ describe('OptionsListUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {email: 'tonystark@expensify.com'},
+                [ONYXKEYS.SESSION]: {accountID: 2, email: 'tonystark@expensify.com'},
                 [`${ONYXKEYS.COLLECTION.REPORT}100`]: {
                     ownerEmail: 'mistersinister@marauders.com',
+                    ownerAccountID: 8,
                     total: '1000',
                 },
                 [`${ONYXKEYS.COLLECTION.POLICY}${POLICY.policyID}`]: POLICY,
@@ -317,7 +318,7 @@ describe('OptionsListUtils', () => {
             .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
             .then(() => {
                 // When we filter again but provide a searchValue that should match with periods
-                results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barryallen@expensify.com');
+                results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barry.allen@expensify.com');
 
                 // Then we expect to have the personal detail with period filtered
                 expect(results.recentReports.length).toBe(1);

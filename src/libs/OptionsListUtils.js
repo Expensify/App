@@ -467,9 +467,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        const accountID = accountIDs[0];
-        reportName = ReportUtils.getDisplayNameForParticipant(accountID);
-        result.keyForList = accountID;
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
+        result.keyForList = accountIDs[0];
         result.alternateText = '';
     }
 
