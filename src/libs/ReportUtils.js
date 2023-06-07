@@ -23,11 +23,20 @@ import * as UserUtils from './UserUtils';
 
 let sessionEmail;
 let sessionAccountID;
+let currentUserEmail;
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        sessionEmail = val ? val.email : null;
-        sessionAccountID = val ? val.accountID : null;
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        sessionEmail = val.email;
+        sessionAccountID = val.accountID;
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
     },
 });
 
@@ -42,28 +51,13 @@ Onyx.connect({
     },
 });
 
-let currentUserEmail;
-let currentUserAccountID;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
-            return;
-        }
-
-        currentUserEmail = val.email;
-        currentUserAccountID = val.accountID;
-    },
-});
-
 let allPersonalDetails;
 let currentUserPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         currentUserPersonalDetails = lodashGet(val, currentUserAccountID, {});
-        allPersonalDetails = val;
+        allPersonalDetails = val || {};
     },
 });
 
