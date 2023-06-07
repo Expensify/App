@@ -91,7 +91,7 @@ function getLatestErrorField(onyxData, fieldName) {
  * Method used to generate error message for given inputID
  * @param {Object} errors - An object containing current errors in the form
  * @param {String} inputID
- * @param {String} message - Message to assign to the inputID errors
+ * @param {String|Array} message - Message to assign to the inputID errors
  *
  */
 function addErrorMessage(errors, inputID, message) {
