@@ -16,7 +16,7 @@ import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import withLocalize from '../../../components/withLocalize';
-import ModalHeader from '../ModalHeader';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
@@ -65,11 +65,20 @@ const MoneyRequestConfirmPage = (props) => {
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (_.isEmpty(props.iou.participants) || props.iou.amount === 0) {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const navigateBack = () => {
+        let fallback;
+        if (reportID.current) {
+            fallback = ROUTES.getMoneyRequestRoute(iouType.current, reportID.current);
+        } else {
+            fallback = ROUTES.getMoneyRequestParticipantsRoute(iouType.current);
+        }
+        Navigation.goBack(fallback);
+    };
 
     const createTransaction = useCallback(
         (selectedParticipants) => {
@@ -135,15 +144,9 @@ const MoneyRequestConfirmPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <ModalHeader
+                    <HeaderWithBackButton
                         title={props.translate('iou.cash')}
-                        onBackButtonPress={() => {
-                            if (reportID.current) {
-                                Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
-                            } else {
-                                Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
-                            }
-                        }}
+                        onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestConfirmationList
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}

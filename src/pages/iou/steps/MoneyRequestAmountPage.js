@@ -22,7 +22,7 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import withNavigation from '../../../components/withNavigation';
-import ModalHeader from '../ModalHeader';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 
@@ -103,11 +103,8 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidMount() {
-        if (this.isEditing) {
-            if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0) {
-                Navigation.goBack();
-                Navigation.navigate(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
-            }
+        if (this.isEditing && (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0)) {
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
         } else {
             // Initialize money request data
             IOU.setMoneyRequestAmount(0);
@@ -375,6 +372,14 @@ class MoneyRequestAmountPage extends React.Component {
             .value();
     }
 
+    navigateBack() {
+        if (this.isEditing) {
+            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
+            return;
+        }
+        Navigation.goBack();
+    }
+
     navigateToCurrencySelectionPage() {
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
@@ -404,10 +409,9 @@ class MoneyRequestAmountPage extends React.Component {
                 <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                     {({safeAreaPaddingBottomStyle}) => (
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                            <ModalHeader
+                            <HeaderWithBackButton
                                 title={this.getTitleForStep()}
-                                shouldShowBackButton={this.isEditing}
-                                onBackButtonPress={() => Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID))}
+                                onBackButtonPress={this.navigateBack}
                             />
                             <View
                                 nativeID={this.amountViewID}

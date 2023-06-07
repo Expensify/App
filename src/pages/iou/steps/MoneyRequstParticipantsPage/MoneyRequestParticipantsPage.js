@@ -14,7 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import ModalHeader from '../../ModalHeader';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
 
 const propTypes = {
@@ -49,11 +49,14 @@ const MoneyRequestParticipantsPage = (props) => {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
     };
 
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
+    };
+
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (props.iou.amount === 0) {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
+            navigateBack();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -65,9 +68,9 @@ const MoneyRequestParticipantsPage = (props) => {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
-                    <ModalHeader
+                    <HeaderWithBackButton
                         title={props.translate('iou.cash')}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current))}
+                        onBackButtonPress={navigateBack}
                     />
                     {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
                         <MoneyRequestParticipantsSplitSelector

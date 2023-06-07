@@ -40,6 +40,7 @@ class MoneyRequestDescriptionPage extends Component {
         super(props);
 
         this.updateComment = this.updateComment.bind(this);
+        this.navigateBack = this.navigateBack.bind(this);
         this.iouType = lodashGet(props.route, 'params.iouType', '');
         this.reportID = lodashGet(props.route, 'params.reportID', '');
     }
@@ -47,9 +48,12 @@ class MoneyRequestDescriptionPage extends Component {
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidMount() {
         if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0) {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
         }
+    }
+
+    navigateBack() {
+        Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
     }
 
     /**
@@ -60,7 +64,7 @@ class MoneyRequestDescriptionPage extends Component {
      */
     updateComment(value) {
         IOU.setMoneyRequestDescription(value.moneyRequestComment);
-        Navigation.goBack();
+        this.navigateBack();
     }
 
     render() {
@@ -72,7 +76,7 @@ class MoneyRequestDescriptionPage extends Component {
             >
                 <HeaderWithBackButton
                     title={this.props.translate('common.description')}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID))}
+                    onBackButtonPress={this.navigateBack}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
