@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import {ScrollView} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import MenuItem from '../../../components/MenuItem';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -82,11 +82,9 @@ const ProfilePage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <ScrollView>
                 <AvatarWithImagePicker
