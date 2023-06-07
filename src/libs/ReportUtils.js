@@ -1048,7 +1048,7 @@ function getReportName(report) {
  * @returns {Object}
  */
 function getReport(reportID) {
-    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return _.isEmpty(allReports) ? {} : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
 /**
