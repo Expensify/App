@@ -61,7 +61,7 @@ class CalendarPicker extends React.PureComponent {
     componentDidUpdate(prevProps, prevState) {
         // if the selectedYear prop or state has changed, update the currentDateView state with the new year value
         if (this.props.selectedYear === prevProps.selectedYear && prevState.selectedYear === this.state.selectedYear) {
-            return;   
+            return;
         }
 
         // If we changed the prop for selectedYear, update the state to match it, otherwise use the state value
