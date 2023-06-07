@@ -9,6 +9,7 @@
 #import "RCTBootSplash.h"
 #import "RCTStartupTimer.h"
 #import <HardwareShortcuts.h>
+#import <RNShareMenu/ShareMenuManager.h>
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate>
 
@@ -52,7 +53,7 @@
             openURL:(NSURL *)url
             options:
                 (NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
-  return [RCTLinkingManager application:application
+  return [ShareMenuManager application:application
                                 openURL:url
                                 options:options];
 }
