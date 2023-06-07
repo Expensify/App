@@ -57,7 +57,7 @@ export default PropTypes.shape({
     ownerAccountID: PropTypes.number,
 
     /** List of primarylogins of participants of the report */
-    participants: PropTypes.arrayOf(PropTypes.string),
+    participants: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
 
     /** List of accountIDs of participants of the report */
     participantAccountIDs: PropTypes.arrayOf(PropTypes.number),

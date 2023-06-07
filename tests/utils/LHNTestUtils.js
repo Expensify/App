@@ -108,7 +108,7 @@ function getFakeReport(participants = [1, 2], millisecondsInThePast = 0, isUnrea
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participants,
+        participantAccountIDs: participants,
     };
 }
 

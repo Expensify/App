@@ -359,8 +359,8 @@ describe('Sidebar', () => {
             const iouReport = {
                 ...LHNTestUtils.getFakeReport([7, 8]),
                 type: CONST.REPORT.TYPE.IOU,
-                ownerEmail: 'email2@test.com',
-                managerEmail: 'email2@test.com',
+                ownerAccountID: 2,
+                managerID: 2,
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -368,7 +368,7 @@ describe('Sidebar', () => {
             };
             report3.iouReportID = iouReport.reportID;
             const reportIDFromRoute = report2.reportID;
-            const currentlyLoggedInUserEmail = 'email9@test.com';
+            const currentlyLoggedInUserAccountID = 9;
             LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
 
             return (
@@ -378,7 +378,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.SESSION]: {email: currentlyLoggedInUserEmail},
+                            [ONYXKEYS.SESSION]: {accountID: currentlyLoggedInUserAccountID},
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -677,8 +677,8 @@ describe('Sidebar', () => {
             const iouReport1 = {
                 ...LHNTestUtils.getFakeReport([7, 8]),
                 type: CONST.REPORT.TYPE.IOU,
-                ownerEmail: 'email2@test.com',
-                managerEmail: 'email2@test.com',
+                ownerAccountID: 2,
+                managerID: 2,
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -687,8 +687,8 @@ describe('Sidebar', () => {
             const iouReport2 = {
                 ...LHNTestUtils.getFakeReport([9, 10]),
                 type: CONST.REPORT.TYPE.IOU,
-                ownerEmail: 'email2@test.com',
-                managerEmail: 'email2@test.com',
+                ownerAccountID: 2,
+                managerID: 2,
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -697,8 +697,8 @@ describe('Sidebar', () => {
             const iouReport3 = {
                 ...LHNTestUtils.getFakeReport([11, 12]),
                 type: CONST.REPORT.TYPE.IOU,
-                ownerEmail: 'email2@test.com',
-                managerEmail: 'email2@test.com',
+                ownerAccountID: 2,
+                managerID: 2,
                 hasOutstandingIOU: true,
                 total: 10000,
                 currency: 'USD',
@@ -709,7 +709,7 @@ describe('Sidebar', () => {
             report2.iouReportID = iouReport2.reportID;
             report3.iouReportID = iouReport3.reportID;
 
-            const currentlyLoggedInUserEmail = 'email13@test.com';
+            const currentlyLoggedInUserAccountID = 13;
             LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForPromisesToResolve()
@@ -718,7 +718,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.SESSION]: {email: currentlyLoggedInUserEmail},
+                            [ONYXKEYS.SESSION]: {accountID: currentlyLoggedInUserAccountID},
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
