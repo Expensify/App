@@ -106,6 +106,10 @@ export default {
                                 path: ROUTES.SETTINGS_DISPLAY_NAME,
                                 exact: true,
                             },
+                            Settings_Status: {
+                                path: ROUTES.SETTINGS_STATUS,
+                                exact: true,
+                            },
                             Settings_Timezone: {
                                 path: ROUTES.SETTINGS_TIMEZONE,
                                 exact: true,

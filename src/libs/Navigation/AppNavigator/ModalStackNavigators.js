@@ -350,6 +350,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsStatus = require('../../../pages/settings/Profile/StatusPage').default;
+            return SettingsStatus;
+        },
+        name: 'Settings_Status',
+    },
+    {
+        getComponent: () => {
             const SettingsTimezoneInitialPage = require('../../../pages/settings/Profile/TimezoneInitialPage').default;
             return SettingsTimezoneInitialPage;
         },
