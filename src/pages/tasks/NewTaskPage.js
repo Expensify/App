@@ -77,7 +77,7 @@ const NewTaskPage = (props) => {
         // If we have an assignee, we want to set the assignee data
         // If there's an issue with the assignee chosen, we want to notify the user
         if (props.task.assignee) {
-            const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForLogins([props.task.assignee], props.personalDetails), props.task.assignee);
+            const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), props.task.assignee);
             if (!assigneeDetails) {
                 setSubmitError(true);
                 return setErrorMessage('newTaskPage.assigneeError');

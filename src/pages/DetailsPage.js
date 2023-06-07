@@ -90,19 +90,22 @@ const getPhoneNumber = (details) => {
 class DetailsPage extends React.PureComponent {
     render() {
         const login = lodashGet(this.props.route.params, 'login', '');
-        let details = lodashGet(this.props.personalDetails, login);
+        let details = _.find(this.props.personalDetails, (detail) => {
+            return detail.login === login.toLowerCase();
+        });
 
         if (!details) {
             details = {
+                accountID: -1,
                 login,
-                displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: UserUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
+                displayName: login,
+                avatar: UserUtils.getDefaultAvatar(),
             };
         }
 
         const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
 
-        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
+        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([details.accountID]) && details.timezone;
         let pronouns = details.pronouns;
 
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {

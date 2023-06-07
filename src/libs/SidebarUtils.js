@@ -78,10 +78,12 @@ Onyx.connect({
     callback: (val) => (policies = val),
 });
 
-let currentUserLogin;
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => (currentUserLogin = val),
+    callback: (val) => {
+        currentUserAccountID = val.accountID;
+    },
 });
 
 let preferredLocale;
@@ -99,7 +101,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, allReports, betas, policies));
+    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, allReports, betas, policies));
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
         const conciergeChatReport = _.find(allReports, ReportUtils.isConciergeChatReport);
@@ -232,7 +234,7 @@ function getOptionData(reportID) {
         isMoneyRequestReport: false,
     };
 
-    const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
+    const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList[0] || {};
 
     result.isThread = ReportUtils.isThread(report);
@@ -276,7 +278,7 @@ function getOptionData(reportID) {
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
-    let lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    let lastActorDetails = personalDetails[report.lastActorAccountID] || null;
     if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
         const lastActorDisplayName = lodashGet(visibleReportActionItems[report.reportID], 'person[0].text');
         lastActorDetails = lastActorDisplayName
@@ -286,7 +288,7 @@ function getOptionData(reportID) {
               }
             : null;
     }
-    let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.login !== currentUserLogin.email ? `${lastActorDetails.displayName}: ` : '';
+    let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
     if (result.isArchivedRoom) {

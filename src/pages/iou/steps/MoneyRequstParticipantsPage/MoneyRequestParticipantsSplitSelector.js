@@ -170,12 +170,12 @@ class MoneyRequestParticipantsSplitSelector extends Component {
      * @param {Object} option
      */
     toggleOption(option) {
-        const isOptionInList = _.some(this.props.participants, (selectedOption) => selectedOption.login === option.login);
+        const isOptionInList = _.some(this.props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.login === option.login);
+            newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
         } else {
             newSelectedOptions = [...this.props.participants, option];
         }
@@ -189,6 +189,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                 this.props.betas,
                 isOptionInList ? prevState.searchTerm : '',
                 newSelectedOptions,
+                // TODO: need to update :D
                 CONST.EXPENSIFY_EMAILS,
             );
             return {

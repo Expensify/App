@@ -904,9 +904,10 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
-        const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
-        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participantAccountIDs', []), this.props.currentUserPersonalDetails.accountID);
+        // TODO: ACCOUNT IDS!!!
+        const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
         const shouldShowReportRecipientLocalTime =
             ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.login) && !this.props.isComposerFullSize;
 
