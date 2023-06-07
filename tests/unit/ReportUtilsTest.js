@@ -113,6 +113,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         participants: [currentUserEmail, 'ragnar@vikings.net'],
+                        participantAccountIDs: [currentUserAccountID, 1],
                     }),
                 ).toBe('Ragnar Lothbrok');
             });
@@ -121,6 +122,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         participants: [currentUserEmail, 'floki@vikings.net'],
+                        participantAccountIDs: [currentUserAccountID, 2],
                     }),
                 ).toBe('floki@vikings.net');
             });
@@ -129,6 +131,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         participants: [currentUserEmail, '+18332403627@expensify.sms'],
+                        participantAccountIDs: [currentUserAccountID, 4],
                     }),
                 ).toBe('(833) 240-3627');
             });
@@ -138,6 +141,7 @@ describe('ReportUtils', () => {
             expect(
                 ReportUtils.getReportName({
                     participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+18332403627@expensify.sms'],
+                    participantAccountIDs: [currentUserAccountID, 1, 2, 3, 4],
                 }),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
@@ -197,6 +201,7 @@ describe('ReportUtils', () => {
                             policyID: policy.policyID,
                             isOwnPolicyExpenseChat: true,
                             ownerEmail: 'ragnar@vikings.net',
+                            ownerAccountID: 1,
                         }),
                     ).toBe('Vikings Policy');
                 });
@@ -208,6 +213,7 @@ describe('ReportUtils', () => {
                             policyID: policy.policyID,
                             isOwnPolicyExpenseChat: false,
                             ownerEmail: 'ragnar@vikings.net',
+                            ownerAccountID: 1,
                         }),
                     ).toBe('Ragnar Lothbrok');
                 });
@@ -217,6 +223,7 @@ describe('ReportUtils', () => {
                 const baseArchivedPolicyExpenseChat = {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     ownerEmail: 'ragnar@vikings.net',
+                    ownerAccountID: 1,
                     policyID: policy.policyID,
                     oldPolicyName: policy.name,
                     statusNum: CONST.REPORT.STATUS.CLOSED,
