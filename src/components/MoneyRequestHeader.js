@@ -72,16 +72,13 @@ const defaultProps = {
 };
 
 const MoneyRequestHeader = (props) => {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-
     // These are only used for the single transaction view and not for expense and iou reports
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const transactionDate = lodashGet(parentReportAction, ['created']);
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
-    const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
-    }, [parentReportAction]);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
     const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
@@ -97,7 +94,10 @@ const MoneyRequestHeader = (props) => {
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']));
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
+
+    const deleteTransaction = useCallback(() => {
+        IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
+    }, [parentReportAction]);
 
     if (props.isSingleTransactionView && isDeletedParentAction) {
         return (
