@@ -1,12 +1,13 @@
 import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+// eslint-disable-next-line no-restricted-imports
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -414,17 +415,15 @@ class WorkspaceMembersPage extends React.Component {
                         shouldShow={_.isEmpty(this.props.policy)}
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                     >
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('workspace.common.members')}
                             subtitle={policyName}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
                             onBackButtonPress={() => {
                                 this.updateSearchValue('');
-                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+                                Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
                             }}
                             shouldShowGetAssistanceButton
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            shouldShowBackButton
                         />
                         <ConfirmModal
                             danger
