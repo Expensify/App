@@ -71,9 +71,6 @@ const propTypes = {
         login: PropTypes.string,
     }),
 
-    /** Current reportID from the route in react navigation state object */
-    reportIDFromRoute: PropTypes.string,
-
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -91,7 +88,6 @@ const defaultProps = {
     currentUserPersonalDetails: {
         avatar: '',
     },
-    reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
@@ -148,7 +144,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.currentReportID);
 
         const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
 
@@ -213,7 +209,7 @@ class SidebarLinks extends React.Component {
                     <LHNOptionsList
                         contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
                         data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportId)}
+                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportID)}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
@@ -302,7 +298,7 @@ export default compose(
     withCurrentUserPersonalDetails,
     withNavigationFocus,
     withWindowDimensions,
-    withCurrentReportId,
+    withCurrentReportID,
     withNavigation,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
