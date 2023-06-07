@@ -55,6 +55,9 @@ const propTypes = {
     /** Whether the modal should go under the system statusbar */
     statusBarTranslucent: PropTypes.bool,
 
+    /** Whether the modal should avoid the keyboard */
+    avoidKeyboard: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -71,6 +74,7 @@ const defaultProps = {
     popoverAnchorPosition: {},
     innerContainerStyle: {},
     statusBarTranslucent: true,
+    avoidKeyboard: false,
 };
 
 export {propTypes, defaultProps};
