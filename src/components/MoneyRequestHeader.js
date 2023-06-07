@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -28,6 +28,8 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as UserUtils from '../libs/UserUtils';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import HeaderView from '../pages/home/HeaderView';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -70,6 +72,8 @@ const defaultProps = {
 };
 
 const MoneyRequestHeader = (props) => {
+    const [isDeletedParentAction, setIsDeletedParentAction] = useState(ReportActionsUtils.isDeletedParentAction(props.parentReportAction));
+
     // These are only used for the single transaction view and not for expense and iou reports
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
@@ -90,6 +94,24 @@ const MoneyRequestHeader = (props) => {
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']));
+
+    function deleteTransaction() {
+        IOU.deleteMoneyRequest(props.parentReportAction.originalMessage.IOUTransactionID, props.parentReportAction, true);
+        setIsDeletedParentAction(true);
+    }
+
+    if (props.isSingleTransactionView && isDeletedParentAction) {
+        return (
+            <HeaderView
+                reportID={props.report.reportID}
+                onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
+                personalDetails={props.personalDetails}
+                report={props.report}
+            />
+        )
+    }
+    
+    
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithBackButton
@@ -100,7 +122,7 @@ const MoneyRequestHeader = (props) => {
                     {
                         icon: Expensicons.Trashcan,
                         text: props.translate('common.delete'),
-                        onSelected: () => IOU.deleteMoneyRequest(props.parentReportAction.originalMessage.IOUTransactionID, props.parentReportAction, true),
+                        onSelected: deleteTransaction,
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
