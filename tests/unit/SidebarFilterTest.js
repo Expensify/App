@@ -11,7 +11,7 @@ import * as Localize from '../../src/libs/Localize';
 jest.mock('../../src/libs/Permissions');
 
 const ONYXKEYS = {
-    PERSONAL_DETAILS: 'personalDetails',
+    PERSONAL_DETAILS_LIST: 'personalDetailsList',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
