@@ -29,7 +29,13 @@ let allTransactions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
-    callback: (val) => (allTransactions = val),
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        return allTransactions = val;
+    },
 });
 
 function buildOnyxDataForMoneyRequest(
