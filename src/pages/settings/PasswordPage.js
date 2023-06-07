@@ -3,7 +3,7 @@ import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
@@ -19,6 +19,8 @@ import TextInput from '../../components/TextInput';
 import * as Session from '../../libs/actions/Session';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import ConfirmationPage from '../../components/ConfirmationPage';
+import ROUTES from '../../ROUTES';
+import FormHelpMessage from '../../components/FormHelpMessage';
 
 const propTypes = {
     /* Onyx Props */
@@ -147,11 +149,9 @@ class PasswordPage extends Component {
                     this.currentPasswordInputRef.focus();
                 }}
             >
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('passwordPage.changePassword')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
                 />
                 {!_.isEmpty(this.props.account.success) ? (
                     <ConfirmationPage
@@ -201,7 +201,10 @@ class PasswordPage extends Component {
                                 {shouldShowNewPasswordPrompt && <Text style={[styles.textLabelSupporting, styles.mt1]}>{this.props.translate('passwordPage.newPasswordPrompt')}</Text>}
                             </View>
                             {_.every(this.state.errors, (error) => !error) && !_.isEmpty(this.props.account.errors) && (
-                                <Text style={styles.formError}>{ErrorUtils.getLatestErrorMessage(this.props.account)}</Text>
+                                <FormHelpMessage
+                                    isError
+                                    message={ErrorUtils.getLatestErrorMessage(this.props.account)}
+                                />
                             )}
                         </ScrollView>
                         <FixedFooter style={[styles.flexGrow0]}>
