@@ -80,9 +80,7 @@ const cancelButtonID = 'cancelButton';
 const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
-function ReportActionItemMessageEdit(props) {
-    const {action, draftMessage, forwardedRef, index, isKeyboardShown, isSmallScreenWidth, preferredSkinTone, reportID, shouldDisableEmojiPicker, translate} = props;
-
+function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index, isKeyboardShown, isSmallScreenWidth, preferredSkinTone, reportID, shouldDisableEmojiPicker, translate}) {
     const [draft, setDraft] = useState(() => {
         if (draftMessage === action.message[0].html) {
             // We only convert the report action message to markdown if the draft message is unchanged.
@@ -291,6 +289,7 @@ function ReportActionItemMessageEdit(props) {
                             multiline
                             ref={(el) => {
                                 textInputRef.current = el;
+                                // eslint-disable-next-line no-param-reassign
                                 forwardedRef.current = el;
                             }}
                             nativeID={messageEditInput}
