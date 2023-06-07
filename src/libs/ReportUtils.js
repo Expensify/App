@@ -18,14 +18,26 @@ import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 
 let sessionEmail;
+let sessionAccountID;
+let currentUserEmail;
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => (sessionEmail = val ? val.email : null),
+    callback: (val) => {
+        // When signed out, val is undefined
+        if (!val) {
+            return;
+        }
+
+        sessionEmail = val.email;
+        sessionAccountID = val.accountID;
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
+    },
 });
 
 let preferredLocale = CONST.LOCALES.DEFAULT;
@@ -39,28 +51,13 @@ Onyx.connect({
     },
 });
 
-let currentUserEmail;
-let currentUserAccountID;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
-            return;
-        }
-
-        currentUserEmail = val.email;
-        currentUserAccountID = val.accountID;
-    },
-});
-
 let allPersonalDetails;
 let currentUserPersonalDetails;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        currentUserPersonalDetails = lodashGet(val, currentUserEmail, {});
-        allPersonalDetails = val;
+        currentUserPersonalDetails = lodashGet(val, currentUserAccountID, {});
+        allPersonalDetails = val || {};
     },
 });
 
@@ -827,20 +824,18 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 }
 
 /**
- * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
- * @param {String} login
+ * @param {String} accountID
  * @returns {Object}
  */
-function getPersonalDetailsForLogin(login) {
-    if (!login) {
+function getPersonalDetailsForAccountID(accountID) {
+    if (!accountID) {
         return {};
     }
     return (
-        (allPersonalDetails && allPersonalDetails[login]) || {
-            login,
-            displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            avatar: UserUtils.getDefaultAvatar(login),
+        (allPersonalDetails && allPersonalDetails[accountID]) || {
+            avatar: UserUtils.getDefaultAvatar(accountID),
         }
     );
 }
@@ -848,15 +843,15 @@ function getPersonalDetailsForLogin(login) {
 /**
  * Get the displayName for a single report participant.
  *
- * @param {String} login
+ * @param {String} accountID
  * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
-function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
-    if (!login) {
+function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
+    if (!accountID) {
         return '';
     }
-    const personalDetails = getPersonalDetailsForLogin(login);
+    const personalDetails = getPersonalDetailsForAccountID(accountID);
 
     const longName = personalDetails.displayName;
 
@@ -872,7 +867,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
-        const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
+        const displayName = getDisplayNameForParticipant(participant.accountID, isMultipleParticipantReport);
         const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
 
         let pronouns = participant.pronouns;
@@ -943,7 +938,7 @@ function getMoneyRequestTotal(report, moneyRequestReports = {}) {
  * @returns {String}
  */
 function getPolicyExpenseChatName(report) {
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || report.ownerEmail || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
@@ -974,7 +969,7 @@ function getPolicyExpenseChatName(report) {
  */
 function getMoneyRequestReportName(report) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID);
 
     return Localize.translateLocal(report.hasOutstandingIOU ? 'iou.payerOwesAmount' : 'iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
 }
@@ -1034,11 +1029,11 @@ function getReportName(report) {
     }
 
     // Not a room or PolicyExpenseChat, generate title from participants
-    const participants = (report && report.participants) || [];
-    const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
+    const participants = (report && report.participantAccountIDs) || [];
+    const participantsWithoutCurrentUser = _.without(participants, sessionAccountID);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
-    return _.map(participantsWithoutCurrentUser, (login) => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
+    return _.map(participantsWithoutCurrentUser, (accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -1129,12 +1124,12 @@ function buildOptimisticAddCommentReportAction(text, file) {
             person: [
                 {
                     style: 'strong',
-                    text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                    text: lodashGet(allPersonalDetails, [currentUserAccountID, 'displayName'], currentUserEmail),
                     type: 'TEXT',
                 },
             ],
             automatic: false,
-            avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
+            avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
             created: DateUtils.getDBTime(),
             message: [
                 {
@@ -1350,7 +1345,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(type, amount, comment, currency, paymentType, isSettlingUp),
@@ -1388,6 +1383,7 @@ function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
             linkedReportID: iouReportID,
         },
         actorEmail: currentUserEmail,
+        actorAccountID: currentUserAccountID,
     };
 }
 
@@ -1403,7 +1399,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
         actorAccountID: currentUserAccountID,
         actorEmail: currentUserEmail,
         automatic: false,
-        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
         originalMessage,
         message: [
@@ -1416,7 +1412,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
         person: [
             {
                 style: 'strong',
-                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserAccountID),
                 type: 'TEXT',
             },
         ],
@@ -1513,11 +1509,11 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                text: lodashGet(allPersonalDetails, [currentUserAccountID, 'displayName'], currentUserEmail),
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         shouldShow: true,
     };
@@ -1553,11 +1549,11 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                text: lodashGet(allPersonalDetails, [currentUserAccountID, 'displayName'], currentUserEmail),
             },
         ],
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         shouldShow: false,
     };
@@ -1576,7 +1572,7 @@ function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONS
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: lodashGet(allPersonalDetails, [currentUserEmail, 'avatar'], UserUtils.getDefaultAvatar(currentUserEmail)),
+        avatar: lodashGet(allPersonalDetails, [currentUserAccountID, 'avatar'], UserUtils.getDefaultAvatar(currentUserAccountID)),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -1599,7 +1595,7 @@ function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONS
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: lodashGet(allPersonalDetails, [currentUserEmail, 'displayName'], currentUserEmail),
+                text: lodashGet(allPersonalDetails, [currentUserAccountID, 'displayName'], currentUserEmail),
             },
         ],
         reportActionID: NumberUtils.rand64(),

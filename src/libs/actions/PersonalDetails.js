@@ -18,7 +18,7 @@ Onyx.connect({
 
 let personalDetails;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (personalDetails = val),
 });
 
@@ -102,7 +102,7 @@ function updatePronouns(pronouns) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
                         [currentUserEmail]: {
                             pronouns,
@@ -127,7 +127,7 @@ function updateDisplayName(firstName, lastName) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
                         [currentUserEmail]: {
                             firstName,
@@ -252,7 +252,7 @@ function updateAutomaticTimezone(timezone) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
                         [currentUserEmail]: {
                             timezone,
@@ -283,7 +283,7 @@ function updateSelectedTimezone(selectedTimezone) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
                         [currentUserEmail]: {
                             timezone,
@@ -319,7 +319,7 @@ function updateAvatar(file) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserEmail]: {
                     avatar: file.uri,
@@ -339,7 +339,7 @@ function updateAvatar(file) {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserEmail]: {
                     pendingFields: {
@@ -352,7 +352,7 @@ function updateAvatar(file) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserEmail]: {
                     avatar: personalDetails[currentUserEmail].avatar,
@@ -382,7 +382,7 @@ function deleteAvatar() {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
                         [currentUserEmail]: {
                             avatar: defaultAvatar,
@@ -393,7 +393,7 @@ function deleteAvatar() {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
                         [currentUserEmail]: {
                             avatar: personalDetails[currentUserEmail].avatar,
@@ -409,7 +409,7 @@ function deleteAvatar() {
  * Clear error and pending fields for the current user's avatar
  */
 function clearAvatarErrors() {
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [currentUserEmail]: {
             errorFields: {
                 avatar: null,

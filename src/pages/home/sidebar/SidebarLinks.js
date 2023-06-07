@@ -262,10 +262,10 @@ const chatReportSelector = (report) =>
 const personalDetailsSelector = (personalDetails) =>
     _.reduce(
         personalDetails,
-        (finalPersonalDetails, personalData, login) => {
+        (finalPersonalDetails, personalData, accountID) => {
             // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
             // eslint-disable-next-line no-param-reassign
-            finalPersonalDetails[login] = {
+            finalPersonalDetails[accountID] = {
                 login: personalData.login,
                 displayName: personalData.displayName,
                 firstName: personalData.firstName,
@@ -315,7 +315,7 @@ export default compose(
             selector: chatReportSelector,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             selector: personalDetailsSelector,
         },
         priorityMode: {

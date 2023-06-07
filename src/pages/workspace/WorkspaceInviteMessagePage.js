@@ -216,7 +216,7 @@ export default compose(
     withPolicyAndFullscreenLoading,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

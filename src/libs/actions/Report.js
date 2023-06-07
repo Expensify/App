@@ -280,7 +280,7 @@ function addActions(reportID, text = '', file) {
         parameters.timezone = JSON.stringify(timezone);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {[currentUserEmail]: {timezone}},
         });
         DateUtils.setTimezoneUpdated();
