@@ -53,7 +53,7 @@ const ImageRenderer = (props) => {
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <AttachmentModal
                     allowDownload
-                    reportID={report.reportID}
+                    report={report}
                     source={source}
                     isAuthTokenRequired={isAttachment}
                     originalFileName={originalFileName}
