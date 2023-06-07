@@ -125,7 +125,7 @@ const MenuItem = (props) => {
         >
             {({hovered, pressed}) => (
                 <>
-                    <View style={[styles.flexColumn]}>
+                    <View style={[styles.flexColumn, styles.flex1]}>
                         {props.label && (
                             <View style={props.icon ? styles.mb2 : null}>
                                 <Text style={StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre)}>{props.label}</Text>
