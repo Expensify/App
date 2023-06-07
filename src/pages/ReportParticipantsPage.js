@@ -54,28 +54,28 @@ const defaultProps = {
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails) => {
-    const {participants} = report;
+    const {participantAccountIDs} = report;
 
-    return _.chain(participants)
-        .map((login) => {
-            const userLogin = Str.removeSMSDomain(login);
-            const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
+    return _.chain(participantAccountIDs)
+        .map((accountID) => {
+            const userLogin = Str.removeSMSDomain(personalDetails.login) || 'Hidden';
+            const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || 'Hidden', avatar: ''});
 
             return {
                 alternateText: userLogin,
                 displayName: userPersonalDetail.displayName,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(userPersonalDetail.avatar, login),
-                        name: login,
+                        source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
+                        name: userLogin,
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                keyForList: userLogin,
-                login,
+                keyForList: accountID,
+                login: userLogin,
                 text: userPersonalDetail.displayName,
                 tooltipText: userLogin,
-                participantsList: [{login, displayName: userPersonalDetail.displayName}],
+                participantsList: [{accountID, displayName: userPersonalDetail.displayName}],
             };
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
