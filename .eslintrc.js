@@ -1,35 +1,23 @@
 module.exports = {
-    extends: ['expensify', 'airbnb-typescript', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
-    plugins: ['@typescript-eslint', 'react-hooks'],
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-        project: './tsconfig.json',
-    },
+    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier'],
+    plugins: ['react-hooks'],
+    parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', '.git/**'],
     env: {
         jest: true,
+    },
+    settings: {
+        'import/resolver': {
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            },
+        },
     },
     globals: {
         __DEV__: 'readonly',
     },
     rules: {
         'import/extensions': 'off',
-        'import/no-extraneous-dependencies': 'off',
-        'rulesdir/onyx-props-must-have-default': 'off',
-        'react/jsx-filename-extension': [1, {extensions: ['.tsx', '.ts', '.jsx', '.js']}],
-        '@typescript-eslint/no-var-requires': 'off',
-        '@typescript-eslint/no-non-null-assertion': 'error',
-        '@typescript-eslint/no-explicit-any': 'error',
-        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-        'es/no-nullish-coalescing-operators': 'off',
-        'es/no-optional-chaining': 'off',
-        'no-restricted-syntax': [
-            'error',
-            {
-                selector: 'TSEnumDeclaration',
-                message: "Please don't declare enums, use union types instead.",
-            },
-        ],
         'no-restricted-imports': [
             'error',
             {
@@ -56,7 +44,29 @@ module.exports = {
     overrides: [
         {
             files: ['*.ts', '*.tsx'],
+            extends: ['expensify', 'airbnb-typescript', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
+            plugins: ['@typescript-eslint', 'react-hooks'],
+            parser: '@typescript-eslint/parser',
+            parserOptions: {
+                project: './tsconfig.json',
+            },
             rules: {
+                'import/no-extraneous-dependencies': 'off',
+                'rulesdir/onyx-props-must-have-default': 'off',
+                'react/jsx-filename-extension': [1, {extensions: ['.tsx', '.ts', '.jsx', '.js']}],
+                '@typescript-eslint/no-var-requires': 'off',
+                '@typescript-eslint/no-non-null-assertion': 'error',
+                '@typescript-eslint/no-explicit-any': 'error',
+                '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+                'es/no-nullish-coalescing-operators': 'off',
+                'es/no-optional-chaining': 'off',
+                'no-restricted-syntax': [
+                    'error',
+                    {
+                        selector: 'TSEnumDeclaration',
+                        message: "Please don't declare enums, use union types instead.",
+                    },
+                ],
                 'no-restricted-imports': [
                     'error',
                     {
@@ -64,6 +74,11 @@ module.exports = {
                             {
                                 name: 'lodash/get',
                                 message: 'Please use optional chaining and nullish coalescing instead.',
+                            },
+                            {
+                                name: 'react-native',
+                                importNames: ['useWindowDimensions'],
+                                message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead.',
                             },
                         ],
                     },
