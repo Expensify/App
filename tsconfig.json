@@ -30,6 +30,6 @@
         "skipLibCheck": true,
         "baseUrl": "./"
     },
-    "exclude": ["node_modules"],
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js"],
     "include": ["src", "desktop", "web", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"]
 }
