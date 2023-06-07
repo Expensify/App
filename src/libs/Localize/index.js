@@ -92,6 +92,22 @@ function translateLocal(phrase, variables) {
 }
 
 /**
+ * Return translated string for given error.
+ *
+ * @param {String|Array} message
+ * @returns {String}
+ */
+function translateIfPhraseKey(message) {
+    try {
+        // check if error message has a variable parameter
+        const [phrase, variables] = _.isArray(message) ? message : [message];
+        return translateLocal(phrase, variables);
+    } catch (error) {
+        return message;
+    }
+}
+
+/**
  * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
  *
  * @param {Array} anArray
@@ -114,4 +130,4 @@ function getDevicePreferredLocale() {
     return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
-export {translate, translateLocal, arrayToString, getDevicePreferredLocale};
+export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};

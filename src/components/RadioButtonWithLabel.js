@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import RadioButton from './RadioButton';
 import Text from './Text';
 import FormHelpMessage from './FormHelpMessage';
+import * as Pressables from './Pressable';
 
 const propTypes = {
     /** Whether the radioButton is checked */
@@ -38,6 +39,8 @@ const defaultProps = {
     errorText: '',
 };
 
+const PressableWithFeedback = Pressables.PressableWithFeedback;
+
 const RadioButtonWithLabel = (props) => {
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
@@ -55,13 +58,19 @@ const RadioButtonWithLabel = (props) => {
                     label={props.label}
                     hasError={props.hasError}
                 />
-                <TouchableOpacity
+                <PressableWithFeedback
+                    focusable={false}
+                    accessible={false}
                     onPress={() => props.onPress()}
-                    style={[styles.ml3, styles.pr2, styles.w100, styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
+                    style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
+                    wrapperStyle={[styles.ml3, styles.pr2, styles.w100]}
+                    // disable hover style when disabled
+                    hoverDimmingValue={1}
+                    pressDimmingValue={0.2}
                 >
                     {Boolean(props.label) && <Text style={[styles.ml1]}>{props.label}</Text>}
                     {Boolean(LabelComponent) && <LabelComponent />}
-                </TouchableOpacity>
+                </PressableWithFeedback>
             </View>
             <FormHelpMessage message={props.errorText} />
         </>

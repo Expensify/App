@@ -1,10 +1,9 @@
 import React from 'react';
 import {Image} from 'react-native';
 import lodashGet from 'lodash/get';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
@@ -68,14 +67,12 @@ class BankAccountManualStep extends React.Component {
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.bankAccount')}
+                <HeaderWithBackButton
+                    title={this.props.translate('workspace.common.connectBankAccount')}
                     stepCounter={{step: 1, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
-                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -117,13 +114,7 @@ class BankAccountManualStep extends React.Component {
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('common.iAcceptThe')}
-                                <TextLink
-                                    href="https://use.expensify.com/terms"
-                                    // to call the onPress in the TextLink before the input blur is fired and shift the link element
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    {this.props.translate('common.expensifyTermsOfService')}
-                                </TextLink>
+                                <TextLink href={CONST.TERMS_URL}>{this.props.translate('common.expensifyTermsOfService')}</TextLink>
                             </Text>
                         )}
                         defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}

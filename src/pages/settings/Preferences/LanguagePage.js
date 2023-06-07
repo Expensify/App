@@ -1,16 +1,16 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as App from '../../../libs/actions/App';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -36,11 +36,9 @@ const LanguagePage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('languagePage.language')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <OptionsList
                 sections={[{data: localesToLanguages}]}

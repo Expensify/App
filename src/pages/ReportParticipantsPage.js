@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import OptionsList from '../components/OptionsList';
@@ -20,6 +20,7 @@ import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../CONST';
+import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -55,27 +56,30 @@ const defaultProps = {
 const getAllParticipants = (report, personalDetails) => {
     const {participants} = report;
 
-    return _.map(participants, (login) => {
-        const userLogin = Str.removeSMSDomain(login);
-        const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
+    return _.chain(participants)
+        .map((login) => {
+            const userLogin = Str.removeSMSDomain(login);
+            const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
 
-        return {
-            alternateText: userLogin,
-            displayName: userPersonalDetail.displayName,
-            icons: [
-                {
-                    source: ReportUtils.getAvatar(userPersonalDetail.avatar, login),
-                    name: login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                },
-            ],
-            keyForList: userLogin,
-            login,
-            text: userPersonalDetail.displayName,
-            tooltipText: userLogin,
-            participantsList: [{login, displayName: userPersonalDetail.displayName}],
-        };
-    });
+            return {
+                alternateText: userLogin,
+                displayName: userPersonalDetail.displayName,
+                icons: [
+                    {
+                        source: UserUtils.getAvatar(userPersonalDetail.avatar, login),
+                        name: login,
+                        type: CONST.ICON_TYPE_AVATAR,
+                    },
+                ],
+                keyForList: userLogin,
+                login,
+                text: userPersonalDetail.displayName,
+                tooltipText: userLogin,
+                participantsList: [{login, displayName: userPersonalDetail.displayName}],
+            };
+        })
+        .sortBy((participant) => participant.displayName.toLowerCase())
+        .value();
 };
 
 const ReportParticipantsPage = (props) => {
@@ -85,11 +89,10 @@ const ReportParticipantsPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                    <HeaderWithCloseButton
-                        title={props.translate(ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) ? 'common.members' : 'common.details')}
-                        onCloseButtonPress={Navigation.dismissModal}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report)}
+                    <HeaderWithBackButton
+                        title={props.translate(
+                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report) ? 'common.members' : 'common.details',
+                        )}
                     />
                     <View
                         pointerEvents="box-none"

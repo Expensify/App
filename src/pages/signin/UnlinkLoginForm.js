@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
+// eslint-disable-next-line no-restricted-imports
 import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -15,6 +16,7 @@ import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -83,7 +85,7 @@ const UnlinkLoginForm = (props) => {
                     medium
                     success
                     text={props.translate('unlinkLoginForm.unlink')}
-                    isLoading={props.account.isLoading}
+                    isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => Session.requestUnlinkValidationLink()}
                     isDisabled={props.network.isOffline || !_.isEmpty(props.account.message)}
                 />

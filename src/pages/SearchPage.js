@@ -5,13 +5,13 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import * as Report from '../libs/actions/Report';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
@@ -33,9 +33,6 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** Indicates whether report data is ready */
-    isLoadingReportData: PropTypes.bool,
-
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
@@ -46,7 +43,6 @@ const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
-    isLoadingReportData: true,
 };
 
 class SearchPage extends Component {
@@ -160,7 +156,7 @@ class SearchPage extends Component {
                     searchValue: '',
                 },
                 () => {
-                    Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+                    Navigation.dismissModal(option.reportID);
                 },
             );
         } else {
@@ -170,16 +166,13 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.search')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
+                        <HeaderWithBackButton title={this.props.translate('common.search')} />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <OptionsSelector
                                 sections={sections}
@@ -217,9 +210,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(SearchPage);

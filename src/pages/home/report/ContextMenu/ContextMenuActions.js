@@ -19,6 +19,8 @@ import * as Environment from '../../../../libs/Environment/Environment';
 import Permissions from '../../../../libs/Permissions';
 import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -34,6 +36,7 @@ const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
     EMAIL: 'EMAIL',
+    REPORT: 'REPORT',
 };
 
 // A list of all the context actions in this menu.
@@ -88,7 +91,12 @@ export default [
         shouldShow: (type, reportAction) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
-            return isAttachment && reportAction.reportActionID;
+            return (
+                isAttachment &&
+                message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML &&
+                reportAction.reportActionID &&
+                !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false)
+            );
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
@@ -99,6 +107,21 @@ export default [
             const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
             Download.setDownload(sourceID, true);
             fileDownload(sourceURLWithAuth, originalFileName).then(() => Download.setDownload(sourceID, false));
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'reportActionContextMenu.replyInThread',
+        icon: Expensicons.ChatBubble,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID),
+        onPress: (closePopover, {reportAction, reportID}) => {
+            Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -127,7 +150,7 @@ export default [
             Clipboard.setString(selection.replace('mailto:', ''));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: () => {},
+        getDescription: (selection) => selection.replace('mailto:', ''),
     },
     {
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
@@ -137,6 +160,9 @@ export default [
         shouldShow: (type, reportAction) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCANCELED &&
+            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
+            reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
             !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
             !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))),
 
@@ -175,7 +201,8 @@ export default [
         successIcon: Expensicons.Checkmark,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
-            const isAttachment = ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}])));
+            const message = _.last(lodashGet(reportAction, 'message', [{}]));
+            const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
@@ -225,10 +252,11 @@ export default [
         getDescription: () => {},
     },
     {
-        textTranslateKey: 'reportActionContextMenu.deleteComment',
+        textTranslateKey: 'reportActionContextMenu.deleteAction',
         icon: Expensicons.Trashcan,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
+            // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction, reportID) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
@@ -238,6 +266,49 @@ export default [
 
             // No popover to hide, call showDeleteConfirmModal immediately
             showDeleteModal(reportID, reportAction);
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'common.pin',
+        icon: Expensicons.Pin,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.togglePinnedState(reportID, false);
+            if (closePopover) {
+                hideContextMenu(false);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'common.unPin',
+        icon: Expensicons.Pin,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.togglePinnedState(reportID, true);
+            if (closePopover) {
+                hideContextMenu(false);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
+        icon: Expensicons.Flag,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            ReportUtils.canFlagReportAction(reportAction, reportID) &&
+            !isArchivedRoom &&
+            !isChronosReport &&
+            !ReportUtils.isConciergeChatReport(reportID) &&
+            reportAction.actorEmail !== CONST.EMAIL.CONCIERGE,
+        onPress: (closePopover, {reportID, reportAction}) => {
+            if (closePopover) {
+                hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));
+            }
+
+            Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID));
         },
         getDescription: () => {},
     },

@@ -41,6 +41,10 @@ import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import Expand from '../../../assets/images/expand.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
+import Flag from '../../../assets/images/flag.svg';
+import FlagLevelOne from '../../../assets/images/flag_level_01.svg';
+import FlagLevelTwo from '../../../assets/images/flag_level_02.svg';
+import FlagLevelThree from '../../../assets/images/flag_level_03.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Globe from '../../../assets/images/globe.svg';
@@ -77,6 +81,7 @@ import Pin from '../../../assets/images/pin.svg';
 import Plus from '../../../assets/images/plus.svg';
 import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
+import QrCode from '../../../assets/images/qrcode.svg';
 import QuestionMark from '../../../assets/images/question-mark-circle.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import ReceiptSearch from '../../../assets/images/receipt-search.svg';
@@ -161,6 +166,10 @@ export {
     EyeDisabled,
     FallbackAvatar,
     FallbackWorkspaceAvatar,
+    Flag,
+    FlagLevelOne,
+    FlagLevelTwo,
+    FlagLevelThree,
     Gallery,
     Gear,
     Globe,
@@ -197,6 +206,7 @@ export {
     Plus,
     Printer,
     Profile,
+    QrCode,
     QuestionMark,
     Receipt,
     ReceiptSearch,

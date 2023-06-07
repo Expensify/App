@@ -17,8 +17,12 @@ class PressableWithSecondaryInteraction extends Component {
     }
 
     componentDidMount() {
-        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
-            this.props.forwardedRef(this.pressableRef);
+        if (this.props.forwardedRef) {
+            if (_.isFunction(this.props.forwardedRef)) {
+                this.props.forwardedRef(this.pressableRef);
+            } else if (_.isObject(this.props.forwardedRef)) {
+                this.props.forwardedRef.current = this.pressableRef;
+            }
         }
         this.pressableRef.addEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
     }
@@ -54,6 +58,7 @@ class PressableWithSecondaryInteraction extends Component {
             e.preventDefault();
         }
 
+        this.props.onSecondaryInteraction(e);
         /**
          * This component prevents the tapped element from capturing focus.
          * We need to blur this element when clicked as it opens modal that implements focus-trapping.
@@ -64,7 +69,6 @@ class PressableWithSecondaryInteraction extends Component {
         if (this.props.withoutFocusOnSecondaryInteraction && this.pressableRef) {
             this.pressableRef.blur();
         }
-        this.props.onSecondaryInteraction(e);
     }
 
     render() {
@@ -76,6 +80,7 @@ class PressableWithSecondaryInteraction extends Component {
                 style={StyleUtils.combineStyles(this.props.inline ? styles.dInline : this.props.style)}
                 onPressIn={this.props.onPressIn}
                 onLongPress={this.props.onSecondaryInteraction ? this.executeSecondaryInteraction : undefined}
+                activeOpacity={this.props.activeOpacity}
                 onPressOut={this.props.onPressOut}
                 onPress={this.props.onPress}
                 ref={(el) => (this.pressableRef = el)}

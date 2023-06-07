@@ -26,35 +26,53 @@ if (titleRegex) {
 }
 
 /**
- * Process a pull request and outputs it's merge commit hash.
- *
- * @param {Object} PR
- */
-function outputMergeCommitHash(PR) {
-    if (!_.isEmpty(PR)) {
-        console.log(`Found matching pull request: ${PR.html_url}`);
-        core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
-    } else {
-        const err = new Error('Could not find matching pull request');
-        console.error(err);
-        core.setFailed(err);
-    }
-}
-
-/**
- * Process a pull request and outputs it's merge actor
+ * Output pull request merge actor.
  *
  * @param {Object} PR
  */
 function outputMergeActor(PR) {
+    if (user === 'OSBotify') {
+        core.setOutput('MERGE_ACTOR', PR.merged_by.login);
+    } else {
+        core.setOutput('MERGE_ACTOR', user);
+    }
+}
+
+/**
+ * Output forked repo URL if PR includes changes from a fork.
+ *
+ * @param {Object} PR
+ */
+function outputForkedRepoUrl(PR) {
+    if (PR.head.repo.html_url === GithubUtils.APP_REPO_URL) {
+        core.setOutput('FORKED_REPO_URL', '');
+    } else {
+        core.setOutput('FORKED_REPO_URL', `${PR.head.repo.html_url}.git`);
+    }
+}
+
+/**
+ * Output pull request data.
+ *
+ * @param {Object} PR
+ */
+function outputPullRequestData(PR) {
+    core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
+    core.setOutput('HEAD_COMMIT_SHA', PR.head.sha);
+    core.setOutput('IS_MERGED', PR.merged);
+    outputMergeActor(PR);
+    outputForkedRepoUrl(PR);
+}
+
+/**
+ * Process a pull request and output its data.
+ *
+ * @param {Object} PR
+ */
+function processPullRequest(PR) {
     if (!_.isEmpty(PR)) {
         console.log(`Found matching pull request: ${PR.html_url}`);
-
-        if (user === 'OSBotify') {
-            core.setOutput('MERGE_ACTOR', PR.merged_by.login);
-        } else {
-            core.setOutput('MERGE_ACTOR', user);
-        }
+        outputPullRequestData(PR);
     } else {
         const err = new Error('Could not find matching pull request');
         console.error(err);
@@ -79,8 +97,7 @@ if (pullRequestNumber) {
             pull_number: pullRequestNumber,
         })
         .then(({data}) => {
-            outputMergeCommitHash(data);
-            outputMergeActor(data);
+            processPullRequest(data);
         })
         .catch(handleUnknownError);
 } else {
@@ -97,7 +114,6 @@ if (pullRequestNumber) {
             }),
         )
         .then(({data}) => {
-            outputMergeCommitHash(data);
-            outputMergeActor(data);
+            processPullRequest(data);
         });
 }

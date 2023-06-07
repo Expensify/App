@@ -7,10 +7,10 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
+import * as ReportUtils from '../../../../libs/ReportUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import Text from '../../../../components/Text';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
 import avatarPropTypes from '../../../../components/avatarPropTypes';
@@ -48,9 +48,6 @@ const propTypes = {
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /** Indicates whether report data is ready */
-    isLoadingReportData: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -60,7 +57,6 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     safeAreaPaddingBottomStyle: {},
-    isLoadingReportData: true,
 };
 
 class MoneyRequestParticipantsSplitSelector extends Component {
@@ -213,11 +209,10 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             this.state.searchTerm,
             maxParticipantsReached,
         );
-        const isOptionsDataReady = !this.props.isLoadingReportData && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
 
         return (
             <View style={[styles.flex1, styles.w100, this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {}]}>
-                <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>{this.props.translate('common.to')}</Text>
                 <OptionsSelector
                     canSelectMultipleOptions
                     sections={sections}
@@ -253,9 +248,6 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(MoneyRequestParticipantsSplitSelector);
