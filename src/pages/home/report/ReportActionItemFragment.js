@@ -82,7 +82,6 @@ const defaultProps = {
     },
     loading: false,
     isSingleLine: false,
-    tooltipText: '',
     source: '',
     style: [],
 };

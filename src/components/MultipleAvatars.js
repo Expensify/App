@@ -112,7 +112,6 @@ const MultipleAvatars = (props) => {
         }
         avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), StyleUtils.getWidthStyle(width)]);
     }
-    console.log('props.icons', props.icons, ReportUtils.getPersonalDetailsForLogin(props.icons[1].name));
 
     return (
         <View style={avatarContainerStyles}>

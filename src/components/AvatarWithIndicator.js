@@ -65,7 +65,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    tooltipText: '',
+    name: '',
+    login: '',
     reimbursementAccount: {},
     policiesMemberList: {},
     policies: {},
