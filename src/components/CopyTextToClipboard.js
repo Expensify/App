@@ -35,7 +35,7 @@ const CopyTextToClipboard = (props) => {
             onPress={copyToClipboard}
         />
     );
-}
+};
 
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;
