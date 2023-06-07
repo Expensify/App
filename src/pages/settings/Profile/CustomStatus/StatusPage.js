@@ -24,7 +24,7 @@ function StatusPage() {
                     title=""
                     description="Status"
                     shouldShowRightIcon
-                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
                 />
                 <MenuItemWithTopDescription
                     title="Today"

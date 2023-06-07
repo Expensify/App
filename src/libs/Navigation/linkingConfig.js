@@ -110,6 +110,10 @@ export default {
                                 path: ROUTES.SETTINGS_STATUS,
                                 exact: true,
                             },
+                            Settings_Status_Set: {
+                                path: ROUTES.SETTINGS_STATUS_SET,
+                                exact: true,
+                            },
                             Settings_Timezone: {
                                 path: ROUTES.SETTINGS_TIMEZONE,
                                 exact: true,
