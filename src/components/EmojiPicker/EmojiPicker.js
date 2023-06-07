@@ -4,20 +4,12 @@ import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
+import * as ComponentUtils from '../../libs/ComponentUtils';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
-
-function measureEmojiPopoverAnchorPosition(anchorComponent) {
-    return new Promise((resolve) => {
-        if (!anchorComponent) {
-            return resolve({horizontal: 0, vertical: 0});
-        }
-        anchorComponent.measureInWindow((x, y, width) => resolve({horizontal: x + width, vertical: y}));
-    });
-}
 
 const EmojiPicker = forwardRef((props, ref) => {
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
@@ -37,7 +29,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         }
 
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
-            measureEmojiPopoverAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+            ComponentUtils.calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
                 setEmojiPopoverAnchorPosition(value);
             });
         });
@@ -65,7 +57,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             emojiPopoverAnchor.current.blur();
         }
 
-        measureEmojiPopoverAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+        ComponentUtils.calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
             onWillShow();
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition(value);
