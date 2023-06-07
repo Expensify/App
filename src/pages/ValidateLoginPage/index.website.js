@@ -11,7 +11,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import AbracadabraModal from '../../components/ValidateCode/AbracadabraModal';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
