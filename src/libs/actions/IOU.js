@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as ROUTES from '../../ROUTES';
+import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
@@ -25,7 +25,7 @@ Onyx.connect({
     callback: (val) => (allReports = val),
 });
 
-let allTransactions;
+let allTransactions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
