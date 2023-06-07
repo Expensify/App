@@ -311,7 +311,7 @@ function openPersonalDetailsPage() {
 }
 
 /**
- * Fetches public profile info about a given user
+ * Fetches public profile info about a given user.
  * The API will only return the accountID, displayName, and avatar for the user
  * But the profile page will use other info (e.g. contact methods and pronouns) if they are already available in Onyx
  * @param {Number} accountID
