@@ -1359,6 +1359,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
         delete originalMessage.IOUReportID;
         originalMessage.participants = [currentUserEmail, ..._.pluck(participants, 'login')];
+        originalMessage.participantAccountIDs = [currentUserAccountID, ..._.pluck(participants, 'accountID')];
     }
 
     return {

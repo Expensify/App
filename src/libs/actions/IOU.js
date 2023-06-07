@@ -262,6 +262,7 @@ function buildOnyxDataForMoneyRequest(
  */
 function requestMoney(report, amount, currency, payeeEmail, participant, comment) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+    const payerAccountID = participant.accountID;
     const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
 
     // STEP 1: Get existing chat report OR build a new optimistic one
@@ -275,13 +276,13 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     }
 
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([payerEmail]);
+        chatReport = ReportUtils.getChatByParticipants([payerAccountID]);
     }
 
     // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
     if (!chatReport) {
         isNewChatReport = true;
-        chatReport = ReportUtils.buildOptimisticChatReport([payerEmail]);
+        chatReport = ReportUtils.buildOptimisticChatReport([payerAccountID]);
     }
 
     // STEP 2: Get existing IOU report and update its total OR build a new optimistic one

@@ -51,6 +51,8 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
 
     if (iouReportUpdate.total < 0) {
         // The total sign has changed and hence we need to flip the manager and owner of the report.
+        iouReportUpdate.ownerAccountID = iouReport.managerID;
+        iouReportUpdate.managerID = iouReport.ownerAccountID;
         iouReportUpdate.ownerEmail = iouReport.managerEmail;
         iouReportUpdate.managerEmail = iouReport.ownerEmail;
         iouReportUpdate.total = -iouReportUpdate.total;
