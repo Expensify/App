@@ -17,7 +17,7 @@ const propTypes = {
     is2FARequired: PropTypes.bool.isRequired,
 };
 
-class TfaRequiredModal extends PureComponent {
+class JustSignedInModal extends PureComponent {
     render() {
         return (
             <View style={styles.deeplinkWrapperContainer}>
@@ -51,5 +51,5 @@ class TfaRequiredModal extends PureComponent {
     }
 }
 
-TfaRequiredModal.propTypes = propTypes;
-export default withLocalize(TfaRequiredModal);
+JustSignedInModal.propTypes = propTypes;
+export default withLocalize(JustSignedInModal);

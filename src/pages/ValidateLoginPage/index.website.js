@@ -15,7 +15,7 @@ import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValid
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
-import TfaRequiredModal from '../../components/ValidateCode/TfaRequiredModal';
+import JustSignedInModal from '../../components/ValidateCode/JustSignedInModal';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -123,8 +123,8 @@ class ValidateLoginPage extends Component {
         return (
             <>
                 {currentAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
-                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <TfaRequiredModal is2FARequired/>}
-                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <TfaRequiredModal is2FARequired={false}/>}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired/>}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false}/>}
                 {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
                     <ValidateCodeModal
                         accountID={this.getAccountID()}
