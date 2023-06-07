@@ -1,4 +1,5 @@
 import React, {PureComponent} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
@@ -11,6 +12,9 @@ import variables from '../../styles/variables';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** Whether the 2FA is needed to get fully authenticated. */
+    is2FARequired: PropTypes.bool.isRequired,
 };
 
 class TfaRequiredModal extends PureComponent {
@@ -21,13 +25,17 @@ class TfaRequiredModal extends PureComponent {
                     <View style={styles.mb2}>
                         <Icon
                             width={variables.modalTopIconWidth}
-                            height={variables.modalTopIconHeight}
-                            src={Illustrations.SafeBlue}
+                            height={this.props.is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight}
+                            src={this.props.is2FARequired ? Illustrations.SafeBlue : Illustrations.Abracadabra}
                         />
                     </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{this.props.translate('validateCodeModal.tfaRequiredTitle')}</Text>
+                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
+                        {this.props.translate(this.props.is2FARequired ? 'validateCodeModal.tfaRequiredTitle' : 'validateCodeModal.successfulSignInTitle')}
+                    </Text>
                     <View style={[styles.mt2, styles.mb2]}>
-                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>{this.props.translate('validateCodeModal.tfaRequiredDescription')}</Text>
+                        <Text style={[styles.fontSizeNormal, styles.textAlignCenter]}>
+                            {this.props.translate(this.props.is2FARequired ? 'validateCodeModal.tfaRequiredDescription' : 'validateCodeModal.successfulSignInDescription')}
+                        </Text>
                     </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>
