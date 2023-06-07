@@ -35,6 +35,7 @@ import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -371,16 +372,19 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
-        const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
         const policyOwner = lodashGet(this.props.policy, 'owner');
         const currentUserLogin = lodashGet(this.props.currentUserPersonalDetails, 'login');
         const removableMembers = {};
         let data = [];
-        _.each(policyMemberList, (policyMember, email) => {
+        _.each(this.props.policyMembers, (policyMember, accountID) => {
             if (this.isDeletedPolicyMember(policyMember)) {
                 return;
             }
-            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
+            const details = this.props.personalDetails[accountID];
+            if (!details) {
+                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
+                return;
+            }
             data.push({
                 ...policyMember,
                 ...details,
