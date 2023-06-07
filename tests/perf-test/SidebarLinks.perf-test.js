@@ -46,16 +46,6 @@ test('simple Sidebar render with hundred of reports', () => {
     });
     const mockOnyxReports = _.assign({}, ...mockReports);
 
-    const TestRegression = () => {
-        const [render, setRender] = React.useState([]);
-
-        React.useEffect(() => {
-            setRender((r) => r + 1);
-        }, []);
-
-        return <LHNTestUtils.MockedSidebarLinks />;
-    };
-
     return waitForPromisesToResolve()
         .then(() =>
             Onyx.multiSet({
@@ -64,5 +54,5 @@ test('simple Sidebar render with hundred of reports', () => {
                 ...mockOnyxReports,
             }),
         )
-        .then(() => measurePerformance(<TestRegression />));
+        .then(() => measurePerformance(<LHNTestUtils.MockedSidebarLinks />));
 });
