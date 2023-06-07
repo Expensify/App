@@ -119,6 +119,7 @@ function getPolicyExpenseReportOptions(report) {
                 },
             ],
             selected: report.selected,
+            isPolicyExpenseChat: true,
         },
     ];
 }
