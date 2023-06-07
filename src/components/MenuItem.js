@@ -79,6 +79,7 @@ const MenuItem = (props) => {
             props.icon ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
             props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined,
+            styles.pre,
             styles.ltr,
             props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
