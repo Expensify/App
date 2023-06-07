@@ -100,17 +100,9 @@ class WorkspaceMembersPage extends React.Component {
         }
 
         if (prevProps.policyMembers !== this.props.policyMembers) {
-            this.setState((prevState) => {
-                const policyMemberEmails = _.chain(this.props.policyMembers)
-                    .keys()
-                    .map((accountID) => this.personalDetails[accountID])
-                    .compact()
-                    .map((personalDetail) => personalDetail.login)
-                    .value();
-                return {
-                    selectedEmployees: _.intersection(prevState.selectedEmployees, policyMemberEmails),
-                }
-            });
+            this.setState((prevState) => ({
+                selectedEmployees: _.intersection(prevState.selectedEmployees, PolicyUtils.getClientPolicyMemberEmails(this.props.policyMembers, this.props.personalDetails)),
+            }));
         }
 
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
@@ -125,21 +117,7 @@ class WorkspaceMembersPage extends React.Component {
      * Get members for the current workspace
      */
     getWorkspaceMembers() {
-        /**
-         * Create a list of member emails by filtering for members without errors, then mapping each policy member accountID to the login from the personalDetail object.
-         * TODO: Clean up OpenWorkspaceMembersPage so we can pass accountIDs instead of emails.
-         *
-         * We filter clientMemberEmails to only pass members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
-         */
-        const clientMemberEmails = _.chain(this.props.policyMembers)
-            .filter((member) => _.isEmpty(member.errors))
-            .keys()
-            .map((accountID) => this.props.personalDetails[accountID])
-            .compact()
-            .map((personalDetail) => personalDetail.login)
-            .value();
-
-        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, PolicyUtils.getClientPolicyMemberEmails(this.props.policyMembers, this.props.personalDetails));
     }
 
     /**
