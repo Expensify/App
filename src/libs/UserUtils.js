@@ -97,8 +97,8 @@ function getDefaultAvatar(accountID = -1) {
 /**
  * Helper method to return default avatar URL associated with login
  *
- * @param {String} accountID
- * @param {Boolean} isNewDot
+ * @param {String} [accountID]
+ * @param {Boolean} [isNewDot]
  * @returns {String}
  */
 function getDefaultAvatarURL(accountID = '', isNewDot = false) {
