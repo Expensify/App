@@ -34,6 +34,12 @@ const propTypes = {
     /** IOU amount */
     iouAmount: PropTypes.number.isRequired,
 
+    /** IOU comment */
+    iouComment: PropTypes.string,
+
+    /** IOU currency */
+    iouCurrencyCode: PropTypes.string,
+
     /** IOU type */
     iouType: PropTypes.string,
 
@@ -64,9 +70,6 @@ const propTypes = {
     iou: PropTypes.shape({
         /** Whether or not the IOU step is loading (creating the IOU Report) */
         loading: PropTypes.bool,
-
-        // Selected Currency Code of the current IOU
-        selectedCurrencyCode: PropTypes.string,
     }),
 
     /** Current user session */
@@ -86,7 +89,7 @@ const defaultProps = {
     onSendMoney: () => {},
     navigateToStep: () => {},
     iou: {
-        selectedCurrencyCode: CONST.CURRENCY.USD,
+        loading: false,
     },
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     payeePersonalDetails: null,
@@ -113,9 +116,9 @@ function MoneyRequestConfirmationList(props) {
     const getParticipantsWithAmount = useCallback(
         (participantsList) => {
             const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount);
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(iouAmount, props.iou.selectedCurrencyCode));
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode));
         },
-        [props.iouAmount, props.iou.selectedCurrencyCode],
+        [props.iouAmount, props.iouCurrencyCode],
     );
 
     const getFormattedParticipants = () =>
@@ -129,7 +132,7 @@ function MoneyRequestConfirmationList(props) {
 
     const splitOrRequestOptions = useMemo(() => {
         const text = translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-            amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iou.selectedCurrencyCode),
+            amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode),
         });
         return [
             {
@@ -137,7 +140,7 @@ function MoneyRequestConfirmationList(props) {
                 value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
-    }, [props.hasMultipleParticipants, props.iouAmount, props.iou.selectedCurrencyCode, translate]);
+    }, [props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(participants, (participant) => participant.selected), [participants]);
 
@@ -162,7 +165,7 @@ function MoneyRequestConfirmationList(props) {
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, true);
             const formattedPayeePersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 payeePersonalDetails,
-                CurrencyUtils.convertToDisplayString(myIOUAmount, props.iou.selectedCurrencyCode),
+                CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
             );
 
             sections.push(
@@ -196,7 +199,7 @@ function MoneyRequestConfirmationList(props) {
         getParticipantsWithoutAmount,
         props.hasMultipleParticipants,
         props.iouAmount,
-        props.iou.selectedCurrencyCode,
+        props.iouCurrencyCode,
         props.participants,
         participants,
         translate,
@@ -260,7 +263,7 @@ function MoneyRequestConfirmationList(props) {
     );
 
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
-    const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iou.selectedCurrencyCode);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode);
 
     const footerContent = useMemo(() => {
         if (props.isReadOnly) {
@@ -279,7 +282,7 @@ function MoneyRequestConfirmationList(props) {
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={props.bankAccountRoute}
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                currency={props.iou.selectedCurrencyCode}
+                currency={props.iouCurrencyCode}
                 policyID={props.policyID}
                 shouldShowPaymentOptions
             />
@@ -290,7 +293,7 @@ function MoneyRequestConfirmationList(props) {
                 options={splitOrRequestOptions}
             />
         );
-    }, [confirm, participants, props.bankAccountRoute, props.iou.selectedCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+    }, [confirm, participants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
     return (
         <OptionsSelector
@@ -320,7 +323,7 @@ function MoneyRequestConfirmationList(props) {
             />
             <MenuItemWithTopDescription
                 shouldShowRightIcon={!props.isReadOnly}
-                title={props.iou.comment}
+                title={props.iouComment}
                 description={translate('common.description')}
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
