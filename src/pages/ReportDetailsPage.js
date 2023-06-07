@@ -69,7 +69,7 @@ const ReportDetailsPage = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
-    const participants = useMemo(() => lodashGet(props.report, 'participants', []), [props.report]);
+    const participants = useMemo(() => lodashGet(props.report, 'participantAccountIDs', []), [props.report]);
 
     const menuItems = useMemo(() => {
         if (isArchivedRoom) {
@@ -122,7 +122,7 @@ const ReportDetailsPage = (props) => {
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
-        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), hasMultipleParticipants);
+        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails), hasMultipleParticipants);
     }, [participants, props.personalDetails]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (

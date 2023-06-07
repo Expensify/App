@@ -621,6 +621,15 @@ function hasAutomatedExpensifyEmails(emails) {
 }
 
 /**
+ * Returns true if there is any automated expensify account in accountIDs
+ * @param {Array} accountIDs
+ * @returns {Boolean}
+ */
+function hasAutomatedExpensifyAccountIDs(accountIDs) {
+    return _.intersection(accountIDs, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+}
+
+/**
  * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of emails.
  *
  * @param {Array<String>} emails
@@ -701,9 +710,9 @@ function getIconsForParticipants(participants, personalDetails) {
     const participantsList = participants || [];
 
     for (let i = 0; i < participantsList.length; i++) {
-        const login = participantsList[i];
-        const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [login, 'avatar'], ''), login);
-        participantDetails.push([login, lodashGet(personalDetails, [login, 'firstName'], ''), avatarSource]);
+        const accountID = participantsList[i];
+        const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
+        participantDetails.push([accountID, lodashGet(personalDetails, [accountID, 'firstName'], ''), avatarSource]);
     }
 
     // Sort all logins by first name (which is the second element in the array)
@@ -756,8 +765,9 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
         const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
+        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', '');
         const actorIcon = {
-            source: UserUtils.getAvatar(lodashGet(personalDetails, [actorEmail, 'avatar']), actorEmail),
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
             name: actorEmail,
             type: CONST.ICON_TYPE_AVATAR,
         };
@@ -794,7 +804,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         }
 
         const adminIcon = {
-            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             name: report.ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
         };
@@ -811,16 +821,17 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     }
     if (isIOUReport(report)) {
         const email = isPayer ? report.managerEmail : report.ownerEmail;
+        const accountID = isPayer ? report.managerID : report.ownerAccountID;
         return [
             {
-                source: UserUtils.getAvatar(lodashGet(personalDetails, [email, 'avatar']), email),
+                source: UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar']), accountID),
                 name: email,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ];
     }
 
-    return getIconsForParticipants(report.participants, personalDetails);
+    return getIconsForParticipants(report.participantAccountIDs, personalDetails);
 }
 
 /**
@@ -2019,7 +2030,9 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         return [];
     }
 
-    const participants = _.filter(reportParticipants, (email) => currentUserPersonalDetails.login !== email);
+    const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
+    
+    // FAK, NEED ACCOUNT IDS FOR THESE
     const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
@@ -2172,6 +2185,7 @@ export {
     isConciergeChatReport,
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyEmails,
+    hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,
     isIOUOwnedByCurrentUser,

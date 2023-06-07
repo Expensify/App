@@ -211,7 +211,7 @@ function isPersonalDetailsReady(personalDetails) {
  * @returns {Array}
  */
 function getParticipantsOptions(report, personalDetails) {
-    const participants = lodashGet(report, 'participants', []);
+    const participants = lodashGet(report, 'participantAccountIDs', []);
     return _.map(getPersonalDetailsForAccountIDs(participants, personalDetails), (details) => ({
         keyForList: details.login,
         login: details.login,

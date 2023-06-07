@@ -232,7 +232,7 @@ function getOptionData(reportID) {
         isMoneyRequestReport: false,
     };
 
-    const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
+    const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
     const personalDetail = participantPersonalDetailList[0] || {};
 
     result.isThread = ReportUtils.isThread(report);
@@ -276,7 +276,7 @@ function getOptionData(reportID) {
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
-    let lastActorDetails = personalDetails[report.lastActorEmail] || null;
+    let lastActorDetails = personalDetails[report.lastActorAccountID] || null;
     if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
         const lastActorDisplayName = lodashGet(visibleReportActionItems[report.reportID], 'person[0].text');
         lastActorDetails = lastActorDisplayName
