@@ -16,12 +16,13 @@ import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
+import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -84,6 +85,7 @@ class AttachmentModal extends PureComponent {
             isModalOpen: false,
             shouldLoadAttachment: false,
             isAttachmentInvalid: false,
+            isAuthTokenRequired: props.isAuthTokenRequired,
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
             source: props.source,
@@ -100,17 +102,17 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.onNavigate = this.onNavigate.bind(this);
+        this.downloadAttachment = this.downloadAttachment.bind(this);
         this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
         this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
     }
 
     /**
-     * Helps to navigate between next/previous attachments
-     * by setting sourceURL and file in state
-     * @param {Object} attachmentData
+     * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
+     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
      */
-    onNavigate(attachmentData) {
-        this.setState(attachmentData);
+    onNavigate(attachment) {
+        this.setState(attachment);
     }
 
     /**
@@ -126,11 +128,15 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * @param {String} sourceURL
+     * Download the currently viewed attachment.
      */
-    downloadAttachment(sourceURL) {
-        const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
-        fileDownload(sourceURL, originalFileName);
+    downloadAttachment() {
+        let sourceURL = this.state.source;
+        if (this.state.isAuthTokenRequired) {
+            sourceURL = addEncryptedAuthTokenToURL(sourceURL);
+        }
+
+        fileDownload(sourceURL, this.state.file.name);
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -270,11 +276,14 @@ class AttachmentModal extends PureComponent {
                     propagateSwipe
                 >
                     {this.props.isSmallScreenWidth && <HeaderGap />}
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.downloadAttachment(this.state.source)}
+                        onDownloadButtonPress={this.downloadAttachment}
+                        shouldShowCloseButton={!this.props.isSmallScreenWidth}
+                        shouldShowBackButton={this.props.isSmallScreenWidth}
+                        onBackButtonPress={() => this.setState({isModalOpen: false})}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
@@ -291,7 +300,7 @@ class AttachmentModal extends PureComponent {
                                 <AttachmentView
                                     containerStyles={[styles.mh5]}
                                     source={source}
-                                    isAuthTokenRequired={this.props.isAuthTokenRequired}
+                                    isAuthTokenRequired={this.state.isAuthTokenRequired}
                                     file={this.state.file}
                                     onToggleKeyboard={this.updateConfirmButtonVisibility}
                                 />

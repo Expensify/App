@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
@@ -6,6 +7,23 @@ import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
+
+// we have to mock `useIsFocused` because it's used in the SidebarLinks component
+const mockedNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: () => ({
+            navigate: mockedNavigate,
+        }),
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: jest.fn(),
+        }),
+        createNavigationContainerRef: jest.fn(),
+    };
+});
 
 const fakePersonalDetails = {
     'email1@test.com': {
@@ -168,22 +186,40 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
     render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <ErrorBoundary>
-                <SidebarLinks
-                    onLinkClick={() => {}}
-                    insets={{
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                    }}
-                    isSmallScreenWidth={false}
-                    reportIDFromRoute={reportIDFromRoute}
-                />
-            </ErrorBoundary>
-        </ComposeProviders>,
+        <ErrorBoundary>
+            <MockedSidebarLinks reportIDFromRoute={reportIDFromRoute} />
+        </ErrorBoundary>,
     );
 }
 
-export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction};
+/**
+ * @param {String} [reportIDFromRoute]
+ * @returns {JSX.Element}
+ */
+function MockedSidebarLinks({reportIDFromRoute}) {
+    return (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+            <SidebarLinks
+                onLinkClick={() => {}}
+                insets={{
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                }}
+                isSmallScreenWidth={false}
+                reportIDFromRoute={reportIDFromRoute}
+            />
+        </ComposeProviders>
+    );
+}
+
+MockedSidebarLinks.propTypes = {
+    reportIDFromRoute: PropTypes.string,
+};
+
+MockedSidebarLinks.defaultProps = {
+    reportIDFromRoute: '',
+};
+
+export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};

@@ -1,10 +1,9 @@
-import _ from 'underscore';
 import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -14,6 +13,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Current user session */
@@ -37,23 +37,7 @@ const defaultProps = {
 };
 
 function TaskDescriptionPage(props) {
-    /**
-     * @param {Object} values
-     * @param {String} values.description
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
-
-            if (_.isEmpty(values.description)) {
-                errors.description = props.translate('common.error.fieldRequired');
-            }
-
-            return errors;
-        },
-        [props],
-    );
+    const validate = useCallback(() => ({}), []);
 
     const submit = useCallback(
         (values) => {
@@ -71,11 +55,11 @@ function TaskDescriptionPage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('newTaskPage.task')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
@@ -89,7 +73,7 @@ function TaskDescriptionPage(props) {
                     <TextInput
                         inputID="description"
                         name="description"
-                        label={props.translate('newTaskPage.description')}
+                        label={props.translate('newTaskPage.descriptionOptional')}
                         defaultValue={(props.task.report && props.task.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />
