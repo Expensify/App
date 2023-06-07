@@ -106,7 +106,7 @@ function SignInPage({account, credentials}) {
         hasLogin: Boolean(credentials.login),
         hasPassword: Boolean(credentials.password),
         hasValidateCode: Boolean(credentials.validateCode),
-        isPrimaryLogin: account.primaryLogin && account.primaryLogin !== credentials.login,
+        isPrimaryLogin: account.primaryLogin && account.primaryLogin === credentials.login,
         isAccountValidated: Boolean(account.validated),
         didForgetPassword: Boolean(account.forgotPassword),
         canUsePasswordlessLogins,
