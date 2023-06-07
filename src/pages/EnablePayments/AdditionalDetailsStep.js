@@ -7,9 +7,8 @@ import moment from 'moment/moment';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import IdologyQuestions from './IdologyQuestions';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import CONST from '../../CONST';
@@ -197,10 +196,8 @@ class AdditionalDetailsStep extends React.Component {
                     style={[styles.flex1]}
                     keyboardAvoidingViewBehavior="height"
                 >
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('additionalDetailsStep.headerTitle')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                        shouldShowBackButton
                         onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
                     />
                     <IdologyQuestions
@@ -214,10 +211,7 @@ class AdditionalDetailsStep extends React.Component {
 
         return (
             <>
-                <HeaderWithCloseButton
-                    title={this.props.translate('additionalDetailsStep.headerTitle')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
+                <HeaderWithBackButton title={this.props.translate('additionalDetailsStep.headerTitle')} />
                 <View style={[styles.flex1]}>
                     <View style={[styles.ph5]}>
                         <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
