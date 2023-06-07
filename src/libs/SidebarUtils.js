@@ -78,10 +78,12 @@ Onyx.connect({
     callback: (val) => (policies = val),
 });
 
-let currentUserLogin;
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => (currentUserLogin = val),
+    callback: (val) => {
+        currentUserAccountID = val.accountID;
+    },
 });
 
 let preferredLocale;
@@ -99,7 +101,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, allReports, betas, policies));
+    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, allReports, betas, policies));
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
         const conciergeChatReport = _.find(allReports, ReportUtils.isConciergeChatReport);
@@ -286,7 +288,7 @@ function getOptionData(reportID) {
               }
             : null;
     }
-    let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.login !== currentUserLogin.email ? `${lastActorDetails.displayName}: ` : '';
+    let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
     if (result.isArchivedRoom) {

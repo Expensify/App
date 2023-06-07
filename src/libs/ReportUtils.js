@@ -1730,11 +1730,10 @@ function isUnreadWithMention(report) {
  *
  * @param {Object} report
  * @param {String} report.iouReportID
- * @param {String} currentUserLogin
  * @param {Object} iouReports
  * @returns {boolean}
  */
-function hasOutstandingIOU(report, currentUserLogin, iouReports) {
+function hasOutstandingIOU(report, iouReports) {
     if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
         return false;
     }
@@ -1816,13 +1815,12 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Object} report
  * @param {String} reportIDFromRoute
  * @param {Boolean} isInGSDMode
- * @param {String} currentUserLogin
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, iouReports, betas, policies) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -1849,7 +1847,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, curr
 
     // Include reports if they have a draft, are pinned, or have an outstanding IOU
     // These are always relevant to the user no matter what view mode the user prefers
-    if (report.hasDraft || report.isPinned || hasOutstandingIOU(report, currentUserLogin, iouReports)) {
+    if (report.hasDraft || report.isPinned || hasOutstandingIOU(report, iouReports)) {
         return true;
     }
 

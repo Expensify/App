@@ -280,7 +280,7 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
             };
             const iouReports = {};
-            expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
         });
         it('returns false when the matched IOU report does not have an owner email', () => {
             const report = {
@@ -292,7 +292,7 @@ describe('ReportUtils', () => {
                     reportID: '1',
                 },
             };
-            expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
         });
         it('returns false when the matched IOU report does not have an owner email', () => {
             const report = {
@@ -305,7 +305,7 @@ describe('ReportUtils', () => {
                     ownerEmail: 'a@a.com',
                 },
             };
-            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
         });
         it('returns true when the report has an oustanding IOU', () => {
             const report = {
@@ -319,7 +319,7 @@ describe('ReportUtils', () => {
                     ownerEmail: 'a@a.com',
                 },
             };
-            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(true);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(true);
         });
         it('returns false when the report has no oustanding IOU', () => {
             const report = {
@@ -333,7 +333,7 @@ describe('ReportUtils', () => {
                     ownerEmail: 'a@a.com',
                 },
             };
-            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
         });
     });
 
