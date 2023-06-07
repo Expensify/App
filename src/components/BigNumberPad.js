@@ -32,7 +32,7 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-function BigNumberPad (props) {
+function BigNumberPad(props) {
     const [timer, setTimer] = useState(null);
 
     /**
@@ -90,7 +90,7 @@ function BigNumberPad (props) {
             ))}
         </View>
     );
-};
+}
 
 BigNumberPad.propTypes = propTypes;
 BigNumberPad.defaultProps = defaultProps;
