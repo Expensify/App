@@ -11,12 +11,12 @@ Onyx.connect({
 });
 
 /**
- * @param {Object} personalDetails 
+ * @param {Object} passedPersonalDetails 
  * @param {Array} pathToDisplayName 
  * @param {String} [defaultValue] optional default display name value
  */
-function getDisplayNameOrDefault(personalDetails, pathToDisplayName, defaultValue) {
-    let displayName = lodashGet(personalDetails, pathToDisplayName);
+function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
+    let displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
     return displayName || defaultValue || 'Hidden';
 }
