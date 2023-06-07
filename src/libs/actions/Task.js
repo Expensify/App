@@ -167,11 +167,11 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
     clearOutTaskInfo();
 
-    Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
+    Navigation.dismissModal(optimisticTaskReport.reportID);
 }
 
-function completeTask(taskReportID, parentReportID, taskTitle) {
-    const message = `Completed task: ${taskTitle}`;
+function completeTask(taskReportID, taskTitle) {
+    const message = `completed task: ${taskTitle}`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
     const optimisticData = [
@@ -183,18 +183,10 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.APPROVED,
             },
         },
+
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
-            value: {
-                lastVisibleActionCreated: completedTaskReportAction.created,
-                lastMessageText: message,
-                lastActorEmail: completedTaskReportAction.actorEmail,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {[completedTaskReportAction.reportActionID]: completedTaskReportAction},
         },
     ];
@@ -211,7 +203,7 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {[completedTaskReportAction.reportActionID]: {pendingAction: null}},
         },
     ];
@@ -229,11 +221,10 @@ function completeTask(taskReportID, parentReportID, taskTitle) {
 /**
  * Reopens a closed task
  * @param {string} taskReportID ReportID of the task
- * @param {string} parentReportID ReportID of the linked parent report of the task so we can add the action
  * @param {string} taskTitle Title of the task
  */
-function reopenTask(taskReportID, parentReportID, taskTitle) {
-    const message = `Reopened task: ${taskTitle}`;
+function reopenTask(taskReportID, taskTitle) {
+    const message = `reopened task: ${taskTitle}`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
     const optimisticData = [
@@ -243,20 +234,15 @@ function reopenTask(taskReportID, parentReportID, taskTitle) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
-            value: {
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
                 lastActorEmail: reopenedTaskReportAction.actorEmail,
+                lastReadTime: reopenedTaskReportAction.created,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {[reopenedTaskReportAction.reportActionID]: reopenedTaskReportAction},
         },
     ];
@@ -273,7 +259,7 @@ function reopenTask(taskReportID, parentReportID, taskTitle) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {[reopenedTaskReportAction.reportActionID]: {pendingAction: null}},
         },
     ];
@@ -340,7 +326,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {reportName: report.reportName, description: report.description, assignee: report.assignee},
+            value: {reportName: report.reportName, description: report.description, assignee: report.managerEmail},
         },
     ];
 
@@ -380,15 +366,15 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             taskReportID: report.reportID,
             title: reportName,
-            description: description.trim(),
-            assignee: assignee || report.assignee,
+            description: (description || report.description).trim(),
+            assignee: assignee || report.managerEmail,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );
 
-    Navigation.navigate(ROUTES.getReportRoute(report.reportID));
+    Navigation.dismissModal(report.reportID);
 }
 
 /**
@@ -442,21 +428,24 @@ function setShareDestinationValue(shareDestination) {
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  * @param {string} assignee
  * @param {string} shareDestination
+ * @param {boolean} isCurrentUser
  */
 
-function setAssigneeValue(assignee, shareDestination) {
-    let newChat = {};
-    const chat = ReportUtils.getChatByParticipants([assignee]);
-    if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport([assignee]);
-    }
-    const reportID = chat ? chat.reportID : newChat.reportID;
+function setAssigneeValue(assignee, shareDestination, isCurrentUser = false) {
+    if (!isCurrentUser) {
+        let newChat = {};
+        const chat = ReportUtils.getChatByParticipants([assignee]);
+        if (!chat) {
+            newChat = ReportUtils.buildOptimisticChatReport([assignee]);
+        }
+        const reportID = chat ? chat.reportID : newChat.reportID;
 
-    if (!shareDestination) {
-        setShareDestinationValue(reportID);
-    }
+        if (!shareDestination) {
+            setShareDestinationValue(reportID);
+        }
 
-    Report.openReport(reportID, [assignee], newChat);
+        Report.openReport(reportID, [assignee], newChat);
+    }
 
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee});
@@ -523,13 +512,12 @@ function getShareDestination(reportID, reports, personalDetails) {
 /**
  * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
  * @param {string} taskReportID
- * @param {string} parentReportID
  * @param {string} taskTitle
  * @param {number} originalStateNum
  * @param {number} originalStatusNum
  */
-function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, originalStatusNum) {
-    const message = `Canceled task: ${taskTitle}`;
+function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
+    const message = `canceled task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
 
@@ -544,7 +532,7 @@ function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, o
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
@@ -553,7 +541,7 @@ function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, o
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
                 [optimisticReportActionID]: optimisticCancelReportAction,
             },
@@ -571,7 +559,7 @@ function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, o
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
                 [optimisticReportActionID]: null,
             },
@@ -583,6 +571,14 @@ function cancelTask(taskReportID, parentReportID, taskTitle, originalStateNum, o
 
 function isTaskCanceled(taskReport) {
     return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
+}
+
+/**
+ * Closes the current open task modal and clears out the task info from the store.
+ */
+function dismissModalAndClearOutTaskInfo() {
+    Navigation.dismissModal();
+    clearOutTaskInfo();
 }
 
 export {
@@ -602,4 +598,5 @@ export {
     getShareDestination,
     cancelTask,
     isTaskCanceled,
+    dismissModalAndClearOutTaskInfo,
 };
