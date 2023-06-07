@@ -202,7 +202,8 @@ function getSmallSizeAvatar(avatarURL, accountID) {
 }
 
 /**
- * Generate a random accountID. Uses the same approach of 'generateReportID'. 
+ * Generate a random accountID.
+ * Uses the same approach of 'generateReportID'.
  *
  * @returns {String}
  */

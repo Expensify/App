@@ -179,7 +179,7 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
         .each((accountID) => {
             let personalDetail = personalDetails[accountID];
             if (!personalDetail) {
-                // NOTE: this can possibly be changed to 'hidden' 
+                // NOTE: this can possibly be changed to 'hidden'
                 personalDetail = {
                     accountID,
                     avatar: UserUtils.getDefaultAvatar(accountID),
