@@ -18,14 +18,17 @@ import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 
 let sessionEmail;
+let sessionAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => (sessionEmail = val ? val.email : null),
+    callback: (val) => {
+        sessionEmail = val ? val.email : null;
+        sessionAccountID = val ? val.accountID : null;
+    },
 });
 
 let preferredLocale = CONST.LOCALES.DEFAULT;
@@ -829,18 +832,16 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 /**
  * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
- * @param {String} login
+ * @param {String} accountID
  * @returns {Object}
  */
-function getPersonalDetailsForLogin(login) {
-    if (!login) {
+function getPersonalDetailsForAccountID(accountID) {
+    if (!accountID) {
         return {};
     }
     return (
-        (allPersonalDetails && allPersonalDetails[login]) || {
-            login,
-            displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            avatar: UserUtils.getDefaultAvatar(login),
+        (allPersonalDetails && allPersonalDetails[accountID]) || {
+            avatar: UserUtils.getDefaultAvatar(accountID),
         }
     );
 }
@@ -848,15 +849,15 @@ function getPersonalDetailsForLogin(login) {
 /**
  * Get the displayName for a single report participant.
  *
- * @param {String} login
+ * @param {String} accountID
  * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
-function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
-    if (!login) {
+function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
+    if (!accountID) {
         return '';
     }
-    const personalDetails = getPersonalDetailsForLogin(login);
+    const personalDetails = getPersonalDetailsForAccountID(accountID);
 
     const longName = personalDetails.displayName;
 
@@ -872,7 +873,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
-        const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
+        const displayName = getDisplayNameForParticipant(participant.accountID, isMultipleParticipantReport);
         const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
 
         let pronouns = participant.pronouns;
@@ -943,7 +944,7 @@ function getMoneyRequestTotal(report, moneyRequestReports = {}) {
  * @returns {String}
  */
 function getPolicyExpenseChatName(report) {
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerEmail) || report.ownerEmail || report.reportName;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || report.ownerEmail || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
@@ -974,7 +975,7 @@ function getPolicyExpenseChatName(report) {
  */
 function getMoneyRequestReportName(report) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID);
 
     return Localize.translateLocal(report.hasOutstandingIOU ? 'iou.payerOwesAmount' : 'iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
 }
@@ -1034,11 +1035,11 @@ function getReportName(report) {
     }
 
     // Not a room or PolicyExpenseChat, generate title from participants
-    const participants = (report && report.participants) || [];
-    const participantsWithoutCurrentUser = _.without(participants, sessionEmail);
+    const participants = (report && report.participantAccountIDs) || [];
+    const participantsWithoutCurrentUser = _.without(participants, sessionAccountID);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
-    return _.map(participantsWithoutCurrentUser, (login) => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
+    return _.map(participantsWithoutCurrentUser, (accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
 }
 
 /**

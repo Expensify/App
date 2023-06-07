@@ -14,6 +14,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
+            participantAccountIDs: [2, 1],
             reportName: 'Iron Man, Mister Fantastic',
             hasDraft: true,
         },
@@ -23,6 +24,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 2,
             participants: ['peterparker@expensify.com'],
+            participantAccountIDs: [3],
             reportName: 'Spider-Man',
         },
 
@@ -33,6 +35,7 @@ describe('OptionsListUtils', () => {
             isPinned: true,
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
+            participantAccountIDs: [1],
             reportName: 'Mister Fantastic',
         },
         4: {
@@ -41,6 +44,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 4,
             participants: ['tchalla@expensify.com'],
+            participantAccountIDs: [4],
             reportName: 'Black Panther',
         },
         5: {
@@ -49,6 +53,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 5,
             participants: ['suestorm@expensify.com'],
+            participantAccountIDs: [5],
             reportName: 'Invisible Woman',
         },
         6: {
@@ -57,6 +62,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 6,
             participants: ['thor@expensify.com'],
+            participantAccountIDs: [6],
             reportName: 'Thor',
         },
 
@@ -67,6 +73,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 7,
             participants: ['steverogers@expensify.com'],
+            participantAccountIDs: [7],
             reportName: 'Captain America',
         },
 
@@ -77,6 +84,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 8,
             participants: ['galactus_herald@expensify.com'],
+            participantAccountIDs: [12],
             reportName: 'Silver Surfer',
         },
 
@@ -87,6 +95,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 9,
             participants: ['mistersinister@marauders.com'],
+            participantAccountIDs: [8],
             reportName: 'Mister Sinister',
             iouReportID: 100,
             hasOutstandingIOU: true,
@@ -99,6 +108,7 @@ describe('OptionsListUtils', () => {
             reportID: 10,
             isPinned: false,
             participants: ['tonystark@expensify.com', 'steverogers@expensify.com'],
+            participantAccountIDs: [2, 7],
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -171,7 +181,9 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: 11,
+            // NOTE: possibly remove 'participants' field in the future
             participants: ['concierge@expensify.com'],
+            participantAccountIDs: [999],
             reportName: 'Concierge',
         },
     };
@@ -184,6 +196,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 12,
             participants: ['chronos@expensify.com'],
+            participantAccountIDs: [1000],
             reportName: 'Chronos',
         },
     };
@@ -196,6 +209,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 13,
             participants: ['receipts@expensify.com'],
+            participantAccountIDs: [1001],
             reportName: 'Receipts',
         },
     };
@@ -208,6 +222,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 14,
             participants: ['reedrichards@expensify.com', 'brucebanner@expensify.com', 'peterparker@expensify.com'],
+            participantAccountIDs: [1, 10, 3],
             reportName: '',
             oldPolicyName: 'Avengers Room',
             isArchivedRoom: false,
@@ -266,9 +281,10 @@ describe('OptionsListUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {email: 'tonystark@expensify.com'},
+                [ONYXKEYS.SESSION]: {accountID: 2, email: 'tonystark@expensify.com'},
                 [`${ONYXKEYS.COLLECTION.REPORT}100`]: {
                     ownerEmail: 'mistersinister@marauders.com',
+                    ownerAccountID: 8,
                     total: '1000',
                 },
                 [`${ONYXKEYS.COLLECTION.POLICY}${POLICY.policyID}`]: POLICY,
@@ -307,7 +323,7 @@ describe('OptionsListUtils', () => {
             .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
             .then(() => {
                 // When we filter again but provide a searchValue that should match with periods
-                results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barryallen@expensify.com');
+                results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS_WITH_PERIODS, 'barry.allen@expensify.com');
 
                 // Then we expect to have the personal detail with period filtered
                 expect(results.recentReports.length).toBe(1);

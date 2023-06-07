@@ -201,6 +201,16 @@ function getSmallSizeAvatar(avatarURL, accountID) {
     return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
+/**
+ * Generate a random accountID.
+ * Uses the same approach of 'generateReportID'.
+ *
+ * @returns {String}
+ */
+function generateAccountID() {
+    return (Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32)).toString();
+}
+
 export {
     hashText,
     hasLoginListError,
@@ -213,4 +223,5 @@ export {
     getAvatarUrl,
     getSmallSizeAvatar,
     getFullSizeAvatar,
+    generateAccountID,
 };
