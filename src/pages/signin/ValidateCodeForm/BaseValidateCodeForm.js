@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import lodashIsEmpty from 'lodash/isEmpty';
 import styles from '../../../styles/styles';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
@@ -85,24 +87,32 @@ function BaseValidateCodeForm(props) {
     }, []);
 
     useEffect(() => {
-        if (!wasVisible && props.isVisible) {
+        if (inputValidateCode && !wasVisible && props.isVisible) {
             inputValidateCode.focus();
         }
-        if (wasVisible && !props.isVisible && validateCode) {
-            clearValidateCode();
-        }
+    }, [inputValidateCode, props.isVisible, wasVisible]);
 
-        // Clear the code input if a new magic code was requested
-        if (props.isVisible && linkSent && props.account.message && validateCode) {
-            clearValidateCode();
+    useEffect(() => {
+        if (inputValidateCode) {
+            // Clear the code input if magic code valid or a new magic code was requested
+            if ((wasVisible && !props.isVisible && validateCode) || (props.isVisible && linkSent && props.account.message && validateCode)) {   
+                setValidateCode('');
+                inputValidateCode.clear();
+            }
         }
+    }, [inputValidateCode, props.isVisible, props.account.message, wasVisible, linkSent, validateCode]);
+
+    useEffect(() => {
         if (!hadValidateCode && props.credentials.validateCode) {
             setValidateCode(props.credentials.validateCode);
         }
-        if (!required2FA && props.account.requiresTwoFactorAuth) {
+    }, [props.credentials.validateCode, hadValidateCode]);
+
+    useEffect(() => {
+        if (input2FA && !required2FA && props.account.requiresTwoFactorAuth) {
             input2FA.focus();
         }
-    }, [props.isVisible, wasVisible, props.account, props.credentials, hadValidateCode, required2FA, validateCode, linkSent]);
+    }, [input2FA, props.account.requiresTwoFactorAuth, required2FA]);
 
     /**
      * Handle text input and clear formError upon text change
@@ -119,14 +129,6 @@ function BaseValidateCodeForm(props) {
         if (props.account.errors) {
             Session.clearAccountMessages();
         }
-    }
-
-    /**
-     * Clear Validate Code from the state
-     */
-    const clearValidateCode = () => {
-        setValidateCode('');
-        inputValidateCode.clear();
     }
     
     /**
@@ -156,19 +158,17 @@ function BaseValidateCodeForm(props) {
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = () => {
+    const validateAndSubmitForm = useCallback(() => {
         const requiresTwoFactorAuth = props.account.requiresTwoFactorAuth;
         if (requiresTwoFactorAuth) {
             if (input2FA) {
                 input2FA.blur();
             }
-
             if (!twoFactorAuthCode.trim()) {
                 setFormError({twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'});
                 return;
             }
-
-            if (!ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
+            if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
                 setFormError({twoFactorAuthCode: 'passwordForm.error.incorrect2fa'});
                 return;
             }
@@ -187,15 +187,18 @@ function BaseValidateCodeForm(props) {
         }
         setFormError({});
 
-        const accountID = props.credentials.accountID;
+        const accountID = lodashGet(props, 'credentials.accountID');
         if (accountID) {
             Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, twoFactorAuthCode);
         } else {
             Session.signIn('', validateCode, twoFactorAuthCode, props.preferredLocale);
         }
-    }
+        // We don't include props.account here because requiresTwoFactorAuth won't change, and otherwise
+        // we have recursion on error (since props.account changes to include error property)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
-    const hasError = Boolean(props.account) && Object.keys(props.account.errors) > 0;
+    const hasError = Boolean(props.account) && !lodashIsEmpty(props.account.errors);
     return (
         <>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
