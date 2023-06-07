@@ -132,7 +132,7 @@ class WorkspaceInviteMessagePage extends React.Component {
     validate() {
         const errorFields = {};
         if (_.isEmpty(this.props.invitedMembersDraft)) {
-            errorFields.welcomeMessage = this.props.translate('workspace.inviteMessage.inviteNoMembersError');
+            errorFields.welcomeMessage = 'workspace.inviteMessage.inviteNoMembersError';
         }
         return errorFields;
     }
