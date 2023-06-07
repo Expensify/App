@@ -23,9 +23,13 @@ import * as UserUtils from './UserUtils';
  */
 
 let currentUserLogin;
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => (currentUserLogin = val && val.email),
+    callback: (val) => {
+        currentUserLogin = val && val.email;
+        currentUserAccountID = val && val.accountID;
+    },
 });
 
 let loginList;
@@ -243,6 +247,7 @@ function getParticipantNames(personalDetailList) {
     // `_.contains(Array, value)` for an Array with n members.
     const participantNames = new Set();
     _.each(personalDetailList, (participant) => {
+        // TODO: maybe get participant name by accountID in personalDetails??
         if (participant.login) {
             participantNames.add(participant.login.toLowerCase());
         }
@@ -446,7 +451,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
 
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.login !== currentUserLogin ? `${lastActorDetails.displayName}: ` : '';
+        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
 
         if (result.isArchivedRoom) {
@@ -510,6 +515,8 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 
 /**
  * Checks if the given userDetails is currentUser or not.
+ * Note: We can't migrate this off of using logins because this is used to check if you're trying to start a chat with
+ * yourself or a different user, and people won't be starting new chats via accountID usually.
  *
  * @param {Object} userDetails
  * @returns {Boolean}
