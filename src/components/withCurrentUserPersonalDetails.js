@@ -22,7 +22,6 @@ export default function (WrappedComponent) {
 
         /** Session of the current user */
         session: PropTypes.shape({
-            email: PropTypes.string,
             accountID: PropTypes.number,
         }),
     };
@@ -30,15 +29,13 @@ export default function (WrappedComponent) {
         forwardedRef: undefined,
         personalDetails: {},
         session: {
-            email: '',
             accountID: 0,
         },
     };
 
     const WithCurrentUserPersonalDetails = (props) => {
-        const currentUserEmail = props.session.email;
         const accountID = props.session.accountID;
-        const currentUserPersonalDetails = useMemo(() => ({...props.personalDetails[accountID], accountID}), [props.personalDetails, currentUserEmail, accountID]);
+        const currentUserPersonalDetails = useMemo(() => ({...props.personalDetails[accountID], accountID}), [props.personalDetails, accountID]);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
