@@ -163,11 +163,11 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             };
             const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
+                ...LHNTestUtils.getFakeReport([3, 4]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
             const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']),
+                ...LHNTestUtils.getFakeReport([5, 6]),
                 chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
             };
 
@@ -255,7 +255,7 @@ describe('Sidebar', () => {
 
         describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
             // Given a report that is the active report and doesn't change
-            const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
+            const report1 = LHNTestUtils.getFakeReport([3, 4]);
 
             // Given a free policy that doesn't change
             const policy = {
@@ -348,9 +348,9 @@ describe('Sidebar', () => {
         it('hides unread chats', () => {
             // Given the sidebar is rendered in #focus mode (hides read chats)
             // with report 1 and 2 having unread actions
-            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 0, true);
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 0, true);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
+            const report1 = LHNTestUtils.getFakeReport([1, 2], 0, true);
+            const report2 = LHNTestUtils.getFakeReport([3, 4], 0, true);
+            const report3 = LHNTestUtils.getFakeReport([5, 6]);
             LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
             return (
@@ -414,11 +414,11 @@ describe('Sidebar', () => {
         it('always shows pinned and draft chats', () => {
             // Given a draft report and a pinned report
             const draftReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 hasDraft: true,
             };
             const pinnedReport = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
+                ...LHNTestUtils.getFakeReport([3, 4]),
                 isPinned: true,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks(draftReport.reportID);
@@ -449,18 +449,18 @@ describe('Sidebar', () => {
         it('archived rooms are displayed only when they have unread messages', () => {
             // Given an archived chat report, an archived default policy room, and an archived user created policy room
             const archivedReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const archivedPolicyRoomReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const archivedUserCreatedPolicyRoomReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -520,11 +520,11 @@ describe('Sidebar', () => {
         it('policy rooms are displayed only when they have unread messages', () => {
             // Given a default policy room and user created policy room
             const policyRoomReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
             const userCreatedPolicyRoomReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
@@ -576,7 +576,7 @@ describe('Sidebar', () => {
 
     describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
         // Given a report that is the active report and doesn't change
-        const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
+        const report1 = LHNTestUtils.getFakeReport([3, 4]);
 
         // Given a free policy that doesn't change
         const policy = {
