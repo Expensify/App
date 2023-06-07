@@ -99,10 +99,18 @@ class WorkspaceMembersPage extends React.Component {
             this.validate();
         }
 
-        if (prevProps.policyMemberList !== this.props.policyMemberList) {
-            this.setState((prevState) => ({
-                selectedEmployees: _.intersection(prevState.selectedEmployees, _.keys(this.props.policyMemberList)),
-            }));
+        if (prevProps.policyMembers !== this.props.policyMembers) {
+            this.setState((prevState) => {
+                const policyMemberEmails = _.chain(this.props.policyMembers)
+                    .keys()
+                    .map((accountID) => this.personalDetails[accountID])
+                    .compact()
+                    .map((personalDetail) => personalDetail.login)
+                    .value();
+                return {
+                    selectedEmployees: _.intersection(prevState.selectedEmployees, policyMemberEmails),
+                }
+            });
         }
 
         const isReconnecting = prevProps.network.isOffline && !this.props.network.isOffline;
@@ -128,6 +136,7 @@ class WorkspaceMembersPage extends React.Component {
             .keys()
             .map((accountID) => this.props.personalDetails[accountID])
             .compact()
+            .map((personalDetail) => personalDetail.login)
             .value();
 
         Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
