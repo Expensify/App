@@ -272,8 +272,9 @@ class WorkspaceInvitePage extends React.Component {
                                 Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
                             }}
                         />
-                        <View style={[styles.flex1]}>
+                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
                             <OptionsSelector
+                                contentContainerStyles={[styles.flex1, styles.flexBasis0]}
                                 autoFocus={false}
                                 canSelectMultipleOptions
                                 sections={sections}
