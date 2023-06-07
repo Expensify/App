@@ -2,5 +2,4 @@
 self-hosted-runner:
   labels:
     - ubuntu-20.04-64core
-    - ubuntu-latest-16-cores
     - macos-12-xl
