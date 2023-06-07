@@ -80,38 +80,36 @@ function BaseValidateCodeForm(props) {
     const input2FA = ref2FA.current;
 
     useEffect(() => {
-        if (!canFocusInputOnScreenFocus() || !inputValidateCode || !props.isVisible) {
+        if (!inputValidateCode || wasVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
             return;
         }
         inputValidateCode.focus();
-    }, []);
-
-    useEffect(() => {
-        if (inputValidateCode && !wasVisible && props.isVisible) {
-            inputValidateCode.focus();
-        }
     }, [inputValidateCode, props.isVisible, wasVisible]);
 
     useEffect(() => {
-        if (inputValidateCode) {
-            // Clear the code input if magic code valid or a new magic code was requested
-            if ((wasVisible && !props.isVisible && validateCode) || (props.isVisible && linkSent && props.account.message && validateCode)) {   
-                setValidateCode('');
-                inputValidateCode.clear();
-            }
+        if (!inputValidateCode) {
+            return;
+        }
+
+        // Clear the code input if magic code valid or a new magic code was requested
+        if ((wasVisible && !props.isVisible && validateCode) || (props.isVisible && linkSent && props.account.message && validateCode)) {   
+            setValidateCode('');
+            inputValidateCode.clear();
         }
     }, [inputValidateCode, props.isVisible, props.account.message, wasVisible, linkSent, validateCode]);
 
     useEffect(() => {
-        if (!hadValidateCode && props.credentials.validateCode) {
-            setValidateCode(props.credentials.validateCode);
+        if (hadValidateCode || !props.credentials.validateCode) {
+            return;
         }
+        setValidateCode(props.credentials.validateCode);
     }, [props.credentials.validateCode, hadValidateCode]);
 
     useEffect(() => {
-        if (input2FA && !required2FA && props.account.requiresTwoFactorAuth) {
-            input2FA.focus();
+        if (!input2FA || required2FA || !props.account.requiresTwoFactorAuth) {
+            return;
         }
+        input2FA.focus();
     }, [input2FA, props.account.requiresTwoFactorAuth, required2FA]);
 
     /**
