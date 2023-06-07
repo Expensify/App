@@ -18,7 +18,6 @@ import DateUtils from './DateUtils';
 import linkingConfig from './Navigation/linkingConfig';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 
@@ -27,8 +26,8 @@ let sessionAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        sessionEmail = val ? val.email : null
-        sessionAccountID = val ? val.accountID : null
+        sessionEmail = val ? val.email : null;
+        sessionAccountID = val ? val.accountID : null;
     },
 });
 

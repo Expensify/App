@@ -97,8 +97,8 @@ function getDefaultAvatar(accountID = -1) {
 /**
  * Helper method to return default avatar URL associated with login
  *
- * @param {String} [login]
- * @param {Boolean} [isNewDot]
+ * @param {String} accountID
+ * @param {Boolean} isNewDot
  * @returns {String}
  */
 function getDefaultAvatarURL(accountID = '', isNewDot = false) {
@@ -201,6 +201,15 @@ function getSmallSizeAvatar(avatarURL, accountID) {
     return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
+/**
+ * Generate a random accountID.
+ *
+ * @returns {String}
+ */
+function generateAccountID() {
+    return Math.floor(Math.random() * 99999999).toString();
+}
+
 export {
     hashText,
     hasLoginListError,
@@ -213,4 +222,5 @@ export {
     getAvatarUrl,
     getSmallSizeAvatar,
     getFullSizeAvatar,
+    generateAccountID,
 };

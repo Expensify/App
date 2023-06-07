@@ -182,6 +182,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 11,
             participants: ['concierge@expensify.com'],
+            participantAccountIDs: [999],
             reportName: 'Concierge',
         },
     };
@@ -194,6 +195,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 12,
             participants: ['chronos@expensify.com'],
+            participantAccountIDs: [1000],
             reportName: 'Chronos',
         },
     };
@@ -206,6 +208,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 13,
             participants: ['receipts@expensify.com'],
+            participantAccountIDs: [1001],
             reportName: 'Receipts',
         },
     };
@@ -218,6 +221,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 14,
             participants: ['reedrichards@expensify.com', 'brucebanner@expensify.com', 'peterparker@expensify.com'],
+            participantAccountIDs: [1, 10, 3],
             reportName: '',
             oldPolicyName: 'Avengers Room',
             isArchivedRoom: false,

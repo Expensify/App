@@ -301,12 +301,12 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
             const personalDetail = personalDetailList[i];
 
             if (personalDetail.login) {
-            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-            // More info https://github.com/Expensify/App/issues/8007
-            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+                // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+                // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+                // More info https://github.com/Expensify/App/issues/8007
+                searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+            }
         }
-    }
     }
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
@@ -401,7 +401,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
     };
-
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
@@ -727,25 +726,17 @@ function getOptions(
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        const searchPersonalDetails = _.find(personalDetails, (personalDetail) => personalDetail.login === searchValue);
-        if (!searchPersonalDetails) {
-            return {
-                recentReports: [],
-                personalDetails: [],
-                userToInvite: null,
-                currentUserOption: null,
-            };
-        }
-
-        userToInvite = createOption([searchPersonalDetails.accountID], personalDetails, null, reportActions, {
+        const fakeAccountID = UserUtils.generateAccountID();
+        userToInvite = createOption([fakeAccountID], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
+        userToInvite.login = searchValue;
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: UserUtils.getAvatar('', searchPersonalDetails.accountID),
-                name: searchPersonalDetails.login,
+                source: UserUtils.getAvatar('', fakeAccountID),
+                login: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ];
