@@ -319,15 +319,15 @@ class WorkspaceMembersPage extends React.Component {
      * @returns {React.Component}
      */
     renderItem({item}) {
+        const hasError = !_.isEmpty(item.errors) || this.state.errors[item.login];
         return (
             <OfflineWithFeedback
-                errorRowStyles={[styles.peopleRowBorderBottom]}
                 onClose={() => this.dismissError(item)}
                 pendingAction={item.pendingAction}
                 errors={item.errors}
             >
                 <TouchableOpacity
-                    style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom]}
+                    style={[styles.peopleRow, styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
                     onPress={() => this.toggleUser(item.login, item.pendingAction)}
                     activeOpacity={0.7}
                 >
