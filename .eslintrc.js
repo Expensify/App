@@ -1,6 +1,6 @@
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier'],
-    plugins: ['react-hooks'],
+    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier', 'plugin:react-native-a11y/basic'],
+    plugins: ['react-hooks', 'react-native-a11y'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', '.git/**'],
     env: {
@@ -28,11 +28,12 @@ module.exports = {
                     },
                     {
                         name: 'react-native',
-                        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
+                        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable'],
                         message: 'Please use PressableWithFeedback and/or PressableWithoutFeedback from src/components/Pressable instead',
                     },
                 ],
             },
         ],
+        'react-native-a11y/has-accessibility-hint': ['off'],
     },
 };
