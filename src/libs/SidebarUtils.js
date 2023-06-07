@@ -211,9 +211,11 @@ function getOptionData(reportID) {
         icons: null,
         tooltipText: null,
         ownerEmail: null,
+        ownerAccountID: null,
         subtitle: null,
         participantsList: null,
         login: null,
+        accountID: null,
         reportID: null,
         phoneNumber: null,
         payPalMeAddress: null,
@@ -248,6 +250,7 @@ function getOptionData(reportID) {
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerEmail = report.ownerEmail;
+    result.ownerAccountID = report.ownerAccountID;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
@@ -285,6 +288,7 @@ function getOptionData(reportID) {
             ? {
                   displayName: lastActorDisplayName,
                   login: report.lastActorEmail,
+                  accountID: report.lastActorAccountID,
               }
             : null;
     }
@@ -331,6 +335,7 @@ function getOptionData(reportID) {
     result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, allReports);
 
     if (!hasMultipleParticipants) {
+        result.accountID = personalDetail.accountID;
         result.login = personalDetail.login;
         result.phoneNumber = personalDetail.phoneNumber;
         result.payPalMeAddress = personalDetail.payPalMeAddress;
@@ -342,7 +347,7 @@ function getOptionData(reportID) {
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login), true);
+    result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), true);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     return result;

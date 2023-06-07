@@ -189,9 +189,9 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails) {
  * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
 function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
-    const personalDetailsForLogins = {};
+    const personalDetailsForAccountIDs = {};
     if (!personalDetails) {
-        return personalDetailsForLogins;
+        return personalDetailsForAccountIDs;
     }
     _.chain(accountIDs)
         // NOTE: this comment is possibly legacy, we need to verify if it's still true
@@ -211,9 +211,9 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
                 personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
             }
 
-            personalDetailsForLogins[accountID] = personalDetail;
+            personalDetailsForAccountIDs[accountID] = personalDetail;
         });
-    return personalDetailsForLogins;
+    return personalDetailsForAccountIDs;
 }
 
 /**
