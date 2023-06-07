@@ -759,9 +759,11 @@ export default {
         succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
     },
     emailDeliveryFailurePage: {
-        ourEmailProvider: ({login}) => `Nuestro proveedor de correo electrónico ha suspendido temporalmente los correos electrónicos a ${login} debido a problemas de entrega. Para desbloquear el inicio de sesión, sigue estos pasos:`,
+        ourEmailProvider: ({login}) =>
+            `Nuestro proveedor de correo electrónico ha suspendido temporalmente los correos electrónicos a ${login} debido a problemas de entrega. Para desbloquear el inicio de sesión, sigue estos pasos:`,
         confirmThat: ({login}) => `Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos. `,
-        emailAliases: 'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a su propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
+        emailAliases:
+            'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a su propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
         ensureYourEmailClient: 'Asegúrese de que su cliente de correo electrónico permita correos electrónicos de expensify.com. ',
         youCanFindDirections: 'Puedes encontrar instrucciones sobre cómo completar este paso ',
         helpConfigure: ', pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.',

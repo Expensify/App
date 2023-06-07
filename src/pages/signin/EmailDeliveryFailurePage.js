@@ -11,6 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import CONST from '../../CONST';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -63,9 +64,16 @@ const EmailDeliveryFailurePage = (props) => {
                 </View>
             </View>
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <TouchableOpacity onPress={() => redirectToSignIn()}>
+                <PressableWithFeedback
+                    onPress={() => redirectToSignIn()}
+                    accessibilityRole="button"
+                    accessibilityLabel={props.translate('common.back')}
+                    // disable hover dim for switch
+                    hoverDimmingValue={1}
+                    pressDimmingValue={0.2}
+                >
                     <Text style={[styles.link]}>{props.translate('common.back')}</Text>
-                </TouchableOpacity>
+                </PressableWithFeedback>
             </View>
         </>
     );
