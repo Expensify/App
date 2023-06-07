@@ -28,8 +28,7 @@ const defaultProps = {
 
 const getUserTypingStatuses = (userTypingStatuses) => _.filter(_.keys(userTypingStatuses), (login) => userTypingStatuses[login]);
 
-function ReportTypingIndicator(props) {   
- 
+function ReportTypingIndicator(props) {
     const [usersTyping, setUsersTyping] = useState(props.userTypingStatuses ? getUserTypingStatuses(props.userTypingStatuses) : []);
 
     useEffect(() => {
