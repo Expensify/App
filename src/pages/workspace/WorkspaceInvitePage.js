@@ -24,6 +24,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -86,16 +87,14 @@ class WorkspaceInvitePage extends React.Component {
 
     componentDidMount() {
         this.clearErrors();
-
-        const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, PolicyUtils.getClientPolicyMemberEmails(this.props.policyMembers, this.props.personalDetails));
     }
 
     componentDidUpdate(prevProps) {
         if (!_.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
             this.updateOptionsWithSearchTerm(this.props.searchTerm);
         }
-        if (!_.isEqual(prevProps.policyMemberList, this.props.policyMemberList)) {
+        if (!_.isEqual(prevProps.policyMembers, this.props.policyMembers)) {
             this.updateOptionsWithSearchTerm(this.state.searchTerm);
         }
 
@@ -104,20 +103,16 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        const clientPolicyMembers = _.keys(this.props.policyMemberList);
-        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, clientPolicyMembers);
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, PolicyUtils.getClientPolicyMemberEmails(this.props.policyMembers, this.props.personalDetails));
     }
 
     getExcludedUsers() {
-        const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
-        const usersToExclude = _.filter(
-            _.keys(policyMemberList),
-            (policyMember) =>
-                this.props.network.isOffline ||
-                policyMemberList[policyMember].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                !_.isEmpty(policyMemberList[policyMember].errors),
-        );
-        return [...CONST.EXPENSIFY_EMAILS, ...usersToExclude];
+        const clientPolicyMemberEmails = PolicyUtils.getClientPolicyMemberEmails(this.props.policyMembers, this.props.personalDetails);
+        let usersToExclude = [...CONST.EXPENSIFY_EMAILS, ...clientPolicyMemberEmails];
+        if (!this.props.network.isOffline) {
+            usersToExclude = _.filter(this.props.policyMembers, (policyMember) => policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policyMember.errors));
+        }
+        return usersToExclude;
     }
 
     /**
