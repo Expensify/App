@@ -74,6 +74,12 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
+// native ids
+const saveButtonID = 'saveButton';
+const cancelButtonID = 'cancelButton';
+const emojiButtonID = 'emojiButton';
+const messageEditInput = 'messageEditInput';
+
 function ReportActionItemMessageEdit(props) {
     const {action, draftMessage, forwardedRef, index, isKeyboardShown, isSmallScreenWidth, preferredSkinTone, reportID, shouldDisableEmojiPicker, translate} = props;
 
@@ -91,12 +97,6 @@ function ReportActionItemMessageEdit(props) {
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
 
     const textInputRef = useRef(null);
-
-    // native ids
-    const saveButtonID = 'saveButton';
-    const cancelButtonID = 'cancelButton';
-    const emojiButtonID = 'emojiButton';
-    const messageEditInput = 'messageEditInput';
 
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
@@ -125,25 +125,6 @@ function ReportActionItemMessageEdit(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- for willUnmount lifecycle
         [],
     );
-
-    /**
-     * Update Selection on change cursor position.
-     *
-     * @param {Event} e
-     */
-    const onSelectionChange = useCallback((e) => {
-        setSelection(e.nativeEvent.selection);
-    }, []);
-
-    /**
-     * Updates the composer when the comment length is exceeded
-     * Shows red borders and prevents the comment from being sent
-     *
-     * @param {Boolean} hasExceeded
-     */
-    const setExceededMaxCommentLength = useCallback((hasExceeded) => {
-        setHasExceededMaxCommentLength(hasExceeded);
-    }, []);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
@@ -338,7 +319,7 @@ function ReportActionItemMessageEdit(props) {
                                 openReportActionComposeViewWhenClosingMessageEdit();
                             }}
                             selection={selection}
-                            onSelectionChange={onSelectionChange}
+                            onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>
@@ -375,7 +356,7 @@ function ReportActionItemMessageEdit(props) {
             </View>
             <ExceededCommentLength
                 comment={draft}
-                onExceededMaxCommentLength={setExceededMaxCommentLength}
+                onExceededMaxCommentLength={(hasExceeded) => setHasExceededMaxCommentLength(hasExceeded)}
             />
         </>
     );
