@@ -27,7 +27,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const PronounsPage = (props) => {
+function PronounsPage(props) {
     const {currentUserPersonalDetails, translate} = props;
 
     const [initiallyFocusedOption, setInitiallyFocusedOption] = useState({});
