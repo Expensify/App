@@ -30,7 +30,7 @@ function StatusPage() {
                     title="Today"
                     description="Clear after"
                     shouldShowRightIcon
-                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
                 />
             </View>
         </ScreenWrapper>

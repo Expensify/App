@@ -364,6 +364,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsClearAfter = require('../../../pages/settings/Profile/CustomStatus/ClearAfterPage').default;
+            return SettingsClearAfter;
+        },
+        name: 'Settings_Status_Clear_After',
+    },
+    {
+        getComponent: () => {
             const SettingsTimezoneInitialPage = require('../../../pages/settings/Profile/TimezoneInitialPage').default;
             return SettingsTimezoneInitialPage;
         },
