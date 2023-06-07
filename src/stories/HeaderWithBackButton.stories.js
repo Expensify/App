@@ -1,5 +1,5 @@
 import React from 'react';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -7,12 +7,12 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/HeaderWithCloseButton',
-    component: HeaderWithCloseButton,
+    title: 'Components/HeaderWithBackButton',
+    component: HeaderWithBackButton,
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = (args) => <HeaderWithCloseButton {...args} />;
+const Template = (args) => <HeaderWithBackButton {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

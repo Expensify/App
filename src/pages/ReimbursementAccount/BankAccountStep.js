@@ -5,14 +5,13 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import MenuItem from '../../components/MenuItem';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
-import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import withLocalize from '../../components/withLocalize';
 import Text from '../../components/Text';
@@ -93,15 +92,13 @@ const BankAccountStep = (props) => {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <View style={[styles.flex1, styles.justifyContentBetween]}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={props.translate('workspace.common.connectBankAccount')}
                     subtitle={props.policyName}
                     stepCounter={subStep ? {step: 1, total: 5} : undefined}
-                    onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
                 />
                 <ScrollView style={[styles.flex1]}>
                     <Section
