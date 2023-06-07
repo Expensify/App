@@ -179,6 +179,7 @@ const styles = {
         position: 'absolute',
         left: 0,
         right: 0,
+        paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
     },
 
     autoCompleteSuggestionContainer: {
@@ -197,10 +198,25 @@ const styles = {
         fontSize: variables.fontSizeMedium,
     },
 
+    mentionSuggestionsAvatarContainer: {
+        width: 24,
+        height: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     mentionSuggestionsText: {
         fontSize: variables.fontSizeMedium,
-        flex: 1,
         ...spacing.ml2,
+    },
+
+    mentionSuggestionsDisplayName: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+    },
+
+    mentionSuggestionsHandle: {
+        color: themeColors.textSupporting,
     },
 
     unitCol: {
@@ -257,6 +273,14 @@ const styles = {
 
     textUnderline: {
         textDecorationLine: 'underline',
+    },
+
+    textUnderlinePositionUnder: {
+        textUnderlinePosition: 'under',
+    },
+
+    textDecorationSkipInkNone: {
+        textDecorationSkipInk: 'none',
     },
 
     label: {
@@ -326,6 +350,7 @@ const styles = {
     textHero: {
         fontSize: variables.fontSizeHero,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        lineHeight: variables.lineHeightHero,
     },
 
     textStrong: {
@@ -343,6 +368,7 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     textHeadlineH1: {
@@ -350,6 +376,7 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeh1,
+        lineHeight: variables.lineHeightSizeh1,
     },
 
     textDecorationNoLine: {
@@ -730,6 +757,7 @@ const styles = {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     headerText: {
@@ -1020,6 +1048,12 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    furtherDetailsText: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSmall,
+        color: themeColors.textSupporting,
+    },
+
     lh16: {
         lineHeight: 16,
     },
@@ -1214,8 +1248,20 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    leftPanelContainer: {
+        maxWidth: variables.leftPaneMaxWidth,
+    },
+
+    rightPanelContainer: {
+        width: variables.sideBarWidth,
+    },
+
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
+    },
+
+    onlyEmojisTextLineHeight: {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
@@ -1268,6 +1314,11 @@ const styles = {
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
+    },
+
+    popoverInnerContainer: {
+        paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
+        maxHeight: '95%',
     },
 
     menuItemTextContainer: {
@@ -1376,11 +1427,6 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
-
-        // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
-        // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
-        // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        ...userSelect.userSelectText,
     },
 
     appContentHeader: {
@@ -1603,15 +1649,6 @@ const styles = {
         backgroundColor: themeColors.componentBG,
     },
 
-    emojiPickerList: {
-        height: 288,
-        width: '100%',
-        ...spacing.ph4,
-    },
-    emojiPickerListLandscape: {
-        height: 240,
-    },
-
     emojiHeaderContainer: {
         backgroundColor: themeColors.componentBG,
         display: 'flex',
@@ -1718,6 +1755,15 @@ const styles = {
         marginTop: 5,
         marginRight: 4,
     },
+
+    navigationModalCard: (isSmallScreenWidth) => ({
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        backgroundColor: 'transparent',
+        height: '100%',
+    }),
 
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
@@ -2041,6 +2087,7 @@ const styles = {
         ...headlineFont,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
         marginTop: 20,
         marginBottom: 8,
         textAlign: 'center',
@@ -2084,8 +2131,8 @@ const styles = {
         ...flex.dFlex,
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
-        ...spacing.mt4,
-        height: 170,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
 
     reportDetailsRoomInfo: {
@@ -2097,12 +2144,6 @@ const styles = {
 
     reportSettingsVisibilityText: {
         textTransform: 'capitalize',
-    },
-
-    reportTransactionWrapper: {
-        paddingVertical: 8,
-        display: 'flex',
-        flexDirection: 'row',
     },
 
     settingsPageBackground: {
@@ -2133,14 +2174,26 @@ const styles = {
         padding: 0,
     },
 
-    twoFactorAuthCodesBox: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: themeColors.highlightBG,
-        paddingVertical: 28,
-        paddingHorizontal: 60,
-        borderRadius: 16,
-        marginTop: 32,
+    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
+        let paddingHorizontal = styles.ph15;
+
+        if (isSmallScreenWidth) {
+            paddingHorizontal = styles.ph10;
+        }
+
+        if (isExtraSmallScreenWidth) {
+            paddingHorizontal = styles.ph4;
+        }
+
+        return {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: themeColors.highlightBG,
+            paddingVertical: 28,
+            borderRadius: 16,
+            marginTop: 32,
+            ...paddingHorizontal,
+        };
     },
 
     twoFactorLoadingContainer: {
@@ -2161,7 +2214,6 @@ const styles = {
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
         width: 100,
-        height: 18,
         textAlign: 'center',
     },
 
@@ -2637,6 +2689,15 @@ const styles = {
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
+    },
+
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
+    cardStyleNavigator: {
+        overflow: 'hidden',
+        height: '100%',
     },
 
     fullscreenCard: {
@@ -3288,7 +3349,7 @@ const styles = {
     newKansasLarge: {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
-        lineHeight: 27,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     moneyRequestHeaderCheckmark: {

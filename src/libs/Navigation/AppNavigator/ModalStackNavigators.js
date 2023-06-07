@@ -617,6 +617,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const YearPickerPage = require('../../../pages/YearPickerPage').default;
+            return YearPickerPage;
+        },
+        name: 'YearPicker_Root',
+    },
+    {
+        getComponent: () => {
             const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
             return SettingsTwoFactorAuthIsEnabled;
         },
@@ -702,6 +709,16 @@ const YearPickerStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const FlagCommentStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const FlagCommentPage = require('../../../pages/FlagCommentPage').default;
+            return FlagCommentPage;
+        },
+        name: 'FlagComment_Root',
+    },
+]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -723,4 +740,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
     YearPickerStackNavigator,
+    FlagCommentStackNavigator,
 };

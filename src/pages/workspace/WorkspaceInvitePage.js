@@ -6,7 +6,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -182,12 +182,9 @@ class WorkspaceInvitePage extends React.Component {
         Link.openExternalLink(CONST.PRIVACY_URL);
     }
 
-    clearErrors(closeModal = false) {
+    clearErrors() {
         Policy.setWorkspaceErrors(this.props.route.params.policyID, {});
         Policy.hideWorkspaceAlertMessage(this.props.route.params.policyID);
-        if (closeModal) {
-            Navigation.dismissModal();
-        }
     }
 
     /**
@@ -259,20 +256,21 @@ class WorkspaceInvitePage extends React.Component {
             <ScreenWrapper shouldEnableMaxHeight>
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <FormSubmit
                         style={[styles.flex1]}
                         onSubmit={this.inviteUser}
                     >
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('workspace.invite.invitePeople')}
                             subtitle={policyName}
-                            onCloseButtonPress={() => this.clearErrors(true)}
                             shouldShowGetAssistanceButton
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.goBack()}
+                            onBackButtonPress={() => {
+                                this.clearErrors();
+                                Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+                            }}
                         />
                         <View style={[styles.flex1]}>
                             <OptionsSelector
