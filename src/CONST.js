@@ -2446,6 +2446,13 @@ const CONST = {
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
+    ACCESSIBILITY_ROLE: {
+        BUTTON: 'button',
+        LINK: 'link',
+        MENUITEM: 'menuitem',
+        TEXT: 'text',
+        RADIO: 'radio',
+    },
 };
 
 export default CONST;

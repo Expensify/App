@@ -144,7 +144,7 @@ const OptionRowLHN = (props) => {
                             props.isFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
                     >
                         <View
