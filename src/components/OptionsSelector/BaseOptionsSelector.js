@@ -286,6 +286,7 @@ class BaseOptionsSelector extends Component {
             !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
+        const safeAreaPaddingBottom = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
         const textInput = (
             <TextInput
                 ref={(el) => (this.textInput = el)}
@@ -329,7 +330,7 @@ class BaseOptionsSelector extends Component {
                         this.props.onLayout();
                     }
                 }}
-                contentContainerStyles={[!shouldShowFooter && this.props.safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                contentContainerStyles={[safeAreaPaddingBottom, ...this.props.contentContainerStyles]}
                 isLoading={!this.props.shouldShowOptions}
             />
         );
