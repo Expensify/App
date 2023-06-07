@@ -64,8 +64,4 @@ ReportActionItemParentAction.defaultProps = defaultProps;
 ReportActionItemParentAction.propTypes = propTypes;
 ReportActionItemParentAction.displayName = 'ReportActionItemParentAction';
 
-export default compose(
-    withParentReportAction,
-    withWindowDimensions,
-    withLocalize,
-)(ReportActionItemParentAction);
+export default compose(withParentReportAction, withWindowDimensions, withLocalize)(ReportActionItemParentAction);
