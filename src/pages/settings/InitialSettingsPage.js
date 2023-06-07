@@ -99,7 +99,7 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
-    /** List of policy members */
+    /** Members keyed by accountID for all policies */
     policyMembers: PropTypes.objectOf(policyMemberPropType),
 
     ...withLocalizePropTypes,
@@ -394,7 +394,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY,
         },
         policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
