@@ -80,15 +80,15 @@ const cancelButtonID = 'cancelButton';
 const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
-function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index, isKeyboardShown, isSmallScreenWidth, preferredSkinTone, reportID, shouldDisableEmojiPicker, translate}) {
+function ReportActionItemMessageEdit(props) {
     const [draft, setDraft] = useState(() => {
-        if (draftMessage === action.message[0].html) {
+        if (props.draftMessage === props.action.message[0].html) {
             // We only convert the report action message to markdown if the draft message is unchanged.
             const parser = new ExpensiMark();
-            return parser.htmlToMarkdown(draftMessage).trim();
+            return parser.htmlToMarkdown(props.draftMessage).trim();
         }
         // We need to decode saved draft message because it's escaped before saving.
-        return Str.htmlDecode(draftMessage);
+        return Str.htmlDecode(props.draftMessage);
     });
     const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
@@ -132,9 +132,9 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
     const debouncedSaveDraft = useMemo(
         () =>
             _.debounce((newDraft) => {
-                Report.saveReportActionDraft(reportID, action.reportActionID, newDraft);
+                Report.saveReportActionDraft(props.reportID, props.action.reportActionID, newDraft);
             }, 1000),
-        [reportID, action.reportActionID],
+        [props.reportID, props.action.reportActionID],
     );
 
     /**
@@ -144,7 +144,7 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
      */
     const updateDraft = useCallback(
         (newDraftValue) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftValue, isSmallScreenWidth, preferredSkinTone);
+            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftValue, props.isSmallScreenWidth, props.preferredSkinTone);
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
@@ -166,10 +166,10 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
                 // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
                 debouncedSaveDraft(_.escape(newDraft));
             } else {
-                debouncedSaveDraft(action.message[0].html);
+                debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [action.message, draft, debouncedSaveDraft, isSmallScreenWidth, preferredSkinTone],
+        [props.action.message, draft, debouncedSaveDraft, props.isSmallScreenWidth, props.preferredSkinTone],
     );
 
     /**
@@ -177,18 +177,18 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
      */
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(reportID, action.reportActionID, '');
+        Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
         ComposerActions.setShouldShowComposeInput(true);
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
-        if (index === 0) {
+        if (props.index === 0) {
             const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-                ReportScrollManager.scrollToIndex({animated: true, index}, false);
+                ReportScrollManager.scrollToIndex({animated: true, index: props.index}, false);
                 keyboardDidHideListener.remove();
             });
         }
-    }, [action.reportActionID, debouncedSaveDraft, index, reportID]);
+    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -208,12 +208,12 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
-            ReportActionContextMenu.showDeleteModal(reportID, action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
+            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft);
+        Report.editReportComment(props.reportID, props.action, trimmedNewDraft);
         deleteDraft();
-    }, [action, debouncedSaveDraft, deleteDraft, draft, reportID]);
+    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID]);
 
     /**
      * @param {String} emoji
@@ -236,7 +236,7 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
      */
     const triggerSaveOrCancel = useCallback(
         (e) => {
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
+            if (!e || ComposerUtils.canSkipTriggerHotkeys(props.isSmallScreenWidth, props.isKeyboardShown)) {
                 return;
             }
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
@@ -247,14 +247,14 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
                 deleteDraft();
             }
         },
-        [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
+        [deleteDraft, props.isKeyboardShown, props.isSmallScreenWidth, publishDraft],
     );
 
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
                 <View style={[styles.justifyContentEnd]}>
-                    <Tooltip text={translate('common.cancel')}>
+                    <Tooltip text={props.translate('common.cancel')}>
                         <Pressable
                             style={({hovered, pressed}) => [styles.chatItemSubmitButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                             nativeID={cancelButtonID}
@@ -290,17 +290,17 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
                             ref={(el) => {
                                 textInputRef.current = el;
                                 // eslint-disable-next-line no-param-reassign
-                                forwardedRef.current = el;
+                                props.forwardedRef.current = el;
                             }}
                             nativeID={messageEditInput}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
-                            maxLines={isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
+                            maxLines={props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
-                                ReportScrollManager.scrollToIndex({animated: true, index}, true);
+                                ReportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
                                 ComposerActions.setShouldShowComposeInput(false);
                             }}
                             onBlur={(event) => {
@@ -323,7 +323,7 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
-                            isDisabled={shouldDisableEmojiPicker}
+                            isDisabled={props.shouldDisableEmojiPicker}
                             onModalHide={() => InteractionManager.runAfterInteractions(() => textInputRef.current.focus())}
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
@@ -331,7 +331,7 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
                     </View>
 
                     <View style={styles.alignSelfEnd}>
-                        <Tooltip text={translate('common.saveChanges')}>
+                        <Tooltip text={props.translate('common.saveChanges')}>
                             <TouchableOpacity
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
@@ -363,6 +363,7 @@ function ReportActionItemMessageEdit({action, forwardedRef, draftMessage, index,
 
 ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
+ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 export default compose(
     withLocalize,
     withWindowDimensions,
