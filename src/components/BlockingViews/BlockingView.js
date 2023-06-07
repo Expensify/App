@@ -44,7 +44,7 @@ const defaultProps = {
     link: 'notFound.goBackHome',
     iconWidth: variables.iconSizeSuperLarge,
     iconHeight: variables.iconSizeSuperLarge,
-    onLinkPress: () => Navigation.dismissModal(true),
+    onLinkPress: () => Navigation.dismissModal(),
 };
 
 const BlockingView = (props) => (
