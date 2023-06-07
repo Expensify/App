@@ -9,6 +9,13 @@ module.exports = {
     globals: {
         __DEV__: 'readonly',
     },
+    settings: {
+        'import/resolver': {
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            },
+        },
+    },
     overrides: [
         {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
