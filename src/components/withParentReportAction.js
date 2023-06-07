@@ -18,10 +18,10 @@ export default function (WrappedComponent) {
     const propTypes = {
         forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
-        /** All Report actions for the parent report */
+        /** All report actions for the parent report */
         parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
-        /** Thread (child) report */
+        /** The report currently being looked at */
         report: reportPropTypes,
     };
     const defaultProps = {
