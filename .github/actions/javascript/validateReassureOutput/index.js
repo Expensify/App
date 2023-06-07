@@ -11,14 +11,14 @@ module.exports =
 const core = __nccwpck_require__(186);
 
 const run = () => {
-    const regressionOutput = JSON.parse(core.getInput('REGRESSION_OUTPUT', { required: true }));
-    const countDeviation = core.getInput('COUNT_DEVIATION', { required: true });
-    const durationDeviation = core.getInput('DURATION_DEVIATION_PERCENTAGE', { required: true });
+    const regressionOutput = JSON.parse(core.getInput('REGRESSION_OUTPUT', {required: true}));
+    const countDeviation = core.getInput('COUNT_DEVIATION', {required: true});
+    const durationDeviation = core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true});
 
     if (regressionOutput.countChanged === undefined || regressionOutput.countChanged.length === 0) {
         console.log('No countChanged data available. Exiting...');
         return true;
-    } 
+    }
 
     console.log(`Processing ${regressionOutput.countChanged.length} measurements...`);
 
