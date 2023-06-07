@@ -78,25 +78,6 @@ function BaseTextInput(props) {
         };
     }, [props.autoFocus, props.disableKeyboard, props.shouldDelayFocus]);
 
-    const propIsDisabled = props.disabled;
-    const propOnPress = props.onPress;
-    const onPress = useCallback(
-        (event) => {
-            if (propIsDisabled) {
-                return;
-            }
-
-            if (propOnPress) {
-                propOnPress(event);
-            }
-
-            if (!event.isDefaultPrevented()) {
-                input.current.focus();
-            }
-        },
-        [propIsDisabled, propOnPress],
-    );
-
     const animateLabel = useCallback(
         (translateY, scale) => {
             Animated.parallel([
@@ -133,33 +114,39 @@ function BaseTextInput(props) {
         isLabelActive.current = false;
     }, [animateLabel, props.forceActiveLabel, props.prefixCharacter, inputValue]);
 
-    const propOnFocus = props.onFocus;
-    const onFocus = useCallback(
-        (event) => {
-            if (propOnFocus) {
-                propOnFocus(event);
-            }
-            setIsFocused(true);
-        },
-        [propOnFocus],
-    );
+    const onFocus = (event) => {
+        if (props.onFocus) {
+            props.onFocus(event);
+        }
+        setIsFocused(true);
+    };
 
-    const propOnBlur = props.onBlur;
-    const onBlur = useCallback(
-        (event) => {
-            if (propOnBlur) {
-                propOnBlur(event);
-            }
-            setIsFocused(false);
+    const onBlur = (event) => {
+        if (props.onBlur) {
+            props.onBlur(event);
+        }
+        setIsFocused(false);
 
-            // If the text has been supplied by Chrome autofill, the value state is not synced with the value
-            // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
-            if (!isInputAutoFilled(input.current)) {
-                deactivateLabel();
-            }
-        },
-        [deactivateLabel, propOnBlur],
-    );
+        // If the text has been supplied by Chrome autofill, the value state is not synced with the value
+        // as Chrome doesn't trigger a change event. When there is autofill text, don't deactivate label.
+        if (!isInputAutoFilled(input.current)) {
+            deactivateLabel();
+        }
+    };
+
+    const onPress = (event) => {
+        if (props.disabled) {
+            return;
+        }
+
+        if (props.onPress) {
+            props.onPress(event);
+        }
+
+        if (!event.isDefaultPrevented()) {
+            input.current.focus();
+        }
+    };
 
     const onLayout = useCallback(
         (event) => {
@@ -190,25 +177,21 @@ function BaseTextInput(props) {
         }
     }, [activateLabel, deactivateLabel, inputValue, isFocused]);
 
-    const propOnInputChange = props.onInputChange;
     /**
      * Set Value & activateLabel
      *
      * @param {String} value
      * @memberof BaseTextInput
      */
-    const setValue = useCallback(
-        (value) => {
-            if (propOnInputChange) {
-                propOnInputChange(value);
-            }
+    const setValue = (value) => {
+        if (props.onInputChange) {
+            props.onInputChange(value);
+        }
 
-            // TODO: what is the next line used for?
-            Str.result(props.onChangeText, value);
-            activateLabel();
-        },
-        [activateLabel, propOnInputChange, props.onChangeText],
-    );
+        // TODO: what is the next line used for?
+        Str.result(props.onChangeText, value);
+        activateLabel();
+    };
 
     const togglePasswordVisibility = useCallback(() => {
         setPasswordHidden((prevState) => !prevState.passwordHidden);
