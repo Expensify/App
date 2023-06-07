@@ -10,8 +10,7 @@ import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import Navigation from '../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -28,6 +27,8 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 import * as UserUtils from '../libs/UserUtils';
 
 const matchType = PropTypes.shape({
@@ -89,7 +90,6 @@ const getPhoneNumber = (details) => {
 class DetailsPage extends React.PureComponent {
     render() {
         const login = lodashGet(this.props.route.params, 'login', '');
-        const reportID = lodashGet(this.props.route.params, 'reportID', '');
         let details = lodashGet(this.props.personalDetails, login);
 
         if (!details) {
@@ -102,9 +102,6 @@ class DetailsPage extends React.PureComponent {
 
         const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
 
-        // If we have a reportID param this means that we
-        // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-        const shouldShowBackButton = Boolean(reportID);
         const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
@@ -121,11 +118,9 @@ class DetailsPage extends React.PureComponent {
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('common.details')}
-                        shouldShowBackButton={shouldShowBackButton}
-                        onBackButtonPress={() => Navigation.goBack()}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
                     />
                     <View
                         pointerEvents="box-none"

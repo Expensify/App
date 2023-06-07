@@ -10,9 +10,8 @@ import Button from '../../components/Button';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import MenuItem from '../../components/MenuItem';
-import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Section from '../../components/Section';
@@ -49,14 +48,11 @@ const ContinueBankAccountSetup = (props) => {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.policy)}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={props.translate('workspace.common.connectBankAccount')}
                     subtitle={props.policyName}
-                    onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={Navigation.goBack}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
                 />
                 <ScrollView style={styles.flex1}>
                     <Section
