@@ -1,9 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as Report from '../../../libs/actions/Report';
@@ -19,15 +17,6 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 const propTypes = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: PropTypes.bool,
-
-    /** The id of the report */
-    reportID: PropTypes.string.isRequired,
-
-    /** The id of the parent report */
-    // eslint-disable-next-line react/no-unused-prop-types
-    parentReportID: PropTypes.string.isRequired,
-
-    /** ONYX PROPS */
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -79,9 +68,4 @@ export default compose(
     withParentReportAction,
     withWindowDimensions,
     withLocalize,
-    withOnyx({
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-    }),
 )(ReportActionItemParentAction);

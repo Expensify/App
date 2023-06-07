@@ -26,12 +26,13 @@ export default function (WrappedComponent) {
     };
     const defaultProps = {
         forwardedRef: undefined,
-        report: null,
-        parentReportActions: null,
+        report: {},
+        parentReportActions: {},
     };
 
     const WithParentReportAction = (props) => {
-        const parentReportActionID = props.report ? props.report.parentReportActionID : '';
+
+        const parentReportActionID = (props.report && props.report.parentReportActionID) ? props.report.parentReportActionID : {};
         const parentReportAction = props.parentReportActions[parentReportActionID] || {};
 
         return (

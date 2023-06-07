@@ -121,8 +121,7 @@ const ReportActionsList = (props) => {
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    reportID={report.reportID}
-                    parentReportID={`${report.parentReportID}`}
+                    report={report}
                     shouldDisplayNewMarker={shouldDisplayNewMarker}
                 />
             ) : (

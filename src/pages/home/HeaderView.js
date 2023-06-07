@@ -27,6 +27,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import PinButton from '../../components/PinButton';
+import withParentReportAction, {withParentReportActionPropTypes} from '../../components/withParentReportAction';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -49,6 +50,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+    ...withParentReportActionPropTypes,
 };
 
 const defaultProps = {
@@ -71,7 +73,7 @@ const HeaderView = (props) => {
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = (isTaskReport || !isThread) && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
-    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, props.parentReport);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -207,6 +209,7 @@ HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
 
 export default compose(
+    withParentReportAction,
     withWindowDimensions,
     withLocalize,
     withOnyx({
