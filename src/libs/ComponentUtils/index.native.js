@@ -5,7 +5,7 @@ const ACCESSIBILITY_ROLE_FORM = 'none';
 /**
  * Gets the x,y position of the passed in component for the purpose of anchoring another component to it.
  *
- * @param anchorComponent
+ * @param {Element} anchorComponent
  * @return {Promise<unknown>}
  */
 function calculateAnchorPosition(anchorComponent) {
