@@ -247,6 +247,7 @@ class ReportScreen extends React.Component {
         const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+
         return (
             <ScreenWrapper style={screenWrapperStyle}>
                 <FullPageNotFoundView

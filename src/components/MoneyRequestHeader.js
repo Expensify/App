@@ -108,10 +108,9 @@ const MoneyRequestHeader = (props) => {
                 personalDetails={props.personalDetails}
                 report={props.report}
             />
-        )
+        );
     }
-    
-    
+
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithBackButton
