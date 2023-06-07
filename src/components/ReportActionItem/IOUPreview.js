@@ -127,14 +127,14 @@ const IOUPreview = (props) => {
     if (_.isEmpty(props.iouReport)) {
         return null;
     }
-    const sessionEmail = lodashGet(props.session, 'email', null);
-    const managerEmail = props.iouReport.managerEmail || '';
-    const ownerEmail = props.iouReport.ownerEmail || '';
-    const participantEmails = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participants', []) : [managerEmail, ownerEmail];
-    const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails, props.personalDetails);
+    const sessionAccountID = lodashGet(props.session, 'accountID', null);
+    const managerID = props.iouReport.managerID || '';
+    const ownerAccountID = props.iouReport.ownerAccountID || '';
+    const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
+    const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
 
     // Pay button should only be visible to the manager of the report.
-    const isCurrentUserManager = managerEmail === sessionEmail;
+    const isCurrentUserManager = managerID === sessionAccountID;
 
     const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
 
@@ -227,10 +227,10 @@ const IOUPreview = (props) => {
                             )}
                             {!_.isEmpty(requestComment) && <Text style={[styles.colorMuted]}>{requestComment}</Text>}
                         </View>
-                        {props.isBillSplit && !_.isEmpty(participantEmails) && (
+                        {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
                                 {props.translate('iou.amountEach', {
-                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantEmails.length - 1, requestAmount), requestCurrency),
+                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount), requestCurrency),
                                 })}
                             </Text>
                         )}

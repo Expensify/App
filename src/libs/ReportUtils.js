@@ -89,16 +89,15 @@ function getChatType(report) {
 /**
  * Returns the concatenated title for the PrimaryLogins of a report
  *
- * @param {Array} logins
+ * @param {Array} accountIDs
  * @returns {string}
  */
-function getReportParticipantsTitle(logins) {
+function getReportParticipantsTitle(accountIDs) {
     return (
-        _.chain(logins)
+        _.chain(accountIDs)
 
-            // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+            // Somehow it's possible for the logins coming from report.participantAccountIDs to contain undefined values so we use compact to remove them.
             .compact()
-            .map((login) => Str.removeSMSDomain(login))
             .value()
             .join(', ')
     );
@@ -371,7 +370,7 @@ function hasExpensifyGuidesEmails(emails) {
  * @returns {Boolean}
  */
 function isConciergeChatReport(report) {
-    return lodashGet(report, 'participants', []).length === 1 && report.participants[0] === CONST.EMAIL.CONCIERGE;
+    return lodashGet(report, 'participantAccountIDs', []).length === 1 && report.participantAccountIDs[0] === CONST.ACCOUNT_ID.CONCIERGE;
 }
 
 /**
@@ -401,6 +400,8 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
         // Domain rooms are now the only type of default room that are on the defaultRooms beta.
+        // TODO: migrate to report.participantAccountIDs later - not sure how we'll determine if a list of account IDs
+        // includes an expensify guide account ID :O
         sortedReports = _.filter(
             sortedReports,
             (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])),
@@ -608,7 +609,7 @@ function getRoomWelcomeMessage(report) {
  * @returns {Boolean}
  */
 function chatIncludesConcierge(report) {
-    return report.participants && _.contains(report.participants, CONST.EMAIL.CONCIERGE);
+    return report.participantAccountIDs && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CONCIERGE);
 }
 
 /**
@@ -647,10 +648,10 @@ function hasExpensifyEmails(emails) {
  * @return {Boolean}
  */
 function canShowReportRecipientLocalTime(personalDetails, report, login) {
-    const reportParticipants = _.without(lodashGet(report, 'participants', []), login);
-    const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
-    const hasMultipleParticipants = participantsWithoutExpensifyEmails.length > 1;
-    const reportRecipient = personalDetails[participantsWithoutExpensifyEmails[0]];
+    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), login);
+    const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
+    const hasMultipleParticipants = participantsWithoutExpensifyAccountIDs.length > 1;
+    const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];
     const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return Boolean(
@@ -1831,7 +1832,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, iouR
     if (
         !report ||
         !report.reportID ||
-        (_.isEmpty(report.participants) && !isThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
+        (_.isEmpty(report.participantAccountIDs) && !isThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
     ) {
         return false;
     }
@@ -1886,12 +1887,12 @@ function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participants || isThread(report)) {
+        if (!report || !report.participantAccountIDs || isThread(report)) {
             return false;
         }
 
         // Only return the room if it has all the participants and is not a policy room
-        return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, _.sortBy(report.participants));
+        return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
     });
 }
 
@@ -1905,12 +1906,12 @@ function getChatByParticipantsAndPolicy(newParticipantList, policyID) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participants) {
+        if (!report || !report.participantAccountIDs) {
             return false;
         }
 
         // Only return the room if it has all the participants and is not a policy room
-        return report.policyID === policyID && _.isEqual(newParticipantList, _.sortBy(report.participants));
+        return report.policyID === policyID && _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
     });
 }
 
@@ -1928,7 +1929,7 @@ function getAllPolicyReports(policyID) {
  * @returns {Boolean}
  */
 function chatIncludesChronos(report) {
-    return report.participants && _.contains(report.participants, CONST.EMAIL.CHRONOS);
+    return report.participantAccountIDs && _.contains(report.participantAccountIDs, CONST.ACCOUNT_ID.CHRONOS);
 }
 
 /**

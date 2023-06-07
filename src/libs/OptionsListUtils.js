@@ -165,6 +165,23 @@ function getAvatarsForLogins(logins, personalDetails) {
 }
 
 /**
+ * Returns avatar data for a list of user accountIDs
+ *
+ * @param {*} accountIDs 
+ * @param {*} personalDetails 
+ */
+function getAvatarsForAccountIDs(accountIDs, personalDetails) {
+    return _.map(accountIDs, (accountID) => {
+        const userPersonalDetail = lodashGet(personalDetails, accountID, {login: '', accountID, avatar: ''});
+        return {
+            source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
+            type: CONST.ICON_TYPE_AVATAR,
+            name: userPersonalDetail.login,
+        };
+    });
+}
+
+/**
  * Returns the personal details for an array of accountIDs
  *
  * @param {Array} accountIDs
@@ -437,7 +454,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
         result.hasOutstandingIOU = report.hasOutstandingIOU;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
@@ -963,6 +980,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 export {
     addSMSDomainIfPhoneNumber,
     getAvatarsForLogins,
+    getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,
     getSearchOptions,

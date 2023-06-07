@@ -485,7 +485,7 @@ function getAssignee(details) {
             subtitle: '',
         };
     }
-    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'login', ''));
+    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'accountID', -1));
     return {
         icons: [{source, type: 'avatar', name: details.login}],
         displayName: details.displayName,
