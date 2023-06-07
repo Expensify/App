@@ -160,7 +160,7 @@ const Form = (props) => {
 
     const errorMessage = useMemo(() => {
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
-        return props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
+        return props.formState.errors || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
     }, [props.formState]);
 
     /**
