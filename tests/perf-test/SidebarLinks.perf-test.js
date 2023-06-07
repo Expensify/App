@@ -1,6 +1,5 @@
 import {measurePerformance} from 'reassure';
 import Onyx from 'react-native-onyx';
-import React from 'react';
 import _ from 'underscore';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
