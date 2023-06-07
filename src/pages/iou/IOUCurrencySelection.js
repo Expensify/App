@@ -9,11 +9,12 @@ import CONST from '../../CONST';
 import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import ROUTES from '../../ROUTES';
 import themeColors from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
 
@@ -142,13 +143,15 @@ class IOUCurrencySelection extends Component {
 
     render() {
         const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
+        const iouType = lodashGet(this.props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
+        const reportID = lodashGet(this.props.route, 'params.reportID', '');
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                            onCloseButtonPress={Navigation.goBack}
+                            onBackButtonPress={() => Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID))}
                         />
                         <OptionsSelector
                             sections={this.getSections()}

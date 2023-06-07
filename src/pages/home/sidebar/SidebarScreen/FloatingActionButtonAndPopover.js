@@ -20,7 +20,6 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
-import withDrawerState from '../../../../components/withDrawerState';
 import * as TaskUtils from '../../../../libs/actions/Task';
 import * as Session from '../../../../libs/actions/Session';
 
@@ -103,33 +102,8 @@ class FloatingActionButtonAndPopover extends React.Component {
      * @return {Boolean}
      */
     didScreenBecomeInactive(prevProps) {
-        // When the Drawer gets closed and ReportScreen is shown
-        if (!this.props.isDrawerOpen && prevProps.isDrawerOpen) {
-            return true;
-        }
-
         // When any other page is opened over LHN
         if (!this.props.isFocused && prevProps.isFocused) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if LHN is inactive.
-     * Used to prevent FAB menu showing after opening any other pages.
-     *
-     * @return {Boolean}
-     */
-    isScreenInactive() {
-        // When drawer is closed and Report page is open
-        if (this.props.isSmallScreenWidth && !this.props.isDrawerOpen) {
-            return true;
-        }
-
-        // When any other page is open
-        if (!this.props.isFocused) {
             return true;
         }
 
@@ -140,8 +114,7 @@ class FloatingActionButtonAndPopover extends React.Component {
      * Method called when we click the floating action button
      */
     showCreateMenu() {
-        if (this.isScreenInactive()) {
-            // Prevent showing menu when click FAB icon quickly after opening other pages
+        if (!this.props.isFocused && this.props.isSmallScreenWidth) {
             return;
         }
         this.setState({
@@ -279,7 +252,7 @@ export default compose(
     withLocalize,
     withNavigation,
     withNavigationFocus,
-    withDrawerState,
+    withWindowDimensions,
     withWindowDimensions,
     withOnyx({
         allPolicies: {

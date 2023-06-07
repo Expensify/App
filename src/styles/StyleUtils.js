@@ -53,6 +53,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
+    [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
 };
 
 const emptyAvatarStyles = {
@@ -216,32 +217,6 @@ function getSafeAreaPadding(insets, insetsPercentage = variables.safeInsertPerce
  */
 function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * variables.safeInsertPercentage};
-}
-
-/**
- * Return navigation menu styles.
- *
- * @param {Boolean} isSmallScreenWidth
- * @returns {Object}
- */
-function getNavigationDrawerStyle(isSmallScreenWidth) {
-    return isSmallScreenWidth
-        ? {
-              width: '100%',
-              height: '100%',
-              borderColor: themeColors.border,
-              backgroundColor: themeColors.appBG,
-          }
-        : {
-              height: '100%',
-              width: variables.sideBarWidth,
-              borderRightColor: themeColors.border,
-              backgroundColor: themeColors.appBG,
-          };
-}
-
-function getNavigationDrawerType(isSmallScreenWidth) {
-    return isSmallScreenWidth ? 'slide' : 'permanent';
 }
 
 /**
@@ -1038,15 +1013,19 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, ho
  * @returns {Object}
  */
 function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeReportRecipientLocalTimeHeight) {
+    'worklet';
+
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
     const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const borderWidth = 2;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(itemsHeight + padding),
-        height: itemsHeight,
+        top: -(height + padding),
+        height,
     };
 }
 
@@ -1120,6 +1099,14 @@ function getDirectionStyle(direction) {
 }
 
 /**
+ * Returns a style object with display flex or none basing on the condition value.
+ *
+ * @param {boolean} condition
+ * @returns {Object}
+ */
+const displayIfTrue = (condition) => ({display: condition ? 'flex' : 'none'});
+
+/**
  * @param {Boolean} shouldDisplayBorder
  * @returns {Object}
  */
@@ -1171,8 +1158,6 @@ export {
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
-    getNavigationDrawerStyle,
-    getNavigationDrawerType,
     getZoomCursorStyle,
     getZoomSizingStyle,
     getWidthStyle,
@@ -1219,6 +1204,7 @@ export {
     getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
+    displayIfTrue,
     getFontSizeStyle,
     getLineHeightStyle,
     getSignInWordmarkWidthStyle,

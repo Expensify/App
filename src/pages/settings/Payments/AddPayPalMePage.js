@@ -1,9 +1,10 @@
 import React, {useRef, useState, useCallback} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {View, TouchableWithoutFeedback, Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import TextLink from '../../../components/TextLink';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -44,11 +45,9 @@ const AddPayPalMePage = (props) => {
 
     return (
         <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('common.payPalMe')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
             />
             <View style={[styles.flex1, styles.p5]}>
                 <View style={[styles.flex1]}>

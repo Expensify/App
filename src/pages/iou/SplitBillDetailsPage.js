@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ModalHeader from './ModalHeader';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
 import personalDetailsPropType from '../personalDetailsPropType';
@@ -18,6 +17,7 @@ import reportPropTypes from '../reportPropTypes';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 
 const propTypes = {
     /* Onyx Props */
@@ -75,7 +75,7 @@ const SplitBillDetailsPage = (props) => {
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
-                <ModalHeader
+                <HeaderWithBackButton
                     title={props.translate('common.details')}
                     shouldShowBackButton={false}
                 />

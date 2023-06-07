@@ -61,7 +61,7 @@ export default {
     NEW_CHAT: 'new/chat',
     NEW_TASK,
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID',
+    REPORT_WITH_ID: 'r/:reportID?',
     getReportRoute: (reportID) => `r/${reportID}`,
     REPORT_WITH_ID_DETAILS_SHARE_CODE: 'r/:reportID/details/shareCode',
     getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,

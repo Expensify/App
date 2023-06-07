@@ -7,7 +7,7 @@ import lodashGet from 'lodash/get';
 import TextInput from '../../components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
@@ -70,11 +70,9 @@ class MoneyRequestDescriptionPage extends Component {
                 shouldEnableMaxHeight
                 onEntryTransitionEnd={() => this.descriptionInputRef && this.descriptionInputRef.focus()}
             >
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('common.description')}
-                    shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID))}
-                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
