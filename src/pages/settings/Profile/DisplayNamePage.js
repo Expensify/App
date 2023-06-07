@@ -96,6 +96,7 @@ class DisplayNamePage extends Component {
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             autoCapitalize="words"
+                            shouldSaveDraft
                         />
                     </View>
                     <View>
@@ -106,6 +107,7 @@ class DisplayNamePage extends Component {
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             autoCapitalize="words"
+                            shouldSaveDraft
                         />
                     </View>
                 </Form>
