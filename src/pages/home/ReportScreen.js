@@ -243,9 +243,7 @@ class ReportScreen extends React.Component {
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.firstRenderRef.current;
         this.firstRenderRef.current = true;
 
-        const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
-        const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
-
+        const isSingleTransactionView = ReportActionsUtils.isTransactionThread(this.props.report);
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
 
         return (
@@ -268,7 +266,6 @@ class ReportScreen extends React.Component {
                                 policies={this.props.policies}
                                 personalDetails={this.props.personalDetails}
                                 isSingleTransactionView={isSingleTransactionView}
-                                parentReportAction={parentReportAction}
                             />
                         ) : (
                             <HeaderView

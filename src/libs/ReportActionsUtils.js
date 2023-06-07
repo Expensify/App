@@ -109,10 +109,11 @@ function getFormattedAmount(reportAction) {
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  *
- * @param {Object} parentReportAction
+ * @param {Object} report
  * @returns {Boolean}
  */
-function isTransactionThread(parentReportAction) {
+function isTransactionThread(report) {
+    const parentReportAction = lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
     const originalMessage = lodashGet(parentReportAction, 'originalMessage', {});
     return (
         parentReportAction &&

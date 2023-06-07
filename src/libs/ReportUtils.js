@@ -1009,7 +1009,7 @@ function getReportName(report) {
     let formattedName;
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+        if (ReportActionsUtils.isTransactionThread(report)) {
             return getTransactionReportName(parentReportAction);
         }
 
