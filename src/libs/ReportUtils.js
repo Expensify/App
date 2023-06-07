@@ -873,8 +873,12 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
         const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
-        const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
-
+        const tooltip = {
+            login: participant.login ? Str.removeSMSDomain(participant.login) : '',
+            name: getDisplayNameForParticipant(participant.login, false),
+            avatarSource: UserUtils.getAvatar(participant.avatar, participant.login),
+        }
+        
         let pronouns = participant.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
             const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
@@ -2154,6 +2158,7 @@ function getParentReport(report) {
 
 export {
     getReportParticipantsTitle,
+    getPersonalDetailsForLogin,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,

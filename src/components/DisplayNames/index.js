@@ -5,7 +5,7 @@ import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
-
+import UserDetailsTooltip from '../UserDetailsTooltip/UserDetailsTooltip';
 class DisplayNames extends PureComponent {
     constructor(props) {
         super(props);
@@ -88,9 +88,11 @@ class DisplayNames extends PureComponent {
                     ? this.props.fullTitle
                     : _.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
                           <Fragment key={index}>
-                              <Tooltip
+                              <UserDetailsTooltip
                                   key={index}
-                                  text={tooltip}
+                                  name={tooltip.name}
+                                  avatarSource={tooltip.avatarSource}
+                                  login={tooltip.login}
                                   shiftHorizontal={() => this.getTooltipShiftX(index)}
                               >
                                   {/*  // We need to get the refs to all the names which will be used to correct
@@ -101,7 +103,7 @@ class DisplayNames extends PureComponent {
                                   >
                                       {displayName}
                                   </Text>
-                              </Tooltip>
+                              </UserDetailsTooltip>
                               {index < this.props.displayNamesWithTooltips.length - 1 && <Text style={this.props.textStyles}>,&nbsp;</Text>}
                           </Fragment>
                       ))}
