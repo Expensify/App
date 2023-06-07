@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -53,11 +53,9 @@ const ChooseTransferAccountPage = (props) => {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('chooseTransferAccountPage.chooseAccount')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE)}
             />
             <View style={[styles.mt6, styles.flexShrink1, styles.flexBasisAuto]}>
                 <PaymentMethodList

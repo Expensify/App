@@ -461,7 +461,7 @@ function navigateToAndOpenReport(userLogins) {
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(reportID, newChat.participants, newChat);
-    Navigation.navigate(ROUTES.getReportRoute(reportID));
+    Navigation.dismissModal(reportID);
 }
 
 /**
@@ -479,11 +479,12 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
     } else {
         const participants = _.uniq([currentUserEmail, parentReportAction.actorEmail]);
         const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        const parentReport = allReports[parentReportID];
         const newChat = ReportUtils.buildOptimisticChatReport(
             formattedUserLogins,
             lodashGet(parentReportAction, ['message', 0, 'text']),
-            '',
-            CONST.POLICY.OWNER_EMAIL_FAKE,
+            lodashGet(parentReport, 'chatType', ''),
+            lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
             CONST.POLICY.OWNER_EMAIL_FAKE,
             false,
             '',
@@ -1057,7 +1058,7 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  */
 function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     if (previousValue === newValue) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1075,7 +1076,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1115,7 +1116,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
  */
 function updateWriteCapabilityAndNavigate(report, newValue) {
     if (report.writeCapability === newValue) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
+        Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
         return;
     }
 
@@ -1135,7 +1136,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
     ];
     API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
+    Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
 }
 
 /**
@@ -1235,7 +1236,7 @@ function addPolicyReport(policy, reportName, visibility) {
         },
         {optimisticData, successData},
     );
-    Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
+    Navigation.dismissModal(policyReport.reportID);
 }
 
 /**
@@ -1286,7 +1287,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
 
     // No change needed, navigate back
     if (previousName === policyRoomName) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1325,7 +1326,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
