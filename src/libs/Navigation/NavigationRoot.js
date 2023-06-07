@@ -8,7 +8,7 @@ import AppNavigator from './AppNavigator';
 import themeColors from '../../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
-import withCurrentReportId from '../../components/withCurrentReportId';
+import withCurrentReportID from '../../components/withCurrentReportID';
 import compose from '../compose';
 
 // https://reactnavigation.org/docs/themes
@@ -57,7 +57,7 @@ const NavigationRoot = (props) => {
 
     const updateSavedNavigationStateAndLogRoute = (state) => {
         navigationStateRef.current = state;
-        props.updateCurrentReportId(state);
+        props.updateCurrentReportID(state);
         parseAndLogRoute(state);
     };
 
@@ -81,4 +81,4 @@ const NavigationRoot = (props) => {
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;
-export default compose(withWindowDimensions, withCurrentReportId)(NavigationRoot);
+export default compose(withWindowDimensions, withCurrentReportID)(NavigationRoot);

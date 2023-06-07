@@ -4,30 +4,30 @@ import PropTypes from 'prop-types';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import Navigation from '../libs/Navigation/Navigation';
 
-const CurrentReportIdContext = createContext(null);
+const CurrentReportIDContext = createContext(null);
 
-const withCurrentReportIdPropTypes = {
+const withCurrentReportIDPropTypes = {
     /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
 };
 
-class CurrentReportIdContextProvider extends React.Component {
+class CurrentReportIDContextProvider extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            currentReportId: '',
+            currentReportID: '',
         };
     }
 
     /**
      * The context this component exposes to child components
-     * @returns {Object} currentReportId to share between central pane and LHN
+     * @returns {Object} currentReportID to share between central pane and LHN
      */
     getContextValue() {
         return {
-            updateCurrentReportId: this.updateCurrentReportId.bind(this),
-            currentReportId: this.state.currentReportId,
+            updateCurrentReportID: this.updateCurrentReportID.bind(this),
+            currentReportID: this.state.currentReportID,
         };
     }
 
@@ -35,20 +35,20 @@ class CurrentReportIdContextProvider extends React.Component {
      * @param {Object} state
      * @returns {String}
      */
-    updateCurrentReportId(state) {
-        return this.setState({currentReportId: Navigation.getTopmostReportId(state)});
+    updateCurrentReportID(state) {
+        return this.setState({currentReportID: Navigation.getTopmostReportId(state)});
     }
 
     render() {
-        return <CurrentReportIdContext.Provider value={this.getContextValue()}>{this.props.children}</CurrentReportIdContext.Provider>;
+        return <CurrentReportIDContext.Provider value={this.getContextValue()}>{this.props.children}</CurrentReportIDContext.Provider>;
     }
 }
 
-CurrentReportIdContextProvider.propTypes = withCurrentReportIdPropTypes;
+CurrentReportIDContextProvider.propTypes = withCurrentReportIDPropTypes;
 
-export default function withCurrentReportId(WrappedComponent) {
-    const WithCurrentReportId = forwardRef((props, ref) => (
-        <CurrentReportIdContext.Consumer>
+export default function withCurrentReportID(WrappedComponent) {
+    const WithCurrentReportID = forwardRef((props, ref) => (
+        <CurrentReportIDContext.Consumer>
             {(translateUtils) => (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
@@ -58,12 +58,12 @@ export default function withCurrentReportId(WrappedComponent) {
                     ref={ref}
                 />
             )}
-        </CurrentReportIdContext.Consumer>
+        </CurrentReportIDContext.Consumer>
     ));
 
-    WithCurrentReportId.displayName = `withCurrentReportId(${getComponentDisplayName(WrappedComponent)})`;
+    WithCurrentReportID.displayName = `withCurrentReportID(${getComponentDisplayName(WrappedComponent)})`;
 
-    return WithCurrentReportId;
+    return WithCurrentReportID;
 }
 
-export {withCurrentReportIdPropTypes, CurrentReportIdContextProvider};
+export {withCurrentReportIDPropTypes, CurrentReportIDContextProvider};
