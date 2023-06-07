@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import Text from '../../components/Text';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
@@ -141,14 +141,12 @@ function ACHContractStep (props) {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('beneficialOwnersStep.additionalInformation')}
                 stepCounter={{step: 4, total: 5}}
-                onCloseButtonPress={Navigation.dismissModal}
                 onBackButtonPress={props.onBackButtonPress}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                shouldShowBackButton
             />
             <Form
                 formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
