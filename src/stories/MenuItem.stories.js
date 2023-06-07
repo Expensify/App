@@ -127,4 +127,16 @@ BrickRoadIndicatorFailure.args = {
 };
 
 export default story;
-export {Default, Description, RightIcon, RightIconAndDescription, Selected, BadgeText, Focused, Disabled, BrickRoadIndicatorSuccess, BrickRoadIndicatorFailure, RightIconAndDescriptionWithLabel};
+export {
+    Default,
+    Description,
+    RightIcon,
+    RightIconAndDescription,
+    Selected,
+    BadgeText,
+    Focused,
+    Disabled,
+    BrickRoadIndicatorSuccess,
+    BrickRoadIndicatorFailure,
+    RightIconAndDescriptionWithLabel,
+};
