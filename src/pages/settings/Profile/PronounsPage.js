@@ -137,7 +137,7 @@ function PronounsPage(props) {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 PronounsPage.propTypes = propTypes;
 PronounsPage.defaultProps = defaultProps;
