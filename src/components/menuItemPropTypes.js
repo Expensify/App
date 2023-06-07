@@ -31,7 +31,7 @@ const propTypes = {
     iconHeight: PropTypes.number,
 
     /** Text to display for the item */
-    title: PropTypes.string,
+    title: PropTypes.string.isRequired,
 
     /** Text that appears above the title */
     label: PropTypes.string,

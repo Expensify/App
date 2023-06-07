@@ -140,13 +140,13 @@ const NewTaskPage = (props) => {
                 <View style={styles.mb5}>
                     <MenuItemWithTopDescription
                         description={props.translate('newTaskPage.title')}
-                        title={props.task.title}
+                        title={props.task.title || ''}
                         onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
                         shouldShowRightIcon
                     />
                     <MenuItemWithTopDescription
                         description={props.translate('newTaskPage.description')}
-                        title={props.task.description}
+                        title={props.task.description || ''}
                         onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                         shouldShowRightIcon
                     />
