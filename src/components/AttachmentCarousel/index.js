@@ -164,7 +164,7 @@ class AttachmentCarousel extends React.Component {
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                     isAuthTokenRequired: Boolean(expensifySource),
-                    file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || attribs.src.split('/').pop()},
+                    file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
                 });
             },
         });
