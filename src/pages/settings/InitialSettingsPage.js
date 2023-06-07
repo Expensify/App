@@ -11,7 +11,7 @@ import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -314,31 +314,27 @@ class InitialSettingsPage extends React.Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.settings')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
+                        <HeaderWithBackButton title={this.props.translate('common.settings')} />
                         <ScrollView
                             contentContainerStyle={safeAreaPaddingBottomStyle}
                             style={[styles.settingsPageBackground]}
                         >
                             <View style={styles.w100}>
                                 <View style={styles.avatarSectionWrapper}>
-                                    <Pressable
-                                        style={[styles.mb3]}
-                                        onPress={this.openProfileSettings}
-                                    >
-                                        <Tooltip text={this.props.translate('common.profile')}>
+                                    <Tooltip text={this.props.translate('common.profile')}>
+                                        <Pressable
+                                            style={[styles.mb3]}
+                                            onPress={this.openProfileSettings}
+                                        >
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={ReportUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
+                                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
-                                        </Tooltip>
-                                    </Pressable>
-
+                                        </Pressable>
+                                    </Tooltip>
                                     <Pressable
                                         style={[styles.mt1, styles.mw100]}
                                         onPress={this.openProfileSettings}

@@ -9,7 +9,6 @@ import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
-import * as Report from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import SubscriptAvatar from '../../components/SubscriptAvatar';
@@ -28,6 +27,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
+import PinButton from '../../components/PinButton';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -92,7 +92,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
-                onSelected: () => Task.completeTask(props.report.reportID, props.report.parentReportID, title),
+                onSelected: () => Task.completeTask(props.report.reportID, title),
             });
         }
 
@@ -101,7 +101,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report.reportID, props.report.parentReportID, title),
+                onSelected: () => Task.reopenTask(props.report.reportID, title),
             });
         }
 
@@ -110,13 +110,12 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.parentReportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
             });
         }
     }
     const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
-    const avatarTooltip = isChatRoom ? undefined : _.pluck(displayNamesWithTooltips, 'tooltip');
     const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report) && !isTaskReport;
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -136,7 +135,9 @@ const HeaderView = (props) => {
                             text={props.translate('common.back')}
                             shiftVertical={4}
                         >
-                            <Icon src={Expensicons.BackArrow} />
+                            <View>
+                                <Icon src={Expensicons.BackArrow} />
+                            </View>
                         </Tooltip>
                     </Pressable>
                 )}
@@ -157,7 +158,7 @@ const HeaderView = (props) => {
                             ) : (
                                 <MultipleAvatars
                                     icons={icons}
-                                    avatarTooltips={avatarTooltip}
+                                    shouldShowTooltip={!isChatRoom}
                                 />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
@@ -194,17 +195,7 @@ const HeaderView = (props) => {
                                     guideCalendarLink={guideCalendarLink}
                                 />
                             )}
-                            <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
-                                <Pressable
-                                    onPress={() => Report.togglePinnedState(props.report)}
-                                    style={[styles.touchableButtonImage]}
-                                >
-                                    <Icon
-                                        src={Expensicons.Pin}
-                                        fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
-                                    />
-                                </Pressable>
-                            </Tooltip>
+                            <PinButton report={props.report} />
                             {shouldShowThreeDotsButton && (
                                 <ThreeDotsMenu
                                     anchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}

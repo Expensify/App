@@ -2,17 +2,18 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import OptionsSelector from '../../components/OptionsSelector';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import * as IOU from '../../libs/actions/IOU';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import {withNetwork} from '../../components/OnyxProvider';
+import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -89,12 +90,16 @@ class IOUCurrencySelection extends Component {
         return sections;
     }
 
+    getSelectedCurrencyCode() {
+        return lodashGet(this.props.route, 'params.currency', this.props.iou.selectedCurrencyCode);
+    }
+
     /**
      * @returns {Object}
      */
     getCurrencyOptions() {
         return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
-            const isSelectedCurrency = currencyCode === this.props.iou.selectedCurrencyCode;
+            const isSelectedCurrency = currencyCode === this.getSelectedCurrencyCode();
             return {
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
                 currencyCode,
@@ -122,14 +127,21 @@ class IOUCurrencySelection extends Component {
     }
 
     /**
-     * Confirms the selection of currency and sets values in Onyx
+     * Confirms the selection of currency
      *
      * @param {Object} option
      * @param {String} option.currencyCode
      */
     confirmCurrencySelection(option) {
-        IOU.setIOUSelectedCurrency(option.currencyCode);
-        Navigation.goBack();
+        const backTo = lodashGet(this.props.route, 'params.backTo', '');
+        // When we refresh the web, the money request route gets cleared from the navigation stack.
+        // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
+        // To prevent any negative experience, we have made the decision to simply close the currency selection page.
+        if (_.isEmpty(backTo) || this.props.navigation.getState().routes.length === 1) {
+            Navigation.goBack();
+        } else {
+            Navigation.navigate(`${this.props.route.params.backTo}?currency=${option.currencyCode}`);
+        }
     }
 
     render() {
@@ -138,9 +150,9 @@ class IOUCurrencySelection extends Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('iOUCurrencySelection.selectCurrency')}
-                            onCloseButtonPress={Navigation.goBack}
+                            onBackButtonPress={() => Navigation.goBack(ROUTES.getIouRequestRoute(Navigation.getTopmostReportId()))}
                         />
                         <OptionsSelector
                             sections={this.getSections()}
@@ -151,7 +163,7 @@ class IOUCurrencySelection extends Component {
                             headerMessage={headerMessage}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             initiallyFocusedOptionKey={_.get(
-                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.props.iou.selectedCurrencyCode),
+                                _.find(this.state.currencyData, (currency) => currency.currencyCode === this.getSelectedCurrencyCode()),
                                 'keyForList',
                             )}
                             shouldHaveOptionSeparator

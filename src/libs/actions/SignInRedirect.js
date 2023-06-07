@@ -3,14 +3,13 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as MainQueue from '../Network/MainQueue';
-import DateUtils from '../DateUtils';
-import * as Localize from '../Localize';
 import * as PersistedRequests from './PersistedRequests';
 import NetworkConnection from '../NetworkConnection';
 import HttpUtils from '../HttpUtils';
 import navigationRef from '../Navigation/navigationRef';
 import SCREENS from '../../SCREENS';
 import Navigation from '../Navigation/Navigation';
+import * as ErrorUtils from '../ErrorUtils';
 
 let currentIsOffline;
 let currentShouldForceOffline;
@@ -49,7 +48,7 @@ function clearStorageAndRedirect(errorMessage) {
         }
 
         // `Onyx.clear` reinitializes the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`
-        Onyx.merge(ONYXKEYS.SESSION, {errors: {[DateUtils.getMicroseconds()]: Localize.translateLocal(errorMessage)}});
+        Onyx.merge(ONYXKEYS.SESSION, {errors: ErrorUtils.getMicroSecondOnyxError(errorMessage)});
     });
 }
 
@@ -67,6 +66,7 @@ function resetHomeRouteParams() {
         });
 
         Navigation.setParams(emptyParams, lodashGet(homeRoute, 'key', ''));
+        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     });
 }
 

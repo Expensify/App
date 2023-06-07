@@ -6,7 +6,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -18,7 +18,8 @@ import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
-import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
+import {policyPropTypes, policyDefaultProps} from './withPolicy';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
@@ -181,12 +182,9 @@ class WorkspaceInvitePage extends React.Component {
         Link.openExternalLink(CONST.PRIVACY_URL);
     }
 
-    clearErrors(closeModal = false) {
+    clearErrors() {
         Policy.setWorkspaceErrors(this.props.route.params.policyID, {});
         Policy.hideWorkspaceAlertMessage(this.props.route.params.policyID);
-        if (closeModal) {
-            Navigation.dismissModal();
-        }
     }
 
     /**
@@ -256,57 +254,56 @@ class WorkspaceInvitePage extends React.Component {
 
         return (
             <ScreenWrapper shouldEnableMaxHeight>
-                {({didScreenTransitionEnd}) => (
-                    <FullPageNotFoundView
-                        shouldShow={_.isEmpty(this.props.policy)}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                <FullPageNotFoundView
+                    shouldShow={_.isEmpty(this.props.policy)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                >
+                    <FormSubmit
+                        style={[styles.flex1]}
+                        onSubmit={this.inviteUser}
                     >
-                        <FormSubmit
-                            style={[styles.flex1]}
-                            onSubmit={this.inviteUser}
-                        >
-                            <HeaderWithCloseButton
-                                title={this.props.translate('workspace.invite.invitePeople')}
-                                subtitle={policyName}
-                                onCloseButtonPress={() => this.clearErrors(true)}
-                                shouldShowGetAssistanceButton
-                                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                                shouldShowBackButton
-                                onBackButtonPress={() => Navigation.goBack()}
+                        <HeaderWithBackButton
+                            title={this.props.translate('workspace.invite.invitePeople')}
+                            subtitle={policyName}
+                            shouldShowGetAssistanceButton
+                            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                            onBackButtonPress={() => {
+                                this.clearErrors();
+                                Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+                            }}
+                        />
+                        <View style={[styles.flex1]}>
+                            <OptionsSelector
+                                autoFocus={false}
+                                canSelectMultipleOptions
+                                sections={sections}
+                                selectedOptions={this.state.selectedOptions}
+                                value={this.state.searchTerm}
+                                shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
+                                onSelectRow={this.toggleOption}
+                                onChangeText={this.updateOptionsWithSearchTerm}
+                                onConfirmSelection={this.inviteUser}
+                                headerMessage={headerMessage}
+                                hideSectionHeaders
+                                boldStyle
+                                shouldFocusOnSelectRow
+                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             />
-                            <View style={[styles.flex1]}>
-                                <OptionsSelector
-                                    autoFocus={false}
-                                    canSelectMultipleOptions
-                                    sections={sections}
-                                    selectedOptions={this.state.selectedOptions}
-                                    value={this.state.searchTerm}
-                                    shouldShowOptions={didScreenTransitionEnd && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
-                                    onSelectRow={this.toggleOption}
-                                    onChangeText={this.updateOptionsWithSearchTerm}
-                                    onConfirmSelection={this.inviteUser}
-                                    headerMessage={headerMessage}
-                                    hideSectionHeaders
-                                    boldStyle
-                                    shouldFocusOnSelectRow
-                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                />
-                            </View>
-                            <View style={[styles.flexShrink0]}>
-                                <FormAlertWithSubmitButton
-                                    isDisabled={!this.state.selectedOptions.length}
-                                    isAlertVisible={this.getShouldShowAlertPrompt()}
-                                    buttonText={this.props.translate('common.next')}
-                                    onSubmit={this.inviteUser}
-                                    message={this.props.policy.alertMessage}
-                                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                                    enabledWhenOffline
-                                    disablePressOnEnter
-                                />
-                            </View>
-                        </FormSubmit>
-                    </FullPageNotFoundView>
-                )}
+                        </View>
+                        <View style={[styles.flexShrink0]}>
+                            <FormAlertWithSubmitButton
+                                isDisabled={!this.state.selectedOptions.length}
+                                isAlertVisible={this.getShouldShowAlertPrompt()}
+                                buttonText={this.props.translate('common.next')}
+                                onSubmit={this.inviteUser}
+                                message={this.props.policy.alertMessage}
+                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                                enabledWhenOffline
+                                disablePressOnEnter
+                            />
+                        </View>
+                    </FormSubmit>
+                </FullPageNotFoundView>
             </ScreenWrapper>
         );
     }
@@ -317,7 +314,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withPolicy,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         personalDetails: {

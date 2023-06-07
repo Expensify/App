@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import lodashMerge from 'lodash/merge';
 import lodashFindLast from 'lodash/findLast';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import * as CollectionUtils from './CollectionUtils';
@@ -30,6 +29,14 @@ Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isCreatedAction(reportAction) {
+    return lodashGet(reportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+}
 
 /**
  * @param {Object} reportAction
@@ -230,9 +237,11 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
 
-    const htmlText = lodashGet(lastVisibleAction, 'message[0].html', '');
-    const parser = new ExpensiMark();
-    const messageText = parser.htmlToText(htmlText);
+    if (isCreatedAction(lastVisibleAction)) {
+        return '';
+    }
+
+    const messageText = lodashGet(message, 'text', '');
     return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 

@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
 import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
 import CONST from '../../../CONST';
 import optionPropTypes from '../../../components/optionPropTypes';
@@ -23,6 +25,12 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
+    /** Holds data related to IOU view state, rather than the underlying IOU data. */
+    iou: PropTypes.shape({
+        comment: PropTypes.string,
+        selectedCurrencyCode: PropTypes.string,
+    }),
+
     /** Can the participants be modified or not */
     canModifyParticipants: PropTypes.bool,
 
@@ -30,12 +38,20 @@ const propTypes = {
     navigateToStep: PropTypes.func.isRequired,
 
     /** The policyID of the request */
-    policyID: PropTypes.string.isRequired,
+    policyID: PropTypes.string,
+
+    /** Depending on expense report or personal IOU report, respective bank account route */
+    bankAccountRoute: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     canModifyParticipants: false,
+    policyID: '',
+    iou: {
+        comment: '',
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
 };
 
 const MoneyRequestConfirmPage = (props) => (
@@ -43,17 +59,22 @@ const MoneyRequestConfirmPage = (props) => (
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}
         iouAmount={props.iouAmount}
+        iouComment={props.iou.comment}
+        iouCurrencyCode={props.iou.selectedCurrencyCode}
         onConfirm={props.onConfirm}
         onSendMoney={props.onSendMoney}
         iouType={props.iouType}
         canModifyParticipants={props.canModifyParticipants}
         navigateToStep={props.navigateToStep}
         policyID={props.policyID}
+        bankAccountRoute={props.bankAccountRoute}
     />
 );
 
-MoneyRequestConfirmPage.displayName = 'IOUConfirmPage';
+MoneyRequestConfirmPage.displayName = 'MoneyRequestConfirmPage';
 MoneyRequestConfirmPage.propTypes = propTypes;
 MoneyRequestConfirmPage.defaultProps = defaultProps;
 
-export default MoneyRequestConfirmPage;
+export default withOnyx({
+    iou: {key: ONYXKEYS.IOU},
+})(MoneyRequestConfirmPage);

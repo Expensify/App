@@ -1,9 +1,11 @@
 import getBaseNavigationModalCardStyles from './getBaseNavigationModalCardStyles';
 
-export default (isSmallScreenWidth) => ({
-    ...getBaseNavigationModalCardStyles(isSmallScreenWidth),
+export default ({windowHeight, isSmallScreenWidth}) => ({
+    ...getBaseNavigationModalCardStyles({isSmallScreenWidth}),
 
-    // This makes the modal card take up the full height of the screen on Desktop Safari and iOS Safari
-    // https://github.com/Expensify/App/pull/12509/files#r1018107162
-    height: 'calc(100vh - 100%)',
+    // This height is passed from JavaScript, instead of using CSS expressions like "100%" or "100vh", to work around
+    // Safari issues:
+    // https://github.com/Expensify/App/issues/12005
+    // https://github.com/Expensify/App/issues/17824
+    height: `${windowHeight}px`,
 });

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
@@ -72,11 +72,9 @@ const AboutPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={props.translate('initialSettingsPage.about')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>

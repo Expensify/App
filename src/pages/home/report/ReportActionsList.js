@@ -3,12 +3,12 @@ import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -53,8 +53,8 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    ...withDrawerPropTypes,
     ...windowDimensionsPropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -62,6 +62,7 @@ const defaultProps = {
     personalDetails: {},
     mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 /**
@@ -79,10 +80,10 @@ function keyExtractor(item) {
 const ReportActionsList = (props) => {
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
-        opacity: withTiming(opacity.value, {duration: 100}),
+        opacity: opacity.value,
     }));
     useEffect(() => {
-        opacity.value = 1;
+        opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
@@ -115,10 +116,14 @@ const ReportActionsList = (props) => {
             // When the new indicator should not be displayed we explicitly set it to null
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
             const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isThread(report);
+            const shouldHideThreadDividerLine =
+                shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     reportID={report.reportID}
                     parentReportID={`${report.parentReportID}`}
+                    shouldDisplayNewMarker={shouldDisplayNewMarker}
                 />
             ) : (
                 <ReportActionItem
@@ -126,7 +131,10 @@ const ReportActionsList = (props) => {
                     action={reportAction}
                     displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
                     shouldDisplayNewMarker={shouldDisplayNewMarker}
-                    shouldShowSubscriptAvatar={ReportUtils.isPolicyExpenseChat(report) && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU}
+                    shouldShowSubscriptAvatar={
+                        (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
+                        _.contains([CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW], reportAction.actionName)
+                    }
                     isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     index={index}
@@ -138,8 +146,8 @@ const ReportActionsList = (props) => {
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [!props.isDrawerOpen && props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
+    const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report, props.currentUserPersonalDetails.login);
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
@@ -189,4 +197,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(withDrawerState, withWindowDimensions, withLocalize, withPersonalDetails(), withNetwork())(ReportActionsList);
+export default compose(withWindowDimensions, withLocalize, withPersonalDetails(), withNetwork(), withCurrentUserPersonalDetails)(ReportActionsList);

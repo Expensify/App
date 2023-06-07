@@ -27,7 +27,7 @@ import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
@@ -116,7 +116,7 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline && prevProps.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             this.fetchData();
         }
         if (!this.state.hasACHDataBeenLoaded) {
@@ -376,10 +376,10 @@ class ReimbursementAccountPage extends React.Component {
         if (errorComponent) {
             return (
                 <ScreenWrapper>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('workspace.common.bankAccount')}
-                        onCloseButtonPress={Navigation.dismissModal}
+                    <HeaderWithBackButton
+                        title={this.props.translate('workspace.common.connectBankAccount')}
                         subtitle={policyName}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
                     {errorComponent}
                 </ScreenWrapper>

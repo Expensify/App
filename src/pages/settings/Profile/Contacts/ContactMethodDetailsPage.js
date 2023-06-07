@@ -6,9 +6,8 @@ import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -20,13 +19,12 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import DotIndicatorMessage from '../../../../components/DotIndicatorMessage';
 import ConfirmModal from '../../../../components/ConfirmModal';
 import * as User from '../../../../libs/actions/User';
-import TextInput from '../../../../components/TextInput';
 import CONST from '../../../../CONST';
-import Button from '../../../../components/Button';
 import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
-import * as ValidationUtils from '../../../../libs/ValidationUtils';
+import ValidateCodeForm from './ValidateCodeForm';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -94,15 +92,11 @@ class ContactMethodDetailsPage extends Component {
         this.deleteContactMethod = this.deleteContactMethod.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
-        this.resendValidateCode = this.resendValidateCode.bind(this);
         this.getContactMethod = this.getContactMethod.bind(this);
-        this.validateAndSubmitCode = this.validateAndSubmitCode.bind(this);
         this.setAsDefault = this.setAsDefault.bind(this);
 
         this.state = {
-            formError: '',
             isDeleteModalOpen: false,
-            validateCode: '',
         };
     }
 
@@ -193,27 +187,6 @@ class ContactMethodDetailsPage extends Component {
         User.deleteContactMethod(this.getContactMethod(), this.props.loginList);
     }
 
-    /**
-     * Request a validate code / magic code be sent to verify this contact method
-     */
-    resendValidateCode() {
-        User.requestContactMethodValidateCode(this.getContactMethod());
-    }
-
-    /**
-     * Attempt to validate this contact method
-     */
-    validateAndSubmitCode() {
-        if (!this.state.validateCode) {
-            this.setState({formError: 'validateCodeForm.error.pleaseFillMagicCode'});
-        } else if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
-            this.setState({formError: 'validateCodeForm.error.incorrectMagicCode'});
-        } else {
-            this.setState({formError: ''});
-            User.validateSecondaryLogin(this.getContactMethod(), this.state.validateCode);
-        }
-    }
-
     render() {
         const contactMethod = this.getContactMethod();
 
@@ -227,16 +200,13 @@ class ContactMethodDetailsPage extends Component {
 
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const hasMagicCodeBeenSent = lodashGet(this.props.loginList, [contactMethod, 'validateCodeSent'], false);
-        const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={formattedContactMethod}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
                 />
                 <ScrollView keyboardShouldPersistTaps="handled">
                     <ConfirmModal
@@ -260,52 +230,13 @@ class ContactMethodDetailsPage extends Component {
                             <DotIndicatorMessage
                                 type="success"
                                 style={[styles.mb3]}
-                                messages={{0: this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
+                                messages={{0: ['contacts.enterMagicCode', {contactMethod: formattedContactMethod}]}}
                             />
-                            <TextInput
-                                label={this.props.translate('common.magicCode')}
-                                name="validateCode"
-                                value={this.state.validateCode}
-                                onChangeText={(text) => this.setState({validateCode: text})}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                errorText={formErrorText}
+                            <ValidateCodeForm
+                                contactMethod={contactMethod}
+                                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                                loginList={this.props.loginList}
                             />
-                            <OfflineWithFeedback
-                                pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
-                                errors={ErrorUtils.getLatestErrorField(loginData, 'validateCodeSent')}
-                                errorRowStyles={[styles.mt2]}
-                                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateCodeSent')}
-                            >
-                                <View style={[styles.mt2, styles.dFlex, styles.flexColumn]}>
-                                    <Text
-                                        style={[styles.link, styles.mr1]}
-                                        onPress={this.resendValidateCode}
-                                    >
-                                        {this.props.translate('contacts.resendMagicCode')}
-                                    </Text>
-                                    {hasMagicCodeBeenSent && (
-                                        <DotIndicatorMessage
-                                            type="success"
-                                            style={[styles.mt6, styles.flex0]}
-                                            messages={{0: this.props.translate('resendValidationForm.linkHasBeenResent')}}
-                                        />
-                                    )}
-                                </View>
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback
-                                pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
-                                errors={ErrorUtils.getLatestErrorField(loginData, 'validateLogin')}
-                                errorRowStyles={[styles.mt2]}
-                                onClose={() => User.clearContactMethodErrors(contactMethod, 'validateLogin')}
-                            >
-                                <Button
-                                    text={this.props.translate('common.verify')}
-                                    onPress={this.validateAndSubmitCode}
-                                    style={[styles.mt4]}
-                                    success
-                                    pressOnEnter
-                                />
-                            </OfflineWithFeedback>
                         </View>
                     )}
                     {this.canChangeDefaultContactMethod() ? (
