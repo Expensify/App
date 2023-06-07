@@ -17,7 +17,7 @@ const propTypes = {
     /** Styles that should be passed to touchable container */
     // eslint-disable-next-line react/forbid-prop-types
     styles: PropTypes.arrayOf(PropTypes.object),
-    
+
     /** Proptypes of pressable component used for implementation */
     ...genericPressablePropTypes.pressablePropTypes,
 };
