@@ -3,18 +3,18 @@ import lodashGet from 'lodash/get';
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import ROUTES from '../../../ROUTES';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import CONST from '../../../CONST';
 import OptionsSelector from '../../../components/OptionsSelector';
+import ROUTES from '../../../ROUTES';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -113,11 +113,9 @@ const PronounsPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={translate('pronounsPage.pronouns')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
                     />
                     <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
                     <OptionsSelector
@@ -130,6 +128,7 @@ const PronounsPage = (props) => {
                         onChangeText={onChangeText}
                         optionHoveredStyle={styles.hoveredComponentBG}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        shouldDelayFocus
                         shouldFocusOnSelectRow
                         shouldHaveOptionSeparator
                         initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
