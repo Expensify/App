@@ -47,6 +47,7 @@ class ScreenWrapper extends React.Component {
                     return;
                 }
 
+                this.props.onEscapeKeyPressed();
                 Navigation.dismissModal();
             },
             shortcutConfig.descriptionKey,

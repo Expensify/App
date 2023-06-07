@@ -38,6 +38,9 @@ const propTypes = {
     /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
     shouldEnableMaxHeight: PropTypes.bool,
 
+    /** A callback to execute when the escape key is pressed. */
+    onEscapeKeyPressed: PropTypes.func,
+
     ...windowDimensionsPropTypes,
 
     ...environmentPropTypes,
@@ -53,6 +56,7 @@ const defaultProps = {
     keyboardAvoidingViewBehavior: 'padding',
     shouldEnableMaxHeight: false,
     shouldEnablePickerAvoiding: true,
+    onEscapeKeyPressed: () => {},
 };
 
 export {propTypes, defaultProps};

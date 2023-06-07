@@ -6,6 +6,7 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Form from '../../../components/Form';
+import * as FormActions from '../../../libs/actions/FormActions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
@@ -74,10 +75,16 @@ class DisplayNamePage extends Component {
         const currentUserDetails = this.props.currentUserPersonalDetails || {};
 
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                onEscapeKeyPressed={() => FormActions.clearDraftValues(ONYXKEYS.FORMS.DISPLAY_NAME_FORM)}
+            >
                 <HeaderWithBackButton
                     title={this.props.translate('displayNamePage.headerTitle')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                    onBackButtonPress={() => {
+                        FormActions.clearDraftValues(ONYXKEYS.FORMS.DISPLAY_NAME_FORM);
+                        Navigation.goBack(ROUTES.SETTINGS_PROFILE);
+                    }}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
