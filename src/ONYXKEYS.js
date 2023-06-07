@@ -45,6 +45,9 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    // Stores draft information while the user is creating a new custom status
+    CUSTOM_STATUS_DRAFT: 'customStatusDraft',
+
     // Contains all the private personal details of the user
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 

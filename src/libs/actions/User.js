@@ -844,6 +844,10 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
+function updateDraftCustomStatus(update) {
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, update);
+}
+
 export {
     updatePassword,
     closeAccount,
@@ -868,4 +872,5 @@ export {
     addPaypalMeAddress,
     updateChatPriorityMode,
     setContactMethodAsDefault,
+    updateDraftCustomStatus,
 };
