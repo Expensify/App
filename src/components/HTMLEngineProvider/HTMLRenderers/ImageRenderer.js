@@ -3,7 +3,7 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
-import PressableWithoutFocus from '../../PressableWithoutFocus';
+import PressableWithoutFocus from '../../Pressable/PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
