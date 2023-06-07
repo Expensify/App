@@ -70,6 +70,11 @@ const ProfilePage = (props) => {
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
         {
+            description: 'Status',
+            title: 'Status',
+            pageRoute: ROUTES.SETTINGS_STATUS,
+        },
+        {
             description: props.translate('pronounsPage.pronouns'),
             title: getPronouns(),
             pageRoute: ROUTES.SETTINGS_PRONOUNS,

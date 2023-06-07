@@ -15,6 +15,7 @@ const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
+const SETTINGS_STATUS = 'settings/profile/status';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
@@ -52,6 +53,7 @@ export default {
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: `${SETTINGS_PERSONAL_DETAILS}/date-of-birth`,
     SETTINGS_PERSONAL_DETAILS_ADDRESS: `${SETTINGS_PERSONAL_DETAILS}/address`,
     SETTINGS_CONTACT_METHODS,
+    SETTINGS_STATUS,
     SETTINGS_CONTACT_METHOD_DETAILS: `${SETTINGS_CONTACT_METHODS}/:contactMethod/details`,
     getEditContactMethodRoute: (contactMethod) => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,
     SETTINGS_NEW_CONTACT_METHOD: `${SETTINGS_CONTACT_METHODS}/new`,
