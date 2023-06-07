@@ -13,6 +13,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
+import MenuItem from '../../components/MenuItem';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
@@ -140,19 +141,18 @@ const NewTaskPage = (props) => {
                         onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                         shouldShowRightIcon
                     />
-                    <MenuItemWithTopDescription
+                    <MenuItem
                         label={assignee.displayName ? props.translate('newTaskPage.assignee') : ''}
-                        description={assignee.displayName ? assignee.displayName : props.translate('newTaskPage.assignee')}
-                        title={assignee.subtitle || ''}
+                        title={assignee.displayName || ''}
+                        description={assignee.subtitle ? assignee.subtitle : props.translate('newTaskPage.assignee')}
                         icon={assignee.icons}
                         onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
                         shouldShowRightIcon
-                        style={styles.popoverMenuItem}
                     />
-                    <MenuItemWithTopDescription
+                    <MenuItem
                         label={shareDestination.displayName ? props.translate('newTaskPage.shareSomewhere') : ''}
-                        description={shareDestination.displayName ? shareDestination.displayName : props.translate('newTaskPage.shareSomewhere')}
-                        title={shareDestination.subtitle || ''}
+                        title={shareDestination.displayName || ''}
+                        description={shareDestination.subtitle ? shareDestination.subtitle : props.translate('newTaskPage.shareSomewhere')}
                         icon={shareDestination.icons}
                         onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
                         shouldShowRightIcon
