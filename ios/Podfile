@@ -46,6 +46,8 @@ target 'NewExpensify' do
   pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
 
   config = use_native_modules!
+  pod 'RNTAztecView', :path => '../src/components/Composer/LiveMarkdownPreview/vendor/react-native-aztec/react-native-aztec'
+
 
   # Flags change depending on the env values.
   flags = get_default_flags()
