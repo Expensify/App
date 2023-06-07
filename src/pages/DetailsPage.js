@@ -95,12 +95,23 @@ class DetailsPage extends React.PureComponent {
         });
 
         if (!details) {
-            details = {
-                accountID: -1,
-                login,
-                displayName: login,
-                avatar: UserUtils.getDefaultAvatar(),
-            };
+            // TODO: these personal details aren't in my local test account but are in 
+            // my staging account, i wonder why!
+            if (login == CONST.EMAIL.CONCIERGE) {
+                details = {
+                    accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    login,
+                    displayName: 'Concierge',
+                    avatar: UserUtils.getDefaultAvatar(CONST.ACCOUNT_ID.CONCIERGE),
+                };
+            } else {
+                details = {
+                    accountID: -1,
+                    login,
+                    displayName: login,
+                    avatar: UserUtils.getDefaultAvatar(),
+                };
+            }
         }
 
         const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;

@@ -28,6 +28,9 @@ export default PropTypes.shape({
     /** The email of the last message's actor */
     lastActorEmail: PropTypes.string,
 
+    /** The accountID of the last message's actor */
+    lastActorAccountID: PropTypes.number,
+
     /** The text of the last message on the report */
     lastMessageText: PropTypes.string,
 
@@ -50,8 +53,14 @@ export default PropTypes.shape({
     /** The email address of the report owner */
     ownerEmail: PropTypes.string,
 
+    /** The accountID of the report owner */
+    ownerAccountID: PropTypes.number,
+
     /** List of primarylogins of participants of the report */
     participants: PropTypes.arrayOf(PropTypes.string),
+
+    /** List of accountIDs of participants of the report */
+    participantAccountIDs: PropTypes.arrayOf(PropTypes.number),
 
     /** Linked policy's ID */
     policyID: PropTypes.string,
