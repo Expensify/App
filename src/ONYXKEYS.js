@@ -220,7 +220,7 @@ export default {
 
     // The route from the deep link which the user use to open the app
     REPORT_SCREEN_ROUTE: 'reportScreenRoute',
-    
+
     // Whether we're checking if the room is public or not
     IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
 
