@@ -686,8 +686,8 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     }
 
     // STEP 2: Decide if we need to:
-    // 1. Delete the transactionThread - we delete if there are any visible comments in the thread
-    // 2. Update the iouPreview to show [Deleted request] - we do this if the transactionThread exists AND it wasn't deleted in 1
+    // 1. Delete the transactionThread - delete if there are no visible comments in the thread
+    // 2. Update the iouPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
     const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
     const shouldShowDeletedRequestMessage = transactionThreadID && !shouldDeleteTransactionThread;
 
@@ -714,7 +714,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     const shouldDeleteIOUReport =
         iouReportLastMessageText.length === 0 && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && (!transactionThreadID || shouldDeleteTransactionThread);
 
-    // STEP 4: Update the iouReport and reportPreview with new totals and messages
+    // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
     let updatedIOUReport = null;
     let updatedReportPreviewAction = null;
     if (!shouldDeleteIOUReport) {
@@ -853,7 +853,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
         {optimisticData, successData, failureData},
     );
 
-    // STEP 7: Navigate the user depending on which page they are on and which resources were delete
+    // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     if (isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
         Navigation.navigate(ROUTES.getReportRoute(iouReport.reportID));
         return;
