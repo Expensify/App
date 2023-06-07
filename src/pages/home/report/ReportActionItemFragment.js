@@ -27,8 +27,8 @@ const propTypes = {
     /** User's name */
     name: PropTypes.string,
 
-    /** User's handle */
-    handle: PropTypes.string,
+    /** User's login */
+    login: PropTypes.string,
 
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,
@@ -72,7 +72,7 @@ const propTypes = {
 const defaultProps = {
     avatarSource: null,
     name: '',
-    handle: '',
+    login: '',
     isAttachment: false,
     attachmentInfo: {
         name: '',
@@ -152,7 +152,7 @@ const ReportActionItemFragment = (props) => {
         }
         case 'TEXT':
             return (
-                <UserDetailsTooltip avatarSource={props.avatarSource} handle={props.handle} name={props.name}>
+                <UserDetailsTooltip avatarSource={props.avatarSource} login={props.login} name={props.name}>
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}

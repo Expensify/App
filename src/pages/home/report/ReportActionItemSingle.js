@@ -67,7 +67,7 @@ const showUserDetails = (email) => {
 
 const ReportActionItemSingle = (props) => {
     const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {avatar, displayName, pendingFields, handle} = props.personalDetails[actorEmail] || {};
+    const {avatar, displayName, pendingFields, login} = props.personalDetails[actorEmail] || {};
     const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -101,7 +101,7 @@ const ReportActionItemSingle = (props) => {
                         />
                     ) : (
                         <UserDetailsTooltip 
-                            handle={handle}
+                            login={login}
                             name={displayName}
                             avatarSource={avatarSource}
                         >
@@ -127,7 +127,7 @@ const ReportActionItemSingle = (props) => {
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.reportActionID}-${index}`}
-                                    handle={handle}
+                                    login={login}
                                     name={displayName}
                                     avatarSource={avatarSource}
                                     fragment={fragment}

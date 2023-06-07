@@ -19,11 +19,11 @@ function UserDetailsTooltip(props){
 
                 {Boolean(props.name.trim()) ? <Text style={[styles.mt1, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{props.name}</Text> : ''}
 
-                {Boolean(props.handle.trim()) ? <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>@{props.handle}</Text> : ''}
+                {Boolean(props.login.trim()) ? <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{props.login}</Text> : ''}
 
         </View>
         );
-      }, [props.avatarSource, props.name, props.handle]);
+      }, [props.avatarSource, props.name, props.login]);
 
     return (
         <Tooltip renderTooltipContent={renderTooltipContent}>

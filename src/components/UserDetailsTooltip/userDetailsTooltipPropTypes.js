@@ -5,8 +5,8 @@ const propTypes = {
     avatarSource: PropTypes.oneOfType([PropTypes.object, PropTypes.func]),
     /** User's name */
     name: PropTypes.string,
-    /** User's handle */
-    handle: PropTypes.string,
+    /** User's login */
+    login: PropTypes.string,
     /** Component that displays the tooltip */
     children: PropTypes.node.isRequired,
 };
@@ -14,7 +14,7 @@ const propTypes = {
 const defaultProps = {
     avatarSource: null,
     name: '',
-    handle: '',
+    login: '',
 };
 
 export {propTypes, defaultProps};
