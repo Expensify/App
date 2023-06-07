@@ -167,8 +167,9 @@ function getAvatarsForLogins(logins, personalDetails) {
 /**
  * Returns avatar data for a list of user accountIDs
  *
- * @param {*} accountIDs 
- * @param {*} personalDetails 
+ * @param {Array<Number>} accountIDs 
+ * @param {Object} personalDetails
+ * @returns {Object}
  */
 function getAvatarsForAccountIDs(accountIDs, personalDetails) {
     return _.map(accountIDs, (accountID) => {
