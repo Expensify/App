@@ -501,11 +501,6 @@ function addPaypalMeAddress(address) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-            value: address,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PAYPAL,
             value: {
                 title: 'PayPal.me',
@@ -544,11 +539,6 @@ function deletePaypalMeAddress() {
 
     // Success data required for Android, more info here https://github.com/Expensify/App/pull/17903#discussion_r1175763081
     const successData = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-            value: '',
-        },
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PAYPAL,

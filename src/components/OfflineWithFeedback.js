@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -14,6 +14,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -113,14 +114,14 @@ const OfflineWithFeedback = (props) => {
                         type="error"
                     />
                     <Tooltip text={props.translate('common.close')}>
-                        <Pressable
+                        <PressableWithoutFeedback
                             onPress={props.onClose}
                             style={[styles.touchableButtonImage]}
                             accessibilityRole="button"
                             accessibilityLabel={props.translate('common.close')}
                         >
                             <Icon src={Expensicons.Close} />
-                        </Pressable>
+                        </PressableWithoutFeedback>
                     </Tooltip>
                 </View>
             )}

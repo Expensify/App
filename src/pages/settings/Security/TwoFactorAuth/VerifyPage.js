@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -17,9 +17,12 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import TextLink from '../../../../components/TextLink';
 import Clipboard from '../../../../libs/Clipboard';
 import FixedFooter from '../../../../components/FixedFooter';
+import * as Expensicons from '../../../../components/Icon/Expensicons';
+import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import QRCode from '../../../../components/QRCode';
-import expensifyLogo from '../../../../../assets/images/expensify-logo-round-dark.png';
+import expensifyLogo from '../../../../../assets/images/expensify-logo-round-transparent.png';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -89,16 +92,14 @@ function VerifyPage(props) {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
                 shouldShowStepCounter
                 stepCounter={{
                     step: 2,
                     text: props.translate('twoFactorAuth.stepVerify'),
                 }}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_CODES)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_CODES)}
             />
             <FullPageOfflineBlockingView>
                 <ScrollView style={styles.mb5}>
@@ -115,15 +116,20 @@ function VerifyPage(props) {
                             <QRCode
                                 url={buildAuthenticatorUrl()}
                                 logo={expensifyLogo}
+                                logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
+                                logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
                             />
                         </View>
                         <Text style={styles.mt5}>{props.translate('twoFactorAuth.addKey')}</Text>
                         <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             {Boolean(props.account.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(props.account.twoFactorAuthSecretKey)}</Text>}
-                            <Button
+                            <PressableWithDelayToggle
                                 text={props.translate('twoFactorAuth.copy')}
+                                icon={Expensicons.Copy}
+                                inline={false}
                                 onPress={() => Clipboard.setString(props.account.twoFactorAuthSecretKey)}
-                                medium
+                                styles={[styles.button, styles.buttonMedium]}
+                                textStyles={[styles.buttonMediumText]}
                             />
                         </View>
                         <Text style={styles.mt11}>{props.translate('twoFactorAuth.enterCode')}</Text>
