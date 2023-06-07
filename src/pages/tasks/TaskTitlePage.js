@@ -48,12 +48,12 @@ function TaskTitlePage(props) {
             const errors = {};
 
             if (_.isEmpty(values.title)) {
-                errors.title = props.translate('newTaskPage.pleaseEnterTaskName');
+                errors.title = 'newTaskPage.pleaseEnterTaskName';
             }
 
             return errors;
         },
-        [props],
+        [],
     );
 
     const submit = useCallback(
