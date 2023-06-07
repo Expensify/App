@@ -15,6 +15,12 @@ const defaultProps = {
     style: [],
 };
 
+/*
+ * This is a "utility component", that does this:
+ *     - Checks if a text contains any email. If it does, render it as a mailto: link
+ *     - Else just render it inside `Text` component
+ */
+
 const AutoEmailLink = (props) => (
     <Text style={props.style}>
         {_.map(props.text.split(CONST.REG_EXP.EXTRACT_EMAIL), (str, index) => {
