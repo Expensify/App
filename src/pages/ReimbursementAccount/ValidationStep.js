@@ -10,8 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
@@ -133,14 +132,12 @@ class ValidationStep extends React.Component {
                 style={[styles.flex1, styles.justifyContentBetween]}
                 includeSafeAreaPaddingBottom={false}
             >
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
-                    onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
                     shouldShowStepCounter={!isVerifying}
                 />
                 {maxAttemptsReached && (

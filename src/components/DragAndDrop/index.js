@@ -4,6 +4,7 @@ import _ from 'underscore';
 
 import variables from '../../styles/variables';
 import DragAndDropPropTypes from './dragAndDropPropTypes';
+import withNavigationFocus from '../withNavigationFocus';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
@@ -39,7 +40,7 @@ const defaultProps = {
     disabled: false,
 };
 
-export default class DragAndDrop extends React.Component {
+class DragAndDrop extends React.Component {
     constructor(props) {
         super(props);
 
@@ -63,6 +64,14 @@ export default class DragAndDrop extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.props.isFocused !== prevProps.isFocused) {
+            if (!this.props.isFocused) {
+                this.removeEventListeners();
+            } else {
+                this.addEventListeners();
+            }
+        }
+
         const isDisabled = this.props.disabled;
         if (isDisabled === prevProps.disabled) {
             return;
@@ -192,3 +201,5 @@ export default class DragAndDrop extends React.Component {
 
 DragAndDrop.propTypes = propTypes;
 DragAndDrop.defaultProps = defaultProps;
+
+export default withNavigationFocus(DragAndDrop);

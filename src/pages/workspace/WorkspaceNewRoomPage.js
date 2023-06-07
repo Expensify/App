@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
@@ -147,10 +147,7 @@ class WorkspaceNewRoomPage extends React.Component {
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
-                <HeaderWithCloseButton
-                    title={this.props.translate('newRoomPage.newRoom')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
+                <HeaderWithBackButton title={this.props.translate('newRoomPage.newRoom')} />
                 <Form
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                     submitButtonText={this.props.translate('newRoomPage.createRoom')}

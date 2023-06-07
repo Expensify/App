@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import PopoverMenu from '../PopoverMenu';
@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -73,7 +74,7 @@ class ThreeDotsMenu extends Component {
             <>
                 <View>
                     <Tooltip text={this.props.translate(this.props.iconTooltip)}>
-                        <Pressable
+                        <PressableWithoutFeedback
                             onPress={() => {
                                 this.showPopoverMenu();
                                 if (this.props.onIconPress) {
@@ -82,12 +83,14 @@ class ThreeDotsMenu extends Component {
                             }}
                             ref={(el) => (this.button = el)}
                             style={[styles.touchableButtonImage, ...this.props.iconStyles]}
+                            accessibilityRole="button"
+                            accessibilityLabel={this.props.translate(this.props.iconTooltip)}
                         >
                             <Icon
                                 src={this.props.icon}
                                 fill={this.props.iconFill}
                             />
-                        </Pressable>
+                        </PressableWithoutFeedback>
                     </Tooltip>
                 </View>
                 <PopoverMenu

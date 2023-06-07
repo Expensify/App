@@ -1,10 +1,10 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
@@ -20,15 +20,29 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** Task title and description data */
+    task: PropTypes.shape({
+        title: PropTypes.string,
+        description: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     betas: [],
+    task: {},
 };
 
 const NewTaskPage = (props) => {
     const inputRef = useRef();
+    const [taskTitle, setTaskTitle] = useState(props.task.title);
+    const [taskDescription, setTaskDescription] = useState(props.task.description || '');
+
+    useEffect(() => {
+        setTaskTitle(props.task.title);
+        setTaskDescription(props.task.description || '');
+    }, [props.task]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -61,11 +75,11 @@ const NewTaskPage = (props) => {
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
         >
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
@@ -80,13 +94,16 @@ const NewTaskPage = (props) => {
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('newTaskPage.title')}
+                        value={taskTitle}
+                        onValueChange={(value) => setTaskTitle(value)}
                     />
                 </View>
                 <View style={styles.mb5}>
                     <TextInput
                         inputID="taskDescription"
-                        defaultValue=""
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        value={taskDescription}
+                        onValueChange={(value) => setTaskDescription(value)}
                     />
                 </View>
             </Form>
@@ -102,6 +119,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        task: {
+            key: ONYXKEYS.TASK,
         },
     }),
     withLocalize,

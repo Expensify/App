@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import TextInput from '../../components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
@@ -37,11 +37,11 @@ class MoneyRequestDescriptionPage extends Component {
     }
 
     /**
-     * Closes the modal and clears the description from Onyx.
+     * Goes back and clears the description from Onyx.
      */
-    onCloseButtonPress() {
+    onBackButtonPress() {
         IOU.setMoneyRequestDescription('');
-        Navigation.dismissModal();
+        Navigation.goBack();
     }
 
     /**
@@ -62,11 +62,9 @@ class MoneyRequestDescriptionPage extends Component {
                 shouldEnableMaxHeight
                 onEntryTransitionEnd={() => this.descriptionInputRef && this.descriptionInputRef.focus()}
             >
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('common.description')}
-                    shouldShowBackButton
-                    onBackButtonPress={Navigation.goBack}
-                    onCloseButtonPress={this.onCloseButtonPress}
+                    onBackButtonPress={this.onBackButtonPress}
                 />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
