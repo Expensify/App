@@ -14,6 +14,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 1,
             participants: ['tonystark@expensify.com', 'reedrichards@expensify.com'],
+            participantAccountIDs: [2, 1],
             reportName: 'Iron Man, Mister Fantastic',
             hasDraft: true,
         },
@@ -23,6 +24,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 2,
             participants: ['peterparker@expensify.com'],
+            participantAccountIDs: [3],
             reportName: 'Spider-Man',
         },
 
@@ -33,6 +35,7 @@ describe('OptionsListUtils', () => {
             isPinned: true,
             reportID: 3,
             participants: ['reedrichards@expensify.com'],
+            participantAccountIDs: [1],
             reportName: 'Mister Fantastic',
         },
         4: {
@@ -41,6 +44,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 4,
             participants: ['tchalla@expensify.com'],
+            participantAccountIDs: [4],
             reportName: 'Black Panther',
         },
         5: {
@@ -49,6 +53,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 5,
             participants: ['suestorm@expensify.com'],
+            participantAccountIDs: [5],
             reportName: 'Invisible Woman',
         },
         6: {
@@ -57,6 +62,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 6,
             participants: ['thor@expensify.com'],
+            participantAccountIDs: [6],
             reportName: 'Thor',
         },
 
@@ -67,6 +73,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 7,
             participants: ['steverogers@expensify.com'],
+            participantAccountIDs: [7],
             reportName: 'Captain America',
         },
 
@@ -77,6 +84,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 8,
             participants: ['galactus_herald@expensify.com'],
+            participantAccountIDs: [12],
             reportName: 'Silver Surfer',
         },
 
@@ -87,6 +95,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: 9,
             participants: ['mistersinister@marauders.com'],
+            participantAccountIDs: [8],
             reportName: 'Mister Sinister',
             iouReportID: 100,
             hasOutstandingIOU: true,
@@ -99,6 +108,7 @@ describe('OptionsListUtils', () => {
             reportID: 10,
             isPinned: false,
             participants: ['tonystark@expensify.com', 'steverogers@expensify.com'],
+            participantAccountIDs: [2, 7],
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,

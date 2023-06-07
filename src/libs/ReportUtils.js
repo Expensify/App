@@ -829,18 +829,16 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 /**
  * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
- * @param {String} login
+ * @param {String} accountID
  * @returns {Object}
  */
-function getPersonalDetailsForLogin(login) {
-    if (!login) {
+function getPersonalDetailsForAccountID(accountID) {
+    if (!accountID) {
         return {};
     }
     return (
-        (allPersonalDetails && allPersonalDetails[login]) || {
-            login,
-            displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            avatar: UserUtils.getDefaultAvatar(login),
+        (allPersonalDetails && allPersonalDetails[accountID]) || {
+            avatar: UserUtils.getDefaultAvatar(accountID),
         }
     );
 }
@@ -848,15 +846,15 @@ function getPersonalDetailsForLogin(login) {
 /**
  * Get the displayName for a single report participant.
  *
- * @param {String} login
+ * @param {String} accountID
  * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
-function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
-    if (!login) {
+function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
+    if (!accountID) {
         return '';
     }
-    const personalDetails = getPersonalDetailsForLogin(login);
+    const personalDetails = getPersonalDetailsForAccountID(accountID);
 
     const longName = personalDetails.displayName;
 
