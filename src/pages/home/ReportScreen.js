@@ -248,7 +248,6 @@ class ReportScreen extends React.Component {
         const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
-
         return (
             <ScreenWrapper style={screenWrapperStyle}>
                 <FullPageNotFoundView
@@ -263,7 +262,7 @@ class ReportScreen extends React.Component {
                         errors={addWorkspaceRoomOrChatErrors}
                         shouldShowErrorMessages={false}
                     >
-                        {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
+                        {ReportUtils.isMoneyRequestReport(this.props.report) || (isSingleTransactionView && !isDeletedParentAction) ? (
                             <MoneyRequestHeader
                                 report={this.props.report}
                                 policies={this.props.policies}
@@ -272,47 +271,12 @@ class ReportScreen extends React.Component {
                                 parentReportAction={parentReportAction}
                             />
                         ) : (
-                            <>
-                                <OfflineWithFeedback
-                                    pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                    errors={addWorkspaceRoomOrChatErrors}
-                                    shouldShowErrorMessages={false}
-                                >
-                                    {ReportUtils.isMoneyRequestReport(this.props.report) || (isSingleTransactionView && !isDeletedParentAction) ? (
-                                        <MoneyRequestHeader
-                                            report={this.props.report}
-                                            policies={this.props.policies}
-                                            personalDetails={this.props.personalDetails}
-                                            isSingleTransactionView={isSingleTransactionView}
-                                            parentReportAction={parentReportAction}
-                                        />
-                                    ) : (
-                                        <HeaderView
-                                            reportID={reportID}
-                                            onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
-                                            personalDetails={this.props.personalDetails}
-                                            report={this.props.report}
-                                        />
-                                    )}
-
-                                    {ReportUtils.isTaskReport(this.props.report) && (
-                                        <TaskHeader
-                                            report={this.props.report}
-                                            personalDetails={this.props.personalDetails}
-                                        />
-                                    )}
-                                </OfflineWithFeedback>
-                                {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
-                                    <Banner
-                                        containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                                        textStyles={[styles.colorReversed]}
-                                        text={this.props.translate('reportActionsView.chatWithAccountManager')}
-                                        onClose={this.dismissBanner}
-                                        onPress={this.chatWithAccountManager}
-                                        shouldShowCloseButton
-                                    />
-                                )}
-                            </>
+                            <HeaderView
+                                reportID={reportID}
+                                onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
+                                personalDetails={this.props.personalDetails}
+                                report={this.props.report}
+                            />
                         )}
 
                         {ReportUtils.isTaskReport(this.props.report) && (

@@ -25,16 +25,17 @@ Onyx.connect({
     callback: (val) => (allReports = val),
 });
 
-let allTransactions = {};
+let allTransactions;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
     callback: (val) => {
         if (!val) {
+            allTransactions = {};
             return;
         }
 
-        return allTransactions = val;
+        allTransactions = val;
     },
 });
 
