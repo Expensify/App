@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
+import ViewShot from 'react-native-view-shot';
 import fileDownload from '../../../libs/fileDownload';
 import QRShare from '..';
 import {qrShareDefaultProps, qrSharePropTypes} from '../propTypes';
 import getQrCodeFileName from '../getQrCodeDownloadFileName';
 
 class QRShareWithDownload extends Component {
-    qrShareRef = React.createRef();
+    qrCodeScreenshotRef = React.createRef();
 
     constructor(props) {
         super(props);
@@ -14,22 +15,17 @@ class QRShareWithDownload extends Component {
     }
 
     download() {
-        return new Promise((resolve, reject) => {
-            // eslint-disable-next-line es/no-optional-chaining
-            const svg = this.qrShareRef.current?.getSvg();
-            if (svg == null) return reject();
-
-            svg.toDataURL((dataURL) => resolve(fileDownload(dataURL, getQrCodeFileName(this.props.title))));
-        });
+        return this.qrCodeScreenshotRef.current.capture().then((uri) => fileDownload(uri, getQrCodeFileName(this.props.title)));
     }
 
     render() {
         return (
-            <QRShare
-                ref={this.qrShareRef}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-            />
+            <ViewShot ref={this.qrCodeScreenshotRef}>
+                <QRShare
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...this.props}
+                />
+            </ViewShot>
         );
     }
 }

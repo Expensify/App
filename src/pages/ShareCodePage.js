@@ -14,7 +14,6 @@ import * as ReportUtils from '../libs/ReportUtils';
 import MenuItem from '../components/MenuItem';
 import Clipboard from '../libs/Clipboard';
 import * as Expensicons from '../components/Icon/Expensicons';
-import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
 import ContextMenuItem from '../components/ContextMenuItem';
 import * as UserUtils from '../libs/UserUtils';
@@ -41,9 +40,6 @@ class ShareCodePage extends React.Component {
         const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
 
         const url = isReport ? `${CONST.NEW_EXPENSIFY_URL}r/${this.props.report.reportID}` : `${CONST.NEW_EXPENSIFY_URL}details?login=${encodeURIComponent(this.props.session.email)}`;
-
-        const platform = getPlatform();
-        const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
         return (
             <ScreenWrapper>
@@ -75,14 +71,12 @@ class ShareCodePage extends React.Component {
                             onPress={() => Clipboard.setString(url)}
                         />
 
-                        {isNative && (
-                            <MenuItem
-                                title={this.props.translate('common.download')}
-                                icon={Expensicons.Download}
-                                // eslint-disable-next-line es/no-optional-chaining
-                                onPress={() => this.qrCodeRef.current?.download()}
-                            />
-                        )}
+                        <MenuItem
+                            title={this.props.translate('common.download')}
+                            icon={Expensicons.Download}
+                            // eslint-disable-next-line es/no-optional-chaining
+                            onPress={() => this.qrCodeRef.current?.download()}
+                        />
                     </View>
                 </ScrollView>
             </ScreenWrapper>
