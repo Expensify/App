@@ -100,4 +100,24 @@ function isExpensifyTeam(email) {
  */
 const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
 
-export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam, isPolicyAdmin};
+/**
+ * @param {Object} policyMembers
+ * @param {Object} personalDetails
+ * @returns {Boolean}
+ *
+ * Create a list of member emails by filtering for members without errors, then mapping each policy member accountID to the login from the personalDetail object.
+ * TODO: Clean up uses of this function to work with accountIDs instead of emails.
+ *
+ * We filter clientMemberEmails to only pass members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
+ */
+function getClientPolicyMemberEmails(policyMembers, personalDetails) {
+    return _.chain(policyMembers)
+        .filter((member) => _.isEmpty(member.errors))
+        .keys()
+        .map((accountID) => personalDetails[accountID])
+        .compact()
+        .map((personalDetail) => personalDetail.login)
+        .value();
+}
+
+export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam, isPolicyAdmin, getClientPolicyMemberEmails};
