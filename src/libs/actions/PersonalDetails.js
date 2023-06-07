@@ -11,9 +11,13 @@ import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
 
 let currentUserEmail = '';
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => (currentUserEmail = val ? val.email : ''),
+    callback: (val) => {
+        currentUserEmail = val ? val.email : '';
+        currentUserAccountID = val ? val.accountID : -1;
+    },
 });
 
 let personalDetails;
@@ -104,7 +108,7 @@ function updatePronouns(pronouns) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             pronouns,
                         },
                     },
@@ -129,7 +133,7 @@ function updateDisplayName(firstName, lastName) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             firstName,
                             lastName,
                             displayName: getDisplayName(currentUserEmail, {
@@ -254,7 +258,7 @@ function updateAutomaticTimezone(timezone) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             timezone,
                         },
                     },
@@ -321,7 +325,7 @@ function updateAvatar(file) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserEmail]: {
+                [currentUserAccountID]: {
                     avatar: file.uri,
                     avatarThumbnail: file.uri,
                     originalFileName: file.name,
@@ -341,7 +345,7 @@ function updateAvatar(file) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserEmail]: {
+                [currentUserAccountID]: {
                     pendingFields: {
                         avatar: null,
                     },
@@ -354,9 +358,9 @@ function updateAvatar(file) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserEmail]: {
-                    avatar: personalDetails[currentUserEmail].avatar,
-                    avatarThumbnail: personalDetails[currentUserEmail].avatarThumbnail || personalDetails[currentUserEmail].avatar,
+                [currentUserAccountID]: {
+                    avatar: personalDetails[currentUserAccountID].avatar,
+                    avatarThumbnail: personalDetails[currentUserAccountID].avatarThumbnail || personalDetails[currentUserAccountID].avatar,
                     pendingFields: {
                         avatar: null,
                     },
@@ -373,7 +377,7 @@ function updateAvatar(file) {
  */
 function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserEmail);
+    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserAccountID);
 
     API.write(
         'DeleteUserAvatar',
@@ -384,7 +388,7 @@ function deleteAvatar() {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             avatar: defaultAvatar,
                         },
                     },
@@ -395,8 +399,8 @@ function deleteAvatar() {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
-                            avatar: personalDetails[currentUserEmail].avatar,
+                        [currentUserAccountID]: {
+                            avatar: personalDetails[currentUserAccountID].avatar,
                         },
                     },
                 },
@@ -410,7 +414,7 @@ function deleteAvatar() {
  */
 function clearAvatarErrors() {
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [currentUserEmail]: {
+        [currentUserAccountID]: {
             errorFields: {
                 avatar: null,
             },

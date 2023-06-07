@@ -24,7 +24,7 @@ let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserAccountID = lodashGet(val, 'accountID', -1);
         currentEmail = lodashGet(val, 'email', '');
     },
 });
@@ -33,11 +33,11 @@ let myPersonalDetails = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        if (!val || !currentEmail) {
+        if (!val || !currentUserAccountID) {
             return;
         }
 
-        myPersonalDetails = val[currentEmail];
+        myPersonalDetails = val[currentUserAccountID];
     },
 });
 
