@@ -99,7 +99,7 @@ class AddressPage extends Component {
 
         // Check "State" dropdown is a valid state if selected Country is USA.
         if (this.state.isUsaForm && !COMMON_CONST.STATES[values.state]) {
-            errors.state = this.props.translate('common.error.fieldRequired');
+            errors.state = 'common.error.fieldRequired';
         }
 
         // Add "Field required" errors if any required field is empty
@@ -107,7 +107,7 @@ class AddressPage extends Component {
             if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
                 return;
             }
-            errors[fieldKey] = this.props.translate('common.error.fieldRequired');
+            errors[fieldKey] = 'common.error.fieldRequired';
         });
 
         // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
@@ -120,13 +120,13 @@ class AddressPage extends Component {
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
                 if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
-                    errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
+                    errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', {zipFormat}];
                 } else {
-                    errors.zipPostCode = this.props.translate('common.error.fieldRequired');
+                    errors.zipPostCode = 'common.error.fieldRequired';
                 }
             }
         } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
-            errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat');
+            errors.zipPostCode = 'privatePersonalDetails.error.incorrectZipFormat';
         }
 
         return errors;

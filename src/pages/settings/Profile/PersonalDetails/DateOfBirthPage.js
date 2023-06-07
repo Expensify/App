@@ -56,7 +56,7 @@ const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
             const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
 
             if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-                errors.dob = translate('common.error.fieldRequired');
+                errors.dob = 'common.error.fieldRequired';
             }
             const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
             if (dateError) {
@@ -65,7 +65,7 @@ const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
 
             return errors;
         },
-        [translate],
+        [],
     );
 
     return (
