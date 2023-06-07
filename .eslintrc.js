@@ -9,21 +9,26 @@ module.exports = {
     globals: {
         __DEV__: 'readonly',
     },
-    rules: {
-        'import/extensions': 'off',
-        'no-restricted-imports': [
-            'error',
-            {
-                paths: [
+    overrides: [
+        {
+            files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
+            rules: {
+                'import/extensions': 'off',
+                'no-restricted-imports': [
+                    'error',
                     {
-                        name: 'react-native',
-                        importNames: ['useWindowDimensions'],
-                        message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead.',
-                    },
-                    {
-                        name: 'react-native',
-                        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
-                        message: 'Please use PressableWithFeedback and/or PressableWithoutFeedback from src/components/Pressable instead',
+                        paths: [
+                            {
+                                name: 'react-native',
+                                importNames: ['useWindowDimensions'],
+                                message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead.',
+                            },
+                            {
+                                name: 'react-native',
+                                importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
+                                message: 'Please use PressableWithFeedback and/or PressableWithoutFeedback from src/components/Pressable instead.',
+                            },
+                        ],
                     },
                     {
                         name: 'react-native',
@@ -32,9 +37,7 @@ module.exports = {
                     },
                 ],
             },
-        ],
-    },
-    overrides: [
+        },
         {
             files: ['*.ts', '*.tsx'],
             extends: ['expensify', 'airbnb-typescript', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
@@ -46,7 +49,6 @@ module.exports = {
             rules: {
                 'import/no-extraneous-dependencies': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
-                'react/jsx-filename-extension': [1, {extensions: ['.tsx', '.ts', '.jsx', '.js']}],
                 '@typescript-eslint/no-var-requires': 'off',
                 '@typescript-eslint/no-non-null-assertion': 'error',
                 '@typescript-eslint/no-explicit-any': 'error',
@@ -67,11 +69,6 @@ module.exports = {
                             {
                                 name: 'lodash/get',
                                 message: 'Please use optional chaining and nullish coalescing instead.',
-                            },
-                            {
-                                name: 'react-native',
-                                importNames: ['useWindowDimensions'],
-                                message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead.',
                             },
                         ],
                     },
