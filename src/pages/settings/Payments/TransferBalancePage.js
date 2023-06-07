@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -90,7 +90,7 @@ function TransferBalancePage(props) {
      * Get the selected/default payment method account for wallet transfer
      * @returns {Object|undefined}
      */
-    const getSelectedPaymentMethodAccount = useCallback(() => {
+    function getSelectedPaymentMethodAccount() {
         const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, props.cardList);
 
         const defaultAccount = _.find(paymentMethods, (method) => method.isDefault);
@@ -99,26 +99,12 @@ function TransferBalancePage(props) {
             (method) => method.accountType === props.walletTransfer.selectedAccountType && method.methodID === props.walletTransfer.selectedAccountID,
         );
         return selectedAccount || defaultAccount;
-    }, [props.bankAccountList, props.cardList, props.walletTransfer.selectedAccountType, props.walletTransfer.selectedAccountID]);
-
-    useEffect(() => {
-        // Reset to the default account when the page is opened
-        PaymentMethods.resetWalletTransferData();
-    }, []);
-
-    useEffect(() => {
-        const selectedAccount = getSelectedPaymentMethodAccount();
-        if (!selectedAccount || !selectedAccount.isDefault) {
-            return;
-        }
-
-        PaymentMethods.saveWalletTransferAccountTypeAndID(selectedAccount.accountType, selectedAccount.methodID);
-    }, [getSelectedPaymentMethodAccount]);
+    }
 
     /**
      * @param {String} filterPaymentMethodType
      */
-    const navigateToChooseTransferAccount = (filterPaymentMethodType) => {
+    function navigateToChooseTransferAccount(filterPaymentMethodType) {
         PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
@@ -132,7 +118,20 @@ function TransferBalancePage(props) {
         }
 
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
-    };
+    }
+
+    useEffect(() => {
+        // Reset to the default account when the page is opened
+        PaymentMethods.resetWalletTransferData();
+
+        const selectedAccount = getSelectedPaymentMethodAccount();
+        if (!selectedAccount) {
+            return;
+        }
+
+        PaymentMethods.saveWalletTransferAccountTypeAndID(selectedAccount.accountType, selectedAccount.methodID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to run on initial render
+    }, []);
 
     if (props.walletTransfer.shouldShowSuccess && !props.walletTransfer.loading) {
         return (
