@@ -131,7 +131,7 @@ const MenuItem = (props) => {
                                 <Text style={StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre)}>{props.label}</Text>
                             </View>
                         )}
-                        <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
+                        <View style={[styles.flexRow, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                             {Boolean(props.icon) && _.isArray(props.icon) && (
                                 <MultipleAvatars
                                     icons={props.icon}
