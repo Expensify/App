@@ -107,10 +107,8 @@ function ReportActionItemMessageEdit(props) {
             });
             return prevDraft;
         });
-    }, []);
 
-    useEffect(
-        () => () => {
+        return () => {
             // Skip if this is not the focused message so the other edit composer stays focused.
             if (!isFocused) {
                 return;
@@ -119,10 +117,9 @@ function ReportActionItemMessageEdit(props) {
             // Show the main composer when the focused message is deleted from another client
             // to prevent the main composer stays hidden until we swtich to another chat.
             ComposerActions.setShouldShowComposeInput(true);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- for willUnmount lifecycle
-        [],
-    );
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we need it to call it once on mount
+    }, []);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
@@ -140,25 +137,27 @@ function ReportActionItemMessageEdit(props) {
     /**
      * Update the value of the draft in Onyx
      *
-     * @param {String} newDraftValue
+     * @param {String} newDraftInput
      */
     const updateDraft = useCallback(
-        (newDraftValue) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftValue, props.isSmallScreenWidth, props.preferredSkinTone);
+        (newDraftInput) => {
+            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.isSmallScreenWidth, props.preferredSkinTone);
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
             }
-            if (newDraftValue !== newDraft) {
-                setSelection((prevSelection) => {
-                    const remainder = draft.slice(prevSelection.end).length;
-                    return {
-                        start: newDraft.length - remainder,
-                        end: newDraft.length - remainder,
-                    };
-                });
-            }
-            setDraft(newDraft);
+            setDraft((prevDraft) => {
+                if (newDraftInput !== newDraft) {
+                    setSelection((prevSelection) => {
+                        const remainder = prevDraft.slice(prevSelection.end).length;
+                        return {
+                            start: newDraft.length - remainder,
+                            end: newDraft.length - remainder,
+                        };
+                    });
+                }
+                return newDraft;
+            });
 
             // This component is rendered only when draft is set to a non-empty string. In order to prevent component
             // unmount when user deletes content of textarea, we set previous message instead of empty string.
@@ -169,7 +168,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, draft, debouncedSaveDraft, props.isSmallScreenWidth, props.preferredSkinTone],
+        [props.action.message, debouncedSaveDraft, props.isSmallScreenWidth, props.preferredSkinTone],
     );
 
     /**
@@ -218,16 +217,13 @@ function ReportActionItemMessageEdit(props) {
     /**
      * @param {String} emoji
      */
-    const addEmojiToTextBox = useCallback(
-        (emoji) => {
-            setSelection((prevSelection) => ({
-                start: prevSelection.start + emoji.length,
-                end: prevSelection.start + emoji.length,
-            }));
-            updateDraft(ComposerUtils.insertText(draft, selection, emoji));
-        },
-        [draft, selection, updateDraft],
-    );
+    const addEmojiToTextBox = (emoji) => {
+        setSelection((prevSelection) => ({
+            start: prevSelection.start + emoji.length,
+            end: prevSelection.start + emoji.length,
+        }));
+        updateDraft(ComposerUtils.insertText(draft, selection, emoji));
+    };
 
     /**
      * Key event handlers that short cut to saving/canceling.
