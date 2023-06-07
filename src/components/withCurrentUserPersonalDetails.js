@@ -36,7 +36,9 @@ export default function (WrappedComponent) {
     };
 
     const WithCurrentUserPersonalDetails = (props) => {
-        const currentUserPersonalDetails = useMemo(() => props.personalDetails[props.session.accountID], [props.personalDetails, props.session.accountID]);
+        const currentUserEmail = props.session.email;
+        const accountID = props.session.accountID;
+        const currentUserPersonalDetails = useMemo(() => ({...props.personalDetails[currentUserEmail], accountID}), [props.personalDetails, currentUserEmail, accountID]);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -62,7 +64,7 @@ export default function (WrappedComponent) {
 
     return withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
         session: {
             key: ONYXKEYS.SESSION,

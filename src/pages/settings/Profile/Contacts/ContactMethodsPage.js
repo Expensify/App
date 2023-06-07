@@ -7,7 +7,7 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '../../../../components/Button';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import CONST from '../../../../CONST';
@@ -112,11 +112,9 @@ const ContactMethodsPage = (props) => {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             <ScrollView>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
