@@ -54,7 +54,7 @@ function RigthModalNavigator() {
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
             />
-            <RootStack.Screen
+            <Stack.Screen
                 name="MoneyRequest"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.MoneyRequestModalStackNavigator}
