@@ -1154,10 +1154,11 @@ function getEmojiPickerListHeight(hasAdditionalSpace, windowHeight) {
     };
 
     if (windowHeight) {
-        const dim = hasAdditionalSpace ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT;
+        // dimensions of content above the emoji picker list
+        const dimensions = hasAdditionalSpace ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT;
         return {
             ...style,
-            maxHeight: windowHeight - dim,
+            maxHeight: windowHeight - dimensions,
         };
     }
     return style;
