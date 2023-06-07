@@ -6,13 +6,6 @@ module.exports = {
     env: {
         jest: true,
     },
-    settings: {
-        'import/resolver': {
-            node: {
-                extensions: ['.js', '.jsx', '.ts', '.tsx'],
-            },
-        },
-    },
     globals: {
         __DEV__: 'readonly',
     },
