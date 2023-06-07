@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -11,7 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import CONST from '../../CONST';
-import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
