@@ -10,6 +10,8 @@ import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 
+const propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
+
 const ImageRenderer = (props) => {
     const htmlAttribs = props.tnode.attributes;
 
@@ -82,7 +84,7 @@ const ImageRenderer = (props) => {
     );
 };
 
-ImageRenderer.propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
+ImageRenderer.propTypes = propTypes;
 ImageRenderer.displayName = 'ImageRenderer';
 
 export default withLocalize(ImageRenderer);
