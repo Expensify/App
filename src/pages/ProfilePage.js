@@ -10,7 +10,7 @@ import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import personalDetailsPropType from './personalDetailsPropType';
@@ -33,6 +33,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import BlockingView from '../components/BlockingViews/BlockingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
+import ROUTES from '../ROUTES';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -98,7 +99,6 @@ function ProfilePage(props) {
         PersonalDetails.openPublicProfilePage(accountID);
     }, [accountID]);
 
-    const reportID = lodashGet(props.route.params, 'reportID', '');
     const details = lodashGet(props.personalDetails, accountID, {});
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
@@ -108,7 +108,6 @@ function ProfilePage(props) {
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowBackButton = Boolean(reportID);
     const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([login]) && !_.isEmpty(timezone);
 
     let pronouns = lodashGet(details, 'pronouns', '');
@@ -127,11 +126,9 @@ function ProfilePage(props) {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                shouldShowBackButton={shouldShowBackButton}
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
             <View
                 pointerEvents="box-none"

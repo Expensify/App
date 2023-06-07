@@ -627,6 +627,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const YearPickerPage = require('../../../pages/YearPickerPage').default;
+            return YearPickerPage;
+        },
+        name: 'YearPicker_Root',
+    },
+    {
+        getComponent: () => {
             const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
             return SettingsTwoFactorAuthIsEnabled;
         },

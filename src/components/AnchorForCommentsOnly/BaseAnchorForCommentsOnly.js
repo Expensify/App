@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
@@ -21,6 +21,9 @@ const propTypes = {
     /** Press out handler for the link */
     onPressOut: PropTypes.func,
 
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...anchorForCommentsOnlyPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -28,6 +31,7 @@ const propTypes = {
 const defaultProps = {
     onPressIn: undefined,
     onPressOut: undefined,
+    containerStyles: [],
     ...anchorForCommentsOnlyDefaultProps,
 };
 
@@ -47,39 +51,41 @@ const BaseAnchorForCommentsOnly = (props) => {
     const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
-        <PressableWithSecondaryInteraction
-            inline
-            onSecondaryInteraction={(event) => {
-                ReportActionContextMenu.showContextMenu(
-                    isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
-                    event,
-                    props.href,
-                    lodashGet(linkRef, 'current'),
-                );
-            }}
-            onPress={linkProps.onPress}
-            onPressIn={props.onPressIn}
-            onPressOut={props.onPressOut}
-        >
-            <Tooltip text={props.href}>
-                <Text
-                    ref={(el) => (linkRef = el)}
-                    style={StyleSheet.flatten([props.style, defaultTextStyle])}
-                    accessibilityRole="link"
-                    hrefAttrs={{
-                        rel: props.rel,
-                        target: isEmail ? '_self' : props.target,
-                    }}
-                    href={linkProps.href}
-                    // Add testID so it gets selected as an anchor tag by SelectionScraper
-                    testID="a"
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
-                >
-                    {props.children}
-                </Text>
-            </Tooltip>
-        </PressableWithSecondaryInteraction>
+        <View style={[...props.containerStyles]}>
+            <PressableWithSecondaryInteraction
+                inline
+                onSecondaryInteraction={(event) => {
+                    ReportActionContextMenu.showContextMenu(
+                        isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                        event,
+                        props.href,
+                        lodashGet(linkRef, 'current'),
+                    );
+                }}
+                onPress={linkProps.onPress}
+                onPressIn={props.onPressIn}
+                onPressOut={props.onPressOut}
+            >
+                <Tooltip text={props.href}>
+                    <Text
+                        ref={(el) => (linkRef = el)}
+                        style={StyleSheet.flatten([props.style, defaultTextStyle])}
+                        accessibilityRole="link"
+                        hrefAttrs={{
+                            rel: props.rel,
+                            target: isEmail ? '_self' : props.target,
+                        }}
+                        href={linkProps.href}
+                        // Add testID so it gets selected as an anchor tag by SelectionScraper
+                        testID="a"
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...rest}
+                    >
+                        {props.children}
+                    </Text>
+                </Tooltip>
+            </PressableWithSecondaryInteraction>
+        </View>
     );
 };
 

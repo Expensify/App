@@ -2,11 +2,9 @@ import _, {compose} from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
@@ -15,6 +13,8 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as User from '../../../libs/actions/User';
 import CONST from '../../../CONST';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -48,11 +48,9 @@ const PriorityModePage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('priorityModePage.priorityMode')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
             <OptionsList
