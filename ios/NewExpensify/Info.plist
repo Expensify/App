@@ -23,8 +23,11 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
+		  <key>CFBundleTypeRole</key>
+      <string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
+			  <string>expensify-share</string>
 				<string>new-expensify</string>
 			</array>
 		</dict>
