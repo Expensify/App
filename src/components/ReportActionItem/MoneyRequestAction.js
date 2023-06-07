@@ -144,23 +144,21 @@ const MoneyRequestAction = (props) => {
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
     }
 
-    return (
-        isDeletedParentAction ? (
-            <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedRequest')}</comment>`} />
-        ) : (
-            <IOUPreview
-                iouReportID={props.requestReportID}
-                chatReportID={props.chatReportID}
-                isBillSplit={isSplitBillAction}
-                action={props.action}
-                contextMenuAnchor={props.contextMenuAnchor}
-                checkIfContextMenuActive={props.checkIfContextMenuActive}
-                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                onPreviewPressed={onIOUPreviewPressed}
-                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
-                isHovered={props.isHovered}
-            />
-        )
+    return isDeletedParentAction ? (
+        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedRequest')}</comment>`} />
+    ) : (
+        <IOUPreview
+            iouReportID={props.requestReportID}
+            chatReportID={props.chatReportID}
+            isBillSplit={isSplitBillAction}
+            action={props.action}
+            contextMenuAnchor={props.contextMenuAnchor}
+            checkIfContextMenuActive={props.checkIfContextMenuActive}
+            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+            onPreviewPressed={onIOUPreviewPressed}
+            containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
+            isHovered={props.isHovered}
+        />
     );
 };
 
