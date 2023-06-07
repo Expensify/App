@@ -143,15 +143,7 @@ function MoneyRequestConfirmationList(props) {
     }, [props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(participants, (participant) => participant.selected), [participants]);
-
-    /**
-     * Returns the participants without amount
-     *
-     * @param {Array} participants
-     * @returns {Array}
-     */
     const getParticipantsWithoutAmount = useCallback((participantsList) => _.map(participantsList, (option) => _.omit(option, 'descriptiveText')), []);
-
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
 
     const optionSelectorSections = useMemo(() => {
