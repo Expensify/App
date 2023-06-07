@@ -447,7 +447,7 @@ function ReportActionItem(props) {
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
-                                hideOnDelete={!ReportActionsUtils.hasCommentThread(props.action)}
+                                shouldHideOnDelete={!ReportActionsUtils.hasCommentThread(props.action)}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}

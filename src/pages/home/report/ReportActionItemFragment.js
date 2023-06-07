@@ -97,8 +97,10 @@ const ReportActionItemFragment = (props) => {
             }
             const {html, text} = props.fragment;
 
-            // Threaded messages display a [Deleted message] note instead of being hidden altogether.
-            // When not offline we want to immediately display this message whilst the delete action is pending
+            // Threaded messages display "[Deleted message]" instead of being hidden altogether.
+            // While offline we display the previous message with a strikethrough style. Once online we want to
+            // immediately display "[Deleted message]" while the delete action is pending.
+
             if ((!props.network.isOffline && props.hasCommentThread && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
