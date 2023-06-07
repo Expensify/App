@@ -58,19 +58,21 @@ class CalendarPicker extends React.PureComponent {
         throw new Error('Minimum date cannot be greater than the maximum date.');
     }
 
-    componentDidUpdate(prevProps) {
-        // Check if selectedYear has changed
-        if (this.props.selectedYear === prevProps.selectedYear) {
+    componentDidUpdate(prevProps, prevState) {
+        // if the selectedYear prop or state has changed, update the currentDateView state with the new year value
+        if (this.props.selectedYear === prevProps.selectedYear && prevState.selectedYear === this.state.selectedYear) {
             return;
         }
 
-        // If the selectedYear prop has changed, update the currentDateView state with the new year value
+        // If we changed the prop for selectedYear, update the state to match it, otherwise use the state value
+        const newSelectedYear = this.props.selectedYear !== prevProps.selectedYear ? this.props.selectedYear : this.state.selectedYear;
+
         this.setState(
             (prev) => {
-                const newMomentDate = moment(prev.currentDateView).set('year', this.props.selectedYear);
+                const newMomentDate = moment(prev.currentDateView).set('year', newSelectedYear);
 
                 return {
-                    selectedYear: this.props.selectedYear,
+                    selectedYear: newSelectedYear,
                     currentDateView: this.clampDate(newMomentDate.toDate()),
                 };
             },
