@@ -8,6 +8,8 @@ import withWindowDimensions from '../withWindowDimensions';
 import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import compose from '../../libs/compose';
+import withLocalize from '../withLocalize';
 
 /**
  * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
@@ -137,7 +139,7 @@ class Tooltip extends PureComponent {
                         renderTooltipContent={this.props.renderTooltipContent}
                         // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                         // This prevents flickering/moving while remaining performant.
-                        key={[this.props.text, ...this.props.renderTooltipContentKey]}
+                        key={[this.props.text, ...this.props.renderTooltipContentKey, this.props.preferredLocale]}
                     />
                 )}
                 <BoundsObserver
@@ -158,4 +160,4 @@ class Tooltip extends PureComponent {
 
 Tooltip.propTypes = tooltipPropTypes.propTypes;
 Tooltip.defaultProps = tooltipPropTypes.defaultProps;
-export default withWindowDimensions(Tooltip);
+export default compose(withWindowDimensions, withLocalize)(Tooltip);
