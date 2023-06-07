@@ -474,6 +474,11 @@ const CONST = {
     GOOGLE_SIGN_IN_WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
     GOOGLE_SIGN_IN_IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
 
+    SIGN_IN_METHOD: {
+        APPLE: 'apple',
+        GOOGLE: 'google',
+    },
+
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -801,6 +806,7 @@ const CONST = {
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
         URL: 'url',
+        DEFAULT: 'default',
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
@@ -2447,6 +2453,12 @@ const CONST = {
         FLAG_SEVERITY_BULLYING: 'bullying',
         FLAG_SEVERITY_HARASSMENT: 'harassment',
         FLAG_SEVERITY_ASSAULT: 'assault',
+    },
+    QR: {
+        DEFAULT_LOGO_SIZE_RATIO: 0.25,
+        DEFAULT_LOGO_MARGIN_RATIO: 0.02,
+        EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
+        EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
 };
 

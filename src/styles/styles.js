@@ -259,6 +259,14 @@ const styles = {
         textDecorationLine: 'underline',
     },
 
+    textUnderlinePositionUnder: {
+        textUnderlinePosition: 'under',
+    },
+
+    textDecorationSkipInkNone: {
+        textDecorationSkipInk: 'none',
+    },
+
     label: {
         fontSize: variables.fontSizeLabel,
         lineHeight: variables.lineHeightLarge,
@@ -3415,6 +3423,7 @@ const styles = {
 
     signInButtonBase: {
         margin: 10,
+        marginTop: 0,
         padding: 2,
     },
 };
