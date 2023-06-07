@@ -26,11 +26,14 @@ const defaultProps = {
     userTypingStatuses: {},
 };
 
-const ReportTypingIndicator = (props) => {
-    const [usersTyping, setUsersTyping] = useState(props.userTypingStatuses ? _.filter(_.keys(props.userTypingStatuses), (login) => props.userTypingStatuses[login]) : []);
+const getUserTypingStatuses = (userTypingStatuses) => _.filter(_.keys(userTypingStatuses), (login) => userTypingStatuses[login]);
+
+function ReportTypingIndicator(props) {   
+ 
+    const [usersTyping, setUsersTyping] = useState(props.userTypingStatuses ? getUserTypingStatuses(props.userTypingStatuses) : []);
 
     useEffect(() => {
-        setUsersTyping(_.filter(_.keys(props.userTypingStatuses), (login) => props.userTypingStatuses[login]));
+        setUsersTyping(getUserTypingStatuses(props.userTypingStatuses));
     }, [props.userTypingStatuses]);
 
     // If we are offline, the user typing statuses are not up-to-date so do not show them
@@ -67,7 +70,7 @@ const ReportTypingIndicator = (props) => {
                 </Text>
             );
     }
-};
+}
 
 ReportTypingIndicator.propTypes = propTypes;
 ReportTypingIndicator.defaultProps = defaultProps;
