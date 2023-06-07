@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {Component} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -38,8 +38,8 @@ function DisplayNamePage(props) {
      */
     const updateDisplayName = (values) => {
         PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
-    }
-    
+    };
+
     /**
      * @param {Object} values
      * @param {String} values.firstName
@@ -63,7 +63,7 @@ function DisplayNamePage(props) {
         }
 
         return errors;
-    }
+    };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
