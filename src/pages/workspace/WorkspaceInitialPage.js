@@ -164,7 +164,7 @@ const WorkspaceInitialPage = (props) => {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithBackButton
                         title={props.translate('workspace.common.workspace')}
