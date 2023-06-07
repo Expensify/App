@@ -40,11 +40,6 @@ jobs:
         uses: ArekChr/App/.github/actions/javascript/validateReassureOutput@feat/reassure
         with:
           DURATION_DEVIATION_PERCENTAGE: 20
-          COUNT_DEVIATION: 1
+          COUNT_DEVIATION: 0
           REGRESSION_OUTPUT: ${{ steps.reassure.outputs.content }}
 
-      - name: Add comment to PR
-        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
-        with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          body: ${{ steps.reassure.outputs.content }}

@@ -30,7 +30,7 @@ const run = () => {
         console.log(`Processing measurement ${i + 1}: ${measurement.name}`);
 
         const renderCountDiff = current.meanCount - baseline.meanCount;
-        if (renderCountDiff >= countDeviation) {
+        if (renderCountDiff > countDeviation) {
             core.setFailed(`Render count difference exceeded the allowed deviation of ${countDeviation}. Current difference: ${renderCountDiff}`);
             break;
         } else {
