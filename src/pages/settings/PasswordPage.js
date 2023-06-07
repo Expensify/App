@@ -78,10 +78,7 @@ class PasswordPage extends Component {
      * @returns {String}
      */
     getErrorText(field) {
-        if (this.state.errors[field]) {
-            return this.props.translate(this.errorKeysMap[field]);
-        }
-        return '';
+        return this.state.errors[field] ? this.errorKeysMap[field] : '';
     }
 
     /**
@@ -198,7 +195,9 @@ class PasswordPage extends Component {
                                     onChangeText={(text) => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
                                     onSubmitEditing={this.submit}
                                 />
-                                {shouldShowNewPasswordPrompt && <Text style={[styles.textLabelSupporting, styles.mt1]}>{this.props.translate('passwordPage.newPasswordPrompt')}</Text>}
+                                {shouldShowNewPasswordPrompt && <Text style={[styles.textLabelSupporting, styles.mt1]}>
+                                    {this.props.translate('passwordPage.newPasswordPrompt')}
+                                </Text>}
                             </View>
                             {_.every(this.state.errors, (error) => !error) && !_.isEmpty(this.props.account.errors) && (
                                 <FormHelpMessage
