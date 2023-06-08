@@ -28,8 +28,6 @@ const defaultProps = {
 };
 
 function PronounsPage(props) {
-    const {currentUserPersonalDetails, translate} = props;
-
     const [initiallyFocusedOption, setInitiallyFocusedOption] = useState({});
     const [searchValue, setSearchValue] = useState('');
     const [pronounsList, setPronounsList] = useState([]);
@@ -40,9 +38,9 @@ function PronounsPage(props) {
      * @returns {void}
      */
     const loadPronouns = useCallback(() => {
-        const currentPronouns = lodashGet(currentUserPersonalDetails, 'pronouns', '');
+        const currentPronouns = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
 
-        const pronouns = _.chain(translate('pronouns'))
+        const pronouns = _.chain(props.translate('pronouns'))
             .map((value, key) => {
                 const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${key}`;
                 const isCurrentPronouns = fullPronounKey === currentPronouns;
@@ -70,7 +68,7 @@ function PronounsPage(props) {
             .value();
 
         setPronounsList(pronouns);
-    }, [currentUserPersonalDetails, translate]);
+    }, [props]);
 
     const onChangeText = (value = '') => {
         setSearchValue(value);
@@ -95,10 +93,7 @@ function PronounsPage(props) {
         return _.filter(pronounsList, (pronous) => pronous.text.toLowerCase().indexOf(searchedValue.toLowerCase()) >= 0);
     }, [pronounsList, searchValue]);
 
-    const headerMessage = useMemo(
-        () => (searchValue.trim() && !filteredPronounsList.length ? translate('common.noResultsFound') : ''),
-        [filteredPronounsList.length, searchValue, translate],
-    );
+    const headerMessage = searchValue.trim() && !filteredPronounsList.length ? props.translate('common.noResultsFound') : '';
 
     useEffect(() => {
         setSearchValue(initiallyFocusedOption.text);
@@ -114,13 +109,13 @@ function PronounsPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={translate('pronounsPage.pronouns')}
+                        title={props.translate('pronounsPage.pronouns')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
                     />
-                    <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
+                    <Text style={[styles.ph5, styles.mb3]}>{props.translate('pronounsPage.isShownOnProfile')}</Text>
                     <OptionsSelector
-                        textInputLabel={translate('pronounsPage.pronouns')}
-                        placeholderText={translate('pronounsPage.placeholderText')}
+                        textInputLabel={props.translate('pronounsPage.pronouns')}
+                        placeholderText={props.translate('pronounsPage.placeholderText')}
                         headerMessage={headerMessage}
                         sections={[{data: filteredPronounsList, indexOffset: 0}]}
                         value={searchValue}
