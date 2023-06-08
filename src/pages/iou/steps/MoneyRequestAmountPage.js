@@ -104,8 +104,11 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidMount() {
-        if (this.isEditing && (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0)) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
+        if (this.isEditing) {
+            if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0) {
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
+                return;
+            }
         } else {
             // Initialize money request data
             IOU.setMoneyRequestAmount(0);
