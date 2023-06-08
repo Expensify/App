@@ -117,12 +117,12 @@ const ReportPreview = (props) => {
                     <View style={[styles.flexShrink1]}>
                         {props.iouReport.hasOutstandingIOU ? (
                             <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                {lodashGet(message, 'html', props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount}))}
+                                {props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount})}
                             </Text>
                         ) : (
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                    {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
+                                    {props.translate('iou.payerSettled', {amount: reportAmount})}
                                 </Text>
                                 {!props.iouReport.hasOutstandingIOU && (
                                     <View style={styles.iouPreviewBoxCheckmark}>
