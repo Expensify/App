@@ -41,7 +41,10 @@ class RequestorOnfidoStep extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldShowOfflineIndicator={false}
+            >
                 <HeaderWithBackButton
                     title={this.props.translate('requestorStep.headerTitle')}
                     stepCounter={{step: 3, total: 5}}
