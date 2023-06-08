@@ -288,7 +288,7 @@ const MoneyRequestModal = (props) => {
 
             IOU.requestMoney(props.report, amount, props.iou.selectedCurrencyCode, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, selectedParticipants[0], trimmedComment);
         },
-        [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.report, props.route],
+        [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.report, props.route],
     );
 
     const currentStep = steps[currentStepIndex];

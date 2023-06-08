@@ -83,7 +83,7 @@ function getDefaultAvatar(accountID = -1) {
     if (accountID <= 0) {
         return Expensicons.FallbackAvatar;
     }
-    if (accountID == CONST.ACCOUNT_ID.CONCIERGE) {
+    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return Expensicons.ConciergeAvatar;
     }
 

@@ -27,11 +27,12 @@ function clearOutTaskInfo() {
  * @param {String} parentReportID
  * @param {String} title
  * @param {String} description
+ * @param {String} assignee
  * @param {Number} assigneeAccountID
  *
  */
 
-function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentReportID, title, description, assigneeAccountID = 0) {
+function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentReportID, title, description, assignee, assigneeAccountID = 0) {
     // Create the task report
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
@@ -41,12 +42,12 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
     const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
     }
 
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `Created a task: ${title}`, parentReportID);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Created a task: ${title}`, parentReportID);
 
     const currentTime = DateUtils.getDBTime();
 
@@ -161,6 +162,7 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
             reportName: optimisticTaskReport.reportName,
             title: optimisticTaskReport.reportName,
             description: optimisticTaskReport.description,
+            assignee,
             assigneeAccountID,
             assigneeChatReportID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
@@ -285,12 +287,13 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {Number} ownerAccountID
  * @param {string} title
  * @param {string} description
+ * @param {String} assignee
  * @param {Number} assigneeAccountID
  * @returns {object} action
  *
  */
 
-function editTaskAndNavigate(report, ownerEmail, ownerAccountID, title, description, assigneeAccountID) {
+function editTaskAndNavigate(report, ownerEmail, ownerAccountID, title, description, assignee, assigneeAccountID = 0) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
@@ -303,7 +306,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, title, descript
     if (assigneeAccountID && assigneeAccountID !== report.managerID) {
         assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID]).reportID;
         if (assigneeChatReportID !== report.parentReportID.toString()) {
-            optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, reportName, assigneeAccountID, `Assigned a task to you: ${reportName}`);
+            optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, reportName, assignee, assigneeAccountID, `Assigned a task to you: ${reportName}`);
         }
     }
 
@@ -434,16 +437,23 @@ function setShareDestinationValue(shareDestination) {
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  * @param {string} assignee
+ * @param {Number} assigneeAccountID
  * @param {string} shareDestination
  * @param {boolean} isCurrentUser
  */
 
-function setAssigneeValue(assignee, shareDestination, isCurrentUser = false) {
+function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurrentUser = false) {
+    let newAssigneeAccountID = assigneeAccountID;
+
+    // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
+    if (!newAssigneeAccountID) {
+        newAssigneeAccountID = UserUtils.generateAccountID();
+    }
     if (!isCurrentUser) {
         let newChat = {};
-        const chat = ReportUtils.getChatByParticipants([assignee]);
+        const chat = ReportUtils.getChatByParticipants([newAssigneeAccountID]);
         if (!chat) {
-            newChat = ReportUtils.buildOptimisticChatReport([assignee]);
+            newChat = ReportUtils.buildOptimisticChatReport([newAssigneeAccountID]);
         }
         const reportID = chat ? chat.reportID : newChat.reportID;
 
@@ -455,7 +465,7 @@ function setAssigneeValue(assignee, shareDestination, isCurrentUser = false) {
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {assignee});
+    Onyx.merge(ONYXKEYS.TASK, {assignee, newAssigneeAccountID});
 }
 
 /**
