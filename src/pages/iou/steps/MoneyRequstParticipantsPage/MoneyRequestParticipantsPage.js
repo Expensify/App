@@ -43,7 +43,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
 };
 
-const MoneyRequestParticipantsPage = (props) => {
+function MoneyRequestParticipantsPage(props) {
     if (props.iou.loading) {
         return (
             <View style={styles.flex1}>
