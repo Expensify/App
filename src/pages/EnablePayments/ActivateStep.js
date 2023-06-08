@@ -2,8 +2,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FireworksAnimation from '../../../assets/animations/Fireworks.json';
 import ReviewingBankInfoAnimation from '../../../assets/animations/ReviewingBankInfo.json';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import userWalletPropTypes from './userWalletPropTypes';
 import CONST from '../../CONST';
@@ -37,12 +36,7 @@ const ActivateStep = (props) => {
 
     return (
         <>
-            <HeaderWithCloseButton
-                title={props.translate('activateStep.headerTitle')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButton title={props.translate('activateStep.headerTitle')} />
             <ConfirmationPage
                 animation={animation}
                 heading={props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Title`)}

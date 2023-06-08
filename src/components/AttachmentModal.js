@@ -16,7 +16,7 @@ import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
@@ -276,11 +276,14 @@ class AttachmentModal extends PureComponent {
                     propagateSwipe
                 >
                     {this.props.isSmallScreenWidth && <HeaderGap />}
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
                         onDownloadButtonPress={this.downloadAttachment}
+                        shouldShowCloseButton={!this.props.isSmallScreenWidth}
+                        shouldShowBackButton={this.props.isSmallScreenWidth}
+                        onBackButtonPress={() => this.setState({isModalOpen: false})}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
