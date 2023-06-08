@@ -31,6 +31,7 @@ const defaultProps = {
 };
 
 const TextLink = (props) => {
+    const rest = _.omit(props, _.keys(propTypes));
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
     /**
@@ -64,6 +65,8 @@ const TextLink = (props) => {
             onPress={openLink}
             onMouseDown={props.onMouseDown}
             onKeyDown={openLinkIfEnterKeyPressed}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
         >
             {props.children}
         </Text>

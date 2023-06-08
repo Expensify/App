@@ -9,6 +9,7 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../pages/personalDetailsPropType';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import TextLink from "../../TextLink";
 
 const propTypes = {
     ...htmlRendererPropTypes,
@@ -30,22 +31,23 @@ const MentionUserRenderer = (props) => {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
 
     // We need to remove the leading @ from data as it is not part of the login
-    const loginWhithoutLeadingAt = props.tnode.data.slice(1);
+    const loginWithoutLeadingAt = props.tnode.data.slice(1);
 
-    const isOurMention = loginWhithoutLeadingAt === props.currentUserPersonalDetails.login;
+    const isOurMention = loginWithoutLeadingAt === props.currentUserPersonalDetails.login;
 
     return (
         <Text>
-            <Tooltip text={loginWhithoutLeadingAt}>
-                <Text
+            <Tooltip text={loginWithoutLeadingAt}>
+                <TextLink
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
+                    href={ROUTES.getDetailsRoute(loginWithoutLeadingAt)}
                     color={StyleUtils.getMentionTextColor(isOurMention)}
                     style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention)]}
-                    onPress={() => showUserDetails(loginWhithoutLeadingAt)}
+                    onPress={() => showUserDetails(loginWithoutLeadingAt)}
                 >
                     <TNodeChildrenRenderer tnode={props.tnode} />
-                </Text>
+                </TextLink>
             </Tooltip>
         </Text>
     );
