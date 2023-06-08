@@ -1765,11 +1765,11 @@ function hasOutstandingIOU(report, iouReports) {
     }
 
     const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-    if (!iouReport || !iouReport.ownerEmail) {
+    if (!iouReport || !iouReport.ownerAccountID) {
         return false;
     }
 
-    if (iouReport.ownerEmail === currentUserEmail) {
+    if (iouReport.ownerAccountID === currentUserAccountID) {
         return false;
     }
 
@@ -1786,7 +1786,7 @@ function isIOUOwnedByCurrentUser(report, iouReports = {}) {
     if (report.hasOutstandingIOU) {
         const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
-            return iouReport.ownerEmail === currentUserEmail;
+            return iouReport.ownerAccountID === currentUserAccountID;
         }
     }
     return false;
@@ -1813,11 +1813,13 @@ function canSeeDefaultRoom(report, policies, betas) {
     }
 
     // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
+    // TODO: figure out how we can determine accountIDs of "expensify emails"
     if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participants'], []))) {
         return true;
     }
 
     // If the room has an assigned guide, it can be seen.
+    // TODO: figure out how we can determine accountIDs of "expensify emails"
     if (hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
         return true;
     }
