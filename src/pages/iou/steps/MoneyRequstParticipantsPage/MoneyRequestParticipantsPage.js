@@ -67,7 +67,7 @@ function MoneyRequestParticipantsPage(props) {
             iouType={props.iouType}
         />
     );
-};
+}
 
 MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
