@@ -49,18 +49,15 @@ const propTypes = {
     /* Onyx Props */
 
     /** The personal details of all users */
-    personalDetails: personalDetailsPropType,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** Route params */
     route: matchType.isRequired,
 
     /** Login list for the user that is signed in */
     loginList: PropTypes.shape({
-        /** Date login was validated, used to show info indicator status */
-        validatedDate: PropTypes.string,
-
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        /** Phone/Email associated with user */
+        partnerUserID: PropTypes.string,
     }),
 
     ...withLocalizePropTypes,
@@ -95,8 +92,11 @@ const getPhoneNumber = (details) => {
 function ProfilePage(props) {
     const accountID = lodashGet(props.route.params, 'accountID', 0);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        PersonalDetails.openPublicProfilePage(accountID);
+        if (accountID > 0) {
+            PersonalDetails.openPublicProfilePage(accountID);
+        }
     }, [accountID]);
 
     const details = lodashGet(props.personalDetails, accountID, {});
@@ -122,7 +122,10 @@ function ProfilePage(props) {
 
     const isCurrentUser = _.keys(props.loginList).includes(login);
     const hasMinimumDetails = !_.isEmpty(details.avatar);
-    const isLoading = lodashGet(details, 'isLoading', false);
+    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
+
+    // If they API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
+    const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
 
     return (
         <ScreenWrapper>
@@ -207,7 +210,7 @@ function ProfilePage(props) {
                     </ScrollView>
                 )}
                 {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
-                {!hasMinimumDetails && !isLoading && (
+                {shouldShowBlockingView && (
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
