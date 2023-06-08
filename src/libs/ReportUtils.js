@@ -21,6 +21,7 @@ import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAva
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import {getParentReportAction} from './ReportActionsUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -533,17 +534,41 @@ function isThreadFirstChat(reportAction, reportID) {
 }
 
 /**
+ * Get the displayName for a single report participant.
+ *
+ * @param {String} login
+ * @param {Boolean} [shouldUseShortForm]
+ * @returns {String}
+ */
+function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
+    if (!login) {
+        return '';
+    }
+    const personalDetails = getPersonalDetailsForLogin(login);
+
+    const longName = personalDetails.displayName;
+
+    const shortName = personalDetails.firstName || longName;
+
+    return shouldUseShortForm ? shortName : longName;
+}
+
+/**
  * Get either the policyName or domainName the chat is tied to
  * @param {Object} report
  * @returns {String}
  */
 function getChatRoomSubtitle(report) {
     if (isThread(report)) {
-        if (!getChatType(report)) {
-            return '';
+        if (report.reportID === '2514886886252447') {
+            debugger;
         }
 
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        if (!getChatType(report)) {
+            const parentReportAction = getParentReportAction(report);
+            return `From ${getDisplayNameForParticipant(parentReportAction.actorEmail)}`;
+        }
 
         // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
         const workspaceName = getPolicyName(report);
@@ -843,26 +868,6 @@ function getPersonalDetailsForLogin(login) {
             avatar: UserUtils.getDefaultAvatar(login),
         }
     );
-}
-
-/**
- * Get the displayName for a single report participant.
- *
- * @param {String} login
- * @param {Boolean} [shouldUseShortForm]
- * @returns {String}
- */
-function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
-    if (!login) {
-        return '';
-    }
-    const personalDetails = getPersonalDetailsForLogin(login);
-
-    const longName = personalDetails.displayName;
-
-    const shortName = personalDetails.firstName || longName;
-
-    return shouldUseShortForm ? shortName : longName;
 }
 
 /**
