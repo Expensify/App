@@ -143,7 +143,7 @@ class DetailsPage extends React.PureComponent {
                                 <View style={styles.avatarSectionWrapper}>
                                     <AttachmentModal
                                         headerTitle={details.displayName}
-                                        source={UserUtils.getFullSizeAvatar(details.avatar, details.login)}
+                                        source={UserUtils.getFullSizeAvatar(details.avatar, details.accountID)}
                                         isAuthTokenRequired
                                         originalFileName={details.originalFileName}
                                     >
@@ -156,7 +156,7 @@ class DetailsPage extends React.PureComponent {
                                                     <Avatar
                                                         containerStyles={[styles.avatarLarge, styles.mb3]}
                                                         imageStyles={[styles.avatarLarge]}
-                                                        source={UserUtils.getAvatar(details.avatar, details.login)}
+                                                        source={UserUtils.getAvatar(details.avatar, details.accountID)}
                                                         size={CONST.AVATAR_SIZE.LARGE}
                                                     />
                                                 </OfflineWithFeedback>
