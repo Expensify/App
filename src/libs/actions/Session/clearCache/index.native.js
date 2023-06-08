@@ -1,6 +1,6 @@
 import {CachesDirectoryPath, unlink} from 'react-native-fs';
 
-function clearStorage () {
+function clearStorage() {
     return unlink(CachesDirectoryPath);
 }
 
