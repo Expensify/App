@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
@@ -16,60 +16,52 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class ParticipantLocalTime extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.getParticipantLocalTime = this.getParticipantLocalTime.bind(this);
-        this.state = {
-            localTime: this.getParticipantLocalTime(),
-        };
-    }
+function getParticipantLocalTime(participant, preferredLocale) {
+    const reportRecipientTimezone = lodashGet(participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
+    const reportTimezone = DateUtils.getLocalMomentFromDatetime(preferredLocale, null, reportRecipientTimezone.selected);
+    const currentTimezone = DateUtils.getLocalMomentFromDatetime(preferredLocale);
+    const reportRecipientDay = reportTimezone.format('dddd');
+    const currentUserDay = currentTimezone.format('dddd');
 
-    componentDidMount() {
-        this.timer = Timers.register(
+    if (reportRecipientDay !== currentUserDay) {
+        return `${reportTimezone.format('LT')} ${reportRecipientDay}`;
+    }
+    return `${reportTimezone.format('LT')}`;
+}
+
+function ParticipantLocalTime(props) {
+    const {participant, preferredLocale, translate} = props;
+
+    const [localTime, setLocalTime] = useState(() => getParticipantLocalTime(participant, preferredLocale));
+    useEffect(() => {
+        const timer = Timers.register(
             setInterval(() => {
-                this.setState({
-                    localTime: this.getParticipantLocalTime(),
-                });
+                setLocalTime(getParticipantLocalTime(participant, preferredLocale));
             }, 1000),
         );
-    }
+        return () => {
+            clearInterval(timer);
+        };
+    }, [participant, preferredLocale]);
 
-    componentWillUnmount() {
-        clearInterval(this.timer);
-    }
+    const reportRecipientDisplayName = lodashGet(props, 'participant.firstName') || lodashGet(props, 'participant.displayName');
 
-    getParticipantLocalTime() {
-        const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        const reportTimezone = DateUtils.getLocalMomentFromDatetime(this.props.preferredLocale, null, reportRecipientTimezone.selected);
-        const currentTimezone = DateUtils.getLocalMomentFromDatetime(this.props.preferredLocale);
-        const reportRecipientDay = reportTimezone.format('dddd');
-        const currentUserDay = currentTimezone.format('dddd');
-
-        if (reportRecipientDay !== currentUserDay) {
-            return `${reportTimezone.format('LT')} ${reportRecipientDay}`;
-        }
-        return `${reportTimezone.format('LT')}`;
-    }
-
-    render() {
-        const reportRecipientDisplayName = lodashGet(this.props, 'participant.firstName') || lodashGet(this.props, 'participant.displayName');
-
-        return (
-            <View style={[styles.chatItemComposeSecondaryRow]}>
-                <Text
-                    style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset, styles.pre]}
-                    numberOfLines={1}
-                >
-                    {this.props.translate('reportActionCompose.localTime', {
-                        user: reportRecipientDisplayName,
-                        time: this.state.localTime,
-                    })}
-                </Text>
-            </View>
-        );
-    }
+    return (
+        <View style={[styles.chatItemComposeSecondaryRow]}>
+            <Text
+                style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset, styles.pre]}
+                numberOfLines={1}
+            >
+                {translate('reportActionCompose.localTime', {
+                    user: reportRecipientDisplayName,
+                    time: localTime,
+                })}
+            </Text>
+        </View>
+    );
 }
 
 ParticipantLocalTime.propTypes = propTypes;
+ParticipantLocalTime.displayName = 'ParticipantLocalTime';
+
 export default withLocalize(ParticipantLocalTime);
