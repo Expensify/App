@@ -1,5 +1,4 @@
-import React, {useRef} from 'react';
-import {Pressable} from 'react-native';
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -9,6 +8,7 @@ import Tooltip from '../Tooltip';
 import Icon from '../Icon';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Flag to disable the emoji picker button */
@@ -29,7 +29,7 @@ const EmojiPickerButton = (props) => {
     const emojiPopoverAnchor = useRef(null);
     return (
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
-            <Pressable
+            <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
@@ -41,6 +41,7 @@ const EmojiPickerButton = (props) => {
                     }
                 }}
                 nativeID={props.nativeID}
+                accessibilityLabel={props.translate('reportActionCompose.emoji')}
             >
                 {({hovered, pressed}) => (
                     <Icon
@@ -48,7 +49,7 @@ const EmojiPickerButton = (props) => {
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                     />
                 )}
-            </Pressable>
+            </PressableWithoutFeedback>
         </Tooltip>
     );
 };

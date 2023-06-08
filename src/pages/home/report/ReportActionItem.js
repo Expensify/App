@@ -10,6 +10,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import Hoverable from '../../../components/Hoverable';
+import Button from '../../../components/Button';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
 import MoneyRequestAction from '../../../components/ReportActionItem/MoneyRequestAction';
@@ -51,7 +52,6 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
-import Permissions from '../../../libs/Permissions';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
@@ -91,9 +91,6 @@ const propTypes = {
 
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -102,11 +99,12 @@ const defaultProps = {
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
-    betas: [],
 };
 
 function ReportActionItem(props) {
     const [isContextMenuActive, setIsContextMenuActive] = useState(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
+    const [isHidden, setIsHidden] = useState(false);
+    const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
 
@@ -118,6 +116,25 @@ function ReportActionItem(props) {
 
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [isDraftEmpty]);
+
+    // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
+    // Removed messages should not be shown anyway and should not need this flow
+    useEffect(() => {
+        if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(props.action.message[0].moderationDecisions)) {
+            return;
+        }
+
+        // Right now we are only sending the latest moderationDecision to the frontend even though it is an array
+        let decisions = props.action.message[0].moderationDecisions;
+        if (decisions.length > 1) {
+            decisions = decisions.slice(-1);
+        }
+        const latestDecision = decisions[0];
+        if (latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
+            setIsHidden(true);
+        }
+        setModerationDecision(latestDecision.decision);
+    }, [props.action.message, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -150,7 +167,6 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(props.report),
                 ReportUtils.chatIncludesChronos(props.report),
-                props.action.childReportID,
             );
         },
         [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
@@ -216,7 +232,6 @@ function ReportActionItem(props) {
                 <TaskAction
                     taskReportID={props.action.originalMessage.taskReportID.toString()}
                     actionName={props.action.actionName}
-                    isHovered={hovered}
                 />
             );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
@@ -229,6 +244,7 @@ function ReportActionItem(props) {
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
+            const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
             const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
@@ -240,13 +256,32 @@ function ReportActionItem(props) {
                     }}
                 >
                     {!props.draftMessage ? (
-                        <ReportActionItemMessage
-                            action={props.action}
-                            style={[
-                                !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
-                                _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName) ? styles.colorMuted : undefined,
-                            ]}
-                        />
+                        <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
+                            <ReportActionItemMessage
+                                action={props.action}
+                                isHidden={isHidden}
+                                style={[
+                                    !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
+                                    _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
+                                        ? styles.colorMuted
+                                        : undefined,
+                                ]}
+                            />
+                            {props.displayAsGroup && hasBeenFlagged && (
+                                <Button
+                                    small
+                                    style={[styles.mt2, styles.alignSelfStart]}
+                                    onPress={() => setIsHidden(!isHidden)}
+                                >
+                                    <Text
+                                        style={styles.buttonSmallText}
+                                        selectable={false}
+                                    >
+                                        {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
+                                    </Text>
+                                </Button>
+                            )}
+                        </View>
                     ) : (
                         <ReportActionItemMessageEdit
                             action={props.action}
@@ -262,6 +297,20 @@ function ReportActionItem(props) {
                             }
                         />
                     )}
+                    {!props.displayAsGroup && hasBeenFlagged && (
+                        <Button
+                            small
+                            style={[styles.mt2, styles.alignSelfStart]}
+                            onPress={() => setIsHidden(!isHidden)}
+                        >
+                            <Text
+                                style={styles.buttonSmallText}
+                                selectable={false}
+                            >
+                                {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
+                            </Text>
+                        </Button>
+                    )}
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -271,15 +320,15 @@ function ReportActionItem(props) {
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
-        const shouldDisplayThreadReplies =
-            hasReplies && props.action.childCommenterCount && Permissions.canUseThreads(props.betas) && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
+        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
         const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
+        const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
         return (
             <>
                 {children}
                 {hasReactions && (
-                    <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                    <View style={draftMessageRightAlign}>
                         <ReportActionItemReactions
                             reportActionID={props.action.reportActionID}
                             reactions={reactions}
@@ -298,13 +347,15 @@ function ReportActionItem(props) {
                     </View>
                 )}
                 {shouldDisplayThreadReplies && (
-                    <ReportActionItemThread
-                        childReportID={`${props.action.childReportID}`}
-                        numberOfReplies={numberOfThreadReplies}
-                        mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
-                        isHovered={hovered}
-                        icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
-                    />
+                    <View style={draftMessageRightAlign}>
+                        <ReportActionItemThread
+                            childReportID={`${props.action.childReportID}`}
+                            numberOfReplies={numberOfThreadReplies}
+                            mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
+                            isHovered={hovered}
+                            icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
+                        />
+                    </View>
                 )}
             </>
         );
@@ -331,6 +382,7 @@ function ReportActionItem(props) {
                     wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
+                    hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
                 >
                     {content}
                 </ReportActionItemSingle>
@@ -394,6 +446,7 @@ function ReportActionItem(props) {
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
+                                shouldHideOnDelete={!ReportActionsUtils.hasCommentThread(props.action)}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
@@ -452,9 +505,6 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(
