@@ -100,7 +100,7 @@ const propTypes = {
     }),
 
     /** Members keyed by accountID for all policies */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
+    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -118,7 +118,7 @@ const defaultProps = {
     bankAccountList: {},
     cardList: {},
     loginList: {},
-    policyMembers: {},
+    allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -170,7 +170,7 @@ class InitialSettingsPage extends React.Component {
             !_.isEmpty(this.props.reimbursementAccount.errors) ||
             _.chain(this.props.policies)
                 .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
+                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.allPolicyMembers))
                 .value()
                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                 : null;
@@ -393,7 +393,7 @@ export default compose(
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
-        policyMembers: {
+        allPolicyMembers: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
         userWallet: {
