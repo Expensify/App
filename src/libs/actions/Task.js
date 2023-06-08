@@ -27,11 +27,12 @@ function clearOutTaskInfo() {
  * @param {String} parentReportID
  * @param {String} title
  * @param {String} description
+ * @param {String} assignee
  * @param {Number} assigneeAccountID
  *
  */
 
-function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentReportID, title, description, assigneeAccountID = 0) {
+function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentReportID, title, description, assignee, assigneeAccountID = 0) {
     // Create the task report
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
@@ -161,6 +162,7 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
             reportName: optimisticTaskReport.reportName,
             title: optimisticTaskReport.reportName,
             description: optimisticTaskReport.description,
+            assignee,
             assigneeAccountID,
             assigneeChatReportID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
@@ -285,12 +287,13 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {Number} ownerAccountID
  * @param {string} title
  * @param {string} description
+ * @param {String} assignee
  * @param {Number} assigneeAccountID
  * @returns {object} action
  *
  */
 
-function editTaskAndNavigate(report, ownerEmail, ownerAccountID, title, description, assigneeAccountID) {
+function editTaskAndNavigate(report, ownerEmail, ownerAccountID, title, description, assignee, assigneeAccountID = 0) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
@@ -434,16 +437,21 @@ function setShareDestinationValue(shareDestination) {
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
  * @param {string} assignee
+ * @param {Number} assigneeAccountID
  * @param {string} shareDestination
  * @param {boolean} isCurrentUser
  */
 
-function setAssigneeValue(assignee, shareDestination, isCurrentUser = false) {
+function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurrentUser = false) {
+    // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
+    if (!assigneeAccountID) {
+        assigneeAccountID = UserUtils.generateAccountID();
+    }
     if (!isCurrentUser) {
         let newChat = {};
-        const chat = ReportUtils.getChatByParticipants([assignee]);
+        const chat = ReportUtils.getChatByParticipants([assigneeAccountID]);
         if (!chat) {
-            newChat = ReportUtils.buildOptimisticChatReport([assignee]);
+            newChat = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
         }
         const reportID = chat ? chat.reportID : newChat.reportID;
 
@@ -455,7 +463,7 @@ function setAssigneeValue(assignee, shareDestination, isCurrentUser = false) {
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {assignee});
+    Onyx.merge(ONYXKEYS.TASK, {assignee, assigneeAccountID});
 }
 
 /**
