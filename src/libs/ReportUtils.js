@@ -1172,12 +1172,13 @@ function buildOptimisticAddCommentReportAction(text, file) {
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param {String} taskReportID - Report ID of the task
  * @param {String} taskTitle - Title of the task
- * @param {String} taskAssigneeAccountID - AccountID of the person assigned to the task
+ * @param {String} taskAssignee - Email of the person assigned to the task
+ * @param {Number} taskAssigneeAccountID - AccountID of the person assigned to the task
  * @param {String} text - Text of the comment
  * @param {String} parentReportID - Report ID of the parent report
  * @returns {Object}
  */
-function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssigneeAccountID, text, parentReportID) {
+function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, taskAssigneeAccountID, text, parentReportID) {
     const reportAction = buildOptimisticAddCommentReportAction(text);
     reportAction.reportAction.message[0].taskReportID = taskReportID;
 
