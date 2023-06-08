@@ -21,7 +21,6 @@ import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAva
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
-import {getParentReportAction} from './ReportActionsUtils';
 
 let sessionEmail;
 Onyx.connect({
@@ -577,7 +576,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 function getChatRoomSubtitle(report) {
     if (isThread(report)) {
         if (!getChatType(report)) {
-            const parentReportAction = getParentReportAction(report);
+            const parentReportAction = ReportActionsUtils.getParentReportAction(report);
             return `From ${getDisplayNameForParticipant(parentReportAction.actorEmail)}`;
         }
 
