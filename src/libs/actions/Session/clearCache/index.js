@@ -1,4 +1,3 @@
-
 function clearStorage () {
     return new Promise((res) => res());
 }
