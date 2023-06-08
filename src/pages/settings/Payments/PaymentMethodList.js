@@ -167,7 +167,8 @@ function PaymentMethodList(props) {
     }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, filterType, network, onPress, payPalMeData]);
 
     /**
-     * Show add first payment copy when payment methods are
+     * Render placeholder when there are no payments methods
+     * 
      * @return {React.Component}
      */
     const renderListEmptyComponent = useCallback(() => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>, [translate]);
