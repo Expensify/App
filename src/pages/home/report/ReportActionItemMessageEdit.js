@@ -109,8 +109,8 @@ function ReportActionItemMessageEdit(props) {
         });
 
         return () => {
-            // Skip if this is not the focused message so the other edit composer stays focused.
-            if (!isFocused) {
+            // Skip if this is not the focused message so the other edit composer stays focused
+            if (!textInputRef.current.isFocused()) {
                 return;
             }
 
