@@ -54,7 +54,7 @@ function TermsStep(props) {
     return (
         <>
             <HeaderWithBackButton title={props.translate('termsStep.headerTitle')} />
-            
+
             <ScrollView
                 style={styles.flex1}
                 contentContainerStyle={styles.ph5}
@@ -110,7 +110,7 @@ function TermsStep(props) {
     );
 }
 
-TermsStep.displayName = "TermsPage";
+TermsStep.displayName = 'TermsPage';
 TermsStep.propTypes = propTypes;
 TermsStep.defaultProps = defaultProps;
 export default compose(
