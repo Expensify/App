@@ -95,11 +95,10 @@ const defaultProps = {
 };
 
 const ReportPreview = (props) => {
-    const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
-    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const displayingMessage = ReportUtils.getMoneyRequestReportName(props.iouReport, true)
     return (
         <View style={[styles.chatItemMessage]}>
             {_.map(props.action.message, (message, index) => (
@@ -115,26 +114,20 @@ const ReportPreview = (props) => {
                     focusable
                 >
                     <View style={[styles.flexShrink1]}>
-                        {props.iouReport.hasOutstandingIOU ? (
+                        <View style={[styles.flexRow]}>
                             <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                {props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount})}
+                                {displayingMessage}
                             </Text>
-                        ) : (
-                            <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                    {props.translate('iou.payerSettled', {amount: reportAmount})}
-                                </Text>
-                                {!props.iouReport.hasOutstandingIOU && (
-                                    <View style={styles.iouPreviewBoxCheckmark}>
-                                        <Icon
-                                            style={[styles.ml10]}
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                        )}
+                            {!props.iouReport.hasOutstandingIOU && (
+                                <View style={styles.iouPreviewBoxCheckmark}>
+                                    <Icon
+                                        style={[styles.ml10]}
+                                        src={Expensicons.Checkmark}
+                                        fill={themeColors.iconSuccessFill}
+                                    />
+                                </View>
+                            )}
+                        </View>
                     </View>
                     <Icon
                         src={Expensicons.ArrowRight}
