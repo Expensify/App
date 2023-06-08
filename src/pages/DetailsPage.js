@@ -95,7 +95,7 @@ class DetailsPage extends React.PureComponent {
         if (!details) {
             // TODO: these personal details aren't in my local test account but are in 
             // my staging account, i wonder why!
-            if (login == CONST.EMAIL.CONCIERGE) {
+            if (login === CONST.EMAIL.CONCIERGE) {
                 details = {
                     accountID: CONST.ACCOUNT_ID.CONCIERGE,
                     login,

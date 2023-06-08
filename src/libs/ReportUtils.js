@@ -370,7 +370,7 @@ function hasExpensifyGuidesEmails(emails) {
  * @returns {Boolean}
  */
 function isConciergeChatReport(report) {
-    return lodashGet(report, 'participantAccountIDs', []).length === 1 && report.participantAccountIDs[0] == CONST.ACCOUNT_ID.CONCIERGE;
+    return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE;
 }
 
 /**
@@ -845,7 +845,7 @@ function getPersonalDetailsForAccountID(accountID) {
     if (!accountID) {
         return {};
     }
-    if (accountID == CONST.ACCOUNT_ID.CONCIERGE) {
+    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return {
             accountID,
             displayName: 'Concierge',
