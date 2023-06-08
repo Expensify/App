@@ -85,7 +85,7 @@ function ClearAfterPage(props) {
                         title="2023-07-02"
                         description="Date"
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET_DATE)}
                     />
                     <MenuItemWithTopDescription
                         title="10:00 AM"

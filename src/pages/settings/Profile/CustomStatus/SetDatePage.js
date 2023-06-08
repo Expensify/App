@@ -9,7 +9,7 @@ import NewDatePicker from '../../../../components/NewDatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 
 // TODO: connect to onyx for existing data, or use the form id
-function SetTimePage(props) {
+function SetDatePage(props) {
     const onSubmit = () => {
         // TODO: save to onyx draft state
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
@@ -39,7 +39,7 @@ function SetTimePage(props) {
     );
 }
 
-SetTimePage.displayName = 'SetTimePage';
-SetTimePage.propTypes = withLocalizePropTypes;
+SetDatePage.displayName = 'SetDatePage';
+SetDatePage.propTypes = withLocalizePropTypes;
 
-export default withLocalize(SetTimePage);
+export default withLocalize(SetDatePage);

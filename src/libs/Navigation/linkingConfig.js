@@ -122,6 +122,10 @@ export default {
                                 path: ROUTES.SETTINGS_STATUS_SET_TIME,
                                 exact: true,
                             },
+                            Settings_Status_Set_Date: {
+                                path: ROUTES.SETTINGS_STATUS_SET_DATE,
+                                exact: true,
+                            },
                             Settings_Timezone: {
                                 path: ROUTES.SETTINGS_TIMEZONE,
                                 exact: true,
