@@ -205,7 +205,7 @@ function DetailsPage(props) {
 
 DetailsPage.propTypes = propTypes;
 DetailsPage.defaultProps = defaultProps;
-DetailsPage.displayName = 'DetailsPage'
+DetailsPage.displayName = 'DetailsPage';
 
 export default compose(
     withLocalize,
