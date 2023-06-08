@@ -103,6 +103,7 @@
     "react-native-device-info": "^10.3.0",
     "react-native-document-picker": "^8.0.0",
     "react-native-fast-image": "^8.6.3",
+    "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "2.9.0",
     "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#6f436a06a3018cb49750bb110b89df75f6a865d5",
     "react-native-haptic-feedback": "^1.13.0",

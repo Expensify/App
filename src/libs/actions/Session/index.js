@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {Linking} from 'react-native';
+import clearStorage from './clearStorage';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -72,7 +73,9 @@ function signOut() {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         shouldRetry: false,
     });
-
+    clearStorage().then(() => {
+        Log.info('Cleared all storage data', true, {}, true);
+    });
     Timing.clearData();
 }
 
