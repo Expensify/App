@@ -201,6 +201,7 @@ class BaseValidateCodeForm extends React.Component {
 
     render() {
         const hasError = Boolean(this.props.account) && !_.isEmpty(this.props.account.errors);
+        const resendButtonStyle = this.props.network.isOffline ? styles.buttonOpacityDisabled : {};
         return (
             <>
                 {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -239,9 +240,10 @@ class BaseValidateCodeForm extends React.Component {
                                 <Text style={[styles.mt2]}>{this.props.account.message ? this.props.translate(this.props.account.message) : ''}</Text>
                             ) : (
                                 <PressableWithFeedback
-                                    style={[styles.mt2]}
+                                    style={[styles.mt2, resendButtonStyle]}
                                     onPress={this.resendValidateCode}
                                     underlayColor={themeColors.componentBG}
+                                    disabled={this.props.network.isOffline}
                                     hoverDimmingValue={1}
                                     pressDimmingValue={0.2}
                                     accessibilityRole="button"
