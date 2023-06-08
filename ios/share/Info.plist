@@ -21,6 +21,32 @@
             <integer>1</integer>
         </dict>
 		</dict>
+		<key>ReactShareViewBackgroundColor</key>
+    <dict>
+        <key>Red</key>
+        <integer>1</integer>
+        <key>Green</key>
+        <integer>1</integer>
+        <key>Blue</key>
+        <integer>1</integer>
+        <key>Alpha</key>
+        <integer>1</integer>
+        <key>Transparent</key>
+        <false/>
+    </dict>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>localhost</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
 		<key>NSExtensionMainStoryboard</key>
 		<string>MainInterface</string>
 		<key>NSExtensionPointIdentifier</key>
