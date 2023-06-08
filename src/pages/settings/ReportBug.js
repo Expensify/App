@@ -47,11 +47,11 @@ const ReportBug = ({translate}) => {
                 containerStyles={[{ height: 150 }]}
                 multiline
             />
+            <AttachmentPicker>{({openPicker}) => <AttachmentButton onClicked={openPicker} onAttachmentSelected={(selectedAttachment) => setAttachments(prev => [...prev, selectedAttachment])} />}</AttachmentPicker>
+            <View style={{minHeight: 200}}>
+                <FlatList horizontal contentContainerStyle={[styles.ph5]} data={attachments} renderItem={({item: attachment}) => <AttachmentPreviewItem attachment={attachment} onPressed={() => deleteAttachment(attachment)} />} />
+            </View>
         </Form>
-        <AttachmentPicker>{({openPicker}) => <AttachmentButton onClicked={openPicker} onAttachmentSelected={(selectedAttachment) => setAttachments(prev => [...prev, selectedAttachment])} />}</AttachmentPicker>
-        <View style={{minHeight: 200}}>
-            <FlatList horizontal contentContainerStyle={[styles.ph5]} data={attachments} renderItem={({item: attachment}) => <AttachmentPreviewItem attachment={attachment} onPressed={() => deleteAttachment(attachment)} />} />
-        </View>
     </View>)
 }
 

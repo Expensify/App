@@ -196,7 +196,7 @@ const Form = (props) => {
                 }
 
                 // Depth first traversal of the render tree as the input element is likely to be the last node
-                if (child.props.children) {
+                if (child.props.children && !_.isFunction(child.props.children)) {
                     return React.cloneElement(child, {
                         children: childrenWrapperWithProps(child.props.children),
                     });
