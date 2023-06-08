@@ -8,6 +8,9 @@ runs:
       with:
         node-version-file: '.nvmrc'
         cache: npm
+        cache-dependency-path: |
+          package-lock.json
+          desktop/package-lock.json
 
     - id: cache-node-modules
       if: github.run_attempt == '1'
