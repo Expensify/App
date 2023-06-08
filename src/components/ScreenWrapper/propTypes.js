@@ -41,6 +41,9 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...environmentPropTypes,
+
+    /** Whether to show offline indicator */
+    shouldShowOfflineIndicator: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -53,6 +56,7 @@ const defaultProps = {
     keyboardAvoidingViewBehavior: 'padding',
     shouldEnableMaxHeight: false,
     shouldEnablePickerAvoiding: true,
+    shouldShowOfflineIndicator: true,
 };
 
 export {propTypes, defaultProps};
