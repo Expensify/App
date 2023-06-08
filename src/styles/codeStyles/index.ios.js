@@ -1,15 +1,15 @@
 const codeWordWrapper = {
-    height: 20,
+    height: 22,
     justifyContent: 'center',
 };
 
 const codeWordStyle = {
-    height: 16,
+    height: 18,
     top: 4,
 };
 
 const codeTextStyle = {
-    lineHeight: 15,
+    lineHeight: 18,
 };
 
 export default {codeWordWrapper, codeWordStyle, codeTextStyle};

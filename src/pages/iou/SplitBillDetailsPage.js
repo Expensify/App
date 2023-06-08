@@ -71,14 +71,13 @@ const SplitBillDetailsPage = (props) => {
     const payeePersonalDetails = _.filter(participants, (participant) => participant.login === reportAction.actorEmail)[0];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.login !== reportAction.actorEmail);
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
+    const splitComment = lodashGet(reportAction, 'originalMessage.comment');
+    const splitCurrency = lodashGet(reportAction, 'originalMessage.currency');
 
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
-                <HeaderWithBackButton
-                    title={props.translate('common.details')}
-                    shouldShowBackButton={false}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
@@ -89,6 +88,8 @@ const SplitBillDetailsPage = (props) => {
                             payeePersonalDetails={payeePersonalDetails}
                             participants={participantsExcludingPayee}
                             iouAmount={splitAmount}
+                            iouComment={splitComment}
+                            iouCurrencyCode={splitCurrency}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
                             shouldShowFooter={false}

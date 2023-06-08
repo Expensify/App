@@ -152,6 +152,8 @@ const MoneyRequestConfirmPage = (props) => {
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                         participants={participants}
                         iouAmount={props.iou.amount}
+                        iouComment={props.iou.comment}
+                        iouCurrencyCode={props.iou.currency}
                         onConfirm={(selectedParticipants) => {
                             createTransaction(selectedParticipants);
                             ReportScrollManager.scrollToBottom();
