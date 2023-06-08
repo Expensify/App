@@ -224,14 +224,15 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        const logins = _.map(this.state.selectedOptions, (option) => option.login);
-        const filteredLogins = _.chain(logins)
-            .map((login) => login.toLowerCase().trim())
-            .compact()
-            .uniq()
-            .value();
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
-        const invitedEmailsToAccountIDs = _.reduce(filteredLogins, (result, login) => ({...result, [login]: policyMemberEmailsToAccountIDs[login]}), {});
+        const invitedEmailsToAccountIDs = {};
+        _.each(this.state.selectedOptions, (option) => {
+            const login = option.login || '';
+            const accountID = lodashGet(option, 'participantsList[0].accountID');
+            if (!login.toLowerCase().trim() || !accountID) {
+                return;
+            }
+            invitedEmailsToAccountIDs[login] = accountID;
+        })
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
     }
