@@ -1209,9 +1209,9 @@ export default {
             bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
             areYouSure: '¿Estás seguro?',
-            updateCurrency: 'Update currency title',
-            updateCurrencyPrompt: 'Update currency prompt',
-            confirmUpdateCurrency: 'Update currency button',
+            workspaceCurrency: 'Moneda del espacio de trabajo',
+            updateCurrencyPrompt: 'Parece que tu espacio de trabajo está configurado actualmente en una moneda diferente a USD. Por favor, haz clic en el botón de abajo para actualizar tu moneda a USD ahora.',
+            updateToUSD: 'Actualizar a USD',
         },
     },
     getAssistancePage: {

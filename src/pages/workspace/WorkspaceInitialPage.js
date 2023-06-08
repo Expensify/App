@@ -248,12 +248,12 @@ const WorkspaceInitialPage = (props) => {
                         </OfflineWithFeedback>
                     </ScrollView>
                     <ConfirmModal
-                        title={props.translate('workspace.bankAccount.updateCurrency')}
+                        title={props.translate('workspace.bankAccount.workspaceCurrency')}
                         isVisible={isCurrencyModalOpen}
                         onConfirm={confirmCurrencyChangeAndHideModal}
                         onCancel={() => setIsCurrencyModalOpen(false)}
                         prompt={props.translate('workspace.bankAccount.updateCurrencyPrompt')}
-                        confirmText={props.translate('workspace.bankAccount.confirmUpdateCurrency')}
+                        confirmText={props.translate('workspace.bankAccount.updateToUSD')}
                         cancelText={props.translate('common.cancel')}
                         danger
                     />

@@ -1203,9 +1203,9 @@ export default {
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
             clearProgress: 'Starting over will clear the progress you have made so far.',
             areYouSure: 'Are you sure?',
-            updateCurrency: 'Update currency title',
-            updateCurrencyPrompt: 'Update currency prompt',
-            confirmUpdateCurrency: 'Update currency button',
+            workspaceCurrency: 'Workspace currency',
+            updateCurrencyPrompt: 'It looks like your Workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
+            updateToUSD: 'Update to USD',
         },
     },
     getAssistancePage: {
