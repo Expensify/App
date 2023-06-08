@@ -87,7 +87,8 @@ class WorkspaceInvitePage extends React.Component {
 
     componentDidMount() {
         this.clearErrors();
-        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, PolicyUtils.getClientPolicyMemberEmails(this.props.policyMembers, this.props.personalDetails));
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     }
 
     componentDidUpdate(prevProps) {
@@ -103,12 +104,13 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, PolicyUtils.getClientPolicyMemberEmails(this.props.policyMembers, this.props.personalDetails));
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
+        Policy.openWorkspaceInvitePage(this.props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     }
 
     getExcludedUsers() {
-        const clientPolicyMemberEmails = PolicyUtils.getClientPolicyMemberEmails(this.props.policyMembers, this.props.personalDetails);
-        let usersToExclude = [...CONST.EXPENSIFY_EMAILS, ...clientPolicyMemberEmails];
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
+        let usersToExclude = [...CONST.EXPENSIFY_EMAILS, ...(_.keys(policyMemberEmailsToAccountIDs))];
         if (!this.props.network.isOffline) {
             usersToExclude = _.filter(this.props.policyMembers, (policyMember) => policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policyMember.errors));
         }

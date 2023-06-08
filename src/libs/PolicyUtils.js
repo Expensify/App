@@ -103,21 +103,28 @@ const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROL
 /**
  * @param {Object} policyMembers
  * @param {Object} personalDetails
- * @returns {Boolean}
+ * @returns {Object}
  *
- * Create a list of member emails by filtering for members without errors, then mapping each policy member accountID to the login from the personalDetail object.
+ * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
  * TODO: Clean up uses of this function to work with accountIDs instead of emails.
  *
- * We filter clientMemberEmails to only pass members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
+ * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getClientPolicyMemberEmails(policyMembers, personalDetails) {
+function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails) {
     return _.chain(policyMembers)
         .filter((member) => _.isEmpty(member.errors))
         .keys()
-        .map((accountID) => personalDetails[accountID])
-        .compact()
-        .map((personalDetail) => personalDetail.login)
+        .reduce((result, accountID) => {
+            const personalDetail = personalDetails[accountID];
+            if (personalDetail && personalDetail.login) {
+                return {
+                    ...result,
+                    [personalDetail.login]: accountID,
+                }
+            }
+            return result;
+        }, {})
         .value();
 }
 
-export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam, isPolicyAdmin, getClientPolicyMemberEmails};
+export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam, isPolicyAdmin, getClientPolicyMemberEmailsToAccountIDs};
