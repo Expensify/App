@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
@@ -11,6 +11,7 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import Tooltip from '../Tooltip';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps as anchorForCommentsOnlyDefaultProps} from './anchorForCommentsOnlyPropTypes';
 import CONST from '../../CONST';
@@ -52,43 +53,42 @@ const BaseAnchorForCommentsOnly = (props) => {
     const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
-        <View style={[...props.containerStyles]}>
-            <PressableWithSecondaryInteraction
-                inline
-                onSecondaryInteraction={(event) => {
-                    ReportActionContextMenu.showContextMenu(
-                        isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
-                        event,
-                        props.href,
-                        lodashGet(linkRef, 'current'),
-                    );
-                }}
-                onPress={linkProps.onPress}
-                onPressIn={props.onPressIn}
-                onPressOut={props.onPressOut}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                accessibilityLabel={props.href}
-            >
-                <Tooltip text={props.href}>
-                    <Text
-                        ref={(el) => (linkRef = el)}
-                        style={StyleSheet.flatten([props.style, defaultTextStyle])}
-                        accessibilityRole="link"
-                        hrefAttrs={{
-                            rel: props.rel,
-                            target: isEmail ? '_self' : props.target,
-                        }}
-                        href={linkProps.href}
-                        // Add testID so it gets selected as an anchor tag by SelectionScraper
-                        testID="a"
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...rest}
-                    >
-                        {props.children}
-                    </Text>
-                </Tooltip>
-            </PressableWithSecondaryInteraction>
-        </View>
+        <PressableWithSecondaryInteraction
+            inline
+            style={[styles.cursorDefault, StyleUtils.getFontSizeStyle(props.style.fontSize)]}
+            onSecondaryInteraction={(event) => {
+                ReportActionContextMenu.showContextMenu(
+                    isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    props.href,
+                    lodashGet(linkRef, 'current'),
+                );
+            }}
+            onPress={linkProps.onPress}
+            onPressIn={props.onPressIn}
+            onPressOut={props.onPressOut}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            accessibilityLabel={props.href}
+        >
+            <Tooltip text={props.href}>
+                <Text
+                    ref={(el) => (linkRef = el)}
+                    style={StyleSheet.flatten([props.style, defaultTextStyle])}
+                    accessibilityRole="link"
+                    hrefAttrs={{
+                        rel: props.rel,
+                        target: isEmail ? '_self' : props.target,
+                    }}
+                    href={linkProps.href}
+                    // Add testID so it gets selected as an anchor tag by SelectionScraper
+                    testID="a"
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...rest}
+                >
+                    {props.children}
+                </Text>
+            </Tooltip>
+        </PressableWithSecondaryInteraction>
     );
 };
 
