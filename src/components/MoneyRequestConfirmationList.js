@@ -170,16 +170,7 @@ function MoneyRequestConfirmationList(props) {
             });
         }
         return sections;
-    }, [
-        selectedParticipants,
-        getParticipantsWithAmount,
-        props.hasMultipleParticipants,
-        props.iouAmount,
-        props.iouCurrencyCode,
-        props.participants,
-        translate,
-        payeePersonalDetails,
-    ]);
+    }, [selectedParticipants, getParticipantsWithAmount, props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, props.participants, translate, payeePersonalDetails]);
 
     const selectedOptions = useMemo(() => {
         if (!props.hasMultipleParticipants) {
