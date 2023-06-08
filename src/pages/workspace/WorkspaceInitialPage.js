@@ -91,7 +91,7 @@ const WorkspaceInitialPage = (props) => {
     );
 
     const policyName = lodashGet(policy, 'name', '');
-    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
+    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMembers);
     const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
     const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
     const menuItems = [
