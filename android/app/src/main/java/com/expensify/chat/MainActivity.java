@@ -3,6 +3,9 @@ package com.expensify.chat;
 import android.os.Bundle;
 import android.content.pm.ActivityInfo;
 import android.view.KeyEvent;
+import android.view.View;
+import android.view.WindowInsets;
+
 import com.expensify.chat.bootsplash.BootSplash;
 import com.expensify.reactnativekeycommand.KeyCommandModule;
 import com.facebook.react.ReactActivity;
@@ -45,6 +48,19 @@ public class MainActivity extends ReactActivity {
     if (getResources().getBoolean(R.bool.portrait_only)) {
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
+
+    // Sets translucent status bar. This code is based on what the react-native StatusBar
+    // module does, but we need to do it here to avoid the splash screen jumping on app start.
+    View decorView = getWindow().getDecorView();
+    decorView.setOnApplyWindowInsetsListener(
+            (v, insets) -> {
+              WindowInsets defaultInsets = v.onApplyWindowInsets(insets);
+              return defaultInsets.replaceSystemWindowInsets(
+                      defaultInsets.getSystemWindowInsetLeft(),
+                      0,
+                      defaultInsets.getSystemWindowInsetRight(),
+                      defaultInsets.getSystemWindowInsetBottom());
+            });
   }
 
   /**
@@ -54,15 +70,15 @@ public class MainActivity extends ReactActivity {
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
     // Disabling hardware ESCAPE support which is handled by Android
-    if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) { 
-        return false; 
+    if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) {
+        return false;
     }
     KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
     return super.onKeyDown(keyCode, event);
   }
 
   @Override
-  public boolean onKeyLongPress(int keyCode, KeyEvent event) {    
+  public boolean onKeyLongPress(int keyCode, KeyEvent event) {
     // Disabling hardware ESCAPE support which is handled by Android
     if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) { return false; }
     KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);
@@ -70,7 +86,7 @@ public class MainActivity extends ReactActivity {
   }
 
   @Override
-  public boolean onKeyUp(int keyCode, KeyEvent event) {    
+  public boolean onKeyUp(int keyCode, KeyEvent event) {
     // Disabling hardware ESCAPE support which is handled by Android
     if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE) { return false; }
     KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event);

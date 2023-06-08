@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, Keyboard, Pressable, TouchableOpacity, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -102,12 +103,24 @@ class ReportActionItemMessageEdit extends React.Component {
         this.state = {
             draft: draftMessage,
             selection: {
-                start: draftMessage.length,
-                end: draftMessage.length,
+                start: 0,
+                end: 0,
             },
             isFocused: false,
             hasExceededMaxCommentLength: false,
         };
+    }
+
+    componentDidMount() {
+        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
+        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
+        // so we need to ensure that it is only updated after focus.
+        this.setState((prevState) => ({
+            selection: {
+                start: prevState.draft.length,
+                end: prevState.draft.length,
+            },
+        }));
     }
 
     componentWillUnmount() {

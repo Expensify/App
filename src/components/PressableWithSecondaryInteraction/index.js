@@ -79,6 +79,7 @@ class PressableWithSecondaryInteraction extends Component {
             <Pressable
                 onPressIn={this.props.onPressIn}
                 onLongPress={this.props.onSecondaryInteraction ? this.executeSecondaryInteraction : undefined}
+                activeOpacity={this.props.activeOpacity}
                 onPressOut={this.props.onPressOut}
                 onPress={this.props.onPress}
                 ref={(el) => (this.pressableRef = el)}

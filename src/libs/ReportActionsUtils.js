@@ -34,6 +34,14 @@ Onyx.connect({
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isCreatedAction(reportAction) {
+    return lodashGet(reportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = lodashGet(reportAction, 'message', []);
@@ -46,6 +54,14 @@ function isDeletedAction(reportAction) {
  */
 function isMoneyRequestAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function hasCommentThread(reportAction) {
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
 }
 
 /**
@@ -229,6 +245,10 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
 
+    if (isCreatedAction(lastVisibleAction)) {
+        return '';
+    }
+
     const messageText = lodashGet(message, 'text', '');
     return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
@@ -395,6 +415,7 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
+    hasCommentThread,
     getLinkedTransactionID,
     getReportPreviewAction,
     isCreatedTaskReportAction,

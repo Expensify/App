@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
@@ -20,6 +20,7 @@ import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Avatar source to display */
@@ -256,29 +257,32 @@ class AvatarWithImagePicker extends React.Component {
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-                <Pressable onPress={() => this.setState({isMenuVisible: true})}>
+                <PressableWithoutFeedback
+                    onPress={() => this.setState({isMenuVisible: true})}
+                    accessibilityRole="button"
+                    accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
+                >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
                         <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
-                            {this.props.source ? (
-                                <Avatar
-                                    containerStyles={styles.avatarLarge}
-                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                    source={this.props.source}
-                                    fallbackIcon={this.props.fallbackIcon}
-                                    size={this.props.size}
-                                    type={this.props.type}
-                                />
-                            ) : (
-                                <DefaultAvatar />
-                            )}
+                            <View>
+                                {this.props.source ? (
+                                    <Avatar
+                                        containerStyles={styles.avatarLarge}
+                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                        source={this.props.source}
+                                        fallbackIcon={this.props.fallbackIcon}
+                                        size={this.props.size}
+                                        type={this.props.type}
+                                    />
+                                ) : (
+                                    <DefaultAvatar />
+                                )}
+                            </View>
                         </Tooltip>
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => (
                                 <>
-                                    <Tooltip
-                                        absolute
-                                        text={this.props.translate('avatarWithImagePicker.editImage')}
-                                    >
+                                    <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
                                         <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                             <Icon
                                                 src={Expensicons.Camera}
@@ -300,7 +304,7 @@ class AvatarWithImagePicker extends React.Component {
                             )}
                         </AttachmentPicker>
                     </View>
-                </Pressable>
+                </PressableWithoutFeedback>
                 <ConfirmModal
                     title={this.state.errorModalTitle}
                     onConfirm={this.hideErrorModal}
