@@ -5,7 +5,7 @@ import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import * as API from '../API';
-import * as ReportUtils from '../ReportUtils';
+import * as UserUtils from '../UserUtils';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
@@ -112,7 +112,7 @@ function updatePronouns(pronouns) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -142,7 +142,7 @@ function updateDisplayName(firstName, lastName) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -166,13 +166,13 @@ function updateLegalName(legalFirstName, legalLastName) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
  * @param {String} dob - date of birth
  */
-function updateDateOfBirth(dob) {
+function updateDateOfBirth({dob}) {
     API.write(
         'UpdateDateOfBirth',
         {dob},
@@ -188,7 +188,7 @@ function updateDateOfBirth(dob) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -231,7 +231,7 @@ function updateAddress(street, street2, city, state, zip, country) {
             },
         ],
     });
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -293,7 +293,7 @@ function updateSelectedTimezone(selectedTimezone) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_TIMEZONE);
+    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**
@@ -373,7 +373,7 @@ function updateAvatar(file) {
  */
 function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = ReportUtils.getOldDotDefaultAvatar(currentUserEmail);
+    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserEmail);
 
     API.write(
         'DeleteUserAvatar',

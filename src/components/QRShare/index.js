@@ -47,13 +47,7 @@ class QRShare extends Component {
                 style={styles.shareCodeContainer}
                 onLayout={this.onLayout}
             >
-                <View
-                    style={{
-                        alignSelf: 'stretch',
-                        height: 27,
-                        marginBottom: 20,
-                    }}
-                >
+                <View style={styles.expensifyQrLogo}>
                     <ExpensifyWordmark
                         fill={defaultTheme.borderFocus}
                         width="100%"
@@ -66,13 +60,15 @@ class QRShare extends Component {
                     url={this.props.url}
                     logo={this.props.logo}
                     size={this.state.qrCodeSize}
+                    logoRatio={this.props.logoRatio}
+                    logoMarginRatio={this.props.logoMarginRatio}
                 />
 
                 <Text
                     family="EXP_NEW_KANSAS_MEDIUM"
-                    fontSize={22}
+                    fontSize={variables.fontSizeXLarge}
                     numberOfLines={2}
-                    style={{marginTop: 15}}
+                    style={styles.qrShareTitle}
                 >
                     {this.props.title}
                 </Text>
@@ -80,9 +76,9 @@ class QRShare extends Component {
                 {this.props.subtitle && (
                     <Text
                         family="EXP_NEUE_BOLD"
-                        fontSize={13}
+                        fontSize={variables.fontSizeLabel}
                         numberOfLines={1}
-                        style={{marginTop: 4}}
+                        style={styles.mt1}
                         color={defaultTheme.textSupporting}
                     >
                         {this.props.subtitle}

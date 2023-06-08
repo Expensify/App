@@ -76,9 +76,6 @@ export default {
     BETAS: 'betas',
 
     // NVP keys
-    // Contains the user's payPalMe address
-    NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
-
     // Contains the user's payPalMe data
     PAYPAL: 'paypal',
 
@@ -118,6 +115,7 @@ export default {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
+        REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
@@ -221,6 +219,12 @@ export default {
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
 
+    // Whether we're checking if the room is public or not
+    IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
+
     // A map of the user's security group IDs they belong to in specific domains
     MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
+
+    // Report ID of the last report the user viewed as anonymous user
+    LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
 };

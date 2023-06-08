@@ -2,6 +2,7 @@ import React from 'react';
 import QRCodeLibrary from 'react-native-qrcode-svg';
 import PropTypes from 'prop-types';
 import defaultTheme from '../../styles/themes/default';
+import CONST from '../../CONST';
 
 const propTypes = {
     /**
@@ -14,6 +15,14 @@ const propTypes = {
      */
     logo: PropTypes.oneOfType([PropTypes.shape({uri: PropTypes.string}), PropTypes.number, PropTypes.string]),
     /**
+     * The size ratio of logo to QR code
+     */
+    logoRatio: PropTypes.number,
+    /**
+     * The size ratio of margin around logo to QR code
+     */
+    logoMarginRatio: PropTypes.number,
+    /**
      * The QRCode size
      */
     size: PropTypes.number,
@@ -25,6 +34,11 @@ const propTypes = {
      * The QRCode background color
      */
     backgroundColor: PropTypes.string,
+
+    /**
+     * The QRCode logo background color
+     */
+    logoBackgroundColor: PropTypes.string,
     /**
      * Function to retrieve the internal component ref and be able to call it's
      * methods
@@ -36,8 +50,11 @@ const defaultProps = {
     logo: undefined,
     size: 120,
     color: defaultTheme.text,
+    logoBackgroundColor: defaultTheme.icon,
     backgroundColor: defaultTheme.highlightBG,
     getRef: undefined,
+    logoRatio: CONST.QR.DEFAULT_LOGO_SIZE_RATIO,
+    logoMarginRatio: CONST.QR.DEFAULT_LOGO_MARGIN_RATIO,
 };
 
 function QRCode(props) {
@@ -47,8 +64,9 @@ function QRCode(props) {
             value={props.url}
             size={props.size}
             logo={props.logo}
-            logoBackgroundColor="transparent"
-            logoSize={props.size * 0.3}
+            logoBackgroundColor={props.logoBackgroundColor}
+            logoSize={props.size * props.logoRatio}
+            logoMargin={props.size * props.logoMarginRatio}
             logoBorderRadius={props.size}
             backgroundColor={props.backgroundColor}
             color={props.color}

@@ -51,6 +51,9 @@ class Tooltip extends PureComponent {
      * @param {Object} bounds - updated bounds
      */
     updateBounds(bounds) {
+        if (bounds.width === 0) {
+            this.setState({isRendered: false});
+        }
         this.setState({
             wrapperWidth: bounds.width,
             wrapperHeight: bounds.height,
@@ -116,22 +119,6 @@ class Tooltip extends PureComponent {
             return this.props.children;
         }
 
-        if (!React.isValidElement(this.props.children)) {
-            throw Error('Children is not a valid element.');
-        }
-
-        const target = React.cloneElement(React.Children.only(this.props.children), {
-            ref: (el) => {
-                this.wrapperView = el;
-
-                // Call the original ref, if any
-                const {ref} = this.props.children;
-                if (_.isFunction(ref)) {
-                    ref(el);
-                }
-            },
-        });
-
         return (
             <>
                 {this.state.isRendered && (
@@ -161,7 +148,7 @@ class Tooltip extends PureComponent {
                         onHoverIn={this.showTooltip}
                         onHoverOut={this.hideTooltip}
                     >
-                        {target}
+                        {this.props.children}
                     </Hoverable>
                 </BoundsObserver>
             </>

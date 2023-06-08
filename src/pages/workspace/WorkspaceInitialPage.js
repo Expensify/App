@@ -14,7 +14,7 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -78,6 +78,18 @@ const WorkspaceInitialPage = (props) => {
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
 
+    /**
+     * Navigates to workspace rooms
+     * @param {String} chatType
+     */
+    const goToRoom = useCallback(
+        (type) => {
+            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type);
+            Navigation.navigate(ROUTES.getReportRoute(room.reportID));
+        },
+        [props.reports, policy],
+    );
+
     const policyName = lodashGet(policy, 'name', '');
     const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
     const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
@@ -129,29 +141,39 @@ const WorkspaceInitialPage = (props) => {
         },
     ];
 
+    const threeDotsMenuItems = [
+        {
+            icon: Expensicons.Trashcan,
+            text: props.translate('workspace.common.delete'),
+            onSelected: () => setIsDeleteModalOpen(true),
+        },
+        {
+            icon: Expensicons.Hashtag,
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
+            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+        },
+        {
+            icon: Expensicons.Hashtag,
+            text: props.translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
+            onSelected: () => goToRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
+        },
+    ];
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={props.translate('workspace.common.workspace')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Trashcan,
-                                text: props.translate('workspace.common.delete'),
-                                onSelected: () => setIsDeleteModalOpen(true),
-                            },
-                        ]}
+                        threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <OfflineWithFeedback
