@@ -300,12 +300,13 @@ function getOptionData(reportID) {
     }
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
-        const lastAction = visibleReportActionItems[report.reportID]
+        const lastAction = visibleReportActionItems[report.reportID];
         if (lastAction && lastAction.actionName && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
-            const displayName = lastActorDetails && lastActorDetails.login === currentUserLogin.email ? `${Localize.translate(preferredLocale, 'common.you')}` : `${lastActorDetails.displayName}`;
+            const displayName =
+                lastActorDetails && lastActorDetails.login === currentUserLogin.email ? `${Localize.translate(preferredLocale, 'common.you')}` : `${lastActorDetails.displayName}`;
             const oldName = lodashGet(lastAction, 'originalMessage.oldName', '');
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
-            result.alternateText = displayName + Localize.translate(preferredLocale, 'newRoomPage.renamedRoomAction', {oldName, newName})
+            result.alternateText = displayName + Localize.translate(preferredLocale, 'newRoomPage.renamedRoomAction', {oldName, newName});
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
