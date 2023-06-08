@@ -59,11 +59,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
                 const apiRequestType = lodashGet(request, 'data.apiRequestType');
-                if (!apiRequestType) {
-                    if (isFromSequentialQueue) {
-                        return data;
-                    }
-
+                if (!isFromSequentialQueue && !apiRequestType) {
                     if (request.resolve) {
                         request.resolve(data);
                     }
