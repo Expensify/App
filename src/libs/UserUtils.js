@@ -127,8 +127,13 @@ function isDefaultAvatar(avatarURL) {
         return true;
     }
 
-    // If null URL, we should also use a default avatar
+    // We use a hardcoded "default" Concierge avatar
+    if (_.isString(avatarURL) && (avatarURL.includes('images/icons/concierge_2021.png') || avatarURL.includes('images/icons/concierge_2022.png'))) {
+        return true;
+    }
+
     if (!avatarURL) {
+        // If null URL, we should also use a default avatar
         return true;
     }
     return false;
