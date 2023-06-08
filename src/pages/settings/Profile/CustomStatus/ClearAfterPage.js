@@ -91,7 +91,7 @@ function ClearAfterPage(props) {
                         title="10:00 AM"
                         description="Time"
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET_TIME)}
                     />
                 </>
             )}

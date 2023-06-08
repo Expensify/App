@@ -371,6 +371,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SetTimePage = require('../../../pages/settings/Profile/CustomStatus/SetTimePage').default;
+            return SetTimePage;
+        },
+        name: 'Settings_Status_Set_Time',
+    },
+    {
+        getComponent: () => {
             const SettingsTimezoneInitialPage = require('../../../pages/settings/Profile/TimezoneInitialPage').default;
             return SettingsTimezoneInitialPage;
         },

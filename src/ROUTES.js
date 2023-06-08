@@ -18,6 +18,7 @@ const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
 const SETTINGS_STATUS = 'settings/profile/status';
 const SETTINGS_STATUS_SET = 'settings/profile/status/set';
 const SETTINGS_STATUS_CLEAR_AFTER = 'settings/profile/status/clear-after';
+const SETTINGS_STATUS_SET_TIME = 'settings/profile/status/set-time';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
@@ -58,6 +59,7 @@ export default {
     SETTINGS_STATUS,
     SETTINGS_STATUS_SET,
     SETTINGS_STATUS_CLEAR_AFTER,
+    SETTINGS_STATUS_SET_TIME,
     SETTINGS_CONTACT_METHOD_DETAILS: `${SETTINGS_CONTACT_METHODS}/:contactMethod/details`,
     getEditContactMethodRoute: (contactMethod) => `${SETTINGS_CONTACT_METHODS}/${encodeURIComponent(contactMethod)}/details`,
     SETTINGS_NEW_CONTACT_METHOD: `${SETTINGS_CONTACT_METHODS}/new`,

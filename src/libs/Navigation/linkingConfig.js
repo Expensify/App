@@ -118,6 +118,10 @@ export default {
                                 path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER,
                                 exact: true,
                             },
+                            Settings_Status_Set_Time: {
+                                path: ROUTES.SETTINGS_STATUS_SET_TIME,
+                                exact: true,
+                            },
                             Settings_Timezone: {
                                 path: ROUTES.SETTINGS_TIMEZONE,
                                 exact: true,
