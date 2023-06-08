@@ -112,55 +112,41 @@ function SignInPage({account, credentials}) {
         canUsePasswordlessLogins,
     });
 
-    const {welcomeHeader, welcomeText} = useMemo(() => {
-        let header = '';
-        let text = '';
-        if (shouldShowValidateCodeForm) {
-            if (account.requiresTwoFactorAuth) {
-                // We will only know this after a user signs in successfully, without their 2FA code
-                header = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-                text = translate('validateCodeForm.enterAuthenticatorCode');
-            } else {
-                const userLogin = Str.removeSMSDomain(credentials.login || '');
-
-                // replacing spaces with "hard spaces" to prevent breaking the number
-                const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
-                if (account.validated) {
-                    header = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-                    text = isSmallScreenWidth
-                        ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
-                        : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
-                } else {
-                    header = isSmallScreenWidth ? '' : translate('welcomeText.welcome');
-                    text = isSmallScreenWidth
-                        ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
-                        : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
-                }
-            }
-        } else if (shouldShowPasswordForm) {
-            header = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-            text = isSmallScreenWidth ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.enterPassword')}` : translate('welcomeText.enterPassword');
-        } else if (shouldShowUnlinkLoginForm) {
-            header = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
-        } else if (!shouldShowResendValidationForm) {
-            header = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
-            text = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+    let welcomeHeader;
+    let welcomeText;
+    if (shouldShowValidateCodeForm) {
+        if (account.requiresTwoFactorAuth) {
+            // We will only know this after a user signs in successfully, without their 2FA code
+            welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+            welcomeText = translate('validateCodeForm.enterAuthenticatorCode');
         } else {
-            Log.warn('SignInPage in unexpected state!');
+            const userLogin = Str.removeSMSDomain(credentials.login || '');
+
+            // replacing spaces with "hard spaces" to prevent breaking the number
+            const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
+            if (account.validated) {
+                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+                welcomeText = isSmallScreenWidth
+                    ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
+                    : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
+            } else {
+                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcome');
+                welcomeText = isSmallScreenWidth
+                    ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
+                    : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
+            }
         }
-        return {welcomeHeader: header, welcomeText: text};
-    }, [
-        shouldShowValidateCodeForm,
-        shouldShowPasswordForm,
-        shouldShowUnlinkLoginForm,
-        shouldShowResendValidationForm,
-        account.requiresTwoFactorAuth,
-        account.validated,
-        credentials.login,
-        isSmallScreenWidth,
-        translate,
-        formatPhoneNumber,
-    ]);
+    } else if (shouldShowPasswordForm) {
+        welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+        welcomeText = isSmallScreenWidth ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.enterPassword')}` : translate('welcomeText.enterPassword');
+    } else if (shouldShowUnlinkLoginForm) {
+        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
+    } else if (!shouldShowResendValidationForm) {
+        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
+        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+    } else {
+        Log.warn('SignInPage in unexpected state!');
+    }
 
     return (
         <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(safeAreaInsets, 1)]}>
