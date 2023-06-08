@@ -149,7 +149,7 @@ class BaseValidateCodeForm extends React.Component {
      * Clears local and Onyx sign in states
      */
     clearSignInData() {
-        this.setState({twoFactorAuthCode: '', formError: {}});
+        this.setState({twoFactorAuthCode: '', formError: {}, validateCode: ''});
         Session.clearSignInData();
     }
 

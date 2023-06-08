@@ -76,9 +76,6 @@ export default {
     BETAS: 'betas',
 
     // NVP keys
-    // Contains the user's payPalMe address
-    NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
-
     // Contains the user's payPalMe data
     PAYPAL: 'paypal',
 
@@ -118,6 +115,7 @@ export default {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
+        REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',

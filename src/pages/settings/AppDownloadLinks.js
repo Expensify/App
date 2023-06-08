@@ -1,8 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {ScrollView} from 'react-native';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -14,6 +13,8 @@ import * as Link from '../../libs/actions/Link';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
+import ROUTES from '../../ROUTES';
+import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -55,11 +56,9 @@ const AppDownloadLinksPage = (props) => {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
             />
             <ScrollView style={[styles.mt5]}>
                 {_.map(menuItems, (item) => (
