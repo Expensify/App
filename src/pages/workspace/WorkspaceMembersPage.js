@@ -35,6 +35,7 @@ import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatL
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -98,9 +99,9 @@ class WorkspaceMembersPage extends React.Component {
             this.validate();
         }
 
-        if (prevProps.policyMemberList !== this.props.policyMemberList) {
+        if (prevProps.policyMembers !== this.props.policyMembers) {
             this.setState((prevState) => ({
-                selectedEmployees: _.intersection(prevState.selectedEmployees, _.keys(this.props.policyMemberList)),
+                selectedEmployees: _.intersection(prevState.selectedEmployees, _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails))),
             }));
         }
 
@@ -116,12 +117,7 @@ class WorkspaceMembersPage extends React.Component {
      * Get members for the current workspace
      */
     getWorkspaceMembers() {
-        /**
-         * We filter clientMemberEmails to only pass members without errors
-         * Otherwise, the members with errors would immediately be removed before the user has a chance to read the error
-         */
-        const clientMemberEmails = _.keys(_.pick(this.props.policyMemberList, (member) => _.isEmpty(member.errors)));
-        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, clientMemberEmails);
+        Policy.openWorkspaceMembersPage(this.props.route.params.policyID, _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails)));
     }
 
     /**
@@ -184,7 +180,11 @@ class WorkspaceMembersPage extends React.Component {
 
         // Remove the admin from the list
         const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
-        Policy.removeMembers(membersToRemove, this.props.route.params.policyID);
+
+        // It's a pain, but we need to map the emails back to accountIDs now so we can set optimistic data. TODO removeMembers using accountIDs only.
+        const emailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
+        const accountIDsToRemove = _.map(membersToRemove, (email) => emailsToAccountIDs[email]);
+        Policy.removeMembers(membersToRemove, accountIDsToRemove, this.props.route.params.policyID);
         this.setState({
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
@@ -379,16 +379,19 @@ class WorkspaceMembersPage extends React.Component {
     }
 
     render() {
-        const policyMemberList = lodashGet(this.props, 'policyMemberList', {});
         const policyOwner = lodashGet(this.props.policy, 'owner');
         const currentUserLogin = lodashGet(this.props.currentUserPersonalDetails, 'login');
         const removableMembers = {};
         let data = [];
-        _.each(policyMemberList, (policyMember, email) => {
+        _.each(this.props.policyMembers, (policyMember, accountID) => {
             if (this.isDeletedPolicyMember(policyMember)) {
                 return;
             }
-            const details = lodashGet(this.props.personalDetails, email, {displayName: email, login: email});
+            const details = this.props.personalDetails[accountID];
+            if (!details) {
+                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
+                return;
+            }
             data.push({
                 ...policyMember,
                 ...details,
