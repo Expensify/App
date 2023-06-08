@@ -61,6 +61,10 @@ function process() {
     _.each(networkRequestQueue, (queuedRequest) => {
         // Check if we can make this request at all and if we can't see if we should save it for the next run or chuck it into the ether
         if (!canMakeRequest(queuedRequest)) {
+            // If we can't make the request because the sequential queue is running, let's wait until it finished then run the request instead of tossing it
+            if (SequentialQueue.isRunning) {
+                requestsToProcessOnNextRun.push(queuedRequest);
+            }
             return;
         }
 
