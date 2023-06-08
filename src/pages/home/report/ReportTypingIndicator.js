@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -26,15 +26,8 @@ const defaultProps = {
     userTypingStatuses: {},
 };
 
-const getUserTypingStatuses = (userTypingStatuses) => _.filter(_.keys(userTypingStatuses), (login) => userTypingStatuses[login]);
-
 function ReportTypingIndicator(props) {
-    const [usersTyping, setUsersTyping] = useState(props.userTypingStatuses ? getUserTypingStatuses(props.userTypingStatuses) : []);
-
-    useEffect(() => {
-        setUsersTyping(getUserTypingStatuses(props.userTypingStatuses));
-    }, [props.userTypingStatuses]);
-
+    const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (login) => props.userTypingStatuses[login]), [props.userTypingStatuses]);
     // If we are offline, the user typing statuses are not up-to-date so do not show them
     if (props.network.isOffline) {
         return null;
