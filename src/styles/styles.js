@@ -3116,18 +3116,6 @@ const styles = {
         zIndex: 2,
     },
 
-    textPill: {
-        backgroundColor: themeColors.border,
-        borderRadius: 10,
-        overflow: 'hidden',
-        paddingVertical: 2,
-        flexShrink: 0,
-        maxWidth: variables.badgeMaxWidth,
-        fontSize: variables.fontSizeSmall,
-        ...whiteSpace.pre,
-        ...spacing.ph2,
-    },
-
     dropZoneTopInvisibleOverlay: {
         position: 'absolute',
         width: '100%',

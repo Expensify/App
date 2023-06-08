@@ -511,6 +511,17 @@ function isThread(report) {
     return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
 }
 
+
+/**
+ * If the report has a chat type, it is a workspace chat.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isWorkspaceThread(report) {
+    return Boolean(isThread(report) && getChatType(report));
+}
+
 /**
  * Returns true if reportAction has a child.
  *
@@ -751,10 +762,17 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         result.source = CONST.CONCIERGE_ICON_URL;
         return [result];
     }
-    if (isArchivedRoom(report)) {
-        result.source = Expensicons.DeletedRoomAvatar;
-        return [result];
-    }
+    // if (isArchivedRoom(report)) {
+    //     const workspaceName = getPolicyName(report);
+    //     const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
+    //     const workspaceIcon = {
+    //         source: policyExpenseChatAvatarSource,
+    //         type: CONST.ICON_TYPE_WORKSPACE,
+    //         name: workspaceName,
+    //     };
+    //     console.log('archived report: ', report.displayName, {report, workspaceName, workspaceIcon});
+    //     return [workspaceIcon];
+    // }
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
@@ -765,23 +783,42 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             type: CONST.ICON_TYPE_AVATAR,
         };
 
+        if(isWorkspaceThread(report)){
+            const workspaceName = getPolicyName(report);
+            const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
+            const workspaceIcon = {
+                source: policyExpenseChatAvatarSource,
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: workspaceName,
+            };
+            return [actorIcon, workspaceIcon];
+        }
+
         return [actorIcon];
     }
     if (isDomainRoom(report)) {
-        result.source = Expensicons.DomainRoomAvatar;
-        return [result];
+        const domainName = report.ownerEmail.replace('+@', '');
+        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(domainName);
+        const domainIcon = {
+            source: policyExpenseChatAvatarSource,
+            type: CONST.ICON_TYPE_WORKSPACE,
+            name: domainName,
+        };
+        console.log('domain report: ', report.displayName, {report, domainName, domainIcon});
+
+        return [domainIcon];
     }
-    if (isAdminRoom(report)) {
-        result.source = Expensicons.AdminRoomAvatar;
-        return [result];
-    }
-    if (isAnnounceRoom(report)) {
-        result.source = Expensicons.AnnounceRoomAvatar;
-        return [result];
-    }
-    if (isChatRoom(report)) {
-        result.source = Expensicons.ActiveRoomAvatar;
-        return [result];
+    if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedRoom(report)) {
+        const workspaceName = getPolicyName(report);
+        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
+        const workspaceIcon = {
+            source: policyExpenseChatAvatarSource,
+            type: CONST.ICON_TYPE_WORKSPACE,
+            name: workspaceName,
+        };
+        console.log('room report: ', report.displayName, {report, workspaceName, workspaceIcon});
+
+        return [workspaceIcon];
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceName = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name']);
@@ -2125,6 +2162,10 @@ function shouldReportShowSubscript(report) {
     }
 
     if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat) {
+        return true;
+    }
+
+    if (isWorkspaceThread(report)) {
         return true;
     }
 
