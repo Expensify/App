@@ -221,7 +221,7 @@ class LoginForm extends React.Component {
                             />
                             <View style={[this.getSignInWithStyles()]}>
                                 <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{this.props.translate('common.signInWith')}</Text>
-                                <View style={styles.loginButtonRow}>
+                                <View style={this.props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                     <AppleSignIn />
                                 </View>
                             </View>
