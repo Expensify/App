@@ -737,6 +737,24 @@ function getIconsForParticipants(participants, personalDetails) {
     return avatars;
 }
 
+
+/**
+ * Given a policy name, return the associated workspace icon.
+ *
+ * @param {Object} report
+ * @returns {Object}
+ */
+function getWorkspaceIcon(report) {
+    const workspaceName = getPolicyName(report);
+    const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
+    const workspaceIcon = {
+        source: policyExpenseChatAvatarSource,
+        type: CONST.ICON_TYPE_WORKSPACE,
+        name: workspaceName,
+    };
+    return workspaceIcon;
+}
+
 /**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
@@ -762,17 +780,6 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         result.source = CONST.CONCIERGE_ICON_URL;
         return [result];
     }
-    // if (isArchivedRoom(report)) {
-    //     const workspaceName = getPolicyName(report);
-    //     const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
-    //     const workspaceIcon = {
-    //         source: policyExpenseChatAvatarSource,
-    //         type: CONST.ICON_TYPE_WORKSPACE,
-    //         name: workspaceName,
-    //     };
-    //     console.log('archived report: ', report.displayName, {report, workspaceName, workspaceIcon});
-    //     return [workspaceIcon];
-    // }
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
@@ -784,13 +791,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         };
 
         if(isWorkspaceThread(report)){
-            const workspaceName = getPolicyName(report);
-            const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
-            const workspaceIcon = {
-                source: policyExpenseChatAvatarSource,
-                type: CONST.ICON_TYPE_WORKSPACE,
-                name: workspaceName,
-            };
+            const workspaceIcon = getWorkspaceIcon(report);
             return [actorIcon, workspaceIcon];
         }
 
@@ -804,46 +805,28 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             type: CONST.ICON_TYPE_WORKSPACE,
             name: domainName,
         };
-        console.log('domain report: ', report.displayName, {report, domainName, domainIcon});
-
         return [domainIcon];
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedRoom(report)) {
-        const workspaceName = getPolicyName(report);
-        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
-        const workspaceIcon = {
-            source: policyExpenseChatAvatarSource,
-            type: CONST.ICON_TYPE_WORKSPACE,
-            name: workspaceName,
-        };
-        console.log('room report: ', report.displayName, {report, workspaceName, workspaceIcon});
-
+        const workspaceIcon = getWorkspaceIcon(report);
         return [workspaceIcon];
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
-        const workspaceName = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name']);
-
-        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
-
-        // Return the workspace avatar if the user is the owner of the policy expense chat
-        if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
-            result.source = policyExpenseChatAvatarSource;
-            result.type = CONST.ICON_TYPE_WORKSPACE;
-            result.name = workspaceName;
-            return [result];
-        }
-
+        const workspaceIcon = getWorkspaceIcon(report);
         const adminIcon = {
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
             name: report.ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
         };
 
-        const workspaceIcon = {
-            source: policyExpenseChatAvatarSource,
-            type: CONST.ICON_TYPE_WORKSPACE,
-            name: workspaceName,
-        };
+        // Return the workspace avatar if the user is the owner of the policy expense chat
+        if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
+            return [workspaceIcon, adminIcon];
+        }
+
+        // if (isExpenseReport(report)) {
+        //     return [adminIcon, workspaceIcon]
+        // }
 
         // If the user is an admin, return avatar source of the other participant of the report
         // (their workspace chat) and the avatar source of the workspace
@@ -2161,7 +2144,7 @@ function shouldReportShowSubscript(report) {
         return false;
     }
 
-    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat) {
+    if (isPolicyExpenseChat(report)) {
         return true;
     }
 
