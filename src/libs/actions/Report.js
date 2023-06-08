@@ -339,7 +339,6 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             isLoadingReportActions: true,
             isLoadingMoreReportActions: false,
             lastReadTime: DateUtils.getDBTime(),
-            reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
         },
     };
     const reportSuccessData = {
@@ -396,6 +395,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         // and we need the data to be available when we navigate to the chat page
         optimisticReportData.onyxMethod = Onyx.METHOD.SET;
         optimisticReportData.value = {
+            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             ...optimisticReportData.value,
             ...newReportObject,
             pendingFields: {
@@ -809,6 +809,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
+            isDeletedParentAction: true,
         },
     ];
     const optimisticReportActions = {

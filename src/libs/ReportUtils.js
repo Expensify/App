@@ -556,7 +556,7 @@ function getChatRoomSubtitle(report) {
             }
         }
 
-        return [workspaceName, roomName].join(' • ');
+        return roomName ? [workspaceName, roomName].join(' • ') : workspaceName;
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -1048,7 +1048,7 @@ function getReportName(report) {
  * @returns {Object}
  */
 function getReport(reportID) {
-    return allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
 }
 
 /**
