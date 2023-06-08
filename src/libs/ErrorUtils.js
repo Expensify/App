@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import DateUtils from './DateUtils';
-import * as Localize from "./Localize";
+import * as Localize from './Localize';
 
 /**
  * @param {Object} response
