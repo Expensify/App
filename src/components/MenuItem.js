@@ -135,9 +135,14 @@ const MenuItem = (props) => {
                             {Boolean(props.icon) && _.isArray(props.icon) && (
                                 <MultipleAvatars
                                     isHovered={hovered}
+                                    isPressed={pressed}
                                     icons={props.icon}
                                     size={CONST.AVATAR_SIZE.DEFAULT}
-                                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered ? themeColors.border : themeColors.appBG)]}
+                                    secondAvatarStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
+                                        pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
+                                        hovered && !pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
+                                    ]}
                                 />
                             )}
                             {Boolean(props.icon) && !_.isArray(props.icon) && (
