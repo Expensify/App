@@ -300,7 +300,15 @@ function getOptionData(reportID) {
     }
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
-        result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        const lastAction = visibleReportActionItems[report.reportID]
+        if (lastAction && lastAction.actionName && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            const displayName = lastActorDetails && lastActorDetails.login === currentUserLogin.email ? `${Localize.translate(preferredLocale, 'common.you')}` : `${lastActorDetails.displayName}`;
+            const oldName = lodashGet(lastAction, 'originalMessage.oldName', '');
+            const newName = lodashGet(lastAction, 'originalMessage.newName', '');
+            result.alternateText = displayName + Localize.translate(preferredLocale, 'newRoomPage.renamedRoomAction', {oldName, newName})
+        } else {
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        }
     } else {
         if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
