@@ -134,9 +134,12 @@ const MenuItem = (props) => {
                         <View style={[styles.flexRow, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                             {Boolean(props.icon) && _.isArray(props.icon) && (
                                 <MultipleAvatars
+                                    isHovered={hovered}
                                     icons={props.icon}
                                     size={CONST.AVATAR_SIZE.DEFAULT}
-                                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG)]}
+                                    secondAvatarStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(hovered ? themeColors.border : themeColors.appBG),
+                                    ]}
                                 />
                             )}
                             {Boolean(props.icon) && !_.isArray(props.icon) && (
