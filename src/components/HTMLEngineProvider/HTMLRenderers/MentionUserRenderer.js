@@ -1,4 +1,5 @@
 import React from 'react';
+import UserDetailsTooltip from '../../../components/UserDetailsTooltip/UserDetailsTooltip';
 import _ from 'underscore';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -33,10 +34,10 @@ const MentionUserRenderer = (props) => {
     const loginWhithoutLeadingAt = props.tnode.data.slice(1);
 
     const isOurMention = loginWhithoutLeadingAt === props.currentUserPersonalDetails.login;
-
+console.log('MentionUserRenderer', props.currentUserPersonalDetails);
     return (
         <Text>
-            <Tooltip text={loginWhithoutLeadingAt}>
+            <UserDetailsTooltip login={props.currentUserPersonalDetails.login} name={props.currentUserPersonalDetails.displayName} avatarSource={props.currentUserPersonalDetails.avatar}>
                 <Text
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
@@ -46,7 +47,7 @@ const MentionUserRenderer = (props) => {
                 >
                     <TNodeChildrenRenderer tnode={props.tnode} />
                 </Text>
-            </Tooltip>
+            </UserDetailsTooltip>
         </Text>
     );
 };
