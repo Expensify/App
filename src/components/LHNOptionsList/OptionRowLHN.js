@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
-import {useIsFocused} from '@react-navigation/native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -56,17 +55,6 @@ const defaultProps = {
 
 const OptionRowLHN = (props) => {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
-    const isPinned = _.get(optionItem, 'isPinned', false);
-
-    const isScreenFocused = useIsFocused();
-    React.useEffect(() => {
-        // Don't perform this side-effect if the SidebarScreen is not focused
-        if (!isScreenFocused) {
-            return;
-        }
-
-        ReportActionContextMenu.hideContextMenu(false);
-    }, [isPinned]);
 
     if (!optionItem) {
         return null;
