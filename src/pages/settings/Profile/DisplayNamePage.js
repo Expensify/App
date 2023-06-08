@@ -27,18 +27,18 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+/**
+ * Submit form to update user's first and last name (and display name)
+ * @param {Object} values
+ * @param {String} values.firstName
+ * @param {String} values.lastName
+ */
+const updateDisplayName = (values) => {
+    PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
+};
+
 function DisplayNamePage(props) {
     const currentUserDetails = props.currentUserPersonalDetails || {};
-
-    /**
-     * Submit form to update user's first and last name (and display name)
-     * @param {Object} values
-     * @param {String} values.firstName
-     * @param {String} values.lastName
-     */
-    const updateDisplayName = (values) => {
-        PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
-    };
 
     /**
      * @param {Object} values
