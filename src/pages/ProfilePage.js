@@ -124,7 +124,7 @@ function ProfilePage(props) {
     const hasMinimumDetails = !_.isEmpty(details.avatar);
     const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
 
-    // If they API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
+    // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
 
     return (
