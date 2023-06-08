@@ -27,7 +27,7 @@ const propTypes = {
     newMarkerReportActionID: PropTypes.string,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetailsList: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,

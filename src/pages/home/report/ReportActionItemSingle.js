@@ -28,7 +28,7 @@ const propTypes = {
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** All of the personalDetails */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** Styles for the outermost View */
     // eslint-disable-next-line react/forbid-prop-types
@@ -53,7 +53,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
+    personalDetailsList: {},
     wrapperStyles: [styles.chatItem],
     showHeader: true,
     shouldShowSubscriptAvatar: false,
