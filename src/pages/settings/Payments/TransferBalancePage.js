@@ -4,7 +4,7 @@ import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
@@ -139,9 +139,9 @@ class TransferBalancePage extends React.Component {
         if (this.props.walletTransfer.shouldShowSuccess && !this.props.walletTransfer.loading) {
             return (
                 <ScreenWrapper>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('common.transferBalance')}
-                        onCloseButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
+                        onBackButtonPress={PaymentMethods.dismissSuccessfulTransferBalancePage}
                     />
                     <ConfirmationPage
                         heading={this.props.translate('transferAmountPage.transferSuccess')}
@@ -178,13 +178,12 @@ class TransferBalancePage extends React.Component {
                     subtitleKey="transferAmountPage.notHereSubTitle"
                     shouldShowLink
                     linkKey="transferAmountPage.goToPayment"
-                    onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
                 >
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('common.transferBalance')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.goBack()}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
                     />
                     <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                         <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />

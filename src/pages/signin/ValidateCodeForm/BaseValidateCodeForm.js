@@ -150,6 +150,7 @@ function BaseValidateCodeForm(props) {
     const clearSignInData = () => {
         setTwoFactorAuthCode('');
         setFormError({});
+        setValidateCode('');
         Session.clearSignInData();
     }
 

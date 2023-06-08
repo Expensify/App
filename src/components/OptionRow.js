@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity, View, StyleSheet, InteractionManager} from 'react-native';
+import {View, StyleSheet, InteractionManager} from 'react-native';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import optionPropTypes from './optionPropTypes';
@@ -19,6 +19,7 @@ import SubscriptAvatar from './SubscriptAvatar';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Style for hovered state */
@@ -114,7 +115,7 @@ class OptionRow extends Component {
     }
 
     render() {
-        let touchableRef = null;
+        let pressableRef = null;
         const textStyle = this.props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
         const textUnreadStyle = this.props.boldStyle || this.props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
         const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style, styles.pre);
@@ -146,14 +147,14 @@ class OptionRow extends Component {
             >
                 <Hoverable>
                     {(hovered) => (
-                        <TouchableOpacity
-                            ref={(el) => (touchableRef = el)}
+                        <PressableWithFeedback
+                            ref={(el) => (pressableRef = el)}
                             onPress={(e) => {
                                 this.setState({isDisabled: true});
                                 if (e) {
                                     e.preventDefault();
                                 }
-                                let result = this.props.onSelectRow(this.props.option, touchableRef);
+                                let result = this.props.onSelectRow(this.props.option, pressableRef);
                                 if (!(result instanceof Promise)) {
                                     result = Promise.resolve();
                                 }
@@ -162,7 +163,6 @@ class OptionRow extends Component {
                                 });
                             }}
                             disabled={this.state.isDisabled}
-                            activeOpacity={0.8}
                             style={[
                                 styles.flexRow,
                                 styles.alignItemsCenter,
@@ -170,10 +170,13 @@ class OptionRow extends Component {
                                 styles.sidebarLink,
                                 this.props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                                 this.props.optionIsFocused ? styles.sidebarLinkActive : null,
-                                hovered && !this.props.optionIsFocused ? this.props.hoverStyle : null,
-                                this.props.isDisabled && styles.cursorDisabled,
                                 this.props.shouldHaveOptionSeparator && styles.borderTop,
                             ]}
+                            accessibilityLabel={this.props.option.text}
+                            accessibilityRole="button"
+                            hoverDimmingValue={1}
+                            hoverStyle={this.props.hoverStyle}
+                            focusStyle={this.props.hoverStyle}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -248,7 +251,7 @@ class OptionRow extends Component {
                                     </View>
                                 </View>
                             )}
-                        </TouchableOpacity>
+                        </PressableWithFeedback>
                     )}
                 </Hoverable>
             </OfflineWithFeedback>
