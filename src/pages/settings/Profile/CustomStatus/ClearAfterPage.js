@@ -12,6 +12,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import themeColors from '../../../../styles/themes/default';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as User from '../../../../libs/actions/User';
+import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 
 const propTypes = {
     // The draft status of the custom status
@@ -60,6 +61,8 @@ function ClearAfterPage(props) {
         });
     };
 
+    const showCustom = props.draftStatus.clearAfter === 'custom';
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
@@ -73,7 +76,25 @@ function ClearAfterPage(props) {
                 sections={clearAfterOptions}
                 onSelectRow={updateClearAfterSelection}
                 optionHoveredStyle={styles.hoveredComponentBG}
+                listContainerStyles={[]}
             />
+
+            {showCustom && (
+                <>
+                    <MenuItemWithTopDescription
+                        title="2023-07-02"
+                        description="Date"
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
+                    />
+                    <MenuItemWithTopDescription
+                        title="10:00 AM"
+                        description="Time"
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_SET)}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }
