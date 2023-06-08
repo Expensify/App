@@ -806,6 +806,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
+            isDeletedParentAction: true,
         },
     ];
     const optimisticReportActions = {

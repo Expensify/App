@@ -381,6 +381,16 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
+        if (this.state.shouldShowContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    continue={this.continue}
+                    policyName={policyName}
+                />
+            );
+        }
+
         if (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
             return (
                 <BankAccountStep
