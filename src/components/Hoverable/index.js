@@ -17,7 +17,6 @@ class Hoverable extends Component {
         };
 
         this.wrapperView = null;
-        // Skip hover on not supported devices like mWeb
         this.hasHoverSupport = DeviceCapabilities.hasHoverSupport();
     }
 
@@ -77,7 +76,6 @@ class Hoverable extends Component {
             child = this.props.children[0];
         }
 
-        // return child if device doesn't has hoverSupport
         if (!this.hasHoverSupport) {
             const childrenWithHoverState = _.isFunction(child) ? child(false) : child;
             return <View>{childrenWithHoverState}</View>;
