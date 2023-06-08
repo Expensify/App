@@ -43,6 +43,7 @@ export default {
         and: 'y',
         details: 'Detalles',
         privacy: 'Privacidad',
+        hidden: 'Oculto',
         delete: 'Eliminar',
         archived: 'archivado',
         contacts: 'Contactos',
