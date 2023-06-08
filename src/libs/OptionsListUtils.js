@@ -237,13 +237,14 @@ function getParticipantsOptions(report, personalDetails) {
     return _.map(getPersonalDetailsForAccountIDs(participants, personalDetails), (details) => ({
         keyForList: details.login,
         login: details.login,
+        accountID: details.accountID,
         text: details.displayName,
         firstName: lodashGet(details, 'firstName', ''),
         lastName: lodashGet(details, 'lastName', ''),
         alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
         icons: [
             {
-                source: UserUtils.getAvatar(details.avatar, details.login),
+                source: UserUtils.getAvatar(details.avatar, details.accountID),
                 name: details.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -849,6 +850,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
         ],
         descriptiveText: amountText,
         login: personalDetail.login,
+        accountID: personalDetail.accountID,
     };
 }
 

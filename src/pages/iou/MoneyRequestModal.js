@@ -249,20 +249,20 @@ const MoneyRequestModal = (props) => {
             const participant = selectedOptions[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                IOU.sendMoneyElsewhere(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyElsewhere(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                IOU.sendMoneyViaPaypal(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyViaPaypal(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                IOU.sendMoneyWithWallet(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyWithWallet(props.report, amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
             }
         },
-        [amount, props.iou.comment, selectedOptions, props.currentUserPersonalDetails.login, props.iou.selectedCurrencyCode, props.report],
+        [amount, props.iou.comment, selectedOptions, props.currentUserPersonalDetails.accountID, props.iou.selectedCurrencyCode, props.report],
     );
 
     /**
@@ -372,7 +372,7 @@ const MoneyRequestModal = (props) => {
                                                 ReportScrollManager.scrollToBottom();
                                             }}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
-                                            participants={_.filter(selectedOptions, (email) => props.currentUserPersonalDetails.login !== email.login)}
+                                            participants={_.filter(selectedOptions, (option) => props.currentUserPersonalDetails.accountID !== option.accountID)}
                                             iouAmount={amount}
                                             iouType={props.iouType}
                                             // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.

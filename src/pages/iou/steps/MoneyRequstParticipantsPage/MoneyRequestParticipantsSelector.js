@@ -79,7 +79,7 @@ class MoneyRequestParticipantsSelector extends Component {
             this.props.betas,
             searchTerm,
             [],
-            CONST.EXPENSIFY_EMAILS,
+            CONST.EXPENSIFY_ACCOUNT_IDS,
 
             // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to request money from their admin on their own Workspace Chat.

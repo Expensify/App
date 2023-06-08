@@ -428,7 +428,7 @@ class ReportActionCompose extends React.Component {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
         if (
             !Permissions.canUseTasks(this.props.betas) ||
-            (lodashGet(this.props.report, 'participants', []).length === 1 && _.some(reportParticipants, (email) => _.contains(CONST.EXPENSIFY_EMAILS, email)))
+            (lodashGet(this.props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
         ) {
             return [];
         }
@@ -905,8 +905,7 @@ class ReportActionCompose extends React.Component {
 
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participantAccountIDs', []), this.props.currentUserPersonalDetails.accountID);
-        // TODO: ACCOUNT IDS!!!
-        const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+        const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
         const shouldShowReportRecipientLocalTime =
             ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.login) && !this.props.isComposerFullSize;

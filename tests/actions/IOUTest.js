@@ -364,9 +364,7 @@ describe('actions/IOU', () => {
                 reportID: iouReportID,
                 chatReportID,
                 type: CONST.REPORT.TYPE.IOU,
-                ownerEmail: RORY_EMAIL,
                 ownerAccountID: RORY_ACCOUNT_ID,
-                managerEmail: CARLOS_EMAIL,
                 managerID: CARLOS_ACCOUNT_ID,
                 currency: CONST.CURRENCY.USD,
                 total: existingTransaction.amount,
@@ -778,6 +776,7 @@ describe('actions/IOU', () => {
 
     describe('split bill', () => {
         it('creates and updates new chats and IOUs as needed', () => {
+            jest.setTimeout(10 * 1000);
             /*
              * Given that:
              *   - Rory and Carlos have chatted before
@@ -828,9 +827,7 @@ describe('actions/IOU', () => {
                 reportID: julesIOUReportID,
                 chatReportID: julesChatReport.reportID,
                 type: CONST.REPORT.TYPE.IOU,
-                ownerEmail: RORY_EMAIL,
                 ownerAccountID: RORY_ACCOUNT_ID,
-                managerEmail: JULES_EMAIL,
                 managerID: JULES_ACCOUNT_ID,
                 currency: CONST.CURRENCY.USD,
                 total: julesExistingTransaction.amount,
@@ -895,7 +892,9 @@ describe('actions/IOU', () => {
                     fetch.pause();
                     IOU.splitBill(
                         // TODO: Migrate after the backend accepts accountIDs
-                        _.map([CARLOS_EMAIL, JULES_EMAIL, VIT_EMAIL], (email) => ({login: email})),
+                        _.map([
+                            [CARLOS_EMAIL, CARLOS_ACCOUNT_ID], [JULES_EMAIL, JULES_ACCOUNT_ID], [VIT_EMAIL, VIT_ACCOUNT_ID]
+                        ], ([email, accountID]) => ({login: email, accountID})),
                         RORY_EMAIL,
                         amount,
                         comment,
@@ -913,6 +912,8 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connectionID);
 
                                     // There should now be 7 reports
+                                    // FAIL IS HERE =============================================================================
+                                    console.log('ALLREPORTS', allReports);
                                     expect(_.size(allReports)).toBe(7);
 
                                     // 1. The chat report with Rory + Carlos

@@ -1202,7 +1202,7 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
  * Builds an optimistic IOU report with a randomly generated reportID
  *
  * @param {String} payeeEmail - Email of the person generating the IOU.
- * @param {String} payerEmail - Email of the other person participating in the IOU.
+ * @param {Number} payerAccountID - AccountID of the other person participating in the IOU.
  * @param {Number} total - IOU amount in the smallest unit of the currency.
  * @param {String} chatReportID - Report ID of the chat where the IOU is.
  * @param {String} currency - IOU currency.
@@ -1210,8 +1210,10 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(payeeEmail, payerEmail, total, chatReportID, currency, isSendingMoney = false) {
+function buildOptimisticIOUReport(payeeEmail, payerAccountID, total, chatReportID, currency, isSendingMoney = false) {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
+    // TODO: REPLACE ME
+    const payerEmail = 'REPLACE ME WITH PERSONAL DETAILS';
     return {
         // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,
@@ -1219,8 +1221,9 @@ function buildOptimisticIOUReport(payeeEmail, payerEmail, total, chatReportID, c
         cachedTotal: formattedTotal,
         chatReportID,
         currency,
-        managerEmail: payerEmail,
+        managerID: payerAccountID,
         ownerEmail: payeeEmail,
+        // ownerAccountID: 0,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
@@ -1483,6 +1486,7 @@ function buildOptimisticChatReport(
         isOwnPolicyExpenseChat,
         isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
         lastActorEmail: '',
+        lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadTime: currentTime,
@@ -1490,9 +1494,11 @@ function buildOptimisticChatReport(
         notificationPreference,
         oldPolicyName,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
+        // ownerAccountID: ownerAccountID || 0,
         parentReportActionID,
         parentReportID,
         participants: participantList,
+        participantAccountIDs: participantList,
         policyID,
         reportID: generateReportID(),
         reportName,

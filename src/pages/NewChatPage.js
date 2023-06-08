@@ -51,7 +51,7 @@ class NewChatPage extends Component {
         this.createChat = this.createChat.bind(this);
         this.createGroup = this.createGroup.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
-        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
+        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_ACCOUNT_IDS, CONST.ACCOUNT_ID.CONCIERGE);
 
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
             props.reports,

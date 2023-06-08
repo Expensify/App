@@ -29,6 +29,7 @@ const propTypes = {
     participants: PropTypes.arrayOf(
         PropTypes.shape({
             login: PropTypes.string.isRequired,
+            accountID: PropTypes.number.isRequired,
             alternateText: PropTypes.string,
             hasDraftComment: PropTypes.bool,
             icons: PropTypes.arrayOf(avatarPropTypes),
@@ -73,7 +74,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             props.betas,
             '',
             props.participants,
-            CONST.EXPENSIFY_EMAILS,
+            CONST.EXPENSIFY_ACCOUNT_IDS,
         );
 
         this.state = {
@@ -148,7 +149,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             this.props.betas,
             searchTerm,
             this.props.participants,
-            CONST.EXPENSIFY_EMAILS,
+            CONST.EXPENSIFY_ACCOUNT_IDS,
         );
         this.setState({
             searchTerm,
@@ -189,8 +190,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                 this.props.betas,
                 isOptionInList ? prevState.searchTerm : '',
                 newSelectedOptions,
-                // TODO: need to update :D
-                CONST.EXPENSIFY_EMAILS,
+                CONST.EXPENSIFY_ACCOUNT_IDS,
             );
             return {
                 recentReports,

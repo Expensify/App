@@ -10,7 +10,9 @@ import currencyList from './currencyList.json';
 let iouReport;
 let reportActions;
 const ownerEmail = 'owner@iou.com';
+const ownerAccountID = 5;
 const managerEmail = 'manager@iou.com';
+const managerID = 10;
 
 function createIOUReportAction(type, amount, currency, isOffline = false, IOUTransactionID = NumberUtils.rand64()) {
     const moneyRequestAction = ReportUtils.buildOptimisticIOUReportAction(type, amount, currency, 'Test comment', [managerEmail], IOUTransactionID, '', iouReport.reportID);
@@ -52,7 +54,7 @@ describe('IOUUtils', () => {
             const amount = 1000;
             const currency = 'USD';
 
-            iouReport = ReportUtils.buildOptimisticIOUReport(ownerEmail, managerEmail, amount, chatReportID, currency);
+            iouReport = ReportUtils.buildOptimisticIOUReport(ownerEmail, managerID, amount, chatReportID, currency);
 
             // The starting point of all tests is the IOUReport containing a single non-pending transaction in USD
             // All requests in the tests are assumed to be online, unless isOffline is specified
