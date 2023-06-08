@@ -27,7 +27,7 @@ const propTypes = {
     companyName: PropTypes.string.isRequired,
 };
 
-function ACHContractStep (props) {
+const ACHContractStep = (props) => {
     const [beneficialOwners, setBeneficialOwners] = useState(lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])));
 
     /**
@@ -90,17 +90,21 @@ function ACHContractStep (props) {
      * @param {Number} ownerKey - ID connected to the beneficial owner identity form
      */
     const removeBeneficialOwner = (ownerKey) => {
-        const previousBeneficialOwners = _.without(beneficialOwners, ownerKey);
-        FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {previousBeneficialOwners});
-        setBeneficialOwners(previousBeneficialOwners);
+        setBeneficialOwners(previousBeneficialOwners => {
+            const beneficialOwners = _.without(previousBeneficialOwners, ownerKey);
+            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
+            return beneficialOwners;
+        })
     }
 
     const addBeneficialOwner = () => {
         // Each beneficial owner is assigned a unique key that will connect it to an Identity Form.
         // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
-        const newBeneficialOwners = [...beneficialOwners, Str.guid()];
-        FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
-        setBeneficialOwners(newBeneficialOwners);
+        setBeneficialOwners(previousBeneficialOwners => {
+            const beneficialOwners = [...previousBeneficialOwners, Str.guid()];
+            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
+            return beneficialOwners;
+        })
     }
 
     /**
@@ -173,7 +177,9 @@ function ACHContractStep (props) {
                                 if (ownsMoreThan25Percent && beneficialOwners.length > 3) {
                                     // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%.
                                     // We have to remove the 4th beneficial owner if the checkbox is checked.
-                                    setBeneficialOwners(beneficialOwners.slice(0, -1));
+                                    setBeneficialOwners(previousBeneficialOwners => {
+                                        return previousBeneficialOwners.slice(0, -1)
+                                    })
                                 }
                             }}
                             defaultValue={props.getDefaultStateForField('ownsMoreThan25Percent', false)}
