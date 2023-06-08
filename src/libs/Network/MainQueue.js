@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import * as NetworkStore from './NetworkStore';
 import * as SequentialQueue from './SequentialQueue';
 import * as Request from '../Request';
