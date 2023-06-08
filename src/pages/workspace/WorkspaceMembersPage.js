@@ -413,7 +413,7 @@ class WorkspaceMembersPage extends React.Component {
                 {({safeAreaPaddingBottomStyle}) => (
                     <FullPageNotFoundView
                         shouldShow={_.isEmpty(this.props.policy)}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
                         <HeaderWithBackButton
                             title={this.props.translate('workspace.common.members')}

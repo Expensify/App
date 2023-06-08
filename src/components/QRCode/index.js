@@ -34,6 +34,11 @@ const propTypes = {
      * The QRCode background color
      */
     backgroundColor: PropTypes.string,
+
+    /**
+     * The QRCode logo background color
+     */
+    logoBackgroundColor: PropTypes.string,
     /**
      * Function to retrieve the internal component ref and be able to call it's
      * methods
@@ -45,6 +50,7 @@ const defaultProps = {
     logo: undefined,
     size: 120,
     color: defaultTheme.text,
+    logoBackgroundColor: defaultTheme.icon,
     backgroundColor: defaultTheme.highlightBG,
     getRef: undefined,
     logoRatio: CONST.QR.DEFAULT_LOGO_SIZE_RATIO,
@@ -58,7 +64,7 @@ function QRCode(props) {
             value={props.url}
             size={props.size}
             logo={props.logo}
-            logoBackgroundColor={props.backgroundColor}
+            logoBackgroundColor={props.logoBackgroundColor}
             logoSize={props.size * props.logoRatio}
             logoMargin={props.size * props.logoMarginRatio}
             logoBorderRadius={props.size}
