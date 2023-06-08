@@ -182,7 +182,7 @@ const HeaderView = (props) => {
                                                 }}
                                             >
                                                 <Text
-                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
                                                     numberOfLines={1}
                                                 >
                                                     {subtitle}
