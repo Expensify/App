@@ -102,7 +102,6 @@ const MoneyRequestHeader = (props) => {
     if (props.isSingleTransactionView && isDeletedParentAction) {
         return (
             <HeaderView
-                reportID={props.report.reportID}
                 onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
                 personalDetails={props.personalDetails}
                 report={props.report}
