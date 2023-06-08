@@ -2,6 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import DateUtils from './DateUtils';
+import * as Localize from "./Localize";
 
 /**
  * @param {Object} response
@@ -99,10 +100,13 @@ function addErrorMessage(errors, inputID, message) {
     if (!message || !inputID) {
         return;
     }
+
+    const translatedMessage = Localize.translateIfPhraseKey(message);
+
     if (_.isEmpty(errorList[inputID])) {
-        errorList[inputID] = message;
+        errorList[inputID] = translatedMessage;
     } else {
-        errorList[inputID] = `${errorList[inputID]}\n${message}`;
+        errorList[inputID] = `${errorList[inputID]}\n${translatedMessage}`;
     }
 }
 
