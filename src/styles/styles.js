@@ -3400,6 +3400,8 @@ const styles = {
     loginButtonRow: {
         justifyContent: 'center',
         width: '100%',
+        marginTop: 5,
+        marginBottom: 10,
         ...flex.flexRow,
     },
 
