@@ -534,6 +534,25 @@ function isThreadFirstChat(reportAction, reportID) {
 }
 
 /**
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then a default object is constructed.
+ * @param {String} login
+ * @returns {Object}
+ */
+function getPersonalDetailsForLogin(login) {
+    if (!login) {
+        return {};
+    }
+    return (
+        (allPersonalDetails && allPersonalDetails[login]) || {
+            login,
+            displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            avatar: UserUtils.getDefaultAvatar(login),
+        }
+    );
+}
+
+/**
  * Get the displayName for a single report participant.
  *
  * @param {String} login
@@ -545,11 +564,8 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
         return '';
     }
     const personalDetails = getPersonalDetailsForLogin(login);
-
     const longName = personalDetails.displayName;
-
     const shortName = personalDetails.firstName || longName;
-
     return shouldUseShortForm ? shortName : longName;
 }
 
@@ -581,7 +597,7 @@ function getChatRoomSubtitle(report) {
             }
         }
 
-        return roomName ? [workspaceName, roomName].join(' • ') : workspaceName;
+        return `From ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -849,25 +865,6 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     }
 
     return getIconsForParticipants(report.participants, personalDetails);
-}
-
-/**
- * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
- * then a default object is constructed.
- * @param {String} login
- * @returns {Object}
- */
-function getPersonalDetailsForLogin(login) {
-    if (!login) {
-        return {};
-    }
-    return (
-        (allPersonalDetails && allPersonalDetails[login]) || {
-            login,
-            displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            avatar: UserUtils.getDefaultAvatar(login),
-        }
-    );
 }
 
 /**
