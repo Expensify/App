@@ -913,8 +913,6 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connectionID);
 
                                     // There should now be 7 reports
-                                    // FAIL IS HERE =============================================================================
-                                    console.log('ALLREPORTS', allReports);
                                     expect(_.size(allReports)).toBe(7);
 
                                     // 1. The chat report with Rory + Carlos

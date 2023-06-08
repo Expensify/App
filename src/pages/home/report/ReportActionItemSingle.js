@@ -89,7 +89,7 @@ const ReportActionItemSingle = (props) => {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(accountID)}
+                onPress={() => showUserDetails(actorAccountID)}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
@@ -119,7 +119,7 @@ const ReportActionItemSingle = (props) => {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(accountID)}
+                            onPress={() => showUserDetails(actorAccountID)}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
