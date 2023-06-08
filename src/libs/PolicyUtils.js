@@ -120,11 +120,21 @@ function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails)
                 return {
                     ...result,
                     [personalDetail.login]: accountID,
-                }
+                };
             }
             return result;
         }, {})
         .value();
 }
 
-export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam, isPolicyAdmin, getClientPolicyMemberEmailsToAccountIDs};
+export {
+    hasPolicyMemberError,
+    hasPolicyError,
+    hasPolicyErrorFields,
+    hasCustomUnitsError,
+    getPolicyBrickRoadIndicatorStatus,
+    shouldShowPolicy,
+    isExpensifyTeam,
+    isPolicyAdmin,
+    getClientPolicyMemberEmailsToAccountIDs,
+};

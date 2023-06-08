@@ -167,7 +167,7 @@ function getAvatarsForLogins(logins, personalDetails) {
 /**
  * Returns avatar data for a list of user accountIDs
  *
- * @param {Array<Number>} accountIDs 
+ * @param {Array<Number>} accountIDs
  * @param {Object} personalDetails
  * @returns {Object}
  */

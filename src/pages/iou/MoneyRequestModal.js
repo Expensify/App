@@ -276,19 +276,51 @@ const MoneyRequestModal = (props) => {
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (props.hasMultipleParticipants && CONST.REGEX.NUMBER.test(reportID)) {
-                IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, amount, trimmedComment, props.iou.selectedCurrencyCode, reportID);
+                IOU.splitBill(
+                    selectedParticipants,
+                    props.currentUserPersonalDetails.login,
+                    props.currentUserPersonalDetails.accountID,
+                    amount,
+                    trimmedComment,
+                    props.iou.selectedCurrencyCode,
+                    reportID,
+                );
                 return;
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
             if (props.hasMultipleParticipants) {
-                IOU.splitBillAndOpenReport(selectedParticipants, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID,  amount, trimmedComment, props.iou.selectedCurrencyCode);
+                IOU.splitBillAndOpenReport(
+                    selectedParticipants,
+                    props.currentUserPersonalDetails.login,
+                    props.currentUserPersonalDetails.accountID,
+                    amount,
+                    trimmedComment,
+                    props.iou.selectedCurrencyCode,
+                );
                 return;
             }
 
-            IOU.requestMoney(props.report, amount, props.iou.selectedCurrencyCode, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, selectedParticipants[0], trimmedComment);
+            IOU.requestMoney(
+                props.report,
+                amount,
+                props.iou.selectedCurrencyCode,
+                props.currentUserPersonalDetails.login,
+                props.currentUserPersonalDetails.accountID,
+                selectedParticipants[0],
+                trimmedComment,
+            );
         },
-        [amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.hasMultipleParticipants, props.iou.selectedCurrencyCode, props.report, props.route],
+        [
+            amount,
+            props.iou.comment,
+            props.currentUserPersonalDetails.login,
+            props.currentUserPersonalDetails.accountID,
+            props.hasMultipleParticipants,
+            props.iou.selectedCurrencyCode,
+            props.report,
+            props.route,
+        ],
     );
 
     const currentStep = steps[currentStepIndex];
