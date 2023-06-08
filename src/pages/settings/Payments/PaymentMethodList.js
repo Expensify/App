@@ -168,7 +168,7 @@ function PaymentMethodList(props) {
 
     /**
      * Render placeholder when there are no payments methods
-     * 
+     *
      * @return {React.Component}
      */
     const renderListEmptyComponent = useCallback(() => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>, [translate]);
