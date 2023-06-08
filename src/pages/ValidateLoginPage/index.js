@@ -65,6 +65,7 @@ function ValidateLoginPage(props) {
         } else {
             User.validateLogin(accountID, validateCode);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return <FullScreenLoadingIndicator />;
