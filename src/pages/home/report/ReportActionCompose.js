@@ -85,6 +85,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -125,6 +128,7 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: [],
+    parentReportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
@@ -829,7 +833,9 @@ class ReportActionCompose extends React.Component {
         ) {
             e.preventDefault();
 
-            const lastReportAction = _.find(this.props.reportActions, (action) => ReportUtils.canEditReportAction(action));
+            const parentReportActionID = lodashGet(this.props.report, 'parentReportActionID', '');
+            const parentReportAction = lodashGet(this.props.parentReportActions, [parentReportActionID], {});
+            const lastReportAction = _.find([...this.props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
             if (lastReportAction !== -1 && lastReportAction) {
                 Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
@@ -1256,6 +1262,10 @@ export default compose(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            canEvict: false,
         },
     }),
 )(ReportActionCompose);

@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import Text from '../Text';
+import CONST from '../../CONST';
 
 /**
  * Breaks the text into matrix
@@ -16,7 +17,7 @@ import Text from '../Text';
  * @returns {Array<String[]>}
  */
 function getTextMatrix(text) {
-    return _.map(text.split('\n'), (row) => _.without(row.split(/(\s)/), ''));
+    return _.map(text.split('\n'), (row) => _.without(row.split(CONST.REGEX.SPACE_OR_EMOJI), ''));
 }
 
 const propTypes = {

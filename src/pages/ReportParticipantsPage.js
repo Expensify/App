@@ -64,6 +64,7 @@ const getAllParticipants = (report, personalDetails) => {
             return {
                 alternateText: userLogin,
                 displayName: userPersonalDetail.displayName,
+                accountID: userPersonalDetail.accountID,
                 icons: [
                     {
                         source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
@@ -109,7 +110,7 @@ const ReportParticipantsPage = (props) => {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.login));
+                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip

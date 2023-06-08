@@ -179,6 +179,7 @@ const styles = {
         position: 'absolute',
         left: 0,
         right: 0,
+        paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
     },
 
     autoCompleteSuggestionContainer: {
@@ -197,10 +198,25 @@ const styles = {
         fontSize: variables.fontSizeMedium,
     },
 
+    mentionSuggestionsAvatarContainer: {
+        width: 24,
+        height: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     mentionSuggestionsText: {
         fontSize: variables.fontSizeMedium,
-        flex: 1,
         ...spacing.ml2,
+    },
+
+    mentionSuggestionsDisplayName: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+    },
+
+    mentionSuggestionsHandle: {
+        color: themeColors.textSupporting,
     },
 
     unitCol: {
@@ -1300,6 +1316,11 @@ const styles = {
         color: themeColors.heading,
     },
 
+    popoverInnerContainer: {
+        paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
+        maxHeight: '95%',
+    },
+
     menuItemTextContainer: {
         minHeight: variables.componentSizeNormal,
     },
@@ -1626,15 +1647,6 @@ const styles = {
 
     emojiPickerContainer: {
         backgroundColor: themeColors.componentBG,
-    },
-
-    emojiPickerList: {
-        height: 288,
-        width: '100%',
-        ...spacing.ph4,
-    },
-    emojiPickerListLandscape: {
-        height: 240,
     },
 
     emojiHeaderContainer: {

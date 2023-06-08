@@ -61,8 +61,8 @@ const defaultProps = {
     report: undefined,
 };
 
-const showUserDetails = (email) => {
-    Navigation.navigate(ROUTES.getDetailsRoute(email));
+const showUserDetails = (accountID) => {
+    Navigation.navigate(ROUTES.getProfileRoute(accountID));
 };
 
 const ReportActionItemSingle = (props) => {
@@ -89,7 +89,7 @@ const ReportActionItemSingle = (props) => {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(actorEmail)}
+                onPress={() => showUserDetails(accountID)}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
@@ -119,7 +119,7 @@ const ReportActionItemSingle = (props) => {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(actorEmail)}
+                            onPress={() => showUserDetails(accountID)}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment

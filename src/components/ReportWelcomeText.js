@@ -54,11 +54,11 @@ const ReportWelcomeText = (props) => {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
-    const participants = lodashGet(props.report, 'participantAccountIDs', []);
-    const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails), isMultipleParticipant);
+    const participantAccountIDs = lodashGet(props.report, 'participantAccountIDs', []);
+    const isMultipleParticipant = participantAccountIDs.length > 1;
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails), isMultipleParticipant);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participants, props.betas);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs, props.betas);
     return (
         <>
             <View>
@@ -97,7 +97,7 @@ const ReportWelcomeText = (props) => {
                                 <Tooltip text={tooltip}>
                                     <Text
                                         style={[styles.textStrong]}
-                                        onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}
+                                        onPress={() => Navigation.navigate(ROUTES.getProfileRoute(participantAccountIDs[index]))}
                                     >
                                         {displayName}
                                     </Text>
