@@ -180,7 +180,11 @@ class WorkspaceMembersPage extends React.Component {
 
         // Remove the admin from the list
         const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
-        Policy.removeMembers(membersToRemove, this.props.route.params.policyID);
+
+        // It's a pain, but we need to map the emails back to accountIDs now so we can set optimistic data. TODO removeMembers using accountIDs only.
+        const emailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
+        const accountIDsToRemove = _.map(membersToRemove, (email) => emailsToAccountIDs[email]);
+        Policy.removeMembers(membersToRemove, accountIDsToRemove, this.props.route.params.policyID);
         this.setState({
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,

@@ -186,34 +186,35 @@ function hasActiveFreePolicy(policies) {
  * Remove the passed members from the policy employeeList
  *
  * @param {Array} members
+ * @param {Array} accountIDs
  * @param {String} policyID
  */
-function removeMembers(members, policyID) {
+function removeMembers(members, accountIDs, policyID) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
     // array passed will be empty, prevent the function from proceeding in that case as there is noone to remove
     if (members.length === 0) {
         return;
     }
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
+    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
+            value: _.object(accountIDs, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
         },
     ];
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill(null)),
+            value: _.object(accountIDs, Array(members.length).fill(null)),
         },
     ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(members, Array(members.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
+            value: _.object(accountIDs, Array(members.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
     ];
     API.write(
