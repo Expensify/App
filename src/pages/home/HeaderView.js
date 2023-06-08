@@ -28,6 +28,9 @@ import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import PinButton from '../../components/PinButton';
+import * as Report from '../../libs/actions/Report';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -171,12 +174,30 @@ const HeaderView = (props) => {
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
                                 {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
-                                    <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
-                                        numberOfLines={1}
-                                    >
-                                        {subtitle}
-                                    </Text>
+                                    <>
+                                        {isThread ? (
+                                            <Pressable
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                                                }}
+                                            >
+                                                <Text
+                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {subtitle}
+                                                </Text>
+                                            </Pressable>
+                                            ) : (
+                                                <Text
+                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {subtitle}
+                                                </Text>
+                                            )
+                                        }
+                                    </>
                                 )}
                             </View>
                             {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
