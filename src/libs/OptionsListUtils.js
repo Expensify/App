@@ -409,6 +409,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         ownerEmail: null,
         subtitle: null,
         participantsList: null,
+        accountID: 0,
         login: null,
         reportID: null,
         phoneNumber: null,
@@ -502,6 +503,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
+        result.accountID = Number(personalDetail.accountID);
         result.phoneNumber = personalDetail.phoneNumber;
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
