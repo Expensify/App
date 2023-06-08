@@ -915,6 +915,8 @@ describe('actions/IOU', () => {
                                     // There should now be 7 reports
                                     expect(_.size(allReports)).toBe(7);
 
+                                    console.log('ALL REPORTS', allReports);
+
                                     // 1. The chat report with Rory + Carlos
                                     carlosChatReport = _.find(allReports, (report) => report.reportID === carlosChatReport.reportID);
                                     expect(_.isEmpty(carlosChatReport)).toBe(false);

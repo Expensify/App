@@ -1172,12 +1172,12 @@ function buildOptimisticAddCommentReportAction(text, file) {
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param {String} taskReportID - Report ID of the task
  * @param {String} taskTitle - Title of the task
- * @param {String} taskAssignee - Email of the person assigned to the task
+ * @param {String} taskAssigneeAccountID - AccountID of the person assigned to the task
  * @param {String} text - Text of the comment
  * @param {String} parentReportID - Report ID of the parent report
  * @returns {Object}
  */
-function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssignee, text, parentReportID) {
+function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAssigneeAccountID, text, parentReportID) {
     const reportAction = buildOptimisticAddCommentReportAction(text);
     reportAction.reportAction.message[0].taskReportID = taskReportID;
 
@@ -1192,6 +1192,7 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
     reportAction.reportAction.childReportName = taskTitle;
     reportAction.reportAction.childManagerEmail = taskAssignee;
+    reportAction.reportAction.childManagerAccountID = taskAssigneeAccountID;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
 
@@ -1455,11 +1456,12 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
 /**
  * Builds an optimistic chat report with a randomly generated reportID and as much information as we currently have
  *
- * @param {Array} participantList
+ * @param {Array} participantList Array of participant accountIDs
  * @param {String} reportName
  * @param {String} chatType
  * @param {String} policyID
  * @param {String} ownerEmail
+ * @param {Number} ownerAccountID
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
@@ -1474,6 +1476,7 @@ function buildOptimisticChatReport(
     chatType = '',
     policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
     ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
+    ownerAccountID = 0,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
@@ -1497,10 +1500,9 @@ function buildOptimisticChatReport(
         notificationPreference,
         oldPolicyName,
         ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
-        // ownerAccountID: ownerAccountID || 0,
+        ownerAccountID: ownerAccountID || 0,
         parentReportActionID,
         parentReportID,
-        participants: participantList,
         participantAccountIDs: participantList,
         policyID,
         reportID: generateReportID(),
@@ -1641,11 +1643,12 @@ function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONS
  */
 function buildOptimisticWorkspaceChats(policyID, policyName) {
     const announceChatData = buildOptimisticChatReport(
-        [currentUserEmail],
+        [currentUserAccountID],
         CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         policyID,
         null,
+        0,
         false,
         policyName,
         null,
@@ -1659,14 +1662,14 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
 
-    const adminsChatData = buildOptimisticChatReport([currentUserEmail], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, false, policyName);
+    const adminsChatData = buildOptimisticChatReport([currentUserAccountID], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, 0, false, policyName);
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
     const adminsReportActionData = {
         [adminsCreatedAction.reportActionID]: adminsCreatedAction,
     };
 
-    const expenseChatData = buildOptimisticChatReport([currentUserEmail], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, true, policyName);
+    const expenseChatData = buildOptimisticChatReport([currentUserAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, currentUserAccountID, true, policyName);
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
     const expenseReportActionData = {
@@ -1693,7 +1696,8 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * Builds an optimistic Task Report with a randomly generated reportID
  *
  * @param {String} ownerEmail - Email of the person generating the Task.
- * @param {String} assignee - Email of the other person participating in the Task.
+ * @param {Number} ownerAccountID - Account ID of the person generating the Task.
+ * @param {String} assigneeAccountID - AccountID of the other person participating in the Task.
  * @param {String} parentReportID - Report ID of the chat where the Task is.
  * @param {String} title - Task title.
  * @param {String} description - Task description.
@@ -1701,13 +1705,15 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Object}
  */
 
-function buildOptimisticTaskReport(ownerEmail, assignee = null, parentReportID, title, description) {
+function buildOptimisticTaskReport(ownerEmail, ownerAccountID, assigneeAccountID = 0, parentReportID, title, description) {
     return {
         reportID: generateReportID(),
         reportName: title,
         description,
         ownerEmail,
-        managerEmail: assignee,
+        ownerAccountID,
+        // managerEmail: assignee,
+        managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,

@@ -392,12 +392,11 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
  */
 function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID = '') {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
-    const participantLogins = _.map(participants, (participant) => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase());
     const participantAccountIDs = _.map(participants, (participant) => participant.accountID);
     const existingGroupChatReport = existingGroupChatReportID
         ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantAccountIDs);
-    const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantLogins);
+    const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
     const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, (participant) => participant.login)]);
@@ -524,7 +523,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         if (!oneOnOneChatReport) {
             isNewOneOnOneChatReport = true;
-            oneOnOneChatReport = ReportUtils.buildOptimisticChatReport([email]);
+            oneOnOneChatReport = ReportUtils.buildOptimisticChatReport([accountID]);
         }
 
         // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
@@ -588,6 +587,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         const splitData = {
             email,
+            accountID,
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
@@ -624,13 +624,14 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 /**
  * @param {Array} participants
  * @param {String} currentUserLogin
+ * @param {Number} currentUserAccountID
  * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
  * @param {String} existingGroupChatReportID
  */
-function splitBill(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID = '') {
-    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID);
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID = '') {
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID);
 
     API.write(
         'SplitBill',
@@ -832,6 +833,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         amount,
         currency,
         requestorEmail: recipientEmail,
+        requestorAccountID: recipientAccountID,
         comment,
         idempotencyKey: Str.guid(),
     });

@@ -203,7 +203,7 @@ class DetailsPage extends React.PureComponent {
                                     <MenuItem
                                         title={`${this.props.translate('common.message')}${details.displayName}`}
                                         icon={Expensicons.ChatBubble}
-                                        onPress={() => Report.navigateToAndOpenReport([details.login])}
+                                        onPress={() => Report.navigateToAndOpenReport([details.accountID])}
                                         wrapperStyle={styles.breakAll}
                                         shouldShowRightIcon
                                     />

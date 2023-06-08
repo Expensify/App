@@ -194,7 +194,8 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        Report.navigateToAndOpenReport([option.login]);
+        // TODO: do we need to generate an optimistic accountID here?
+        Report.navigateToAndOpenReport([option.accountID]);
     }
 
     /**
@@ -206,11 +207,12 @@ class NewChatPage extends Component {
             return;
         }
 
-        const userLogins = _.pluck(this.state.selectedOptions, 'login');
-        if (userLogins.length < 1) {
+        // TODO: do we need to generate an optimistic accountID here?
+        const userAccountIDs = _.pluck(this.state.selectedOptions, 'accountID');
+        if (userAccountIDs.length < 1) {
             return;
         }
-        Report.navigateToAndOpenReport(userLogins);
+        Report.navigateToAndOpenReport(userAccountIDs);
     }
 
     render() {

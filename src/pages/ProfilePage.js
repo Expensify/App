@@ -202,7 +202,7 @@ function ProfilePage(props) {
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
                                 icon={Expensicons.ChatBubble}
-                                onPress={() => Report.navigateToAndOpenReport([login])}
+                                onPress={() => Report.navigateToAndOpenReport([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                             />

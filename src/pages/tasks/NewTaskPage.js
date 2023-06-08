@@ -119,7 +119,7 @@ const NewTaskPage = (props) => {
             return;
         }
 
-        TaskUtils.createTaskAndNavigate(props.session.email, parentReport.reportID, props.task.title, props.task.description, props.task.assignee);
+        TaskUtils.createTaskAndNavigate(props.session.email, props.session.accountID, parentReport.reportID, props.task.title, props.task.description, props.task.assignee);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {

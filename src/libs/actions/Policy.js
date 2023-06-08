@@ -51,10 +51,12 @@ Onyx.connect({
 });
 
 let sessionEmail = '';
+let sessionAccountID = 0;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionEmail = lodashGet(val, 'email', '');
+        sessionAccountID = lodashGet(val, 'accountID', 0);
     },
 });
 
@@ -248,11 +250,12 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         return workspaceMembersChats;
     }
 
-    _.each(members, (login) => {
-        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionEmail, login], policyID);
+    _.each(invitedEmailsToAccountIDs, (accountID, login) => {
+        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, accountID], policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
+            // TODO: figure out if we need to use accountID keys here
             workspaceMembersChats.reportCreationData[login] = {
                 reportID: oldChat.reportID,
             };
@@ -266,7 +269,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
             });
             return;
         }
-        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionEmail, login], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, login);
+        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, accountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, login, accountID);
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
 
         workspaceMembersChats.reportCreationData[login] = {
