@@ -579,7 +579,7 @@ class ReportActionCompose extends React.Component {
         const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
 
         if (!isCursorBeforeTheMention && this.isMentionCode(lastWord)) {
-            const suggestions = this.getMentionOptions(this.props.personalDetailsList, prefix);
+            const suggestions = this.getMentionOptions(this.props.personalDetails, prefix);
             nextState.suggestedMentions = suggestions;
             nextState.shouldShowMentionSuggestionMenu = !_.isEmpty(suggestions);
         }
@@ -912,9 +912,9 @@ class ReportActionCompose extends React.Component {
     render() {
         const reportParticipants = _.without(lodashGet(this.props.report, 'participantAccountIDs', []), this.props.currentUserPersonalDetails.accountID);
         const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
-        const reportRecipient = this.props.personalDetailsList[participantsWithoutExpensifyAccountIDs[0]];
+        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
         const shouldShowReportRecipientLocalTime =
-            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetailsList, this.props.report, this.props.currentUserPersonalDetails.login) && !this.props.isComposerFullSize;
+            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.login) && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
@@ -1234,7 +1234,6 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withNetwork(),
-    withPersonalDetails(),
     withCurrentUserPersonalDetails,
     withKeyboardState,
     withOnyx({
