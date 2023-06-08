@@ -101,7 +101,10 @@ class WorkspaceMembersPage extends React.Component {
 
         if (prevProps.policyMembers !== this.props.policyMembers) {
             this.setState((prevState) => ({
-                selectedEmployees: _.intersection(prevState.selectedEmployees, _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails))),
+                selectedEmployees: _.intersection(
+                    prevState.selectedEmployees,
+                    _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails)),
+                ),
             }));
         }
 

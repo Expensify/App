@@ -90,10 +90,10 @@ const getPhoneNumber = (details) => {
 class DetailsPage extends React.PureComponent {
     render() {
         const login = lodashGet(this.props.route.params, 'login', '');
-        let details = _.find(this.props.personalDetails, (detail) => (detail.login === login.toLowerCase()));
+        let details = _.find(this.props.personalDetails, (detail) => detail.login === login.toLowerCase());
 
         if (!details) {
-            // TODO: these personal details aren't in my local test account but are in 
+            // TODO: these personal details aren't in my local test account but are in
             // my staging account, i wonder why!
             if (login === CONST.EMAIL.CONCIERGE) {
                 details = {

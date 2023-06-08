@@ -1084,7 +1084,6 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
     });
 }
 
-
 /**
  * @param {String} policyID
  * @param {Object} invitedEmailsToAccountIDs
