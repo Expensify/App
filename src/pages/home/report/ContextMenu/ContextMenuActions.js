@@ -43,7 +43,8 @@ const CONTEXT_MENU_TYPES = {
 export default [
     {
         shouldKeepOpen: true,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message'),
+        shouldShow: (type, reportAction) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false),
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
             const isMini = !closePopover;
 
@@ -164,7 +165,8 @@ export default [
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
             !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
-            !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))),
+            !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))) &&
+            !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -206,7 +208,12 @@ export default [
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
-            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
+            return (
+                Permissions.canUseCommentLinking(betas) &&
+                type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+                !isAttachmentTarget &&
+                !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false)
+            );
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
@@ -256,7 +263,11 @@ export default [
         icon: Expensicons.Trashcan,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction, reportID) && !isArchivedRoom && !isChronosReport,
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            ReportUtils.canDeleteReportAction(reportAction, reportID) &&
+            !isArchivedRoom &&
+            !isChronosReport &&
+            !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false),
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
