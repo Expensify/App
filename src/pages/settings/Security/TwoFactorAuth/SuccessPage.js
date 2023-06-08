@@ -12,7 +12,7 @@ const defaultProps = {};
 
 function SuccessPage(props) {
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldShowOfflineIndicator={false}>
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
                 shouldShowStepCounter
