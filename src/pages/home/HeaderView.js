@@ -190,7 +190,7 @@ const HeaderView = (props) => {
                                             </Pressable>
                                             ) : (
                                                 <Text
-                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                     numberOfLines={1}
                                                 >
                                                     {subtitle}
