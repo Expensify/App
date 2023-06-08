@@ -12,7 +12,7 @@ const propTypes = {
     disabled: PropTypes.bool,
 
     /** Error text to show */
-    errorText: PropTypes.string,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
 
     ...withLocalizePropTypes,
 

@@ -17,7 +17,7 @@ const propTypes = {
     placeholder: PropTypes.string,
 
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
 
     /** Icon to display in right side of text input */
     icon: PropTypes.func,
