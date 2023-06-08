@@ -137,9 +137,7 @@ const MenuItem = (props) => {
                                     isHovered={hovered}
                                     icons={props.icon}
                                     size={CONST.AVATAR_SIZE.DEFAULT}
-                                    secondAvatarStyle={[
-                                        StyleUtils.getBackgroundAndBorderStyle(hovered ? themeColors.border : themeColors.appBG),
-                                    ]}
+                                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered ? themeColors.border : themeColors.appBG)]}
                                 />
                             )}
                             {Boolean(props.icon) && !_.isArray(props.icon) && (
