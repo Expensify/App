@@ -227,7 +227,9 @@ class WorkspaceInvitePage extends React.Component {
             .compact()
             .uniq()
             .value();
-        Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, filteredLogins);
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
+        const invitedEmailsToAccountIDs = _.reduce(filteredLogins, (result, login) => ({...result, [login]: policyMemberEmailsToAccountIDs[login]}), {});
+        Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
     }
 

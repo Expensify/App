@@ -231,11 +231,11 @@ function removeMembers(members, accountIDs, policyID) {
  * Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.
  *
  * @param {String} policyID
- * @param {Array} members
+ * @param {Object} invitedEmailsToAccountIDs
  * @param {Array} betas
  * @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID, members, betas) {
+function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
@@ -324,17 +324,17 @@ function createPolicyExpenseChats(policyID, members, betas) {
 /**
  * Adds members to the specified workspace/policyID
  *
- * @param {Array<String>} memberLogins
+ * @param {Object} invitedEmailsToAccountIDs
  * @param {String} welcomeNote
  * @param {String} policyID
  * @param {Array<String>} betas
  */
-function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
+function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
-    const logins = _.map(memberLogins, (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+    const accountIDs = _.values(invitedEmailsToAccountIDs);
 
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, logins, betas);
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
 
     const optimisticData = [
         {
@@ -342,7 +342,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
             key: membersListKey,
 
             // Convert to object with each key containing {pendingAction: ‘add’}
-            value: _.object(logins, Array(logins.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
+            value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
         ...membersChats.onyxOptimisticData,
     ];
@@ -354,7 +354,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
 
             // Convert to object with each key clearing pendingAction. We don’t
             // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
-            value: _.object(logins, Array(logins.length).fill({pendingAction: null, errors: null})),
+            value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: null, errors: null})),
         },
         ...membersChats.onyxSuccessData,
     ];
@@ -367,8 +367,8 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
             // Convert to object with each key containing the error. We don’t
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
             value: _.object(
-                logins,
-                Array(logins.length).fill({
+                accountIDs,
+                Array(accountIDs.length).fill({
                     errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
                 }),
             ),
@@ -376,6 +376,7 @@ function addMembersToWorkspace(memberLogins, welcomeNote, policyID, betas) {
         ...membersChats.onyxFailureData,
     ];
 
+    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     API.write(
         'AddMembersToWorkspace',
         {
@@ -1080,8 +1081,13 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
     });
 }
 
-function setWorkspaceInviteMembersDraft(policyID, memberEmails) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, memberEmails);
+
+/**
+ * @param {String} policyID
+ * @param {Object} invitedEmailsToAccountIDs
+ */
+function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
 export {

@@ -44,7 +44,7 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    invitedMembersDraft: PropTypes.arrayOf(PropTypes.string),
+    invitedEmailsToAccountIDsDraft: PropTypes.objectOf(PropTypes.number),
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -63,7 +63,7 @@ const defaultProps = {
     ...policyDefaultProps,
     personalDetails: {},
     betas: [],
-    invitedMembersDraft: [],
+    invitedEmailsToAccountIDsDraft: {},
 };
 
 class WorkspaceInviteMessagePage extends React.Component {
@@ -115,7 +115,7 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     sendInvitation() {
-        Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
+        Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
@@ -131,7 +131,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     validate() {
         const errorFields = {};
-        if (_.isEmpty(this.props.invitedMembersDraft)) {
+        if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
             errorFields.welcomeMessage = this.props.translate('workspace.inviteMessage.inviteNoMembersError');
         }
         return errorFields;
@@ -178,7 +178,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft, this.props.personalDetails)}
+                                icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedEmailsToAccountIDsDraft, this.props.personalDetails)}
                                 shouldStackHorizontally
                                 secondAvatarStyle={[styles.secondAvatarInline]}
                             />
@@ -221,7 +221,7 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        invitedMembersDraft: {
+        invitedEmailsToAccountIDsDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
         },
     }),
