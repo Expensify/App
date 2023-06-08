@@ -167,7 +167,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
     clearOutTaskInfo();
 
-    Navigation.navigate(ROUTES.getReportRoute(optimisticTaskReport.reportID));
+    Navigation.dismissModal(optimisticTaskReport.reportID);
 }
 
 function completeTask(taskReportID, taskTitle) {
@@ -374,7 +374,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {optimisticData, successData, failureData},
     );
 
-    Navigation.navigate(ROUTES.getReportRoute(report.reportID));
+    Navigation.dismissModal(report.reportID);
 }
 
 /**

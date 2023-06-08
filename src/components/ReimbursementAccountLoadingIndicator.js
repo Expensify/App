@@ -6,8 +6,7 @@ import ReviewingBankInfoAnimation from '../../assets/animations/ReviewingBankInf
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
-import Navigation from '../libs/Navigation/Navigation';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
@@ -25,10 +24,8 @@ const propTypes = {
 
 const ReimbursementAccountLoadingIndicator = (props) => (
     <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
-        <HeaderWithCloseButton
+        <HeaderWithBackButton
             title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
-            onCloseButtonPress={Navigation.dismissModal}
-            shouldShowBackButton={props.network.isOffline}
             onBackButtonPress={props.onBackButtonPress}
         />
         <FullPageOfflineBlockingView>

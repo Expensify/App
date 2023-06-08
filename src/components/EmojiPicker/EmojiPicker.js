@@ -3,12 +3,22 @@ import {Dimensions, Keyboard} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
+import styles from '../../styles/styles';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
 import * as ComponentUtils from '../../libs/ComponentUtils';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
+import compose from '../../libs/compose';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+};
+
+const propTypes = {
+    ...windowDimensionsPropTypes,
+    ...viewportOffsetTopPropTypes,
 };
 
 const EmojiPicker = forwardRef((props, ref) => {
@@ -103,7 +113,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             return;
         }
 
-        hideEmojiPicker();
+        hideEmojiPicker(false);
         if (_.isFunction(onEmojiSelected.current)) {
             onEmojiSelected.current(emoji, emojiObject);
         }
@@ -111,7 +121,7 @@ const EmojiPicker = forwardRef((props, ref) => {
 
     useImperativeHandle(ref, () => ({showEmojiPicker}));
 
-    // There is no way to disable animations and they are really laggy, because there are so many
+    // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
     return (
         <PopoverWithMeasuredContent
@@ -132,6 +142,9 @@ const EmojiPicker = forwardRef((props, ref) => {
                 height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
             }}
             anchorAlignment={emojiPopoverAnchorOrigin.current}
+            outerStyle={StyleUtils.getOuterModalStyle(props.windowHeight, props.viewportOffsetTop)}
+            innerContainerStyle={styles.popoverInnerContainer}
+            avoidKeyboard
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}
@@ -141,4 +154,5 @@ const EmojiPicker = forwardRef((props, ref) => {
     );
 });
 
-export default EmojiPicker;
+EmojiPicker.propTypes = propTypes;
+export default compose(withViewportOffsetTop, withWindowDimensions)(EmojiPicker);

@@ -8,7 +8,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Timing from '../../libs/actions/Timing';
 import CONST from '../../CONST';
@@ -17,6 +17,7 @@ import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
+import ROUTES from '../../ROUTES';
 
 import * as TaskUtils from '../../libs/actions/Task';
 
@@ -190,11 +191,9 @@ const TaskAssigneeSelectorModal = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={props.translate('newTaskPage.assignee')}
-                        onCloseButtonPress={() => Navigation.goBack()}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
