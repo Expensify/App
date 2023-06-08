@@ -257,10 +257,11 @@ function buildOnyxDataForMoneyRequest(
  * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} currency
  * @param {String} payeeEmail
+ * @param {Number} payeeAccountID
  * @param {Object} participant
  * @param {String} comment
  */
-function requestMoney(report, amount, currency, payeeEmail, participant, comment) {
+function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = participant.accountID;
     const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
@@ -296,12 +297,12 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
             // Because of the Expense reports are stored as negative values, we substract the total from the amount
             iouReport.total -= amount;
         } else {
-            iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeEmail, amount, currency);
+            iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`], payeeAccountID, amount, currency);
         }
     } else {
         iouReport = isPolicyExpenseChat
-            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, amount, currency)
-            : ReportUtils.buildOptimisticIOUReport(payeeEmail, payerAccountID, amount, chatReport.reportID, currency);
+            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, payeeAccountID, amount, currency)
+            : ReportUtils.buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     }
 
     // STEP 3: Build optimistic transaction
@@ -381,6 +382,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
  *  ]
  * @param {Array} participants
  * @param {String} currentUserLogin
+ * @param {Number} currentUserAccountID
  * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} comment
  * @param {String} currency
@@ -388,7 +390,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID = '') {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID = '') {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantLogins = _.map(participants, (participant) => OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase());
     const participantAccountIDs = _.map(participants, (participant) => participant.accountID);
@@ -529,9 +531,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
         const isNewOneOnOneIOUReport = !oneOnOneChatReport.iouReportID;
         let oneOnOneIOUReport;
         if (!isNewOneOnOneIOUReport) {
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`], currentUserEmail, splitAmount, currency);
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`], currentUserAccountID, splitAmount, currency);
         } else {
-            oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(currentUserEmail, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+            oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(currentUserEmail, currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         }
 
         // STEP 3: Build optimistic transaction
@@ -651,12 +653,13 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
 /**
  * @param {Array} participants
  * @param {String} currentUserLogin
+ * @param {Number} currentUserAccountID
  * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
  */
-function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency) {
-    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency);
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency) {
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -699,7 +702,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         iouReportID,
     );
 
-    const currentUserEmail = optimisticIOUAction.actorEmail;
+    const currentUserAccountID = optimisticIOUAction.actorAccountID;
     let updatedIOUReport = {};
     if (ReportUtils.isExpenseReport(iouReportID)) {
         updatedIOUReport = {...iouReport};
@@ -707,7 +710,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         // Because of the Expense reports are stored as negative values, we add the total from the amount
         updatedIOUReport.total += amount;
     } else {
-        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserEmail, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, currentUserAccountID, amount, moneyRequestAction.originalMessage.currency, CONST.IOU.REPORT_ACTION_TYPE.DELETE);
     }
     updatedIOUReport.lastMessageText = optimisticIOUAction.message[0].text;
     updatedIOUReport.lastMessageHtml = optimisticIOUAction.message[0].html;
@@ -836,13 +839,13 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     let chatReport = report.reportID ? report : null;
     let isNewChat = false;
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([recipientEmail]);
+        chatReport = ReportUtils.getChatByParticipants([recipientAccountID]);
     }
     if (!chatReport) {
-        chatReport = ReportUtils.buildOptimisticChatReport([recipientEmail]);
+        chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID]);
         isNewChat = true;
     }
-    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, managerID, amount, chatReport.reportID, currency, true);
+    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
 
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, optimisticIOUReport.reportID, comment);
     const optimisticTransactionData = {

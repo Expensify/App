@@ -29,13 +29,13 @@ function calculateAmount(numberOfParticipants, total, isDefaultUser = false) {
  * If user1 requests $17 from user2, then we have: {ownerEmail: user1, managerEmail: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param {Object} iouReport
- * @param {String} actorEmail
+ * @param {Number} actorAccountID
  * @param {Number} amount
  * @param {String} currency
  * @param {String} type
  * @returns {Object}
  */
-function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
     if (currency !== iouReport.currency) {
         return iouReport;
     }
@@ -43,7 +43,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, type = 
     // Make a copy so we don't mutate the original object
     const iouReportUpdate = {...iouReport};
 
-    if (actorEmail === iouReport.ownerEmail) {
+    if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? -amount : amount;
     } else {
         iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? amount : -amount;
