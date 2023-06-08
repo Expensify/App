@@ -706,11 +706,11 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
  * Removes an error after trying to delete a member
  *
  * @param {String} policyID
- * @param {String} memberEmail
+ * @param {Number} accountID
  */
-function clearDeleteMemberError(policyID, memberEmail) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
-        [memberEmail]: {
+function clearDeleteMemberError(policyID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: {
             pendingAction: null,
             errors: null,
         },
@@ -721,11 +721,11 @@ function clearDeleteMemberError(policyID, memberEmail) {
  * Removes an error after trying to add a member
  *
  * @param {String} policyID
- * @param {String} memberEmail
+ * @param {Number} accountID
  */
-function clearAddMemberError(policyID, memberEmail) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
-        [memberEmail]: null,
+function clearAddMemberError(policyID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: null,
     });
 }
 

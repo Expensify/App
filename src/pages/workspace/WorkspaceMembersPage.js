@@ -278,9 +278,9 @@ class WorkspaceMembersPage extends React.Component {
      */
     dismissError(item) {
         if (item.pendingAction === 'delete') {
-            Policy.clearDeleteMemberError(this.props.route.params.policyID, item.login);
+            Policy.clearDeleteMemberError(this.props.route.params.policyID, item.accountID);
         } else {
-            Policy.clearAddMemberError(this.props.route.params.policyID, item.login);
+            Policy.clearAddMemberError(this.props.route.params.policyID, item.accountID);
         }
     }
 
