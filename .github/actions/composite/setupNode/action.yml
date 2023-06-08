@@ -13,21 +13,19 @@ runs:
           desktop/package-lock.json
 
     - id: cache-node-modules
-      if: github.run_attempt == '1'
       uses: actions/cache@v3
       with:
         path: node_modules
         key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
 
     - id: cache-desktop-node-modules
-      if: github.run_attempt == '1'
       uses: actions/cache@v3
       with:
         path: desktop/node_modules
         key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json') }}
 
     - name: Install root project node packages
-      if: github.run_attempt != '1' || steps.cache-node-modules.outputs.cache-hit != 'true'
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
@@ -39,7 +37,7 @@ runs:
       shell: bash
 
     - name: Install node packages for desktop submodule
-      if: github.run_attempt != '1' || steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
+      if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
