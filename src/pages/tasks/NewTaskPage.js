@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -67,20 +68,18 @@ const defaultProps = {
 const NewTaskPage = (props) => {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
-    const [submitError, setSubmitError] = React.useState(false);
-    const [errorMessage, setErrorMessage] = React.useState('newTaskPage.confirmError');
+    const [errorMessage, setErrorMessage] = React.useState('');
     const [parentReport, setParentReport] = React.useState({});
 
     useEffect(() => {
-        setSubmitError(false);
+        setErrorMessage('');
 
         // If we have an assignee, we want to set the assignee data
         // If there's an issue with the assignee chosen, we want to notify the user
         if (props.task.assignee) {
             const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForLogins([props.task.assignee], props.personalDetails), props.task.assignee);
             if (!assigneeDetails) {
-                setSubmitError(true);
-                return setErrorMessage('newTaskPage.assigneeError');
+                return setErrorMessage(props.translate('newTaskPage.assigneeError'));
             }
             const displayDetails = TaskUtils.getAssignee(assigneeDetails);
             setAssignee(displayDetails);
@@ -105,8 +104,18 @@ const NewTaskPage = (props) => {
     // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
-        if (!props.task.title || !props.task.shareDestination) {
-            setSubmitError(true);
+        if (!props.task.title && !props.task.shareDestination) {
+            setErrorMessage(props.translate('newTaskPage.confirmError'));
+            return;
+        }
+
+        if (!props.task.title) {
+            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskName'));
+            return;
+        }
+
+        if (!props.task.shareDestination) {
+            setErrorMessage(props.translate('newTaskPage.pleaseEnterTaskDestination'));
             return;
         }
 
@@ -164,7 +173,7 @@ const NewTaskPage = (props) => {
                     </View>
                 </View>
                 <FormAlertWithSubmitButton
-                    isAlertVisible={submitError}
+                    isAlertVisible={!_.isEmpty(errorMessage)}
                     message={errorMessage}
                     onSubmit={() => onSubmit()}
                     enabledWhenOffline
