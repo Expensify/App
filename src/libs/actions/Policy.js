@@ -250,7 +250,9 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         return workspaceMembersChats;
     }
 
-    _.each(invitedEmailsToAccountIDs, (accountID, login) => {
+    _.each(invitedEmailsToAccountIDs, (accountID, email) => {
+        const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
+
         const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, accountID], policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
@@ -333,7 +335,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  * @param {Array<String>} betas
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
+    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const accountIDs = _.values(invitedEmailsToAccountIDs);
 
     // create onyx data for policy expense chats for each new member
