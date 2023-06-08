@@ -101,7 +101,7 @@ const defaultProps = {
 function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {translate, onSendMoney, onConfirm} = props;
+    const {translate, onSendMoney, onConfirm, onSelectParticipant} = props;
 
     /**
      * Returns the participants with amount
@@ -188,9 +188,9 @@ function MoneyRequestConfirmationList(props) {
             if (option.login === props.session.email) {
                 return;
             }
-            props.onSelectParticipant(option);
+            onSelectParticipant(option);
         },
-        [props.session.email, props.onSelectParticipant],
+        [props.session.email, onSelectParticipant],
     );
 
     /**
