@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-share-menu/ios/ReactShareViewController.swift b/node_modules/react-native-share-menu/ios/ReactShareViewController.swift
+index f42bce6..ee36062 100644
+--- a/node_modules/react-native-share-menu/ios/ReactShareViewController.swift
++++ b/node_modules/react-native-share-menu/ios/ReactShareViewController.swift
+@@ -13,7 +13,7 @@ class ReactShareViewController: ShareViewController, RCTBridgeDelegate, ReactSha
+   func sourceURL(for bridge: RCTBridge!) -> URL! {
+ #if DEBUG
+     return RCTBundleURLProvider.sharedSettings()?
+-      .jsBundleURL(forBundleRoot: "index.share", fallbackResource: nil)
++      .jsBundleURL(forBundleRoot: "index.share")
+ #else
+     return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+ #endif
