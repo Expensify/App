@@ -22,6 +22,7 @@ import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
+import textUnderline from './utilities/textUnderline';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -162,6 +163,7 @@ const styles = {
     ...cursor,
     ...userSelect,
     ...themeColors,
+    ...textUnderline,
 
     rateCol: {
         margin: 0,
@@ -273,14 +275,6 @@ const styles = {
 
     textUnderline: {
         textDecorationLine: 'underline',
-    },
-
-    textUnderlinePositionUnder: {
-        textUnderlinePosition: 'under',
-    },
-
-    textDecorationSkipInkNone: {
-        textDecorationSkipInk: 'none',
     },
 
     label: {
