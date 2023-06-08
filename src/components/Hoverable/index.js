@@ -77,53 +77,55 @@ class Hoverable extends Component {
             child = this.props.children[0];
         }
 
-        if (_.isFunction(child)) {
-            child = child(this.state.isHovered && this.hasHoverSupport);
+        // return child if device doesn't has hoverSupport
+        if (!this.hasHoverSupport) {
+            const childrenWithHoverState = _.isFunction(child) ? child(false) : child;
+            return <View>{childrenWithHoverState}</View>;
         }
 
-        return this.hasHoverSupport ? (
-            React.cloneElement(React.Children.only(child), {
-                ref: (el) => {
-                    this.wrapperView = el;
+        if (_.isFunction(child)) {
+            child = child(this.state.isHovered);
+        }
 
-                    // Call the original ref, if any
-                    const {ref} = child;
-                    if (_.isFunction(ref)) {
-                        ref(el);
-                        return;
-                    }
+        return React.cloneElement(React.Children.only(child), {
+            ref: (el) => {
+                this.wrapperView = el;
 
-                    if (_.isObject(ref)) {
-                        ref.current = el;
-                    }
-                },
-                onMouseEnter: (el) => {
-                    this.setIsHovered(true);
+                // Call the original ref, if any
+                const {ref} = child;
+                if (_.isFunction(ref)) {
+                    ref(el);
+                    return;
+                }
 
-                    if (_.isFunction(child.props.onMouseEnter)) {
-                        child.props.onMouseEnter(el);
-                    }
-                },
-                onMouseLeave: (el) => {
+                if (_.isObject(ref)) {
+                    ref.current = el;
+                }
+            },
+            onMouseEnter: (el) => {
+                this.setIsHovered(true);
+
+                if (_.isFunction(child.props.onMouseEnter)) {
+                    child.props.onMouseEnter(el);
+                }
+            },
+            onMouseLeave: (el) => {
+                this.setIsHovered(false);
+
+                if (_.isFunction(child.props.onMouseLeave)) {
+                    child.props.onMouseLeave(el);
+                }
+            },
+            onBlur: (el) => {
+                if (!this.wrapperView.contains(el.relatedTarget)) {
                     this.setIsHovered(false);
+                }
 
-                    if (_.isFunction(child.props.onMouseLeave)) {
-                        child.props.onMouseLeave(el);
-                    }
-                },
-                onBlur: (el) => {
-                    if (!this.wrapperView.contains(el.relatedTarget)) {
-                        this.setIsHovered(false);
-                    }
-
-                    if (_.isFunction(child.props.onBlur)) {
-                        child.props.onBlur(el);
-                    }
-                },
-            })
-        ) : (
-            <View>{child}</View>
-        );
+                if (_.isFunction(child.props.onBlur)) {
+                    child.props.onBlur(el);
+                }
+            },
+        });
     }
 }
 
