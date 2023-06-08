@@ -970,11 +970,12 @@ function getPolicyExpenseChatName(report) {
  * Get the title for a IOU or expense chat which will be showing the payer and the amount
  *
  * @param {Object} report
+ * @param {Boolean} [shouldUseDisplayNameShortForm]
  * @returns  {String}
  */
-function getMoneyRequestReportName(report) {
+function getMoneyRequestReportName(report, shouldUseDisplayNameShortForm = false) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail, shouldUseDisplayNameShortForm);
 
     return Localize.translateLocal(report.hasOutstandingIOU ? 'iou.payerOwesAmount' : 'iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
 }
@@ -2241,4 +2242,5 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getMoneyRequestReportName,
 };

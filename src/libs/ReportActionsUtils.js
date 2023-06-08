@@ -60,6 +60,14 @@ function isMoneyRequestAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isReportReviewAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function hasCommentThread(reportAction) {
     return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
 }
@@ -423,4 +431,5 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isReportReviewAction,
 };
