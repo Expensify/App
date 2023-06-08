@@ -131,6 +131,16 @@ const DetailsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const ProfileModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
+        },
+        name: 'Profile_Root',
+    },
+]);
+
 const ReportDetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -223,8 +233,8 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const DetailsPage = require('../../../pages/DetailsPage').default;
-            return DetailsPage;
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
         },
         name: 'ReportParticipants_Details',
     },
@@ -617,6 +627,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const YearPickerPage = require('../../../pages/YearPickerPage').default;
+            return YearPickerPage;
+        },
+        name: 'YearPicker_Root',
+    },
+    {
+        getComponent: () => {
             const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
             return SettingsTwoFactorAuthIsEnabled;
         },
@@ -718,6 +735,7 @@ export {
     IOUSendModalStackNavigator,
     SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
+    ProfileModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,
