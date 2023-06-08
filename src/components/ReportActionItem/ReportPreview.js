@@ -16,7 +16,6 @@ import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as StyleUtils from '../../styles/StyleUtils';
-import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
