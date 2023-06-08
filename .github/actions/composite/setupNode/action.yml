@@ -9,7 +9,15 @@ runs:
         node-version-file: '.nvmrc'
         cache: npm
 
+    - id: cache-node-modules
+      if: github.run_attempt == '1'
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
     - name: Install node packages
+      if: github.run_attempt != '1' || steps.cache-node-modules.outputs.cache-hit != 'true'
       uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
       with:
         timeout_minutes: 30
