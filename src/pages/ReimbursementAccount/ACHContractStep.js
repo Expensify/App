@@ -28,7 +28,9 @@ const propTypes = {
 };
 
 const ACHContractStep = (props) => {
-    const [beneficialOwners, setBeneficialOwners] = useState(lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])));
+    const [beneficialOwners, setBeneficialOwners] = useState(
+        lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])),
+    );
 
     /**
      * @param {Object} values - input values passed by the Form component
@@ -84,28 +86,28 @@ const ACHContractStep = (props) => {
         }
 
         return errors;
-    }
+    };
 
     /**
      * @param {Number} ownerKey - ID connected to the beneficial owner identity form
      */
     const removeBeneficialOwner = (ownerKey) => {
-        setBeneficialOwners(previousBeneficialOwners => {
+        setBeneficialOwners((previousBeneficialOwners) => {
             const beneficialOwners = _.without(previousBeneficialOwners, ownerKey);
             FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
             return beneficialOwners;
-        })
-    }
+        });
+    };
 
     const addBeneficialOwner = () => {
         // Each beneficial owner is assigned a unique key that will connect it to an Identity Form.
         // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
-        setBeneficialOwners(previousBeneficialOwners => {
+        setBeneficialOwners((previousBeneficialOwners) => {
             const beneficialOwners = [...previousBeneficialOwners, Str.guid()];
             FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
             return beneficialOwners;
-        })
-    }
+        });
+    };
 
     /**
      * @param {Boolean} ownsMoreThan25Percent
@@ -140,7 +142,7 @@ const ACHContractStep = (props) => {
             beneficialOwners: JSON.stringify(updatedBeneficialOwners),
             bankAccountID,
         });
-    }
+    };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -177,9 +179,9 @@ const ACHContractStep = (props) => {
                                 if (ownsMoreThan25Percent && beneficialOwners.length > 3) {
                                     // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%.
                                     // We have to remove the 4th beneficial owner if the checkbox is checked.
-                                    setBeneficialOwners(previousBeneficialOwners => {
-                                        return previousBeneficialOwners.slice(0, -1)
-                                    })
+                                    setBeneficialOwners((previousBeneficialOwners) => {
+                                        return previousBeneficialOwners.slice(0, -1);
+                                    });
                                 }
                             }}
                             defaultValue={props.getDefaultStateForField('ownsMoreThan25Percent', false)}
@@ -274,7 +276,7 @@ const ACHContractStep = (props) => {
             </Form>
         </ScreenWrapper>
     );
-}
+};
 
 ACHContractStep.propTypes = propTypes;
 ACHContractStep.displayName = 'ACHContractStep';
