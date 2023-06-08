@@ -39,7 +39,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -326,7 +326,7 @@ class InitialSettingsPage extends React.Component {
                             <View style={styles.w100}>
                                 <View style={styles.avatarSectionWrapper}>
                                     <Tooltip text={this.props.translate('common.profile')}>
-                                        <PressableWithFeedback
+                                        <PressableWithoutFeedback
                                             style={[styles.mb3]}
                                             onPress={this.openProfileSettings}
                                             accessibilityLabel={this.props.translate('common.profile')}
@@ -339,10 +339,10 @@ class InitialSettingsPage extends React.Component {
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
-                                        </PressableWithFeedback>
+                                        </PressableWithoutFeedback>
                                     </Tooltip>
-                                    <PressableWithFeedback
-                                        wrapperStyle={[styles.mt1, styles.mw100]}
+                                    <PressableWithoutFeedback
+                                        style={[styles.mt1, styles.mw100]}
                                         onPress={this.openProfileSettings}
                                         accessibilityLabel={this.props.translate('common.profile')}
                                         accessibilityRole="link"
@@ -357,7 +357,7 @@ class InitialSettingsPage extends React.Component {
                                                     : this.props.formatPhoneNumber(this.props.session.email)}
                                             </Text>
                                         </Tooltip>
-                                    </PressableWithFeedback>
+                                    </PressableWithoutFeedback>
                                     {Boolean(this.props.currentUserPersonalDetails.displayName) && (
                                         <Text
                                             style={[styles.textLabelSupporting, styles.mt1]}
