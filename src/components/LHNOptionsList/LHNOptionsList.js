@@ -1,11 +1,11 @@
-import _ from 'underscore';
-import React, {Component} from 'react';
-import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import OptionRowLHN from './OptionRowLHN';
-import variables from '../../styles/variables';
+import React, { Component, useMemo } from 'react';
+import { FlatList, View } from 'react-native';
+import _ from 'underscore';
 import CONST from '../../CONST';
+import styles from '../../styles/styles';
+import variables from '../../styles/variables';
+import OptionRowLHN from './OptionRowLHN';
 
 const propTypes = {
     /** Extra styles for the section list container */
@@ -33,6 +33,9 @@ const defaultProps = {
 };
 
 function LHNOptionsList(props) {
+
+    const data = useMemo(() => props.data, [props.data]);
+
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -44,7 +47,7 @@ function LHNOptionsList(props) {
      * @returns {Object}
      */
     const getItemLayout = (data, index) => {
-        const optionHeight = this.props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+        const optionHeight = props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
         return {
             length: optionHeight,
             offset: index * optionHeight,
@@ -65,31 +68,26 @@ function LHNOptionsList(props) {
         return (
             <OptionRowLHN
                 reportID={item}
-                viewMode={this.props.optionMode}
-                isFocused={!this.props.shouldDisableFocusOptions && this.props.focusedIndex === index}
-                onSelectRow={this.props.onSelectRow}
+                viewMode={props.optionMode}
+                isFocused={!props.shouldDisableFocusOptions && props.focusedIndex === index}
+                onSelectRow={props.onSelectRow}
             />
         );
     };
-
-    const areArraysEqual = _.isEqual(this.props.data, this.data);
-    if (!areArraysEqual) {
-        this.data = this.props.data;
-    }
 
     return (
         <View style={[styles.flex1]}>
             <FlatList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
-                contentContainerStyle={this.props.contentContainerStyles}
+                contentContainerStyle={props.contentContainerStyles}
                 showsVerticalScrollIndicator={false}
-                data={this.data}
+                data={data}
                 keyExtractor={(item) => item}
                 stickySectionHeadersEnabled={false}
-                renderItem={this.renderItem}
-                getItemLayout={this.getItemLayout}
-                extraData={this.props.focusedIndex}
+                renderItem={renderItem}
+                getItemLayout={getItemLayout}
+                extraData={props.focusedIndex}
                 initialNumToRender={5}
                 maxToRenderPerBatch={5}
                 windowSize={5}
