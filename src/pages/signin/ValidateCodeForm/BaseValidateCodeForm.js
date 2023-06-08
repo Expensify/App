@@ -92,7 +92,7 @@ function BaseValidateCodeForm(props) {
         }
 
         // Clear the code input if magic code valid or a new magic code was requested
-        if ((wasVisible && !props.isVisible && validateCode) || (props.isVisible && linkSent && props.account.message && validateCode)) {   
+        if ((wasVisible && !props.isVisible && validateCode) || (props.isVisible && linkSent && props.account.message && validateCode)) {
             setValidateCode('');
             inputValidateCode.clear();
         }
@@ -127,8 +127,8 @@ function BaseValidateCodeForm(props) {
         if (props.account.errors) {
             Session.clearAccountMessages();
         }
-    }
-    
+    };
+
     /**
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
@@ -142,7 +142,7 @@ function BaseValidateCodeForm(props) {
 
         // Give feedback to the user to let them know the email was sent so they don't spam the button.
         setLinkSent(true);
-    }
+    };
 
     /**
      * Clears local and Onyx sign in states
@@ -152,7 +152,7 @@ function BaseValidateCodeForm(props) {
         setFormError({});
         setValidateCode('');
         Session.clearSignInData();
-    }
+    };
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
@@ -259,8 +259,7 @@ function BaseValidateCodeForm(props) {
                     style={[styles.mv3]}
                     text={props.translate('common.signIn')}
                     isLoading={
-                        props.account.isLoading &&
-                        props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
                     }
                     onPress={validateAndSubmitForm}
                 />
