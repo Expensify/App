@@ -858,9 +858,9 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: {
-                        [sessionEmail]: {
+                        [sessionAccountID]: {
                             role: CONST.POLICY.ROLE.ADMIN,
                             errors: {},
                         },
@@ -979,7 +979,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: null,
                 },
                 {
