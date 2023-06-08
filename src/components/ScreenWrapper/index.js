@@ -144,7 +144,7 @@ class ScreenWrapper extends React.Component {
                                               })
                                             : this.props.children
                                     }
-                                    {this.props.isSmallScreenWidth && <OfflineIndicator />}
+                                    {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator />}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>
