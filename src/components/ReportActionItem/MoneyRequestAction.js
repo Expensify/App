@@ -103,10 +103,9 @@ const MoneyRequestAction = (props) => {
         // If the childReportID is not present, we need to create a new thread
         const childReportID = lodashGet(props.action, 'childReportID', '0');
         if (childReportID === '0') {
-            const participants = _.uniq([props.session.email, props.action.actorEmail]);
-            const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+            const participantAccountIDs = _.uniq([props.session.accountID, props.action.actorAccountID]);
             const thread = ReportUtils.buildOptimisticChatReport(
-                formattedUserLogins,
+                participantAccountIDs,
                 props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
                     formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
                     comment: props.action.originalMessage.comment,
@@ -114,6 +113,7 @@ const MoneyRequestAction = (props) => {
                 '',
                 CONST.POLICY.OWNER_EMAIL_FAKE,
                 CONST.POLICY.OWNER_EMAIL_FAKE,
+                0,
                 false,
                 '',
                 undefined,

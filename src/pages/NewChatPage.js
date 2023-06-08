@@ -51,7 +51,7 @@ class NewChatPage extends Component {
         this.createChat = this.createChat.bind(this);
         this.createGroup = this.createGroup.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
-        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
+        this.excludedGroupEmails = _.without(CONST.EXPENSIFY_ACCOUNT_IDS, CONST.ACCOUNT_ID.CONCIERGE);
 
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
             props.reports,
@@ -194,7 +194,8 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        Report.navigateToAndOpenReport([option.login]);
+        // TODO: do we need to generate an optimistic accountID here?
+        Report.navigateToAndOpenReport([option.accountID]);
     }
 
     /**
@@ -206,11 +207,12 @@ class NewChatPage extends Component {
             return;
         }
 
-        const userLogins = _.pluck(this.state.selectedOptions, 'login');
-        if (userLogins.length < 1) {
+        // TODO: do we need to generate an optimistic accountID here?
+        const userAccountIDs = _.pluck(this.state.selectedOptions, 'accountID');
+        if (userAccountIDs.length < 1) {
             return;
         }
-        Report.navigateToAndOpenReport(userLogins);
+        Report.navigateToAndOpenReport(userAccountIDs);
     }
 
     render() {
@@ -270,7 +272,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

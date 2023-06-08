@@ -160,7 +160,8 @@ class SearchPage extends Component {
                 },
             );
         } else {
-            Report.navigateToAndOpenReport([option.login]);
+            // TODO: do we need to create an optimistic accountID here?
+            Report.navigateToAndOpenReport([option.accountID]);
         }
     }
 
@@ -206,7 +207,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

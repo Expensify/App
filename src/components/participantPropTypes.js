@@ -4,6 +4,9 @@ export default PropTypes.shape({
     // Primary login of participant
     login: PropTypes.string,
 
+    // Account ID of participant
+    accountID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
     // Display Name of participant
     displayName: PropTypes.string,
 

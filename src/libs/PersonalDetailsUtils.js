@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
@@ -8,6 +9,18 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (personalDetails = _.values(val)),
 });
+
+/**
+ * @param {Object} passedPersonalDetails 
+ * @param {Array} pathToDisplayName 
+ * @param {String} [defaultValue] optional default display name value
+ * @returns {String}
+ */
+function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
+    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
+
+    return displayName || defaultValue || 'Hidden';
+}
 
 /**
  * Given a list of account IDs (as string) it will return an array of personal details objects.
@@ -35,6 +48,6 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
 }
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
+    getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
 };

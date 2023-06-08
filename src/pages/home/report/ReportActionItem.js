@@ -321,7 +321,7 @@ function ReportActionItem(props) {
         const hasReplies = numberOfThreadReplies > 0;
 
         const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
-        const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
+        const oldestFourAccountIDs = lodashGet(props.action, 'childOldestFourAccountIDs', '').split(',');
         const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
         return (
@@ -353,7 +353,7 @@ function ReportActionItem(props) {
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
                             isHovered={hovered}
-                            icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
+                            icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, props.personalDetails)}
                         />
                     </View>
                 )}

@@ -23,9 +23,13 @@ import * as UserUtils from './UserUtils';
  */
 
 let currentUserLogin;
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => (currentUserLogin = val && val.email),
+    callback: (val) => {
+        currentUserLogin = val && val.email;
+        currentUserAccountID = val && val.accountID;
+    },
 });
 
 let loginList;
@@ -161,38 +165,56 @@ function getAvatarsForLogins(logins, personalDetails) {
 }
 
 /**
- * Returns the personal details for an array of logins
+ * Returns avatar data for a list of user accountIDs
  *
- * @param {Array} logins
+ * @param {Array<Number>} accountIDs 
+ * @param {Object} personalDetails
+ * @returns {Object}
+ */
+function getAvatarsForAccountIDs(accountIDs, personalDetails) {
+    return _.map(accountIDs, (accountID) => {
+        const userPersonalDetail = lodashGet(personalDetails, accountID, {login: '', accountID, avatar: ''});
+        return {
+            source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
+            type: CONST.ICON_TYPE_AVATAR,
+            name: userPersonalDetail.login,
+        };
+    });
+}
+
+/**
+ * Returns the personal details for an array of accountIDs
+ *
+ * @param {Array} accountIDs
  * @param {Object} personalDetails
  * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForLogins(logins, personalDetails) {
-    const personalDetailsForLogins = {};
+function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
+    const personalDetailsForAccountIDs = {};
     if (!personalDetails) {
-        return personalDetailsForLogins;
+        return personalDetailsForAccountIDs;
     }
-    _.chain(logins)
-
-        // Somehow it's possible for the logins coming from report.participants to contain undefined values so we use compact to remove them.
+    _.chain(accountIDs)
+        // NOTE: this comment is possibly legacy, we need to verify if it's still true
+        // Somehow it's possible for the accountIDs coming from report.participantAccountIDs to contain undefined values so we use compact to remove them.
         .compact()
-        .each((login) => {
-            let personalDetail = personalDetails[login];
+        .each((accountID) => {
+            let personalDetail = personalDetails[accountID];
             if (!personalDetail) {
+                // NOTE: this can possibly be changed to 'hidden'
                 personalDetail = {
-                    login,
-                    displayName: LocalePhoneNumber.formatPhoneNumber(login),
-                    avatar: UserUtils.getDefaultAvatar(login),
+                    accountID,
+                    avatar: UserUtils.getDefaultAvatar(accountID),
                 };
             }
 
-            if (login === CONST.EMAIL.CONCIERGE) {
+            if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
                 personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
             }
 
-            personalDetailsForLogins[login] = personalDetail;
+            personalDetailsForAccountIDs[accountID] = personalDetail;
         });
-    return personalDetailsForLogins;
+    return personalDetailsForAccountIDs;
 }
 
 /**
@@ -201,7 +223,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
  * @returns {Boolean}
  */
 function isPersonalDetailsReady(personalDetails) {
-    return !_.isEmpty(personalDetails) && _.some(_.keys(personalDetails), (key) => personalDetails[key].login);
+    return !_.isEmpty(personalDetails) && _.some(_.keys(personalDetails), (key) => personalDetails[key].accountID);
 }
 
 /**
@@ -211,17 +233,18 @@ function isPersonalDetailsReady(personalDetails) {
  * @returns {Array}
  */
 function getParticipantsOptions(report, personalDetails) {
-    const participants = lodashGet(report, 'participants', []);
-    return _.map(getPersonalDetailsForLogins(participants, personalDetails), (details) => ({
+    const participants = lodashGet(report, 'participantAccountIDs', []);
+    return _.map(getPersonalDetailsForAccountIDs(participants, personalDetails), (details) => ({
         keyForList: details.login,
         login: details.login,
+        accountID: details.accountID,
         text: details.displayName,
         firstName: lodashGet(details, 'firstName', ''),
         lastName: lodashGet(details, 'lastName', ''),
         alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
         icons: [
             {
-                source: UserUtils.getAvatar(details.avatar, details.login),
+                source: UserUtils.getAvatar(details.avatar, details.accountID),
                 name: details.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -243,6 +266,7 @@ function getParticipantNames(personalDetailList) {
     // `_.contains(Array, value)` for an Array with n members.
     const participantNames = new Set();
     _.each(personalDetailList, (participant) => {
+        // TODO: maybe get participant name by accountID in personalDetails??
         if (participant.login) {
             participantNames.add(participant.login.toLowerCase());
         }
@@ -302,10 +326,12 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
         for (let i = 0; i < personalDetailList.length; i++) {
             const personalDetail = personalDetailList[i];
 
-            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-            // More info https://github.com/Expensify/App/issues/8007
-            searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+            if (personalDetail.login) {
+                // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+                // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+                // More info https://github.com/Expensify/App/issues/8007
+                searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+            }
         }
     }
     if (report) {
@@ -362,7 +388,7 @@ function getAllReportErrors(report, reportActions) {
 /**
  * Creates a report list option
  *
- * @param {Array<String>} logins
+ * @param {Array<String>} accountIDs
  * @param {Object} personalDetails
  * @param {Object} report
  * @param {Object} reportActions
@@ -371,7 +397,7 @@ function getAllReportErrors(report, reportActions) {
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(logins, personalDetails, report, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false}) {
+function createOption(accountIDs, personalDetails, report, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false}) {
     const result = {
         text: null,
         alternateText: null,
@@ -402,7 +428,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         isPolicyExpenseChat: false,
     };
 
-    const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
+    const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
     const personalDetailList = _.values(personalDetailMap);
     const personalDetail = personalDetailList[0] || {};
     let hasMultipleParticipants = personalDetailList.length > 1;
@@ -430,7 +456,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
         result.hasOutstandingIOU = report.hasOutstandingIOU;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
@@ -443,8 +469,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
             lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
         }
 
-        const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.login !== currentUserLogin ? `${lastActorDetails.displayName}: ` : '';
+        const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
+        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
 
         if (result.isArchivedRoom) {
@@ -466,10 +492,9 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        const login = logins[0];
-        reportName = ReportUtils.getDisplayNameForParticipant(login);
-        result.keyForList = login;
-        result.alternateText = LocalePhoneNumber.formatPhoneNumber(login);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
+        result.keyForList = accountIDs[0];
+        result.alternateText = '';
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
@@ -483,7 +508,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login));
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID));
     result.subtitle = subtitle;
 
     return result;
@@ -509,6 +534,8 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 
 /**
  * Checks if the given userDetails is currentUser or not.
+ * Note: We can't migrate this off of using logins because this is used to check if you're trying to start a chat with
+ * yourself or a different user, and people won't be starting new chats via accountID usually.
  *
  * @param {Object} userDetails
  * @returns {Boolean}
@@ -572,7 +599,7 @@ function getOptions(
 
     let recentReportOptions = [];
     let personalDetailsOptions = [];
-    const reportMapForLogins = {};
+    const reportMapForAccountIDs = {};
     const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(searchInputValue));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
 
@@ -603,7 +630,7 @@ function getOptions(
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        const logins = report.participants || [];
+        const accountIDs = report.participantAccountIDs || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -620,8 +647,8 @@ function getOptions(
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later. Individuals should not be associated with single participant
         // policyExpenseChats or chatRooms since those are not people.
-        if (logins.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
-            reportMapForLogins[logins[0]] = report;
+        if (accountIDs.length <= 1 && !isPolicyExpenseChat && !isChatRoom) {
+            reportMapForAccountIDs[accountIDs[0]] = report;
         }
         const isSearchingSomeonesPolicyExpenseChat = !report.isOwnPolicyExpenseChat && searchValue !== '';
 
@@ -630,7 +657,7 @@ function getOptions(
         const isPolicyChatAdmin = ReportUtils.isPolicyExpenseChatAdmin(report, policies);
 
         allReportOptions.push(
-            createOption(logins, personalDetails, report, reportActions, {
+            createOption(accountIDs, personalDetails, report, reportActions, {
                 showChatPreviewLine,
                 forcePolicyNamePreview: isPolicyExpenseChat ? isSearchingSomeonesPolicyExpenseChat || isPolicyChatAdmin : forcePolicyNamePreview,
             }),
@@ -638,7 +665,7 @@ function getOptions(
     });
 
     let allPersonalDetailsOptions = _.map(personalDetails, (personalDetail) =>
-        createOption([personalDetail.login], personalDetails, reportMapForLogins[personalDetail.login], reportActions, {
+        createOption([personalDetail.accountID], personalDetails, reportMapForAccountIDs[personalDetail.accountID], reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview,
         }),
@@ -727,15 +754,17 @@ function getOptions(
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        userToInvite = createOption([searchValue], personalDetails, null, reportActions, {
+        const fakeAccountID = UserUtils.generateAccountID();
+        userToInvite = createOption([fakeAccountID], personalDetails, null, reportActions, {
             showChatPreviewLine,
         });
+        userToInvite.login = searchValue;
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: UserUtils.getAvatar('', searchValue),
-                name: searchValue,
+                source: UserUtils.getAvatar('', fakeAccountID),
+                login: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ];
@@ -821,6 +850,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
         ],
         descriptiveText: amountText,
         login: personalDetail.login,
+        accountID: personalDetail.accountID,
     };
 }
 
@@ -953,6 +983,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 export {
     addSMSDomainIfPhoneNumber,
     getAvatarsForLogins,
+    getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,
     getSearchOptions,
@@ -960,7 +991,7 @@ export {
     getShareDestinationOptions,
     getMemberInviteOptions,
     getHeaderMessage,
-    getPersonalDetailsForLogins,
+    getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
     getSearchText,

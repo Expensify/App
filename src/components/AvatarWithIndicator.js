@@ -29,7 +29,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** The employee list of all policies (coming from Onyx) */
-    policiesMemberList: PropTypes.objectOf(policyMemberPropType),
+    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
     /** All the user's policies (from Onyx via withFullPolicy) */
     policies: PropTypes.objectOf(policyPropTypes.policy),
@@ -62,7 +62,7 @@ const propTypes = {
 const defaultProps = {
     tooltipText: '',
     reimbursementAccount: {},
-    policiesMemberList: {},
+    allPolicyMembers: {},
     policies: {},
     bankAccountList: {},
     cardList: {},
@@ -75,7 +75,7 @@ const AvatarWithIndicator = (props) => {
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
     const cleanPolicies = _.pick(props.policies, (policy) => policy);
-    const cleanPolicyMembers = _.pick(props.policiesMemberList, (member) => member);
+    const cleanAllPolicyMembers = _.pick(props.allPolicyMembers, (policyMembers) => policyMembers);
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
@@ -85,7 +85,7 @@ const AvatarWithIndicator = (props) => {
         () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
-        () => _.some(cleanPolicyMembers, PolicyUtils.hasPolicyMemberError),
+        () => _.some(cleanAllPolicyMembers, PolicyUtils.hasPolicyMemberError),
         () => !_.isEmpty(props.reimbursementAccount.errors),
         () => UserUtils.hasLoginListError(props.loginList),
 
@@ -114,8 +114,8 @@ AvatarWithIndicator.propTypes = propTypes;
 AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 
 export default withOnyx({
-    policiesMemberList: {
-        key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+    allPolicyMembers: {
+        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,

@@ -67,8 +67,9 @@ const showUserDetails = (accountID) => {
 
 const ReportActionItemSingle = (props) => {
     const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {accountID, avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
-    const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
+    const actorAccountID = props.action.actorAccountID;
+    const {avatar, displayName, pendingFields} = props.personalDetails[actorAccountID] || {};
+    const avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -88,7 +89,7 @@ const ReportActionItemSingle = (props) => {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(accountID)}
+                onPress={() => showUserDetails(actorAccountID)}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
@@ -118,7 +119,7 @@ const ReportActionItemSingle = (props) => {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(accountID)}
+                            onPress={() => showUserDetails(actorAccountID)}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment

@@ -16,6 +16,9 @@ export default PropTypes.shape({
     // Flag to set when Avatar uploading
     avatarUploading: PropTypes.bool,
 
+    // accountID of the current user from their personal details
+    accountID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
     // login of the current user from their personal details
     login: PropTypes.string,
 

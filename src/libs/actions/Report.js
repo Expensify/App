@@ -280,7 +280,7 @@ function addActions(reportID, text = '', file) {
         parameters.timezone = JSON.stringify(timezone);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {[currentUserEmail]: {timezone}},
         });
         DateUtils.setTimezoneUpdated();
@@ -448,14 +448,13 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
- * @param {Array} userLogins list of user logins.
+ * @param {Array} userAccountIDs list of user accountIDs.
  */
-function navigateToAndOpenReport(userLogins) {
-    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+function navigateToAndOpenReport(userAccountIDs) {
     let newChat = {};
-    const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
+    const chat = ReportUtils.getChatByParticipants(userAccountIDs);
     if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+        newChat = ReportUtils.buildOptimisticChatReport(userAccountIDs);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
 
@@ -1150,7 +1149,7 @@ function navigateToConciergeChat() {
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
             // If we don't have a chat with Concierge then create it
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
+            navigateToAndOpenReport([CONST.ACCOUNT_ID.CONCIERGE]);
         });
     } else {
         Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
