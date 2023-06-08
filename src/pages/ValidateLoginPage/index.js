@@ -26,6 +26,12 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
+    /** The credentials of the person logging in */
+    credentials: PropTypes.shape({
+        /** The email the user logged in with */
+        login: PropTypes.string,
+    }),
+
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
 };
@@ -36,14 +42,19 @@ const defaultProps = {
     session: {
         authToken: null,
     },
+    credentials: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 function ValidateLoginPage(props) {
     useEffect(() => {
+        const login = lodashGet(props, 'credentials.login', null);
         const accountID = lodashGet(props.route.params, 'accountID', '');
         const validateCode = lodashGet(props.route.params, 'validateCode', '');
-        if (Permissions.canUsePasswordlessLogins(props.betas)) {
+
+        // A fresh session will not have credentials.login and user permission betas available.
+        // In that case, we directly allow users to go through password less flow
+        if (!login || Permissions.canUsePasswordlessLogins(props.betas)) {
             if (lodashGet(props, 'session.authToken')) {
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
@@ -66,6 +77,7 @@ export default compose(
     withLocalize,
     withOnyx({
         betas: {key: ONYXKEYS.BETAS},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
     }),
 )(ValidateLoginPage);

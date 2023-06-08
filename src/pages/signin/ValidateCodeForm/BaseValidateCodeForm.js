@@ -31,7 +31,7 @@ const propTypes = {
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        /** Whether or not two factor authentication is required */
+        /** Whether or not two-factor authentication is required */
         requiresTwoFactorAuth: PropTypes.bool,
 
         /** Whether or not a sign on form is loading (being submitted) */
@@ -148,7 +148,7 @@ class BaseValidateCodeForm extends React.Component {
      * Clears local and Onyx sign in states
      */
     clearSignInData() {
-        this.setState({twoFactorAuthCode: '', formError: {}});
+        this.setState({twoFactorAuthCode: '', formError: {}, validateCode: ''});
         Session.clearSignInData();
     }
 
@@ -159,6 +159,10 @@ class BaseValidateCodeForm extends React.Component {
         const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
 
         if (requiresTwoFactorAuth) {
+            if (this.input2FA) {
+                this.input2FA.blur();
+            }
+
             if (!this.state.twoFactorAuthCode.trim()) {
                 this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
                 return;
@@ -169,6 +173,10 @@ class BaseValidateCodeForm extends React.Component {
                 return;
             }
         } else {
+            if (this.inputValidateCode) {
+                this.inputValidateCode.blur();
+            }
+
             if (!this.state.validateCode.trim()) {
                 this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
                 return;

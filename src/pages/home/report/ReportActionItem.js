@@ -52,7 +52,6 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
-import Permissions from '../../../libs/Permissions';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
@@ -92,9 +91,6 @@ const propTypes = {
 
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -103,7 +99,6 @@ const defaultProps = {
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
-    betas: [],
 };
 
 function ReportActionItem(props) {
@@ -172,7 +167,6 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(props.report),
                 ReportUtils.chatIncludesChronos(props.report),
-                props.action.childReportID,
             );
         },
         [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
@@ -238,7 +232,6 @@ function ReportActionItem(props) {
                 <TaskAction
                     taskReportID={props.action.originalMessage.taskReportID.toString()}
                     actionName={props.action.actionName}
-                    isHovered={hovered}
                 />
             );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
@@ -314,7 +307,7 @@ function ReportActionItem(props) {
                                 style={styles.buttonSmallText}
                                 selectable={false}
                             >
-                                {isHidden ? 'Reveal message' : 'Hide message'}
+                                {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                             </Text>
                         </Button>
                     )}
@@ -327,15 +320,15 @@ function ReportActionItem(props) {
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
-        const shouldDisplayThreadReplies =
-            hasReplies && props.action.childCommenterCount && Permissions.canUseThreads(props.betas) && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
+        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
         const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
+        const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
         return (
             <>
                 {children}
                 {hasReactions && (
-                    <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                    <View style={draftMessageRightAlign}>
                         <ReportActionItemReactions
                             reportActionID={props.action.reportActionID}
                             reactions={reactions}
@@ -354,13 +347,15 @@ function ReportActionItem(props) {
                     </View>
                 )}
                 {shouldDisplayThreadReplies && (
-                    <ReportActionItemThread
-                        childReportID={`${props.action.childReportID}`}
-                        numberOfReplies={numberOfThreadReplies}
-                        mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
-                        isHovered={hovered}
-                        icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
-                    />
+                    <View style={draftMessageRightAlign}>
+                        <ReportActionItemThread
+                            childReportID={`${props.action.childReportID}`}
+                            numberOfReplies={numberOfThreadReplies}
+                            mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
+                            isHovered={hovered}
+                            icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
+                        />
+                    </View>
                 )}
             </>
         );
@@ -451,6 +446,7 @@ function ReportActionItem(props) {
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
+                                shouldHideOnDelete={!ReportActionsUtils.hasCommentThread(props.action)}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
@@ -509,9 +505,6 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(

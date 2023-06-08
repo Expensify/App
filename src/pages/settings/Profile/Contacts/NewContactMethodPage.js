@@ -7,7 +7,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import compose from '../../../../libs/compose';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Text from '../../../../components/Text';
 import TextInput from '../../../../components/TextInput';
@@ -119,11 +119,9 @@ function NewContactMethodPage(props) {
             }}
             includeSafeAreaPaddingBottom={false}
         >
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
