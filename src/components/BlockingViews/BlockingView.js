@@ -8,6 +8,7 @@ import Text from '../Text';
 import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
+import AutoEmailLink from '../AutoEmailLink';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -57,7 +58,10 @@ const BlockingView = (props) => (
             height={props.iconHeight}
         />
         <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
-        <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
+        <AutoEmailLink
+            style={[styles.textAlignCenter]}
+            text={props.subtitle}
+        />
         {props.shouldShowLink ? (
             <TextLink
                 onPress={props.onLinkPress}
