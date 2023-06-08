@@ -88,6 +88,7 @@ class AddPersonalBankAccountPage extends React.Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={shouldShowSuccess}
                 shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
             >
                 <HeaderWithBackButton
                     title={this.props.translate('bankAccount.addBankAccount')}
