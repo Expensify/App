@@ -576,20 +576,14 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
  */
 function getChatRoomSubtitle(report) {
     if (isThread(report)) {
-        if (report.reportID === '2514886886252447') {
-            debugger;
-        }
-
-        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         if (!getChatType(report)) {
             const parentReportAction = getParentReportAction(report);
             return `From ${getDisplayNameForParticipant(parentReportAction.actorEmail)}`;
         }
 
-        // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
-        const workspaceName = getPolicyName(report);
         let roomName = '';
         if (isChatRoom(report)) {
+            const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
             if (parentReport) {
                 roomName = lodashGet(parentReport, 'displayName', '');
             } else {
@@ -597,6 +591,7 @@ function getChatRoomSubtitle(report) {
             }
         }
 
+        const workspaceName = getPolicyName(report);
         return `From ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
