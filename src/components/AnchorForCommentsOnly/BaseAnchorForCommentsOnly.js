@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
