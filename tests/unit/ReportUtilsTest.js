@@ -302,7 +302,7 @@ describe('ReportUtils', () => {
             const iouReports = {
                 report_1: {
                     reportID: '1',
-                    ownerEmail: 'a@a.com',
+                    ownerAccountID: 99,
                 },
             };
             expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
@@ -316,7 +316,7 @@ describe('ReportUtils', () => {
             const iouReports = {
                 report_1: {
                     reportID: '1',
-                    ownerEmail: 'a@a.com',
+                    ownerAccountID: 99,
                 },
             };
             expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(true);
@@ -330,7 +330,7 @@ describe('ReportUtils', () => {
             const iouReports = {
                 report_1: {
                     reportID: '1',
-                    ownerEmail: 'a@a.com',
+                    ownerAccountID: 99,
                 },
             };
             expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
