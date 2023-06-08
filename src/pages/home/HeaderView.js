@@ -78,7 +78,7 @@ const HeaderView = (props) => {
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = (isTaskReport || !isThread) && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
-    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, props.parentReport);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
