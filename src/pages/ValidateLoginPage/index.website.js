@@ -57,7 +57,7 @@ const defaultProps = {
 
 function ValidateLoginPage(props) {
     const login = lodashGet(props, 'credentials.login', null);
-    const getAutoAuthState = () => lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
+    const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
 
     const getAccountID = () => lodashGet(props.route.params, 'accountID', '');
 
@@ -73,13 +73,12 @@ function ValidateLoginPage(props) {
         }
 
         const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
-        const cachedAutoAuthState = lodashGet(props, 'session.autoAuthState', null);
-        if (!login && isSignedIn && cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
+        if (!login && isSignedIn && autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
             // The user clicked the option to sign in the current tab
             Navigation.navigate(ROUTES.REPORT);
             return;
         }
-        Session.initAutoAuthState(cachedAutoAuthState);
+        Session.initAutoAuthState(autoAuthState);
 
         if (isSignedIn || !login) {
             return;
@@ -100,19 +99,18 @@ function ValidateLoginPage(props) {
 
     const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
     const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
-    const currentAuthState = getAutoAuthState();
     return (
         <>
-            {currentAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
-            {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired />}
-            {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
-            {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
+            {autoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired />}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
                 <ValidateCodeModal
                     accountID={getAccountID()}
                     code={getValidateCode()}
                 />
             )}
-            {currentAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
         </>
     );
 }
