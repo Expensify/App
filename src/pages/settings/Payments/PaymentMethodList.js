@@ -235,7 +235,7 @@ function PaymentMethodList(props) {
                             success
                             shouldShowRightIcon
                             large
-                            buttonRef={props.buttonRef}
+                            ref={props.buttonRef}
                         />
                     )}
                 </FormAlertWrapper>
