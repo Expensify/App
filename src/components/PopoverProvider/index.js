@@ -98,13 +98,16 @@ const PopoverContextProvider = (props) => {
         };
     }, []);
 
-    const onOpen = React.useCallback((popoverParams) => {
-        if (activePopoverRef.current && activePopoverRef.current.ref !== popoverParams.ref) {
-            closePopover(activePopoverRef.current.anchorRef);
-        }
-        activePopoverRef.current = popoverParams;
-        setIsOpen(true);
-    }, [closePopover]);
+    const onOpen = React.useCallback(
+        (popoverParams) => {
+            if (activePopoverRef.current && activePopoverRef.current.ref !== popoverParams.ref) {
+                closePopover(activePopoverRef.current.anchorRef);
+            }
+            activePopoverRef.current = popoverParams;
+            setIsOpen(true);
+        },
+        [closePopover],
+    );
 
     return (
         <PopoverContext.Provider
