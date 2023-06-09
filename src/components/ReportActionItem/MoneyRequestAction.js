@@ -121,7 +121,8 @@ const MoneyRequestAction = (props) => {
                 props.requestReportID,
             );
 
-            Report.openReport(thread.reportID, [], thread.participantAccountIDs, thread, props.action.reportActionID);
+            // TODO: add optimistic accounts
+            Report.openReport(thread.reportID, [], thread.participantAccountIDs, [], thread, props.action.reportActionID);
             Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
         } else {
             Report.openReport(childReportID);

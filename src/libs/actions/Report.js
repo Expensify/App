@@ -497,7 +497,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             parentReportID,
         );
 
-        openReport(newChat.reportID, [], newChat.participantAccountIDs, newChat, parentReportAction.reportActionID);
+        openReport(newChat.reportID, [], newChat.participantAccountIDs, [], newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
     }
 }
@@ -1619,7 +1619,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, [], [], {}, '0', true);
+        openReport(reportID, [], [], [], {}, '0', true);
 
         // Show the sign-in page if the app is offline
         if (isNetworkOffline) {
