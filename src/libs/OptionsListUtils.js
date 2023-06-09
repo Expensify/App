@@ -950,6 +950,15 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     return '';
 }
 
+/**
+ * Helper method to check whether an option can show tooltip or not
+ * @param {Object} option
+ * @returns {Boolean}
+ */
+function shouldOptionShowTooltip(option) {
+    return (!option.isChatRoom || option.isThread) && !option.isArchivedRoom;
+}
+
 export {
     addSMSDomainIfPhoneNumber,
     getAvatarsForLogins,
@@ -968,4 +977,5 @@ export {
     getPolicyExpenseReportOptions,
     getParticipantsOptions,
     isSearchStringMatch,
+    shouldOptionShowTooltip,
 };

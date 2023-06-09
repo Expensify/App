@@ -20,6 +20,7 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -198,7 +199,7 @@ class OptionRow extends Component {
                                                     this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                     hovered && !this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                                 ]}
-                                                shouldShowTooltip={this.props.showTitleTooltip && !this.props.option.isChatRoom && !this.props.option.isArchivedRoom}
+                                                shouldShowTooltip={this.props.showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(this.props.option)}
                                             />
                                         ))}
                                     <View style={contentContainerStyles}>
