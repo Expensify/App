@@ -7,10 +7,10 @@ cd "$ROOT_DIR" || exit 1
 # Run patch-package
 npx patch-package
 
-# Install node_modules in subpackages, unless we're in a CI/CD environment.
-# See `.github/actions/composite/setupNode/action.yml` for more context
+# Install node_modules in subpackages, unless we're in a CI/CD environment,
+# where the node_modules for subpackages are cached separately.
+# See `.github/actions/composite/setupNode/action.yml` for more context.
 if [[ -n ${CI+x} ]]; then
-  echo 'Installing desktop/node_modules'
   cd desktop || exit 1
   npm install
 fi
