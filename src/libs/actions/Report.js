@@ -18,7 +18,6 @@ import Log from '../Log';
 import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
 import * as ErrorUtils from '../ErrorUtils';
