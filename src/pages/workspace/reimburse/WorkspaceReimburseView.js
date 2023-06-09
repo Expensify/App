@@ -152,7 +152,8 @@ class WorkspaceReimburseView extends React.Component {
                     ]}
                 >
                     <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
-                        <Text>
+                        {/* Tricky fix with magic number. Should be fixed in main repo */}
+                        <Text numberOfLines={100}>
                             {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                             <CopyTextToClipboard
                                 text="receipts@expensify.com"
