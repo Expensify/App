@@ -443,16 +443,19 @@ function isArchivedRoom(report) {
 function getPolicyName(report) {
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
-    if (report.policyName) {
-        return report.policyName;
-    }
-
+    
     if (!allPolicies || _.size(allPolicies) === 0) {
+        if (report.policyName) {
+            return report.policyName;
+        }
         return Localize.translateLocal('workspace.common.unavailable');
     }
 
     const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (!policy) {
+        if (report.policyName) {
+            return report.policyName;
+        }
         return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
     }
 
