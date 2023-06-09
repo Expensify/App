@@ -759,10 +759,13 @@ function getOptions(
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         const fakeAccountID = UserUtils.generateAccountID();
-        userToInvite = createOption([fakeAccountID], personalDetails, null, reportActions, {
+        const optimisticDetails = {login: searchValue, accountID: fakeAccountID};
+        userToInvite = createOption([fakeAccountID], optimisticDetails, null, reportActions, {
             showChatPreviewLine,
         });
+        userToInvite.isOptimisticAccount = true;
         userToInvite.login = searchValue;
+        userToInvite.text = searchValue;
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
