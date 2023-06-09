@@ -183,7 +183,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String message = messageData.get("message").getList().get(0).getMap().get("text").getString();
 
             String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
-            String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
+//            String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
 
             // Retrieve or create the Person object who sent the latest report comment
             Person person = notificationCache.people.get(accountID);
@@ -205,8 +205,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             // Create the messaging style notification builder for this notification, associating the
             // notification with the person who sent the report comment.
             NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
-                    .setGroupConversation(notificationCache.people.size() > 2 || !roomName.isEmpty())
-                    .setConversationTitle(conversationTitle);
+                    .setGroupConversation(!roomName.isEmpty())
+                    .setConversationTitle(roomName);
 
             // Add all conversation messages to the notification, including the last one we just received.
             for (NotificationCache.Message cachedMessage : notificationCache.messages) {
