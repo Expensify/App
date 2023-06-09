@@ -311,7 +311,7 @@ class BaseOptionsSelector extends Component {
             />
         );
         const optionsList = (
-            <OptionlistContainerStylessList
+            <OptionsList
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.selectRow}
