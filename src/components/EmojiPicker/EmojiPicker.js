@@ -5,11 +5,11 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
-import * as ComponentUtils from '../../libs/ComponentUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
 import compose from '../../libs/compose';
 import * as StyleUtils from '../../styles/StyleUtils';
+import calculateAnchorPosition from '../../libs/calculateAnchorPosition';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -39,7 +39,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         }
 
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
-            ComponentUtils.calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+            calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
                 setEmojiPopoverAnchorPosition(value);
             });
         });
@@ -67,7 +67,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             emojiPopoverAnchor.current.blur();
         }
 
-        ComponentUtils.calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+        calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
             onWillShow();
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition(value);
