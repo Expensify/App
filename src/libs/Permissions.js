@@ -99,6 +99,7 @@ function canUsePasswordlessLogins(betas) {
  * @returns {Boolean}
  */
 function canUseTasks(betas) {
+    return true;
     return _.contains(betas, CONST.BETAS.TASKS) || _.contains(betas, CONST.BETAS.ALL);
 }
 
