@@ -25,8 +25,7 @@ const propTypes = {
     scrollPageToTop: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-};
+const defaultProps = {};
 
 const navigateHome = (scrollPageToTop) => {
     scrollPageToTop();
@@ -35,7 +34,7 @@ const navigateHome = (scrollPageToTop) => {
     Session.clearSignInData();
 };
 
-const columns = ({scrollPageToTop}) => ([
+const columns = ({scrollPageToTop}) => [
     {
         translationPath: 'footer.features',
         rows: [
@@ -148,7 +147,7 @@ const columns = ({scrollPageToTop}) => ([
             },
         ],
     },
-]);
+];
 
 const Footer = (props) => {
     const isVertical = props.isSmallScreenWidth;
@@ -179,13 +178,15 @@ const Footer = (props) => {
                                     {_.map(column.rows, (row) => (
                                         <Hoverable key={row.translationPath}>
                                             {(hovered) => (
-                                                <TextLink
-                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                    href={row.link}
-                                                    onPress={row.onPress}
-                                                >
-                                                    {props.translate(row.translationPath)}
-                                                </TextLink>
+                                                <View>
+                                                    <TextLink
+                                                        style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                        href={row.link}
+                                                        onPress={row.onPress}
+                                                    >
+                                                        {props.translate(row.translationPath)}
+                                                    </TextLink>
+                                                </View>
                                             )}
                                         </Hoverable>
                                     ))}

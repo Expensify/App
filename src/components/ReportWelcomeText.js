@@ -55,6 +55,7 @@ const ReportWelcomeText = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
     const participants = lodashGet(props.report, 'participants', []);
+    const participantAccountIDs = lodashGet(props.report, 'participantAccountIDs', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), isMultipleParticipant);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
@@ -94,13 +95,10 @@ const ReportWelcomeText = (props) => {
                         <Text>{props.translate('reportActionsView.beginningOfChatHistory')}</Text>
                         {_.map(displayNamesWithTooltips, ({displayName, pronouns, tooltip}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
-                                <Tooltip
-                                    text={tooltip}
-                                    containerStyles={[styles.dInline]}
-                                >
+                                <Tooltip text={tooltip}>
                                     <Text
                                         style={[styles.textStrong]}
-                                        onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}
+                                        onPress={() => Navigation.navigate(ROUTES.getProfileRoute(participantAccountIDs[index]))}
                                     >
                                         {displayName}
                                     </Text>
@@ -114,10 +112,7 @@ const ReportWelcomeText = (props) => {
                     </Text>
                 )}
                 {(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
-                    <Text>
-                        {/* Need to confirm copy for the below with marketing, and then add to translations. */}
-                        {props.translate('reportActionsView.usePlusButton')}
-                    </Text>
+                    <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
                 )}
             </Text>
         </>

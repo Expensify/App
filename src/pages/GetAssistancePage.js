@@ -5,9 +5,8 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Section from '../components/Section';
-import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
@@ -17,6 +16,8 @@ import * as Link from '../libs/actions/Link';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Route object from navigation */
@@ -77,11 +78,9 @@ const GetAssistancePage = (props) => {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('getAssistancePage.title')}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             />
             <ScrollView>
                 <Section

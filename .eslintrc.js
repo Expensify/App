@@ -16,4 +16,23 @@ module.exports = {
     globals: {
         __DEV__: 'readonly',
     },
+    rules: {
+        'no-restricted-imports': [
+            'error',
+            {
+                paths: [
+                    {
+                        name: 'react-native',
+                        importNames: ['useWindowDimensions'],
+                        message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead',
+                    },
+                    {
+                        name: 'react-native',
+                        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
+                        message: 'Please use PressableWithFeedback and/or PressableWithoutFeedback from src/components/Pressable instead',
+                    },
+                ],
+            },
+        ],
+    },
 };

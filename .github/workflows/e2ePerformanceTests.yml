@@ -126,15 +126,23 @@ jobs:
 
       - name: Download baseline APK
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
+        id: downloadBaselineAPK
         with:
           name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
           path: zip
+
+      # The downloaded artifact will be a file named "app-e2eRelease.apk" so we have to rename it
+      - name: Rename baseline APK
+        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease-baseline.apk"
 
       - name: Download delta APK
         uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
         with:
           name: delta-apk-${{ needs.buildDelta.outputs.DELTA_REF }}
           path: zip
+
+      - name: Rename delta APK
+        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease-compare.apk"
 
       - name: Copy e2e code into zip folder
         run: cp -r tests/e2e zip
@@ -163,19 +171,19 @@ jobs:
           test_spec_file: tests/e2e/TestSpec.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
-          file_artifacts: CustomerArtifacts.zip
+          file_artifacts: Customer Artifacts.zip
           cleanup: true
 
       - name: Unzip AWS Device Farm results
         if: ${{ always() }}
-        run: unzip CustomerArtifacts.zip
+        run: unzip "Customer Artifacts.zip"
 
       - name: Print AWS Device Farm run results
         if: ${{ always() }}
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
       - name: Print AWS Device Farm verbose run results
-        if: ${{ always() && fromJSON(runner.debug) }}
+        if: ${{ always() && runner.debug != null && fromJSON(runner.debug) }}
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
 
       - name: Check if test failed, if so post the results and add the DeployBlocker label

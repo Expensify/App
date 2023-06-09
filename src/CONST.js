@@ -10,7 +10,6 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
-const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
@@ -22,6 +21,8 @@ const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInp
 const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
 const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
+const keyInputLeftArrow = lodashGet(KeyCommand, 'constants.keyInputLeftArrow', 'keyInputLeftArrow');
+const keyInputRightArrow = lodashGet(KeyCommand, 'constants.keyInputRightArrow', 'keyInputRightArrow');
 
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
@@ -35,7 +36,62 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['webp', 'jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+        /* eslint-disable-next-line max-len */
+        UNALLOWED_EXTENSIONS: [
+            'ade',
+            'adp',
+            'apk',
+            'appx',
+            'appxbundle',
+            'bat',
+            'cab',
+            'chm',
+            'cmd',
+            'com',
+            'cpl',
+            'diagcab',
+            'diagcfg',
+            'diagpack',
+            'dll',
+            'dmg',
+            'ex',
+            'ex_',
+            'exe',
+            'hta',
+            'img',
+            'ins',
+            'iso',
+            'isp',
+            'jar',
+            'jnlp',
+            'js',
+            'jse',
+            'lib',
+            'lnk',
+            'mde',
+            'msc',
+            'msi',
+            'msix',
+            'msixbundle',
+            'msp',
+            'mst',
+            'nsh',
+            'pif',
+            'ps1',
+            'scr',
+            'sct',
+            'shb',
+            'sys',
+            'vb',
+            'vbe',
+            'vbs',
+            'vhd',
+            'vxd',
+            'wsc',
+            'wsf',
+            'wsh',
+            'xll',
+        ],
 
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -104,6 +160,8 @@ const CONST = {
             VIEW_HEIGHT: 275,
         },
     },
+
+    RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
@@ -227,6 +285,7 @@ const CONST = {
         MX: 'MX',
         AU: 'AU',
         CA: 'CA',
+        GB: 'GB',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
@@ -342,6 +401,26 @@ const CONST = {
                 [PLATFORM_IOS]: {input: keyInputDownArrow},
             },
         },
+        ARROW_LEFT: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowLeft',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputLeftArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputLeftArrow},
+                [PLATFORM_IOS]: {input: keyInputLeftArrow},
+            },
+        },
+        ARROW_RIGHT: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowRight',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputRightArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputRightArrow},
+                [PLATFORM_IOS]: {input: keyInputRightArrow},
+            },
+        },
         TAB: {
             descriptionKey: null,
             shortcutKey: 'Tab',
@@ -407,9 +486,14 @@ const CONST = {
                 ADDCOMMENT: 'ADDCOMMENT',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                TASKEDITED: 'TASKEDITED',
+                TASKCANCELED: 'TASKCANCELED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKREOPENED: 'TASKREOPENED',
+                REPORTPREVIEW: 'REPORTPREVIEW',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -499,6 +583,7 @@ const CONST = {
         },
         STATE: {
             SUBMITTED: 'SUBMITTED',
+            PROCESSING: 'PROCESSING',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -516,6 +601,11 @@ const CONST = {
             MUTE: 'mute',
             DAILY: 'daily',
             ALWAYS: 'always',
+        },
+        // Options for which room members can post
+        WRITE_CAPABILITIES: {
+            ALL: 'all',
+            ADMINS: 'admins',
         },
         VISIBILITY: {
             PUBLIC: 'public',
@@ -639,6 +729,13 @@ const CONST = {
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
+    FORMS: {
+        LOGIN_FORM: 'LoginForm',
+        VALIDATE_CODE_FORM: 'ValidateCodeForm',
+        VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
+        RESEND_VALIDATION_FORM: 'ResendValidationForm',
+        UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
+    },
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -700,9 +797,12 @@ const CONST = {
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
         URL: 'url',
+        DEFAULT: 'default',
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    // This is a placeholder for attachment which is uploading
+    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -729,16 +829,23 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
+    CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
+    SMALL_EMOJI_PICKER_SIZE: {
+        WIDTH: '100%',
+    },
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT_WEB: 200,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     RECIPIENT_LOCAL_TIME_HEIGHT: 25,
     AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
-        ITEM_HEIGHT: 36,
+        SUGGESTER_INNER_PADDING: 8,
+        ITEM_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
         MIN_AMOUNT_OF_ITEMS: 3,
         MAX_AMOUNT_OF_ITEMS: 5,
+        HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
@@ -900,6 +1007,7 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
+            VBBA: 'ACH',
         },
         MONEY_REQUEST_TYPE: {
             SEND: 'send',
@@ -977,6 +1085,7 @@ const CONST = {
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
+        MENTION_ICON: 'mention-icon',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -986,7 +1095,7 @@ const CONST = {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         ALPHABETIC_CHARS: /[a-zA-Z]+/,
-        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
+        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -1017,16 +1126,24 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
-        // eslint-disable-next-line no-misleading-character-class
-        NEW_LINE_OR_WHITE_SPACE_OR_EMOJI: /[\n\s\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        SPECIAL_CHAR_OR_EMOJI:
+            // eslint-disable-next-line no-misleading-character-class
+            /[\n\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
-        // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
-        EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
+        SPACE_OR_EMOJI:
+            // eslint-disable-next-line no-misleading-character-class
+            /(\s+|(?:[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)+)/gu,
 
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        MENTION_REPLACER: /^@[^\n\r]*?(?=$|\s)/,
+        MENTION_REPLACER:
+            // eslint-disable-next-line no-misleading-character-class
+            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
+
+        ROUTES: {
+            VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+        },
     },
 
     PRONOUNS: {
@@ -1071,6 +1188,8 @@ const CONST = {
     // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
     MAX_MARKUP_LENGTH: 10000,
 
+    MAX_THREAD_REPLIES_PREVIEW: 99,
+
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
@@ -1096,9 +1215,11 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
+        WELCOME_MESSAGE: 'welcomeMessage',
     },
 
     FOOTER: {
@@ -1188,9 +1309,7 @@ const CONST = {
     TFA_CODE_LENGTH: 6,
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 
-    USA_COUNTRY_NAME,
     SPACE_LENGTH: 1,
-    SPACE: 1,
 
     ALL_COUNTRIES: {
         AF: 'Afghanistan',
@@ -2314,6 +2433,30 @@ const CONST = {
         ALL: 'all',
         ACTIVE: 'active',
         DISABLED: 'disabled',
+    },
+    SPACE_CHARACTER_WIDTH: 4,
+
+    // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
+    // div and then remove it from copied contents in the getHTMLOfSelection() method.
+    UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
+    MODERATION: {
+        MODERATOR_DECISION_PENDING: 'pending',
+        MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        MODERATOR_DECISION_APPROVED: 'approved',
+        MODERATOR_DECISION_HIDDEN: 'hidden',
+        FLAG_SEVERITY_SPAM: 'spam',
+        FLAG_SEVERITY_INCONSIDERATE: 'inconsiderate',
+        FLAG_SEVERITY_INTIMIDATION: 'intimidation',
+        FLAG_SEVERITY_BULLYING: 'bullying',
+        FLAG_SEVERITY_HARASSMENT: 'harassment',
+        FLAG_SEVERITY_ASSAULT: 'assault',
+    },
+    EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    QR: {
+        DEFAULT_LOGO_SIZE_RATIO: 0.25,
+        DEFAULT_LOGO_MARGIN_RATIO: 0.02,
+        EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
+        EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
 };
 

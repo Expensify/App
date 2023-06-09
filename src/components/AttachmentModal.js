@@ -16,12 +16,14 @@ import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Button from './Button';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import fileDownload from '../libs/fileDownload';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ConfirmModal from './ConfirmModal';
 import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
+import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
+import reportPropTypes from '../pages/reportPropTypes';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -34,6 +36,9 @@ const propTypes = {
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
+
+    /** Optional callback to fire when we want to do something after modal show. */
+    onModalShow: PropTypes.func,
 
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
@@ -53,8 +58,8 @@ const propTypes = {
     /** Title shown in the header of the modal */
     headerTitle: PropTypes.string,
 
-    /** The ID of the report that has this attachment */
-    reportID: PropTypes.string,
+    /** The report that has this attachment */
+    report: reportPropTypes,
 
     ...withLocalizePropTypes,
 
@@ -68,7 +73,8 @@ const defaultProps = {
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
-    reportID: '',
+    report: {},
+    onModalShow: () => {},
     onModalHide: () => {},
 };
 
@@ -80,6 +86,7 @@ class AttachmentModal extends PureComponent {
             isModalOpen: false,
             shouldLoadAttachment: false,
             isAttachmentInvalid: false,
+            isAuthTokenRequired: props.isAuthTokenRequired,
             attachmentInvalidReasonTitle: null,
             attachmentInvalidReason: null,
             source: props.source,
@@ -96,17 +103,17 @@ class AttachmentModal extends PureComponent {
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.onNavigate = this.onNavigate.bind(this);
+        this.downloadAttachment = this.downloadAttachment.bind(this);
         this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
         this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
     }
 
     /**
-     * Helps to navigate between next/previous attachments
-     * by setting sourceURL and file in state
-     * @param {Object} attachmentData
+     * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
+     * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
      */
-    onNavigate(attachmentData) {
-        this.setState(attachmentData);
+    onNavigate(attachment) {
+        this.setState(attachment);
     }
 
     /**
@@ -122,11 +129,15 @@ class AttachmentModal extends PureComponent {
     }
 
     /**
-     * @param {String} sourceURL
+     * Download the currently viewed attachment.
      */
-    downloadAttachment(sourceURL) {
-        const originalFileName = lodashGet(this.state, 'file.name') || this.props.originalFileName;
-        fileDownload(sourceURL, originalFileName);
+    downloadAttachment() {
+        let sourceURL = this.state.source;
+        if (this.state.isAuthTokenRequired) {
+            sourceURL = addEncryptedAuthTokenToURL(sourceURL);
+        }
+
+        fileDownload(sourceURL, this.state.file.name);
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
@@ -163,8 +174,8 @@ class AttachmentModal extends PureComponent {
      */
     isValidFile(file) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (!_.contains(CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = `${this.props.translate('attachmentPicker.notAllowedExtension')} ${CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_EXTENSIONS.join(', ')}`;
+        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+            const invalidReason = this.props.translate('attachmentPicker.notAllowedExtension');
             this.setState({
                 isAttachmentInvalid: true,
                 attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
@@ -246,7 +257,7 @@ class AttachmentModal extends PureComponent {
     }
 
     render() {
-        const source = this.state.source;
+        const source = this.props.source || this.state.source;
         return (
             <>
                 <Modal
@@ -255,7 +266,10 @@ class AttachmentModal extends PureComponent {
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
                     backgroundColor={themeColors.componentBG}
-                    onModalShow={() => this.setState({shouldLoadAttachment: true})}
+                    onModalShow={() => {
+                        this.props.onModalShow();
+                        this.setState({shouldLoadAttachment: true});
+                    }}
                     onModalHide={(e) => {
                         this.props.onModalHide(e);
                         this.setState({shouldLoadAttachment: false});
@@ -263,27 +277,31 @@ class AttachmentModal extends PureComponent {
                     propagateSwipe
                 >
                     {this.props.isSmallScreenWidth && <HeaderGap />}
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.headerTitle || this.props.translate('common.attachment')}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={() => this.downloadAttachment(source)}
+                        onDownloadButtonPress={this.downloadAttachment}
+                        shouldShowCloseButton={!this.props.isSmallScreenWidth}
+                        shouldShowBackButton={this.props.isSmallScreenWidth}
+                        onBackButtonPress={() => this.setState({isModalOpen: false})}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.props.reportID ? (
+                        {!_.isEmpty(this.props.report) ? (
                             <AttachmentCarousel
-                                reportID={this.props.reportID}
+                                report={this.props.report}
                                 onNavigate={this.onNavigate}
                                 source={this.props.source}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}
                             />
                         ) : (
-                            Boolean(this.state.source) &&
+                            Boolean(source) &&
                             this.state.shouldLoadAttachment && (
                                 <AttachmentView
+                                    containerStyles={[styles.mh5]}
                                     source={source}
-                                    isAuthTokenRequired={this.props.isAuthTokenRequired}
+                                    isAuthTokenRequired={this.state.isAuthTokenRequired}
                                     file={this.state.file}
                                     onToggleKeyboard={this.updateConfirmButtonVisibility}
                                 />

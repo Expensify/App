@@ -8,6 +8,7 @@ import Text from '../Text';
 import themeColors from '../../styles/themes/default';
 import TextLink from '../TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
+import AutoEmailLink from '../AutoEmailLink';
 
 const propTypes = {
     /** Expensicon for the page */
@@ -20,27 +21,32 @@ const propTypes = {
     title: PropTypes.string.isRequired,
 
     /** Subtitle message below the title */
-    subtitle: PropTypes.string.isRequired,
+    subtitle: PropTypes.string,
 
     /** Link message below the subtitle */
     link: PropTypes.string,
 
-    /** Whether we should show a go back home link */
-    shouldShowBackHomeLink: PropTypes.bool,
+    /** Whether we should show a link to navigate elsewhere */
+    shouldShowLink: PropTypes.bool,
 
     /** The custom icon width */
     iconWidth: PropTypes.number,
 
     /** The custom icon height */
     iconHeight: PropTypes.number,
+
+    /** Function to call when pressing the navigation link */
+    onLinkPress: PropTypes.func,
 };
 
 const defaultProps = {
     iconColor: themeColors.offline,
-    shouldShowBackHomeLink: false,
+    subtitle: '',
+    shouldShowLink: false,
     link: 'notFound.goBackHome',
     iconWidth: variables.iconSizeSuperLarge,
     iconHeight: variables.iconSizeSuperLarge,
+    onLinkPress: () => Navigation.dismissModal(),
 };
 
 const BlockingView = (props) => (
@@ -52,10 +58,13 @@ const BlockingView = (props) => (
             height={props.iconHeight}
         />
         <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
-        <Text style={[styles.textAlignCenter]}>{props.subtitle}</Text>
-        {props.shouldShowBackHomeLink ? (
+        <AutoEmailLink
+            style={[styles.textAlignCenter]}
+            text={props.subtitle}
+        />
+        {props.shouldShowLink ? (
             <TextLink
-                onPress={() => Navigation.dismissModal(true)}
+                onPress={props.onLinkPress}
                 style={[styles.link, styles.mt2]}
             >
                 {props.link}

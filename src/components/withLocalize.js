@@ -109,10 +109,11 @@ class LocaleContextProvider extends React.Component {
     /**
      * @param {String} datetime - ISO-formatted datetime string
      * @param {Boolean} [includeTimezone]
+     * @param {Boolean} isLowercase
      * @returns {String}
      */
-    datetimeToCalendarTime(datetime, includeTimezone) {
-        return DateUtils.datetimeToCalendarTime(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'));
+    datetimeToCalendarTime(datetime, includeTimezone, isLowercase = false) {
+        return DateUtils.datetimeToCalendarTime(this.props.preferredLocale, datetime, includeTimezone, lodashGet(this.props, 'currentUserPersonalDetails.timezone.selected'), isLowercase);
     }
 
     /**
@@ -178,4 +179,4 @@ export default function withLocalize(WrappedComponent) {
     return WithLocalize;
 }
 
-export {withLocalizePropTypes, Provider as LocaleContextProvider};
+export {withLocalizePropTypes, Provider as LocaleContextProvider, LocaleContext};

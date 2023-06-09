@@ -17,8 +17,12 @@ class PressableWithSecondaryInteraction extends Component {
     }
 
     componentDidMount() {
-        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
-            this.props.forwardedRef(this.pressableRef);
+        if (this.props.forwardedRef) {
+            if (_.isFunction(this.props.forwardedRef)) {
+                this.props.forwardedRef(this.pressableRef);
+            } else if (_.isObject(this.props.forwardedRef)) {
+                this.props.forwardedRef.current = this.pressableRef;
+            }
         }
         this.pressableRef.addEventListener('contextmenu', this.executeSecondaryInteractionOnContextMenu);
     }
@@ -73,14 +77,15 @@ class PressableWithSecondaryInteraction extends Component {
         // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
             <Pressable
-                style={StyleUtils.combineStyles(this.props.inline ? styles.dInline : this.props.style)}
                 onPressIn={this.props.onPressIn}
                 onLongPress={this.props.onSecondaryInteraction ? this.executeSecondaryInteraction : undefined}
+                activeOpacity={this.props.activeOpacity}
                 onPressOut={this.props.onPressOut}
                 onPress={this.props.onPress}
                 ref={(el) => (this.pressableRef = el)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}
+                style={(state) => [StyleUtils.parseStyleFromFunction(this.props.style, state), ...[this.props.inline && styles.dInline]]}
             >
                 {this.props.children}
             </Pressable>

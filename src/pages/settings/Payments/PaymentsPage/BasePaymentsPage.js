@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import PasswordPopover from '../../../../components/PasswordPopover';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -32,6 +32,7 @@ import OfflineWithFeedback from '../../../../components/OfflineWithFeedback';
 import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
 import themeColors from '../../../../styles/themes/default';
+import variables from '../../../../styles/variables';
 
 class BasePaymentsPage extends React.Component {
     constructor(props) {
@@ -48,8 +49,9 @@ class BasePaymentsPage extends React.Component {
                 title: '',
             },
             selectedPaymentMethodType: null,
+            anchorPositionHorizontal: 0,
+            anchorPositionVertical: 0,
             anchorPositionTop: 0,
-            anchorPositionBottom: 0,
             anchorPositionRight: 0,
             addPaymentMethodButton: null,
             methodID: null,
@@ -150,11 +152,12 @@ class BasePaymentsPage extends React.Component {
      */
     setPositionAddPaymentMenu(position) {
         this.setState({
-            anchorPositionTop: position.top + position.height,
-            anchorPositionBottom: this.props.windowHeight - position.top,
+            anchorPositionTop: position.top + position.height + variables.addPaymentPopoverTopSpacing,
 
             // We want the position to be 13px to the right of the left border
-            anchorPositionRight: this.props.windowWidth - position.right + 13,
+            anchorPositionRight: this.props.windowWidth - position.right + variables.addPaymentPopoverRightSpacing,
+            anchorPositionHorizontal: position.x,
+            anchorPositionVertical: position.y,
         });
     }
 
@@ -388,11 +391,9 @@ class BasePaymentsPage extends React.Component {
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('common.payments')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 />
                 <View style={[styles.flex1, styles.mb4]}>
                     <OfflineWithFeedback
@@ -416,8 +417,8 @@ class BasePaymentsPage extends React.Component {
                     isVisible={this.state.shouldShowAddPaymentMenu}
                     onClose={this.hideAddPaymentMenu}
                     anchorPosition={{
-                        bottom: this.state.anchorPositionBottom,
-                        right: this.state.anchorPositionRight - 10,
+                        horizontal: this.state.anchorPositionHorizontal,
+                        vertical: this.state.anchorPositionVertical - 10,
                     }}
                     onItemSelected={(method) => this.addPaymentMethodTypePressed(method)}
                 />
@@ -437,7 +438,6 @@ class BasePaymentsPage extends React.Component {
                                     icon={this.state.formattedSelectedPaymentMethod.icon}
                                     description={this.state.formattedSelectedPaymentMethod.description}
                                     wrapperStyle={[styles.pv0, styles.ph0, styles.mb4]}
-                                    disabled
                                     interactive={false}
                                 />
                             )}
@@ -471,7 +471,7 @@ class BasePaymentsPage extends React.Component {
                                         showConfirmDeleteContent: true,
                                     });
                                 }}
-                                style={[shouldShowMakeDefaultButton && styles.mt4]}
+                                style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                                 text={this.props.translate('common.delete')}
                                 danger
                             />
