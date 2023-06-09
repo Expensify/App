@@ -112,10 +112,12 @@ const MoneyRequestModal = (props) => {
     const [amount, setAmount] = useState(0);
 
     useEffect(() => {
-        setSelectedOptions(ReportUtils.isPolicyExpenseChat(props.report)
-          ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
-          : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails))
-    }, [props.report, props.personalDetails])
+        setSelectedOptions(
+            ReportUtils.isPolicyExpenseChat(props.report)
+                ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
+                : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails),
+        );
+    }, [props.report, props.personalDetails]);
 
     useEffect(() => {
         PersonalDetails.openMoneyRequestModalPage();
@@ -307,7 +309,6 @@ const MoneyRequestModal = (props) => {
     const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.MoneyRequestParticipants;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.report);
 
-    useEffect(() => {console.log(selectedOptions)}, [selectedOptions])
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
