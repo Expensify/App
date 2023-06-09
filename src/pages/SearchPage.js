@@ -160,8 +160,11 @@ class SearchPage extends Component {
                 },
             );
         } else {
-            // TODO: do we need to create an optimistic accountID here?
-            Report.navigateToAndOpenReport([option.accountID]);
+            if (option.isOptimisticAccount) {
+                Report.navigateToAndOpenReport([], [{accountID: option.accountID, login: option.login}]);
+            } else {
+                Report.navigateToAndOpenReport([option.accountID]);
+            }
         }
     }
 
