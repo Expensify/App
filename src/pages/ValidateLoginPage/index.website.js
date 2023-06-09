@@ -58,8 +58,7 @@ const defaultProps = {
 function ValidateLoginPage(props) {
     const login = lodashGet(props, 'credentials.login', null);
     const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
-
-    const getAccountID = () => lodashGet(props.route.params, 'accountID', '');
+    const accountID = lodashGet(props.route.params, 'accountID', '');
 
     const getValidateCode = () => lodashGet(props.route.params, 'validateCode', '');
 
@@ -68,7 +67,7 @@ function ValidateLoginPage(props) {
         // A fresh session will not have credentials.login and user permission betas available.
         // In that case, we directly allow users to go through password less flow
         if (login && !Permissions.canUsePasswordlessLogins(props.betas)) {
-            User.validateLogin(getAccountID(), getValidateCode());
+            User.validateLogin(accountID, getValidateCode());
             return;
         }
 
@@ -85,7 +84,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(getAccountID(), getValidateCode(), props.preferredLocale);
+        Session.signInWithValidateCode(accountID, getValidateCode(), props.preferredLocale);
     }, []);
 
     useEffect(() => {
@@ -106,7 +105,7 @@ function ValidateLoginPage(props) {
             {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
             {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
                 <ValidateCodeModal
-                    accountID={getAccountID()}
+                    accountID={accountID}
                     code={getValidateCode()}
                 />
             )}
