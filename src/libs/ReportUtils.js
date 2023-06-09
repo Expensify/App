@@ -1077,14 +1077,14 @@ function getReport(reportID) {
  * @param {Object} report
  */
 function navigateToDetailsPage(report) {
-    const participants = lodashGet(report, 'participants', []);
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
     if (isChatRoom(report) || isPolicyExpenseChat(report) || isThread(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
-    if (participants.length === 1) {
-        Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+    if (participantAccountIDs.length === 1) {
+        Navigation.navigate(ROUTES.getProfileRoute(participantAccountIDs[0]));
         return;
     }
     Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
