@@ -46,7 +46,7 @@ const PopoverContextProvider = (props) => {
         return () => {
             document.removeEventListener('click', listener, true);
         };
-    }, []);
+    }, [closePopover]);
 
     React.useEffect(() => {
         const listener = () => {
@@ -56,7 +56,7 @@ const PopoverContextProvider = (props) => {
         return () => {
             document.removeEventListener('contextmenu', listener);
         };
-    }, []);
+    }, [closePopover]);
 
     React.useEffect(() => {
         const listener = (e) => {
@@ -69,7 +69,7 @@ const PopoverContextProvider = (props) => {
         return () => {
             document.removeEventListener('keydown', listener);
         };
-    }, []);
+    }, [closePopover]);
 
     React.useEffect(() => {
         const listener = () => {
@@ -82,7 +82,7 @@ const PopoverContextProvider = (props) => {
         return () => {
             document.removeEventListener('visibilitychange', listener);
         };
-    }, []);
+    }, [closePopover]);
 
     React.useEffect(() => {
         const listener = (e) => {
@@ -96,7 +96,7 @@ const PopoverContextProvider = (props) => {
         return () => {
             document.removeEventListener('scroll', listener, true);
         };
-    }, []);
+    }, [closePopover]);
 
     const onOpen = React.useCallback(
         (popoverParams) => {
