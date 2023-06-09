@@ -158,7 +158,7 @@ const HeaderView = (props) => {
                             ) : (
                                 <MultipleAvatars
                                     icons={icons}
-                                    shouldShowTooltip={!isChatRoom}
+                                    shouldShowTooltip={!isChatRoom || isThread}
                                 />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
