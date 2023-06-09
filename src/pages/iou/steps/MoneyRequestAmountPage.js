@@ -387,10 +387,12 @@ class MoneyRequestAmountPage extends React.Component {
 
         // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
         if (this.props.report.reportID) {
-            const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
-                ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
-                : _.map(this.props.report.participants, (participant) => ({login: participant, selected: true}));
-            IOU.setMoneyRequestParticipants(participants);
+            if (_.isEmpty(this.props.iou.participants)) {
+                const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
+                    ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
+                    : _.map(this.props.report.participants, (participant) => ({login: participant, selected: true}));
+                IOU.setMoneyRequestParticipants(participants);
+            }
             Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
             return;
         }
