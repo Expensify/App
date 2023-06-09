@@ -118,7 +118,7 @@ function ProfilePage(props) {
     const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([login]) && !_.isEmpty(timezone);
     let isParticipantInReport = true;
     if (!_.isEmpty(report)) {
-        const participants = report.participants;
+        const participants = lodashGet(report, 'participants', []);
         isParticipantInReport = participants.includes(login);
     }
 
