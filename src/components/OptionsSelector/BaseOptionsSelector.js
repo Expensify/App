@@ -331,6 +331,7 @@ class BaseOptionsSelector extends Component {
                     }
                 }}
                 contentContainerStyles={[safeAreaPaddingBottom, ...this.props.contentContainerStyles]}
+                listContainerStyles={this.props.listContainerStyles}
                 isLoading={!this.props.shouldShowOptions}
             />
         );
