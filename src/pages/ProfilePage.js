@@ -60,6 +60,9 @@ const propTypes = {
         partnerUserID: PropTypes.string,
     }),
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -67,6 +70,7 @@ const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
     loginList: {},
+    isLoadingReportData: true
 };
 
 /**
@@ -91,6 +95,8 @@ const getPhoneNumber = (details) => {
 
 function ProfilePage(props) {
     const accountID = lodashGet(props.route.params, 'accountID', 0);
+    const reportID = lodashGet(props.route.params, 'reportID', '');
+    const report = ReportUtils.getReport(reportID);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -108,7 +114,13 @@ function ProfilePage(props) {
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
+    // and should check user details is a participant in the report or not
     const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([login]) && !_.isEmpty(timezone);
+    let isParticipantInReport = true;
+    if (!_.isEmpty(report)) {
+        const participants = report.participants;
+        isParticipantInReport = participants.includes(login);
+    }
 
     let pronouns = lodashGet(details, 'pronouns', '');
     if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -122,11 +134,10 @@ function ProfilePage(props) {
 
     const isCurrentUser = _.keys(props.loginList).includes(login);
     const hasMinimumDetails = !_.isEmpty(details.avatar);
-    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
+    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details) || props.isLoadingReportData;
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
-
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
@@ -137,7 +148,7 @@ function ProfilePage(props) {
                 pointerEvents="box-none"
                 style={[styles.containerWithSpaceBetween]}
             >
-                {hasMinimumDetails && (
+                {hasMinimumDetails && isParticipantInReport && (
                     <ScrollView>
                         <View style={styles.avatarSectionWrapper}>
                             <AttachmentModal
@@ -210,7 +221,7 @@ function ProfilePage(props) {
                     </ScrollView>
                 )}
                 {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
-                {shouldShowBlockingView && (
+                {(shouldShowBlockingView || !isParticipantInReport) && (
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
@@ -235,6 +246,9 @@ export default compose(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(ProfilePage);
