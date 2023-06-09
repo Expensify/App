@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
 import * as User from '../../libs/actions/User';
-import compose from '../../libs/compose';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -59,15 +58,14 @@ function ValidateLoginPage(props) {
     const login = lodashGet(props, 'credentials.login', null);
     const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
     const accountID = lodashGet(props.route.params, 'accountID', '');
-
-    const getValidateCode = () => lodashGet(props.route.params, 'validateCode', '');
+    const validateCode = lodashGet(props.route.params, 'validateCode', '');
 
     useEffect(() => {
 
         // A fresh session will not have credentials.login and user permission betas available.
         // In that case, we directly allow users to go through password less flow
         if (login && !Permissions.canUsePasswordlessLogins(props.betas)) {
-            User.validateLogin(accountID, getValidateCode());
+            User.validateLogin(accountID, validateCode);
             return;
         }
 
@@ -84,7 +82,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(accountID, getValidateCode(), props.preferredLocale);
+        Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale);
     }, []);
 
     useEffect(() => {
@@ -106,7 +104,7 @@ function ValidateLoginPage(props) {
             {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
                 <ValidateCodeModal
                     accountID={accountID}
-                    code={getValidateCode()}
+                    code={validateCode}
                 />
             )}
             {autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
