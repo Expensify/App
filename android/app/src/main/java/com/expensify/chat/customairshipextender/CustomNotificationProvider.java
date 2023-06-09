@@ -87,6 +87,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     protected NotificationCompat.Builder onExtendBuilder(@NonNull Context context, @NonNull NotificationCompat.Builder builder, @NonNull NotificationArguments arguments) {
         super.onExtendBuilder(context, builder, arguments);
         PushMessage message = arguments.getMessage();
+        Log.d(TAG, "buildNotification: " + message.toString());
 
         // Improve notification delivery by categorising as a time-critical message
         builder.setCategory(CATEGORY_MESSAGE);
@@ -102,10 +103,10 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         if (message.containsKey(PAYLOAD_KEY)) {
             try {
                 JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
-
+                Log.d(TAG, "message contains payload: " + payload);
                 if (payload.containsKey(ONYX_DATA_KEY)) {
                     Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
-
+                    Log.d(TAG, "payload contains onxyData");
                     applyMessageStyle(context, builder, payload, arguments.getNotificationId());
                 }
             } catch (Exception e) {
@@ -171,6 +172,11 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         NotificationCache notificationCache = findOrCreateNotificationCache(reportID);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            notificationCache.messages.forEach(message -> {
+                Log.d(TAG, "messageCache: " + message.toString());
+            });
+        }
 
         try {
             JsonMap reportMap = payload.get("onyxData").getList().get(1).getMap().get("value").getMap();
