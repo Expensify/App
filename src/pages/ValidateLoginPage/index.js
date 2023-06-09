@@ -10,14 +10,10 @@ import * as Session from '../../libs/actions/Session';
 import usePermissions from '../../hooks/usePermissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -76,7 +72,6 @@ ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
 
 export default withOnyx({
-    betas: {key: ONYXKEYS.BETAS},
     credentials: {key: ONYXKEYS.CREDENTIALS},
     session: {key: ONYXKEYS.SESSION},
 })(ValidateLoginPage);
