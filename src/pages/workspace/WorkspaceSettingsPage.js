@@ -131,7 +131,7 @@ function WorkspaceSettingsPage(props) {
                         pendingAction={lodashGet(props.policy, 'pendingFields.avatar', null)}
                         errors={lodashGet(props.policy, 'errorFields.avatar', null)}
                         onErrorClose={() => Policy.clearAvatarErrors(props.policy.id)}
-                    >
+                    />
                     <OfflineWithFeedback pendingAction={lodashGet(props.policy, 'pendingFields.generalSettings')}>
                         <TextInput
                             inputID="name"
