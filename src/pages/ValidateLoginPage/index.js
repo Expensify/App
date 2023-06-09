@@ -9,7 +9,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import usePermissions from '../../hooks/usePermissions';
 import Navigation from '../../libs/Navigation/Navigation';
-import withLocalize from '../../components/withLocalize';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 
@@ -76,11 +75,8 @@ function ValidateLoginPage(props) {
 ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        betas: {key: ONYXKEYS.BETAS},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        session: {key: ONYXKEYS.SESSION},
-    }),
-)(ValidateLoginPage);
+export default withOnyx({
+    betas: {key: ONYXKEYS.BETAS},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    session: {key: ONYXKEYS.SESSION},
+})(ValidateLoginPage);
