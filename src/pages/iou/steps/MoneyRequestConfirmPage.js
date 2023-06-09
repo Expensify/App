@@ -62,6 +62,7 @@ const MoneyRequestConfirmPage = (props) => {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (_.isEmpty(props.iou.participants) || props.iou.amount === 0) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
