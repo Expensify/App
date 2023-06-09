@@ -182,12 +182,9 @@ class WorkspaceMembersPage extends React.Component {
         }
 
         // Remove the admin from the list
-        const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
+        const accountIDsToRemove = _.without(this.state.selectedEmployees, this.props.session.accountID);
 
-        // It's a pain, but we need to map the emails back to accountIDs now so we can set optimistic data. TODO removeMembers using accountIDs only.
-        const emailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
-        const accountIDsToRemove = _.map(membersToRemove, (email) => emailsToAccountIDs[email]);
-        Policy.removeMembers(membersToRemove, accountIDsToRemove, this.props.route.params.policyID);
+        Policy.removeMembers(accountIDsToRemove, this.props.route.params.policyID);
         this.setState({
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
@@ -229,32 +226,32 @@ class WorkspaceMembersPage extends React.Component {
     /**
      * Toggle user from the selectedEmployees list
      *
-     * @param {String} login
+     * @param {String} accountID
      * @param {String} pendingAction
      *
      */
-    toggleUser(login, pendingAction) {
+    toggleUser(accountID, pendingAction) {
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
 
         // Add or remove the user if the checkbox is enabled
-        if (_.contains(this.state.selectedEmployees, login)) {
-            this.removeUser(login);
+        if (_.contains(this.state.selectedEmployees, accountID)) {
+            this.removeUser(accountID);
         } else {
-            this.addUser(login);
+            this.addUser(accountID);
         }
     }
 
     /**
      * Add user from the selectedEmployees list
      *
-     * @param {String} login
+     * @param {String} accountID
      */
-    addUser(login) {
+    addUser(accountID) {
         this.setState(
             (prevState) => ({
-                selectedEmployees: [...prevState.selectedEmployees, login],
+                selectedEmployees: [...prevState.selectedEmployees, accountID],
             }),
             () => this.validate(),
         );
@@ -263,12 +260,12 @@ class WorkspaceMembersPage extends React.Component {
     /**
      * Remove user from the selectedEmployees list
      *
-     * @param {String} login
+     * @param {String} accountID
      */
-    removeUser(login) {
+    removeUser(accountID) {
         this.setState(
             (prevState) => ({
-                selectedEmployees: _.without(prevState.selectedEmployees, login),
+                selectedEmployees: _.without(prevState.selectedEmployees, accountID),
             }),
             () => this.validate(),
         );
@@ -322,7 +319,7 @@ class WorkspaceMembersPage extends React.Component {
      * @returns {React.Component}
      */
     renderItem({item}) {
-        const isChecked = _.contains(this.state.selectedEmployees, item.login);
+        const isChecked = _.contains(this.state.selectedEmployees, item.accountID);
         return (
             <OfflineWithFeedback
                 errorRowStyles={[styles.peopleRowBorderBottom]}
@@ -332,7 +329,7 @@ class WorkspaceMembersPage extends React.Component {
             >
                 <PressableWithFeedback
                     style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom]}
-                    onPress={() => this.toggleUser(item.login, item.pendingAction)}
+                    onPress={() => this.toggleUser(item.accountID, item.pendingAction)}
                     accessibilityRole="checkbox"
                     accessibilityState={{
                         checked: isChecked,
@@ -344,7 +341,7 @@ class WorkspaceMembersPage extends React.Component {
                 >
                     <Checkbox
                         isChecked={isChecked}
-                        onPress={() => this.toggleUser(item.login, item.pendingAction)}
+                        onPress={() => this.toggleUser(item.accountID, item.pendingAction)}
                     />
                     <View style={styles.flex1}>
                         <OptionRow
@@ -414,7 +411,7 @@ class WorkspaceMembersPage extends React.Component {
             if (member.login === this.props.session.email || member.login === this.props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
-            removableMembers[member.login] = member;
+            removableMembers[member.accountID] = member;
         });
         const policyID = lodashGet(this.props.route, 'params.policyID');
         const policyName = lodashGet(this.props.policy, 'name');
@@ -478,7 +475,7 @@ class WorkspaceMembersPage extends React.Component {
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <Checkbox
                                             isChecked={
-                                                !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (memberEmail) => _.contains(this.state.selectedEmployees, memberEmail))
+                                                !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(this.state.selectedEmployees, accountID))
                                             }
                                             onPress={() => this.toggleAllUsers(removableMembers)}
                                         />
