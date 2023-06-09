@@ -1018,7 +1018,7 @@ function getDMRootReportName(report) {
 function getChatRoomSubtitle(report) {
     if (isThread(report)) {
         if (!getChatType(report)) {
-            return `From ${getDMRootReportName(report)}`;
+            return `${Localize.translateLocal('threads.from')} ${getDMRootReportName(report)}`;
         }
 
         let roomName = '';
@@ -1032,7 +1032,7 @@ function getChatRoomSubtitle(report) {
         }
 
         const workspaceName = getPolicyName(report);
-        return `From ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+        return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
