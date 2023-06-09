@@ -150,7 +150,7 @@ class OptionRow extends Component {
                         <PressableWithFeedback
                             ref={(el) => (pressableRef = el)}
                             onPress={(e) => {
-                                if(!this.props.onSelectRow) {
+                                if (!this.props.onSelectRow) {
                                     return;
                                 }
 
