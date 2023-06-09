@@ -48,7 +48,7 @@ function ReportWelcomeMessagePage(props) {
 
     return (
         <ScreenWrapper
-            onTransitionEnd={() => {
+            onEntryTransitionEnd={() => {
                 if (!welcomeMessageInputRef.current) {
                     return;
                 }
@@ -73,7 +73,7 @@ function ReportWelcomeMessagePage(props) {
                             multiline
                             numberOfLines={10}
                             maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={welcomeMessageInputRef}
+                            ref={(el) => (welcomeMessageInputRef.current = el)}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
