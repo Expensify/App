@@ -56,8 +56,14 @@ const defaultProps = {
 };
 
 function ValidateLoginPage(props) {
+    const login = lodashGet(props, 'credentials.login', null);
+    const getAutoAuthState = () => lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
+
+    const getAccountID = () => lodashGet(props.route.params, 'accountID', '');
+
+    const getValidateCode = () => lodashGet(props.route.params, 'validateCode', '');
+
     useEffect(() => {
-        const login = lodashGet(props, 'credentials.login', null);
 
         // A fresh session will not have credentials.login and user permission betas available.
         // In that case, we directly allow users to go through password less flow
@@ -84,19 +90,13 @@ function ValidateLoginPage(props) {
     }, []);
 
     useEffect(() => {
-        if (lodashGet(props, 'credentials.login', null) || !lodashGet(props, 'credentials.accountID', null) || !lodashGet(props, 'account.requiresTwoFactorAuth', false)) {
+        if (login || !lodashGet(props, 'credentials.accountID', null) || !lodashGet(props, 'account.requiresTwoFactorAuth', false)) {
             return;
         }
 
         // The user clicked the option to sign in the current tab
         Navigation.navigate(ROUTES.REPORT);
     });
-
-    const getAutoAuthState = () => lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
-
-    const getAccountID = () => lodashGet(props.route.params, 'accountID', '');
-
-    const getValidateCode = () => lodashGet(props.route.params, 'validateCode', '');
 
     const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
     const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
