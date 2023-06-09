@@ -274,7 +274,7 @@ class WorkspaceInvitePage extends React.Component {
                         />
                         <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
                             <OptionsSelector
-                                contentContainerStyles={[styles.flex1, styles.flexBasis0]}
+                                listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
                                 autoFocus={false}
                                 canSelectMultipleOptions
                                 sections={sections}
