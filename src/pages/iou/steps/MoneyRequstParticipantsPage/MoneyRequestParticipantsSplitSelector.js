@@ -187,7 +187,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
             personalDetails,
             userToInvite
         });
-    }, [props.betas, props.reports, props.participants, props.personalDetails, searchTerm])
+    }, [props.betas, props.reports, props.participants, props.personalDetails, props.translate, searchTerm])
 
     return (
         <View style={[styles.flex1, styles.w100, props.participants.length > 0 ? props.safeAreaPaddingBottomStyle : {}]}>
