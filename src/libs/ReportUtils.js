@@ -845,7 +845,7 @@ function getPersonalDetailsForAccountID(accountID) {
     if (!accountID) {
         return {};
     }
-    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return {
             accountID,
             displayName: 'Concierge',
