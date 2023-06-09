@@ -9,17 +9,29 @@
 //   () => MyShareComponent
 // );
 import 'react-native-gesture-handler';
-import {AppRegistry} from 'react-native';
-import DotIndicatorMessage from './src/components/DotIndicatorMessage'
-import styles from './src/styles/styles'
+import {AppRegistry, View, Text} from 'react-native';
+import Onyx, {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from './src/ONYXKEYS';
 
-function TestEntry () {
+
+const config = {
+    keys: ONYXKEYS,
+};
+
+Onyx.init(config);
+Onyx.set(ONYXKEYS.ACCOUNT, {accountname: "myaccount"});
+
+function BasicOnyxComponent(props) {
+   return <View style={{flex: 1}}><Text>{JSON.stringify(props.account)}</Text><Text>Test string</Text></View>
+}
+
+const WithHOC = withOnyx({account: {key: ONYXKEYS.ACCOUNT}})(BasicOnyxComponent)
+
+function TestEntry() {
   return (
-                    <DotIndicatorMessage
-                        style={[styles.mv2]}
-                        type="success"
-                        messages={{0: 'hello'}}
-                    />
+    <View style={{flex: 1, backgroundColor: 'yellow'}}>
+      <WithHOC />
+    </View>
   )
 }
 
