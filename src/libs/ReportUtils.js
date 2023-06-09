@@ -511,15 +511,24 @@ function isThread(report) {
     return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
 }
 
+/**
+ * Returns true if report is a DM/Group DM chat.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isDM(report) {
+    return Boolean(!getChatType(report));
+}
 
 /**
- * If the report has a chat type, it is a workspace chat.
+ * If the report is a thread and has a chat type set, it is a workspace chat.
  *
  * @param {Object} report
  * @returns {Boolean}
  */
 function isWorkspaceThread(report) {
-    return Boolean(isThread(report) && getChatType(report));
+    return Boolean(isThread(report) && !isDM(report));
 }
 
 /**
@@ -771,13 +780,13 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         type: CONST.ICON_TYPE_AVATAR,
         name: '',
     };
-
     if (_.isEmpty(report)) {
         result.source = defaultIcon || Expensicons.FallbackAvatar;
         return [result];
     }
     if (isConciergeChatReport(report)) {
         result.source = CONST.CONCIERGE_ICON_URL;
+        result.name = CONST.EMAIL.CONCIERGE;
         return [result];
     }
     if (isThread(report)) {
@@ -813,34 +822,27 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceIcon = getWorkspaceIcon(report);
-        const adminIcon = {
+        const memberIcon = {
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
+            name: report.ownerEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        };
+        return isExpenseReport(report) ? [memberIcon, workspaceIcon] : [workspaceIcon, memberIcon];
+    }
+    if (isIOUReport(report)) {
+        const managerIcon = {
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.managerEmail, 'avatar']), report.managerEmail),
+            name: report.managerEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        };
+
+        const ownerIcon = {
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
             name: report.ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
         };
 
-        // Return the workspace avatar if the user is the owner of the policy expense chat
-        if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
-            return [workspaceIcon, adminIcon];
-        }
-
-        // if (isExpenseReport(report)) {
-        //     return [adminIcon, workspaceIcon]
-        // }
-
-        // If the user is an admin, return avatar source of the other participant of the report
-        // (their workspace chat) and the avatar source of the workspace
-        return [adminIcon, workspaceIcon];
-    }
-    if (isIOUReport(report)) {
-        const email = isPayer ? report.managerEmail : report.ownerEmail;
-        return [
-            {
-                source: UserUtils.getAvatar(lodashGet(personalDetails, [email, 'avatar']), email),
-                name: email,
-                type: CONST.ICON_TYPE_AVATAR,
-            },
-        ];
+        return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
     }
 
     return getIconsForParticipants(report.participants, personalDetails);
@@ -2135,7 +2137,7 @@ function getWhisperDisplayNames(participants) {
 }
 
 /**
- * Show subscript on IOU or expense report
+ * Show subscript on workspace chats and workspace threads and expense requests
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -2152,7 +2154,7 @@ function shouldReportShowSubscript(report) {
         return true;
     }
 
-    return isExpenseReport(report);
+    return false;
 }
 
 /**

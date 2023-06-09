@@ -146,8 +146,8 @@ const OptionRowLHN = (props) => {
                                             backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
-                                            mainTooltip={optionItem.ownerEmail}
-                                            secondaryTooltip={optionItem.subtitle}
+                                            mainTooltip={optionItem.icons[0].name}
+                                            secondaryTooltip={optionItem.icons[1].name}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
@@ -160,7 +160,7 @@ const OptionRowLHN = (props) => {
                                                 props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                 hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
-                                            shouldShowTooltip={!optionItem.isChatRoom && !optionItem.isArchivedRoom}
+                                            shouldShowTooltip={!optionItem.isArchivedRoom}
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>
