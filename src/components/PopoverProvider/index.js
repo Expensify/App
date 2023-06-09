@@ -19,14 +19,14 @@ const PopoverContextProvider = (props) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const activePopoverRef = React.useRef(null);
 
-    const closePopover = (anchorRef) => {
+    const closePopover = React.useCallback((anchorRef) => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return;
         }
         activePopoverRef.current.close();
         activePopoverRef.current = null;
         setIsOpen(false);
-    };
+    }, []);
 
     React.useEffect(() => {
         const listener = (e) => {
@@ -98,13 +98,14 @@ const PopoverContextProvider = (props) => {
         };
     }, []);
 
-    const onOpen = (popoverParams) => {
+    const onOpen = React.useCallback((popoverParams) => {
         if (activePopoverRef.current && activePopoverRef.current.ref !== popoverParams.ref) {
             closePopover(activePopoverRef.current.anchorRef);
         }
         activePopoverRef.current = popoverParams;
         setIsOpen(true);
-    };
+    }, [closePopover]);
+
     return (
         <PopoverContext.Provider
             value={{

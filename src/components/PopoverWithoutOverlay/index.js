@@ -3,7 +3,7 @@ import {Pressable, View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {PopoverContext} from '../PopoverProvider';
 import * as Modal from '../../libs/actions/Modal';
-import {propTypes, defaultProps} from './popoverPropTypes';
+import {propTypes, defaultProps} from '../Popover/popoverPropTypes';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getModalStyles from '../../styles/getModalStyles';

@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import MenuItem from '../MenuItem';
 import {propTypes as createMenuPropTypes, defaultProps as createMenuDefaultProps} from './popoverMenuPropTypes';
+import refPropTypes from '../refPropTypes';
 import Text from '../Text';
 import CONST from '../../CONST';
 import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
@@ -24,7 +25,7 @@ const propTypes = {
     }).isRequired,
 
     /** Ref of the anchor */
-    anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    anchorRef: refPropTypes,
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment: PropTypes.shape({

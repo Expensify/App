@@ -9,6 +9,7 @@ import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import Permissions from '../libs/Permissions';
 import PopoverMenu from './PopoverMenu';
+import refPropTypes from './refPropTypes';
 import paypalMeDataPropTypes from './paypalMeDataPropTypes';
 
 const propTypes = {
@@ -34,7 +35,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Popover anchor ref */
-    anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    anchorRef: refPropTypes,
 
     ...withLocalizePropTypes,
 };

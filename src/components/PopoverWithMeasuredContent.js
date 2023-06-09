@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
+import refPropTypes from './refPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
@@ -37,7 +38,7 @@ const propTypes = {
     }),
 
     /** Anchor ref for the popover */
-    anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    anchorRef: refPropTypes,
 
     ...windowDimensionsPropTypes,
     withoutOverlay: PropTypes.bool,

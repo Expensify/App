@@ -15,6 +15,7 @@ function showEmojiPicker(onModalHide = () => {}, onEmojiSelected = () => {}, emo
     if (!emojiPickerRef.current) {
         return;
     }
+
     emojiPickerRef.current.showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow);
 }
 
