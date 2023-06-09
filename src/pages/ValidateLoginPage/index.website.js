@@ -10,7 +10,6 @@ import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -44,8 +43,6 @@ const propTypes = {
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -123,12 +120,9 @@ function ValidateLoginPage(props) {
 ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-        betas: {key: ONYXKEYS.BETAS},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        session: {key: ONYXKEYS.SESSION},
-    }),
-)(ValidateLoginPage);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+    betas: {key: ONYXKEYS.BETAS},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    session: {key: ONYXKEYS.SESSION},
+})(ValidateLoginPage);
