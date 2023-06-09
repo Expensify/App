@@ -829,6 +829,7 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
+    DESKTOP_HEADER_PADDING: 12,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
