@@ -18,10 +18,12 @@ import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
+import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
+import textUnderline from './utilities/textUnderline';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -162,6 +164,7 @@ const styles = {
     ...cursor,
     ...userSelect,
     ...themeColors,
+    ...textUnderline,
 
     rateCol: {
         margin: 0,
@@ -273,14 +276,6 @@ const styles = {
 
     textUnderline: {
         textDecorationLine: 'underline',
-    },
-
-    textUnderlinePositionUnder: {
-        textUnderlinePosition: 'under',
-    },
-
-    textDecorationSkipInkNone: {
-        textDecorationSkipInk: 'none',
     },
 
     label: {
@@ -768,7 +763,7 @@ const styles = {
     },
 
     headerGap: {
-        height: 12,
+        height: CONST.DESKTOP_HEADER_PADDING,
     },
 
     pushTextRight: {
@@ -1272,7 +1267,7 @@ const styles = {
 
     createMenuPositionProfile: (windowWidth) => ({
         horizontal: windowWidth - 355,
-        vertical: 250,
+        ...getPopOverVerticalOffset(162),
     }),
 
     createMenuPositionReportActionCompose: (windowHeight) => ({
@@ -1730,13 +1725,6 @@ const styles = {
         padding: 6,
         margin: 3,
         borderRadius: variables.componentBorderRadiusRounded,
-        backgroundColor: themeColors.transparent,
-    },
-
-    taskSelectorLink: {
-        alignSelf: 'center',
-        width: '100%',
-        padding: 6,
         backgroundColor: themeColors.transparent,
     },
 
@@ -2979,12 +2967,12 @@ const styles = {
     },
 
     threeDotsPopoverOffset: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 60,
     }),
 
     threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 10,
     }),
 
