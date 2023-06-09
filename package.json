@@ -1,13 +1,13 @@
 {
   "name": "new.expensify",
-  "version": "1.3.25-8",
+  "version": "1.3.26-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "postinstall": "npx patch-package && cd desktop && npm install",
+    "postinstall": "scripts/postInstall.sh",
     "clean": "npx react-native clean-project-auto",
     "android": "scripts/set-pusher-suffix.sh && npx react-native run-android --port=8083",
     "ios": "scripts/set-pusher-suffix.sh && npx react-native run-ios --port=8082",
