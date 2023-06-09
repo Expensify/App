@@ -138,7 +138,7 @@ function ProfilePage(props) {
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
-    
+
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
