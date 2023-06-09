@@ -838,14 +838,14 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 /**
  * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
- * @param {String} accountID
+ * @param {Number} accountID
  * @returns {Object}
  */
 function getPersonalDetailsForAccountID(accountID) {
     if (!accountID) {
         return {};
     }
-    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
         return {
             accountID,
             displayName: 'Concierge',
@@ -862,7 +862,7 @@ function getPersonalDetailsForAccountID(accountID) {
 /**
  * Get the displayName for a single report participant.
  *
- * @param {String} accountID
+ * @param {Number} accountID
  * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
@@ -1215,8 +1215,8 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
  */
 function buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, total, chatReportID, currency, isSendingMoney = false) {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
-    // TODO: GET ME
-    const payerEmail = 'GET ME WITH PERSONAL DETAILS';
+    const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
+    const payerEmail = personalDetails.login;
     return {
         // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,
