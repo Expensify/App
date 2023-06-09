@@ -1727,13 +1727,6 @@ const styles = {
         backgroundColor: themeColors.transparent,
     },
 
-    taskSelectorLink: {
-        alignSelf: 'center',
-        width: '100%',
-        padding: 6,
-        backgroundColor: themeColors.transparent,
-    },
-
     chatItemAttachmentPlaceholder: {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
