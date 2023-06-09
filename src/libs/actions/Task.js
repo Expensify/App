@@ -432,13 +432,13 @@ function setShareDestinationValue(shareDestination) {
 function setAssignValueWithParentReportID(reportID) {
     const report = ReportUtils.getReport(reportID);
     const isDefault = !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    const participants = lodashGet(report, 'participants', []); 
+    const participants = lodashGet(report, 'participants', []);
     const isMultipleParticipant = lodashGet(report, 'participants', []).length > 1;
     if (!isDefault || isMultipleParticipant) {
         return;
     }
 
-    Onyx.merge(ONYXKEYS.TASK, {assignee: participants[0]})
+    Onyx.merge(ONYXKEYS.TASK, {assignee: participants[0]});
 }
 
 /**

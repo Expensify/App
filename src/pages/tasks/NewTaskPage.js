@@ -95,7 +95,6 @@ const NewTaskPage = (props) => {
         // this allows us to go ahead and set that report as the share destination
         // and disable the share destination selector
         if (props.task.parentReportID) {
-            
             TaskUtils.setShareDestinationValue(props.task.parentReportID);
         }
 
