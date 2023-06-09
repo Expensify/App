@@ -205,7 +205,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             // Create the messaging style notification builder for this notification, associating the
             // notification with the person who sent the report comment.
             NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
-                    .setGroupConversation(!roomName.isEmpty())
+                    .setGroupConversation(true)
                     .setConversationTitle(roomName);
 
             // Add all conversation messages to the notification, including the last one we just received.
