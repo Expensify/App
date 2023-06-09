@@ -8,7 +8,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import Permissions from '../../libs/Permissions';
+import usePermissions from '../../hooks/usePermissions';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -61,12 +61,12 @@ function ValidateLoginPage(props) {
     const validateCode = lodashGet(props.route.params, 'validateCode', '');
     const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
     const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
+    const {canUsePasswordlessLogins} = usePermissions();
 
     useEffect(() => {
-
         // A fresh session will not have credentials.login and user permission betas available.
         // In that case, we directly allow users to go through password less flow
-        if (login && !Permissions.canUsePasswordlessLogins(props.betas)) {
+        if (login && !canUsePasswordlessLogins) {
             User.validateLogin(accountID, validateCode);
             return;
         }
