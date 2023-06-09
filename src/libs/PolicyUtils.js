@@ -106,14 +106,13 @@ const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROL
  * @returns {Object}
  *
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
- * TODO: Clean up uses of this function to work with accountIDs instead of emails.
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
 function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails) {
     return _.chain(policyMembers)
-        .filter((member) => _.isEmpty(member.errors))
         .keys()
+        .filter((accountID) => _.isEmpty(policyMembers[accountID].errors))
         .reduce((result, accountID) => {
             const personalDetail = personalDetails[accountID];
             if (personalDetail && personalDetail.login) {
