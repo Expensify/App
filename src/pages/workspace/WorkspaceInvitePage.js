@@ -24,6 +24,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as UserUtils from '../../libs/UserUtils';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -231,7 +232,11 @@ class WorkspaceInvitePage extends React.Component {
             .uniq()
             .value();
         const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
-        const invitedEmailsToAccountIDs = _.reduce(filteredLogins, (result, login) => ({...result, [login]: policyMemberEmailsToAccountIDs[login]}), {});
+
+        const invitedEmailsToAccountIDs = _.reduce(filteredLogins, (result, login) => ({
+            ...result,
+            [login]: policyMemberEmailsToAccountIDs[login] ? policyMemberEmailsToAccountIDs[login] : UserUtils.generateAccountID(),
+        }), {});
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
     }
