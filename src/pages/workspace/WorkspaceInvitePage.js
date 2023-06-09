@@ -109,15 +109,20 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     getExcludedUsers() {
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
-        let usersToExclude = [...CONST.EXPENSIFY_EMAILS, ..._.keys(policyMemberEmailsToAccountIDs)];
-        if (!this.props.network.isOffline) {
-            usersToExclude = _.filter(
-                this.props.policyMembers,
-                (policyMember) => policyMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policyMember.errors),
-            );
-        }
-        return usersToExclude;
+        // Exclude any expensify emails or valid policy members from the invite options
+        const memberEmailsToExclude = [...CONST.EXPENSIFY_EMAILS];
+        _.each(this.props.policyMembers, (policyMember, accountID) => {
+            // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
+            if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policyMember.errors)) {
+                return;
+            }
+            const memberEmail = lodashGet(this.props.personalDetails, `[${accountID}].login`);
+            if (!memberEmail) {
+                return;
+            }
+            memberEmailsToExclude.push(memberEmail);
+        })
+        return memberEmailsToExclude;
     }
 
     /**
