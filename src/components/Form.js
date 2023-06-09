@@ -85,7 +85,7 @@ const defaultProps = {
     scrollContextEnabled: false,
     footerContent: null,
     style: [],
-    validate: () => {},
+    validate: () => ({}),
 };
 
 const Form = (props) => {
