@@ -767,6 +767,16 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 
         return [actorIcon];
     }
+    if(isTaskReport(report)){
+        const ownerEmail = lodashGet(report, 'ownerEmail', '');
+        const ownerIcon = {
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [ownerEmail, 'avatar']), ownerEmail),
+            name: ownerEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        };
+
+        return [ownerIcon];
+    }
     if (isDomainRoom(report)) {
         result.source = Expensicons.DomainRoomAvatar;
         return [result];
