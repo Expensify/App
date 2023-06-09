@@ -569,47 +569,6 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 }
 
 /**
- * Get either the policyName or domainName the chat is tied to
- * @param {Object} report
- * @returns {String}
- */
-function getChatRoomSubtitle(report) {
-    if (isThread(report)) {
-        if (!getChatType(report)) {
-            const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-            return `From ${getDisplayNameForParticipant(parentReportAction.actorEmail)}`;
-        }
-
-        let roomName = '';
-        if (isChatRoom(report)) {
-            const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-            if (parentReport) {
-                roomName = lodashGet(parentReport, 'displayName', '');
-            } else {
-                roomName = lodashGet(report, 'displayName', '');
-            }
-        }
-
-        const workspaceName = getPolicyName(report);
-        return `From ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
-    }
-    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
-        return '';
-    }
-    if (getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
-        // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
-        return report.reportName.substring(1);
-    }
-    if ((isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        return Localize.translateLocal('workspace.common.workspace');
-    }
-    if (isArchivedRoom(report)) {
-        return report.oldPolicyName || '';
-    }
-    return getPolicyName(report);
-}
-
-/**
  * Get welcome message based on room type
  * @param {Object} report
  * @returns {Object}
@@ -1035,6 +994,60 @@ function getReportName(report) {
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
     return _.map(participantsWithoutCurrentUser, (login) => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
+}
+
+/**
+ * Recursively navigates through parent to get the root reports name only for DM reports.
+ * @param {Object} report
+ * @returns {String|*}
+ */
+function getDMRootReportName(report) {
+    if (isThread(report) && !getChatType(report)) {
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        return getDMRootReportName(parentReport);
+    }
+
+    return getReportName(report);
+}
+
+/**
+ * Get either the policyName or domainName the chat is tied to
+ * @param {Object} report
+ * @returns {String}
+ */
+function getChatRoomSubtitle(report) {
+    if (isThread(report)) {
+        if (!getChatType(report)) {
+            return `From ${getDMRootReportName(report)}`;
+        }
+
+        let roomName = '';
+        if (isChatRoom(report)) {
+            const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+            if (parentReport) {
+                roomName = lodashGet(parentReport, 'displayName', '');
+            } else {
+                roomName = lodashGet(report, 'displayName', '');
+            }
+        }
+
+        const workspaceName = getPolicyName(report);
+        return `From ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+    }
+    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
+        return '';
+    }
+    if (getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
+        // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
+        return report.reportName.substring(1);
+    }
+    if ((isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
+        return Localize.translateLocal('workspace.common.workspace');
+    }
+    if (isArchivedRoom(report)) {
+        return report.oldPolicyName || '';
+    }
+    return getPolicyName(report);
 }
 
 /**
