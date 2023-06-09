@@ -11,8 +11,8 @@ Onyx.connect({
 });
 
 /**
- * @param {Object} passedPersonalDetails 
- * @param {Array} pathToDisplayName 
+ * @param {Object} passedPersonalDetails
+ * @param {Array} pathToDisplayName
  * @param {String} [defaultValue] optional default display name value
  * @returns {String}
  */
@@ -47,7 +47,4 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
     return result;
 }
 
-export {
-    getDisplayNameOrDefault,
-    getPersonalDetailsByIDs,
-};
+export {getDisplayNameOrDefault, getPersonalDetailsByIDs};

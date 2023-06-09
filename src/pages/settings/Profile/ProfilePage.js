@@ -89,7 +89,7 @@ const ProfilePage = (props) => {
             <ScrollView>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                    source={UserUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'login', ''))}
+                    source={UserUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'accountID', ''))}
                     onImageSelected={PersonalDetails.updateAvatar}
                     onImageRemoved={PersonalDetails.deleteAvatar}
                     anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}

@@ -60,6 +60,12 @@ Onyx.connect({
     },
 });
 
+let personalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (personalDetails = val),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -187,13 +193,12 @@ function hasActiveFreePolicy(policies) {
 /**
  * Remove the passed members from the policy employeeList
  *
- * @param {Array} members
  * @param {Array} accountIDs
  * @param {String} policyID
  */
-function removeMembers(members, accountIDs, policyID) {
+function removeMembers(accountIDs, policyID) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
-    // array passed will be empty, prevent the function from proceeding in that case as there is noone to remove
+    // array passed will be empty, prevent the function from proceeding in that case as there is no one to remove
     if (accountIDs.length === 0) {
         return;
     }
@@ -222,7 +227,7 @@ function removeMembers(members, accountIDs, policyID) {
     API.write(
         'DeleteMembersFromWorkspace',
         {
-            emailList: members.join(','),
+            emailList: _.map(accountIDs, (accountID) => personalDetails[accountID].login).join(','),
             policyID,
         },
         {optimisticData, successData, failureData},

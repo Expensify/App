@@ -56,7 +56,10 @@ const ReportWelcomeText = (props) => {
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
     const participantAccountIDs = lodashGet(props.report, 'participantAccountIDs', []);
     const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails), isMultipleParticipant);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+        OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails),
+        isMultipleParticipant,
+    );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs, props.betas);
     return (

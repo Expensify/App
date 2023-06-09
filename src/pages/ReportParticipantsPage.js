@@ -57,9 +57,9 @@ const getAllParticipants = (report, personalDetails) => {
     const {participantAccountIDs} = report;
 
     return _.chain(participantAccountIDs)
-        .map((accountID) => {
-            const userLogin = Str.removeSMSDomain(personalDetails.login) || 'Hidden';
+        .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || 'Hidden', avatar: ''});
+            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || 'Hidden';
 
             return {
                 alternateText: userLogin,
@@ -72,7 +72,7 @@ const getAllParticipants = (report, personalDetails) => {
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                keyForList: accountID,
+                keyForList: `${index}-${userLogin}`,
                 login: userLogin,
                 text: userPersonalDetail.displayName,
                 tooltipText: userLogin,

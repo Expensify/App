@@ -42,7 +42,14 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
     const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
+        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
+            taskReportID,
+            title,
+            assignee,
+            assigneeAccountID,
+            `Assigned a task to you: ${title}`,
+            parentReportID,
+        );
     }
 
     // Create the CreatedReportAction on the task
@@ -306,7 +313,13 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, title, descript
     if (assigneeAccountID && assigneeAccountID !== report.managerID) {
         assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID]).reportID;
         if (assigneeChatReportID !== report.parentReportID.toString()) {
-            optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, reportName, assignee, assigneeAccountID, `Assigned a task to you: ${reportName}`);
+            optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
+                report.reportID,
+                reportName,
+                assignee,
+                assigneeAccountID,
+                `Assigned a task to you: ${reportName}`,
+            );
         }
     }
 
@@ -461,7 +474,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             setShareDestinationValue(reportID);
         }
 
-        Report.openReport(reportID, [assignee], newChat);
+        Report.openReport(reportID, [assignee], [assigneeAccountID], newChat);
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally

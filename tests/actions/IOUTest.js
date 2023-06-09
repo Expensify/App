@@ -892,9 +892,14 @@ describe('actions/IOU', () => {
                     fetch.pause();
                     IOU.splitBill(
                         // TODO: Migrate after the backend accepts accountIDs
-                        _.map([
-                            [CARLOS_EMAIL, CARLOS_ACCOUNT_ID], [JULES_EMAIL, JULES_ACCOUNT_ID], [VIT_EMAIL, VIT_ACCOUNT_ID]
-                        ], ([email, accountID]) => ({login: email, accountID})),
+                        _.map(
+                            [
+                                [CARLOS_EMAIL, CARLOS_ACCOUNT_ID],
+                                [JULES_EMAIL, JULES_ACCOUNT_ID],
+                                [VIT_EMAIL, VIT_ACCOUNT_ID],
+                            ],
+                            ([email, accountID]) => ({login: email, accountID}),
+                        ),
                         RORY_EMAIL,
                         RORY_ACCOUNT_ID,
                         amount,

@@ -713,7 +713,7 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
-        participantDetails.push([accountID, lodashGet(personalDetails, [accountID, 'firstName'], ''), avatarSource]);
+        participantDetails.push([lodashGet(personalDetails, [accountID, 'login'], ''), lodashGet(personalDetails, [accountID, 'firstName'], ''), avatarSource]);
     }
 
     // Sort all logins by first name (which is the second element in the array)
@@ -838,7 +838,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 /**
  * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
- * @param {String} accountID
+ * @param {Number} accountID
  * @returns {Object}
  */
 function getPersonalDetailsForAccountID(accountID) {
@@ -862,7 +862,7 @@ function getPersonalDetailsForAccountID(accountID) {
 /**
  * Get the displayName for a single report participant.
  *
- * @param {String} accountID
+ * @param {Number} accountID
  * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
@@ -886,10 +886,10 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
+        const personalDetails = getPersonalDetailsForAccountID(participant.accountID);
         const displayName = getDisplayNameForParticipant(participant.accountID, isMultipleParticipantReport);
-        
-        // TODO: Maybe get login from personal details via participant accountID?
-        const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
+
+        const tooltip = personalDetails.login ? Str.removeSMSDomain(personalDetails.login) : '';
 
         let pronouns = participant.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -1215,8 +1215,8 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
  */
 function buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, total, chatReportID, currency, isSendingMoney = false) {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
-    // TODO: GET ME
-    const payerEmail = 'GET ME WITH PERSONAL DETAILS';
+    const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
+    const payerEmail = personalDetails.login;
     return {
         // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,
@@ -1663,14 +1663,32 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
 
-    const adminsChatData = buildOptimisticChatReport([currentUserAccountID], CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, null, 0, false, policyName);
+    const adminsChatData = buildOptimisticChatReport(
+        [currentUserAccountID],
+        CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        policyID,
+        null,
+        0,
+        false,
+        policyName,
+    );
     const adminsChatReportID = adminsChatData.reportID;
     const adminsCreatedAction = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
     const adminsReportActionData = {
         [adminsCreatedAction.reportActionID]: adminsCreatedAction,
     };
 
-    const expenseChatData = buildOptimisticChatReport([currentUserAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserEmail, currentUserAccountID, true, policyName);
+    const expenseChatData = buildOptimisticChatReport(
+        [currentUserAccountID],
+        '',
+        CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        currentUserEmail,
+        currentUserAccountID,
+        true,
+        policyName,
+    );
     const expenseChatReportID = expenseChatData.reportID;
     const expenseReportCreatedAction = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
     const expenseReportActionData = {
@@ -2058,7 +2076,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     }
 
     const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
-    
+
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
