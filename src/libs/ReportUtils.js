@@ -746,7 +746,6 @@ function getIconsForParticipants(participants, personalDetails) {
     return avatars;
 }
 
-
 /**
  * Given a policy name, return the associated workspace icon.
  *
@@ -799,7 +798,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             type: CONST.ICON_TYPE_AVATAR,
         };
 
-        if(isWorkspaceThread(report)){
+        if (isWorkspaceThread(report)) {
             const workspaceIcon = getWorkspaceIcon(report);
             return [actorIcon, workspaceIcon];
         }
