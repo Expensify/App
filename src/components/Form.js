@@ -27,7 +27,7 @@ const propTypes = {
     isSubmitButtonVisible: PropTypes.bool,
 
     /** Callback to validate the form */
-    validate: PropTypes.func.isRequired,
+    validate: PropTypes.func,
 
     /** Callback to submit the form */
     onSubmit: PropTypes.func.isRequired,
@@ -85,6 +85,7 @@ const defaultProps = {
     scrollContextEnabled: false,
     footerContent: null,
     style: [],
+    validate: () => {},
 };
 
 const Form = (props) => {
