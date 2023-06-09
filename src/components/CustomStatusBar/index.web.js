@@ -1,5 +1,5 @@
 import React from 'react';
-import {StatusBar} from 'react-native';
+import StatusBar from '../../libs/StatusBar';
 import themeColors from '../../styles/themes/default';
 
 export default class CustomStatusBar extends React.Component {
