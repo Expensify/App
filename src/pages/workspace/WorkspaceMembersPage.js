@@ -353,7 +353,7 @@ class WorkspaceMembersPage extends React.Component {
                                 participantsList: [item],
                                 icons: [
                                     {
-                                        source: UserUtils.getAvatar(item.avatar, item.login),
+                                        source: UserUtils.getAvatar(item.avatar, item.accountID),
                                         name: item.login,
                                         type: CONST.ICON_TYPE_AVATAR,
                                     },
