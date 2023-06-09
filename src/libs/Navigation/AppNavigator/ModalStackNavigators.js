@@ -118,6 +118,16 @@ const DetailsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const ProfileModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
+        },
+        name: 'Profile_Root',
+    },
+]);
+
 const ReportDetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -210,8 +220,8 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const DetailsPage = require('../../../pages/DetailsPage').default;
-            return DetailsPage;
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
         },
         name: 'ReportParticipants_Details',
     },
@@ -710,6 +720,7 @@ export {
     MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
+    ProfileModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,

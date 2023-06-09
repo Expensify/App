@@ -41,7 +41,7 @@ const defaultProps = {
     },
 };
 
-const MoneyRequestParticipantsPage = (props) => {
+function MoneyRequestParticipantsPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
@@ -91,7 +91,7 @@ const MoneyRequestParticipantsPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;
