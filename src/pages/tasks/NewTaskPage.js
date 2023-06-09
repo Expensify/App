@@ -85,10 +85,17 @@ const NewTaskPage = (props) => {
             setAssignee(displayDetails);
         }
 
+        // If we don't have an assignee and we are creating a task from a report
+        // this allows us to auto assign for a participant of the report
+        if (!props.task.assignee && props.task.parentReportID) {
+            TaskUtils.setAssignValueWithParentReportID(props.task.parentReportID);
+        }
+
         // We only set the parentReportID if we are creating a task from a report
         // this allows us to go ahead and set that report as the share destination
         // and disable the share destination selector
         if (props.task.parentReportID) {
+            
             TaskUtils.setShareDestinationValue(props.task.parentReportID);
         }
 
