@@ -80,7 +80,7 @@ function process() {
  * Non-cancellable requests like Log would not be cleared
  */
 function clear() {
-    networkRequestQueue = [];
+    _.filter(networkRequestQueue, (request) => !request.command === 'Log');
 }
 
 /**
