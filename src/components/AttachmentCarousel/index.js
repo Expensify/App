@@ -152,8 +152,7 @@ class AttachmentCarousel extends React.Component {
      * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
      */
     createInitialState() {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
-        const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
+        const actions = [ReportActionsUtils.getParentReportAction(this.props.report), ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
         const attachments = [];
 
         const htmlParser = new HtmlParser({
