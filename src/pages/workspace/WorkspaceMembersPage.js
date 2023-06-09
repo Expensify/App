@@ -345,8 +345,9 @@ class WorkspaceMembersPage extends React.Component {
                     />
                     <View style={styles.flex1}>
                         <OptionRow
-                            isDisabled
                             boldStyle
+                            isSelected={isChecked}
+                            onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                             option={{
                                 text: this.props.formatPhoneNumber(item.displayName),
                                 alternateText: this.props.formatPhoneNumber(item.login),
