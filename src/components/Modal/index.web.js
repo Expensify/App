@@ -34,6 +34,7 @@ const Modal = (props) => {
             {...props}
             onModalHide={hideModal}
             onModalShow={showModal}
+            avoidKeyboard={false}
         >
             {props.children}
         </BaseModal>
