@@ -20,6 +20,7 @@ import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -121,8 +122,8 @@ const MoneyRequestAction = (props) => {
                 props.requestReportID,
             );
 
-            // TODO: add optimistic accounts
-            Report.openReport(thread.reportID, [], thread.participantAccountIDs, [], thread, props.action.reportActionID);
+            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
+            Report.openReport(thread.reportID, userLogins, thread, props.action.reportActionID);
             Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
         } else {
             Report.openReport(childReportID);

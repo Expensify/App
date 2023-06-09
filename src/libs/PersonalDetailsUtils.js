@@ -47,4 +47,36 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
     return result;
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs};
+/**
+ * Given a list of logins, find the associated personal detail and return related accountIDs.
+ *
+ * @param {Array<string>} logins Array of user logins
+ * @returns {Array} - Array of accountIDs according to passed logins
+ */
+function getAccountIDsByLogins(logins) {
+    return _.reduce(logins, (foundAccountIDs, login) => {
+        const detail = _.find(personalDetails, (detail) => detail.login === login);
+        if (detail.accountID) {
+            foundAccountIDs.push(detail.accountID);
+        }
+        return foundAccountIDs;
+    }, []);
+}
+
+/**
+ * Given a list of accountIDs, find the associated personal detail and return related logins.
+ *
+ * @param {Array<number>} accountIDs Array of user accountIDs
+ * @returns {Array} - Array of logins according to passed accountIDs
+ */
+function getLoginsByAccountIDs(accountIDs) {
+    return _.reduce(accountIDs, (foundLogins, accountID) => {
+        const detail = _.find(personalDetails, (detail) => detail.accountID === accountID);
+        if (detail.login) {
+            foundLogins.push(detail.login);
+        }
+        return foundLogins;
+    }, []);
+}
+
+export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs};

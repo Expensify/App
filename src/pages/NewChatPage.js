@@ -194,11 +194,7 @@ class NewChatPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        if (option.isOptimisticAccount) {
-            Report.navigateToAndOpenReport([], [{accountID: option.accountID, login: option.login}]);
-        } else {
-            Report.navigateToAndOpenReport([option.accountID]);
-        }
+        Report.navigateToAndOpenReport([option.login]);
     }
 
     /**
@@ -209,25 +205,11 @@ class NewChatPage extends Component {
         if (!this.props.isGroupChat) {
             return;
         }
-
-        // Separate which accounts already existed vs which we are messaging for the first time. The accounts we're messaging
-        // for the first time have optimistic accountIDs so in the backend we'll look them up / create them & send updated accountIDs back.
-        const categorizedOptions = _.reduce(
-            this.state.selectedOptions,
-            (categorizedOptions, option) => {
-                if (option.isOptimisticAccount) {
-                    categorizedOptions.optimisticAccounts.push({accountID: option.accountID, login: option.login});
-                } else {
-                    categorizedOptions.existingAccountIDs.push(option.accountID);
-                }
-                return categorizedOptions;
-            },
-            {existingAccountIDs: [], optimisticAccounts: []},
-        );
-        if (categorizedOptions.existingAccountIDs.length < 1 && categorizedOptions.optimisticAccounts.length < 1) {
+        const logins = _.pluck(this.state.selectedOptions, 'login');
+        if (userAccountIDs.length < 1) {
             return;
         }
-        Report.navigateToAndOpenReport(categorizedOptions.existingAccountIDs, categorizedOptions.optimisticAccounts);
+        Report.navigateToAndOpenReport(logins);
     }
 
     render() {

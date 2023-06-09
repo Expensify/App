@@ -474,8 +474,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             setShareDestinationValue(reportID);
         }
 
-        // TODO: add optimistic accounts
-        Report.openReport(reportID, [assignee], [assigneeAccountID], [], newChat);
+        Report.openReport(reportID, [assignee], newChat);
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally

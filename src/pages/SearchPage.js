@@ -160,11 +160,7 @@ class SearchPage extends Component {
                 },
             );
         } else {
-            if (option.isOptimisticAccount) {
-                Report.navigateToAndOpenReport([], [{accountID: option.accountID, login: option.login}]);
-            } else {
-                Report.navigateToAndOpenReport([option.accountID]);
-            }
+            Report.navigateToAndOpenReport([option.login]);
         }
     }
 
