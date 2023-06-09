@@ -33,7 +33,6 @@ const propTypes = {
 
 const defaultProps = {
     route: validateLinkDefaultProps,
-    betas: [],
     session: {
         authToken: null,
     },
