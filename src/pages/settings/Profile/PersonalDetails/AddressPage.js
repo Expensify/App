@@ -1,26 +1,26 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
 import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
-import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import compose from '../../../../libs/compose';
 import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -52,175 +52,157 @@ const defaultProps = {
     },
 };
 
-class AddressPage extends Component {
-    constructor(props) {
-        super(props);
+/**
+ * Submit form to update user's first and last legal name
+ * @param {Object} values - form input values
+ */
+function updateAddress(values) {
+    PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim(), values.country);
+}
 
-        this.validate = this.validate.bind(this);
-        this.updateAddress = this.updateAddress.bind(this);
-        this.onCountryUpdate = this.onCountryUpdate.bind(this);
+function AddressPage(props) {
+    const {translate} = props;
+    const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(props.privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
+    const isUSAForm = countryISO === CONST.COUNTRY.US;
 
-        const currentCountry = lodashGet(this.props.privatePersonalDetails, 'address.country') || '';
-        const currentCountryISO = PersonalDetails.getCountryISO(currentCountry) || CONST.COUNTRY.US;
-        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountryISO, 'samples'], '');
-        this.state = {
-            isUsaForm: currentCountry === CONST.COUNTRY.US || currentCountry === CONST.USA_COUNTRY_NAME,
-            zipFormat: this.props.translate('common.zipCodeExampleFormat', {zipSampleFormat}),
-        };
-    }
+    const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [countryISO, 'samples'], '');
+    const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
-    /**
-     * @param {String} newCountry - new country selected in form
-     */
-    onCountryUpdate(newCountry) {
-        const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, `${newCountry}.samples`, '');
-        this.setState({
-            isUsaForm: newCountry === CONST.COUNTRY.US,
-            zipFormat: this.props.translate('common.zipCodeExampleFormat', {zipSampleFormat}),
-        });
-    }
+    const address = lodashGet(props.privatePersonalDetails, 'address') || {};
+    const [street1, street2] = (address.street || '').split('\n');
 
     /**
-     * Submit form to update user's first and last legal name
-     * @param {Object} values - form input values
-     */
-    updateAddress(values) {
-        PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim(), values.country);
-    }
-
-    /**
+     * @param {Function} translate - translate function
+     * @param {Boolean} isUSAForm - selected country ISO code is US
      * @param {Object} values - form input values
      * @returns {Object} - An object containing the errors for each inputID
      */
-    validate(values) {
-        const errors = {};
+    const validate = useCallback(
+        (values) => {
+            const errors = {};
 
-        const requiredFields = ['addressLine1', 'city', 'country', 'state'];
+            const requiredFields = ['addressLine1', 'city', 'country', 'state'];
 
-        // Check "State" dropdown is a valid state if selected Country is USA.
-        if (this.state.isUsaForm && !COMMON_CONST.STATES[values.state]) {
-            errors.state = this.props.translate('common.error.fieldRequired');
-        }
-
-        // Add "Field required" errors if any required field is empty
-        _.each(requiredFields, (fieldKey) => {
-            if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
-                return;
+            // Check "State" dropdown is a valid state if selected Country is USA.
+            if (isUSAForm && !COMMON_CONST.STATES[values.state]) {
+                errors.state = translate('common.error.fieldRequired');
             }
-            errors[fieldKey] = this.props.translate('common.error.fieldRequired');
-        });
 
-        // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-        const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
-
-        // The postal code system might not exist for a country, so no regex either for them.
-        const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
-        const zipFormat = lodashGet(countryRegexDetails, 'samples');
-
-        if (countrySpecificZipRegex) {
-            if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
-                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
-                    errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat});
-                } else {
-                    errors.zipPostCode = this.props.translate('common.error.fieldRequired');
+            // Add "Field required" errors if any required field is empty
+            _.each(requiredFields, (fieldKey) => {
+                if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
+                    return;
                 }
+                errors[fieldKey] = translate('common.error.fieldRequired');
+            });
+
+            // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
+            const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
+
+            // The postal code system might not exist for a country, so no regex either for them.
+            const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
+            const countryZipFormat = lodashGet(countryRegexDetails, 'samples');
+
+            if (countrySpecificZipRegex) {
+                if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
+                    if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
+                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
+                    } else {
+                        errors.zipPostCode = translate('common.error.fieldRequired');
+                    }
+                }
+            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
+                errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
-        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
-            errors.zipPostCode = this.props.translate('privatePersonalDetails.error.incorrectZipFormat');
-        }
 
-        return errors;
-    }
+            return errors;
+        },
+        [translate, isUSAForm],
+    );
 
-    render() {
-        const address = lodashGet(this.props.privatePersonalDetails, 'address') || {};
-        const [street1, street2] = (address.street || '').split('\n');
-
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
-                    title={this.props.translate('privatePersonalDetails.homeAddress')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
-                />
-                <Form
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
-                    validate={this.validate}
-                    onSubmit={this.updateAddress}
-                    submitButtonText={this.props.translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <View style={styles.mb4}>
-                        <AddressSearch
-                            inputID="addressLine1"
-                            label={this.props.translate('common.addressLine', {lineNumber: 1})}
-                            defaultValue={street1 || ''}
-                            isLimitedToUSA={false}
-                            renamedInputKeys={{
-                                street: 'addressLine1',
-                                street2: 'addressLine2',
-                                city: 'city',
-                                state: 'state',
-                                zipCode: 'zipPostCode',
-                                country: 'country',
-                            }}
-                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <HeaderWithBackButton
+                title={props.translate('privatePersonalDetails.homeAddress')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
+            />
+            <Form
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
+                validate={validate}
+                onSubmit={updateAddress}
+                submitButtonText={props.translate('common.save')}
+                enabledWhenOffline
+            >
+                <View style={styles.mb4}>
+                    <AddressSearch
+                        inputID="addressLine1"
+                        label={props.translate('common.addressLine', {lineNumber: 1})}
+                        defaultValue={street1 || ''}
+                        isLimitedToUSA={false}
+                        renamedInputKeys={{
+                            street: 'addressLine1',
+                            street2: 'addressLine2',
+                            city: 'city',
+                            state: 'state',
+                            zipCode: 'zipPostCode',
+                            country: 'country',
+                        }}
+                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                    />
+                </View>
+                <View style={styles.mb4}>
+                    <TextInput
+                        inputID="addressLine2"
+                        label={props.translate('common.addressLine', {lineNumber: 2})}
+                        defaultValue={street2 || ''}
+                        maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    />
+                </View>
+                <View style={styles.mb4}>
+                    <TextInput
+                        inputID="city"
+                        label={props.translate('common.city')}
+                        defaultValue={address.city || ''}
+                        maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    />
+                </View>
+                <View style={styles.mb4}>
+                    {isUSAForm ? (
+                        <StatePicker
+                            inputID="state"
+                            defaultValue={address.state || ''}
                         />
-                    </View>
-                    <View style={styles.mb4}>
+                    ) : (
                         <TextInput
-                            inputID="addressLine2"
-                            label={this.props.translate('common.addressLine', {lineNumber: 2})}
-                            defaultValue={street2 || ''}
+                            inputID="state"
+                            label={props.translate('common.stateOrProvince')}
+                            defaultValue={address.state || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
-                    </View>
-                    <View style={styles.mb4}>
-                        <TextInput
-                            inputID="city"
-                            label={this.props.translate('common.city')}
-                            defaultValue={address.city || ''}
-                            maxLength={CONST.FORM_CHARACTER_LIMIT}
-                        />
-                    </View>
-                    <View style={styles.mb4}>
-                        {this.state.isUsaForm ? (
-                            <StatePicker
-                                inputID="state"
-                                defaultValue={address.state || ''}
-                            />
-                        ) : (
-                            <TextInput
-                                inputID="state"
-                                label={this.props.translate('common.stateOrProvince')}
-                                defaultValue={address.state || ''}
-                                maxLength={CONST.FORM_CHARACTER_LIMIT}
-                            />
-                        )}
-                    </View>
-                    <View style={styles.mb4}>
-                        <TextInput
-                            inputID="zipPostCode"
-                            label={this.props.translate('common.zipPostCode')}
-                            autoCapitalize="characters"
-                            defaultValue={address.zip || ''}
-                            maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                            hint={this.state.zipFormat}
-                        />
-                    </View>
-                    <View>
-                        <CountryPicker
-                            inputID="country"
-                            onValueChange={this.onCountryUpdate}
-                            defaultValue={PersonalDetails.getCountryISO(address.country)}
-                        />
-                    </View>
-                </Form>
-            </ScreenWrapper>
-        );
-    }
+                    )}
+                </View>
+                <View style={styles.mb4}>
+                    <TextInput
+                        inputID="zipPostCode"
+                        label={props.translate('common.zipPostCode')}
+                        autoCapitalize="characters"
+                        defaultValue={address.zip || ''}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                        hint={zipFormat}
+                    />
+                </View>
+                <View>
+                    <CountryPicker
+                        inputID="country"
+                        onValueChange={setCountryISO}
+                        defaultValue={PersonalDetails.getCountryISO(address.country)}
+                    />
+                </View>
+            </Form>
+        </ScreenWrapper>
+    );
 }
 
 AddressPage.propTypes = propTypes;

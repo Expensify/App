@@ -5,6 +5,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportActionPropTypes from './reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
@@ -35,6 +36,7 @@ const ReportActionItemMessage = (props) => (
                     key={`actionFragment-${props.action.reportActionID}-${index}`}
                     fragment={fragment}
                     isAttachment={props.action.isAttachment}
+                    hasCommentThread={ReportActionsUtils.hasCommentThread(props.action)}
                     attachmentInfo={props.action.attachmentInfo}
                     pendingAction={props.action.pendingAction}
                     source={lodashGet(props.action, 'originalMessage.source')}

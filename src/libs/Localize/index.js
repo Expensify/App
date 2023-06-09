@@ -94,14 +94,16 @@ function translateLocal(phrase, variables) {
 /**
  * Return translated string for given error.
  *
- * @param {String} phrase
+ * @param {String|Array} message
  * @returns {String}
  */
-function translateIfPhraseKey(phrase) {
+function translateIfPhraseKey(message) {
     try {
-        return translateLocal(phrase);
+        // check if error message has a variable parameter
+        const [phrase, variables] = _.isArray(message) ? message : [message];
+        return translateLocal(phrase, variables);
     } catch (error) {
-        return phrase;
+        return message;
     }
 }
 
