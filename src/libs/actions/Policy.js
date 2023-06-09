@@ -60,6 +60,12 @@ Onyx.connect({
     },
 });
 
+let personalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (personalDetails = val),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -187,14 +193,13 @@ function hasActiveFreePolicy(policies) {
 /**
  * Remove the passed members from the policy employeeList
  *
- * @param {Array} members
  * @param {Array} accountIDs
  * @param {String} policyID
  */
-function removeMembers(members, accountIDs, policyID) {
+function removeMembers(accountIDs, policyID) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
-    // array passed will be empty, prevent the function from proceeding in that case as there is noone to remove
-    if (members.length === 0) {
+    // array passed will be empty, prevent the function from proceeding in that case as there is no one to remove
+    if (accountIDs.length === 0) {
         return;
     }
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
@@ -202,27 +207,27 @@ function removeMembers(members, accountIDs, policyID) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(accountIDs, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
+            value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
         },
     ];
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(accountIDs, Array(members.length).fill(null)),
+            value: _.object(accountIDs, Array(accountIDs.length).fill(null)),
         },
     ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(accountIDs, Array(members.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
+            value: _.object(accountIDs, Array(accountIDs.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
     ];
     API.write(
         'DeleteMembersFromWorkspace',
         {
-            emailList: members.join(','),
+            emailList: _.map(accountIDs, (accountID) => personalDetails[accountID].login).join(','),
             policyID,
         },
         {optimisticData, successData, failureData},

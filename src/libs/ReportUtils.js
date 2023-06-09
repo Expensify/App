@@ -838,7 +838,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 /**
  * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then a default object is constructed.
- * @param {String} accountID
+ * @param {Number} accountID
  * @returns {Object}
  */
 function getPersonalDetailsForAccountID(accountID) {
@@ -862,7 +862,7 @@ function getPersonalDetailsForAccountID(accountID) {
 /**
  * Get the displayName for a single report participant.
  *
- * @param {String} accountID
+ * @param {Number} accountID
  * @param {Boolean} [shouldUseShortForm]
  * @returns {String}
  */
@@ -886,10 +886,10 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
+        const personalDetails = getPersonalDetailsForAccountID(participant.accountID);
         const displayName = getDisplayNameForParticipant(participant.accountID, isMultipleParticipantReport);
 
-        // TODO: Maybe get login from personal details via participant accountID?
-        const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
+        const tooltip = personalDetails.login ? Str.removeSMSDomain(personalDetails.login) : '';
 
         let pronouns = participant.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -1215,8 +1215,8 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
  */
 function buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, total, chatReportID, currency, isSendingMoney = false) {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
-    // TODO: GET ME
-    const payerEmail = 'GET ME WITH PERSONAL DETAILS';
+    const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
+    const payerEmail = personalDetails.login;
     return {
         // If we're sending money, hasOutstandingIOU should be false
         hasOutstandingIOU: !isSendingMoney,
