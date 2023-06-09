@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -67,11 +67,9 @@ const RoomNamePage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={translate('newRoomPage.roomName')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID))}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}

@@ -56,10 +56,6 @@ const defaultProps = {
 const OptionRowLHN = (props) => {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
-    React.useEffect(() => {
-        ReportActionContextMenu.hideContextMenu(false);
-    }, [optionItem.isPinned]);
-
     if (!optionItem) {
         return null;
     }
@@ -87,9 +83,6 @@ const OptionRowLHN = (props) => {
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
-
-    // If the item is a thread within a workspace, we will show the subtitle as the second line instead of in a pill
-    const alternativeText = optionItem.isThread && optionItem.subtitle ? optionItem.subtitle : optionItem.alternateText;
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -193,13 +186,13 @@ const OptionRowLHN = (props) => {
                                             />
                                         )}
                                     </View>
-                                    {alternativeText ? (
+                                    {optionItem.alternateText ? (
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
                                             accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {alternativeText}
+                                            {optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>
