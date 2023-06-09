@@ -22,8 +22,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -53,6 +51,7 @@ import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
+import * as IOU from '../../../libs/actions/IOU';
 
 const propTypes = {
     /** Beta features list */
@@ -388,7 +387,7 @@ class ReportActionCompose extends React.Component {
         };
         return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), (option) => ({
             ...options[option],
-            onSelected: () => Navigation.navigate(ROUTES.getMoneyRequestRoute(option, this.props.reportID)),
+            onSelected: () => IOU.startMoneyRequest(option, this.props.report.reportID),
         }));
     }
 

@@ -3,6 +3,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
+import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import Navigation from '../Navigation/Navigation';
 import * as Localize from '../Localize';
@@ -43,6 +44,34 @@ Onyx.connect({
         transactions = val;
     },
 });
+
+let userEmail = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        userEmail = lodashGet(val, 'email', '');
+    },
+});
+
+let currentUserPersonalDetails = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS,
+    callback: (val) => {
+        currentUserPersonalDetails = lodashGet(val, userEmail, {});
+    },
+});
+
+/**
+ * Reset money request info from the store with its initial value
+ */
+function resetMoneyRequestInfo() {
+    Onyx.merge(ONYXKEYS.IOU, {
+        amount: 0,
+        currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
+        comment: '',
+        participants: [],
+    });
+}
 
 function buildOnyxDataForMoneyRequest(
     chatReport,
@@ -364,6 +393,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         },
         {optimisticData, successData, failureData},
     );
+    resetMoneyRequestInfo();
     Navigation.dismissModal(chatReport.reportID);
 }
 
@@ -642,6 +672,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
         onyxData,
     );
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal();
 }
 
@@ -670,6 +701,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
         onyxData,
     );
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal(groupData.chatReportID);
 }
 
@@ -1092,6 +1124,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
 
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
 }
 
@@ -1108,6 +1141,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerEmail, re
 
     API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
 }
 
@@ -1124,6 +1158,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
 
     API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
 
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
@@ -1151,6 +1186,16 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
     }
+}
+
+/**
+ * Initialize money request info and navigates to the MoneyRequest page
+ * @param {String} iouType
+ * @param {String} reportID
+ */
+function startMoneyRequest(iouType, reportID) {
+    resetMoneyRequestInfo();
+    Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
 }
 
 /**
@@ -1190,6 +1235,8 @@ export {
     sendMoneyViaPaypal,
     payMoneyRequest,
     sendMoneyWithWallet,
+    startMoneyRequest,
+    resetMoneyRequestInfo,
     setMoneyRequestAmount,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,

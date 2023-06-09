@@ -20,7 +20,6 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import withNavigation from '../../../components/withNavigation';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
@@ -51,7 +50,6 @@ const propTypes = {
         ),
     }),
 
-    ...withCurrentUserPersonalDetailsPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -68,7 +66,6 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 class MoneyRequestAmountPage extends React.Component {
     constructor(props) {
@@ -89,12 +86,10 @@ class MoneyRequestAmountPage extends React.Component {
         this.reportID = lodashGet(props.route, 'params.reportID', '');
         this.isEditing = lodashGet(props.route, 'path', '').includes('amount');
 
-        const amount = this.isEditing ? props.iou.amount : 0;
-        const currency = this.isEditing ? props.iou.currency : lodashGet(props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD);
-        const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
+        const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
         this.state = {
             amount: selectedAmountAsString,
-            selectedCurrencyCode: currency,
+            selectedCurrencyCode: props.iou.currency,
             shouldUpdateSelection: true,
             selection: {
                 start: selectedAmountAsString.length,
@@ -109,15 +104,6 @@ class MoneyRequestAmountPage extends React.Component {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
                 return;
             }
-        } else {
-            // Initialize money request data
-            IOU.setMoneyRequestAmount(0);
-            IOU.setMoneyRequestCurrency(lodashGet(this.props.currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD));
-            IOU.setMoneyRequestDescription('');
-            const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
-                ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
-                : _.map(this.props.report.participants, (participant) => ({login: participant, selected: true}));
-            IOU.setMoneyRequestParticipants(participants);
         }
 
         this.focusTextInput();
@@ -152,6 +138,9 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentWillUnmount() {
+        if (!this.unsubscribeNavFocus) {
+            return;
+        }
         this.unsubscribeNavFocus();
     }
 
@@ -397,7 +386,11 @@ class MoneyRequestAmountPage extends React.Component {
         }
 
         // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-        if (this.reportID) {
+        if (this.props.report.reportID) {
+            const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
+                ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
+                : _.map(this.props.report.participants, (participant) => ({login: participant, selected: true}));
+            IOU.setMoneyRequestParticipants(participants);
             Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
             return;
         }
@@ -481,7 +474,6 @@ MoneyRequestAmountPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNavigation,
-    withCurrentUserPersonalDetails,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         report: {
