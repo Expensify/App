@@ -27,6 +27,9 @@ const propTypes = {
     /** Content container styles for OptionsList */
     contentContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** List container styles for OptionsList */
+    listContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationFocusPropTypes,
@@ -36,6 +39,7 @@ const defaultProps = {
     shouldDelayFocus: false,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
+    listContainerStyles: [],
     ...optionsSelectorDefaultProps,
 };
 
@@ -307,7 +311,7 @@ class BaseOptionsSelector extends Component {
             />
         );
         const optionsList = (
-            <OptionsList
+            <OptionlistContainerStylessList
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
                 onSelectRow={this.selectRow}
