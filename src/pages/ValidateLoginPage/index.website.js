@@ -60,6 +60,7 @@ function ValidateLoginPage(props) {
     const accountID = lodashGet(props.route.params, 'accountID', '');
     const validateCode = lodashGet(props.route.params, 'validateCode', '');
     const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
+    const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
 
     useEffect(() => {
 
@@ -86,7 +87,7 @@ function ValidateLoginPage(props) {
     }, []);
 
     useEffect(() => {
-        if (login || !lodashGet(props, 'credentials.accountID', null) || !lodashGet(props, 'account.requiresTwoFactorAuth', false)) {
+        if (login || !lodashGet(props, 'credentials.accountID', null) || !is2FARequired) {
             return;
         }
 
@@ -94,7 +95,6 @@ function ValidateLoginPage(props) {
         Navigation.navigate(ROUTES.REPORT);
     });
 
-    const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
     return (
         <>
             {autoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
