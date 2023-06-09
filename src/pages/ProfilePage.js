@@ -138,6 +138,7 @@ function ProfilePage(props) {
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
+    
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
@@ -224,15 +225,14 @@ function ProfilePage(props) {
                     <FullScreenLoadingIndicator style={styles.flex1} />
                 ) : (
                     <>
-                        {shouldShowBlockingView ||
-                            (!isParticipantInReport && (
-                                <BlockingView
-                                    icon={Illustrations.ToddBehindCloud}
-                                    iconWidth={variables.modalTopIconWidth}
-                                    iconHeight={variables.modalTopIconHeight}
-                                    title={props.translate('notFound.notHere')}
-                                />
-                            ))}
+                        {(shouldShowBlockingView || !isParticipantInReport) && (
+                            <BlockingView
+                                icon={Illustrations.ToddBehindCloud}
+                                iconWidth={variables.modalTopIconWidth}
+                                iconHeight={variables.modalTopIconHeight}
+                                title={props.translate('notFound.notHere')}
+                            />
+                        )}
                     </>
                 )}
             </View>
