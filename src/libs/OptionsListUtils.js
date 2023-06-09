@@ -566,6 +566,7 @@ function getOptions(
             recentReports: [],
             personalDetails: [],
             userToInvite: null,
+            currentUserOption: null,
         };
     }
 
@@ -672,8 +673,8 @@ function getOptions(
                 continue;
             }
 
-            // Check the report to see if it has a single participant and if the participant is already selected
-            if (reportOption.login && _.some(loginOptionsToExclude, (option) => option.login === reportOption.login)) {
+            // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
+            if (!includeThreads && reportOption.login && _.some(loginOptionsToExclude, (option) => option.login === reportOption.login)) {
                 continue;
             }
 
@@ -708,8 +709,13 @@ function getOptions(
         });
     }
 
+    let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
+    if (searchValue && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
+        currentUserOption = null;
+    }
+
     let userToInvite = null;
-    const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0;
+    const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
 
     if (
@@ -766,6 +772,7 @@ function getOptions(
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         userToInvite,
+        currentUserOption,
     };
 }
 

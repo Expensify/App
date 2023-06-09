@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -32,14 +32,8 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-class BigNumberPad extends React.PureComponent {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            timer: null,
-        };
-    }
+function BigNumberPad(props) {
+    const [timer, setTimer] = useState(null);
 
     /**
      * Handle long press key on number pad.
@@ -47,59 +41,59 @@ class BigNumberPad extends React.PureComponent {
      *
      * @param {String} key
      */
-    handleLongPress(key) {
-        // Only handles deleting.
+    const handleLongPress = (key) => {
         if (key !== '<') {
             return;
         }
-        this.props.longPressHandlerStateChanged(true);
-        const timer = setInterval(() => {
-            this.props.numberPressed(key);
-        }, 100);
-        this.setState({timer});
-    }
 
-    render() {
-        return (
-            <View
-                style={[styles.flexColumn, styles.w100]}
-                nativeID={this.props.nativeID}
-            >
-                {_.map(padNumbers, (row, rowIndex) => (
-                    <View
-                        key={`NumberPadRow-${rowIndex}`}
-                        style={[styles.flexRow, styles.mt3]}
-                    >
-                        {_.map(row, (column, columnIndex) => {
-                            // Adding margin between buttons except first column to
-                            // avoid unccessary space before the first column.
-                            const marginLeft = columnIndex > 0 ? styles.ml3 : {};
-                            return (
-                                <Button
-                                    key={column}
-                                    shouldEnableHapticFeedback
-                                    style={[styles.flex1, marginLeft]}
-                                    text={column === '<' ? column : this.props.toLocaleDigit(column)}
-                                    onLongPress={() => this.handleLongPress(column)}
-                                    onPress={() => this.props.numberPressed(column)}
-                                    onPressIn={ControlSelection.block}
-                                    onPressOut={() => {
-                                        clearInterval(this.state.timer);
-                                        ControlSelection.unblock();
-                                        this.props.longPressHandlerStateChanged(false);
-                                    }}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                />
-                            );
-                        })}
-                    </View>
-                ))}
-            </View>
-        );
-    }
+        props.longPressHandlerStateChanged(true);
+
+        const newTimer = setInterval(() => {
+            props.numberPressed(key);
+        }, 100);
+        setTimer(newTimer);
+    };
+
+    return (
+        <View
+            style={[styles.flexColumn, styles.w100]}
+            nativeID={props.nativeID}
+        >
+            {_.map(padNumbers, (row, rowIndex) => (
+                <View
+                    key={`NumberPadRow-${rowIndex}`}
+                    style={[styles.flexRow, styles.mt3]}
+                >
+                    {_.map(row, (column, columnIndex) => {
+                        // Adding margin between buttons except first column to
+                        // avoid unccessary space before the first column.
+                        const marginLeft = columnIndex > 0 ? styles.ml3 : {};
+                        return (
+                            <Button
+                                key={column}
+                                shouldEnableHapticFeedback
+                                style={[styles.flex1, marginLeft]}
+                                text={column === '<' ? column : props.toLocaleDigit(column)}
+                                onLongPress={() => handleLongPress(column)}
+                                onPress={() => props.numberPressed(column)}
+                                onPressIn={ControlSelection.block}
+                                onPressOut={() => {
+                                    clearInterval(timer);
+                                    ControlSelection.unblock();
+                                    props.longPressHandlerStateChanged(false);
+                                }}
+                                onMouseDown={(e) => e.preventDefault()}
+                            />
+                        );
+                    })}
+                </View>
+            ))}
+        </View>
+    );
 }
 
 BigNumberPad.propTypes = propTypes;
 BigNumberPad.defaultProps = defaultProps;
+BigNumberPad.displayName = 'BigNumberPad';
 
 export default withLocalize(BigNumberPad);

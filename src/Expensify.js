@@ -70,6 +70,9 @@ const propTypes = {
         roomName: PropTypes.string,
     }),
 
+    /** Whether the app is waiting for the server's response to determine if a room is public */
+    isCheckingPublicRoom: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -81,6 +84,7 @@ const defaultProps = {
     updateAvailable: false,
     isSidebarLoaded: false,
     screenShareRequest: null,
+    isCheckingPublicRoom: true,
 };
 
 function Expensify(props) {
@@ -88,9 +92,15 @@ function Expensify(props) {
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const [isSplashHidden, setIsSplashHidden] = useState(false);
+    const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
+
+    useEffect(() => {
+        if (props.isCheckingPublicRoom) return;
+        setAttemptedToOpenPublicRoom(true);
+    }, [props.isCheckingPublicRoom]);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
-    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded);
+    const shouldInit = isNavigationReady && (!isAuthenticated || props.isSidebarLoaded) && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
     const initializeClient = () => {
@@ -151,10 +161,10 @@ function Expensify(props) {
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => Report.openReportFromDeepLink(url));
+        Linking.getInitialURL().then((url) => Report.openReportFromDeepLink(url, isAuthenticated));
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url));
+        Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
 
         return () => {
             if (!appStateChangeListener.current) {
@@ -193,10 +203,12 @@ function Expensify(props) {
                 </>
             )}
 
-            <NavigationRoot
-                onReady={setNavigationReady}
-                authenticated={isAuthenticated}
-            />
+            {hasAttemptedToOpenPublicRoom && (
+                <NavigationRoot
+                    onReady={setNavigationReady}
+                    authenticated={isAuthenticated}
+                />
+            )}
 
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
@@ -208,6 +220,10 @@ Expensify.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
+        isCheckingPublicRoom: {
+            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+            initWithStoredValues: false,
+        },
         session: {
             key: ONYXKEYS.SESSION,
         },

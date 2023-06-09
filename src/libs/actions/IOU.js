@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
 import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
@@ -348,14 +347,13 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
     );
 
     // STEP 6: Make the request
-    const parsedComment = ReportUtils.getParsedComment(comment);
     API.write(
         'RequestMoney',
         {
             debtorEmail: payerEmail,
             amount,
             currency,
-            comment: parsedComment,
+            comment,
             iouReportID: iouReport.reportID,
             chatReportID: chatReport.reportID,
             transactionID: optimisticTransaction.transactionID,
@@ -366,7 +364,7 @@ function requestMoney(report, amount, currency, payeeEmail, participant, comment
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+    Navigation.dismissModal(chatReport.reportID);
 }
 
 /**
@@ -628,7 +626,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
  */
 function splitBill(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID = '') {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency, existingGroupChatReportID);
-    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write(
         'SplitBill',
@@ -637,7 +634,7 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
             amount,
             splits: JSON.stringify(splits),
             currency,
-            comment: parsedComment,
+            comment,
             transactionID: groupData.transactionID,
             reportActionID: groupData.reportActionID,
             createdReportActionID: groupData.createdReportActionID,
@@ -657,7 +654,6 @@ function splitBill(participants, currentUserLogin, amount, comment, currency, ex
  */
 function splitBillAndOpenReport(participants, currentUserLogin, amount, comment, currency) {
     const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, amount, comment, currency);
-    const parsedComment = ReportUtils.getParsedComment(comment);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -666,7 +662,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
             amount,
             splits: JSON.stringify(splits),
             currency,
-            comment: parsedComment,
+            comment,
             transactionID: groupData.transactionID,
             reportActionID: groupData.reportActionID,
             createdReportActionID: groupData.createdReportActionID,
@@ -674,7 +670,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, amount, comment,
         onyxData,
     );
 
-    Navigation.navigate(ROUTES.getReportRoute(groupData.chatReportID));
+    Navigation.dismissModal(groupData.chatReportID);
 }
 
 /**
@@ -781,7 +777,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     );
 
     if (shouldCloseOnDelete) {
-        Navigation.navigate(ROUTES.getReportRoute(iouReportID));
+        Navigation.dismissModal(iouReportID);
     }
 }
 
@@ -825,12 +821,11 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  */
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerEmail, recipient) {
     const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
-    const parsedComment = ReportUtils.getParsedComment(comment);
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,
         requestorEmail: recipientEmail,
-        comment: parsedComment,
+        comment,
         idempotencyKey: Str.guid(),
     });
 
@@ -1115,7 +1110,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerEmail, rec
 
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+    Navigation.dismissModal(params.chatReportID);
 }
 
 /**
@@ -1131,7 +1126,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerEmail, re
 
     API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+    Navigation.dismissModal(params.chatReportID);
 }
 
 /**
@@ -1147,7 +1142,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerEmail, rec
 
     API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
 
-    Navigation.navigate(ROUTES.getReportRoute(params.chatReportID));
+    Navigation.dismissModal(params.chatReportID);
 
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }
@@ -1170,7 +1165,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'PayMoneyRequestWithWallet' : 'PayMoneyRequest';
 
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.getReportRoute(chatReport.reportID));
+    Navigation.dismissModal(chatReport.reportID);
     if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
     }

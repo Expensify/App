@@ -32,7 +32,7 @@ const propTypes = {
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        /** Whether or not two factor authentication is required */
+        /** Whether or not two-factor authentication is required */
         requiresTwoFactorAuth: PropTypes.bool,
 
         /** Whether or not a sign on form is loading (being submitted) */
@@ -145,7 +145,7 @@ class BaseValidateCodeForm extends React.Component {
      * Clears local and Onyx sign in states
      */
     clearSignInData() {
-        this.setState({twoFactorAuthCode: '', formError: {}});
+        this.setState({twoFactorAuthCode: '', formError: {}, validateCode: ''});
         Session.clearSignInData();
     }
 
@@ -156,6 +156,10 @@ class BaseValidateCodeForm extends React.Component {
         const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
 
         if (requiresTwoFactorAuth) {
+            if (this.input2FA) {
+                this.input2FA.blur();
+            }
+
             if (!this.state.twoFactorAuthCode.trim()) {
                 this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
                 return;
@@ -166,6 +170,10 @@ class BaseValidateCodeForm extends React.Component {
                 return;
             }
         } else {
+            if (this.inputValidateCode) {
+                this.inputValidateCode.blur();
+            }
+
             if (!this.state.validateCode.trim()) {
                 this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
                 return;
@@ -182,7 +190,7 @@ class BaseValidateCodeForm extends React.Component {
 
         const accountID = lodashGet(this.props, 'credentials.accountID');
         if (accountID) {
-            Session.signInWithValidateCode(accountID, this.state.validateCode, this.state.twoFactorAuthCode, this.props.preferredLocale);
+            Session.signInWithValidateCode(accountID, this.state.validateCode, this.props.preferredLocale, this.state.twoFactorAuthCode);
         } else {
             Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode, this.props.preferredLocale);
         }
@@ -190,6 +198,7 @@ class BaseValidateCodeForm extends React.Component {
 
     render() {
         const hasError = Boolean(this.props.account) && !_.isEmpty(this.props.account.errors);
+        const resendButtonStyle = this.props.network.isOffline ? styles.buttonOpacityDisabled : {};
         return (
             <>
                 {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -225,9 +234,10 @@ class BaseValidateCodeForm extends React.Component {
                         />
                         <View>
                             <PressableWithFeedback
-                                style={[styles.mt2]}
+                                style={[styles.mt2, resendButtonStyle]}
                                 onPress={this.resendValidateCode}
                                 underlayColor={themeColors.componentBG}
+                                disabled={this.props.network.isOffline}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
                                 accessibilityRole="button"

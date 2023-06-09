@@ -670,7 +670,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
             value: {
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
-                        ...currentCustomUnit.customUnitID,
+                        customUnitID: currentCustomUnit.customUnitID,
                         rates: {
                             [currentCustomUnit.rates.customUnitRateID]: {
                                 ...currentCustomUnit.rates,
