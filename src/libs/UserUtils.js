@@ -97,18 +97,18 @@ function getDefaultAvatar(login = '') {
 /**
  * Helper method to return default avatar URL associated with login
  *
- * @param {String} [login]
+ * @param {String} [accountId]
  * @param {Boolean} [isNewDot]
  * @returns {String}
  */
-function getDefaultAvatarURL(login = '', isNewDot = false) {
-    if (login === CONST.EMAIL.CONCIERGE) {
+function getDefaultAvatarURL(accountId = '', isNewDot = false) {
+    if (accountId === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
     // The default avatar for a user is based on a simple hash of their login.
     // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
-    const loginHashBucket = hashLogin(login, isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
+    const loginHashBucket = hashLogin(accountId, isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT) + 1;
     const avatarPrefix = isNewDot ? `default-avatar` : `avatar`;
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${loginHashBucket}.png`;
