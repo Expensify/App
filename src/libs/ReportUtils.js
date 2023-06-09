@@ -803,11 +803,10 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             const workspaceIcon = getWorkspaceIcon(report);
             return [actorIcon, workspaceIcon];
         }
-
         return [actorIcon];
     }
     if (isDomainRoom(report)) {
-        const domainName = report.ownerEmail.replace('+@', '');
+        const domainName = Str.extractEmailDomain(report.ownerEmail);
         const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(domainName);
         const domainIcon = {
             source: policyExpenseChatAvatarSource,
