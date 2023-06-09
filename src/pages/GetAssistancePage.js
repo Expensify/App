@@ -73,6 +73,7 @@ const GetAssistancePage = (props) => {
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
+            link: guideCalendarLink,
         });
     }
 
