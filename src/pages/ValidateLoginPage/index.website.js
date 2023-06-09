@@ -59,6 +59,7 @@ function ValidateLoginPage(props) {
     const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
     const accountID = lodashGet(props.route.params, 'accountID', '');
     const validateCode = lodashGet(props.route.params, 'validateCode', '');
+    const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
 
     useEffect(() => {
 
@@ -69,7 +70,6 @@ function ValidateLoginPage(props) {
             return;
         }
 
-        const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
         if (!login && isSignedIn && autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
             // The user clicked the option to sign in the current tab
             Navigation.navigate(ROUTES.REPORT);
@@ -95,7 +95,6 @@ function ValidateLoginPage(props) {
     });
 
     const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
-    const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
     return (
         <>
             {autoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
