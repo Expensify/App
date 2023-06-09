@@ -327,11 +327,12 @@ function addComment(reportID, text) {
  * @param {String} reportID
  * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
  * @param {Array} participantAccountIDList The list of users that are included in a new chat, not including the user creating it
+ * @param {Array<Object>} optimisticAccounts
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
  */
-function openReport(reportID, participantList = [], participantAccountIDList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
+function openReport(reportID, participantList = [], participantAccountIDList = [], optimisticAccounts = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -372,6 +373,7 @@ function openReport(reportID, participantList = [], participantAccountIDList = [
     const params = {
         reportID,
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
+        optimisticAccounts: JSON.stringify(optimisticAccounts),
         emailList: participantList ? participantList.join(',') : '',
         parentReportActionID,
     };
@@ -450,8 +452,9 @@ function openReport(reportID, participantList = [], participantAccountIDList = [
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
  * @param {Array} userAccountIDs list of user accountIDs.
+ * @param {Array<Object>} optimisticAccounts list of optimistic account data (optimistic accountIDs & emails)
  */
-function navigateToAndOpenReport(userAccountIDs) {
+function navigateToAndOpenReport(userAccountIDs, optimisticAccounts) {
     let newChat = {};
     const chat = ReportUtils.getChatByParticipants(userAccountIDs);
     if (!chat) {
@@ -460,7 +463,7 @@ function navigateToAndOpenReport(userAccountIDs) {
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, [], newChat.participantAccountIDs, newChat);
+    openReport(reportID, [], newChat.participantAccountIDs, optimisticAccounts, newChat);
     Navigation.dismissModal(reportID);
 }
 
