@@ -13,7 +13,7 @@ const Popover = (props) => {
     const ref = React.useRef(null);
     const {onOpen, close} = React.useContext(PopoverContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
-        'popover_without_overlay',
+        'popover',
         {
             windowWidth: props.windowWidth,
             windowHeight: props.windowHeight,

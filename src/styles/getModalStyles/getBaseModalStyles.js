@@ -205,30 +205,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}, innerContain
             animationIn = 'fadeIn';
             animationOut = 'fadeOut';
             break;
-        case CONST.MODAL.MODAL_TYPE.POPOVER_WITHOUT_OVERLAY:
-            modalStyle = {
-                ...modalStyle,
-                ...popoverAnchorPosition,
-                ...{
-                    position: 'fixed',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                },
-            };
-            modalContainerStyle = {
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: themeColors.border,
-                justifyContent: 'center',
-                overflow: 'hidden',
-                boxShadow: variables.popoverMenuShadow,
-            };
-
-            hideBackdrop = true;
-            swipeDirection = undefined;
-            animationIn = 'fadeIn';
-            animationOut = 'fadeOut';
-            break;
         case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED:
             modalStyle = {
                 ...modalStyle,

@@ -636,7 +636,6 @@ const CONST = {
             CENTERED_SMALL: 'centered_small',
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
-            POPOVER_WITHOUT_OVERLAY: 'popover_without_overlay',
             RIGHT_DOCKED: 'right_docked',
         },
         ANCHOR_ORIGIN_VERTICAL: {
