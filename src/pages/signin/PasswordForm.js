@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -52,41 +52,13 @@ const defaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
-class PasswordForm extends React.Component {
-    constructor(props) {
-        super(props);
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.resetPassword = this.resetPassword.bind(this);
-        this.clearSignInData = this.clearSignInData.bind(this);
+function PasswordForm(props) {
+    const [formError, setFormError] = useState({});
+    const [password, setPassword] = useState('');
+    const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
 
-        this.state = {
-            formError: {},
-            password: '',
-            twoFactorAuthCode: '',
-        };
-    }
-
-    componentDidMount() {
-        if (!canFocusInputOnScreenFocus() || !this.inputPassword || !this.props.isVisible) {
-            return;
-        }
-        this.inputPassword.focus();
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        if (!prevProps.isVisible && this.props.isVisible) {
-            this.inputPassword.focus();
-        }
-        if (prevProps.isVisible && !this.props.isVisible && this.state.password) {
-            this.clearPassword();
-        }
-        if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
-            this.input2FA.focus();
-        }
-        if (prevState.twoFactorAuthCode !== this.state.twoFactorAuthCode && this.state.twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH) {
-            this.validateAndSubmitForm();
-        }
-    }
+    const inputPasswordRef = useRef(null);
+    const input2FA = useRef(null);
 
     /**
      * Handle text input and clear formError upon text change
@@ -94,160 +66,195 @@ class PasswordForm extends React.Component {
      * @param {String} text
      * @param {String} key
      */
-    onTextInput(text, key) {
-        this.setState({
-            [key]: text,
-            formError: {[key]: ''},
-        });
+    const onTextInput = (text, key) => {
+        if (key === 'password') {
+            setPassword(text);
+        }
+        if (key === 'twoFactorAuthCode') {
+            setTwoFactorAuthCode(text);
+        }
+        setFormError({[key]: ''});
 
-        if (this.props.account.errors) {
+        if (props.account.errors) {
             Session.clearAccountMessages();
         }
-    }
+    };
 
     /**
      * Clear Password from the state
      */
-    clearPassword() {
-        this.setState({password: ''}, this.inputPassword.clear);
-    }
+    const clearPassword = () => {
+        if (inputPasswordRef.current) {
+            setPassword('');
+            inputPasswordRef.current.clear();
+        }
+    };
 
     /**
      * Trigger the reset password flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
-    resetPassword() {
-        if (this.input2FA) {
-            this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
+    const resetPassword = () => {
+        if (input2FA.current) {
+            setTwoFactorAuthCode('');
+            input2FA.current.clear();
         }
-        this.setState({formError: {}});
+        setFormError({});
         Session.resetPassword();
-    }
+    };
 
     /**
      * Clears local and Onyx sign in states
      */
-    clearSignInData() {
-        this.setState({twoFactorAuthCode: '', formError: {}});
+    const clearSignInData = () => {
+        setTwoFactorAuthCode('');
+        setFormError({});
         Session.clearSignInData();
-    }
+    };
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    validateAndSubmitForm() {
-        const password = this.state.password.trim();
-        const twoFactorCode = this.state.twoFactorAuthCode.trim();
-        const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
+    const validateAndSubmitForm = useCallback(() => {
+        const passwordTrimmed = password.trim();
+        const twoFactorCodeTrimmed = twoFactorAuthCode.trim();
+        const requiresTwoFactorAuth = props.account.requiresTwoFactorAuth;
 
-        if (!password) {
-            this.setState({formError: {password: 'passwordForm.pleaseFillPassword'}});
+        if (!passwordTrimmed) {
+            setFormError({password: 'passwordForm.pleaseFillPassword'});
             return;
         }
 
-        if (!ValidationUtils.isValidPassword(password)) {
-            this.setState({formError: {password: 'passwordForm.error.incorrectPassword'}});
+        if (!ValidationUtils.isValidPassword(passwordTrimmed)) {
+            setFormError({password: 'passwordForm.error.incorrectPassword'});
             return;
         }
 
-        if (requiresTwoFactorAuth && !twoFactorCode) {
-            this.setState({formError: {twoFactorAuthCode: 'passwordForm.pleaseFillTwoFactorAuth'}});
+        if (requiresTwoFactorAuth && !twoFactorCodeTrimmed) {
+            setFormError({twoFactorAuthCode: 'passwordForm.pleaseFillTwoFactorAuth'});
             return;
         }
 
-        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(twoFactorCode)) {
-            this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
+        if (requiresTwoFactorAuth && !ValidationUtils.isValidTwoFactorCode(twoFactorCodeTrimmed)) {
+            setFormError({twoFactorAuthCode: 'passwordForm.error.incorrect2fa'});
             return;
         }
 
-        this.setState({
-            formError: {},
-        });
+        setFormError({});
 
-        Session.signIn(password, '', twoFactorCode, this.props.preferredLocale);
-    }
+        Session.signIn(passwordTrimmed, '', twoFactorCodeTrimmed, props.preferredLocale);
+    }, [password, twoFactorAuthCode, props.account.requiresTwoFactorAuth]);
 
-    render() {
-        const isTwoFactorAuthRequired = Boolean(this.props.account.requiresTwoFactorAuth);
-        const hasServerError = Boolean(this.props.account) && !_.isEmpty(this.props.account.errors);
+    useEffect(() => {
+        if (!canFocusInputOnScreenFocus() || !inputPasswordRef.current || props.isVisible) {
+            return;
+        }
+        inputPasswordRef.current.focus();
+    }, []);
 
-        // When the 2FA required flag is set, user has already passed/completed the password field
-        const passwordFieldHasError = !isTwoFactorAuthRequired && hasServerError;
-        const twoFactorFieldHasError = isTwoFactorAuthRequired && hasServerError;
-        return (
-            <>
+    useEffect(() => {
+        if (props.isVisible) {
+            inputPasswordRef.current.focus();
+        }
+        if (props.isVisible && password) {
+            clearPassword();
+        }
+    }, [props.isVisible]);
+
+    useEffect(() => {
+        if (props.account.requiresTwoFactorAuth) {
+            input2FA.current.focus();
+        }
+    }, [props.account.requiresTwoFactorAuth]);
+
+    useEffect(() => {
+        if (twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH) {
+            validateAndSubmitForm();
+        }
+    }, [twoFactorAuthCode]);
+
+    const isTwoFactorAuthRequired = Boolean(props.account.requiresTwoFactorAuth);
+    const hasServerError = Boolean(props.account) && !_.isEmpty(props.account.errors);
+
+    // When the 2FA required flag is set, user has already passed/completed the password field
+    const passwordFieldHasError = !isTwoFactorAuthRequired && hasServerError;
+    const twoFactorFieldHasError = isTwoFactorAuthRequired && hasServerError;
+
+    return (
+        <>
+            <View style={[styles.mv3]}>
+                <TextInput
+                    ref={inputPasswordRef}
+                    label={props.translate('common.password')}
+                    secureTextEntry
+                    autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
+                    textContentType="password"
+                    nativeID="password"
+                    name="password"
+                    value={password}
+                    onChangeText={(text) => onTextInput(text, 'password')}
+                    onSubmitEditing={validateAndSubmitForm}
+                    blurOnSubmit={false}
+                    errorText={formError.password ? props.translate(formError.password) : ''}
+                    hasError={passwordFieldHasError}
+                />
+                <View style={[styles.changeExpensifyLoginLinkContainer]}>
+                    <PressableWithFeedback
+                        style={[styles.mt2]}
+                        onPress={resetPassword}
+                        accessibilityRole="link"
+                        accessibilityLabel={props.translate('passwordForm.forgot')}
+                        hoverDimmingValue={1}
+                    >
+                        <Text style={[styles.link]}>{props.translate('passwordForm.forgot')}</Text>
+                    </PressableWithFeedback>
+                </View>
+            </View>
+
+            {isTwoFactorAuthRequired && (
                 <View style={[styles.mv3]}>
                     <TextInput
-                        ref={(el) => (this.inputPassword = el)}
-                        label={this.props.translate('common.password')}
-                        secureTextEntry
-                        autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
-                        textContentType="password"
-                        nativeID="password"
-                        name="password"
-                        value={this.state.password}
-                        onChangeText={(text) => this.onTextInput(text, 'password')}
-                        onSubmitEditing={this.validateAndSubmitForm}
+                        ref={input2FA}
+                        label={props.translate('common.twoFactorCode')}
+                        value={twoFactorAuthCode}
+                        placeholder={props.translate('passwordForm.requiredWhen2FAEnabled')}
+                        placeholderTextColor={themeColors.placeholderText}
+                        onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
+                        onSubmitEditing={validateAndSubmitForm}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         blurOnSubmit={false}
-                        errorText={this.state.formError.password ? this.props.translate(this.state.formError.password) : ''}
-                        hasError={passwordFieldHasError}
+                        maxLength={CONST.TFA_CODE_LENGTH}
+                        errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
+                        hasError={twoFactorFieldHasError}
                     />
-                    <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                        <PressableWithFeedback
-                            style={[styles.mt2]}
-                            onPress={this.resetPassword}
-                            accessibilityRole="link"
-                            accessibilityLabel={this.props.translate('passwordForm.forgot')}
-                            hoverDimmingValue={1}
-                        >
-                            <Text style={[styles.link]}>{this.props.translate('passwordForm.forgot')}</Text>
-                        </PressableWithFeedback>
-                    </View>
                 </View>
+            )}
 
-                {isTwoFactorAuthRequired && (
-                    <View style={[styles.mv3]}>
-                        <TextInput
-                            ref={(el) => (this.input2FA = el)}
-                            label={this.props.translate('common.twoFactorCode')}
-                            value={this.state.twoFactorAuthCode}
-                            placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
-                            placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
-                            onSubmitEditing={this.validateAndSubmitForm}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            blurOnSubmit={false}
-                            maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ''}
-                            hasError={twoFactorFieldHasError}
-                        />
-                    </View>
-                )}
+            {hasServerError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
 
-                {hasServerError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />}
-                <View>
-                    <Button
-                        isDisabled={this.props.network.isOffline}
-                        success
-                        style={[styles.mv3]}
-                        text={this.props.translate('common.signIn')}
-                        isLoading={
-                            this.props.account.isLoading &&
-                            this.props.account.loadingForm === (this.props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
-                        }
-                        onPress={this.validateAndSubmitForm}
-                    />
-                    <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
-                </View>
-                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
-                    <Terms />
-                </View>
-            </>
-        );
-    }
+            <View>
+                <Button
+                    isDisabled={props.network.isOffline}
+                    success
+                    style={[styles.mv3]}
+                    text={props.translate('common.signIn')}
+                    isLoading={
+                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                    }
+                    onPress={validateAndSubmitForm}
+                />
+                <ChangeExpensifyLoginLink onPress={clearSignInData} />
+            </View>
+
+            <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+                <Terms />
+            </View>
+        </>
+    );
 }
 
 PasswordForm.propTypes = propTypes;
 PasswordForm.defaultProps = defaultProps;
+PasswordForm.displayName = 'PasswordForm';
 
 export default compose(
     withLocalize,
