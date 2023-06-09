@@ -5,16 +5,22 @@ import Text from '../Text';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 
 const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const RenameAction = (props) => {
-    const displayName = lodashGet(props.action, ['message', 0, 'text']);
+    const currentUserLogin = props.currentUserPersonalDetails.login;
+    const userDisplayName = lodashGet(props.action, ['person', 0, 'text']);
+    const actorEmail = lodashGet(props.action, 'actorEmail', '');
+    const displayName = actorEmail === currentUserLogin ? `${props.translate('common.you')}` : `${userDisplayName}`;
     const oldName = lodashGet(props.action, 'originalMessage.oldName', '');
     const newName = lodashGet(props.action, 'originalMessage.newName', '');
 
@@ -29,4 +35,4 @@ const RenameAction = (props) => {
 RenameAction.propTypes = propTypes;
 RenameAction.displayName = 'RenameAction';
 
-export default withLocalize(RenameAction);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(RenameAction);
