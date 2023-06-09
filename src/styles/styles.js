@@ -18,7 +18,7 @@ import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
-import getVerticalOffset from './getVerticalOffset';
+import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
@@ -1273,7 +1273,7 @@ const styles = {
 
     createMenuPositionProfile: (windowWidth) => ({
         horizontal: windowWidth - 355,
-        ...getVerticalOffset(162),
+        ...getPopOverVerticalOffset(162),
     }),
 
     createMenuPositionReportActionCompose: (windowHeight) => ({
@@ -2980,12 +2980,12 @@ const styles = {
     },
 
     threeDotsPopoverOffset: (windowWidth) => ({
-        ...getVerticalOffset(60),
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 60,
     }),
 
     threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
-        ...getVerticalOffset(60),
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 10,
     }),
 
