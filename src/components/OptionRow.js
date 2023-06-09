@@ -67,7 +67,7 @@ const defaultProps = {
     isSelected: false,
     boldStyle: false,
     showTitleTooltip: false,
-    onSelectRow: () => {},
+    onSelectRow: undefined,
     isDisabled: false,
     optionIsFocused: false,
     style: null,
@@ -150,6 +150,10 @@ class OptionRow extends Component {
                         <PressableWithFeedback
                             ref={(el) => (pressableRef = el)}
                             onPress={(e) => {
+                                if(!this.props.onSelectRow) {
+                                    return;
+                                }
+
                                 this.setState({isDisabled: true});
                                 if (e) {
                                     e.preventDefault();
@@ -171,6 +175,7 @@ class OptionRow extends Component {
                                 this.props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                                 this.props.optionIsFocused ? styles.sidebarLinkActive : null,
                                 this.props.shouldHaveOptionSeparator && styles.borderTop,
+                                !this.props.onSelectRow && !this.props.isDisabled ? styles.cursorDefault : null,
                             ]}
                             accessibilityLabel={this.props.option.text}
                             accessibilityRole="button"
