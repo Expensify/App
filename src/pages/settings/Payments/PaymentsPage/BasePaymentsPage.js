@@ -183,16 +183,16 @@ class BasePaymentsPage extends React.Component {
     /**
      * Display the delete/default menu, or the add payment method menu
      *
-     * @param {Object} e
+     * @param {Object} event
      * @param {String} accountType
      * @param {String} account
      * @param {Boolean} isDefault
      * @param {String|Number} methodID
      */
-    paymentMethodPressed(e, accountType, account, isDefault, methodID) {
-        const position = getClickedTargetLocation(e.currentTarget);
+    paymentMethodPressed(event, accountType, account, isDefault, methodID) {
+        const position = getClickedTargetLocation(event.currentTarget);
         this.setState({
-            addPaymentMethodButton: e.currentTarget,
+            addPaymentMethodButton: event.currentTarget,
         });
 
         // The delete/default menu

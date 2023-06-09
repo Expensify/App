@@ -156,6 +156,7 @@ class FloatingActionButtonAndPopover extends React.Component {
     render() {
         // Workspaces are policies with type === 'free'
         const workspaces = _.filter(this.props.allPolicies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE);
+
         return (
             <View>
                 <PopoverMenu
