@@ -7,7 +7,7 @@ import * as User from '../../libs/actions/User';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import Permissions from '../../libs/Permissions';
+import usePermissions from '../../hooks/usePermissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize from '../../components/withLocalize';
 import CONST from '../../CONST';
@@ -47,6 +47,8 @@ const defaultProps = {
 };
 
 function ValidateLoginPage(props) {
+    const {canUsePasswordlessLogins} = usePermissions();
+
     useEffect(() => {
         const login = lodashGet(props, 'credentials.login', null);
         const accountID = lodashGet(props.route.params, 'accountID', '');
@@ -54,7 +56,7 @@ function ValidateLoginPage(props) {
 
         // A fresh session will not have credentials.login and user permission betas available.
         // In that case, we directly allow users to go through password less flow
-        if (!login || Permissions.canUsePasswordlessLogins(props.betas)) {
+        if (!login || canUsePasswordlessLogins) {
             if (lodashGet(props, 'session.authToken')) {
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
