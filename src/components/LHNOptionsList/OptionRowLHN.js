@@ -162,7 +162,7 @@ const OptionRowLHN = (props) => {
                                                 props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                 hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
-                                            shouldShowTooltip={!optionItem.isChatRoom && !optionItem.isArchivedRoom}
+                                            shouldShowTooltip={(!optionItem.isChatRoom || optionItem.isThread) && !optionItem.isArchivedRoom}
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>
