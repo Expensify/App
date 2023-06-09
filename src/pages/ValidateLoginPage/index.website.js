@@ -19,9 +19,6 @@ const propTypes = {
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Session of currently logged in user */
     session: PropTypes.shape({
         /** Currently logged in user authToken */
@@ -42,16 +39,19 @@ const propTypes = {
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
+
+    /** Indicates which locale the user currently has selected */
+    preferredLocale: PropTypes.string,
 };
 
 const defaultProps = {
     route: validateLinkDefaultProps,
-    betas: [],
     session: {
         authToken: null,
     },
     credentials: {},
     account: {},
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 function ValidateLoginPage(props) {
@@ -84,6 +84,7 @@ function ValidateLoginPage(props) {
 
         // The user has initiated the sign in process on the same browser, in another tab.
         Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -116,7 +117,6 @@ ValidateLoginPage.defaultProps = defaultProps;
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
-    betas: {key: ONYXKEYS.BETAS},
     credentials: {key: ONYXKEYS.CREDENTIALS},
     session: {key: ONYXKEYS.SESSION},
 })(ValidateLoginPage);
