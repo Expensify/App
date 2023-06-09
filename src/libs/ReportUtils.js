@@ -533,42 +533,6 @@ function isThreadFirstChat(reportAction, reportID) {
 }
 
 /**
- * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
- * then a default object is constructed.
- * @param {String} login
- * @returns {Object}
- */
-function getPersonalDetailsForLogin(login) {
-    if (!login) {
-        return {};
-    }
-    return (
-        (allPersonalDetails && allPersonalDetails[login]) || {
-            login,
-            displayName: LocalePhoneNumber.formatPhoneNumber(login),
-            avatar: UserUtils.getDefaultAvatar(login),
-        }
-    );
-}
-
-/**
- * Get the displayName for a single report participant.
- *
- * @param {String} login
- * @param {Boolean} [shouldUseShortForm]
- * @returns {String}
- */
-function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
-    if (!login) {
-        return '';
-    }
-    const personalDetails = getPersonalDetailsForLogin(login);
-    const longName = personalDetails.displayName;
-    const shortName = personalDetails.firstName || longName;
-    return shouldUseShortForm ? shortName : longName;
-}
-
-/**
  * Get welcome message based on room type
  * @param {Object} report
  * @returns {Object}
@@ -818,6 +782,42 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     }
 
     return getIconsForParticipants(report.participants, personalDetails);
+}
+
+/**
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then a default object is constructed.
+ * @param {String} login
+ * @returns {Object}
+ */
+function getPersonalDetailsForLogin(login) {
+    if (!login) {
+        return {};
+    }
+    return (
+        (allPersonalDetails && allPersonalDetails[login]) || {
+            login,
+            displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            avatar: UserUtils.getDefaultAvatar(login),
+        }
+    );
+}
+
+/**
+ * Get the displayName for a single report participant.
+ *
+ * @param {String} login
+ * @param {Boolean} [shouldUseShortForm]
+ * @returns {String}
+ */
+function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
+    if (!login) {
+        return '';
+    }
+    const personalDetails = getPersonalDetailsForLogin(login);
+    const longName = personalDetails.displayName;
+    const shortName = personalDetails.firstName || longName;
+    return shouldUseShortForm ? shortName : longName;
 }
 
 /**
