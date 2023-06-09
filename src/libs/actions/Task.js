@@ -170,7 +170,13 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
 
-function completeTask(taskReportID, taskTitle) {
+/**
+ * Completes an open task
+ * @param {string} taskReportID ReportID of the task
+ * @param {string} taskTitle Title of the task
+ * @param {string} taskLastMessageText Current last message text shown in LNH preview
+ */
+function completeTask(taskReportID, taskTitle, taskLastMessageText) {
     const message = `completed task: ${taskTitle}`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
@@ -181,10 +187,7 @@ function completeTask(taskReportID, taskTitle) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.APPROVED,
-                lastVisibleActionCreated: completedTaskReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: completedTaskReportAction.actorEmail,
-                lastReadTime: completedTaskReportAction.created,
             },
         },
 
@@ -203,6 +206,7 @@ function completeTask(taskReportID, taskTitle) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
+                lastMessageText: taskLastMessageText,
             },
         },
         {

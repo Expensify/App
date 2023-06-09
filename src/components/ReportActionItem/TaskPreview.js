@@ -34,11 +34,14 @@ const propTypes = {
         /** Title of the task */
         reportName: PropTypes.string,
 
-        /** Email address of the manager in this iou report */
+        /** Email address of the manager in this Task report */
         managerEmail: PropTypes.string,
 
-        /** Email address of the creator of this iou report */
+        /** Email address of the creator of this Task report */
         ownerEmail: PropTypes.string,
+
+        /** Last visible message text of this Task report */
+        lastMessageText: PropTypes.string,
     }),
 
     ...withLocalizePropTypes,
@@ -75,7 +78,7 @@ const TaskPreview = (props) => {
                         if (isTaskCompleted) {
                             TaskUtils.reopenTask(props.taskReportID, taskTitle);
                         } else {
-                            TaskUtils.completeTask(props.taskReportID, taskTitle);
+                            TaskUtils.completeTask(props.taskReportID, taskTitle, props.taskReport.lastMessageText);
                         }
                     }}
                 />
