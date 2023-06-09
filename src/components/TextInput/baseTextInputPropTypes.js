@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** Input label */
@@ -58,6 +59,9 @@ const propTypes = {
     /** Hint text to display below the TextInput */
     hint: PropTypes.string,
 
+    /** Style the Hint container */
+    hintContainerStyle: stylePropTypes,
+
     /** Prefix character */
     prefixCharacter: PropTypes.string,
 
@@ -114,6 +118,7 @@ const defaultProps = {
     shouldSaveDraft: false,
     maxLength: null,
     hint: '',
+    hintContainerStyle: [],
     prefixCharacter: '',
     onInputChange: () => {},
     shouldDelayFocus: false,

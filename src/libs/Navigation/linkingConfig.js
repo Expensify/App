@@ -342,6 +342,16 @@ export default {
                             FlagComment_Root: ROUTES.FLAG_COMMENT,
                         },
                     },
+                    Select_Country: {
+                        screens: {
+                            CountrySelector_Root: ROUTES.SETTINGS_SELECT_COUNTRY,
+                        },
+                    },
+                    Select_USA_State: {
+                        screens: {
+                            CountrySelector_Root: ROUTES.SETTINGS_USA_STATES,
+                        },
+                    },
                 },
             },
         },

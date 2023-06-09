@@ -70,7 +70,10 @@ export default {
     getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
     SELECT_YEAR: 'select-year',
     getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
-
+    SETTINGS_SELECT_COUNTRY: 'select-country',
+    getCountrySelectionRoute: (countryISO, backTo) => `select-country?countryISO=${countryISO}&backTo=${backTo}`,
+    SETTINGS_USA_STATES: 'select-usa-states',
+    getUsaStateSelectionRoute: (stateISO, backTo) => `select-usa-states?stateISO=${stateISO}&backTo=${backTo}`,
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
 

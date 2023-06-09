@@ -729,6 +729,26 @@ const FlagCommentStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const CountrySelectorStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const CountrySelectorPage = require('../../../pages/CountrySelectorPage').default;
+            return CountrySelectorPage;
+        },
+        name: 'CountrySelector_Root',
+    },
+]);
+
+const UsaStateSelectorStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const usaStateSelectorPage = require('../../../pages/StateSelectorPage').default;
+            return usaStateSelectorPage;
+        },
+        name: 'CountrySelector_Root',
+    },
+]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -752,4 +772,6 @@ export {
     WalletStatementStackNavigator,
     YearPickerStackNavigator,
     FlagCommentStackNavigator,
+    CountrySelectorStackNavigator,
+    UsaStateSelectorStackNavigator,
 };

@@ -1,67 +1,79 @@
-import _ from 'underscore';
-import React, {forwardRef} from 'react';
+import React, {useCallback, useRef, useEffect} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Picker from './Picker';
+import sizes from '../styles/variables';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import FormHelpMessage from './FormHelpMessage';
 
 const propTypes = {
-    /** The label for the field */
-    label: PropTypes.string,
+    /** The ISO code of the country */
+    countryISO: PropTypes.string,
 
-    /** A callback method that is called when the value changes and it receives the selected value as an argument. */
-    onInputChange: PropTypes.func.isRequired,
+    /** The ISO selected from CountrySelector */
+    selectedCountryISO: PropTypes.string,
 
-    /** The value that needs to be selected */
-    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    /** The ID used to uniquely identify the input in a form */
-    inputID: PropTypes.string,
-
-    /** Saves a draft of the input value when used in a form */
-    shouldSaveDraft: PropTypes.bool,
-
-    /** Callback that is called when the text input is blurred */
-    onBlur: PropTypes.func,
-
-    /** Error text to display */
+    /** Form Error description */
     errorText: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    label: '',
-    value: undefined,
+    countryISO: '',
+    selectedCountryISO: undefined,
     errorText: '',
-    shouldSaveDraft: false,
-    inputID: undefined,
-    onBlur: () => {},
 };
 
-const CountryPicker = forwardRef((props, ref) => {
-    const COUNTRIES = _.map(props.translate('allCountries'), (countryName, countryISO) => ({
-        value: countryISO,
-        label: countryName,
-    }));
+function BaseCountryPicker(props) {
+    const countryTitle = useRef({title: '', iso: ''});
+    const countryISO = props.countryISO;
+    const selectedCountryISO = props.selectedCountryISO;
+    const onInputChange = props.onInputChange;
 
+    useEffect(() => {
+        if (!selectedCountryISO || selectedCountryISO === countryTitle.current.iso) {
+            return;
+        }
+        countryTitle.current = {title: PersonalDetails.getCountryNameBy(selectedCountryISO || countryISO), iso: selectedCountryISO || countryISO};
+
+        // Needed to call onInputChange, so Form can update the validation and values
+        onInputChange(countryTitle.current.iso);
+    }, [countryISO, selectedCountryISO, onInputChange]);
+
+    const navigateToCountrySelector = useCallback(() => {
+        Navigation.navigate(ROUTES.getCountrySelectionRoute(selectedCountryISO || countryISO, Navigation.getActiveRoute()));
+    }, [countryISO, selectedCountryISO]);
+    const descStyle = countryTitle.current.title.length === 0 ? {fontSize: sizes.fontSizeNormal} : null;
     return (
-        <Picker
-            ref={ref}
-            inputID={props.inputID}
-            placeholder={{value: '', label: '-'}}
-            items={COUNTRIES}
-            onInputChange={props.onInputChange}
-            value={props.value}
-            label={props.label || props.translate('common.country')}
-            errorText={props.errorText}
-            onBlur={props.onBlur}
-            shouldSaveDraft={props.shouldSaveDraft}
-        />
+        <View>
+            <MenuItemWithTopDescription
+                ref={props.forwardedRef}
+                shouldShowRightIcon
+                title={countryTitle.current.title}
+                descriptionTextStyle={descStyle}
+                description={props.translate('common.country')}
+                onPress={navigateToCountrySelector}
+            />
+            <FormHelpMessage message={props.errorText} />
+        </View>
     );
-});
+}
 
-CountryPicker.propTypes = propTypes;
-CountryPicker.defaultProps = defaultProps;
+BaseCountryPicker.propTypes = propTypes;
+BaseCountryPicker.defaultProps = defaultProps;
+
+const CountryPicker = React.forwardRef((props, ref) => (
+    <BaseCountryPicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
 CountryPicker.displayName = 'CountryPicker';
 
 export default withLocalize(CountryPicker);

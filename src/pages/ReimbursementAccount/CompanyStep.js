@@ -171,7 +171,7 @@ class CompanyStep extends React.Component {
                     onSubmit={this.submit}
                     scrollContextEnabled
                     submitButtonText={this.props.translate('common.saveAndContinue')}
-                    style={[styles.ph5, styles.flexGrow1]}
+                    style={[styles.mh5, styles.flexGrow1]}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
@@ -248,7 +248,7 @@ class CompanyStep extends React.Component {
                             shouldSaveDraft
                         />
                     </View>
-                    <View style={styles.mt4}>
+                    <View style={[styles.mt4, styles.mhn5]}>
                         <StatePicker
                             inputID="incorporationState"
                             label={this.props.translate('companyStep.incorporationState')}

@@ -114,6 +114,16 @@ function RigthModalNavigator() {
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.FlagCommentStackNavigator}
             />
+            <Stack.Screen
+                name="Select_Country"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.CountrySelectorStackNavigator}
+            />
+            <Stack.Screen
+                name="Select_USA_State"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.UsaStateSelectorStackNavigator}
+            />
         </Stack.Navigator>
     );
 }

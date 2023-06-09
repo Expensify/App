@@ -154,7 +154,7 @@ class RequestorStep extends React.Component {
                             lastName: this.props.getDefaultStateForField('lastName'),
                             street: this.props.getDefaultStateForField('requestorAddressStreet'),
                             city: this.props.getDefaultStateForField('requestorAddressCity'),
-                            state: this.props.getDefaultStateForField('requestorAddressState'),
+                            state: this.props.reimbursementAccountDraft.requestorAddressState || this.props.getDefaultStateForField('requestorAddressState'),
                             zipCode: this.props.getDefaultStateForField('requestorAddressZipCode'),
                             dob: this.props.getDefaultStateForField('dob'),
                             ssnLast4: this.props.getDefaultStateForField('ssnLast4'),

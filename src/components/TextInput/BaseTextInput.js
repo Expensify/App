@@ -366,6 +366,7 @@ class BaseTextInput extends Component {
                     </PressableWithoutFeedback>
                     {!_.isEmpty(inputHelpText) && (
                         <FormHelpMessage
+                            style={this.props.hintContainerStyle}
                             isError={!_.isEmpty(this.props.errorText)}
                             message={inputHelpText}
                         />
