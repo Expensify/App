@@ -84,10 +84,8 @@ function PasswordForm(props) {
      * Clear Password from the state
      */
     const clearPassword = () => {
-        if (inputPasswordRef.current) {
-            setPassword('');
-            inputPasswordRef.current.clear();
-        }
+        setPassword('');
+        inputPasswordRef.current.clear();
     };
 
     /**
@@ -142,13 +140,14 @@ function PasswordForm(props) {
         setFormError({});
 
         Session.signIn(passwordTrimmed, '', twoFactorCodeTrimmed, props.preferredLocale);
-    }, [password, twoFactorAuthCode, props.account.requiresTwoFactorAuth]);
+    }, [password, twoFactorAuthCode, props.account.requiresTwoFactorAuth, props.preferredLocale]);
 
     useEffect(() => {
-        if (!canFocusInputOnScreenFocus() || !inputPasswordRef.current || props.isVisible) {
+        if (!canFocusInputOnScreenFocus() || !inputPasswordRef.current || !props.isVisible) {
             return;
         }
         inputPasswordRef.current.focus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
     useEffect(() => {
@@ -158,18 +157,23 @@ function PasswordForm(props) {
         if (props.isVisible && password) {
             clearPassword();
         }
+        // We cannot add password to the dependency list because it will clear every time it updates
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);
 
     useEffect(() => {
-        if (props.account.requiresTwoFactorAuth) {
-            input2FA.current.focus();
+        if (!props.account.requiresTwoFactorAuth) {
+            return;
         }
+        input2FA.current.focus();
     }, [props.account.requiresTwoFactorAuth]);
 
     useEffect(() => {
-        if (twoFactorAuthCode.length === CONST.TFA_CODE_LENGTH) {
-            validateAndSubmitForm();
+        if (twoFactorAuthCode.length !== CONST.TFA_CODE_LENGTH) {
+            return;
         }
+        validateAndSubmitForm();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We don't need to call this when the function changes.
     }, [twoFactorAuthCode]);
 
     const isTwoFactorAuthRequired = Boolean(props.account.requiresTwoFactorAuth);
