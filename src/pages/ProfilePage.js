@@ -70,7 +70,7 @@ const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
     loginList: {},
-    isLoadingReportData: true
+    isLoadingReportData: true,
 };
 
 /**
@@ -220,14 +220,20 @@ function ProfilePage(props) {
                         )}
                     </ScrollView>
                 )}
-                {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
-                {(shouldShowBlockingView || !isParticipantInReport) && (
-                    <BlockingView
-                        icon={Illustrations.ToddBehindCloud}
-                        iconWidth={variables.modalTopIconWidth}
-                        iconHeight={variables.modalTopIconHeight}
-                        title={props.translate('notFound.notHere')}
-                    />
+                {!hasMinimumDetails && isLoading ? (
+                    <FullScreenLoadingIndicator style={styles.flex1} />
+                ) : (
+                    <>
+                        {shouldShowBlockingView ||
+                            (!isParticipantInReport && (
+                                <BlockingView
+                                    icon={Illustrations.ToddBehindCloud}
+                                    iconWidth={variables.modalTopIconWidth}
+                                    iconHeight={variables.modalTopIconHeight}
+                                    title={props.translate('notFound.notHere')}
+                                />
+                            ))}
+                    </>
                 )}
             </View>
         </ScreenWrapper>
