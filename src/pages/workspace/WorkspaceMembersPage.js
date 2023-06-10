@@ -345,7 +345,6 @@ class WorkspaceMembersPage extends React.Component {
                     />
                     <View style={styles.flex1}>
                         <OptionRow
-                            isDisabled
                             boldStyle
                             option={{
                                 text: this.props.formatPhoneNumber(item.displayName),
@@ -360,6 +359,7 @@ class WorkspaceMembersPage extends React.Component {
                                 ],
                                 keyForList: item.login,
                             }}
+                            onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                         />
                     </View>
                     {(this.props.session.email === item.login || item.role === 'admin') && (
