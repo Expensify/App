@@ -237,7 +237,7 @@ function getOptionData(reportID) {
 
     result.isThread = ReportUtils.isThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
-result.isTaskReport = ReportUtils.isTaskReport(report);
+    result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
