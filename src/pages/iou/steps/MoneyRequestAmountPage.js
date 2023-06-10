@@ -24,6 +24,7 @@ import withNavigation from '../../../components/withNavigation';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -52,6 +53,7 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -68,6 +70,7 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 class MoneyRequestAmountPage extends React.Component {
     constructor(props) {
@@ -394,9 +397,13 @@ class MoneyRequestAmountPage extends React.Component {
         // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
         if (this.props.report.reportID) {
             if (_.isEmpty(this.props.iou.participants)) {
+                const currentUserLogin = this.props.currentUserPersonalDetails.login;
                 const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
                     ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
-                    : _.map(this.props.report.participants, (participant) => ({login: participant, selected: true}));
+                    : _.chain(this.props.report.participants)
+                        .filter((participant) => currentUserLogin !== participant.login)
+                        .map((participant) => ({login: participant, selected: true}))
+                        .value();
                 IOU.setMoneyRequestParticipants(participants);
             }
             Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
@@ -485,6 +492,7 @@ MoneyRequestAmountPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withNavigation,
+    withCurrentUserPersonalDetails,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         report: {
