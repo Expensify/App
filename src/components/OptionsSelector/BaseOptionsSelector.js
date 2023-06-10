@@ -39,7 +39,7 @@ const defaultProps = {
     shouldDelayFocus: false,
     safeAreaPaddingBottomStyle: {},
     contentContainerStyles: [],
-    listContainerStyles: [],
+    listContainerStyles: [styles.flex1],
     ...optionsSelectorDefaultProps,
 };
 
