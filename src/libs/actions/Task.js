@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
@@ -10,7 +11,6 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
-import _ from 'underscore';
 
 /**
  * Clears out the task info from the store
