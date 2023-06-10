@@ -46,6 +46,9 @@ class BankAccountManualStep extends React.Component {
         if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
             errorFields.routingNumber = this.props.translate('bankAccount.error.routingNumber');
         }
+        if (values.accountNumber === routingNumber) {
+            errorFields.accountNumber = this.props.translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
+        }
         if (!values.acceptTerms) {
             errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
         }

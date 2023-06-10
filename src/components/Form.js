@@ -95,6 +95,8 @@ const Form = (props) => {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
 
+    const isInitialRender = useRef(false);
+
     const {validate, translate, onSubmit, children} = props;
 
     /**
@@ -145,6 +147,11 @@ const Form = (props) => {
     );
 
     useEffect(() => {
+        if (!isInitialRender.current) {
+            isInitialRender.current = true;
+            return;
+        }
+
         onValidate(inputValues);
     }, [onValidate, inputValues]);
 
