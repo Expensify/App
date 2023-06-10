@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Avatar from './Avatar';
 import styles from '../styles/styles';
-import UserDetailsTooltip from './UserDetailsTooltip/UserDetailsTooltip';
+import Tooltip from './Tooltip';
 import ONYXKEYS from '../ONYXKEYS';
 import policyMemberPropType from '../pages/policyMemberPropType';
 import bankAccountPropTypes from './bankAccountPropTypes';
@@ -23,10 +23,8 @@ const propTypes = {
     /** URL for the avatar */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
     
-    /* Tooltip Props */
-
-    /** User's Account Id */
-    accountID: PropTypes.string.isRequired,
+     /** To show a tooltip on hover */
+     tooltipText: PropTypes.string,
 
     /* Onyx Props */
 
@@ -102,12 +100,12 @@ const AvatarWithIndicator = (props) => {
     const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];
 
     return (
-        <UserDetailsTooltip accountID={props.accountID}>
+        <Tooltip text={props.tooltipText}>
             <View style={[styles.sidebarAvatar]}>
                 <Avatar source={UserUtils.getSmallSizeAvatar(props.source)} />
                 {(shouldShowErrorIndicator || shouldShowInfoIndicator) && <View style={StyleSheet.flatten(indicatorStyles)} />}
             </View>
-        </UserDetailsTooltip>
+        </Tooltip>
     );
 };
 
