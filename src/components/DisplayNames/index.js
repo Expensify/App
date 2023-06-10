@@ -6,6 +6,7 @@ import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
 import UserDetailsTooltip from '../UserDetailsTooltip/UserDetailsTooltip';
+
 class DisplayNames extends PureComponent {
     constructor(props) {
         super(props);

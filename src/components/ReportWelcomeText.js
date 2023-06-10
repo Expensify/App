@@ -1,10 +1,10 @@
 import React from 'react';
-import UserDetailsTooltip from './UserDetailsTooltip/UserDetailsTooltip';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import UserDetailsTooltip from './UserDetailsTooltip/UserDetailsTooltip';
 import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -14,7 +14,6 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import Tooltip from './Tooltip';
 import reportPropTypes from '../pages/reportPropTypes';
 import CONST from '../CONST';
 

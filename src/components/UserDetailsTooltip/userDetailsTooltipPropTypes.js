@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 const propTypes = {
     /** User's Account ID */
@@ -14,11 +15,14 @@ const propTypes = {
     }),
     /** Component that displays the tooltip */
     children: PropTypes.node.isRequired,
+    /** List of personalDetails (keyed by accountID)  */
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 };
 
 const defaultProps = {
     accountID: '',
     fallbackUserDetails: {displayName: '', login: '', avatar: ''},
+    personalDetailsList: {},
 };
 
 export {propTypes, defaultProps};

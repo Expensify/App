@@ -60,7 +60,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    accountID: '',
+    tooltipText: '',
     reimbursementAccount: {},
     policiesMemberList: {},
     policies: {},
