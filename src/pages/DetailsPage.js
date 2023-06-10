@@ -168,7 +168,7 @@ class DetailsPage extends React.PureComponent {
                                                 {this.props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                             </Text>
                                             <CommunicationsLink value={phoneOrEmail}>
-                                                <UserDetailsTooltip login={details.login} name={details.displayName} avatarSource={details.avatar}>
+                                                <UserDetailsTooltip accountID={details.accountID}> 
                                                     <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
                                                 </UserDetailsTooltip>
                                             </CommunicationsLink>

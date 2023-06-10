@@ -77,9 +77,12 @@ const MultipleAvatars = (props) => {
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
         return (
             <UserDetailsTooltip
-                name={ReportUtils.getPersonalDetailsForLogin(props.icons[0].name).displayName}
-                login={props.icons[0].name}
-                avatarSource={props.icons[0].source}
+                accountID={ReportUtils.getPersonalDetailsForLogin(props.icons[0].name).accountID}
+                fallbackUserDetails={{
+                    displayName: ReportUtils.getPersonalDetailsForLogin(props.icons[0].name).displayName ?? '',
+                    login: props.icons[0].name ?? props.tooltipTexts[0],
+                    avatarSource: props.icons[0].source ?? '',
+                }}
             >
                 <View style={avatarContainerStyles}>
                     <Avatar
@@ -120,9 +123,7 @@ const MultipleAvatars = (props) => {
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
                         <UserDetailsTooltip
                             key={`stackedAvatars-${index}`}
-                            name={ReportUtils.getPersonalDetailsForLogin(icon.name).displayName}
-                            login={icon.name}
-                            avatarSource={icon.source}
+                            accountID={ReportUtils.getPersonalDetailsForLogin(icon.name).accountID}
                         >
                             <View
                                 style={[
@@ -182,9 +183,7 @@ const MultipleAvatars = (props) => {
             ) : (
                 <View style={singleAvatarStyles}>
                     <UserDetailsTooltip
-                        name={ReportUtils.getPersonalDetailsForLogin(props.icons[0].name).displayName}
-                        login={props.icons[0].name}
-                        avatarSource={props.icons[0].source}
+                        accountID={ReportUtils.getPersonalDetailsForLogin(props.icons[0].name).accountID}
                     >
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
@@ -201,10 +200,8 @@ const MultipleAvatars = (props) => {
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
                             <UserDetailsTooltip
-                            name={ReportUtils.getPersonalDetailsForLogin(props.icons[1].name).displayName}
-                            login={props.icons[1].name}
-                            avatarSource={props.icons[1].source}
-                        >
+                                accountID={ReportUtils.getPersonalDetailsForLogin(props.icons[1].name).accountID}
+                            >
                                 <View>
                                     <Avatar
                                         source={props.icons[1].source || props.fallbackIcon}

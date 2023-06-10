@@ -101,9 +101,7 @@ const ReportActionItemSingle = (props) => {
                         />
                     ) : (
                         <UserDetailsTooltip 
-                            login={login}
-                            name={displayName}
-                            avatarSource={avatarSource}
+                            accountID={accountID}
                         >
                             <View>
                                 <Avatar
@@ -127,9 +125,7 @@ const ReportActionItemSingle = (props) => {
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.reportActionID}-${index}`}
-                                    login={login}
-                                    name={displayName}
-                                    avatarSource={avatarSource}
+                                    accountID={accountID}
                                     fragment={fragment}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}

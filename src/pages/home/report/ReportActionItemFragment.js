@@ -155,7 +155,7 @@ const ReportActionItemFragment = (props) => {
         }
         case 'TEXT':
             return (
-                <UserDetailsTooltip avatarSource={props.avatarSource} login={props.login} name={props.name}>
+                <UserDetailsTooltip accountID={props.accountID} >
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}

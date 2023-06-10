@@ -90,9 +90,7 @@ class DisplayNames extends PureComponent {
                           <Fragment key={index}>
                               <UserDetailsTooltip
                                   key={index}
-                                  name={tooltip.name}
-                                  avatarSource={tooltip.avatarSource}
-                                  login={tooltip.login}
+                                  accountID={tooltip.accountID}
                                   shiftHorizontal={() => this.getTooltipShiftX(index)}
                               >
                                   {/*  // We need to get the refs to all the names which will be used to correct

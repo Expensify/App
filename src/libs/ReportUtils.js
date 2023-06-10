@@ -873,10 +873,9 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
         const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
+
         const tooltip = {
-            login: participant.login ? Str.removeSMSDomain(participant.login) : '',
-            name: getDisplayNameForParticipant(participant.login, false),
-            avatarSource: UserUtils.getAvatar(participant.avatar, participant.login),
+            accountID: participant.accountID,
         }
         
         let pronouns = participant.pronouns;

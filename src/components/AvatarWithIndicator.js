@@ -25,11 +25,8 @@ const propTypes = {
     
     /* Tooltip Props */
 
-    /** User's name */
-    name: PropTypes.string,
-
-    /** User's login */
-    login: PropTypes.string,
+    /** User's Account Id */
+    accountID: PropTypes.string.isRequired,
 
     /* Onyx Props */
 
@@ -65,8 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    name: '',
-    login: '',
+    accountID: '',
     reimbursementAccount: {},
     policiesMemberList: {},
     policies: {},
@@ -106,7 +102,7 @@ const AvatarWithIndicator = (props) => {
     const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];
 
     return (
-        <UserDetailsTooltip name={props.name} avatarSource={props.source} login={props.login}>
+        <UserDetailsTooltip accountID={props.accountID}>
             <View style={[styles.sidebarAvatar]}>
                 <Avatar source={UserUtils.getSmallSizeAvatar(props.source)} />
                 {(shouldShowErrorIndicator || shouldShowInfoIndicator) && <View style={StyleSheet.flatten(indicatorStyles)} />}
