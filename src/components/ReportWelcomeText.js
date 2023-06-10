@@ -1,4 +1,5 @@
 import React from 'react';
+import UserDetailsTooltip from './UserDetailsTooltip/UserDetailsTooltip';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
@@ -95,14 +96,14 @@ const ReportWelcomeText = (props) => {
                         <Text>{props.translate('reportActionsView.beginningOfChatHistory')}</Text>
                         {_.map(displayNamesWithTooltips, ({displayName, pronouns, tooltip}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
-                                <Tooltip text={tooltip}>
+                                <UserDetailsTooltip accountID={tooltip.accountID} >
                                     <Text
                                         style={[styles.textStrong]}
                                         onPress={() => Navigation.navigate(ROUTES.getProfileRoute(participantAccountIDs[index]))}
                                     >
                                         {displayName}
                                     </Text>
-                                </Tooltip>
+                                </UserDetailsTooltip>
                                 {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
                                 {index === displayNamesWithTooltips.length - 2 && <Text>{` ${props.translate('common.and')} `}</Text>}
