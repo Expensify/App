@@ -2144,7 +2144,7 @@ function shouldReportShowSubscript(report) {
         return false;
     }
 
-    if (isPolicyExpenseChat(report)) {
+    if (isPolicyExpenseChat(report) && !isThread(report) && !isTaskReport(report)) {
         return true;
     }
 

@@ -18,6 +18,7 @@ import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
+import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
@@ -190,13 +191,11 @@ const styles = {
     },
 
     emojiSuggestionsEmoji: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,
         width: 51,
         textAlign: 'center',
     },
     emojiSuggestionsText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,
     },
 
@@ -762,7 +761,7 @@ const styles = {
     },
 
     headerGap: {
-        height: 12,
+        height: CONST.DESKTOP_HEADER_PADDING,
     },
 
     pushTextRight: {
@@ -1266,7 +1265,7 @@ const styles = {
 
     createMenuPositionProfile: (windowWidth) => ({
         horizontal: windowWidth - 355,
-        vertical: 250,
+        ...getPopOverVerticalOffset(162),
     }),
 
     createMenuPositionReportActionCompose: (windowHeight) => ({
@@ -1586,7 +1585,7 @@ const styles = {
             backgroundColor: themeColors.componentBG,
             borderColor: themeColors.border,
             color: themeColors.text,
-            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             borderWidth: 0,
             height: 'auto',
@@ -1662,7 +1661,6 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
@@ -1724,13 +1722,6 @@ const styles = {
         padding: 6,
         margin: 3,
         borderRadius: variables.componentBorderRadiusRounded,
-        backgroundColor: themeColors.transparent,
-    },
-
-    taskSelectorLink: {
-        alignSelf: 'center',
-        width: '100%',
-        padding: 6,
         backgroundColor: themeColors.transparent,
     },
 
@@ -2973,12 +2964,12 @@ const styles = {
     },
 
     threeDotsPopoverOffset: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 60,
     }),
 
     threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 10,
     }),
 
