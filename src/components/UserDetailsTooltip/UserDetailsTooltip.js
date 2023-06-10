@@ -13,7 +13,7 @@ function UserDetailsTooltip(props){
     const renderTooltipContent = useCallback(() => {
         return (
             <View style={[styles.alignItemsCenter, styles.ph2]}>
-                <View style={styles.flexRow}>
+                <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
                         source={userDetails.avatar}
