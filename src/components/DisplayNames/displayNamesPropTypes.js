@@ -13,7 +13,7 @@ const propTypes = {
             /** The tooltip to show when the associated name is hovered */
             tooltip: PropTypes.shape({
                /** The Account Id for the tooltip */ 
-                accountId: PropTypes.string,
+                accountID: PropTypes.string,
             }),
         }),
     ),
