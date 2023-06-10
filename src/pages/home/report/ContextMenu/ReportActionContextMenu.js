@@ -37,7 +37,7 @@ function showContextMenu(
     }
     // If there is an already open context menu, close it first before opening
     // a new one.
-    if(contextMenuRef.current.instanceID) {
+    if (contextMenuRef.current.instanceID) {
         contextMenuRef.current.runAndResetOnPopoverHide();
     }
     contextMenuRef.current.showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow, onHide, isArchivedRoom, isChronosReport, isPinnedChat);
