@@ -50,10 +50,10 @@ class MoneyRequestDescriptionPage extends Component {
     componentDidMount() {
         const moneyRequestId = `${this.iouType}${this.reportID}`;
         const shouldReset = this.props.iou.id !== moneyRequestId;
-        if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset) {
-            if (shouldReset) {
-                IOU.resetMoneyRequestInfo(moneyRequestId);
-            }
+        if (shouldReset) {
+            IOU.resetMoneyRequestInfo(moneyRequestId);
+        }
+        if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset) {   
             Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), shouldReset);
         }
     }
