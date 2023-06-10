@@ -401,9 +401,9 @@ class MoneyRequestAmountPage extends React.Component {
                 const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
                     ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
                     : _.chain(this.props.report.participants)
-                        .filter((participant) => currentUserLogin !== participant.login)
-                        .map((participant) => ({login: participant, selected: true}))
-                        .value();
+                          .filter((participant) => currentUserLogin !== participant.login)
+                          .map((participant) => ({login: participant, selected: true}))
+                          .value();
                 IOU.setMoneyRequestParticipants(participants);
             }
             Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
