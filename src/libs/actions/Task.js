@@ -278,14 +278,12 @@ function reopenTask(taskReportID, taskTitle) {
  * @function editTask
  * @param {object} report
  * @param {string} ownerEmail
- * @param {string} title
- * @param {string} description
- * @param {string} assignee
+ * @param {{title?: string, description?: string, assignee?:string}} editedTask
  * @returns {object} action
  *
  */
 
-function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
+function editTaskAndNavigate(report, ownerEmail, {title, description, assignee}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
@@ -313,7 +311,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 reportName,
-                description: description.trim(),
+                description: (description !== undefined ? description : report.description).trim(),
                 managerEmail: assignee || report.managerEmail,
             },
         },
@@ -368,7 +366,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             taskReportID: report.reportID,
             title: reportName,
-            description: description.trim(),
+            description: (description !== undefined ? description : report.description).trim(),
             assignee: assignee || report.managerEmail,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
