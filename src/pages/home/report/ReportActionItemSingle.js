@@ -67,7 +67,7 @@ const showUserDetails = (accountID) => {
 
 const ReportActionItemSingle = (props) => {
     const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {accountID, avatar, displayName, pendingFields, login} = props.personalDetails[actorEmail] || {};
+    const {accountID, avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
     const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
