@@ -17,10 +17,10 @@ const propTypes = {
 };
 
 const RenameAction = (props) => {
-    const currentUserLogin = props.currentUserPersonalDetails.login;
+    const currentUserAccountID = props.currentUserPersonalDetails.accountID;
     const userDisplayName = lodashGet(props.action, ['person', 0, 'text']);
-    const actorEmail = lodashGet(props.action, 'actorEmail', '');
-    const displayName = actorEmail === currentUserLogin ? `${props.translate('common.you')}` : `${userDisplayName}`;
+    const actorAccountID = lodashGet(props.action, 'actorAccountID', '');
+    const displayName = actorAccountID === currentUserAccountID ? `${props.translate('common.you')}` : `${userDisplayName}`;
     const oldName = lodashGet(props.action, 'originalMessage.oldName', '');
     const newName = lodashGet(props.action, 'originalMessage.newName', '');
 
