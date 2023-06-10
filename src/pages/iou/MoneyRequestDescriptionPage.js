@@ -23,6 +23,7 @@ const propTypes = {
     /** Onyx Props */
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        id: PropTypes.string,
         comment: PropTypes.string,
         participants: PropTypes.arrayOf(optionPropTypes),
     }),
@@ -30,6 +31,7 @@ const propTypes = {
 
 const defaultProps = {
     iou: {
+        id: '',
         comment: '',
         participants: [],
     },
@@ -45,10 +47,14 @@ class MoneyRequestDescriptionPage extends Component {
         this.reportID = lodashGet(props.route, 'params.reportID', '');
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidMount() {
-        if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
+        const moneyRequestId = `${this.iouType}${this.reportID}`;
+        const shouldReset = this.props.iou.id !== moneyRequestId;
+        if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset) {
+            if (shouldReset) {
+                IOU.resetMoneyRequestInfo(moneyRequestId);
+            }
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), shouldReset);
         }
     }
 

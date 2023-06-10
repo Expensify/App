@@ -38,6 +38,7 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        id: PropTypes.string,
         amount: PropTypes.number,
         currency: PropTypes.string,
         participants: PropTypes.arrayOf(
@@ -62,6 +63,7 @@ const defaultProps = {
     },
     report: {},
     iou: {
+        id: '',
         amount: 0,
         currency: CONST.CURRENCY.USD,
         participants: [],
@@ -99,9 +101,15 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidMount() {
+        const moneyRequestId = `${this.iouType}${this.reportID}`;
+        const shouldReset = this.props.iou.id !== moneyRequestId;
+        if (shouldReset) {
+            IOU.resetMoneyRequestInfo(moneyRequestId);
+        }
+
         if (this.isEditing) {
-            if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID));
+            if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset) {
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), shouldReset);
                 return;
             }
         }

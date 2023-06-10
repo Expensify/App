@@ -20,6 +20,7 @@ import * as IOU from '../../../../libs/actions/IOU';
 const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        id: PropTypes.string,
         amount: PropTypes.number,
         participants: PropTypes.arrayOf(
             PropTypes.shape({
@@ -36,6 +37,7 @@ const propTypes = {
 
 const defaultProps = {
     iou: {
+        id: '',
         amount: 0,
         participants: [],
     },
@@ -49,14 +51,18 @@ function MoneyRequestParticipantsPage(props) {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
     };
 
-    const navigateBack = () => {
-        Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
+    const navigateBack = (forceFallback = false) => {
+        Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), forceFallback);
     };
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (props.iou.amount === 0) {
-            navigateBack();
+        const moneyRequestId = `${iouType.current}${reportID.current}`;
+        const shouldReset = props.iou.id !== moneyRequestId;
+        if (props.iou.amount === 0 || shouldReset) {
+            if (shouldReset) {
+                IOU.resetMoneyRequestInfo(moneyRequestId);
+            }
+            navigateBack(shouldReset);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

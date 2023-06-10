@@ -27,6 +27,7 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
+        id: PropTypes.string,
         amount: PropTypes.number,
         currency: PropTypes.string,
         comment: PropTypes.string,
@@ -50,6 +51,7 @@ const defaultProps = {
     report: {},
     personalDetails: {},
     iou: {
+        id: '',
         amount: 0,
         currency: CONST.CURRENCY.USD,
         comment: '',
@@ -62,10 +64,14 @@ const MoneyRequestConfirmPage = (props) => {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current));
+        const moneyRequestId = `${iouType.current}${reportID.current}`;
+        const shouldReset = props.iou.id !== moneyRequestId;
+        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
+            if (shouldReset) {
+                IOU.resetMoneyRequestInfo(moneyRequestId);
+            }
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), shouldReset);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
