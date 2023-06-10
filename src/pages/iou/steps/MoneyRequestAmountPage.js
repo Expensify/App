@@ -114,8 +114,6 @@ class MoneyRequestAmountPage extends React.Component {
             }
         }
 
-        this.focusTextInput();
-
         // Focus automatically after navigating back from currency selector
         this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
             this.focusTextInput();
@@ -413,7 +411,10 @@ class MoneyRequestAmountPage extends React.Component {
 
         return (
             <FullPageNotFoundView shouldShow={!IOUUtils.isValidType(this.iouType)}>
-                <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    onEntryTransitionEnd={this.focusTextInput}
+                >
                     {({safeAreaPaddingBottomStyle}) => (
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
