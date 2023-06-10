@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 const propTypes = {
     /** User's Account Id */
     accountID: PropTypes.string.isRequired,
-    /** Fallback User Details object used if no account id */
+    /** Fallback User Details object used if no accountID */
     fallbackUserDetails: PropTypes.shape({
         /** Avatar URL */
         avatar: PropTypes.string,
