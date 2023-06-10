@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    /** User's Account Id */
+    /** User's Account ID */
     accountID: PropTypes.string.isRequired,
     /** Fallback User Details object used if no accountID */
     fallbackUserDetails: PropTypes.shape({
