@@ -21,14 +21,8 @@ import editedLabelStyles from '../../../styles/editedLabelStyles';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip/UserDetailsTooltip';
 
 const propTypes = {
-    /** Source image */
-    avatarSource: PropTypes.oneOfType([PropTypes.object, PropTypes.func]),
-
-    /** User's name */
-    name: PropTypes.string,
-
-    /** User's login */
-    login: PropTypes.string,
+    /** Users accountID */
+    accountID: PropTypes.string.isRequired,
 
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,
@@ -70,9 +64,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    avatarSource: null,
-    name: '',
-    login: '',
     isAttachment: false,
     attachmentInfo: {
         name: '',
