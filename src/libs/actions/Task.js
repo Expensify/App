@@ -10,6 +10,7 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import _ from 'underscore';
 
 /**
  * Clears out the task info from the store
@@ -311,7 +312,7 @@ function editTaskAndNavigate(report, ownerEmail, {title, description, assignee})
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 reportName,
-                description: (description !== undefined ? description : report.description).trim(),
+                description: (!_.isUndefined(description) ? description : report.description).trim(),
                 managerEmail: assignee || report.managerEmail,
             },
         },
@@ -366,7 +367,7 @@ function editTaskAndNavigate(report, ownerEmail, {title, description, assignee})
         {
             taskReportID: report.reportID,
             title: reportName,
-            description: (description !== undefined ? description : report.description).trim(),
+            description: (!_.isUndefined(description) ? description : report.description).trim(),
             assignee: assignee || report.managerEmail,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
