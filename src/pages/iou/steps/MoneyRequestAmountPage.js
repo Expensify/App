@@ -110,11 +110,9 @@ class MoneyRequestAmountPage extends React.Component {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (this.isEditing) {
-            if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), shouldReset);
-                return;
-            }
+        if (this.isEditing && (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset)) {
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), shouldReset);
+            return;
         }
 
         // Focus automatically after navigating back from currency selector
@@ -375,11 +373,7 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     navigateBack() {
-        if (this.isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
-            return;
-        }
-        Navigation.goBack();
+        Navigation.goBack(this.isEditing ? ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID) : null);
     }
 
     navigateToCurrencySelectionPage() {
