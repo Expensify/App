@@ -195,7 +195,6 @@ class ReportActionCompose extends React.Component {
 
         this.shouldAutoFocus = !props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat()) && props.shouldShowComposeInput;
 
-        this.maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
         // These variables are used to decide whether to block the suggestions list from showing to prevent flickering
         this.shouldBlockEmojiCalc = false;
         this.shouldBlockMentionCalc = false;
@@ -906,6 +905,7 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
+        const maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
         return (
             <View
@@ -1068,7 +1068,7 @@ class ReportActionCompose extends React.Component {
                                                 onChangeText={(comment) => this.updateComment(comment, true)}
                                                 onKeyPress={this.triggerHotkeyActions}
                                                 style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                                maxLines={this.maxComposerLines}
+                                                maxLines={maxComposerLines}
                                                 onFocus={() => this.setIsFocused(true)}
                                                 onBlur={() => {
                                                     this.setIsFocused(false);
