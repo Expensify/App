@@ -885,9 +885,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
     return _.map(participants, (participant) => {
         const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
 
-        const tooltip = {
-            accountID: participant.accountID,
-        };
+        const accountID = participant.accountID;
 
         let pronouns = participant.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -897,7 +895,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 
         return {
             displayName,
-            tooltip,
+            accountID,
             pronouns,
         };
     });

@@ -93,9 +93,9 @@ const ReportWelcomeText = (props) => {
                 {isDefault && (
                     <Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistory')}</Text>
-                        {_.map(displayNamesWithTooltips, ({displayName, pronouns, tooltip}, index) => (
+                        {_.map(displayNamesWithTooltips, ({displayName, pronouns, accountID}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
-                                <UserDetailsTooltip accountID={tooltip.accountID}>
+                                <UserDetailsTooltip accountID={accountID}>
                                     <Text
                                         style={[styles.textStrong]}
                                         onPress={() => Navigation.navigate(ROUTES.getProfileRoute(participantAccountIDs[index]))}
