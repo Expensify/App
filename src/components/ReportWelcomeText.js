@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import UserDetailsTooltip from './UserDetailsTooltip/UserDetailsTooltip';
+import UserDetailsTooltip from './UserDetailsTooltip';
 import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';

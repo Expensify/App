@@ -18,7 +18,7 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
 import editedLabelStyles from '../../../styles/editedLabelStyles';
-import UserDetailsTooltip from '../../../components/UserDetailsTooltip/UserDetailsTooltip';
+import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
     /** Users accountID */

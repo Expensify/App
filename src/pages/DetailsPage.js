@@ -16,7 +16,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
-import UserDetailsTooltip from '../components/UserDetailsTooltip/UserDetailsTooltip';
+import UserDetailsTooltip from '../components/UserDetailsTooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from '../components/Icon/Expensicons';

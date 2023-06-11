@@ -5,7 +5,7 @@ import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
-import UserDetailsTooltip from '../UserDetailsTooltip/UserDetailsTooltip';
+import UserDetailsTooltip from '../UserDetailsTooltip';
 
 class DisplayNames extends PureComponent {
     constructor(props) {

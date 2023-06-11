@@ -21,7 +21,7 @@ import CONST from '../../../CONST';
 import SubscriptAvatar from '../../../components/SubscriptAvatar';
 import reportPropTypes from '../../reportPropTypes';
 import * as UserUtils from '../../../libs/UserUtils';
-import UserDetailsTooltip from '../../../components/UserDetailsTooltip/UserDetailsTooltip';
+import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
     /** All the data of the action */

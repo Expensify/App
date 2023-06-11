@@ -12,7 +12,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
 import variables from '../styles/variables';
 import avatarPropTypes from './avatarPropTypes';
-import UserDetailsTooltip from './UserDetailsTooltip/UserDetailsTooltip';
+import UserDetailsTooltip from './UserDetailsTooltip';
 import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
