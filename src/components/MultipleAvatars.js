@@ -81,7 +81,7 @@ const MultipleAvatars = (props) => {
                 fallbackUserDetails={{
                     displayName: ReportUtils.getPersonalDetailsForLogin(props.icons[0].name).displayName || '',
                     login: props.icons[0].name || tooltipTexts[0],
-                    avatarSource: props.icons[0].source || '',
+                    avatar: props.icons[0].source || '',
                 }}
             >
                 <View style={avatarContainerStyles}>
