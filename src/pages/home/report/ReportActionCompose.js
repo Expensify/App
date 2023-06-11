@@ -446,13 +446,6 @@ function ReportActionCompose(props) {
         };
     }, [focus, isFocused, props.disabled, props.isFocused, props.navigation, showPopoverMenu, updateComment, updateMaxLines]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (props.isDrawerOpen) {
-            ComposerActions.setShouldShowComposeInput(true);
-        }
-    }, [props.isDrawerOpen]);
-
     useEffect(() => {
         updateMaxLines();
     }, [props.isComposerFullSize, updateMaxLines]);
@@ -963,7 +956,6 @@ function ReportActionCompose(props) {
     );
 
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
-    const isComposeDisabled = props.isDrawerOpen && props.isSmallScreenWidth;
     const reportRecipient = props.personalDetails[participantsWithoutExpensifyEmails[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
     const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
