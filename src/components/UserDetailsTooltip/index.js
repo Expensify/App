@@ -13,7 +13,7 @@ function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
     const renderTooltipContent = useCallback(
         () => (
-            <View style={[styles.alignItemsCenter, styles.ph2]}>
+            <View style={[styles.alignItemsCenter, styles.ph2, styles.pv2]}>
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
@@ -22,7 +22,7 @@ function UserDetailsTooltip(props) {
                 </View>
 
                 {String(userDetails.displayName).trim() ? (
-                    <Text style={[styles.mt1, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{userDetails.displayName}</Text>
+                    <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{userDetails.displayName}</Text>
                 ) : (
                     ''
                 )}
