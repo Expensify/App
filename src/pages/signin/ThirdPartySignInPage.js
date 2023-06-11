@@ -14,7 +14,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 
 const propTypes = {
-    /** Which sign in provider we are using */
+    /** Which sign in provider we are using. */
     signInProvider: PropTypes.oneOf(['google', 'apple']).isRequired,
 
     ...withLocalizePropTypes,
