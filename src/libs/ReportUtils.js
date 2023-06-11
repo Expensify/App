@@ -749,6 +749,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     }
     if (isConciergeChatReport(report)) {
         result.source = CONST.CONCIERGE_ICON_URL;
+        result.name = CONST.EMAIL.CONCIERGE
         return [result];
     }
     if (isArchivedRoom(report)) {
