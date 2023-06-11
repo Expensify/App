@@ -74,29 +74,27 @@ function BaseValidateCodeForm(props) {
     const required2FA = usePrevious(props.account.requiresTwoFactorAuth);
     const hadValidateCode = usePrevious(props.credentials.validateAndSubmitForm);
 
-    const refValidateCode = useRef(null);
-    const inputValidateCode = refValidateCode.current;
-    const ref2FA = useRef(null);
-    const input2FA = ref2FA.current;
+    const inputValidateCodeRef = useRef();
+    const input2FARef = useRef();
 
     useEffect(() => {
-        if (!inputValidateCode || wasVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
+        if (!inputValidateCodeRef.current || wasVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
             return;
         }
-        inputValidateCode.focus();
-    }, [inputValidateCode, props.isVisible, wasVisible]);
+        inputValidateCodeRef.current.focus();
+    }, [inputValidateCodeRef, props.isVisible, wasVisible]);
 
     useEffect(() => {
-        if (!inputValidateCode) {
+        if (!inputValidateCodeRef.current) {
             return;
         }
 
         // Clear the code input if magic code valid or a new magic code was requested
         if ((wasVisible && !props.isVisible && validateCode) || (props.isVisible && linkSent && props.account.message && validateCode)) {
             setValidateCode('');
-            inputValidateCode.clear();
+            inputValidateCodeRef.current.clear();
         }
-    }, [inputValidateCode, props.isVisible, props.account.message, wasVisible, linkSent, validateCode]);
+    }, [inputValidateCodeRef, props.isVisible, props.account.message, wasVisible, linkSent, validateCode]);
 
     useEffect(() => {
         if (hadValidateCode || !props.credentials.validateCode) {
@@ -106,11 +104,11 @@ function BaseValidateCodeForm(props) {
     }, [props.credentials.validateCode, hadValidateCode]);
 
     useEffect(() => {
-        if (!input2FA || required2FA || !props.account.requiresTwoFactorAuth) {
+        if (!input2FARef.current || required2FA || !props.account.requiresTwoFactorAuth) {
             return;
         }
-        input2FA.focus();
-    }, [input2FA, props.account.requiresTwoFactorAuth, required2FA]);
+        input2FARef.current.focus();
+    }, [input2FARef, props.account.requiresTwoFactorAuth, required2FA]);
 
     /**
      * Handle text input and clear formError upon text change
@@ -133,9 +131,9 @@ function BaseValidateCodeForm(props) {
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        if (input2FA) {
+        if (input2FARef.current) {
             setTwoFactorAuthCode('');
-            input2FA.clear();
+            input2FARef.current.clear();
         }
         setFormError({});
         User.resendValidateCode(props.credentials.login, true);
@@ -160,8 +158,8 @@ function BaseValidateCodeForm(props) {
     const validateAndSubmitForm = useCallback(() => {
         const requiresTwoFactorAuth = props.account.requiresTwoFactorAuth;
         if (requiresTwoFactorAuth) {
-            if (input2FA) {
-                input2FA.blur();
+            if (input2FARef.current) {
+                input2FARef.current.blur();
             }
             if (!twoFactorAuthCode.trim()) {
                 setFormError({twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'});
@@ -172,8 +170,8 @@ function BaseValidateCodeForm(props) {
                 return;
             }
         } else {
-            if (inputValidateCode) {
-                inputValidateCode.blur();
+            if (inputValidateCodeRef.current) {
+                inputValidateCodeRef.current.blur();
             }
             if (!validateCode.trim()) {
                 setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
@@ -205,7 +203,7 @@ function BaseValidateCodeForm(props) {
                 <View style={[styles.mv3]}>
                     <MagicCodeInput
                         autoComplete={props.autoComplete}
-                        ref={ref2FA}
+                        ref={input2FARef}
                         label={props.translate('common.twoFactorCode')}
                         name="twoFactorAuthCode"
                         value={twoFactorAuthCode}
@@ -221,7 +219,7 @@ function BaseValidateCodeForm(props) {
                 <View style={[styles.mv3]}>
                     <MagicCodeInput
                         autoComplete={props.autoComplete}
-                        ref={refValidateCode}
+                        ref={inputValidateCodeRef}
                         label={props.translate('common.magicCode')}
                         name="validateCode"
                         value={validateCode}
@@ -274,6 +272,7 @@ function BaseValidateCodeForm(props) {
 
 BaseValidateCodeForm.propTypes = propTypes;
 BaseValidateCodeForm.defaultProps = defaultProps;
+BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export default compose(
     withLocalize,
