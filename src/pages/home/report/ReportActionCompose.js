@@ -560,7 +560,7 @@ function ReportActionCompose(props) {
     const getNavigationKey = useCallback(() => {
         const navigation = props.navigation.getState();
         return lodashGet(navigation.routes, [navigation.index, 'key']);
-    }, []);
+    }, [props.navigation]);
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
@@ -894,23 +894,7 @@ function ReportActionCompose(props) {
                 }
             }
         },
-        [
-            highlightedEmojiIndex,
-            highlightedMentionIndex,
-            insertSelectedEmoji,
-            insertSelectedMention,
-            isCommentEmpty,
-            props.isKeyboardShown,
-            props.isSmallScreenWidth,
-            props.report,
-            props.reportActions,
-            props.reportID,
-            resetSuggestions,
-            submitForm,
-            suggestionValues.suggestedEmojis.length,
-            suggestionValues.suggestedMentions.length,
-            updateComment,
-        ],
+        [highlightedEmojiIndex, highlightedMentionIndex, insertSelectedEmoji, insertSelectedMention, isCommentEmpty, props.isKeyboardShown, props.isSmallScreenWidth, props.parentReportActions, props.report, props.reportActions, props.reportID, resetSuggestions, submitForm, suggestionValues.suggestedEmojis.length, suggestionValues.suggestedMentions.length, updateComment],
     );
 
     /**
