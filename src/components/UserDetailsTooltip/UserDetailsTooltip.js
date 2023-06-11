@@ -31,7 +31,7 @@ function UserDetailsTooltip(props){
       , [userDetails.avatar, userDetails.displayName, userDetails.login]);
 
     return (
-        <Tooltip renderTooltipContent={userDetails.avatar ? renderTooltipContent : undefined}>
+        <Tooltip renderTooltipContent={(userDetails.name || userDetails.login) ? renderTooltipContent : undefined}>
             {props.children}
         </Tooltip>
     )
