@@ -196,6 +196,7 @@ function BaseValidateCodeForm(props) {
     }, [props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
     const hasError = Boolean(props.account) && !lodashIsEmpty(props.account.errors);
+    const resendButtonStyle = props.network.isOffline ? styles.buttonOpacityDisabled : {};
     return (
         <>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -234,9 +235,10 @@ function BaseValidateCodeForm(props) {
                             <Text style={[styles.mt2]}>{props.account.message ? props.translate(props.account.message) : ''}</Text>
                         ) : (
                             <PressableWithFeedback
-                                style={[styles.mt2]}
+                                style={[styles.mt2, resendButtonStyle]}
                                 onPress={resendValidateCode}
                                 underlayColor={themeColors.componentBG}
+                                disabled={props.network.isOffline}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
                                 accessibilityRole="button"

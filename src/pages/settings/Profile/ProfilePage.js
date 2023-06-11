@@ -93,7 +93,7 @@ const ProfilePage = (props) => {
                     onImageSelected={PersonalDetails.updateAvatar}
                     onImageRemoved={PersonalDetails.deleteAvatar}
                     anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
-                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                     size={CONST.AVATAR_SIZE.LARGE}
                     pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
                     errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
