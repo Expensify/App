@@ -232,7 +232,6 @@ function ReportActionItem(props) {
                 <TaskAction
                     taskReportID={props.action.originalMessage.taskReportID.toString()}
                     actionName={props.action.actionName}
-                    isHovered={hovered}
                 />
             );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
@@ -308,7 +307,7 @@ function ReportActionItem(props) {
                                 style={styles.buttonSmallText}
                                 selectable={false}
                             >
-                                {isHidden ? 'Reveal message' : 'Hide message'}
+                                {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                             </Text>
                         </Button>
                     )}
@@ -447,6 +446,7 @@ function ReportActionItem(props) {
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
+                                shouldHideOnDelete={!ReportActionsUtils.hasCommentThread(props.action)}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}

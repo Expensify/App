@@ -92,7 +92,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
-                onSelected: () => Task.completeTask(props.report.reportID, props.report.parentReportID, title),
+                onSelected: () => Task.completeTask(props.report.reportID, title),
             });
         }
 
@@ -101,7 +101,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report.reportID, props.report.parentReportID, title),
+                onSelected: () => Task.reopenTask(props.report.reportID, title),
             });
         }
 
@@ -110,13 +110,13 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.parentReportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
             });
         }
     }
     const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
-    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report) && !isTaskReport;
+    const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(props.report);
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
@@ -158,7 +158,7 @@ const HeaderView = (props) => {
                             ) : (
                                 <MultipleAvatars
                                     icons={icons}
-                                    shouldShowTooltip={!isChatRoom}
+                                    shouldShowTooltip={!isChatRoom || isThread}
                                 />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>

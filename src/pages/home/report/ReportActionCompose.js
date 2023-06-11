@@ -18,7 +18,6 @@ import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
 import PopoverMenu from '../../../components/PopoverMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withDrawerState from '../../../components/withDrawerState';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import willBlurTextInputOnTapOutsideFunc from '../../../libs/willBlurTextInputOnTapOutside';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
@@ -49,7 +48,6 @@ import MentionSuggestions from '../../../components/MentionSuggestions';
 import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
-import * as ComposerActions from '../../../libs/actions/Composer';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
@@ -90,8 +88,8 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** Is the report view covered by the drawer */
-    isDrawerOpen: PropTypes.bool.isRequired,
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
@@ -133,6 +131,7 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: [],
+    parentReportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
@@ -565,6 +564,11 @@ function ReportActionCompose(props) {
         [props],
     );
 
+    const getNavigationKey = useCallback(() => {
+        const navigation = props.navigation.getState();
+        return lodashGet(navigation.routes, [navigation.index, 'key']);
+    }, []);
+
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
             if (selectionEnd < 1) {
@@ -855,7 +859,7 @@ function ReportActionCompose(props) {
 
             const suggestionsExist = suggestionValues.suggestedEmojis.length > 0 || suggestionValues.suggestedMentions.length > 0;
 
-            if ((e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
+            if (((!e.shiftKey && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
                 e.preventDefault();
                 if (suggestionValues.suggestedEmojis.length > 0) {
                     insertSelectedEmoji(highlightedEmojiIndex);
@@ -865,6 +869,7 @@ function ReportActionCompose(props) {
                 }
                 return;
             }
+
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
                 e.preventDefault();
 
@@ -887,7 +892,9 @@ function ReportActionCompose(props) {
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.selectionStart === 0 && isCommentEmpty && !ReportUtils.chatIncludesChronos(props.report)) {
                 e.preventDefault();
 
-                const lastReportAction = _.find(props.reportActions, (action) => ReportUtils.canEditReportAction(action));
+                const parentReportActionID = lodashGet(props.report, 'parentReportActionID', '');
+                const parentReportAction = lodashGet(props.parentReportActions, [parentReportActionID], {});
+                const lastReportAction = _.find([...props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
                 if (lastReportAction !== -1 && lastReportAction) {
                     Report.saveReportActionDraft(props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
@@ -1085,8 +1092,8 @@ function ReportActionCompose(props) {
                                 </AttachmentPicker>
                                 <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder]}>
                                     <DragAndDrop
-                                        dropZoneId={CONST.REPORT.DROP_NATIVE_ID}
-                                        activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
+                                        dropZoneId={CONST.REPORT.DROP_NATIVE_ID + getNavigationKey()}
+                                        activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + props.reportID}
                                         onDragEnter={() => setIsDraggingOver(true)}
                                         onDragLeave={() => setIsDraggingOver(false)}
                                         onDrop={(e) => onDropAttachment(e, displayFileInModal)}
@@ -1115,7 +1122,7 @@ function ReportActionCompose(props) {
                                             onPasteFile={displayFileInModal}
                                             shouldClear={textInputShouldClear}
                                             onClear={() => setTextInputShouldClear(false)}
-                                            isDisabled={isComposeDisabled || isBlockedFromConcierge || props.disabled}
+                                            isDisabled={isBlockedFromConcierge || props.disabled}
                                             selection={selection}
                                             onSelectionChange={onSelectionChange}
                                             isFullComposerAvailable={isFullSizeComposerAvailable}
@@ -1230,7 +1237,6 @@ ReportActionCompose.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withDrawerState,
     withNavigation,
     withNavigationFocus,
     withLocalize,
@@ -1263,6 +1269,10 @@ export default compose(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            canEvict: false,
         },
     }),
 )(ReportActionCompose);
