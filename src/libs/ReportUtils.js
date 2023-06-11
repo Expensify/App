@@ -847,6 +847,16 @@ function getPersonalDetailsForLogin(login) {
 }
 
 /**
+ * Gets the accountID for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then an empty string is returned.
+ * @param {String} login
+ * @returns {String}
+ */
+function getAccountIDForLogin(login) {
+    return lodashGet(allPersonalDetails, [login, 'accountID'], '');
+}
+
+/**
  * Get the displayName for a single report participant.
  *
  * @param {String} login
@@ -2157,6 +2167,7 @@ function getParentReport(report) {
 }
 
 export {
+    getAccountIDForLogin,
     getReportParticipantsTitle,
     getPersonalDetailsForLogin,
     isReportMessageAttachment,
