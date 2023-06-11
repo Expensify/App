@@ -124,7 +124,7 @@ const MultipleAvatars = (props) => {
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
                         <UserDetailsTooltip
                             key={`stackedAvatars-${index}`}
-                            accountID={ReportUtils.getPersonalDetailsForLogin(icon.name).accountID}
+                            accountID={lodashGet(ReportUtils.getPersonalDetailsForLogin(icon.name), 'accountID', '')}
                         >
                             <View
                                 style={[
@@ -184,7 +184,7 @@ const MultipleAvatars = (props) => {
             ) : (
                 <View style={singleAvatarStyles}>
                     <UserDetailsTooltip
-                        accountID={ReportUtils.getPersonalDetailsForLogin(props.icons[0].name).accountID}
+                        accountID={lodashGet(ReportUtils.getPersonalDetailsForLogin(props.icons[0].name), 'accountID', '')}
                     >
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
@@ -201,7 +201,7 @@ const MultipleAvatars = (props) => {
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
                             <UserDetailsTooltip
-                                accountID={ReportUtils.getPersonalDetailsForLogin(props.icons[1].name).accountID}
+                                accountID={lodashGet(ReportUtils.getPersonalDetailsForLogin(props.icons[1].name), 'accountID', '')}
                             >
                                 <View>
                                     <Avatar
