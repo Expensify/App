@@ -32,8 +32,12 @@ function UserDetailsTooltip(props) {
         ),
         [userDetails.avatar, userDetails.displayName, userDetails.login],
     );
+    
+    if (!userDetails.name && !userDetails.login) {
+        return props.children;
+    }
 
-    return <Tooltip renderTooltipContent={userDetails.name || userDetails.login ? renderTooltipContent : undefined}>{props.children}</Tooltip>;
+    return <Tooltip renderTooltipContent={renderTooltipContent}>{props.children}</Tooltip>;
 }
 
 UserDetailsTooltip.propTypes = propTypes;
