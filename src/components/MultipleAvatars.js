@@ -2,6 +2,7 @@ import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
 import Tooltip from './Tooltip';
@@ -77,11 +78,11 @@ const MultipleAvatars = (props) => {
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
         return (
             <UserDetailsTooltip
-                accountID={ReportUtils.getPersonalDetailsForLogin(props.icons[0].name).accountID}
+                accountID={lodashGet(ReportUtils.getPersonalDetailsForLogin(props.icons[0].name), 'accountID', '')}
                 fallbackUserDetails={{
-                    displayName: ReportUtils.getPersonalDetailsForLogin(props.icons[0].name).displayName || '',
-                    login: props.icons[0].name || tooltipTexts[0],
-                    avatar: props.icons[0].source || '',
+                    displayName: lodashGet(ReportUtils.getPersonalDetailsForLogin(props.icons[0].name), 'displayName', ''),
+                    login: lodashGet(props.icons[0], 'name', tooltipTexts[0]),
+                    avatar: lodashGet(props.icons[0], 'source', ''),
                 }}
             >
                 <View style={avatarContainerStyles}>
