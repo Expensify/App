@@ -59,22 +59,22 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false)).toStrictEqual([
                 {
                     displayName: 'Ragnar Lothbrok',
-                    tooltip: {accountID: 1,},
+                    tooltip: {accountID: 1},
                     pronouns: undefined,
                 },
                 {
                     displayName: 'floki@vikings.net',
-                    tooltip: {accountID: 2,},
+                    tooltip: {accountID: 2},
                     pronouns: undefined,
                 },
                 {
                     displayName: 'Lagertha Lothbrok',
-                    tooltip: {accountID: 3,},
+                    tooltip: {accountID: 3},
                     pronouns: 'She/her',
                 },
                 {
                     displayName: '(833) 240-3627',
-                    tooltip: {accountID: 4,},
+                    tooltip: {accountID: 4},
                     pronouns: undefined,
                 },
             ]);
@@ -84,22 +84,22 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, true)).toStrictEqual([
                 {
                     displayName: 'Ragnar',
-                    tooltip: {accountID: 1,},
+                    tooltip: {accountID: 1},
                     pronouns: undefined,
                 },
                 {
                     displayName: 'floki@vikings.net',
-                    tooltip: {accountID: 2,},
+                    tooltip: {accountID: 2},
                     pronouns: undefined,
                 },
                 {
                     displayName: 'Lagertha',
-                    tooltip: {accountID: 3,},
+                    tooltip: {accountID: 3},
                     pronouns: 'She/her',
                 },
                 {
                     displayName: '(833) 240-3627',
-                    tooltip: {accountID: 4,},
+                    tooltip: {accountID: 4},
                     pronouns: undefined,
                 },
             ]);

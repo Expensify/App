@@ -7,10 +7,7 @@ const propTypes = {
     /** Fallback User Details object used if no accountID */
     fallbackUserDetails: PropTypes.shape({
         /** Avatar URL */
-        avatar: PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.func
-        ,]),
+        avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
         /** Display Name */
         displayName: PropTypes.string,
         /** Login */

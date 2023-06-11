@@ -183,9 +183,7 @@ const MultipleAvatars = (props) => {
                 </>
             ) : (
                 <View style={singleAvatarStyles}>
-                    <UserDetailsTooltip
-                        accountID={lodashGet(ReportUtils.getPersonalDetailsForLogin(props.icons[0].name), 'accountID', '')}
-                    >
+                    <UserDetailsTooltip accountID={lodashGet(ReportUtils.getPersonalDetailsForLogin(props.icons[0].name), 'accountID', '')}>
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
@@ -200,9 +198,7 @@ const MultipleAvatars = (props) => {
                     </UserDetailsTooltip>
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
-                            <UserDetailsTooltip
-                                accountID={lodashGet(ReportUtils.getPersonalDetailsForLogin(props.icons[1].name), 'accountID', '')}
-                            >
+                            <UserDetailsTooltip accountID={lodashGet(ReportUtils.getPersonalDetailsForLogin(props.icons[1].name), 'accountID', '')}>
                                 <View>
                                     <Avatar
                                         source={props.icons[1].source || props.fallbackIcon}

@@ -100,9 +100,7 @@ const ReportActionItemSingle = (props) => {
                             noMargin
                         />
                     ) : (
-                        <UserDetailsTooltip 
-                            accountID={accountID}
-                        >
+                        <UserDetailsTooltip accountID={accountID}>
                             <View>
                                 <Avatar
                                     containerStyles={[styles.actionAvatar]}

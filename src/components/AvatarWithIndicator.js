@@ -22,9 +22,9 @@ import themeColors from '../styles/themes/default';
 const propTypes = {
     /** URL for the avatar */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]).isRequired,
-    
-     /** To show a tooltip on hover */
-     tooltipText: PropTypes.string,
+
+    /** To show a tooltip on hover */
+    tooltipText: PropTypes.string,
 
     /* Onyx Props */
 

@@ -876,8 +876,8 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 
         const tooltip = {
             accountID: participant.accountID,
-        }
-        
+        };
+
         let pronouns = participant.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
             const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
