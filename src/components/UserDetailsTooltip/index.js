@@ -32,7 +32,7 @@ function UserDetailsTooltip(props) {
         ),
         [userDetails.avatar, userDetails.displayName, userDetails.login],
     );
-    
+
     if (!userDetails.name && !userDetails.login) {
         return props.children;
     }
