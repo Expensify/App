@@ -8,6 +8,7 @@ import Tooltip from '../Tooltip';
 import { propTypes, defaultProps } from './userDetailsTooltipPropTypes';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
+
 function UserDetailsTooltip(props){
 
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
