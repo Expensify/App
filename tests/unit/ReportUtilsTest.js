@@ -15,20 +15,24 @@ const participantsPersonalDetails = {
         displayName: 'Ragnar Lothbrok',
         firstName: 'Ragnar',
         login: 'ragnar@vikings.net',
+        accountID: 1,
     },
     'floki@vikings.net': {
         login: 'floki@vikings.net',
         displayName: 'floki@vikings.net',
+        accountID: 2,
     },
     'lagertha@vikings.net': {
         displayName: 'Lagertha Lothbrok',
         firstName: 'Lagertha',
         login: 'lagertha@vikings.net',
         pronouns: 'She/her',
+        accountID: 3,
     },
     '+18332403627@expensify.sms': {
         login: '+18332403627@expensify.sms',
         displayName: '(833) 240-3627',
+        accountID: 4,
     },
 };
 const policy = {
@@ -55,22 +59,22 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false)).toStrictEqual([
                 {
                     displayName: 'Ragnar Lothbrok',
-                    tooltip: 'ragnar@vikings.net',
+                    tooltip: {accountID: 1,},
                     pronouns: undefined,
                 },
                 {
                     displayName: 'floki@vikings.net',
-                    tooltip: 'floki@vikings.net',
+                    tooltip: {accountID: 2,},
                     pronouns: undefined,
                 },
                 {
                     displayName: 'Lagertha Lothbrok',
-                    tooltip: 'lagertha@vikings.net',
+                    tooltip: {accountID: 3,},
                     pronouns: 'She/her',
                 },
                 {
                     displayName: '(833) 240-3627',
-                    tooltip: '+18332403627',
+                    tooltip: {accountID: 4,},
                     pronouns: undefined,
                 },
             ]);
@@ -80,22 +84,22 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, true)).toStrictEqual([
                 {
                     displayName: 'Ragnar',
-                    tooltip: 'ragnar@vikings.net',
+                    tooltip: {accountID: 1,},
                     pronouns: undefined,
                 },
                 {
                     displayName: 'floki@vikings.net',
-                    tooltip: 'floki@vikings.net',
+                    tooltip: {accountID: 2,},
                     pronouns: undefined,
                 },
                 {
                     displayName: 'Lagertha',
-                    tooltip: 'lagertha@vikings.net',
+                    tooltip: {accountID: 3,},
                     pronouns: 'She/her',
                 },
                 {
                     displayName: '(833) 240-3627',
-                    tooltip: '+18332403627',
+                    tooltip: {accountID: 4,},
                     pronouns: undefined,
                 },
             ]);
