@@ -20,8 +20,6 @@ import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as Pressables from '../Pressable';
 
-const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
-
 function dismissKeyboardWhenBackgrounded(nextAppState) {
     if (!nextAppState.match(/inactive|background/)) {
         return;
@@ -225,7 +223,7 @@ function BaseTextInput(props) {
     return (
         <>
             <View>
-                <PressableWithoutFeedback
+                <Pressables.PressableWithoutFeedback
                     onPress={onPress}
                     focusable={false}
                     accessibilityLabel={props.label}
@@ -346,7 +344,7 @@ function BaseTextInput(props) {
                             )}
                         </View>
                     </View>
-                </PressableWithoutFeedback>
+                </Pressables.PressableWithoutFeedback>
                 {!_.isEmpty(inputHelpText) && (
                     <FormHelpMessage
                         isError={!_.isEmpty(props.errorText)}
