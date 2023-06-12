@@ -583,7 +583,7 @@ function readOldestAction(reportID, reportActionID) {
 }
 
 /**
- * Gets metadata info about links in the provided report
+ * Gets metadata info about links in the provided report action
  *
  * @param {String} reportID
  * @param {String} reportActionID
