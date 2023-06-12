@@ -61,7 +61,7 @@ function getAccountIDsByLogins(logins) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(UserUtils.generateAccountID());
         } else {
-            foundAccountIDs.push(detail.accountID);
+            foundAccountIDs.push(currentDetail.accountID);
         } 
         return foundAccountIDs;
     }, []);
@@ -77,7 +77,7 @@ function getLoginsByAccountIDs(accountIDs) {
     return _.reduce(accountIDs, (foundLogins, accountID) => {
         const currentDetail = _.find(personalDetails, (detail) => detail.accountID === accountID) || {};
         if (currentDetail.login) {
-            foundLogins.push(detail.login);
+            foundLogins.push(currentDetail.login);
         }
         return foundLogins;
     }, []);
