@@ -68,7 +68,7 @@ const showUserDetails = (accountID) => {
 
 const ReportActionItemSingle = (props) => {
     const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
+    const {accountID, avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
     const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -89,7 +89,7 @@ const ReportActionItemSingle = (props) => {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(actorEmail)}
+                onPress={() => showUserDetails(accountID)}
                 accessibilityLabel={actorEmail}
                 accessibilityRole="button"
             >
@@ -121,7 +121,7 @@ const ReportActionItemSingle = (props) => {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(actorEmail)}
+                            onPress={() => showUserDetails(accountID)}
                             accessibilityLabel={actorEmail}
                             accessibilityRole="button"
                         >
