@@ -104,9 +104,9 @@ function addErrorMessage(errors, inputID, message) {
     const translatedMessage = Localize.translateIfPhraseKey(message);
 
     if (_.isEmpty(errorList[inputID])) {
-        errorList[inputID] = translatedMessage;
+        errorList[inputID] = [translatedMessage, {isTranslated: true}];
     } else {
-        errorList[inputID] = `${errorList[inputID]}\n${translatedMessage}`;
+        errorList[inputID][0] = `${errorList[inputID][0]}\n${translatedMessage}`;
     }
 }
 
