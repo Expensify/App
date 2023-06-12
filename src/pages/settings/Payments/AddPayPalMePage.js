@@ -1,6 +1,5 @@
 import React, {useRef, useState, useCallback} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {View, TouchableWithoutFeedback, Linking} from 'react-native';
+import {View, Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
@@ -20,6 +19,7 @@ import * as User from '../../../libs/actions/User';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import variables from '../../../styles/variables';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 
 const AddPayPalMePage = (props) => {
     const [payPalMeUsername, setPayPalMeUsername] = useState('');
@@ -69,8 +69,10 @@ const AddPayPalMePage = (props) => {
                     />
                     <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween, styles.alignSelfStart]}>
                         <Text style={[styles.textMicro, styles.flexRow]}>{props.translate('addPayPalMePage.checkListOf')}</Text>
-                        <TouchableWithoutFeedback
-                            // eslint-disable-next-line max-len
+                        <PressableWithoutFeedback
+                            shouldUseAutoHitSlop={false}
+                            accessibilityRole="link"
+                            accessibilityLabel={props.translate('addPayPalMePage.supportedCurrencies')}
                             onPress={() => Linking.openURL('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
                         >
                             <View style={[styles.flexRow, styles.cursorPointer]}>
@@ -89,7 +91,7 @@ const AddPayPalMePage = (props) => {
                                     />
                                 </View>
                             </View>
-                        </TouchableWithoutFeedback>
+                        </PressableWithoutFeedback>
                     </View>
                 </View>
             </View>
