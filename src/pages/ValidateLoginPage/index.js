@@ -10,7 +10,6 @@ import * as Session from '../../libs/actions/Session';
 import usePermissions from '../../hooks/usePermissions';
 import useLocalize from '../../hooks/useLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
