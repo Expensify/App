@@ -89,10 +89,6 @@ const CheckboxWithLabel = (props) => {
         setIsChecked(newState);
     };
 
-    useEffect(() => {
-        setIsChecked(props.isChecked);
-    }, [props.isChecked]);
-
     const LabelComponent = props.LabelComponent;
 
     return (

@@ -78,7 +78,6 @@ class TermsStep extends React.Component {
                     <LongTermsForm />
                     <CheckboxWithLabel
                         style={[styles.mb4, styles.mt4]}
-                        isChecked={this.state.hasAcceptedDisclosure}
                         onInputChange={this.toggleDisclosure}
                         LabelComponent={() => (
                             <Text>
@@ -88,7 +87,6 @@ class TermsStep extends React.Component {
                         )}
                     />
                     <CheckboxWithLabel
-                        isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
                         onInputChange={this.togglePrivacyPolicy}
                         LabelComponent={() => (
                             <Text>
