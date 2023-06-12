@@ -188,7 +188,6 @@ function BaseTextInput(props) {
             props.onInputChange(value);
         }
 
-        // TODO: what is the next line used for?
         Str.result(props.onChangeText, value);
         activateLabel();
     };
