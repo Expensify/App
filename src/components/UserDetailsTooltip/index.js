@@ -3,6 +3,7 @@ import {View, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import Avatar from '../Avatar';
 import Tooltip from '../Tooltip';
 import {propTypes, defaultProps} from './userDetailsTooltipPropTypes';
@@ -27,7 +28,11 @@ function UserDetailsTooltip(props) {
                     ''
                 )}
 
-                {String(userDetails.login).trim() ? <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{Str.removeSMSDomain(userDetails.login)}</Text> : ''}
+                {String(userDetails.login).trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? (
+                    <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{Str.removeSMSDomain(userDetails.login)}</Text>
+                ) : (
+                    ''
+                )}
             </View>
         ),
         [userDetails.avatar, userDetails.displayName, userDetails.login],
