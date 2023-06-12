@@ -211,7 +211,7 @@ export default [
         onPress: (closePopover, {reportAction}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
-                const activeReportID = Navigation.getReportIDFromRoute();
+                const activeReportID = Navigation.getTopmostReportId();
                 Clipboard.setString(`${environmentURL}/r/${activeReportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -225,7 +225,7 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type) => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction}) => {
-            const activeReportID = Navigation.getReportIDFromRoute();
+            const activeReportID = Navigation.getTopmostReportId();
             Report.markCommentAsUnread(activeReportID, reportAction.created);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);

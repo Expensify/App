@@ -528,7 +528,7 @@ function isThreadParent(reportAction) {
  * @returns {Boolean}
  */
 function isThreadFirstChat(reportAction) {
-    return !_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === Navigation.getReportIDFromRoute();
+    return !_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === Navigation.getTopmostReportId();
 }
 
 /**
