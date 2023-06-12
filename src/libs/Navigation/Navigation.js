@@ -158,15 +158,10 @@ function getActiveRoute() {
         return '';
     }
 
-    const routeState = navigationRef.current.getState();
-    const currentRoute = routeState.routes[routeState.index];
+    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
 
-    if (currentRoute.state) {
-        return getPathFromState(routeState, linkingConfig.config);
-    }
-
-    if (currentRoute.params && currentRoute.params.path) {
-        return currentRoute.params.path;
+    if (routeFromState) {
+        return routeFromState;
     }
 
     return '';

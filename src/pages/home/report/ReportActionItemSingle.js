@@ -62,8 +62,8 @@ const defaultProps = {
     report: undefined,
 };
 
-const showUserDetails = (email) => {
-    Navigation.navigate(ROUTES.getDetailsRoute(email));
+const showUserDetails = (accountID) => {
+    Navigation.navigate(ROUTES.getProfileRoute(accountID));
 };
 
 const ReportActionItemSingle = (props) => {
