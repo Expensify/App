@@ -301,7 +301,7 @@ function getOptionData(reportID) {
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
-        if (lastAction && lastAction.actionName && lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+        if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else {
