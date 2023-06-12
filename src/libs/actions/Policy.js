@@ -277,7 +277,14 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
             });
             return;
         }
-        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, cleanAccountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, login, cleanAccountID);
+        const optimisticReport = ReportUtils.buildOptimisticChatReport(
+            [sessionAccountID, cleanAccountID],
+            undefined,
+            CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID,
+            login,
+            cleanAccountID,
+        );
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
 
         workspaceMembersChats.reportCreationData[login] = {
