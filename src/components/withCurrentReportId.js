@@ -11,7 +11,7 @@ const withCurrentReportIdPropTypes = {
     children: PropTypes.node.isRequired,
 };
 
-function CurrentReportIdContextProvider ({children}) {
+function CurrentReportIdContextProvider({children}) {
     const [currentReportId, setCurrentReportId] = useState('');
 
     const updateCurrentReportId = (state) => {
@@ -19,12 +19,12 @@ function CurrentReportIdContextProvider ({children}) {
     };
 
     const getContextValue = () => ({
-            updateCurrentReportId,
-            currentReportId,
-        });
+        updateCurrentReportId,
+        currentReportId,
+    });
 
     return <CurrentReportIdContext.Provider value={getContextValue()}>{children}</CurrentReportIdContext.Provider>;
-};
+}
 
 CurrentReportIdContextProvider.propTypes = withCurrentReportIdPropTypes;
 
