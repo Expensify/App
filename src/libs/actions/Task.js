@@ -429,7 +429,7 @@ function setShareDestinationValue(shareDestination) {
  * @param {String} reportID
  */
 
-function setAssignValueWithParentReportID(reportID) {
+function setAssigneeValueWithParentReportID(reportID) {
     const report = ReportUtils.getReport(reportID);
     const isDefault = !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report));
     const participants = lodashGet(report, 'participants', []);
