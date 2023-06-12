@@ -887,7 +887,7 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
         const personalDetails = getPersonalDetailsForAccountID(participant.accountID);
-        const displayName = getDisplayNameForParticipant(participant.accountID, isMultipleParticipantReport);
+        const displayName = getDisplayNameForParticipant(participant.accountID, isMultipleParticipantReport) || participant.login;
 
         const tooltip = personalDetails.login ? Str.removeSMSDomain(personalDetails.login) : '';
 
