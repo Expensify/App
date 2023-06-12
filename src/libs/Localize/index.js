@@ -98,7 +98,7 @@ function translateLocal(phrase, variables) {
  * @returns {String}
  */
 function translateIfPhraseKey(message) {
-    if (!_.isEmpty(message)) {
+    if (_.isEmpty(message)) {
         return '';
     }
 
