@@ -1,7 +1,7 @@
 import React from 'react';
-import {Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The on press method */
@@ -17,12 +17,12 @@ const defaultProps = {
 };
 
 const ButtonBase = ({onPress, icon}) => (
-    <Pressable
+    <PressableWithoutFeedback
         onPress={onPress}
         style={styles.signInButtonBase}
     >
         {icon}
-    </Pressable>
+    </PressableWithoutFeedback>
 );
 
 ButtonBase.displayName = 'ButtonBase';
