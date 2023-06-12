@@ -9,11 +9,13 @@ import OptionsList from '../OptionsList';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigationFocus';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './optionsSelectorPropTypes';
 import setSelection from '../../libs/setSelection';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -24,6 +26,7 @@ const propTypes = {
 
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
@@ -57,7 +60,7 @@ class BaseOptionsSelector extends Component {
             enterConfig.shortcutKey,
             () => {
                 const focusedOption = this.state.allOptions[this.state.focusedIndex];
-                if (!focusedOption) {
+                if (!focusedOption || !this.props.isFocused) {
                     return;
                 }
                 if (this.props.canSelectMultipleOptions) {
@@ -302,7 +305,7 @@ class BaseOptionsSelector extends Component {
             <OptionsList
                 ref={(el) => (this.list = el)}
                 optionHoveredStyle={this.props.optionHoveredStyle}
-                onSelectRow={this.selectRow}
+                onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
                 sections={this.props.sections}
                 focusedIndex={this.state.focusedIndex}
                 selectedOptions={this.props.selectedOptions}
@@ -375,4 +378,4 @@ class BaseOptionsSelector extends Component {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default withLocalize(BaseOptionsSelector);
+export default compose(withLocalize, withNavigationFocus)(BaseOptionsSelector);

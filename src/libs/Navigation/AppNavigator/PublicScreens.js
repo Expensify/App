@@ -1,7 +1,6 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
-import SetPasswordPage from '../../../pages/SetPasswordPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import SCREENS from '../../../SCREENS';
@@ -31,11 +30,6 @@ const PublicScreens = () => (
             name="UnlinkLogin"
             options={defaultScreenOptions}
             component={UnlinkLoginPage}
-        />
-        <RootStack.Screen
-            name="SetPassword"
-            options={defaultScreenOptions}
-            component={SetPasswordPage}
         />
     </RootStack.Navigator>
 );

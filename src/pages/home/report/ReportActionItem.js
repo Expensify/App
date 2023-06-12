@@ -232,7 +232,6 @@ function ReportActionItem(props) {
                 <TaskAction
                     taskReportID={props.action.originalMessage.taskReportID.toString()}
                     actionName={props.action.actionName}
-                    isHovered={hovered}
                 />
             );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
@@ -308,7 +307,7 @@ function ReportActionItem(props) {
                                 style={styles.buttonSmallText}
                                 selectable={false}
                             >
-                                {isHidden ? 'Reveal message' : 'Hide message'}
+                                {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                             </Text>
                         </Button>
                     )}
@@ -323,12 +322,13 @@ function ReportActionItem(props) {
 
         const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
         const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
+        const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
         return (
             <>
                 {children}
                 {hasReactions && (
-                    <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                    <View style={draftMessageRightAlign}>
                         <ReportActionItemReactions
                             reportActionID={props.action.reportActionID}
                             reactions={reactions}
@@ -347,13 +347,15 @@ function ReportActionItem(props) {
                     </View>
                 )}
                 {shouldDisplayThreadReplies && (
-                    <ReportActionItemThread
-                        childReportID={`${props.action.childReportID}`}
-                        numberOfReplies={numberOfThreadReplies}
-                        mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
-                        isHovered={hovered}
-                        icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
-                    />
+                    <View style={draftMessageRightAlign}>
+                        <ReportActionItemThread
+                            childReportID={`${props.action.childReportID}`}
+                            numberOfReplies={numberOfThreadReplies}
+                            mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
+                            isHovered={hovered}
+                            icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
+                        />
+                    </View>
                 )}
             </>
         );
@@ -444,6 +446,7 @@ function ReportActionItem(props) {
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
+                                shouldHideOnDelete={!ReportActionsUtils.hasCommentThread(props.action)}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}

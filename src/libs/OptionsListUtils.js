@@ -419,7 +419,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
-        result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+        result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
@@ -566,6 +566,7 @@ function getOptions(
             recentReports: [],
             personalDetails: [],
             userToInvite: null,
+            currentUserOption: null,
         };
     }
 
@@ -708,8 +709,13 @@ function getOptions(
         });
     }
 
+    let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
+    if (searchValue && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
+        currentUserOption = null;
+    }
+
     let userToInvite = null;
-    const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0;
+    const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
 
     if (
@@ -766,6 +772,7 @@ function getOptions(
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         userToInvite,
+        currentUserOption,
     };
 }
 
@@ -943,6 +950,15 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     return '';
 }
 
+/**
+ * Helper method to check whether an option can show tooltip or not
+ * @param {Object} option
+ * @returns {Boolean}
+ */
+function shouldOptionShowTooltip(option) {
+    return (!option.isChatRoom || option.isThread) && !option.isArchivedRoom;
+}
+
 export {
     addSMSDomainIfPhoneNumber,
     getAvatarsForLogins,
@@ -961,4 +977,5 @@ export {
     getPolicyExpenseReportOptions,
     getParticipantsOptions,
     isSearchStringMatch,
+    shouldOptionShowTooltip,
 };

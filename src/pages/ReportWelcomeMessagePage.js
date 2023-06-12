@@ -6,8 +6,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
-import Navigation from '../libs/Navigation/Navigation';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import styles from '../styles/styles';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -44,7 +43,7 @@ function ReportWelcomeMessagePage(props) {
     }, []);
 
     const submitForm = useCallback(() => {
-        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage);
+        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage.trim());
     }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
 
     return (
@@ -57,11 +56,7 @@ function ReportWelcomeMessagePage(props) {
             }}
         >
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                <HeaderWithCloseButton
-                    title={props.translate('welcomeMessagePage.welcomeMessage')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
+                <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
@@ -82,6 +77,7 @@ function ReportWelcomeMessagePage(props) {
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
+                            textAlignVertical="top"
                         />
                     </View>
                 </Form>
