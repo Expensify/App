@@ -43,8 +43,7 @@ const CONTEXT_MENU_TYPES = {
 export default [
     {
         shouldKeepOpen: true,
-        shouldShow: (type, reportAction) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false),
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && !ReportActionUtils.isMessageDeleted(reportAction),
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
             const isMini = !closePopover;
 
@@ -92,12 +91,7 @@ export default [
         shouldShow: (type, reportAction) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
-            return (
-                isAttachment &&
-                message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML &&
-                reportAction.reportActionID &&
-                !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false)
-            );
+            return isAttachment && message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
@@ -166,7 +160,7 @@ export default [
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
             !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
             !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))) &&
-            !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false),
+            !ReportActionUtils.isMessageDeleted(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -208,12 +202,7 @@ export default [
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
-            return (
-                Permissions.canUseCommentLinking(betas) &&
-                type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                !isAttachmentTarget &&
-                !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false)
-            );
+            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
@@ -267,7 +256,7 @@ export default [
             ReportUtils.canDeleteReportAction(reportAction, reportID) &&
             !isArchivedRoom &&
             !isChronosReport &&
-            !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false),
+            !ReportActionUtils.isMessageDeleted(reportAction),
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
