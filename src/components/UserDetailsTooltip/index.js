@@ -22,17 +22,13 @@ function UserDetailsTooltip(props) {
                     />
                 </View>
 
-                {String(userDetails.displayName).trim() ? (
-                    <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{userDetails.displayName}</Text>
-                ) : (
-                    ''
-                )}
+                <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>
+                    {String(userDetails.displayName).trim() ? userDetails.displayName : ''}
+                </Text>
 
-                {String(userDetails.login).trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? (
-                    <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{Str.removeSMSDomain(userDetails.login)}</Text>
-                ) : (
-                    ''
-                )}
+                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
+                    {String(userDetails.login).trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : ''}
+                </Text>
             </View>
         ),
         [userDetails.avatar, userDetails.displayName, userDetails.login],
