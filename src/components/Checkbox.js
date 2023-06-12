@@ -49,7 +49,7 @@ const defaultProps = {
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
-    accessibilityLabel: 'checkbox',
+    accessibilityLabel: '',
 };
 
 class Checkbox extends React.Component {
@@ -86,7 +86,7 @@ class Checkbox extends React.Component {
                 onMouseDown={this.props.onMouseDown}
                 ref={this.props.forwardedRef}
                 onPressOut={this.onBlur}
-                style={[this.props.style, styles.userSelectNone]}
+                style={this.props.style}
                 onKeyDown={this.handleSpaceKey}
                 accessibilityRole="checkbox"
                 accessibilityState={{
