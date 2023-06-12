@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
+import * as UserUtils from './UserUtils';
 
 let personalDetails = [];
 Onyx.connect({
@@ -55,10 +56,13 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
  */
 function getAccountIDsByLogins(logins) {
     return _.reduce(logins, (foundAccountIDs, login) => {
-        const detail = _.find(personalDetails, (detail) => detail.login === login);
-        if (detail.accountID) {
+        const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
+        if (!currentDetail) {
+            // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
+            foundAccountIDs.push(UserUtils.generateAccountID());
+        } else {
             foundAccountIDs.push(detail.accountID);
-        }
+        } 
         return foundAccountIDs;
     }, []);
 }
@@ -71,8 +75,8 @@ function getAccountIDsByLogins(logins) {
  */
 function getLoginsByAccountIDs(accountIDs) {
     return _.reduce(accountIDs, (foundLogins, accountID) => {
-        const detail = _.find(personalDetails, (detail) => detail.accountID === accountID);
-        if (detail.login) {
+        const currentDetail = _.find(personalDetails, (detail) => detail.accountID === accountID) || {};
+        if (currentDetail.login) {
             foundLogins.push(detail.login);
         }
         return foundLogins;
