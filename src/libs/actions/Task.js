@@ -426,7 +426,7 @@ function setShareDestinationValue(shareDestination) {
 
 /**
  * Auto-assign for participant when create a task in a DM
- * @param {string} reportID
+ * @param {String} reportID
  */
 
 function setAssignValueWithParentReportID(reportID) {
