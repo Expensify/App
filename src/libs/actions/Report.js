@@ -383,10 +383,6 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     // and we need data to be available when we navigate to the chat page
     if (_.isEmpty(ReportUtils.getReport(reportID))) {
         optimisticReportData.onyxMethod = Onyx.METHOD.SET;
-        optimisticReportData.value = {
-            ...optimisticReportData.value,
-            reportID: reportID.toString(),
-        };
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action

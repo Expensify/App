@@ -27,6 +27,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     /* Onyx Props */
@@ -211,6 +212,7 @@ WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         policies: {
