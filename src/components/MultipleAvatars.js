@@ -80,7 +80,7 @@ const MultipleAvatars = (props) => {
             <UserDetailsTooltip
                 accountID={ReportUtils.getAccountIDForLogin(props.icons[0].name)}
                 fallbackUserDetails={{
-                    displayName: lodashGet(ReportUtils.getPersonalDetailsForLogin(props.icons[0].name), 'displayName', ''),
+                    displayName: ReportUtils.getDisplayNameForParticipant(props.icons[0].name),
                     login: lodashGet(props.icons[0], 'name', tooltipTexts[0]),
                     avatar: lodashGet(props.icons[0], 'source', ''),
                 }}
