@@ -93,9 +93,9 @@ const ACHContractStep = (props) => {
      */
     const removeBeneficialOwner = (ownerKey) => {
         setBeneficialOwners((previousBeneficialOwners) => {
-            const beneficialOwners = _.without(previousBeneficialOwners, ownerKey);
-            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
-            return beneficialOwners;
+            const newBeneficialOwners = _.without(previousBeneficialOwners, ownerKey);
+            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: newBeneficialOwners});
+            return newBeneficialOwners;
         });
     };
 
@@ -103,9 +103,9 @@ const ACHContractStep = (props) => {
         // Each beneficial owner is assigned a unique key that will connect it to an Identity Form.
         // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
         setBeneficialOwners((previousBeneficialOwners) => {
-            const beneficialOwners = [...previousBeneficialOwners, Str.guid()];
-            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners});
-            return beneficialOwners;
+            const newBeneficialOwners = [...previousBeneficialOwners, Str.guid()];
+            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: newBeneficialOwners});
+            return newBeneficialOwners;
         });
     };
 
@@ -179,9 +179,7 @@ const ACHContractStep = (props) => {
                                 if (ownsMoreThan25Percent && beneficialOwners.length > 3) {
                                     // If the user owns more than 25% of the company, then there can only be a maximum of 3 other beneficial owners who owns more than 25%.
                                     // We have to remove the 4th beneficial owner if the checkbox is checked.
-                                    setBeneficialOwners((previousBeneficialOwners) => {
-                                        return previousBeneficialOwners.slice(0, -1);
-                                    });
+                                    setBeneficialOwners((previousBeneficialOwners) => previousBeneficialOwners.slice(0, -1));
                                 }
                             }}
                             defaultValue={props.getDefaultStateForField('ownsMoreThan25Percent', false)}
