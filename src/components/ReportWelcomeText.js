@@ -98,7 +98,7 @@ const ReportWelcomeText = (props) => {
                                     <Text
                                         style={[styles.textStrong]}
                                         onPress={() => {
-                                            const accountDetails = props.personalDetails[OptionsListUtils.addSMSDomainIfPhoneNumber(displayNamesWithTooltips[index].tooltip)];
+                                            const accountDetails = props.personalDetails[participants[index]];
                                             if (accountDetails && accountDetails.accountID) {
                                                 Navigation.navigate(ROUTES.getProfileRoute(accountDetails.accountID));
                                             }
