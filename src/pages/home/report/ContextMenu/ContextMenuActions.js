@@ -208,10 +208,11 @@ export default [
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
             return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
         },
-        onPress: (closePopover, {reportAction, reportID}) => {
+        onPress: (closePopover, {reportAction}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
-                Clipboard.setString(`${environmentURL}/r/${reportID}/${reportActionID}`);
+                const activeReportID = Navigation.getReportIDFromRoute();
+                Clipboard.setString(`${environmentURL}/r/${activeReportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
@@ -223,8 +224,9 @@ export default [
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
         shouldShow: (type) => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
-        onPress: (closePopover, {reportAction, reportID}) => {
-            Report.markCommentAsUnread(reportID, reportAction.created);
+        onPress: (closePopover, {reportAction}) => {
+            const activeReportID = Navigation.getReportIDFromRoute();
+            Report.markCommentAsUnread(activeReportID, reportAction.created);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
