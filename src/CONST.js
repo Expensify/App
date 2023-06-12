@@ -829,6 +829,7 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
+    DESKTOP_HEADER_PADDING: 12,
     CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
     SMALL_EMOJI_PICKER_SIZE: {
         WIDTH: '100%',
@@ -1107,7 +1108,7 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
         ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
@@ -2436,9 +2437,9 @@ const CONST = {
     },
     SPACE_CHARACTER_WIDTH: 4,
 
-    // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
-    // div and then remove it from copied contents in the getHTMLOfSelection() method.
-    UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
+    // The attribute used in the SelectionScraper.js helper to query all the DOM elements
+    // that should be removed from the copied contents in the getHTMLOfSelection() method
+    SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',

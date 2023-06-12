@@ -343,16 +343,6 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        if (this.state.shouldShowContinueSetupButton) {
-            return (
-                <ContinueBankAccountSetup
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    continue={this.continue}
-                    policyName={policyName}
-                />
-            );
-        }
-
         let errorComponent;
         const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
 
@@ -383,6 +373,16 @@ class ReimbursementAccountPage extends React.Component {
                     />
                     {errorComponent}
                 </ScreenWrapper>
+            );
+        }
+
+        if (this.state.shouldShowContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    continue={this.continue}
+                    policyName={policyName}
+                />
             );
         }
 
