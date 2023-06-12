@@ -20,14 +20,6 @@ import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as Pressables from '../Pressable';
 
-function dismissKeyboardWhenBackgrounded(nextAppState) {
-    if (!nextAppState.match(/inactive|background/)) {
-        return;
-    }
-
-    Keyboard.dismiss();
-}
-
 function BaseTextInput(props) {
     const inputValue = props.value || '';
     const initialActiveLabel = props.forceActiveLabel || inputValue.length > 0 || Boolean(props.prefixCharacter);
@@ -48,7 +40,13 @@ function BaseTextInput(props) {
     useEffect(() => {
         let appStateSubscription;
         if (props.disableKeyboard) {
-            appStateSubscription = AppState.addEventListener('change', dismissKeyboardWhenBackgrounded);
+            appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+                if (!nextAppState.match(/inactive|background/)) {
+                    return;
+                }
+
+                Keyboard.dismiss();
+            });
         }
 
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
