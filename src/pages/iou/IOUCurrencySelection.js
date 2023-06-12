@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -58,10 +58,9 @@ const defaultProps = {
 
 function IOUCurrencySelection(props) {
     const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.selectedCurrencyCode, CONST.CURRENCY.USD);
-
-    const getCurrencyOptions = useCallback(
+    const currencyOptions = useMemo(
         () =>
-            _.map(props.currencyList, (currencyCode) => {
+            _.map(props.currencyList, (currencyInfo, currencyCode) => {
                 const isSelectedCurrency = currencyCode === selectedCurrencyCode;
                 return {
                     text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
@@ -90,9 +89,9 @@ function IOUCurrencySelection(props) {
     );
 
     const [searchValue, setCurrentSearchValue] = useState('');
-    const [currencyData, setCurrencyData] = useState(getCurrencyOptions); // just use a const? it doesn't seem to change...
+    const [currencyData, setCurrencyData] = useState(currencyOptions);
 
-    const getSections = useCallback(() => {
+    const getSections = useMemo(() => {
         if (searchValue.trim() && !currencyData.length) {
             return [];
         }
@@ -105,7 +104,7 @@ function IOUCurrencySelection(props) {
         });
 
         return sections;
-    }, [searchValue, currencyData, props]);
+    }, [searchValue, currencyData, props.translate]);
 
     const changeSearchValue = useCallback(
         (searchQuery) => {
