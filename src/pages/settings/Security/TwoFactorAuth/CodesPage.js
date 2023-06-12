@@ -4,7 +4,7 @@ import {ActivityIndicator, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
@@ -57,16 +57,14 @@ function CodesPage(props) {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
                 shouldShowStepCounter
                 stepCounter={{
                     step: 1,
                     text: props.translate('twoFactorAuth.stepCodes'),
                 }}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
             />
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flex1}>
