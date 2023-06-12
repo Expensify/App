@@ -63,7 +63,7 @@ const ImageRenderer = (props) => {
                 >
                     {({show}) => (
                         <PressableWithoutFocus
-                            style={styles.noOutline}
+                            style={[styles.noOutline]}
                             onPress={show}
                             onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                             accessibilityRole="button"

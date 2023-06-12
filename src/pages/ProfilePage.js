@@ -148,8 +148,10 @@ function ProfilePage(props) {
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus
-                                        style={styles.noOutline}
+                                        style={[styles.noOutline]}
                                         onPress={show}
+                                        accessibilityLabel={props.translate('common.profile')}
+                                        accessibilityRole="button"
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar

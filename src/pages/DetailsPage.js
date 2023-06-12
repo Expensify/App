@@ -137,7 +137,7 @@ class DetailsPage extends React.PureComponent {
                                     >
                                         {({show}) => (
                                             <PressableWithoutFocus
-                                                style={styles.noOutline}
+                                                style={[styles.noOutline]}
                                                 onPress={show}
                                                 accessibilityRole="button"
                                                 accessibilityLabel={this.props.translate('common.profile')}
