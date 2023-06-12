@@ -5,7 +5,9 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {Freeze} from 'react-freeze';
 
 const propTypes = {
+    /** prop to disable freeze */
     keepVisible: PropTypes.bool,
+    /** Children to wrap in FreezeWrapper. */
     children: PropTypes.node.isRequired,
 };
 
