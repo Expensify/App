@@ -204,7 +204,6 @@ function BaseTextInput(props) {
         setPrefixWidth(Math.abs(event.nativeEvent.layout.width));
     }, []);
 
-    // TODO: don't do that all here?
     // eslint-disable-next-line react/forbid-foreign-prop-types
     const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
     const hasLabel = Boolean(props.label.length);
@@ -212,18 +211,14 @@ function BaseTextInput(props) {
     const inputHelpText = props.errorText || props.hint;
     const placeholder = props.prefixCharacter || isFocused || !hasLabel || (hasLabel && props.forceActiveLabel) ? props.placeholder : null;
     const maxHeight = StyleSheet.flatten(props.containerStyles).maxHeight;
-    const textInputContainerStyles = _.reduce(
-        [
-            styles.textInputContainer,
-            ...props.textInputContainerStyles,
-            props.autoGrow && StyleUtils.getWidthStyle(textInputWidth),
-            !props.hideFocusedState && isFocused && styles.borderColorFocus,
-            (props.hasError || props.errorText) && styles.borderColorDanger,
-            props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
-        ],
-        (finalStyles, s) => ({...finalStyles, ...s}),
-        {},
-    );
+    const textInputContainerStyles = StyleSheet.flatten([
+        styles.textInputContainer,
+        ...props.textInputContainerStyles,
+        props.autoGrow && StyleUtils.getWidthStyle(textInputWidth),
+        !props.hideFocusedState && isFocused && styles.borderColorFocus,
+        (props.hasError || props.errorText) && styles.borderColorDanger,
+        props.autoGrowHeight && {scrollPaddingTop: 2 * maxHeight},
+    ]);
     const isMultiline = props.multiline || props.autoGrowHeight;
 
     return (
