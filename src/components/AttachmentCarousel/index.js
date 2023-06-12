@@ -20,6 +20,7 @@ import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
+import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -30,6 +31,9 @@ const propTypes = {
 
     /** Object of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report currently being looked at */
+    report: reportPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -148,7 +152,7 @@ class AttachmentCarousel extends React.Component {
      * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
      */
     createInitialState() {
-        const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions));
+        const actions = [ReportActionsUtils.getParentReportAction(this.props.report), ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
         const attachments = [];
 
         const htmlParser = new HtmlParser({
@@ -359,7 +363,7 @@ AttachmentCarousel.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
         },
     }),

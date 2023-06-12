@@ -10,11 +10,9 @@ import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
 import * as TaskUtils from '../../libs/actions/Task';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Task Report Info */
@@ -58,7 +56,7 @@ function TaskTitlePage(props) {
             // Set the description of the report in the store and then call TaskUtils.editTaskReport
             // to update the description of the report on the server
 
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, values.title, '', '');
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, {title: values.title});
         },
         [props],
     );
@@ -70,12 +68,7 @@ function TaskTitlePage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
-            <HeaderWithBackButton
-                title={props.translate('newTaskPage.task')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
-                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
-            />
+            <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}

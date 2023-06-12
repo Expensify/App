@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -64,7 +65,15 @@ class YearPickerPage extends React.Component {
      */
     updateSelectedYear(selectedYear) {
         // We have to navigate using concatenation here as it is not possible to pass a function as a route param
-        Navigation.goBack(`${ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH}?year=${selectedYear}`, true);
+        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+        const dateOfBirthRoute = _.find(routes, (route) => route.name === 'Settings_PersonalDetails_DateOfBirth');
+
+        if (dateOfBirthRoute) {
+            Navigation.setParams({year: selectedYear.toString()}, lodashGet(dateOfBirthRoute, 'key', ''));
+            Navigation.goBack();
+        } else {
+            Navigation.goBack(`${ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH}?year=${selectedYear}`);
+        }
     }
 
     /**
