@@ -56,32 +56,38 @@ const defaultProps = {
     },
 };
 
-const IOUCurrencySelection = (props) => {
-    const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.selectedCurrencyCode);;
+function IOUCurrencySelection(props) {
+    const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.selectedCurrencyCode, CONST.CURRENCY.USD);
 
-    const getCurrencyOptions = useCallback(() => _.map(props.currencyList, (currencyCode) => {
-            const isSelectedCurrency = currencyCode === selectedCurrencyCode;
-            return {
-                text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
-                currencyCode,
-                keyForList: currencyCode,
-                customIcon: isSelectedCurrency ? greenCheckmark : undefined,
-                boldStyle: isSelectedCurrency,
-            };
-        }),
-    [selectedCurrencyCode, props.currencyList]);
+    const getCurrencyOptions = useCallback(
+        () =>
+            _.map(props.currencyList, (currencyCode) => {
+                const isSelectedCurrency = currencyCode === selectedCurrencyCode;
+                return {
+                    text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
+                    currencyCode,
+                    keyForList: currencyCode,
+                    customIcon: isSelectedCurrency ? greenCheckmark : undefined,
+                    boldStyle: isSelectedCurrency,
+                };
+            }),
+        [selectedCurrencyCode, props.currencyList],
+    );
 
-    const confirmCurrencySelection = useCallback((option) => {
-        const backTo = lodashGet(props.route, 'params.backTo', '');
-        // When we refresh the web, the money request route gets cleared from the navigation stack.
-        // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
-        // To prevent any negative experience, we have made the decision to simply close the currency selection page.
-        if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {
-            Navigation.goBack();
-        } else {
-            Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
-        }
-    }, [props.route, props.navigation]);
+    const confirmCurrencySelection = useCallback(
+        (option) => {
+            const backTo = lodashGet(props.route, 'params.backTo', '');
+            // When we refresh the web, the money request route gets cleared from the navigation stack.
+            // Navigating to "backTo" will result in forward navigation instead, causing disruption to the currency selection.
+            // To prevent any negative experience, we have made the decision to simply close the currency selection page.
+            if (_.isEmpty(backTo) || props.navigation.getState().routes.length === 1) {
+                Navigation.goBack();
+            } else {
+                Navigation.navigate(`${props.route.params.backTo}?currency=${option.currencyCode}`);
+            }
+        },
+        [props.route, props.navigation],
+    );
 
     const [searchValue, setCurrentSearchValue] = useState('');
     const [currencyData, setCurrencyData] = useState(getCurrencyOptions); // just use a const? it doesn't seem to change...
@@ -99,8 +105,18 @@ const IOUCurrencySelection = (props) => {
         });
 
         return sections;
-    },
-    [searchValue, currencyData.length]);
+    }, [searchValue, currencyData, props]);
+
+    const changeSearchValue = useCallback(
+        (searchQuery) => {
+            const searchRegex = new RegExp(Str.escapeForRegExp(searchQuery), 'i');
+            const filteredCurrencies = _.filter(currencyData, (currencyOption) => searchRegex.test(currencyOption.text));
+
+            setCurrentSearchValue(searchQuery);
+            setCurrencyData(filteredCurrencies);
+        },
+        [currencyData],
+    );
 
     const headerMessage = searchValue.trim() && !currencyData.length ? props.translate('common.noResultsFound') : '';
 
@@ -116,7 +132,7 @@ const IOUCurrencySelection = (props) => {
                         sections={getSections}
                         onSelectRow={confirmCurrencySelection}
                         value={searchValue}
-                        onChangeText={setCurrentSearchValue}
+                        onChangeText={changeSearchValue}
                         textInputLabel={props.translate('common.search')}
                         headerMessage={headerMessage}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
@@ -131,33 +147,6 @@ const IOUCurrencySelection = (props) => {
         </ScreenWrapper>
     );
 }
-
-    // /**
-    //  * Sets new search value
-    //  * @param {String} searchValue
-    //  * @return {void}
-    //  */
-    // changeSearchValue(searchValue) {
-    //     const currencyOptions = this.getCurrencyOptions(this.props.currencyList);
-    //     const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
-    //     const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
-
-    //     this.setState({
-    //         searchValue,
-    //         currencyData: filteredCurrencies,
-    //     });
-    // }
-
-    // // If we're coming from the confirm step, it means we were editing something so go back to the confirm step.
-    // const confirmIndex = _.indexOf(steps, Steps.MoneyRequestConfirm);
-    // if (previousStepIndex === confirmIndex) {
-    //     navigateToStep(confirmIndex);
-    //     return;
-    // }
-
-    // setPreviousStepIndex(currentStepIndex);
-    // setCurrentStepIndex(currentStepIndex + 1);
-// }, [currentStepIndex, previousStepIndex, navigateToStep, steps]);
 
 IOUCurrencySelection.displayName = 'IOUCurrencySelection';
 IOUCurrencySelection.propTypes = propTypes;
