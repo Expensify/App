@@ -11,8 +11,7 @@ import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import Navigation from '../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
@@ -232,10 +231,8 @@ class NewChatPage extends Component {
             >
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
-                            title={this.props.isGroupChat ? this.props.translate('sidebarScreen.newGroup') : this.props.translate('sidebarScreen.newChat')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
+                        <HeaderWithBackButton title={this.props.isGroupChat ? this.props.translate('sidebarScreen.newGroup') : this.props.translate('sidebarScreen.newChat')} />
+
                         <View style={[styles.flex1, styles.w100, styles.pRelative, this.state.selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                             <OptionsSelector
                                 canSelectMultipleOptions={this.props.isGroupChat}

@@ -6,7 +6,6 @@ import htmlRenderers from './HTMLRenderers';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import styles from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
-import defaultViewProps from './defaultViewProps';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -49,6 +48,8 @@ const customHTMLElementModels = {
     'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
 };
 
+const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
+
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
@@ -60,7 +61,7 @@ const BaseHTMLEngineProvider = (props) => {
 
     // We need to pass multiple system-specific fonts for emojis but
     // we can't apply multiple fonts at once so we need to pass fallback fonts.
-    const fallbackFonts = {'ExpensifyNeue-Regular': fontFamily.EMOJI_TEXT_FONT};
+    const fallbackFonts = {'ExpensifyNeue-Regular': fontFamily.EXP_NEUE};
 
     return (
         <TRenderEngineProvider
