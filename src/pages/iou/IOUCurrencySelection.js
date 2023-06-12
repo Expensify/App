@@ -57,16 +57,32 @@ const defaultProps = {
 };
 
 const IOUCurrencySelection = (props) => {
+    const [searchValue, setCurrentSearchValue] = useState('');
     this.state = {
-        searchValue: '',
         currencyData: this.getCurrencyOptions(props.currencyList),
     };
     this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
     this.getSections = this.getSections.bind(this);
     this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
-    this.changeSearchValue = this.changeSearchValue.bind(this);
 
-    const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? this.props.translate('common.noResultsFound') : '';
+    const getSections = useCallback(() => {
+        if (searchValue.trim() && !currencyData.length) {
+            return [];
+        }
+        const sections = [];
+        sections.push({
+            title: this.props.translate('iOUCurrencySelection.allCurrencies'),
+            data: this.state.currencyData,
+            shouldShow: true,
+            indexOffset: 0,
+        });
+
+        return sections;
+    },
+    [searchValue, currencyData.length],
+    );
+
+    const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? props.translate('common.noResultsFound') : '';
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -80,7 +96,7 @@ const IOUCurrencySelection = (props) => {
                         sections={this.getSections()}
                         onSelectRow={this.confirmCurrencySelection}
                         value={this.state.searchValue}
-                        onChangeText={this.changeSearchValue}
+                        onChangeText={setCurrentSearchValue}
                         textInputLabel={props.translate('common.search')}
                         headerMessage={headerMessage}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
