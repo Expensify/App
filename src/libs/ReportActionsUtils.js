@@ -171,7 +171,7 @@ function getMostRecentIOURequestActionID(reportActions) {
 }
 
 /**
- * Returns array of links inside given report
+ * Returns array of links inside a given report action
  *
  * @param {Object} reportAction
  * @returns {Boolean}
