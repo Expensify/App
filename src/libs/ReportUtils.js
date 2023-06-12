@@ -805,8 +805,8 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         return [actorIcon];
     }
     if (isDomainRoom(report)) {
-        const domainName = Str.extractEmailDomain(report.ownerEmail);
-        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(domainName);
+        const domainName = report.reportName.substring(1);
+        const policyExpenseChatAvatarSource = getDefaultWorkspaceAvatar(domainName);
         const domainIcon = {
             source: policyExpenseChatAvatarSource,
             type: CONST.ICON_TYPE_WORKSPACE,
