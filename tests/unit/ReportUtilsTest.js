@@ -97,7 +97,7 @@ describe('ReportUtils', () => {
                     accountID: 3,
                     pronouns: 'She/her',
                 },
-               {
+                {
                     displayName: '(833) 240-3627',
                     accountID: 4,
                     pronouns: undefined,
