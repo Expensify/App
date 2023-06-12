@@ -226,7 +226,7 @@ function BaseTextInput(props) {
     return (
         <>
             <View>
-                <Pressables.PressableWithoutFeedback
+                <PressableWithoutFeedback
                     onPress={onPress}
                     focusable={false}
                     accessibilityLabel={props.label}
