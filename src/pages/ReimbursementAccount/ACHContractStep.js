@@ -27,7 +27,7 @@ const propTypes = {
     companyName: PropTypes.string.isRequired,
 };
 
-const ACHContractStep = (props) => {
+function ACHContractStep(props) {
     const [beneficialOwners, setBeneficialOwners] = useState(
         lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])),
     );
@@ -274,7 +274,7 @@ const ACHContractStep = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 ACHContractStep.propTypes = propTypes;
 ACHContractStep.displayName = 'ACHContractStep';
