@@ -3,7 +3,7 @@ import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 const propTypes = {
     /** User's Account ID */
-    accountID: PropTypes.string.isRequired,
+    accountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     /** Fallback User Details object used if no accountID */
     fallbackUserDetails: PropTypes.shape({
         /** Avatar URL */
