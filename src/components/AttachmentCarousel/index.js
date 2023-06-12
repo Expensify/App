@@ -153,7 +153,7 @@ class AttachmentCarousel extends React.Component {
      */
     createInitialState() {
         const actions = [ReportActionsUtils.getParentReportAction(this.props.report), ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
-        const attachments = [];
+        let attachments = [];
 
         const htmlParser = new HtmlParser({
             onopentag: (name, attribs) => {
@@ -176,6 +176,7 @@ class AttachmentCarousel extends React.Component {
         _.forEach(actions, (action) => htmlParser.write(_.get(action, ['message', 0, 'html'])));
         htmlParser.end();
 
+        attachments = this.canUseTouchScreen ? attachments.reverse() : attachments;
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (page === -1) {
             throw new Error('Attachment not found');
@@ -183,7 +184,7 @@ class AttachmentCarousel extends React.Component {
 
         return {
             page,
-            attachments: this.canUseTouchScreen ? attachments.reverse() : attachments,
+            attachments,
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
             isZoomed: false,
