@@ -96,7 +96,6 @@ function BaseValidateCodeForm(props) {
         // Clear the code input if magic code valid or a new magic code was requested
         if ((prevIsVisible && !props.isVisible) || (props.isVisible && linkSent && props.account.message)) {
             setValidateCode('');
-            inputValidateCodeRef.current.clear();
         }
     }, [props.isVisible, props.account.message, prevIsVisible, linkSent, validateCode]);
 
@@ -113,6 +112,20 @@ function BaseValidateCodeForm(props) {
         }
         input2FARef.current.focus();
     }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
+
+    useEffect(() => {
+        if (!inputValidateCodeRef.current || validateCode.length > 0) {
+            return;
+        }
+        inputValidateCodeRef.current.clear();
+    }, [validateCode]);
+
+    useEffect(() => {
+        if (!input2FARef.current || twoFactorAuthCode.length > 0) {
+            return;
+        }
+        input2FARef.current.clear();
+    }, [twoFactorAuthCode]);
 
     /**
      * Handle text input and clear formError upon text change
@@ -135,10 +148,7 @@ function BaseValidateCodeForm(props) {
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        if (input2FARef.current) {
-            setTwoFactorAuthCode('');
-            input2FARef.current.clear();
-        }
+        setTwoFactorAuthCode('');
         setFormError({});
         User.resendValidateCode(props.credentials.login, true);
 
