@@ -55,7 +55,6 @@ const ReportWelcomeText = (props) => {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
     const participants = lodashGet(props.report, 'participants', []);
-    const participantAccountIDs = lodashGet(props.report, 'participantAccountIDs', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), isMultipleParticipant);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
@@ -98,7 +97,12 @@ const ReportWelcomeText = (props) => {
                                 <UserDetailsTooltip accountID={accountID}>
                                     <Text
                                         style={[styles.textStrong]}
-                                        onPress={() => Navigation.navigate(ROUTES.getProfileRoute(participantAccountIDs[index]))}
+                                        onPress={() => {
+                                            const accountDetails = props.personalDetails[participants[index]];
+                                            if (accountDetails && accountDetails.accountID) {
+                                                Navigation.navigate(ROUTES.getProfileRoute(accountDetails.accountID));
+                                            }
+                                        }}
                                     >
                                         {displayName}
                                     </Text>
