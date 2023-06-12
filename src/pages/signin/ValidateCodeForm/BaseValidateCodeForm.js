@@ -2,8 +2,8 @@ import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import lodashIsEmpty from 'lodash/isEmpty';
 import styles from '../../../styles/styles';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
@@ -70,45 +70,49 @@ function BaseValidateCodeForm(props) {
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const [linkSent, setLinkSent] = useState(false);
 
-    const wasVisible = usePrevious(props.isVisible);
-    const required2FA = usePrevious(props.account.requiresTwoFactorAuth);
-    const hadValidateCode = usePrevious(props.credentials.validateAndSubmitForm);
+    const prevIsVisible = usePrevious(props.isVisible);
+    const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
+    const prevValidateCode = usePrevious(props.credentials.validateCode);
 
     const inputValidateCodeRef = useRef();
     const input2FARef = useRef();
 
     useEffect(() => {
-        if (!inputValidateCodeRef.current || wasVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
+        if (!inputValidateCodeRef.current || prevIsVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
             return;
         }
         inputValidateCodeRef.current.focus();
-    }, [inputValidateCodeRef, props.isVisible, wasVisible]);
+    }, [props.isVisible, prevIsVisible]);
 
     useEffect(() => {
         if (!inputValidateCodeRef.current) {
             return;
         }
 
+        if (!validateCode) {
+            return;
+        }
+
         // Clear the code input if magic code valid or a new magic code was requested
-        if ((wasVisible && !props.isVisible && validateCode) || (props.isVisible && linkSent && props.account.message && validateCode)) {
+        if ((prevIsVisible && !props.isVisible) || (props.isVisible && linkSent && props.account.message)) {
             setValidateCode('');
             inputValidateCodeRef.current.clear();
         }
-    }, [inputValidateCodeRef, props.isVisible, props.account.message, wasVisible, linkSent, validateCode]);
+    }, [props.isVisible, props.account.message, prevIsVisible, linkSent, validateCode]);
 
     useEffect(() => {
-        if (hadValidateCode || !props.credentials.validateCode) {
+        if (prevValidateCode || !props.credentials.validateCode) {
             return;
         }
         setValidateCode(props.credentials.validateCode);
-    }, [props.credentials.validateCode, hadValidateCode]);
+    }, [props.credentials.validateCode, prevValidateCode]);
 
     useEffect(() => {
-        if (!input2FARef.current || required2FA || !props.account.requiresTwoFactorAuth) {
+        if (!input2FARef.current || prevRequiresTwoFactorAuth || !props.account.requiresTwoFactorAuth) {
             return;
         }
         input2FARef.current.focus();
-    }, [input2FARef, props.account.requiresTwoFactorAuth, required2FA]);
+    }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
 
     /**
      * Handle text input and clear formError upon text change
@@ -184,18 +188,15 @@ function BaseValidateCodeForm(props) {
         }
         setFormError({});
 
-        const accountID = lodashGet(props, 'credentials.accountID');
+        const accountID = lodashGet(props.credentials, 'accountID');
         if (accountID) {
             Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, twoFactorAuthCode);
         } else {
             Session.signIn('', validateCode, twoFactorAuthCode, props.preferredLocale);
         }
-        // We don't include props.account here because requiresTwoFactorAuth won't change, and otherwise
-        // we have recursion on error (since props.account changes to include error property)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
+    }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
-    const hasError = Boolean(props.account) && !lodashIsEmpty(props.account.errors);
+    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
     const resendButtonStyle = props.network.isOffline ? styles.buttonOpacityDisabled : {};
     return (
         <>
