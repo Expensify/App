@@ -117,6 +117,7 @@ const MentionSuggestions = (props) => {
             onSelect={props.onSelect}
             isSuggestionPickerLarge={props.isMentionPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
+            accessibilityLabelExtractor={keyExtractor}
         />
     );
 };

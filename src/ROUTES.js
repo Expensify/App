@@ -111,7 +111,6 @@ export default {
     FLAG_COMMENT: `flag/:reportID/:reportActionID`,
     getFlagCommentRoute: (reportID, reportActionID) => `flag/${reportID}/${reportActionID}`,
     SEARCH: 'search',
-    SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',

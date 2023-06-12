@@ -9,7 +9,6 @@ export default {
         initialRouteName: SCREENS.HOME,
         screens: {
             // Main Routes
-            SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,

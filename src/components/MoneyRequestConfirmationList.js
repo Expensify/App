@@ -166,7 +166,6 @@ function MoneyRequestConfirmationList(props) {
                     data: [formattedPayeePersonalDetails],
                     shouldShow: true,
                     indexOffset: 0,
-                    isDisabled: true,
                 },
                 {
                     title: translate('moneyRequestConfirmationList.whoWasThere'),
@@ -296,7 +295,6 @@ function MoneyRequestConfirmationList(props) {
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
             disableArrowKeysActions={!canModifyParticipants}
-            isDisabled={!canModifyParticipants}
             boldStyle
             shouldTextInputAppearBelowOptions
             shouldShowTextInput={false}
