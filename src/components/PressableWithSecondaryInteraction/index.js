@@ -86,6 +86,7 @@ class PressableWithSecondaryInteraction extends Component {
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}
                 style={(state) => [StyleUtils.parseStyleFromFunction(this.props.style, state), ...[this.props.inline && styles.dInline]]}
+                hoverDimmingValue={1}
             >
                 {this.props.children}
             </PressableWithFeedback>
