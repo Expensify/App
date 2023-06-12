@@ -123,7 +123,7 @@ function WorkspaceSettingsPage(props) {
                         fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                         style={[styles.mb3]}
                         anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
-                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                         isUsingDefaultAvatar={!lodashGet(props.policy, 'avatar', null)}
                         onImageSelected={(file) => Policy.updateWorkspaceAvatar(lodashGet(props.policy, 'id', ''), file)}
                         onImageRemoved={() => Policy.deleteWorkspaceAvatar(lodashGet(props.policy, 'id', ''))}
