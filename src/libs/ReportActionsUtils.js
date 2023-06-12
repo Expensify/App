@@ -408,8 +408,8 @@ function isCreatedTaskReportAction(reportAction) {
  * @param {Object} reportActions
  * @returns {Boolean}
  */
-function isMessageDeleted(reportActions) {
-    return lodashGet(reportActions, 'originalMessage.isDeletedParentAction', false);
+function isMessageDeleted(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
 }
 
 export {
