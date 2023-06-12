@@ -1831,6 +1831,12 @@ const styles = {
         right: -1,
     },
 
+    secondAvatarSubscriptMidSmallNormal: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+    },
+
     leftSideLargeAvatar: {
         left: 15,
     },
@@ -1902,6 +1908,11 @@ const styles = {
     emptyAvatar: {
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
+    },
+
+    emptyAvatarMidSmallNormal: {
+        height: variables.avatarSizeMidSmallNormal,
+        width: variables.avatarSizeMidSmallNormal,
     },
 
     emptyAvatarSmall: {

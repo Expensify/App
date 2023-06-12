@@ -82,6 +82,7 @@ const OptionRowLHN = (props) => {
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
+    const defaultSubscriptSize = optionItem.isExpenseReport ? CONST.AVATAR_SIZE.MID_SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -147,9 +148,9 @@ const OptionRowLHN = (props) => {
                                             backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
-                                            mainTooltip={optionItem.icons[0].name}
-                                            secondaryTooltip={optionItem.icons[1].name}
-                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            mainTooltip={optionItem.ownerEmail}
+                                            secondaryTooltip={optionItem.subtitle}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
                                         />
                                     ) : (
                                         <MultipleAvatars

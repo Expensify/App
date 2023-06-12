@@ -1087,6 +1087,7 @@ const CONST = {
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
+        MID_SMALL_NORMAL: 'mid-small-normal',
     },
     OPTION_MODE: {
         COMPACT: 'compact',

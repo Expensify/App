@@ -230,6 +230,7 @@ function getOptionData(reportID) {
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
+        isExpenseReport: false,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForLogins(report.participants, personalDetails));
@@ -240,6 +241,7 @@ function getOptionData(reportID) {
     result.isTaskReport = ReportUtils.isTaskReport(report);
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    result.isExpenseReport = ReportUtils.isExpenseReport(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
