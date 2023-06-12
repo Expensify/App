@@ -55,22 +55,9 @@ const defaultProps = {
 class Checkbox extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            isFocused: false,
-        };
 
-        this.onFocus = this.onFocus.bind(this);
-        this.onBlur = this.onBlur.bind(this);
         this.handleSpaceKey = this.handleSpaceKey.bind(this);
         this.firePressHandlerOnClick = this.firePressHandlerOnClick.bind(this);
-    }
-
-    onFocus() {
-        this.setState({isFocused: true});
-    }
-
-    onBlur() {
-        this.setState({isFocused: false});
     }
 
     handleSpaceKey(event) {
@@ -88,13 +75,6 @@ class Checkbox extends React.Component {
             return;
         }
 
-        const wasChecked = this.props.isChecked;
-
-        // If checkbox is checked and focused, make sure it's unfocused when pressed.
-        if (this.state.isFocused && wasChecked) {
-            this.onBlur();
-        }
-
         this.props.onPress();
     }
 
@@ -104,8 +84,6 @@ class Checkbox extends React.Component {
                 disabled={this.props.disabled}
                 onPress={this.firePressHandlerOnClick}
                 onMouseDown={this.props.onMouseDown}
-                onFocus={this.onFocus}
-                onBlur={this.onBlur}
                 ref={this.props.forwardedRef}
                 onPressOut={this.onBlur}
                 style={[this.props.style, styles.userSelectNone]}
@@ -128,8 +106,10 @@ class Checkbox extends React.Component {
                             this.props.isChecked && styles.checkedContainer,
                             this.props.hasError && styles.borderColorDanger,
                             this.props.disabled && styles.cursorDisabled,
-                            (this.state.isFocused || this.props.isChecked) && styles.borderColorFocus,
+                            this.props.isChecked && styles.borderColorFocus,
                         ]}
+                        // Used as CSS selector to customize focus-visible style
+                        dataSet={{checkbox: true}}
                     >
                         {this.props.isChecked && (
                             <Icon

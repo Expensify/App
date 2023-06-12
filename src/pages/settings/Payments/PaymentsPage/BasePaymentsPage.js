@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import PasswordPopover from '../../../../components/PasswordPopover';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -391,11 +391,9 @@ class BasePaymentsPage extends React.Component {
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('common.payments')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 />
                 <View style={[styles.flex1, styles.mb4]}>
                     <OfflineWithFeedback
@@ -473,7 +471,7 @@ class BasePaymentsPage extends React.Component {
                                         showConfirmDeleteContent: true,
                                     });
                                 }}
-                                style={[shouldShowMakeDefaultButton && styles.mt4]}
+                                style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                                 text={this.props.translate('common.delete')}
                                 danger
                             />
