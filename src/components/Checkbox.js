@@ -47,7 +47,7 @@ const defaultProps = {
     onMouseDown: undefined,
 };
 
-const Checkbox = (props) => {
+function Checkbox(props) {
     const [isFocused, setIsFocused] = useState(false);
 
     const handleSpaceKey = (event) => {
