@@ -124,7 +124,6 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             ComposerActions.setShouldShowComposeInput(true);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we need it to call it once on mount
     }, []);
 
     /**
