@@ -39,6 +39,9 @@ const propTypes = {
 
         /** Does this account require 2FA? */
         requiresTwoFactorAuth: PropTypes.bool,
+
+        /** Is this account having trouble receiving emails */
+        hasEmailDeliveryFailure: PropTypes,bool,
     }),
 
     /** The credentials of the person signing in */
@@ -63,6 +66,7 @@ const defaultProps = {
  * @param {Boolean} isAccountValidated
  * @param {Boolean} didForgetPassword
  * @param {Boolean} canUsePasswordlessLogins
+ * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
 function getRenderOptions({hasLogin, hasPassword, hasValidateCode, isPrimaryLogin, isAccountValidated, didForgetPassword, canUsePasswordlessLogins, hasEmailDeliveryFailure}) {
@@ -98,8 +102,8 @@ function SignInPage({account, credentials}) {
     }, []);
 
     const {
-        shouldShowEmailDeliveryFailurePage,
         shouldShowLoginForm,
+        shouldShowEmailDeliveryFailurePage,
         shouldShowUnlinkLoginForm,
         shouldShowPasswordForm,
         shouldShowValidateCodeForm,
