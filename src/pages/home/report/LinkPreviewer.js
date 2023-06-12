@@ -64,7 +64,7 @@ const defaultProps = {
     maxAmountOfPreviews: -1,
 };
 
-const LinkPreviewer = (props) => {
+function LinkPreviewer (props) {
     const {windowHeight} = useWindowDimensions();
     const [maxImageSize, setMaxImageSize] = useState(MAX_IMAGE_SIZE);
 
