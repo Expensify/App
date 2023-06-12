@@ -9,7 +9,7 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../pages/personalDetailsPropType';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import TextLink from "../../TextLink";
+import TextLink from '../../TextLink';
 
 const propTypes = {
     ...htmlRendererPropTypes,
