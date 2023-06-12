@@ -236,7 +236,7 @@ class WorkspaceInvitePage extends React.Component {
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
-            invitedEmailsToAccountIDs[login] = accountID;
+            invitedEmailsToAccountIDs[login] = Number(accountID);
         });
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
