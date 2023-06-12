@@ -92,7 +92,7 @@ function ValidateLoginPage(props) {
 
         // The user clicked the option to sign in the current tab
         Navigation.navigate(ROUTES.REPORT);
-    });
+    }, [login, props.credentials, is2FARequired]);
 
     return (
         <>
