@@ -152,7 +152,8 @@ class WorkspaceReimburseView extends React.Component {
                     ]}
                 >
                     <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
-                        {/* Tricky fix with magic number. Should be fixed in main repo */}
+                        {/* Workaround to fix https://github.com/Expensify/App/issues/17368.
+                            TODO: Remove `numberOfLines` once https://github.com/facebook/react-native/pull/35703 is merged and applied to our repo */}
                         <Text numberOfLines={100}>
                             {this.props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                             <CopyTextToClipboard
