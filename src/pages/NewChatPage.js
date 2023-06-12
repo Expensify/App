@@ -206,7 +206,7 @@ class NewChatPage extends Component {
             return;
         }
         const logins = _.pluck(this.state.selectedOptions, 'login');
-        if (userAccountIDs.length < 1) {
+        if (logins.length < 1) {
             return;
         }
         Report.navigateToAndOpenReport(logins);
