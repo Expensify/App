@@ -758,8 +758,7 @@ function getOptions(
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        // Generates an optimistic account ID for new users not yet
-        // saved in Onyx
+        // Generates an optimistic account ID for new users not yet saved in Onyx
         const optimisticAccountID = UserUtils.generateAccountID();
         const personalDetailsExtended = {
             ...personalDetails,
