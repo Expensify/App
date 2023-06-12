@@ -3421,6 +3421,13 @@ const styles = {
         ...flex.flexRow,
     },
 
+    loginButtonRowSmallScreen: {
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 10,
+        ...flex.flexRow,
+    },
+
     appleButtonContainer: {
         width: 40,
         height: 40,

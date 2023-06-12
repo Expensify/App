@@ -114,7 +114,7 @@ class LoginForm extends React.Component {
             Session.clearAccountMessages();
         }
 
-        // Clear the "Account successfully closed" message when the user starts typing
+        // Clear the "Account successfully closed" message when the user starts typing.
         if (this.props.closeAccount.success && !isInputAutoFilled(this.input)) {
             CloseAccount.setDefaultData();
         }
@@ -125,7 +125,7 @@ class LoginForm extends React.Component {
     }
 
     /**
-     * Clear Login from the state
+     * Clear Login from the state.
      */
     clearLogin() {
         this.setState({login: ''}, this.input.clear);
@@ -221,7 +221,7 @@ class LoginForm extends React.Component {
                             />
                             <View style={[this.getSignInWithStyles()]}>
                                 <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{this.props.translate('common.signInWith')}</Text>
-                                <View style={styles.loginButtonRow}>
+                                <View style={this.props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                     <AppleSignIn />
                                 </View>
                             </View>

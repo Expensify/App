@@ -200,7 +200,7 @@ function resendValidateCode(login = credentials.login) {
 /**
 
 /**
- * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls
+ * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls.
  *  @returns {Object}
  */
 
@@ -251,7 +251,7 @@ function signInAttemptState() {
 }
 
 /**
- * Checks the API to see if an account exists for the given login
+ * Checks the API to see if an account exists for the given login.
  *
  * @param {String} login
  */
@@ -262,8 +262,8 @@ function beginSignIn(login) {
 }
 
 /**
- * Given an idToken from Sign in with Apple, check sthe API to see if an account
- * exists for that email address and signs the user in if so
+ * Given an idToken from Sign in with Apple, checks the API to see if an account
+ * exists for that email address and signs the user in if so.
  *
  * @param {String} idToken
  */

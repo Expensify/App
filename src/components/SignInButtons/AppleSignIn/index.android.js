@@ -8,7 +8,7 @@ import CONST from '../../../CONST';
 const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
 
 /**
- * Apple Sign In Configuration for Android
+ * Apple Sign In Configuration for Android.
  */
 
 const config = {
@@ -19,7 +19,7 @@ const config = {
 };
 
 /**
- * Apple Sign In method for Android that returns authToken
+ * Apple Sign In method for Android that returns authToken.
  * @returns {Promise<string>}
  */
 
@@ -34,7 +34,7 @@ function appleSignInRequest() {
 }
 
 /**
- * Apple Sign In button for Android
+ * Apple Sign In button for Android.
  * @returns {React.Component}
  */
 

@@ -10,7 +10,7 @@ import * as Environment from '../../../libs/Environment/Environment';
 import CONST from '../../../CONST';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
-// add a trim() call to lodashGet here to prevent headaches
+// add a trim() call to lodashGet here to prevent headaches.
 const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).trim();
 
 const requiredPropTypes = {
@@ -18,7 +18,7 @@ const requiredPropTypes = {
 };
 
 const propTypes = {
-    // Prop to indicate if this is the desktop flow or not
+    // Prop to indicate if this is the desktop flow or not.
     isDesktopFlow: PropTypes.bool,
 };
 const defaultProps = {
@@ -26,7 +26,7 @@ const defaultProps = {
 };
 
 /**
- * Apple Sign In Configuration for Web
+ * Apple Sign In Configuration for Web.
  */
 const config = {
     clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONST.APPLE_SIGN_IN_SERVICE_ID),
@@ -39,7 +39,7 @@ const config = {
 };
 
 /**
- * Apple Sign In success and failure listeners
+ * Apple Sign In success and failure listeners.
  */
 
 const successListener = (event) => {
@@ -53,18 +53,18 @@ const failureListener = (event) => {
 };
 
 /**
- * Apple Sign In button for Web
+ * Apple Sign In button for Web.
  * @returns {React.Component}
  */
 
 function AppleSignInDiv({isDesktopFlow}) {
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
-        // first mounted
+        // first mounted.
         window.AppleID.auth.init(config);
     }, []);
     //  Result listeners need to live within the focused item to avoid duplicate
-    //  side effects on success and failure
+    //  side effects on success and failure.
     React.useEffect(() => {
         document.addEventListener('AppleIDSignInOnSuccess', successListener);
         document.addEventListener('AppleIDSignInOnFailure', failureListener);
