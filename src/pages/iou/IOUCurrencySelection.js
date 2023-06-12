@@ -59,7 +59,7 @@ const defaultProps = {
 const IOUCurrencySelection = (props) => {
     this.state = {
         searchValue: '',
-        currencyData: this.getCurrencyOptions(this.props.currencyList),
+        currencyData: this.getCurrencyOptions(props.currencyList),
     };
     this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
     this.getSections = this.getSections.bind(this);
@@ -73,7 +73,7 @@ const IOUCurrencySelection = (props) => {
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={this.props.translate('iOUCurrencySelection.selectCurrency')}
+                        title={props.translate('iOUCurrencySelection.selectCurrency')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.getIouRequestRoute(Navigation.getTopmostReportId()))}
                     />
                     <OptionsSelector
@@ -81,7 +81,7 @@ const IOUCurrencySelection = (props) => {
                         onSelectRow={this.confirmCurrencySelection}
                         value={this.state.searchValue}
                         onChangeText={this.changeSearchValue}
-                        textInputLabel={this.props.translate('common.search')}
+                        textInputLabel={props.translate('common.search')}
                         headerMessage={headerMessage}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         initiallyFocusedOptionKey={_.get(
