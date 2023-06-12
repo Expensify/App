@@ -35,6 +35,7 @@ import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatL
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
+import usePrevious from '../../hooks/usePrevious';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -74,20 +75,21 @@ function WorkspaceMembersPage(props) {
     const [removeMembersConfirmModalVisible, setConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
+    const prevIsOffline = usePrevious(props.network.isOffline);
 
     /**
      * Get members for the current workspace
      */
-    const getWorkspaceMembers = () => {
+    const getWorkspaceMembers = useCallback(() => {
         /**
          * We filter clientMemberEmails to only pass members without errors
          * Otherwise, the members with errors would immediately be removed before the user has a chance to read the error
          */
         const clientMemberEmails = _.keys(_.pick(props.policyMemberList, (member) => _.isEmpty(member.errors)));
         Policy.openWorkspaceMembersPage(props.route.params.policyID, clientMemberEmails);
-    }
+    }, [props.route.params.policyID, props.policyMemberList]);
 
-    const validateSelection = () => {
+    const validateSelection = useCallback(() => {
         const newErrors = {};
         _.each(selectedEmployees, (member) => {
             if (member !== props.policy.owner && member !== props.session.email) {
@@ -96,23 +98,24 @@ function WorkspaceMembersPage(props) {
             newErrors[member] = props.translate('workspace.people.error.cannotRemove');
         });
         setErrors(newErrors);
-    }
-
-    useEffect(() => {
-        getWorkspaceMembers();
-    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedEmployees]);
 
     useEffect(() => {
         validateSelection();
-    }, [props.preferredLocale]);
+    }, [props.preferredLocale, validateSelection]);
 
     useEffect(() => {
         setSelectedEmployees((prevSelected) => _.intersection(prevSelected, _.keys(props.policyMemberList)));
     }, [props.policyMemberList]);
 
     useEffect(() => {
-        /* TODO: isReconnecting */
-    });
+        const isReconnecting = prevIsOffline && !props.network.isOffline;
+        if (!isReconnecting) {
+            return;
+        }
+        getWorkspaceMembers();
+    }, [props.network.isOffline, prevIsOffline, getWorkspaceMembers]);
 
     /**
      * This function will iterate through the details of each policy member to check if the
@@ -197,20 +200,20 @@ function WorkspaceMembersPage(props) {
      *
      * @param {String} login
      */
-    const addUser = (login) => {
+    const addUser = useCallback((login) => {
         setSelectedEmployees((prevSelected) => [...prevSelected, login]);
         validateSelection();
-    }
+    }, [validateSelection]);
 
     /**
      * Remove user from the selectedEmployees list
      *
      * @param {String} login
      */
-    const removeUser = (login) => {
+    const removeUser = useCallback((login) => {
         setSelectedEmployees((prevSelected) => _.without(prevSelected, login));
         validateSelection();
-    }
+    }, [validateSelection]);
 
     /**
      * Toggle user from the selectedEmployees list
@@ -219,7 +222,7 @@ function WorkspaceMembersPage(props) {
      * @param {String} pendingAction
      *
      */
-    const toggleUser = (login, pendingAction) => {
+    const toggleUser = useCallback((login, pendingAction) => {
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
@@ -230,20 +233,20 @@ function WorkspaceMembersPage(props) {
         } else {
             addUser(login);
         }
-    }
+    }, [selectedEmployees, addUser, removeUser]);
 
     /**
      * Dismisses the errors on one item
      *
      * @param {Object} item
      */
-    const dismissError = (item) => {
+    const dismissError = useCallback((item) => {
         if (item.pendingAction === 'delete') {
             Policy.clearDeleteMemberError(props.route.params.policyID, item.login);
         } else {
             Policy.clearAddMemberError(props.route.params.policyID, item.login);
         }
-    }
+    }, [props.route.params.policyID]);
 
     /**
      * Check if the policy member is deleted from the workspace
@@ -322,7 +325,8 @@ function WorkspaceMembersPage(props) {
                 )}
             </OfflineWithFeedback>
         );
-    }, [selectedEmployees, errors, props.session.email]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedEmployees, errors, props.session.email, dismissError, toggleUser]);
 
     const policyMemberList = lodashGet(props, 'policyMemberList', {});
     const policyOwner = lodashGet(props.policy, 'owner');
