@@ -753,6 +753,7 @@ function getOptions(
         userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
             showChatPreviewLine,
         });
+        userToInvite.isOptimisticAccount = true;
         userToInvite.login = searchValue;
         userToInvite.text = userToInvite.text || searchValue;
         userToInvite.alternateText = userToInvite.alternateText || searchValue;

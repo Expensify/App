@@ -160,8 +160,7 @@ class SearchPage extends Component {
                 },
             );
         } else {
-            // TODO: do we need to create an optimistic accountID here?
-            Report.navigateToAndOpenReport([option.accountID]);
+            Report.navigateToAndOpenReport([option.login]);
         }
     }
 

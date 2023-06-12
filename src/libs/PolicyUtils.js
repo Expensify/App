@@ -120,7 +120,6 @@ function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails)
             return;
         }
         memberEmailsToAccountIDs[personalDetail.login] = accountID;
-
     });
     return memberEmailsToAccountIDs;
 }

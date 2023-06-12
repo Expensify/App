@@ -22,6 +22,7 @@ import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Welcome from './Welcome';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -325,13 +326,12 @@ function addComment(reportID, text) {
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
  * @param {String} reportID
- * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
- * @param {Array} participantAccountIDList The list of users that are included in a new chat, not including the user creating it
+ * @param {Array} participantLoginList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
  */
-function openReport(reportID, participantList = [], participantAccountIDList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
+function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -371,8 +371,7 @@ function openReport(reportID, participantList = [], participantAccountIDList = [
 
     const params = {
         reportID,
-        accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
-        emailList: participantList ? participantList.join(',') : '',
+        emailList: participantLoginList ? participantLoginList.join(',') : '',
         parentReportActionID,
     };
 
@@ -449,18 +448,19 @@ function openReport(reportID, participantList = [], participantAccountIDList = [
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
- * @param {Array} userAccountIDs list of user accountIDs.
+ * @param {Array} userLogins list of user logins to start a chat report with.
  */
-function navigateToAndOpenReport(userAccountIDs) {
+function navigateToAndOpenReport(userLogins) {
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     let newChat = {};
-    const chat = ReportUtils.getChatByParticipants(userAccountIDs);
+    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport(userAccountIDs);
+        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, [], newChat.participantAccountIDs, newChat);
+    openReport(reportID, userLogins, newChat);
     Navigation.dismissModal(reportID);
 }
 
@@ -494,7 +494,8 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             parentReportID,
         );
 
-        openReport(newChat.reportID, [], newChat.participantAccountIDs, newChat, parentReportAction.reportActionID);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
+        openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
     }
 }
@@ -1150,7 +1151,7 @@ function navigateToConciergeChat() {
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
             // If we don't have a chat with Concierge then create it
-            navigateToAndOpenReport([CONST.ACCOUNT_ID.CONCIERGE]);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
         });
     } else {
         Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
@@ -1616,7 +1617,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, [], [], {}, '0', true);
+        openReport(reportID, [], {}, '0', true);
 
         // Show the sign-in page if the app is offline
         if (isNetworkOffline) {

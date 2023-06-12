@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from './Localize';
+import * as UserUtils from './UserUtils';
 
 let personalDetails = [];
 Onyx.connect({
@@ -47,4 +48,47 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
     return result;
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs};
+/**
+ * Given a list of logins, find the associated personal detail and return related accountIDs.
+ *
+ * @param {Array<string>} logins Array of user logins
+ * @returns {Array} - Array of accountIDs according to passed logins
+ */
+function getAccountIDsByLogins(logins) {
+    return _.reduce(
+        logins,
+        (foundAccountIDs, login) => {
+            const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
+            if (!currentDetail) {
+                // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
+                foundAccountIDs.push(UserUtils.generateAccountID());
+            } else {
+                foundAccountIDs.push(currentDetail.accountID);
+            }
+            return foundAccountIDs;
+        },
+        [],
+    );
+}
+
+/**
+ * Given a list of accountIDs, find the associated personal detail and return related logins.
+ *
+ * @param {Array<number>} accountIDs Array of user accountIDs
+ * @returns {Array} - Array of logins according to passed accountIDs
+ */
+function getLoginsByAccountIDs(accountIDs) {
+    return _.reduce(
+        accountIDs,
+        (foundLogins, accountID) => {
+            const currentDetail = _.find(personalDetails, (detail) => detail.accountID === accountID) || {};
+            if (currentDetail.login) {
+                foundLogins.push(currentDetail.login);
+            }
+            return foundLogins;
+        },
+        [],
+    );
+}
+
+export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs};

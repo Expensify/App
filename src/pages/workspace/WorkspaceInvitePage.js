@@ -121,7 +121,7 @@ class WorkspaceInvitePage extends React.Component {
                 return;
             }
             memberEmailsToExclude.push(memberEmail);
-        })
+        });
         return memberEmailsToExclude;
     }
 
@@ -237,7 +237,7 @@ class WorkspaceInvitePage extends React.Component {
                 return;
             }
             invitedEmailsToAccountIDs[login] = accountID;
-        })
+        });
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(this.props.route.params.policyID));
     }
