@@ -20,7 +20,7 @@ const addCentralPaneNavigatorRoute = (state) => {
     state.index = state.routes.length - 1;
 };
 
-const CustomRouter = (options) => {
+function CustomRouter(options) {
     const stackRouter = StackRouter(options);
 
     return {
@@ -37,6 +37,6 @@ const CustomRouter = (options) => {
             return state;
         },
     };
-};
+}
 
 export default CustomRouter;
