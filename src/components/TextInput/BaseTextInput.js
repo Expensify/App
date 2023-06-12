@@ -38,21 +38,20 @@ function BaseTextInput(props) {
     const isLabelActive = useRef(initialActiveLabel);
 
     useEffect(() => {
-        let appStateSubscription;
-        if (!props.disableKeyboard) { 
-        	return;
+        if (!props.disableKeyboard) {
+            return;
         }
-            appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-                if (!nextAppState.match(/inactive|background/)) {
-                    return;
-                }
 
-                Keyboard.dismiss();
-            });
-        }
+        const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+            if (!nextAppState.match(/inactive|background/)) {
+                return;
+            }
+
+            Keyboard.dismiss();
+        });
 
         return () => {
-            if (!props.disableKeyboard || !appStateSubscription) {
+            if (!props.disableKeyboard) {
                 return;
             }
 
@@ -347,7 +346,7 @@ function BaseTextInput(props) {
                             )}
                         </View>
                     </View>
-                </Pressables.PressableWithoutFeedback>
+                </PressableWithoutFeedback>
                 {!_.isEmpty(inputHelpText) && (
                     <FormHelpMessage
                         isError={!_.isEmpty(props.errorText)}
