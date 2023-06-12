@@ -97,7 +97,12 @@ const ReportWelcomeText = (props) => {
                                 <Tooltip text={tooltip}>
                                     <Text
                                         style={[styles.textStrong]}
-                                        onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}
+                                        onPress={() => {
+                                            const accountDetails = props.personalDetails[participants[index]];
+                                            if (accountDetails && accountDetails.accountID) {
+                                                Navigation.navigate(ROUTES.getProfileRoute(accountDetails.accountID));
+                                            }
+                                        }}
                                     >
                                         {displayName}
                                     </Text>
