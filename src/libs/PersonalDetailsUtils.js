@@ -81,7 +81,7 @@ function getLoginsByAccountIDs(accountIDs) {
     return _.reduce(
         accountIDs,
         (foundLogins, accountID) => {
-            const currentDetail = _.find(personalDetails, (detail) => detail.accountID === accountID) || {};
+            const currentDetail = _.find(personalDetails, (detail) => Number(detail.accountID) === Number(accountID)) || {};
             if (currentDetail.login) {
                 foundLogins.push(currentDetail.login);
             }
