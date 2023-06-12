@@ -55,16 +55,20 @@ function getPersonalDetailsByIDs(accountIDs, currentUserAccountID, shouldChangeU
  * @returns {Array} - Array of accountIDs according to passed logins
  */
 function getAccountIDsByLogins(logins) {
-    return _.reduce(logins, (foundAccountIDs, login) => {
-        const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
-        if (!currentDetail) {
-            // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
-            foundAccountIDs.push(UserUtils.generateAccountID());
-        } else {
-            foundAccountIDs.push(currentDetail.accountID);
-        } 
-        return foundAccountIDs;
-    }, []);
+    return _.reduce(
+        logins,
+        (foundAccountIDs, login) => {
+            const currentDetail = _.find(personalDetails, (detail) => detail.login === login);
+            if (!currentDetail) {
+                // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
+                foundAccountIDs.push(UserUtils.generateAccountID());
+            } else {
+                foundAccountIDs.push(currentDetail.accountID);
+            }
+            return foundAccountIDs;
+        },
+        [],
+    );
 }
 
 /**
@@ -74,13 +78,17 @@ function getAccountIDsByLogins(logins) {
  * @returns {Array} - Array of logins according to passed accountIDs
  */
 function getLoginsByAccountIDs(accountIDs) {
-    return _.reduce(accountIDs, (foundLogins, accountID) => {
-        const currentDetail = _.find(personalDetails, (detail) => detail.accountID === accountID) || {};
-        if (currentDetail.login) {
-            foundLogins.push(currentDetail.login);
-        }
-        return foundLogins;
-    }, []);
+    return _.reduce(
+        accountIDs,
+        (foundLogins, accountID) => {
+            const currentDetail = _.find(personalDetails, (detail) => detail.accountID === accountID) || {};
+            if (currentDetail.login) {
+                foundLogins.push(currentDetail.login);
+            }
+            return foundLogins;
+        },
+        [],
+    );
 }
 
 export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs};
