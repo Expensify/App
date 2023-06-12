@@ -39,3 +39,16 @@ An example of adding `Settings_Workspaces` page:
 - We want to freeze as high the view hierarchy as we can, so we do it in the `Screen`s of `RootStack`, being `CentralPaneNavigator` and `SidebarScreen`.
 
 - We want the report content visible as fast as possible, and at the same time we want the navigation animation to trigger instantly. To do so, we do a hack with `firstRenderRef` which renders `ReportActionsSkeletonView` instead of the messages at the first render, and the proper content afterward. It works since there are always more renders of `ReportScreen` before the content shows up (hopefully).
+
+## Handling wide and narrow layouts
+
+- The wide and narrow layouts are conditionally rendered with different components in `createResponsiveNavigator` depending on screen size (`isSmallScreen` prop from the `withWindowDimension.js`).
+
+- The wide layout is rendered with our custom `ThreePaneView.js` and the narrow layout is rendered with `StackView` from `@react-navigation/stack`
+
+- To make sure that we have the correct navigation state after changing the layout we need to force react to create new instance of the `NavigationContainer`. Without this, the navigation state could be broken after changing the type of layout.
+
+- We are getting the new instance by changing the `key` prop of `NavigationContainer` that depends on the `isSmallScreenWidth`.
+
+- To keep the navigation state that was present before changing the layout, we save the state on every change and use it for the `initialState` prop.
+Changing the layout means that every component inside `NavigationContainer` is mounted anew.
