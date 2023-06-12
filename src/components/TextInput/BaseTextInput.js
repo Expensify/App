@@ -39,7 +39,9 @@ function BaseTextInput(props) {
 
     useEffect(() => {
         let appStateSubscription;
-        if (props.disableKeyboard) {
+        if (!props.disableKeyboard) { 
+        	return;
+        }
             appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
                 if (!nextAppState.match(/inactive|background/)) {
                     return;
