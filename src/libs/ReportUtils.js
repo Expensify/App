@@ -441,10 +441,10 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report) {
-    // Public rooms send back the policy name with the reportSummary,
-    // since they can also be accessed by people who aren't in the workspace
-
     if (!allPolicies || _.size(allPolicies) === 0) {
+        // Public rooms send back the policy name with the reportSummary,
+        // since they can also be accessed by people who aren't in the workspace
+
         if (report.policyName) {
             return report.policyName;
         }
