@@ -95,6 +95,12 @@ function ReportActionItemMessageEdit(props) {
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
 
     const textInputRef = useRef(null);
+    const isFocusedRef = useRef(false);
+
+    useEffect(() => {
+        // required for keeping last state of isFocused variable
+        isFocusedRef.current = isFocused;
+    }, [isFocused]);
 
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
@@ -110,7 +116,7 @@ function ReportActionItemMessageEdit(props) {
 
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused
-            if (!textInputRef.current.isFocused()) {
+            if (!isFocusedRef.current) {
                 return;
             }
 
