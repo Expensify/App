@@ -63,7 +63,7 @@ function getAccountIDsByLogins(logins) {
                 // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
                 foundAccountIDs.push(UserUtils.generateAccountID());
             } else {
-                foundAccountIDs.push(currentDetail.accountID);
+                foundAccountIDs.push(Number(currentDetail.accountID));
             }
             return foundAccountIDs;
         },

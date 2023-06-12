@@ -263,7 +263,7 @@ function buildOnyxDataForMoneyRequest(
  */
 function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
-    const payerAccountID = participant.accountID;
+    const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
 
     // STEP 1: Get existing chat report OR build a new optimistic one
@@ -392,7 +392,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
  */
 function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID = '') {
     const currentUserEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
-    const participantAccountIDs = _.map(participants, (participant) => participant.accountID);
+    const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingGroupChatReport = existingGroupChatReportID
         ? chatReports[`${ONYXKEYS.COLLECTION.REPORT}${existingGroupChatReportID}`]
         : ReportUtils.getChatByParticipants(participantAccountIDs);
@@ -510,7 +510,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
         const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
-        const accountID = participant.accountID;
+        const accountID = Number(participant.accountID);
         if (email === currentUserEmail) {
             return;
         }
@@ -828,7 +828,7 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  */
 function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerID, recipient) {
     const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
-    const recipientAccountID = recipient.accountID;
+    const recipientAccountID = Number(recipient.accountID);
     const newIOUReportDetails = JSON.stringify({
         amount,
         currency,

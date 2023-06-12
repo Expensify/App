@@ -456,7 +456,7 @@ function setShareDestinationValue(shareDestination) {
  */
 
 function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurrentUser = false) {
-    let newAssigneeAccountID = assigneeAccountID;
+    let newAssigneeAccountID = Number(assigneeAccountID);
 
     // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
     if (!newAssigneeAccountID) {

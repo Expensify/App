@@ -256,9 +256,10 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
     }
 
     _.each(invitedEmailsToAccountIDs, (accountID, email) => {
+        const cleanAccountID = Number(accountID);
         const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
 
-        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, accountID], policyID);
+        const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, cleanAccountID], policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
@@ -276,7 +277,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
             });
             return;
         }
-        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, accountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, login, accountID);
+        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, cleanAccountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, login, cleanAccountID);
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
 
         workspaceMembersChats.reportCreationData[login] = {

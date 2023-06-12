@@ -103,7 +103,7 @@ const MoneyRequestAction = (props) => {
         // If the childReportID is not present, we need to create a new thread
         const childReportID = lodashGet(props.action, 'childReportID', '0');
         if (childReportID === '0') {
-            const participantAccountIDs = _.uniq([props.session.accountID, props.action.actorAccountID]);
+            const participantAccountIDs = _.uniq([props.session.accountID, Number(props.action.actorAccountID)]);
             const thread = ReportUtils.buildOptimisticChatReport(
                 participantAccountIDs,
                 props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {

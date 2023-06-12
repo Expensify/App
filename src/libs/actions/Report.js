@@ -473,7 +473,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
         openReport(childReportID);
         Navigation.navigate(ROUTES.getReportRoute(childReportID));
     } else {
-        const participantAccountIDs = _.uniq([currentUserAccountID, parentReportAction.actorAccountID]);
+        const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
         const parentReport = allReports[parentReportID];
         const newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
