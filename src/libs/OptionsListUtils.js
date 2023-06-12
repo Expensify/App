@@ -147,24 +147,6 @@ function addSMSDomainIfPhoneNumber(login) {
 }
 
 /**
- * Returns avatar data for a list of user logins
- *
- * @param {Array<String>} logins
- * @param {Object} personalDetails
- * @returns {Object}
- */
-function getAvatarsForLogins(logins, personalDetails) {
-    return _.map(logins, (login) => {
-        const userPersonalDetail = lodashGet(personalDetails, login, {login, avatar: ''});
-        return {
-            source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
-            type: CONST.ICON_TYPE_AVATAR,
-            name: userPersonalDetail.login,
-        };
-    });
-}
-
-/**
  * Returns avatar data for a list of user accountIDs
  *
  * @param {Array<Number>} accountIDs
@@ -266,7 +248,9 @@ function getParticipantNames(personalDetailList) {
     // `_.contains(Array, value)` for an Array with n members.
     const participantNames = new Set();
     _.each(personalDetailList, (participant) => {
-        // TODO: maybe get participant name by accountID in personalDetails??
+        if (participant.accountID) {
+            participantNames.add(participant.accountID.toString());
+        }
         if (participant.login) {
             participantNames.add(participant.login.toLowerCase());
         }
@@ -409,6 +393,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         ownerEmail: null,
         subtitle: null,
         participantsList: null,
+        accountID: 0,
         login: null,
         reportID: null,
         phoneNumber: null,
@@ -502,6 +487,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
+        result.accountID = Number(personalDetail.accountID);
         result.phoneNumber = personalDetail.phoneNumber;
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
@@ -754,16 +740,27 @@ function getOptions(
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        const fakeAccountID = UserUtils.generateAccountID();
-        userToInvite = createOption([fakeAccountID], personalDetails, null, reportActions, {
+        // Generates an optimistic account ID for new users not yet saved in Onyx
+        const optimisticAccountID = UserUtils.generateAccountID();
+        const personalDetailsExtended = {
+            ...personalDetails,
+            [optimisticAccountID]: {
+                accountID: optimisticAccountID,
+                login: searchValue,
+                avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
+            },
+        };
+        userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
             showChatPreviewLine,
         });
         userToInvite.login = searchValue;
+        userToInvite.text = userToInvite.text || searchValue;
+        userToInvite.alternateText = userToInvite.alternateText || searchValue;
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: UserUtils.getAvatar('', fakeAccountID),
+                source: UserUtils.getAvatar('', optimisticAccountID),
                 login: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -982,7 +979,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
 export {
     addSMSDomainIfPhoneNumber,
-    getAvatarsForLogins,
     getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,

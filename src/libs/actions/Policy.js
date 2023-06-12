@@ -60,6 +60,12 @@ Onyx.connect({
     },
 });
 
+let personalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (personalDetails = val),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -187,14 +193,13 @@ function hasActiveFreePolicy(policies) {
 /**
  * Remove the passed members from the policy employeeList
  *
- * @param {Array} members
  * @param {Array} accountIDs
  * @param {String} policyID
  */
-function removeMembers(members, accountIDs, policyID) {
+function removeMembers(accountIDs, policyID) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
-    // array passed will be empty, prevent the function from proceeding in that case as there is noone to remove
-    if (members.length === 0) {
+    // array passed will be empty, prevent the function from proceeding in that case as there is no one to remove
+    if (accountIDs.length === 0) {
         return;
     }
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
@@ -202,27 +207,27 @@ function removeMembers(members, accountIDs, policyID) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(accountIDs, Array(members.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
+            value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})),
         },
     ];
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(accountIDs, Array(members.length).fill(null)),
+            value: _.object(accountIDs, Array(accountIDs.length).fill(null)),
         },
     ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
-            value: _.object(accountIDs, Array(members.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
+            value: _.object(accountIDs, Array(accountIDs.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
     ];
     API.write(
         'DeleteMembersFromWorkspace',
         {
-            emailList: members.join(','),
+            emailList: _.map(accountIDs, (accountID) => personalDetails[accountID].login).join(','),
             policyID,
         },
         {optimisticData, successData, failureData},
@@ -250,7 +255,9 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         return workspaceMembersChats;
     }
 
-    _.each(invitedEmailsToAccountIDs, (accountID, login) => {
+    _.each(invitedEmailsToAccountIDs, (accountID, email) => {
+        const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
+
         const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, accountID], policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
@@ -333,7 +340,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  * @param {Array<String>} betas
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
+    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const accountIDs = _.values(invitedEmailsToAccountIDs);
 
     // create onyx data for policy expense chats for each new member
@@ -704,11 +711,11 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
  * Removes an error after trying to delete a member
  *
  * @param {String} policyID
- * @param {String} memberEmail
+ * @param {Number} accountID
  */
-function clearDeleteMemberError(policyID, memberEmail) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
-        [memberEmail]: {
+function clearDeleteMemberError(policyID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: {
             pendingAction: null,
             errors: null,
         },
@@ -719,11 +726,11 @@ function clearDeleteMemberError(policyID, memberEmail) {
  * Removes an error after trying to add a member
  *
  * @param {String} policyID
- * @param {String} memberEmail
+ * @param {Number} accountID
  */
-function clearAddMemberError(policyID, memberEmail) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
-        [memberEmail]: null,
+function clearAddMemberError(policyID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: null,
     });
 }
 
@@ -856,9 +863,9 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: {
-                        [sessionEmail]: {
+                        [sessionAccountID]: {
                             role: CONST.POLICY.ROLE.ADMIN,
                             errors: {},
                         },
@@ -977,7 +984,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: null,
                 },
                 {

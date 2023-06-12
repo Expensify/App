@@ -30,7 +30,7 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withNetwork} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -1234,7 +1234,6 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withNetwork(),
-    withPersonalDetails(),
     withCurrentUserPersonalDetails,
     withKeyboardState,
     withOnyx({

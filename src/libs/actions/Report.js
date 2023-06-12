@@ -18,7 +18,6 @@ import Log from '../Log';
 import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
 import * as ErrorUtils from '../ErrorUtils';
@@ -327,11 +326,12 @@ function addComment(reportID, text) {
  *
  * @param {String} reportID
  * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
+ * @param {Array} participantAccountIDList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
  */
-function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
+function openReport(reportID, participantList = [], participantAccountIDList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -371,6 +371,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
 
     const params = {
         reportID,
+        accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         emailList: participantList ? participantList.join(',') : '',
         parentReportActionID,
     };
@@ -459,7 +460,7 @@ function navigateToAndOpenReport(userAccountIDs) {
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, newChat.participants, newChat);
+    openReport(reportID, [], newChat.participantAccountIDs, newChat);
     Navigation.dismissModal(reportID);
 }
 
@@ -476,15 +477,15 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
         openReport(childReportID);
         Navigation.navigate(ROUTES.getReportRoute(childReportID));
     } else {
-        const participants = _.uniq([currentUserEmail, parentReportAction.actorEmail]);
-        const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        const participantAccountIDs = _.uniq([currentUserAccountID, parentReportAction.actorAccountID]);
         const parentReport = allReports[parentReportID];
         const newChat = ReportUtils.buildOptimisticChatReport(
-            formattedUserLogins,
+            participantAccountIDs,
             lodashGet(parentReportAction, ['message', 0, 'text']),
             lodashGet(parentReport, 'chatType', ''),
             lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
             CONST.POLICY.OWNER_EMAIL_FAKE,
+            0,
             false,
             '',
             undefined,
@@ -493,7 +494,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             parentReportID,
         );
 
-        openReport(newChat.reportID, newChat.participants, newChat, parentReportAction.reportActionID);
+        openReport(newChat.reportID, [], newChat.participantAccountIDs, newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
     }
 }
@@ -1615,7 +1616,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     if (reportID && !isAuthenticated) {
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, [], {}, '0', true);
+        openReport(reportID, [], [], {}, '0', true);
 
         // Show the sign-in page if the app is offline
         if (isNetworkOffline) {

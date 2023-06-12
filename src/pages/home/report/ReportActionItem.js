@@ -353,7 +353,7 @@ function ReportActionItem(props) {
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
                             isHovered={hovered}
-                            icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, props.personalDetails)}
+                            icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, props.personalDetailsList)}
                         />
                     </View>
                 )}
