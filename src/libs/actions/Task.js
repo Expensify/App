@@ -296,7 +296,9 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
     let assigneeChatReportID;
     if (assignee && assignee !== report.managerEmail) {
         assigneeChatReportID = ReportUtils.getChatByParticipants([assignee]).reportID;
-        optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, reportName, assignee, `Assigned a task to you: ${reportName}`);
+        if (assigneeChatReportID !== report.parentReportID.toString()) {
+            optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(report.reportID, reportName, assignee, `Assigned a task to you: ${reportName}`);
+        }
     }
 
     const optimisticData = [
