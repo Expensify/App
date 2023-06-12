@@ -9,18 +9,10 @@ module.exports = {
     globals: {
         __DEV__: 'readonly',
     },
-    settings: {
-        'import/resolver': {
-            node: {
-                extensions: ['.js', '.jsx', '.ts', '.tsx'],
-            },
-        },
-    },
     overrides: [
         {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             rules: {
-                'import/extensions': 'off',
                 'no-restricted-imports': [
                     'error',
                     {
@@ -46,8 +38,26 @@ module.exports = {
             },
         },
         {
+            files: ['*.js', '*.jsx'],
+            settings: {
+                'import/resolver': {
+                    node: {
+                        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+                    },
+                },
+            },
+        },
+        {
             files: ['*.ts', '*.tsx'],
-            extends: ['expensify', 'airbnb-typescript', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
+            extends: [
+                'expensify',
+                'airbnb-typescript',
+                'plugin:storybook/recommended',
+                'plugin:react-hooks/recommended',
+                'plugin:@typescript-eslint/recommended',
+                'plugin:@typescript-eslint/recommended-requiring-type-checking',
+                'prettier',
+            ],
             plugins: ['@typescript-eslint', 'react-hooks'],
             parser: '@typescript-eslint/parser',
             parserOptions: {
