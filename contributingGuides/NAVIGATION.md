@@ -34,6 +34,8 @@ An example of adding `Settings_Workspaces` page:
 
 ## Performance solutions
 
+Using [react-freeze](https://github.com/software-mansion/react-freeze) allows us to increase performance by avoiding unnecessary re-renders of screens that aren’t visible to the user anyway.
+
 - To ensure that the user doesn't ever see frozen report content, we are freezing the screens from 2 levels down the `RootStack` (which contains a `Screen` for each report), so when dismissing with a swipe, the user always sees the content of the previous report.
 
 - We want to freeze as high the view hierarchy as we can, so we do it in the `Screen`s of `RootStack`, being `CentralPaneNavigator` and `SidebarScreen`.
