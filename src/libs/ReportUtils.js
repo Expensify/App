@@ -747,7 +747,7 @@ function getIconsForParticipants(participants, personalDetails) {
 }
 
 /**
- * Given a policy name, return the associated workspace icon.
+ * Given a report, return the associated workspace icon.
  *
  * @param {Object} report
  * @returns {Object}
@@ -805,6 +805,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         return [actorIcon];
     }
     if (isDomainRoom(report)) {
+        // Get domain name after the #. Domain Rooms use our default workspace avatar pattern.
         const domainName = report.reportName.substring(1);
         const policyExpenseChatAvatarSource = getDefaultWorkspaceAvatar(domainName);
         const domainIcon = {

@@ -400,6 +400,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
+        isExpenseReport: false,
     };
 
     const personalDetailMap = getPersonalDetailsForLogins(logins, personalDetails);
@@ -416,6 +417,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.isExpenseReport = ReportUtils.isExpenseReport(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
