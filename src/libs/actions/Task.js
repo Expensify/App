@@ -434,7 +434,7 @@ function setAssigneeValueWithParentReportID(reportID) {
     const isDefault = !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report));
     const participants = lodashGet(report, 'participants', []);
     const hasMultipleParticipants = participants.length > 1;
-    if (!isDefault || isMultipleParticipant || report.parentReportID) {
+    if (!isDefault || hasMultipleParticipants || report.parentReportID) {
         return;
     }
 
