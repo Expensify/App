@@ -3,11 +3,10 @@ import lodashFindIndex from 'lodash/findIndex';
 import PropTypes from 'prop-types';
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {Freeze} from 'react-freeze';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 
 const propTypes = {
-    ...windowDimensionsPropTypes,
     keepVisible: PropTypes.bool,
+    children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
@@ -47,5 +46,6 @@ function FreezeWrapper(props) {
 
 FreezeWrapper.propTypes = propTypes;
 FreezeWrapper.defaultProps = defaultProps;
+FreezeWrapper.displayName = 'FreezeWrapper';
 
-export default withWindowDimensions(FreezeWrapper);
+export default FreezeWrapper;
