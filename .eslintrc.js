@@ -27,12 +27,12 @@ module.exports = {
                                 importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
                                 message: 'Please use PressableWithFeedback and/or PressableWithoutFeedback from src/components/Pressable instead.',
                             },
+                            {
+                                name: 'react-native',
+                                importNames: ['StatusBar'],
+                                message: 'Please use StatusBar from src/libs/StatusBar instead',
+                            },
                         ],
-                    },
-                    {
-                        name: 'react-native',
-                        importNames: ['StatusBar'],
-                        message: 'Please use StatusBar from src/libs/StatusBar instead',
                     },
                 ],
             },
@@ -85,6 +85,16 @@ module.exports = {
                         paths: [
                             {
                                 name: 'lodash/get',
+                                message: 'Please use optional chaining and nullish coalescing instead.',
+                            },
+                            {
+                                name: 'lodash',
+                                importNames: ['get'],
+                                message: 'Please use optional chaining and nullish coalescing instead.',
+                            },
+                            {
+                                name: 'underscore',
+                                importNames: ['get'],
                                 message: 'Please use optional chaining and nullish coalescing instead.',
                             },
                         ],
