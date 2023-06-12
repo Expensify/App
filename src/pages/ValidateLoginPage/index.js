@@ -8,6 +8,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import usePermissions from '../../hooks/usePermissions';
+import useLocalize from '../../hooks/useLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 
@@ -26,9 +27,6 @@ const propTypes = {
         /** The email the user logged in with */
         login: PropTypes.string,
     }),
-
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: PropTypes.string,
 };
 
 const defaultProps = {
@@ -37,11 +35,11 @@ const defaultProps = {
         authToken: null,
     },
     credentials: {},
-    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 function ValidateLoginPage(props) {
     const {canUsePasswordlessLogins} = usePermissions();
+    const {preferredLocale} = useLocalize();
 
     useEffect(() => {
         const login = lodashGet(props, 'credentials.login', null);
@@ -56,7 +54,7 @@ function ValidateLoginPage(props) {
                 // because we don't want to block the user with the interstitial page.
                 Navigation.goBack(false);
             } else {
-                Session.signInWithValidateCodeAndNavigate(accountID, validateCode, props.preferredLocale);
+                Session.signInWithValidateCodeAndNavigate(accountID, validateCode, preferredLocale);
             }
         } else {
             User.validateLogin(accountID, validateCode);
