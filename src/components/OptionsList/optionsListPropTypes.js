@@ -88,7 +88,7 @@ const defaultProps = {
     hideSectionHeaders: false,
     disableFocusOptions: false,
     boldStyle: false,
-    onSelectRow: () => {},
+    onSelectRow: undefined,
     headerMessage: '',
     innerRef: null,
     showTitleTooltip: false,

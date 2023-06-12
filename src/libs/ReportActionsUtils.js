@@ -57,6 +57,14 @@ function isMoneyRequestAction(reportAction) {
 }
 
 /**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function hasCommentThread(reportAction) {
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
+}
+
+/**
  * Returns the parentReportAction if the given report is a thread.
  *
  * @param {Object} report
@@ -407,6 +415,7 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
+    hasCommentThread,
     getLinkedTransactionID,
     getReportPreviewAction,
     isCreatedTaskReportAction,

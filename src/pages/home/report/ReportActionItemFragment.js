@@ -97,7 +97,11 @@ const ReportActionItemFragment = (props) => {
             }
             const {html, text} = props.fragment;
 
-            if (props.fragment.isDeletedParentAction) {
+            // Threaded messages display "[Deleted message]" instead of being hidden altogether.
+            // While offline we display the previous message with a strikethrough style. Once online we want to
+            // immediately display "[Deleted message]" while the delete action is pending.
+
+            if ((!props.network.isOffline && props.hasCommentThread && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
 
@@ -118,7 +122,6 @@ const ReportActionItemFragment = (props) => {
 
             return (
                 <Text
-                    family="EMOJI_TEXT_FONT"
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >

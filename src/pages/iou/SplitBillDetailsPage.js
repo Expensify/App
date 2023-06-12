@@ -75,10 +75,7 @@ const SplitBillDetailsPage = (props) => {
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
-                <HeaderWithBackButton
-                    title={props.translate('common.details')}
-                    shouldShowBackButton={false}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
