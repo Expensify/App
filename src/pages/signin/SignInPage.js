@@ -41,7 +41,7 @@ const propTypes = {
         requiresTwoFactorAuth: PropTypes.bool,
 
         /** Is this account having trouble receiving emails */
-        hasEmailDeliveryFailure: PropTypes,bool,
+        hasEmailDeliveryFailure: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */
