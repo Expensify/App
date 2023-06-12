@@ -365,6 +365,28 @@ function isConciergeChatReport(report) {
 }
 
 /**
+ * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of accountIDs
+ * by cross-referencing the accountIDs with personalDetails.
+ *
+ * @param {Array<Number>} accountIDs
+ * @return {Boolean}
+ */
+function hasExpensifyEmails(accountIDs) {
+    return _.some(accountIDs, (accountID) => Str.extractEmailDomain(lodashGet(allPersonalDetails, [accountID, 'login'], '')) === CONST.EXPENSIFY_PARTNER_NAME);
+}
+
+/**
+ * Returns true if there are any guides accounts (team.expensify.com) in a list of accountIDs
+ * by cross-referencing the accountIDs with personalDetails since guides that are participants
+ * of the user's chats should have their personal details in Onyx.
+ * @param {Array<Number>} accountIDs
+ * @returns {Boolean}
+ */
+function hasExpensifyGuidesEmails(accountIDs) {
+    return _.some(accountIDs, (accountID) => Str.extractEmailDomain(lodashGet(allPersonalDetails, [accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN);
+}
+
+/**
  * @param {Record<String, {lastReadTime, reportID}>|Array<{lastReadTime, reportID}>} reports
  * @param {Boolean} [ignoreDomainRooms]
  * @param {Object} policies
@@ -617,32 +639,6 @@ function hasAutomatedExpensifyEmails(emails) {
  */
 function hasAutomatedExpensifyAccountIDs(accountIDs) {
     return _.intersection(accountIDs, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
-}
-
-/**
- * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of accountIDs
- * by cross-referencing the accountIDs with personalDetails.
- *
- * @param {Array<Number>} accountIDs
- * @return {Boolean}
- */
-function hasExpensifyEmails(accountIDs) {
-    return _.some(accountIDs, (accountID) =>
-        Str.extractEmailDomain(lodashGet(allPersonalDetails, [accountID, 'login'], '')) === CONST.EXPENSIFY_PARTNER_NAME
-    );
-}
-
-/**
- * Returns true if there are any guides accounts (team.expensify.com) in a list of accountIDs
- * by cross-referencing the accountIDs with personalDetails since guides that are participants
- * of the user's chats should have their personal details in Onyx.
- * @param {Array<Number>} accountIDs
- * @returns {Boolean}
- */
-function hasExpensifyGuidesEmails(accountIDs) {
-    return _.some(accountIDs, (accountID) =>
-        Str.extractEmailDomain(lodashGet(allPersonalDetails, [accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN
-    );
 }
 
 /**
