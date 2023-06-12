@@ -186,7 +186,7 @@ const MultipleAvatars = (props) => {
                             />
                         </View>
                     </Tooltip>
-                    <View style={[[...secondAvatarStyles, props.icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[1].type) : {}]]}>
+                    <View style={[...secondAvatarStyles, props.icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[1].type) : {}]}>
                         {props.icons.length === 2 ? (
                             <Tooltip text={tooltipTexts[1]}>
                                 <View>
