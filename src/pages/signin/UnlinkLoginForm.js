@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-// eslint-disable-next-line no-restricted-imports
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -17,6 +16,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import CONST from '../../CONST';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -78,9 +78,12 @@ const UnlinkLoginForm = (props) => {
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <TouchableOpacity onPress={() => redirectToSignIn()}>
+                <PressableWithFeedback
+                    accessibilityLabel={props.translate('common.back')}
+                    onPress={() => redirectToSignIn()}
+                >
                     <Text style={[styles.link]}>{props.translate('common.back')}</Text>
-                </TouchableOpacity>
+                </PressableWithFeedback>
                 <Button
                     medium
                     success
