@@ -758,16 +758,28 @@ function getOptions(
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        const fakeAccountID = UserUtils.generateAccountID();
-        userToInvite = createOption([fakeAccountID], personalDetails, null, reportActions, {
+        // Generates an optimistic account ID for new users not yet
+        // saved in Onyx
+        const optimisticAccountID = UserUtils.generateAccountID();
+        const personalDetailsExtended = {
+            ...personalDetails,
+            [optimisticAccountID]: {
+                accountID: optimisticAccountID,
+                login: searchValue,
+                avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
+            }
+        }
+        userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
             showChatPreviewLine,
         });
         userToInvite.login = searchValue;
+        userToInvite.text = userToInvite.text || searchValue;
+        userToInvite.alternateText = userToInvite.alternateText || searchValue;
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: UserUtils.getAvatar('', fakeAccountID),
+                source: UserUtils.getAvatar('', optimisticAccountID),
                 login: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
