@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from '../components/ScreenWrapper';
 import OptionsList from '../components/OptionsList';
@@ -64,6 +64,7 @@ const getAllParticipants = (report, personalDetails) => {
             return {
                 alternateText: userLogin,
                 displayName: userPersonalDetail.displayName,
+                accountID: userPersonalDetail.accountID,
                 icons: [
                     {
                         source: UserUtils.getAvatar(userPersonalDetail.avatar, login),
@@ -89,13 +90,10 @@ const ReportParticipantsPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={props.translate(
                             ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report) ? 'common.members' : 'common.details',
                         )}
-                        onCloseButtonPress={Navigation.dismissModal}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowBackButton={ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report)}
                     />
                     <View
                         pointerEvents="box-none"
@@ -112,7 +110,7 @@ const ReportParticipantsPage = (props) => {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.login));
+                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip

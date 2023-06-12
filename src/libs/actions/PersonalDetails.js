@@ -112,7 +112,7 @@ function updatePronouns(pronouns) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -142,7 +142,7 @@ function updateDisplayName(firstName, lastName) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PROFILE);
+    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -166,7 +166,7 @@ function updateLegalName(legalFirstName, legalLastName) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -188,7 +188,7 @@ function updateDateOfBirth({dob}) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -231,7 +231,7 @@ function updateAddress(street, street2, city, state, zip, country) {
             },
         ],
     });
-    Navigation.drawerGoBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -293,7 +293,7 @@ function updateSelectedTimezone(selectedTimezone) {
             ],
         },
     );
-    Navigation.drawerGoBack(ROUTES.SETTINGS_TIMEZONE);
+    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**
@@ -308,6 +308,49 @@ function openMoneyRequestModalPage() {
  */
 function openPersonalDetailsPage() {
     API.read('OpenPersonalDetailsPage');
+}
+
+/**
+ * Fetches public profile info about a given user.
+ * The API will only return the accountID, displayName, and avatar for the user
+ * but the profile page will use other info (e.g. contact methods and pronouns) if they are already available in Onyx
+ * @param {Number} accountID
+ */
+function openPublicProfilePage(accountID) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [accountID]: {
+                    isLoading: true,
+                },
+            },
+        },
+    ];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [accountID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [accountID]: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
+    API.read('OpenPublicProfilePage', {accountID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -427,6 +470,7 @@ export {
     deleteAvatar,
     openMoneyRequestModalPage,
     openPersonalDetailsPage,
+    openPublicProfilePage,
     extractFirstAndLastNameFromAvailableDetails,
     updateDisplayName,
     updateLegalName,

@@ -198,43 +198,6 @@ function resendValidateCode(login = credentials.login) {
 }
 
 /**
- * Request a new validate / magic code for user to sign in automatically with the link
- *
- * @param {String} [login]
- */
-function resendLinkWithValidateCode(login = credentials.login) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                message: null,
-            },
-        },
-    ];
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: Localize.translateLocal('validateCodeModal.successfulNewCodeRequest'),
-            },
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: null,
-            },
-        },
-    ];
-    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
-}
 
 /**
  * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls
@@ -790,7 +753,7 @@ function requestUnlinkValidationLink() {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: Localize.translateLocal('unlinkLoginForm.linkSent'),
+                message: 'unlinkLoginForm.linkSent',
                 loadingForm: null,
             },
         },
@@ -949,7 +912,6 @@ export {
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resendValidateCode,
-    resendLinkWithValidateCode,
     resetPassword,
     resendResetPassword,
     requestUnlinkValidationLink,
