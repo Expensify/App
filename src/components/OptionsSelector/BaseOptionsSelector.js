@@ -24,6 +24,12 @@ const propTypes = {
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Content container styles for OptionsList */
+    contentContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
+    /** List container styles for OptionsList */
+    listContainerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationFocusPropTypes,
@@ -32,6 +38,8 @@ const propTypes = {
 const defaultProps = {
     shouldDelayFocus: false,
     safeAreaPaddingBottomStyle: {},
+    contentContainerStyles: [],
+    listContainerStyles: [styles.flex1],
     ...optionsSelectorDefaultProps,
 };
 
@@ -282,6 +290,7 @@ class BaseOptionsSelector extends Component {
             !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && _.isEmpty(this.props.selectedOptions));
         const defaultConfirmButtonText = _.isUndefined(this.props.confirmButtonText) ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
+        const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
         const textInput = (
             <TextInput
                 ref={(el) => (this.textInput = el)}
@@ -325,7 +334,8 @@ class BaseOptionsSelector extends Component {
                         this.props.onLayout();
                     }
                 }}
-                contentContainerStyles={shouldShowFooter ? undefined : [this.props.safeAreaPaddingBottomStyle]}
+                contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
+                listContainerStyles={this.props.listContainerStyles}
                 isLoading={!this.props.shouldShowOptions}
             />
         );
@@ -336,7 +346,7 @@ class BaseOptionsSelector extends Component {
                 maxIndex={this.state.allOptions.length - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
             >
-                <View style={[styles.flex1]}>
+                <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
                     {this.props.shouldTextInputAppearBelowOptions ? (
                         <>
                             <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
