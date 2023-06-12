@@ -21,6 +21,8 @@ const propTypes = {
     /** Handles load complete event in PDF component */
     onLoadComplete: PropTypes.func,
 
+    isFocused: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -31,6 +33,7 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     onScaleChanged: () => {},
     onLoadComplete: () => {},
+    isFocused: false
 };
 
 export {propTypes, defaultProps};

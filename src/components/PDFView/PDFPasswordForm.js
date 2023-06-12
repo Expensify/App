@@ -28,6 +28,8 @@ const propTypes = {
     /** Notify parent that a text field has been focused or blurred */
     onPasswordFieldFocused: PropTypes.func,
 
+    isFocused: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -52,6 +54,19 @@ class PDFPasswordForm extends Component {
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
         this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
+    }
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    componentDidUpdate(prevProps) {
+
+        // console.log("prevProps.isFocused", prevProps.isFocused)
+        console.log("this.props.isFocused", this.props.isFocused)
+        // console.log("this.textInputRef", !!this.textInputRef)
+
+        if (!prevProps.isFocused && this.props.isFocused && this.textInputRef) {
+            this.textInputRef.focus();
+        }
+        
     }
 
     submitPassword() {
@@ -103,6 +118,7 @@ class PDFPasswordForm extends Component {
                             <Text>{this.props.translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
                         </View>
                         <TextInput
+                            ref={(el) => (this.textInputRef = el)}
                             label={this.props.translate('common.password')}
                             autoComplete="off"
                             autoCorrect={false}

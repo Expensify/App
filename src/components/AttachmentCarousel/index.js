@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, FlatList, PixelRatio} from 'react-native';
+import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -212,6 +212,7 @@ class AttachmentCarousel extends React.Component {
      * @param {Array<{item: {source, file}, index: Number}>} viewableItems
      */
     updatePage({viewableItems}) {
+        console.log("updatePage")
         // Since we can have only one item in view at a time, we can use the first item in the array
         // to get the index of the current page
         const entry = _.first(viewableItems);
@@ -222,6 +223,7 @@ class AttachmentCarousel extends React.Component {
         const page = entry.index;
         this.props.onNavigate(entry.item);
         this.setState({page, isZoomed: false});
+        Keyboard.dismiss()
     }
 
     /**
@@ -252,6 +254,7 @@ class AttachmentCarousel extends React.Component {
     renderItem({item}) {
         return (
             <AttachmentView
+                isFocused={this.state.attachments[this.state.page].source === item.source}
                 source={item.source}
                 file={item.file}
                 isAuthTokenRequired={item.isAuthTokenRequired}
@@ -317,6 +320,7 @@ class AttachmentCarousel extends React.Component {
 
                 {this.state.containerWidth > 0 && (
                     <FlatList
+                        keyboardShouldPersistTaps="handled"
                         listKey="AttachmentCarousel"
                         horizontal
                         // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
