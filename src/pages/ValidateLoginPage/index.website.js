@@ -9,6 +9,7 @@ import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import usePermissions from '../../hooks/usePermissions';
+import useLocalize from '../../hooks/useLocalize';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -39,9 +40,6 @@ const propTypes = {
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
-
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: PropTypes.string,
 };
 
 const defaultProps = {
@@ -51,7 +49,6 @@ const defaultProps = {
     },
     credentials: {},
     account: {},
-    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 function ValidateLoginPage(props) {
@@ -62,6 +59,7 @@ function ValidateLoginPage(props) {
     const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
     const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
     const {canUsePasswordlessLogins} = usePermissions();
+    const {preferredLocale} = useLocalize();
 
     useEffect(() => {
         // A fresh session will not have credentials.login and user permission betas available.
@@ -83,7 +81,7 @@ function ValidateLoginPage(props) {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale);
+        Session.signInWithValidateCode(accountID, validateCode, preferredLocale);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
