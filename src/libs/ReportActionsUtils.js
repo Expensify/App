@@ -405,7 +405,7 @@ function isCreatedTaskReportAction(reportAction) {
 /**
  * A helper method to identify if the message is deleted or not.
  *
- * @param {Object} reportActions
+ * @param {Object} reportAction
  * @returns {Boolean}
  */
 function isMessageDeleted(reportAction) {
