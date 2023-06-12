@@ -1,4 +1,4 @@
-import React, {createContext, forwardRef} from 'react';
+import React, {createContext, forwardRef, useState} from 'react';
 import PropTypes from 'prop-types';
 
 import getComponentDisplayName from '../libs/getComponentDisplayName';
@@ -11,38 +11,20 @@ const withCurrentReportIdPropTypes = {
     children: PropTypes.node.isRequired,
 };
 
-class CurrentReportIdContextProvider extends React.Component {
-    constructor(props) {
-        super(props);
+function CurrentReportIdContextProvider ({children}) {
+    const [currentReportId, setCurrentReportId] = useState('');
 
-        this.state = {
-            currentReportId: '',
-        };
-    }
+    const updateCurrentReportId = (state) => {
+        setCurrentReportId(Navigation.getTopmostReportId(state));
+    };
 
-    /**
-     * The context this component exposes to child components
-     * @returns {Object} currentReportId to share between central pane and LHN
-     */
-    getContextValue() {
-        return {
-            updateCurrentReportId: this.updateCurrentReportId.bind(this),
-            currentReportId: this.state.currentReportId,
-        };
-    }
+    const getContextValue = () => ({
+            updateCurrentReportId,
+            currentReportId,
+        });
 
-    /**
-     * @param {Object} state
-     * @returns {String}
-     */
-    updateCurrentReportId(state) {
-        return this.setState({currentReportId: Navigation.getTopmostReportId(state)});
-    }
-
-    render() {
-        return <CurrentReportIdContext.Provider value={this.getContextValue()}>{this.props.children}</CurrentReportIdContext.Provider>;
-    }
-}
+    return <CurrentReportIdContext.Provider value={getContextValue()}>{children}</CurrentReportIdContext.Provider>;
+};
 
 CurrentReportIdContextProvider.propTypes = withCurrentReportIdPropTypes;
 
