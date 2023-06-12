@@ -187,6 +187,7 @@ class AttachmentCarousel extends React.Component {
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
             isZoomed: false,
+            activeSource: null
         };
     }
 
@@ -212,18 +213,20 @@ class AttachmentCarousel extends React.Component {
      * @param {Array<{item: {source, file}, index: Number}>} viewableItems
      */
     updatePage({viewableItems}) {
-        console.log("updatePage")
+        Keyboard.dismiss();
+        console.log("updatePage", viewableItems)
         // Since we can have only one item in view at a time, we can use the first item in the array
         // to get the index of the current page
         const entry = _.first(viewableItems);
         if (!entry) {
+            this.setState({ activeSource: null });
             return;
         }
+        console.log('entry.item', entry.item);
 
         const page = entry.index;
         this.props.onNavigate(entry.item);
-        this.setState({page, isZoomed: false});
-        Keyboard.dismiss()
+        this.setState({page, isZoomed: false, activeSource: entry.item.source});
     }
 
     /**
@@ -254,7 +257,7 @@ class AttachmentCarousel extends React.Component {
     renderItem({item}) {
         return (
             <AttachmentView
-                isFocused={this.state.attachments[this.state.page].source === item.source}
+                isFocused={this.state.activeSource === item.source}
                 source={item.source}
                 file={item.file}
                 isAuthTokenRequired={item.isAuthTokenRequired}
