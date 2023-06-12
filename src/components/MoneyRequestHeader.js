@@ -3,7 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -89,9 +89,10 @@ const MoneyRequestHeader = (props) => {
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={props.isSingleTransactionView}
                 shouldShowThreeDotsButton={!isPayer && !isSettled && props.isSingleTransactionView}
@@ -107,9 +108,8 @@ const MoneyRequestHeader = (props) => {
                 parentReport={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
-                shouldShowCloseButton={false}
                 shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
             <View style={[styles.ph5, styles.pb2]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
@@ -153,7 +153,7 @@ const MoneyRequestHeader = (props) => {
                                 <SettlementButton
                                     currency={props.report.currency}
                                     policyID={props.report.policyID}
-                                    shouldShowPaypal={Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']))}
+                                    shouldShowPaypal={shouldShowPaypal}
                                     chatReportID={props.chatReport.reportID}
                                     iouReport={props.report}
                                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
@@ -169,7 +169,7 @@ const MoneyRequestHeader = (props) => {
                     <SettlementButton
                         currency={props.report.currency}
                         policyID={props.report.policyID}
-                        shouldShowPaypal={false}
+                        shouldShowPaypal={shouldShowPaypal}
                         chatReportID={props.report.chatReportID}
                         iouReport={props.report}
                         onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
