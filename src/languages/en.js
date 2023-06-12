@@ -11,6 +11,8 @@ export default {
         ok: 'OK',
         buttonConfirm: 'Got it',
         attachment: 'Attachment',
+        image: 'Image',
+        pdf: 'PDF',
         to: 'To',
         optional: 'Optional',
         new: 'New',

@@ -1,12 +1,13 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import Image from '../Image';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Whether source url requires authentication */
@@ -266,7 +267,7 @@ class ImageView extends PureComponent {
                 onLayout={this.onContainerLayoutChanged}
                 style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
             >
-                <Pressable
+                <PressableWithoutFeedback
                     style={{
                         ...StyleUtils.getZoomSizingStyle(
                             this.state.isZoomed,
@@ -283,6 +284,8 @@ class ImageView extends PureComponent {
                     }}
                     onPressIn={this.onContainerPressIn}
                     onPress={this.onContainerPress}
+                    accessibilityRole='button'
+                    accessibilityLabel={this.props.translate('common.image')}
                 >
                     <Image
                         source={{uri: this.props.url}}
@@ -292,7 +295,7 @@ class ImageView extends PureComponent {
                         onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
                     />
-                </Pressable>
+                </PressableWithoutFeedback>
 
                 {this.state.isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
             </View>
