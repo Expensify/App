@@ -89,11 +89,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
             return newSections;
         }
 
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite
-        } = newChatOptions;
+        const {recentReports, personalDetails, userToInvite} = newChatOptions;
 
         newSections.push({
             title: props.translate('common.recents'),
@@ -121,7 +117,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
         }
 
         return newSections;
-    }
+    };
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -150,17 +146,17 @@ function MoneyRequestParticipantsSplitSelector(props) {
         setNewChatOptions({
             recentReports,
             personalDetails,
-            userToInvite
+            userToInvite,
         });
-        props.onAddParticipants(newSelectedOptions)
-    }
+        props.onAddParticipants(newSelectedOptions);
+    };
 
     /**
      * Once a single or more users are selected, navigates to next step
      */
     const finalizeParticipants = () => {
         props.onStepComplete();
-    }
+    };
 
     const maxParticipantsReached = props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -185,9 +181,9 @@ function MoneyRequestParticipantsSplitSelector(props) {
         setNewChatOptions({
             recentReports,
             personalDetails,
-            userToInvite
+            userToInvite,
         });
-    }, [props.betas, props.reports, props.participants, props.personalDetails, props.translate, searchTerm])
+    }, [props.betas, props.reports, props.participants, props.personalDetails, props.translate, searchTerm]);
 
     return (
         <View style={[styles.flex1, styles.w100, props.participants.length > 0 ? props.safeAreaPaddingBottomStyle : {}]}>
@@ -209,7 +205,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
             />
         </View>
     );
-};
+}
 
 MoneyRequestParticipantsSplitSelector.propTypes = propTypes;
 MoneyRequestParticipantsSplitSelector.defaultProps = defaultProps;
