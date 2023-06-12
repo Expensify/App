@@ -767,8 +767,8 @@ function getOptions(
                 accountID: optimisticAccountID,
                 login: searchValue,
                 avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
-            }
-        }
+            },
+        };
         userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
             showChatPreviewLine,
         });
