@@ -49,6 +49,17 @@ function BaseTextInput(props) {
             });
         }
 
+        return () => {
+            if (!props.disableKeyboard || !appStateSubscription) {
+                return;
+            }
+
+            appStateSubscription.remove();
+        };
+    }, [props.disableKeyboard]);
+
+    // AutoFocus which only works on mount:
+    useEffect(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
         if (!props.autoFocus || !input.current) {
             return;
@@ -62,17 +73,14 @@ function BaseTextInput(props) {
         input.current.focus();
 
         return () => {
-            if (focusTimeout) {
-                clearTimeout(focusTimeout);
-            }
-
-            if (!props.disableKeyboard || !appStateSubscription) {
+            if (!focusTimeout) {
                 return;
             }
-
-            appStateSubscription.remove();
+            clearTimeout(focusTimeout);
         };
-    }, [props.autoFocus, props.disableKeyboard, props.shouldDelayFocus]);
+        // We only want this to run on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const animateLabel = useCallback(
         (translateY, scale) => {
