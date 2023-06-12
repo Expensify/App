@@ -16,14 +16,14 @@ const propTypes = {
 
     /** Styles that should be passed to touchable container */
     // eslint-disable-next-line react/forbid-prop-types
-    styles: PropTypes.arrayOf(PropTypes.object),
+    style: PropTypes.arrayOf(PropTypes.object),
 
     /** Proptypes of pressable component used for implementation */
     ...genericPressablePropTypes.pressablePropTypes,
 };
 
 const defaultProps = {
-    styles: [],
+    style: [],
     onLongPress: undefined,
 };
 
@@ -52,7 +52,7 @@ class PressableWithoutFocus extends React.Component {
                 onPress={this.pressAndBlur}
                 onLongPress={this.props.onLongPress}
                 ref={(el) => (this.pressableRef = el)}
-                style={this.props.styles}
+                style={this.props.style}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restProps}
             >
