@@ -58,6 +58,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // There are some API requests that should not be retried when there is an auth failure like
                 // creating and deleting logins. In those cases, they should handle the original response instead
                 // of the new response created by handleExpiredAuthToken.
+                // If the request was from the sequential queue we don't want to return, we want to run the reauthentication callback and retry the request
                 const apiRequestType = lodashGet(request, 'data.apiRequestType');
                 if (!isFromSequentialQueue && !apiRequestType) {
                     if (request.resolve) {
