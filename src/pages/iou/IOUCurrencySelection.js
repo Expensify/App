@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -58,12 +58,11 @@ const defaultProps = {
 
 const IOUCurrencySelection = (props) => {
     const [searchValue, setCurrentSearchValue] = useState('');
-    this.state = {
-        currencyData: this.getCurrencyOptions(props.currencyList),
-    };
-    this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
-    this.getSections = this.getSections.bind(this);
-    this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
+    const [currencyData, setCurrencyData] = useState(getCurrencyOptions);
+
+    const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.selectedCurrencyCode);;
+
+    // this.confirmCurrencySelection = this.confirmCurrencySelection.bind(this);
 
     const getSections = useCallback(() => {
         if (searchValue.trim() && !currencyData.length) {
@@ -79,8 +78,21 @@ const IOUCurrencySelection = (props) => {
 
         return sections;
     },
-    [searchValue, currencyData.length],
-    );
+    [searchValue, currencyData.length]);
+
+    const getCurrencyOptions = useCallback(() => {
+        return _.map(props.currencyList, (currencyCode) => {
+            const isSelectedCurrency = currencyCode === selectedCurrencyCode;
+            return {
+                text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
+                currencyCode,
+                keyForList: currencyCode,
+                customIcon: isSelectedCurrency ? greenCheckmark : undefined,
+                boldStyle: isSelectedCurrency,
+            };
+        })
+    },
+    [currencyCode]);
 
     const headerMessage = this.state.searchValue.trim() && !this.state.currencyData.length ? props.translate('common.noResultsFound') : '';
 
@@ -93,15 +105,15 @@ const IOUCurrencySelection = (props) => {
                         onBackButtonPress={() => Navigation.goBack(ROUTES.getIouRequestRoute(Navigation.getTopmostReportId()))}
                     />
                     <OptionsSelector
-                        sections={this.getSections()}
-                        onSelectRow={this.confirmCurrencySelection}
-                        value={this.state.searchValue}
+                        sections={getSections}
+                        onSelectRow={confirmCurrencySelection}
+                        value={searchValue}
                         onChangeText={setCurrentSearchValue}
                         textInputLabel={props.translate('common.search')}
                         headerMessage={headerMessage}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         initiallyFocusedOptionKey={_.get(
-                            _.find(this.state.currencyData, (currency) => currency.currencyCode === this.getSelectedCurrencyCode()),
+                            _.find(currencyData, (currency) => currency.currencyCode === selectedCurrencyCode),
                             'keyForList',
                         )}
                         shouldHaveOptionSeparator
@@ -111,46 +123,6 @@ const IOUCurrencySelection = (props) => {
         </ScreenWrapper>
     );
 }
-
-    // /**
-    //  * Returns the sections needed for the OptionsSelector
-    //  *
-    //  * @returns {Array}
-    //  */
-    // getSections() {
-    //     if (this.state.searchValue.trim() && !this.state.currencyData.length) {
-    //         return [];
-    //     }
-    //     const sections = [];
-    //     sections.push({
-    //         title: this.props.translate('iOUCurrencySelection.allCurrencies'),
-    //         data: this.state.currencyData,
-    //         shouldShow: true,
-    //         indexOffset: 0,
-    //     });
-
-    //     return sections;
-    // }
-
-    // getSelectedCurrencyCode() {
-    //     return lodashGet(this.props.route, 'params.currency', this.props.iou.selectedCurrencyCode);
-    // }
-
-    // /**
-    //  * @returns {Object}
-    //  */
-    // getCurrencyOptions() {
-    //     return _.map(this.props.currencyList, (currencyInfo, currencyCode) => {
-    //         const isSelectedCurrency = currencyCode === this.getSelectedCurrencyCode();
-    //         return {
-    //             text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
-    //             currencyCode,
-    //             keyForList: currencyCode,
-    //             customIcon: isSelectedCurrency ? greenCheckmark : undefined,
-    //             boldStyle: isSelectedCurrency,
-    //         };
-    //     });
-    // }
 
     // /**
     //  * Sets new search value
