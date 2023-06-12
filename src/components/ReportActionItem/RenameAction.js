@@ -17,7 +17,7 @@ const propTypes = {
 };
 
 const RenameAction = (props) => {
-    const currentUserAccountID = props.currentUserPersonalDetails.accountID;
+    const currentUserAccountID = lodashGet(props.currentUserPersonalDetails, 'accountID', '');
     const userDisplayName = lodashGet(props.action, ['person', 0, 'text']);
     const actorAccountID = lodashGet(props.action, 'actorAccountID', '');
     const displayName = actorAccountID === currentUserAccountID ? `${props.translate('common.you')}` : `${userDisplayName}`;
