@@ -98,6 +98,10 @@ function translateLocal(phrase, variables) {
  * @returns {String}
  */
 function translateIfPhraseKey(message) {
+    if (!message) {
+        return '';
+    }
+
     try {
         // check if error message has a variable parameter
         const [phrase, variables] = _.isArray(message) ? message : [message];

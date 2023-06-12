@@ -95,7 +95,7 @@ const Form = (props) => {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
 
-    const {validate, translate, onSubmit, children} = props;
+    const {validate, onSubmit, children} = props;
 
     /**
      * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
@@ -126,7 +126,7 @@ const Form = (props) => {
                 }
 
                 // Add a validation error here because it is a string value that contains HTML characters
-                validationErrors[inputID] = translate('common.error.invalidCharacter');
+                validationErrors[inputID] = 'common.error.invalidCharacter';
             });
 
             if (!_.isObject(validationErrors)) {
@@ -141,7 +141,7 @@ const Form = (props) => {
 
             return touchedInputErrors;
         },
-        [errors, touchedInputs, props.formID, validate, translate],
+        [errors, touchedInputs, props.formID, validate],
     );
 
     useEffect(() => {
