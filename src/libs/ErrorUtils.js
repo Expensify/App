@@ -96,15 +96,17 @@ function getLatestErrorField(onyxData, fieldName) {
  *
  */
 function addErrorMessage(errors, inputID, message) {
-    const errorList = errors;
     if (!message || !inputID) {
         return;
     }
 
+    const errorList = errors;
     const translatedMessage = Localize.translateIfPhraseKey(message);
 
     if (_.isEmpty(errorList[inputID])) {
         errorList[inputID] = [translatedMessage, {isTranslated: true}];
+    } else if (_.isString(errorList[inputID])) {
+        errorList[inputID] = [`${errorList[inputID]}\n${translatedMessage}`, {isTranslated: true}];
     } else {
         errorList[inputID][0] = `${errorList[inputID][0]}\n${translatedMessage}`;
     }
