@@ -425,7 +425,7 @@ function setShareDestinationValue(shareDestination) {
 }
 
 /**
- * Auto-assign for participant when create a task in a DM
+ * Auto-assign participant when creating a task in a DM
  * @param {String} reportID
  */
 
