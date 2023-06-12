@@ -36,7 +36,7 @@ import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import TaskHeader from '../../components/TaskHeader';
-import MoneyRequestHeader from '../../components/MoneyRequestHeader';
+import MoneyRequestTopHeader from '../../components/MoneyRequestTopHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
 
@@ -263,7 +263,7 @@ class ReportScreen extends React.Component {
                         shouldShowErrorMessages={false}
                     >
                         {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
-                            <MoneyRequestHeader
+                            <MoneyRequestTopHeader
                                 report={this.props.report}
                                 policies={this.props.policies}
                                 personalDetails={this.props.personalDetails}

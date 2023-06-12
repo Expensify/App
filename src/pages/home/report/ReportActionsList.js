@@ -21,6 +21,7 @@ import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
+import MoneyRequestHeader from '../../../components/MoneyRequestHeader';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -52,6 +53,15 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
 
     ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -148,6 +158,10 @@ const ReportActionsList = (props) => {
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report, props.currentUserPersonalDetails.login);
+
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+    const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
+    const showMoneyRequestHeader = ReportUtils.isMoneyRequestReport(props.report) || isSingleTransactionView;
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
@@ -155,12 +169,14 @@ const ReportActionsList = (props) => {
                 ref={ReportScrollManager.flatListRef}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
-                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
+                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0, showMoneyRequestHeader && styles.pb0]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={calculateInitialNumToRender()}
                 onEndReached={props.loadMoreChats}
                 onEndReachedThreshold={0.75}
+                ListFooterComponentStyle={showMoneyRequestHeader && styles.chatFooterAtTheTop}
+               
                 ListFooterComponent={() => {
                     if (props.report.isLoadingMoreReportActions) {
                         return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
@@ -178,7 +194,17 @@ const ReportActionsList = (props) => {
                             />
                         );
                     }
-
+                    if(showMoneyRequestHeader) {
+                        return (
+                            <MoneyRequestHeader
+                                report={props.report}
+                                policy={props.policy}
+                                personalDetails={props.personalDetails}
+                                isSingleTransactionView={isSingleTransactionView}
+                                parentReportAction={parentReportAction}
+                            />
+                        );
+                    }
                     return null;
                 }}
                 keyboardShouldPersistTaps="handled"

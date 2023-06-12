@@ -1577,6 +1577,10 @@ const styles = {
     chatItemReactionsDraftRight: {
         marginLeft: 52,
     },
+    chatFooterAtTheTop : {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
+    },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
     // Make sure you run the following tests against any changes: #12669

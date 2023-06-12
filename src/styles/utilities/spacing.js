@@ -422,6 +422,10 @@ export default {
         paddingTop: 80,
     },
 
+    pb0: {
+        paddingBottom: 0,
+    },
+
     pb1: {
         paddingBottom: 4,
     },
