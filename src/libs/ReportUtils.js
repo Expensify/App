@@ -884,7 +884,7 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
         const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
-
+        const avatar = UserUtils.getDefaultAvatar(participant.login);
         const accountID = participant.accountID;
 
         let pronouns = participant.pronouns;
@@ -895,6 +895,8 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 
         return {
             displayName,
+            avatar,
+            login: participant.login,
             accountID,
             pronouns,
         };
