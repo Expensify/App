@@ -255,7 +255,9 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         return workspaceMembersChats;
     }
 
-    _.each(invitedEmailsToAccountIDs, (accountID, login) => {
+    _.each(invitedEmailsToAccountIDs, (accountID, email) => {
+        const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
+
         const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, accountID], policyID);
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
@@ -338,7 +340,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  * @param {Array<String>} betas
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`;
+    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const accountIDs = _.values(invitedEmailsToAccountIDs);
 
     // create onyx data for policy expense chats for each new member
@@ -709,11 +711,11 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
  * Removes an error after trying to delete a member
  *
  * @param {String} policyID
- * @param {String} memberEmail
+ * @param {Number} accountID
  */
-function clearDeleteMemberError(policyID, memberEmail) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
-        [memberEmail]: {
+function clearDeleteMemberError(policyID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: {
             pendingAction: null,
             errors: null,
         },
@@ -724,11 +726,11 @@ function clearDeleteMemberError(policyID, memberEmail) {
  * Removes an error after trying to add a member
  *
  * @param {String} policyID
- * @param {String} memberEmail
+ * @param {Number} accountID
  */
-function clearAddMemberError(policyID, memberEmail) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`, {
-        [memberEmail]: null,
+function clearAddMemberError(policyID, accountID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
+        [accountID]: null,
     });
 }
 
@@ -861,9 +863,9 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: {
-                        [sessionEmail]: {
+                        [sessionAccountID]: {
                             role: CONST.POLICY.ROLE.ADMIN,
                             errors: {},
                         },
@@ -982,7 +984,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policyID}`,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: null,
                 },
                 {

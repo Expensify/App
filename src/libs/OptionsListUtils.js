@@ -147,24 +147,6 @@ function addSMSDomainIfPhoneNumber(login) {
 }
 
 /**
- * Returns avatar data for a list of user logins
- *
- * @param {Array<String>} logins
- * @param {Object} personalDetails
- * @returns {Object}
- */
-function getAvatarsForLogins(logins, personalDetails) {
-    return _.map(logins, (login) => {
-        const userPersonalDetail = lodashGet(personalDetails, login, {login, avatar: ''});
-        return {
-            source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.login),
-            type: CONST.ICON_TYPE_AVATAR,
-            name: userPersonalDetail.login,
-        };
-    });
-}
-
-/**
  * Returns avatar data for a list of user accountIDs
  *
  * @param {Array<Number>} accountIDs
@@ -758,19 +740,28 @@ function getOptions(
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
-        const fakeAccountID = UserUtils.generateAccountID();
-        const optimisticDetails = {login: searchValue, accountID: fakeAccountID};
-        userToInvite = createOption([fakeAccountID], optimisticDetails, null, reportActions, {
+        // Generates an optimistic account ID for new users not yet saved in Onyx
+        const optimisticAccountID = UserUtils.generateAccountID();
+        const personalDetailsExtended = {
+            ...personalDetails,
+            [optimisticAccountID]: {
+                accountID: optimisticAccountID,
+                login: searchValue,
+                avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
+            },
+        };
+        userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
             showChatPreviewLine,
         });
         userToInvite.isOptimisticAccount = true;
         userToInvite.login = searchValue;
-        userToInvite.text = searchValue;
+        userToInvite.text = userToInvite.text || searchValue;
+        userToInvite.alternateText = userToInvite.alternateText || searchValue;
 
         // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: UserUtils.getAvatar('', fakeAccountID),
+                source: UserUtils.getAvatar('', optimisticAccountID),
                 login: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -989,7 +980,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
 
 export {
     addSMSDomainIfPhoneNumber,
-    getAvatarsForLogins,
     getAvatarsForAccountIDs,
     isCurrentUser,
     isPersonalDetailsReady,

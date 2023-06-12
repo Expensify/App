@@ -110,20 +110,19 @@ const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROL
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
 function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails) {
-    return _.chain(policyMembers)
-        .keys()
-        .filter((accountID) => _.isEmpty(policyMembers[accountID].errors))
-        .reduce((result, accountID) => {
-            const personalDetail = personalDetails[accountID];
-            if (personalDetail && personalDetail.login) {
-                return {
-                    ...result,
-                    [personalDetail.login]: accountID,
-                };
-            }
-            return result;
-        }, {})
-        .value();
+    const memberEmailsToAccountIDs = {};
+    _.each(policyMembers, (member, accountID) => {
+        if (!_.isEmpty(member.errors)) {
+            return;
+        }
+        const personalDetail = personalDetails[accountID];
+        if (!personalDetail || !personalDetail.login) {
+            return;
+        }
+        memberEmailsToAccountIDs[personalDetail.login] = accountID;
+
+    });
+    return memberEmailsToAccountIDs;
 }
 
 export {
