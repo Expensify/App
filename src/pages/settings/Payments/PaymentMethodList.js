@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -87,47 +87,66 @@ const defaultProps = {
     listHeaderComponent: null,
 };
 
-class PaymentMethodList extends Component {
-    constructor(props) {
-        super(props);
+/**
+ * Dismisses the error on the payment method
+ * @param {Object} item
+ */
+function dismissError(item) {
+    const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
+    const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
 
-        this.renderItem = this.renderItem.bind(this);
+    if (!paymentID) {
+        Log.info('Unable to clear payment method error: ', item);
+        return;
     }
 
-    /**
-     * @param {Boolean} isDefault
-     * @returns {*}
-     */
-    getDefaultBadgeText(isDefault = false) {
-        if (!isDefault) {
-            return null;
-        }
+    if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        PaymentMethods.clearDeletePaymentMethodError(paymentList, paymentID);
+    } else {
+        PaymentMethods.clearAddPaymentMethodError(paymentList, paymentID);
+    }
+}
 
-        const defaultablePaymentMethodCount = _.reduce(
-            this.getFilteredPaymentMethods(),
-            (count, method) => (method.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD ? count + 1 : count),
-            0,
-        );
-        if (defaultablePaymentMethodCount <= 1) {
-            return null;
-        }
-
-        return this.props.translate('paymentMethodList.defaultPaymentMethod');
+/**
+ * @param {Array} filteredPaymentMethods
+ * @param {Boolean} isDefault
+ * @returns {Boolean}
+ */
+function shouldShowDefaultBadge(filteredPaymentMethods, isDefault = false) {
+    if (!isDefault) {
+        return false;
     }
 
-    /**
-     * @returns {Array}
-     */
-    getFilteredPaymentMethods() {
+    const defaultablePaymentMethodCount = _.filter(
+        filteredPaymentMethods,
+        (method) => method.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
+    ).length;
+    return defaultablePaymentMethodCount > 1;
+}
+
+/**
+ * @param {String} actionPaymentMethodType
+ * @param {String|Number} activePaymentMethodID
+ * @param {String} paymentMethod
+ * @return {Boolean}
+ */
+function isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod) {
+    return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
+}
+function PaymentMethodList(props) {
+    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, filterType, network, onPress, payPalMeData, shouldShowSelectedState, selectedMethodID, translate} =
+        props;
+
+    const filteredPaymentMethods = useMemo(() => {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        const filteredCardList = _.filter(this.props.cardList, (card) => card.accountData.additionalData.isP2PDebitCard);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, filteredCardList, this.props.payPalMeData);
+        const filteredCardList = _.filter(cardList, (card) => card.accountData.additionalData.isP2PDebitCard);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList, payPalMeData);
 
-        if (!_.isEmpty(this.props.filterType)) {
-            combinedPaymentMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === this.props.filterType);
+        if (!_.isEmpty(filterType)) {
+            combinedPaymentMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterType);
         }
 
-        if (!this.props.network.isOffline) {
+        if (!network.isOffline) {
             combinedPaymentMethods = _.filter(
                 combinedPaymentMethods,
                 (paymentMethod) => paymentMethod.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(paymentMethod.errors),
@@ -136,44 +155,23 @@ class PaymentMethodList extends Component {
 
         combinedPaymentMethods = _.map(combinedPaymentMethods, (paymentMethod) => ({
             ...paymentMethod,
-            onPress: (e) => this.props.onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
-            iconFill: this.isPaymentMethodActive(paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-            wrapperStyle: this.isPaymentMethodActive(paymentMethod) ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
+            onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
+            iconFill: isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod) ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, paymentMethod)
+                ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)]
+                : null,
             disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         }));
 
         return combinedPaymentMethods;
-    }
+    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, filterType, network, onPress, payPalMeData]);
 
     /**
-     * Dismisses the error on the payment method
-     * @param {Object} item
+     * Render placeholder when there are no payments methods
+     *
+     * @return {React.Component}
      */
-    dismissError(item) {
-        const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
-        const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
-
-        if (!paymentID) {
-            Log.info('Unable to clear payment method error: ', item);
-            return;
-        }
-
-        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            PaymentMethods.clearDeletePaymentMethodError(paymentList, paymentID);
-        } else {
-            PaymentMethods.clearAddPaymentMethodError(paymentList, paymentID);
-        }
-    }
-
-    /**
-     * @param {Object} paymentMethod
-     * @param {String|Number} paymentMethod.methodID
-     * @param {String} paymentMethod.accountType
-     * @return {Boolean}
-     */
-    isPaymentMethodActive(paymentMethod) {
-        return paymentMethod.accountType === this.props.actionPaymentMethodType && paymentMethod.methodID === this.props.activePaymentMethodID;
-    }
+    const renderListEmptyComponent = useCallback(() => <Text style={[styles.popoverMenuItem]}>{translate('paymentMethodList.addFirstPaymentMethod')}</Text>, [translate]);
 
     /**
      * Create a menuItem for each passed paymentMethod
@@ -183,10 +181,10 @@ class PaymentMethodList extends Component {
      *
      * @return {React.Component}
      */
-    renderItem({item}) {
-        return (
+    const renderItem = useCallback(
+        ({item}) => (
             <OfflineWithFeedback
-                onClose={() => this.dismissError(item)}
+                onClose={() => dismissError(item)}
                 pendingAction={item.pendingAction}
                 errors={item.errors}
                 errorRowStyles={styles.ph6}
@@ -200,59 +198,50 @@ class PaymentMethodList extends Component {
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
-                    badgeText={this.getDefaultBadgeText(item.isDefault)}
+                    badgeText={shouldShowDefaultBadge(filteredPaymentMethods, item.isDefault) ? translate('paymentMethodList.defaultPaymentMethod') : null}
                     wrapperStyle={item.wrapperStyle}
-                    shouldShowSelectedState={this.props.shouldShowSelectedState}
-                    isSelected={this.props.selectedMethodID === item.methodID}
+                    shouldShowSelectedState={shouldShowSelectedState}
+                    isSelected={selectedMethodID === item.methodID}
                 />
             </OfflineWithFeedback>
-        );
-    }
+        ),
+        [shouldShowSelectedState, selectedMethodID, filteredPaymentMethods, translate],
+    );
 
-    /**
-     * Show add first payment copy when payment methods are
-     *
-     * @return {React.Component}
-     */
-    renderListEmptyComponent() {
-        return <Text style={[styles.popoverMenuItem]}>{this.props.translate('paymentMethodList.addFirstPaymentMethod')}</Text>;
-    }
-
-    render() {
-        return (
-            <>
-                <FlatList
-                    data={this.getFilteredPaymentMethods()}
-                    renderItem={this.renderItem}
-                    keyExtractor={(item) => item.key}
-                    ListEmptyComponent={this.renderListEmptyComponent()}
-                    ListHeaderComponent={this.props.listHeaderComponent}
-                />
-                {this.props.shouldShowAddPaymentMethodButton && (
-                    <FormAlertWrapper>
-                        {(isOffline) => (
-                            <Button
-                                text={this.props.translate('paymentMethodList.addPaymentMethod')}
-                                icon={Expensicons.CreditCard}
-                                onPress={(e) => this.props.onPress(e)}
-                                isDisabled={this.props.isLoadingPaymentMethods || isOffline}
-                                style={[styles.mh4, styles.buttonCTA]}
-                                iconStyles={[styles.buttonCTAIcon]}
-                                key="addPaymentMethodButton"
-                                success
-                                shouldShowRightIcon
-                                large
-                            />
-                        )}
-                    </FormAlertWrapper>
-                )}
-            </>
-        );
-    }
+    return (
+        <>
+            <FlatList
+                data={filteredPaymentMethods}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.key}
+                ListEmptyComponent={renderListEmptyComponent(translate)}
+                ListHeaderComponent={props.listHeaderComponent}
+            />
+            {props.shouldShowAddPaymentMethodButton && (
+                <FormAlertWrapper>
+                    {(isOffline) => (
+                        <Button
+                            text={translate('paymentMethodList.addPaymentMethod')}
+                            icon={Expensicons.CreditCard}
+                            onPress={props.onPress}
+                            isDisabled={props.isLoadingPaymentMethods || isOffline}
+                            style={[styles.mh4, styles.buttonCTA]}
+                            iconStyles={[styles.buttonCTAIcon]}
+                            key="addPaymentMethodButton"
+                            success
+                            shouldShowRightIcon
+                            large
+                        />
+                    )}
+                </FormAlertWrapper>
+            )}
+        </>
+    );
 }
 
 PaymentMethodList.propTypes = propTypes;
 PaymentMethodList.defaultProps = defaultProps;
+PaymentMethodList.displayName = 'PaymentMethodList';
 
 export default compose(
     withLocalize,

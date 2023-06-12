@@ -125,7 +125,7 @@ const defaultProps = {
 };
 
 const IOUPreview = (props) => {
-    if (_.isEmpty(props.iouReport)) {
+    if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
     const sessionEmail = lodashGet(props.session, 'email', null);
