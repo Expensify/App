@@ -87,11 +87,16 @@ class DisplayNames extends PureComponent {
             >
                 {this.props.shouldUseFullTitle
                     ? this.props.fullTitle
-                    : _.map(this.props.displayNamesWithTooltips, ({displayName, accountID}, index) => (
+                    : _.map(this.props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
                           <Fragment key={index}>
                               <UserDetailsTooltip
                                   key={index}
                                   accountID={accountID}
+                                  fallbackUserDetails={{
+                                      avatar,
+                                      login,
+                                      displayName,
+                                  }}
                                   shiftHorizontal={() => this.getTooltipShiftX(index)}
                               >
                                   {/*  // We need to get the refs to all the names which will be used to correct
