@@ -241,7 +241,7 @@ function canDeleteReportAction(reportAction, reportID) {
         return true;
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {});
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`) || {};
     return policy.role === CONST.POLICY.ROLE.ADMIN;
 }
 
@@ -556,7 +556,7 @@ function getChatRoomSubtitle(report) {
             }
         }
 
-        return [workspaceName, roomName].join(' • ');
+        return roomName ? [workspaceName, roomName].join(' • ') : workspaceName;
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -664,7 +664,7 @@ function canShowReportRecipientLocalTime(personalDetails, report, login) {
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return Str.htmlDecode(String(lastMessageText)).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return Str.htmlDecode(String(lastMessageText)).trim().replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -1042,19 +1042,29 @@ function getReportName(report) {
 }
 
 /**
+ * Get the report for a reportID
+ *
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getReport(reportID) {
+    return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+}
+
+/**
  * Navigate to the details page of a given report
  *
  * @param {Object} report
  */
 function navigateToDetailsPage(report) {
-    const participants = lodashGet(report, 'participants', []);
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
     if (isChatRoom(report) || isPolicyExpenseChat(report) || isThread(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
-    if (participants.length === 1) {
-        Navigation.navigate(ROUTES.getDetailsRoute(participants[0]));
+    if (participantAccountIDs.length === 1) {
+        Navigation.navigate(ROUTES.getProfileRoute(participantAccountIDs[0]));
         return;
     }
     Navigation.navigate(ROUTES.getReportParticipantsRoute(report.reportID));
@@ -1164,8 +1174,8 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     reportAction.reportAction.childReportID = taskReportID;
     reportAction.reportAction.parentReportID = parentReportID;
     reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
-    reportAction.reportAction.taskTitle = taskTitle;
-    reportAction.reportAction.taskAssignee = taskAssignee;
+    reportAction.reportAction.childReportName = taskTitle;
+    reportAction.reportAction.childManagerEmail = taskAssignee;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
 
@@ -2114,7 +2124,7 @@ function shouldReportShowSubscript(report) {
         return false;
     }
 
-    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat) {
+    if (isPolicyExpenseChat(report) && !isThread(report) && !isTaskReport(report) && !report.isOwnPolicyExpenseChat) {
         return true;
     }
 
@@ -2179,6 +2189,7 @@ export {
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
     getReportName,
+    getReport,
     getReportIDFromLink,
     getRouteFromLink,
     navigateToDetailsPage,

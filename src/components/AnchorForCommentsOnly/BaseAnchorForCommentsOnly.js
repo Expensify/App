@@ -11,6 +11,7 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import Tooltip from '../Tooltip';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps as anchorForCommentsOnlyDefaultProps} from './anchorForCommentsOnlyPropTypes';
 
@@ -21,6 +22,9 @@ const propTypes = {
     /** Press out handler for the link */
     onPressOut: PropTypes.func,
 
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...anchorForCommentsOnlyPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -28,6 +32,7 @@ const propTypes = {
 const defaultProps = {
     onPressIn: undefined,
     onPressOut: undefined,
+    containerStyles: [],
     ...anchorForCommentsOnlyDefaultProps,
 };
 
@@ -49,6 +54,7 @@ const BaseAnchorForCommentsOnly = (props) => {
     return (
         <PressableWithSecondaryInteraction
             inline
+            style={[styles.cursorDefault, StyleUtils.getFontSizeStyle(props.style.fontSize)]}
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(
                     isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
