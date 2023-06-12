@@ -23,7 +23,7 @@ import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 
-function getTransparentColor(color, transparency = 'ff') {
+function getTransparentColor(color, transparency = '') {
     return `${color}${transparency}`;
 }
 
