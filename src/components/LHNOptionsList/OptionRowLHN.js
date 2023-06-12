@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity, View, StyleSheet} from 'react-native';
+import {View, StyleSheet} from 'react-native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -19,6 +19,10 @@ import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
 import TextPill from '../TextPill';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
+import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -52,11 +56,12 @@ const defaultProps = {
 
 const OptionRowLHN = (props) => {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
+
     if (!optionItem) {
         return null;
     }
 
-    let touchableRef = null;
+    let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
@@ -80,8 +85,27 @@ const OptionRowLHN = (props) => {
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
 
-    // If the item is a thread within a workspace, we will show the subtitle as the second line instead of in a pill
-    const alternativeText = optionItem.isThread && optionItem.subtitle ? optionItem.subtitle : optionItem.alternateText;
+    /**
+     * Show the ReportActionContextMenu modal popover.
+     *
+     * @param {Object} [event] - A press event.
+     */
+    const showPopover = (event) => {
+        ReportActionContextMenu.showContextMenu(
+            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
+            event,
+            '',
+            popoverAnchor,
+            props.reportID,
+            {},
+            '',
+            () => {},
+            () => {},
+            false,
+            false,
+            optionItem.isPinned,
+        );
+    };
 
     return (
         <OfflineWithFeedback
@@ -91,15 +115,17 @@ const OptionRowLHN = (props) => {
         >
             <Hoverable>
                 {(hovered) => (
-                    <TouchableOpacity
-                        ref={(el) => (touchableRef = el)}
+                    <PressableWithSecondaryInteraction
+                        ref={(el) => (popoverAnchor = el)}
                         onPress={(e) => {
                             if (e) {
                                 e.preventDefault();
                             }
 
-                            props.onSelectRow(optionItem, touchableRef);
+                            props.onSelectRow(optionItem, popoverAnchor);
                         }}
+                        onSecondaryInteraction={(e) => showPopover(e)}
+                        withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[
                             styles.flexRow,
@@ -137,7 +163,7 @@ const OptionRowLHN = (props) => {
                                                 props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                 hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
-                                            shouldShowTooltip={!optionItem.isChatRoom && !optionItem.isArchivedRoom}
+                                            shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>
@@ -161,13 +187,13 @@ const OptionRowLHN = (props) => {
                                             />
                                         )}
                                     </View>
-                                    {alternativeText ? (
+                                    {optionItem.alternateText ? (
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
                                             accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {alternativeText}
+                                            {optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>
@@ -213,7 +239,7 @@ const OptionRowLHN = (props) => {
                                 </View>
                             )}
                         </View>
-                    </TouchableOpacity>
+                    </PressableWithSecondaryInteraction>
                 )}
             </Hoverable>
         </OfflineWithFeedback>

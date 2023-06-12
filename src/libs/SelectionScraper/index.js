@@ -83,10 +83,12 @@ const getHTMLOfSelection = () => {
 
     // Find and remove the div housing the UnreadActionIndicator because we don't want
     // the 'New/Nuevo' text inside it being copied.
-    const newMessageLineIndicatorDiv = div.querySelector(`#${CONST.UNREAD_ACTION_INDICATOR_ID}`);
+    const divsToRemove = div.querySelectorAll(`[data-${CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT}=true]`);
 
-    if (newMessageLineIndicatorDiv) {
-        newMessageLineIndicatorDiv.remove();
+    if (divsToRemove && divsToRemove.length > 0) {
+        divsToRemove.forEach((element) => {
+            element.remove();
+        });
     }
 
     return div.innerHTML;

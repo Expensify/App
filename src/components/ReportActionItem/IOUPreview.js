@@ -1,10 +1,9 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -28,6 +27,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import refPropTypes from '../refPropTypes';
+import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -125,7 +125,7 @@ const defaultProps = {
 };
 
 const IOUPreview = (props) => {
-    if (_.isEmpty(props.iouReport)) {
+    if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
     const sessionEmail = lodashGet(props.session, 'email', null);
@@ -141,7 +141,7 @@ const IOUPreview = (props) => {
 
     const requestAmount = moneyRequestAction.amount;
     const requestCurrency = moneyRequestAction.currency;
-    const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim();
+    const requestComment = moneyRequestAction.comment.trim();
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -160,6 +160,14 @@ const IOUPreview = (props) => {
         showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
     };
 
+    const getPreviewHeaderText = () => {
+        if (props.isBillSplit) {
+            return props.translate('iou.split');
+        }
+
+        return `${props.translate('iou.cash')}${!props.iouReport.hasOutstandingIOU ? ` • ${props.translate('iou.settledExpensify')}` : ''}`;
+    };
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -175,7 +183,7 @@ const IOUPreview = (props) => {
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewHeaderText()}</Text>
                             {Boolean(getSettledMessage()) && (
                                 <>
                                     <Icon
@@ -238,14 +246,16 @@ const IOUPreview = (props) => {
     }
 
     return (
-        <Pressable
+        <PressableWithFeedback
             onPress={props.onPreviewPressed}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
+            accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
+            accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
         >
             {childContainer}
-        </Pressable>
+        </PressableWithFeedback>
     );
 };
 

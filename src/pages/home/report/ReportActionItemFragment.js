@@ -97,7 +97,11 @@ const ReportActionItemFragment = (props) => {
             }
             const {html, text} = props.fragment;
 
-            if (props.fragment.isDeletedParentAction) {
+            // Threaded messages display "[Deleted message]" instead of being hidden altogether.
+            // While offline we display the previous message with a strikethrough style. Once online we want to
+            // immediately display "[Deleted message]" while the delete action is pending.
+
+            if ((!props.network.isOffline && props.hasCommentThread && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) || props.fragment.isDeletedParentAction) {
                 return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedMessage')}</comment>`} />;
             }
 
@@ -109,27 +113,28 @@ const ReportActionItemFragment = (props) => {
             // Only render HTML if we have html in the fragment
             if (!differByLineBreaksOnly) {
                 const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
-                const editedTag = props.fragment.isEdited ? '<edited></edited>' : '';
+                const editedTag = props.fragment.isEdited ? `<edited ${isPendingDelete ? 'deleted' : ''}></edited>` : '';
                 const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);
 
                 return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
             }
+            const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
+
             return (
                 <Text
-                    family="EMOJI_TEXT_FONT"
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[EmojiUtils.containsOnlyEmojis(text) ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
+                    style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
                     {convertToLTR(Str.htmlDecode(text))}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}
                             color={themeColors.textSupporting}
-                            style={[styles.alignItemsBaseline, editedLabelStyles]}
+                            style={[editedLabelStyles, ...props.style]}
                         >
                             <Text
                                 selectable={false}
-                                style={[styles.w1, styles.userSelectNone]}
+                                style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.w1, styles.userSelectNone]}
                             >
                                 {' '}
                             </Text>
