@@ -608,7 +608,7 @@ export {
     setTaskReport,
     setDetailsValue,
     setAssigneeValue,
-    setAssignValueWithParentReportID,
+    setAssigneeValueWithParentReportID,
     setShareDestinationValue,
     clearOutTaskInfo,
     reopenTask,
