@@ -15,6 +15,8 @@ import withCurrentUserPersonalDetails from '../../../../components/withCurrentUs
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import emojis from '../../../../../assets/emojis';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
+import * as ReportUtils from '../../../../libs/ReportUtils';
 import CONST from '../../../../CONST';
 
 const propTypes = {
@@ -58,6 +60,7 @@ class PopoverReactionList extends React.Component {
         this.hideReactionList = this.hideReactionList.bind(this);
         this.measureReactionListPosition = this.measureReactionListPosition.bind(this);
         this.getReactionListMeasuredLocation = this.getReactionListMeasuredLocation.bind(this);
+        this.getSelectedReactionFromAction = this.getSelectedReactionFromAction.bind(this);
         this.getSelectedReaction = this.getSelectedReaction.bind(this);
         this.getReactionInformation = this.getReactionInformation.bind(this);
         this.dimensionsEventListener = null;
@@ -92,6 +95,7 @@ class PopoverReactionList extends React.Component {
         if (!this.state.emojiName) {
             return;
         }
+
         const selectedReaction = this.getSelectedReaction(this.props.reportActions, this.state.reportActionID, this.state.emojiName);
         if (!selectedReaction) {
             this.setState({
@@ -132,6 +136,19 @@ class PopoverReactionList extends React.Component {
     }
 
     /**
+     * Get the selected reaction from report action.
+     *
+     * @param {Object} reportAction
+     * @param {String} emojiName - Name of emoji
+     * @returns {Object}
+     */
+    getSelectedReactionFromAction(reportAction, emojiName) {
+        const reactions = lodashGet(reportAction, ['message', 0, 'reactions'], []);
+        const reactionsWithCount = _.filter(reactions, (reaction) => reaction.users.length > 0);
+        return _.find(reactionsWithCount, (reaction) => reaction.emoji === emojiName);
+    }
+
+    /**
      * Get the selected reaction.
      *
      * @param {Array<Object>} reportActions
@@ -141,9 +158,12 @@ class PopoverReactionList extends React.Component {
      */
     getSelectedReaction(reportActions, reportActionID, emojiName) {
         const reportAction = _.find(reportActions, (action) => action.reportActionID === reportActionID);
-        const reactions = lodashGet(reportAction, ['message', 0, 'reactions'], []);
-        const reactionsWithCount = _.filter(reactions, (reaction) => reaction.users.length > 0);
-        return _.find(reactionsWithCount, (reaction) => reaction.emoji === emojiName);
+        const reactions = this.getSelectedReactionFromAction(reportAction, emojiName);
+        if (ReportUtils.isThread(this.props.report)) {
+            const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
+            return reactions || this.getSelectedReactionFromAction(parentReportAction, emojiName);
+        }
+        return reactions;
     }
 
     /**
@@ -186,7 +206,7 @@ class PopoverReactionList extends React.Component {
     showReactionList(event, reactionListAnchor, emojiName, reportActionID) {
         const nativeEvent = event.nativeEvent || {};
         this.reactionListAnchor = reactionListAnchor;
-        const selectedReaction = this.getSelectedReaction(this.props.reportActions, reportActionID, emojiName);
+        const selectedReaction = this.getSelectedReaction(this.props.reportActions, this.state.reportActionID, this.state.emojiName);
         const {emojiCount, emojiCodes, hasUserReacted, users} = this.getReactionInformation(selectedReaction);
         this.getReactionListMeasuredLocation().then(({x, y}) => {
             this.setState({
@@ -274,7 +294,7 @@ export default compose(
     withLocalize,
     withOnyx({
         reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
         },
     }),
