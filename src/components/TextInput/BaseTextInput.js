@@ -18,7 +18,7 @@ import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
 import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
-import * as Pressables from '../Pressable';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 function BaseTextInput(props) {
     const inputValue = props.value || '';
