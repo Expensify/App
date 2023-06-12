@@ -332,11 +332,14 @@ class ReimbursementAccountPage extends React.Component {
         const isLoading = this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading;
 
         // Prevent the full-page blocking offline view from being displayed for these steps if the device goes offline.
-        const fpOfflineExcludeSteps = [CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT];
+        const shouldShowOfflineLoader = !(
+            this.props.network.isOffline &&
+            _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
+        );
 
         // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
         // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
-        if ((!this.state.hasACHDataBeenLoaded || isLoading) && !(this.props.network.isOffline && _.contains(fpOfflineExcludeSteps, currentStep))) {
+        if ((!this.state.hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader) {
             const isSubmittingVerificationsData = _.contains([CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep);
             return (
                 <ReimbursementAccountLoadingIndicator
