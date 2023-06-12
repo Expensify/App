@@ -21,7 +21,7 @@ import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 function BaseTextInput(props) {
-    const inputValue = props.value || '';
+    const inputValue = props.value || props.defaultValue || '';
     const initialActiveLabel = props.forceActiveLabel || inputValue.length > 0 || Boolean(props.prefixCharacter);
 
     const [isFocused, setIsFocused] = useState(false);
@@ -102,22 +102,26 @@ function BaseTextInput(props) {
     );
 
     const activateLabel = useCallback(() => {
-        if (inputValue.length < 0 || isLabelActive.current) {
+        const value = props.value || '';
+
+        if (value.length < 0 || isLabelActive.current) {
             return;
         }
 
         animateLabel(styleConst.ACTIVE_LABEL_TRANSLATE_Y, styleConst.ACTIVE_LABEL_SCALE);
         isLabelActive.current = true;
-    }, [animateLabel, inputValue]);
+    }, [animateLabel, props.value]);
 
     const deactivateLabel = useCallback(() => {
-        if (props.forceActiveLabel || inputValue.length !== 0 || props.prefixCharacter) {
+        const value = props.value || '';
+
+        if (props.forceActiveLabel || value.length !== 0 || props.prefixCharacter) {
             return;
         }
 
         animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
-    }, [animateLabel, props.forceActiveLabel, props.prefixCharacter, inputValue]);
+    }, [animateLabel, props.forceActiveLabel, props.prefixCharacter, props.value]);
 
     const onFocus = (event) => {
         if (props.onFocus) {
