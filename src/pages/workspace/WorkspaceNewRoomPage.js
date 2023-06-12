@@ -114,7 +114,7 @@ class WorkspaceNewRoomPage extends React.Component {
         }
 
         if (!values.policyID) {
-            errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
+            errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
         }
 
         return errors;
