@@ -91,7 +91,7 @@ const ReportActionItemSingle = (props) => {
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(actorEmail)}
                 accessibilityLabel={actorEmail}
-                accessibilityRole="image"
+                accessibilityRole="button"
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
@@ -123,7 +123,7 @@ const ReportActionItemSingle = (props) => {
                             onPressOut={ControlSelection.unblock}
                             onPress={() => showUserDetails(actorEmail)}
                             accessibilityLabel={actorEmail}
-                            accessibilityRole="text"
+                            accessibilityRole="button"
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
