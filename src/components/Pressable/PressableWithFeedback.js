@@ -25,12 +25,6 @@ const PressableWithFeedbackPropTypes = {
      * @default variables.hoverDimValue
      */
     hoverDimmingValue: propTypes.number,
-
-    /**
-     * Style to apply for wrapper pressable component
-     * @default []
-     */
-    wrapperStyle: stylePropType,
 };
 
 const PressableWithFeedbackDefaultProps = {
