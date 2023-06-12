@@ -355,15 +355,6 @@ function getBankAccountRoute(report) {
 }
 
 /**
- * Returns true if there are any guides accounts (team.expensify.com) in emails
- * @param {Array} emails
- * @returns {Boolean}
- */
-function hasExpensifyGuidesEmails(emails) {
-    return _.some(emails, (email) => Str.extractEmailDomain(email) === CONST.EMAIL.GUIDES_DOMAIN);
-}
-
-/**
  * Only returns true if this is our main 1:1 DM report with Concierge
  *
  * @param {Object} report
@@ -371,6 +362,28 @@ function hasExpensifyGuidesEmails(emails) {
  */
 function isConciergeChatReport(report) {
     return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE;
+}
+
+/**
+ * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of accountIDs
+ * by cross-referencing the accountIDs with personalDetails.
+ *
+ * @param {Array<Number>} accountIDs
+ * @return {Boolean}
+ */
+function hasExpensifyEmails(accountIDs) {
+    return _.some(accountIDs, (accountID) => Str.extractEmailDomain(lodashGet(allPersonalDetails, [accountID, 'login'], '')) === CONST.EXPENSIFY_PARTNER_NAME);
+}
+
+/**
+ * Returns true if there are any guides accounts (team.expensify.com) in a list of accountIDs
+ * by cross-referencing the accountIDs with personalDetails since guides that are participants
+ * of the user's chats should have their personal details in Onyx.
+ * @param {Array<Number>} accountIDs
+ * @returns {Boolean}
+ */
+function hasExpensifyGuidesEmails(accountIDs) {
+    return _.some(accountIDs, (accountID) => Str.extractEmailDomain(lodashGet(allPersonalDetails, [accountID, 'login'], '')) === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
 /**
@@ -400,11 +413,9 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
         // Domain rooms are now the only type of default room that are on the defaultRooms beta.
-        // TODO: migrate to report.participantAccountIDs later - not sure how we'll determine if a list of account IDs
-        // includes an expensify guide account ID :O
         sortedReports = _.filter(
             sortedReports,
-            (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participants'], [])),
+            (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(lodashGet(report, ['participantAccountIDs'], [])),
         );
     }
 
@@ -628,16 +639,6 @@ function hasAutomatedExpensifyEmails(emails) {
  */
 function hasAutomatedExpensifyAccountIDs(accountIDs) {
     return _.intersection(accountIDs, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
-}
-
-/**
- * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of emails.
- *
- * @param {Array<String>} emails
- * @return {Boolean}
- */
-function hasExpensifyEmails(emails) {
-    return _.some(emails, (email) => Str.extractEmailDomain(email) === CONST.EXPENSIFY_PARTNER_NAME);
 }
 
 /**
@@ -1832,14 +1833,12 @@ function canSeeDefaultRoom(report, policies, betas) {
     }
 
     // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
-    // TODO: figure out how we can determine accountIDs of "expensify emails"
-    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participants'], []))) {
+    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participantAccountIDs'], []))) {
         return true;
     }
 
     // If the room has an assigned guide, it can be seen.
-    // TODO: figure out how we can determine accountIDs of "expensify emails"
-    if (hasExpensifyGuidesEmails(lodashGet(report, ['participants'], []))) {
+    if (hasExpensifyGuidesEmails(lodashGet(report, ['participantAccountIDs'], []))) {
         return true;
     }
 
