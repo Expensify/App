@@ -91,29 +91,31 @@ function IOUCurrencySelection(props) {
         [props.route, props.navigation],
     );
 
-    const { translate } = props;
+    const {translate} = props;
 
     const getSections = useMemo(() => {
         if (searchValue.trim() && !currencyData.length) {
             return [];
         }
-        return [{
-            title: translate('iOUCurrencySelection.allCurrencies'),
-            data: currencyData,
-            shouldShow: true,
-            indexOffset: 0,
-        }];
+        return [
+            {
+                title: translate('iOUCurrencySelection.allCurrencies'),
+                data: currencyData,
+                shouldShow: true,
+                indexOffset: 0,
+            },
+        ];
     }, [searchValue, currencyData, translate]);
 
     const changeSearchValue = useCallback(
         (searchQuery) => {
             const searchRegex = new RegExp(Str.escapeForRegExp(searchQuery), 'i');
-            const filteredCurrencies = _.filter(currencyData, (currencyOption) => searchRegex.test(currencyOption.text));
+            const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
 
             setCurrentSearchValue(searchQuery);
             setCurrencyData(filteredCurrencies);
         },
-        [currencyData],
+        [currencyOptions],
     );
 
     const headerMessage = searchValue.trim() && !currencyData.length ? props.translate('common.noResultsFound') : '';
