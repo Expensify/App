@@ -2220,7 +2220,6 @@ function getParentReport(report) {
 export {
     getAccountIDForLogin,
     getReportParticipantsTitle,
-    getPersonalDetailsForLogin,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
