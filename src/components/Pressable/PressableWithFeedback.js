@@ -24,6 +24,7 @@ const PressableWithFeedbackPropTypes = {
      * @default variables.hoverDimValue
      */
     hoverDimmingValue: propTypes.number,
+    nativeID: propTypes.string,
 };
 
 const PressableWithFeedbackDefaultProps = {
@@ -44,7 +45,6 @@ const PressableWithFeedback = forwardRef((props, ref) => {
     return (
         <GenericPressable
             ref={ref}
-            nativeID={props.nativeID}
             style={props.wrapperStyle}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutStyling}
