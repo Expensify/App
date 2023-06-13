@@ -51,10 +51,6 @@ function BaseTextInput(props) {
         });
 
         return () => {
-            if (!props.disableKeyboard) {
-                return;
-            }
-
             appStateSubscription.remove();
         };
     }, [props.disableKeyboard]);
