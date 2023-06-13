@@ -20,7 +20,8 @@ import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Button from './Button';
-import * as TaskUtils from '../libs/actions/Task';
+import * as Task from '../libs/actions/Task';
+import * as TaskUtils from '../libs/TaskUtils';
 import * as UserUtils from '../libs/UserUtils';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
@@ -36,13 +37,14 @@ const propTypes = {
 
 function TaskHeader(props) {
     const title = ReportUtils.getReportName(props.report);
-    const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
-    const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    const assigneeEmail = TaskUtils.getTaskAssigneeEmail(props.report);
+    const assigneeName = ReportUtils.getDisplayNameForParticipant(assigneeEmail);
+    const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [assigneeEmail, 'avatar']), assigneeEmail);
     const isOpen = props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN;
     const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
 
     useEffect(() => {
-        TaskUtils.setTaskReport(props.report);
+        Task.setTaskReport(props.report);
     }, [props.report]);
 
     return (
@@ -60,7 +62,7 @@ function TaskHeader(props) {
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {!_.isEmpty(props.report.managerEmail) && (
+                                {!_.isEmpty(assigneeEmail) && (
                                     <>
                                         <Avatar
                                             source={assigneeAvatar}
@@ -93,10 +95,10 @@ function TaskHeader(props) {
                                 ) : (
                                     <Button
                                         success
-                                        isDisabled={TaskUtils.isTaskCanceled(props.report)}
+                                        isDisabled={Task.isTaskCanceled(props.report)}
                                         medium
                                         text={props.translate('newTaskPage.markAsDone')}
-                                        onPress={() => TaskUtils.completeTask(props.report.reportID, title)}
+                                        onPress={() => Task.completeTask(props.report.reportID, title)}
                                     />
                                 )}
                             </View>
