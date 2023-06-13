@@ -55,7 +55,7 @@ const ButtonWithDropdownMenu = (props) => {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
 
-    const measurePopoverPosition = () => {
+    const measurePopoverPositionAndShowMenu = () => {
         caretButton.current.measureInWindow((x, y, w, h) => {
             setPopoverAnchorPosition({
                 horizontal: x + w,
@@ -70,7 +70,7 @@ const ButtonWithDropdownMenu = (props) => {
             return;
         }
         if (popoverAnchorPosition !== null) {
-            measurePopoverPosition();
+            measurePopoverPositionAndShowMenu();
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,7 +97,7 @@ const ButtonWithDropdownMenu = (props) => {
                         success
                         isDisabled={props.isDisabled}
                         style={[styles.pl0]}
-                        onPress={measurePopoverPosition}
+                        onPress={measurePopoverPositionAndShowMenu}
                         shouldRemoveLeftBorderRadius
                     >
                         <Icon
