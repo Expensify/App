@@ -103,8 +103,6 @@ function IOUCurrencySelection(props) {
             shouldShow: true,
             indexOffset: 0,
         }];
-
-        return sections;
     }, [searchValue, currencyData, translate]);
 
     const changeSearchValue = useCallback(
