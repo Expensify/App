@@ -1,6 +1,5 @@
 import lodashGet from 'lodash/get';
 import * as ReportActionsUtils from './ReportActionsUtils';
-import CONST from '../CONST';
 
 /**
  * Returns Task assignee email
