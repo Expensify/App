@@ -8,6 +8,7 @@ import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import NAVIGATORS from '../../../../NAVIGATORS';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
 import PopoverMenu from '../../../../components/PopoverMenu';
@@ -81,7 +82,12 @@ class FloatingActionButtonAndPopover extends React.Component {
     }
 
     componentDidMount() {
-        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+        const navigationState = this.props.navigation.getState();
+        const currentRoute = navigationState.routes[navigationState.index];
+        if(currentRoute && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+            return;
+        }
+        const routes = lodashGet(navigationState, 'routes', []);
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
