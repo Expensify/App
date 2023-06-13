@@ -78,7 +78,6 @@ const AddReactionBubble = (props) => {
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
                 accessibilityRole="button"
                 // disable dimming
-                hoverDimmingValue={1}
                 pressDimmingValue={1}
             >
                 {({hovered, pressed}) => (
