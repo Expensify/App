@@ -210,10 +210,10 @@ function getSmallSizeAvatar(avatarURL, accountID) {
  * Generate a random accountID.
  * Uses the same approach of 'generateReportID'.
  *
- * @returns {String}
+ * @returns {Number}
  */
 function generateAccountID() {
-    return (Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32)).toString();
+    return (Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32));
 }
 
 export {
