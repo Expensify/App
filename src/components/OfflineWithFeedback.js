@@ -1,10 +1,11 @@
 import _ from 'underscore';
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import {withNetwork} from './OnyxProvider';
+import CONST from '../CONST';
 import networkPropTypes from './networkPropTypes';
 import stylePropTypes from '../styles/stylePropTypes';
 import styles from '../styles/styles';
@@ -14,6 +15,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -24,6 +26,9 @@ import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
 const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
+    /** Determine whether to hide the component's children if deletion is pending */
+    shouldHideOnDelete: PropTypes.bool,
 
     /** The errors to display  */
     // eslint-disable-next-line react/forbid-prop-types
@@ -55,6 +60,7 @@ const propTypes = {
 
 const defaultProps = {
     pendingAction: null,
+    shouldHideOnDelete: true,
     errors: null,
     shouldShowErrorMessages: true,
     onClose: () => {},
@@ -88,7 +94,7 @@ const OfflineWithFeedback = (props) => {
     const isAddError = hasErrors && props.pendingAction === 'add';
     const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
     const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
-    const hideChildren = !props.network.isOffline && props.pendingAction === 'delete' && !hasErrors;
+    const hideChildren = props.shouldHideOnDelete && !props.network.isOffline && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
     let children = props.children;
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
@@ -113,14 +119,14 @@ const OfflineWithFeedback = (props) => {
                         type="error"
                     />
                     <Tooltip text={props.translate('common.close')}>
-                        <Pressable
+                        <PressableWithoutFeedback
                             onPress={props.onClose}
                             style={[styles.touchableButtonImage]}
                             accessibilityRole="button"
                             accessibilityLabel={props.translate('common.close')}
                         >
                             <Icon src={Expensicons.Close} />
-                        </Pressable>
+                        </PressableWithoutFeedback>
                     </Tooltip>
                 </View>
             )}
