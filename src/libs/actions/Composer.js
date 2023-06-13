@@ -26,16 +26,16 @@ Onyx.connect({
 
 /**
  * @param {string} reportActionID
- * @param {Boolean} showCompose
+ * @param {Boolean} showComposer
  */
-function setShouldShowComposeInput(reportActionID, showCompose) {
+function setShouldShowComposeInput(reportActionID, showComposer) {
     // In cases this function is called without reportActionID, simply show the composer
     if (typeof reportActionID === 'boolean') {
         Onyx.set(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {});
         return;
     }
 
-    if (showCompose) {
+    if (showComposer) {
         Onyx.merge(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {[reportActionID]: false});
     } else {
         Onyx.merge(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {[reportActionID]: true});
