@@ -246,10 +246,10 @@ function BaseValidateCodeForm(props) {
                             <Text style={[styles.mt2]}>{props.account.message ? props.translate(props.account.message) : ''}</Text>
                         ) : (
                             <PressableWithFeedback
-                                disabled={props.network.isOffline}
                                 style={[styles.mt2]}
                                 onPress={resendValidateCode}
                                 underlayColor={themeColors.componentBG}
+                                disabled={props.network.isOffline}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
                                 accessibilityRole="button"
