@@ -16,7 +16,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
-import Tooltip from '../components/Tooltip';
+import UserDetailsTooltip from '../components/UserDetailsTooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
@@ -166,41 +166,41 @@ function DetailsPage(props) {
                                         >
                                             {props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                         </Text>
-                                        <CommunicationsLink value={phoneOrEmail}>
-                                            <Tooltip text={phoneOrEmail}>
-                                                <Text numberOfLines={1}>{isSMSLogin ? props.formatPhoneNumber(phoneNumber) : details.login}</Text>
-                                            </Tooltip>
-                                        </CommunicationsLink>
-                                    </View>
-                                ) : null}
-                                {pronouns ? (
-                                    <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                        <Text
-                                            style={[styles.textLabelSupporting, styles.mb1]}
-                                            numberOfLines={1}
-                                        >
-                                            {props.translate('profilePage.preferredPronouns')}
-                                        </Text>
-                                        <Text numberOfLines={1}>{pronouns}</Text>
-                                    </View>
-                                ) : null}
-                                {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
-                            </View>
-                            {!isCurrentUser && (
-                                <MenuItem
-                                    title={`${props.translate('common.message')}${details.displayName}`}
-                                    icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.navigateToAndOpenReport([details.login])}
-                                    wrapperStyle={styles.breakAll}
-                                    shouldShowRightIcon
-                                />
-                            )}
-                        </ScrollView>
-                    ) : null}
-                </View>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
-    );
+                                          <CommunicationsLink value={phoneOrEmail}>
+                                              <UserDetailsTooltip accountID={details.accountID}>
+                                                  <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
+                                              </UserDetailsTooltip>
+                                          </CommunicationsLink>
+                                      </View>
+                                    ) : null}
+                                    {pronouns ? (
+                                        <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
+                                            <Text
+                                                style={[styles.textLabelSupporting, styles.mb1]}
+                                                numberOfLines={1}
+                                            >
+                                                {this.props.translate('profilePage.preferredPronouns')}
+                                            </Text>
+                                            <Text numberOfLines={1}>{pronouns}</Text>
+                                        </View>
+                                    ) : null}
+                                    {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
+                                </View>
+                                {!isCurrentUser && (
+                                    <MenuItem
+                                        title={`${this.props.translate('common.message')}${details.displayName}`}
+                                        icon={Expensicons.ChatBubble}
+                                        onPress={() => Report.navigateToAndOpenReport([details.login])}
+                                        wrapperStyle={styles.breakAll}
+                                        shouldShowRightIcon
+                                    />
+                                )}
+                            </ScrollView>
+                        ) : null}
+                    </View>
+                </FullPageNotFoundView>
+            </ScreenWrapper>
+        );
 }
 
 DetailsPage.propTypes = propTypes;

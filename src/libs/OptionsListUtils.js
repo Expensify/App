@@ -419,7 +419,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
-        result.shouldShowSubscript = result.isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !result.isArchivedRoom;
+        result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
@@ -950,6 +950,15 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     return '';
 }
 
+/**
+ * Helper method to check whether an option can show tooltip or not
+ * @param {Object} option
+ * @returns {Boolean}
+ */
+function shouldOptionShowTooltip(option) {
+    return (!option.isChatRoom || option.isThread) && !option.isArchivedRoom;
+}
+
 export {
     addSMSDomainIfPhoneNumber,
     getAvatarsForLogins,
@@ -968,4 +977,5 @@ export {
     getPolicyExpenseReportOptions,
     getParticipantsOptions,
     isSearchStringMatch,
+    shouldOptionShowTooltip,
 };

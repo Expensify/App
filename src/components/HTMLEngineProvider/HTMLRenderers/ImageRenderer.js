@@ -53,14 +53,14 @@ const ImageRenderer = (props) => {
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <AttachmentModal
                     allowDownload
-                    reportID={report.reportID}
+                    report={report}
                     source={source}
                     isAuthTokenRequired={isAttachment}
                     originalFileName={originalFileName}
                 >
                     {({show}) => (
                         <PressableWithoutFocus
-                            style={styles.noOutline}
+                            styles={styles.noOutline}
                             onPress={show}
                             onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                         >
