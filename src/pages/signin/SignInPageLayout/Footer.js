@@ -191,7 +191,7 @@ const Footer = (props) => {
                                         </Hoverable>
                                     ))}
                                     {i === 2 && (
-                                        <View style={styles.mt5}>
+                                        <View style={styles.mt4}>
                                             <Socials />
                                         </View>
                                     )}
