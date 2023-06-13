@@ -138,17 +138,50 @@ AppState.addEventListener('change', (nextAppState) => {
     appState = nextAppState;
 });
 
-/**
- * Fetches data needed for app initialization
- */
-function openApp() {
-    isReadyToOpenApp.then(() => {
-        // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
+function getPolicies() {
+    return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.POLICY,
             waitForCollectionCallback: true,
             callback: (policies) => {
                 Onyx.disconnect(connectionID);
+                resolve(policies);
+            },
+        });
+    });
+}
+function getCollection(key) {
+    return new Promise((resolve) => {
+        const connectionID = Onyx.connect({
+            key,
+            waitForCollectionCallback: true,
+            callback: (reports) => {
+                Onyx.disconnect(connectionID);
+                resolve(reports);
+            },
+        });
+    });
+}
+
+function getReports() {
+}
+
+/**
+ * Fetches data needed for app initialization
+ */
+function openApp() {
+    let hasExistingReportData = false;
+    isReadyToOpenApp.then(() =>
+        // If we are opening the app after a first sign in then we will have no data whatsoever. This is easily checked by looking to see if
+        // the user has any report data at all. All users should have at least one report with Concierge so this is a reliable way to check if
+        // we are signing in the first time or if the app is being opened after it was killed or the page refreshed.
+        getCollection(ONYXKEYS.COLLECTION.REPORT)
+            .then((reports) => {
+                console.log({reports});
+                hasExistingReportData = !_.isEmpty(reports);
+                return getCollection(ONYXKEYS.COLLECTION.POLICY);
+            })
+            .then((policies) => {
                 API.read(
                     'OpenApp',
                     {policyIDList: getNonOptimisticPolicyIDs(policies)},
@@ -176,9 +209,8 @@ function openApp() {
                         ],
                     },
                 );
-            },
-        });
-    });
+            })
+    );
 }
 
 /**
