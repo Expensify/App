@@ -89,7 +89,7 @@ function applyStrikeThrough(children) {
 
 const OfflineWithFeedback = (props) => {
     const hasErrors = !_.isEmpty(props.errors);
-    const errorMessages = _.omit(props.errors, e => e === null);
+    const errorMessages = _.omit(props.errors, (e) => e === null);
     const hasErrorMessages = !_.isEmpty(errorMessages);
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
