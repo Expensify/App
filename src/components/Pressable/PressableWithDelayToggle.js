@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
 import * as Expensicons from '../Icon/Expensicons';
 import compose from '../../libs/compose';
 import Icon from '../Icon';
@@ -12,6 +11,7 @@ import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from '../withDelayToggleButtonState';
+import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -84,16 +84,19 @@ function PressableWithDelayToggle(props) {
     // Due to limitations in RN regarding the vertical text alignment of non-Text elements,
     // for elements that are supposed to be inline, we need to use a Text element instead
     // of a Pressable
-    const PressableView = props.inline ? Text : Pressable;
+    const PressableView = props.inline ? Text : PressableWithoutFeedback;
+    const tooltipText = props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText;
 
     return (
         <PressableView
+            ref={props.innerRef}
             style={[styles.flexRow, ...props.styles]}
             onPress={updatePressState}
+            accessibilityLabel={tooltipText}
         >
             <Tooltip
                 containerStyles={[styles.flexRow]}
-                text={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
+                text={tooltipText}
             >
                 <>
                     <Text
@@ -102,10 +105,9 @@ function PressableWithDelayToggle(props) {
                     >
                         {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
                     </Text>
-                    <Pressable
-                        ref={props.innerRef}
-                        focusable
-                        accessibilityLabel={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
+                    <PressableWithoutFeedback
+                        focusable={false}
+                        accessible={false}
                         onPress={updatePressState}
                     >
                         {({hovered, pressed}) => (
@@ -121,7 +123,7 @@ function PressableWithDelayToggle(props) {
                                 )}
                             </>
                         )}
-                    </Pressable>
+                    </PressableWithoutFeedback>
                 </>
             </Tooltip>
         </PressableView>
