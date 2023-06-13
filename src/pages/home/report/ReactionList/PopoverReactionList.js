@@ -20,6 +20,9 @@ import * as ReportUtils from '../../../../libs/ReportUtils';
 import CONST from '../../../../CONST';
 
 const propTypes = {
+    /** The report currently being looked at */
+    report: reportPropTypes.isRequired,
+
     /** Actions from the ChatReport */
     reportActions: PropTypes.shape(reportActionPropTypes),
 
@@ -157,7 +160,7 @@ class PopoverReactionList extends React.Component {
      */
     getSelectedReaction(reportActions, reportActionID, emojiName) {
         const reportAction = _.find(reportActions, (action) => action.reportActionID === reportActionID);
-        if (ReportUtils.isThreadFirstChat(reportAction) === true) {
+        if (ReportUtils.isThreadFirstChat(reportAction)) {
             const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
             return this.getSelectedReactionFromAction(parentReportAction, emojiName);
         }
