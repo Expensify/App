@@ -221,11 +221,15 @@ function buildOnyxDataForMoneyRequest(
                           [chatCreatedAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
+                          [reportPreviewAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
+                          },
                       }
-                    : {}),
-                [reportPreviewAction.reportActionID]: {
-                    created: reportPreviewAction.created,
-                },
+                    : {
+                          [reportPreviewAction.reportActionID]: {
+                              created: reportPreviewAction.created,
+                          },
+                      }),
             },
         },
         {
@@ -236,6 +240,9 @@ function buildOnyxDataForMoneyRequest(
                     ? {
                           [iouCreatedAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                          },
+                          [iouAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
                           },
                       }
                     : {
@@ -489,6 +496,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, amount, comment
     ];
 
     if (!existingGroupChatReport) {
+        // If we're going to fail to create the report itself, let's not have redundant error messages for the IOU
+        failureData[0].value[groupIOUReportAction.reportActionID] = {errors: ErrorUtils.getMicroSecondOnyxError(null)};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
@@ -957,7 +966,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
 
         // If we're going to fail to create the report itself, let's not have redundant error messages for the IOU
-        failureData[0].value[optimisticIOUReportAction.reportActionID] = {pendingAction: null};
+        failureData[0].value[optimisticIOUReportAction.reportActionID] = {errors: ErrorUtils.getMicroSecondOnyxError(null)};
     }
 
     const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];

@@ -89,6 +89,8 @@ function applyStrikeThrough(children) {
 
 const OfflineWithFeedback = (props) => {
     const hasErrors = !_.isEmpty(props.errors);
+    const errorMessages = _.omit(props.errors, e => e === null);
+    const hasErrorMessages = !_.isEmpty(errorMessages);
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
     const isAddError = hasErrors && props.pendingAction === 'add';
@@ -111,11 +113,11 @@ const OfflineWithFeedback = (props) => {
                     {children}
                 </View>
             )}
-            {props.shouldShowErrorMessages && hasErrors && (
+            {props.shouldShowErrorMessages && hasErrorMessages && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
                     <DotIndicatorMessage
                         style={[styles.flex1]}
-                        messages={props.errors}
+                        messages={errorMessages}
                         type="error"
                     />
                     <Tooltip text={props.translate('common.close')}>
