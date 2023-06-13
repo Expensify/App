@@ -76,10 +76,10 @@ const darkTheme = {
     mentionBG: colors.blue600,
     ourMentionText: colors.green100,
     ourMentionBG: colors.green600,
+};
 
-    PAGE_BACKGROUND_COLORS: {
-        [SCREENS.SETTINGS.ROOT]: colors.greenHighlightBackground,
-    },
+darkTheme.PAGE_BACKGROUND_COLORS = {
+    [SCREENS.HOME]: darkTheme.sidebar,
 };
 
 const oldTheme = {
