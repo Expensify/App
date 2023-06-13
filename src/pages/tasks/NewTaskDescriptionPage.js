@@ -38,15 +38,6 @@ const defaultProps = {
 const NewTaskDescriptionPage = (props) => {
     const inputRef = useRef(null);
 
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Object}
-     */
-    function validate() {
-        // This field is optional and can be left blank, so we should not require validation for its value.
-        return {};
-    }
-
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     const onSubmit = (values) => {
@@ -79,7 +70,6 @@ const NewTaskDescriptionPage = (props) => {
                 submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 onSubmit={(values) => onSubmit(values)}
-                validate={() => validate()}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>

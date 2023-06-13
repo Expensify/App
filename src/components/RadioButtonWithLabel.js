@@ -55,7 +55,7 @@ const RadioButtonWithLabel = (props) => {
                 <RadioButton
                     isChecked={props.isChecked}
                     onPress={props.onPress}
-                    label={props.label}
+                    accessibilityLabel={props.label}
                     hasError={props.hasError}
                 />
                 <PressableWithFeedback
