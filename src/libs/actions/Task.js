@@ -293,9 +293,9 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {string} ownerEmail
  * @param {Number} ownerAccountID
  * @param {Object} editedTask
- * @param {String} editedTask.title 
- * @param {String} editedTask.description 
- * @param {String} editedTask.assignee 
+ * @param {String} editedTask.title
+ * @param {String} editedTask.description
+ * @param {String} editedTask.assignee
  * @param {Number} editedTask.assigneeAccountID
  */
 function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee, assigneeAccountID = 0}) {
