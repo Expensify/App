@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -23,11 +24,17 @@ import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteract
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
+
+    /** The comment left by the user */
+    comment: PropTypes.string,
 
     /** The ID of the report that the option is for */
     reportID: PropTypes.string.isRequired,
@@ -52,6 +59,7 @@ const defaultProps = {
     onSelectRow: () => {},
     isFocused: false,
     style: null,
+    comment: '',
 };
 
 const OptionRowLHN = (props) => {
@@ -84,6 +92,10 @@ const OptionRowLHN = (props) => {
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
+
+    if (!optionItem.hasDraftComment && props.comment.length > 0 && !props.isFocused) {
+        Report.setReportWithDraft(props.reportID, true);
+    }
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -250,4 +262,11 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default withLocalize(OptionRowLHN);
+export default compose(
+    withLocalize,
+    withOnyx({
+        comment: {
+            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+        },
+    }),
+)(OptionRowLHN);
