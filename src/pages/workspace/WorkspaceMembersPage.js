@@ -268,16 +268,16 @@ function WorkspaceMembersPage(props) {
      * @returns {React.Component}
      */
     const renderItem = useCallback(({item}) => {
+        const hasError = !_.isEmpty(item.errors) || errors[item.login];
         const isChecked = _.contains(selectedEmployees, item.login);
         return (
             <OfflineWithFeedback
-                errorRowStyles={[styles.peopleRowBorderBottom]}
                 onClose={() => dismissError(item)}
                 pendingAction={item.pendingAction}
                 errors={item.errors}
             >
                 <PressableWithFeedback
-                    style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.login]) && styles.peopleRowBorderBottom]}
+                    style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.login]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
                     onPress={() => toggleUser(item.login, item.pendingAction)}
                     accessibilityRole="checkbox"
                     accessibilityState={{
