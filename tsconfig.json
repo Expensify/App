@@ -28,8 +28,7 @@
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
-        "skipLibCheck": true,
-        "baseUrl": "./"
+        "skipLibCheck": true
     },
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js"],
     "include": ["src", "desktop", "web", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"]
