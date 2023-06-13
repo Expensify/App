@@ -256,7 +256,7 @@ class WorkspaceInvitePage extends React.Component {
             <ScreenWrapper shouldEnableMaxHeight>
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <FormSubmit
                         style={[styles.flex1]}
@@ -272,8 +272,10 @@ class WorkspaceInvitePage extends React.Component {
                                 Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
                             }}
                         />
-                        <View style={[styles.flex1]}>
+                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
                             <OptionsSelector
+                                contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}
+                                listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
                                 autoFocus={false}
                                 canSelectMultipleOptions
                                 sections={sections}

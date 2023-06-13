@@ -9,11 +9,9 @@ import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Current user session */
@@ -43,7 +41,7 @@ function TaskDescriptionPage(props) {
         (values) => {
             // Set the description of the report in the store and then call TaskUtils.editTaskReport
             // to update the description of the report on the server
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', values.description, '');
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, {description: values.description});
         },
         [props],
     );
@@ -55,12 +53,7 @@ function TaskDescriptionPage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
-            <HeaderWithBackButton
-                title={props.translate('newTaskPage.task')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
-                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
-            />
+            <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
