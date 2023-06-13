@@ -184,6 +184,8 @@ const HeaderView = (props) => {
                                                 onPress={() => {
                                                     Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
                                                 }}
+                                                accessibilityLabel={subtitle}
+                                                accessibilityRole="link"
                                             >
                                                 <Text
                                                     style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
