@@ -8,7 +8,7 @@ import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
 import * as StyleUtils from '../../styles/StyleUtils';
 
-const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle'];
+const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle', ];
 
 const PressableWithFeedbackPropTypes = {
     ..._.omit(GenericPressablePropTypes.pressablePropTypes, omittedProps),
@@ -24,6 +24,10 @@ const PressableWithFeedbackPropTypes = {
      * @default variables.hoverDimValue
      */
     hoverDimmingValue: propTypes.number,
+    /**
+     * a native ID for the pressable with feedback component
+     * @default ''
+     */
     nativeID: propTypes.string,
 };
 
@@ -31,6 +35,7 @@ const PressableWithFeedbackDefaultProps = {
     ..._.omit(GenericPressablePropTypes.defaultProps, omittedProps),
     pressDimmingValue: variables.pressDimValue,
     hoverDimmingValue: variables.hoverDimValue,
+    nativeID: '',
     wrapperStyle: [],
 };
 
