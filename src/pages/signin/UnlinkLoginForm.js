@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -15,6 +15,8 @@ import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import CONST from '../../CONST';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -49,8 +51,8 @@ const defaultProps = {
 };
 
 const UnlinkLoginForm = (props) => {
-    const primaryLogin = Str.isSMSLogin(props.account.primaryLogin) ? Str.removeSMSDomain(props.account.primaryLogin) : props.account.primaryLogin;
-    const secondaryLogin = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
+    const primaryLogin = Str.isSMSLogin(props.account.primaryLogin || '') ? Str.removeSMSDomain(props.account.primaryLogin || '') : props.account.primaryLogin;
+    const secondaryLogin = Str.isSMSLogin(props.credentials.login || '') ? Str.removeSMSDomain(props.credentials.login || '') : props.credentials.login;
 
     return (
         <>
@@ -65,7 +67,7 @@ const UnlinkLoginForm = (props) => {
                 <DotIndicatorMessage
                     style={[styles.mb5, styles.flex0]}
                     type="success"
-                    messages={{0: props.account.message}}
+                    messages={{0: props.translate(props.account.message)}}
                 />
             )}
             {!_.isEmpty(props.account.errors) && (
@@ -76,14 +78,17 @@ const UnlinkLoginForm = (props) => {
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <TouchableOpacity onPress={() => redirectToSignIn()}>
+                <PressableWithFeedback
+                    accessibilityLabel={props.translate('common.back')}
+                    onPress={() => redirectToSignIn()}
+                >
                     <Text style={[styles.link]}>{props.translate('common.back')}</Text>
-                </TouchableOpacity>
+                </PressableWithFeedback>
                 <Button
                     medium
                     success
                     text={props.translate('unlinkLoginForm.unlink')}
-                    isLoading={props.account.isLoading}
+                    isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.UNLINK_LOGIN_FORM}
                     onPress={() => Session.requestUnlinkValidationLink()}
                     isDisabled={props.network.isOffline || !_.isEmpty(props.account.message)}
                 />

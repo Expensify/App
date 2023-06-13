@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -20,6 +21,8 @@ import PressableWithSecondaryInteraction from './PressableWithSecondaryInteracti
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import ControlSelection from '../libs/ControlSelection';
+import variables from '../styles/variables';
+import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -36,6 +39,8 @@ const defaultProps = {
     wrapperStyle: [],
     style: styles.popoverMenuItem,
     titleStyle: {},
+    shouldShowTitleIcon: false,
+    titleIcon: () => {},
     descriptionTextStyle: styles.breakWord,
     success: false,
     icon: undefined,
@@ -59,6 +64,9 @@ const defaultProps = {
     shouldStackHorizontally: false,
     avatarSize: undefined,
     shouldBlockSelection: false,
+    hoverAndPressStyle: [],
+    furtherDetails: '',
+    furtherDetailsIcon: undefined,
 };
 
 const MenuItem = (props) => {
@@ -66,20 +74,21 @@ const MenuItem = (props) => {
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
         [
+            styles.flexShrink1,
             styles.popoverMenuText,
-            props.icon ? styles.ml3 : undefined,
+            props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
+            props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
             props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined,
             styles.pre,
             styles.ltr,
-            props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
         ],
         props.titleStyle,
     );
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
-        props.icon ? styles.ml3 : undefined,
+        props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
         styles.lineHeightNormal,
         props.title ? descriptionVerticalMargin : undefined,
         props.descriptionTextStyle,
@@ -90,8 +99,8 @@ const MenuItem = (props) => {
 
     return (
         <PressableWithSecondaryInteraction
-            onPress={(e) => {
-                if (props.disabled) {
+            onPress={Session.checkIfActionIsAllowed((e) => {
+                if (props.disabled || !props.interactive) {
                     return;
                 }
 
@@ -100,13 +109,15 @@ const MenuItem = (props) => {
                 }
 
                 props.onPress(e);
-            }}
+            })}
             onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={ControlSelection.unblock}
             onSecondaryInteraction={props.onSecondaryInteraction}
             style={({hovered, pressed}) => [
                 props.style,
+                !props.interactive && styles.cursorDefault,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
+                (hovered || pressed) && props.hoverAndPressStyle,
                 ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
             ]}
             disabled={props.disabled}
@@ -114,64 +125,110 @@ const MenuItem = (props) => {
         >
             {({hovered, pressed}) => (
                 <>
-                    <View style={[styles.flexRow, styles.pointerEventsAuto, styles.flex1, props.disabled && styles.cursorDisabled]}>
-                        {Boolean(props.icon) && (
-                            <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
-                                {props.iconType === CONST.ICON_TYPE_ICON && (
-                                    <Icon
-                                        src={props.icon}
-                                        width={props.iconWidth}
-                                        height={props.iconHeight}
-                                        fill={
-                                            props.iconFill ||
-                                            StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true)
-                                        }
-                                    />
-                                )}
-                                {props.iconType === CONST.ICON_TYPE_WORKSPACE && (
-                                    <Avatar
-                                        imageStyles={[styles.alignSelfCenter]}
-                                        size={CONST.AVATAR_SIZE.DEFAULT}
-                                        source={props.icon}
-                                        fallbackIcon={props.fallbackIcon}
-                                        name={props.title}
-                                        type={CONST.ICON_TYPE_WORKSPACE}
-                                    />
-                                )}
-                                {props.iconType === CONST.ICON_TYPE_AVATAR && (
-                                    <Avatar
-                                        imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
-                                        source={props.icon}
-                                        fallbackIcon={props.fallbackIcon}
-                                    />
-                                )}
+                    <View style={[styles.flexColumn, styles.flex1]}>
+                        {Boolean(props.label) && (
+                            <View style={props.icon ? styles.mb2 : null}>
+                                <Text style={StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre)}>{props.label}</Text>
                             </View>
                         )}
-                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
-                            {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
-                                <Text
-                                    style={descriptionTextStyle}
-                                    numberOfLines={2}
-                                >
-                                    {props.description}
-                                </Text>
+                        <View style={[styles.flexRow, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
+                            {Boolean(props.icon) && _.isArray(props.icon) && (
+                                <MultipleAvatars
+                                    isHovered={hovered}
+                                    isPressed={pressed}
+                                    icons={props.icon}
+                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                    secondAvatarStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
+                                        pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
+                                        hovered && !pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.border) : undefined,
+                                    ]}
+                                />
                             )}
-                            {Boolean(props.title) && (
-                                <Text
-                                    style={titleTextStyle}
-                                    numberOfLines={1}
-                                >
-                                    {convertToLTR(props.title)}
-                                </Text>
+                            {Boolean(props.icon) && !_.isArray(props.icon) && (
+                                <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
+                                    {props.iconType === CONST.ICON_TYPE_ICON && (
+                                        <Icon
+                                            src={props.icon}
+                                            width={props.iconWidth}
+                                            height={props.iconHeight}
+                                            fill={
+                                                props.iconFill ||
+                                                StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true)
+                                            }
+                                        />
+                                    )}
+                                    {props.iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                        <Avatar
+                                            imageStyles={[styles.alignSelfCenter]}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
+                                            source={props.icon}
+                                            fallbackIcon={props.fallbackIcon}
+                                            name={props.title}
+                                            type={CONST.ICON_TYPE_WORKSPACE}
+                                        />
+                                    )}
+                                    {props.iconType === CONST.ICON_TYPE_AVATAR && (
+                                        <Avatar
+                                            imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                            source={props.icon}
+                                            fallbackIcon={props.fallbackIcon}
+                                        />
+                                    )}
+                                </View>
                             )}
-                            {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
-                                <Text
-                                    style={descriptionTextStyle}
-                                    numberOfLines={2}
-                                >
-                                    {props.description}
-                                </Text>
-                            )}
+                            <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
+                                {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
+                                    <Text
+                                        style={descriptionTextStyle}
+                                        numberOfLines={2}
+                                    >
+                                        {props.description}
+                                    </Text>
+                                )}
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                    {Boolean(props.title) && (
+                                        <Text
+                                            style={titleTextStyle}
+                                            numberOfLines={1}
+                                        >
+                                            {convertToLTR(props.title)}
+                                        </Text>
+                                    )}
+                                    {Boolean(props.shouldShowTitleIcon) && (
+                                        <View style={[styles.ml2]}>
+                                            <Icon
+                                                src={props.titleIcon}
+                                                fill={themeColors.iconSuccessFill}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                                {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
+                                    <Text
+                                        style={descriptionTextStyle}
+                                        numberOfLines={2}
+                                    >
+                                        {props.description}
+                                    </Text>
+                                )}
+                                {Boolean(props.furtherDetails) && (
+                                    <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
+                                        <Icon
+                                            src={props.furtherDetailsIcon}
+                                            height={variables.iconSizeNormal}
+                                            width={variables.iconSizeNormal}
+                                            inline
+                                        />
+                                        <Text
+                                            style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
+                                            numberOfLines={2}
+                                        >
+                                            {props.furtherDetails}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
                         </View>
                     </View>
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>

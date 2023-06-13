@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
@@ -38,14 +38,6 @@ const defaultProps = {
 const NewTaskDescriptionPage = (props) => {
     const inputRef = useRef(null);
 
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Object}
-     */
-    function validate() {
-        return {};
-    }
-
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     const onSubmit = (values) => {
@@ -68,25 +60,23 @@ const NewTaskDescriptionPage = (props) => {
                 inputRef.current.focus();
             }}
         >
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('newTaskPage.description')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 onSubmit={(values) => onSubmit(values)}
-                validate={() => validate()}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
                     <TextInput
                         defaultValue={props.task.description}
                         inputID="taskDescription"
-                        label={props.translate('newTaskPage.description')}
+                        label={props.translate('newTaskPage.descriptionOptional')}
                         ref={(el) => (inputRef.current = el)}
                     />
                 </View>

@@ -45,6 +45,9 @@ export default {
     // Contains all the personalDetails the user has access to
     PERSONAL_DETAILS: 'personalDetails',
 
+    // Contains all the personalDetails the user has access to, keyed by accountID
+    PERSONAL_DETAILS_LIST: 'personalDetailsList',
+
     // Contains all the private personal details of the user
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
 
@@ -76,9 +79,6 @@ export default {
     BETAS: 'betas',
 
     // NVP keys
-    // Contains the user's payPalMe address
-    NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
-
     // Contains the user's payPalMe data
     PAYPAL: 'paypal',
 
@@ -118,6 +118,7 @@ export default {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
+        REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
@@ -194,10 +195,12 @@ export default {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
         ROOM_NAME_FORM: 'roomNameForm',
+        WELCOME_MESSAGE_FORM: 'welcomeMessageForm',
         LEGAL_NAME_FORM: 'legalNameForm',
         WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
@@ -219,6 +222,12 @@ export default {
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
 
+    // Whether we're checking if the room is public or not
+    IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
+
     // A map of the user's security group IDs they belong to in specific domains
     MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
+
+    // Report ID of the last report the user viewed as anonymous user
+    LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
 };

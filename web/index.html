@@ -64,6 +64,9 @@
         select:focus-visible, select:focus[data-focusvisible-polyfill]  {
             box-shadow: none;
         }
+        div[role="checkbox"]:focus-visible > div[data-checkbox], div[role="checkbox"]:focus[data-focusvisible-polyfill] > div[data-checkbox] {
+            border-color: #03D47C !important;
+        }
         ::-ms-reveal {
             display: none;
         }
@@ -81,6 +84,12 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: #ffffff;
             caret-color: #ffffff;
+        }
+
+        /* Prevent autofill from overlapping with the input label in Chrome */
+        div:has(input:-webkit-autofill) > label {
+            transform: translateY(var(--active-label-translate-y)) scale(var(--active-label-scale)) !important;
+            transition: transform var(--label-transition-duration);
         }
 
         @media screen and (min-width: 480px) { 

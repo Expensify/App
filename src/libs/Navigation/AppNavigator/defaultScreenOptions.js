@@ -4,7 +4,7 @@ const defaultScreenOptions = {
         flex: 1,
     },
     headerShown: false,
-    animationTypeForReplace: 'pop',
+    animationTypeForReplace: 'push',
 };
 
 export default defaultScreenOptions;

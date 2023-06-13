@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -23,13 +23,14 @@ import {withNetwork} from '../../components/OnyxProvider';
 import networkPropTypes from '../../components/networkPropTypes';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import Terms from './Terms';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-        /** Whether or not two factor authentication is required */
+        /** Whether or not two-factor authentication is required */
         requiresTwoFactorAuth: PropTypes.bool,
 
         /** Whether or not a sign on form is loading (being submitted) */
@@ -191,12 +192,15 @@ class PasswordForm extends React.Component {
                         hasError={passwordFieldHasError}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                        <TouchableOpacity
+                        <PressableWithFeedback
                             style={[styles.mt2]}
                             onPress={this.resetPassword}
+                            accessibilityRole="link"
+                            accessibilityLabel={this.props.translate('passwordForm.forgot')}
+                            hoverDimmingValue={1}
                         >
                             <Text style={[styles.link]}>{this.props.translate('passwordForm.forgot')}</Text>
-                        </TouchableOpacity>
+                        </PressableWithFeedback>
                     </View>
                 </View>
 
@@ -226,7 +230,10 @@ class PasswordForm extends React.Component {
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
-                        isLoading={this.props.account.isLoading}
+                        isLoading={
+                            this.props.account.isLoading &&
+                            this.props.account.loadingForm === (this.props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                        }
                         onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink onPress={this.clearSignInData} />

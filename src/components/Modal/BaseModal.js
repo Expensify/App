@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {StatusBar, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
@@ -51,10 +51,9 @@ class BaseModal extends PureComponent {
     }
 
     componentWillUnmount() {
-        // we don't want to call the onModalHide on unmount
-        this.hideModal(this.props.isVisible);
-
+        // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
         if (this.props.isVisible) {
+            this.hideModal(true);
             Modal.willAlertModalBecomeVisible(false);
         }
 
@@ -127,9 +126,7 @@ class BaseModal extends PureComponent {
                 hasBackdrop={this.props.fullscreen}
                 coverScreen={this.props.fullscreen}
                 style={modalStyle}
-                // When `statusBarTranslucent` is true on Android, the modal fully covers the status bar.
-                // Since `windowHeight` doesn't include status bar height, it should be added in the `deviceHeight` calculation.
-                deviceHeight={this.props.windowHeight + ((this.props.statusBarTranslucent && StatusBar.currentHeight) || 0)}
+                deviceHeight={this.props.windowHeight}
                 deviceWidth={this.props.windowWidth}
                 animationIn={this.props.animationIn || animationIn}
                 animationOut={this.props.animationOut || animationOut}
@@ -139,6 +136,7 @@ class BaseModal extends PureComponent {
                 animationOutTiming={this.props.animationOutTiming}
                 statusBarTranslucent={this.props.statusBarTranslucent}
                 onLayout={this.props.onLayout}
+                avoidKeyboard={this.props.avoidKeyboard}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {
@@ -147,7 +145,7 @@ class BaseModal extends PureComponent {
                             paddingBottom: safeAreaPaddingBottom,
                             paddingLeft: safeAreaPaddingLeft,
                             paddingRight: safeAreaPaddingRight,
-                        } = StyleUtils.getSafeAreaPadding(insets, this.props.statusBarTranslucent);
+                        } = StyleUtils.getSafeAreaPadding(insets);
 
                         const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
                             safeAreaPaddingTop,

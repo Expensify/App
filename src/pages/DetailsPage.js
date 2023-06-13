@@ -10,14 +10,13 @@ import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import Navigation from '../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
-import Tooltip from '../components/Tooltip';
+import UserDetailsTooltip from '../components/UserDetailsTooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
@@ -28,6 +27,9 @@ import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import * as UserUtils from '../libs/UserUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -48,9 +50,13 @@ const propTypes = {
     /** Route params */
     route: matchType.isRequired,
 
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
+    /** Login list for the user that is signed in */
+    loginList: PropTypes.shape({
+        /** Date login was validated, used to show info indicator status */
+        validatedDate: PropTypes.string,
+
+        /** Field-specific server side errors keyed by microtime */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     ...withLocalizePropTypes,
@@ -59,9 +65,7 @@ const propTypes = {
 const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
-    session: {
-        email: null,
-    },
+    loginList: {},
 };
 
 /**
@@ -86,22 +90,18 @@ const getPhoneNumber = (details) => {
 class DetailsPage extends React.PureComponent {
     render() {
         const login = lodashGet(this.props.route.params, 'login', '');
-        const reportID = lodashGet(this.props.route.params, 'reportID', '');
         let details = lodashGet(this.props.personalDetails, login);
 
         if (!details) {
             details = {
                 login,
                 displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: ReportUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
+                avatar: UserUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
             };
         }
 
         const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
 
-        // If we have a reportID param this means that we
-        // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-        const shouldShowBackButton = Boolean(reportID);
         const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
         let pronouns = details.pronouns;
 
@@ -113,14 +113,14 @@ class DetailsPage extends React.PureComponent {
         const phoneNumber = getPhoneNumber(details);
         const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : details.login;
 
+        const isCurrentUser = _.keys(this.props.loginList).includes(details.login);
+
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('common.details')}
-                        shouldShowBackButton={shouldShowBackButton}
-                        onBackButtonPress={() => Navigation.goBack()}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
                     />
                     <View
                         pointerEvents="box-none"
@@ -131,7 +131,7 @@ class DetailsPage extends React.PureComponent {
                                 <View style={styles.avatarSectionWrapper}>
                                     <AttachmentModal
                                         headerTitle={details.displayName}
-                                        source={ReportUtils.getFullSizeAvatar(details.avatar, details.login)}
+                                        source={UserUtils.getFullSizeAvatar(details.avatar, details.login)}
                                         isAuthTokenRequired
                                         originalFileName={details.originalFileName}
                                     >
@@ -144,7 +144,7 @@ class DetailsPage extends React.PureComponent {
                                                     <Avatar
                                                         containerStyles={[styles.avatarLarge, styles.mb3]}
                                                         imageStyles={[styles.avatarLarge]}
-                                                        source={ReportUtils.getAvatar(details.avatar, details.login)}
+                                                        source={UserUtils.getAvatar(details.avatar, details.login)}
                                                         size={CONST.AVATAR_SIZE.LARGE}
                                                     />
                                                 </OfflineWithFeedback>
@@ -168,9 +168,9 @@ class DetailsPage extends React.PureComponent {
                                                 {this.props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                             </Text>
                                             <CommunicationsLink value={phoneOrEmail}>
-                                                <Tooltip text={phoneOrEmail}>
+                                                <UserDetailsTooltip accountID={details.accountID}>
                                                     <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
-                                                </Tooltip>
+                                                </UserDetailsTooltip>
                                             </CommunicationsLink>
                                         </View>
                                     ) : null}
@@ -187,7 +187,7 @@ class DetailsPage extends React.PureComponent {
                                     ) : null}
                                     {shouldShowLocalTime && <AutoUpdateTime timezone={details.timezone} />}
                                 </View>
-                                {details.login !== this.props.session.email && (
+                                {!isCurrentUser && (
                                     <MenuItem
                                         title={`${this.props.translate('common.message')}${details.displayName}`}
                                         icon={Expensicons.ChatBubble}
@@ -211,11 +211,11 @@ DetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        loginList: {
+            key: ONYXKEYS.LOGIN_LIST,
         },
     }),
 )(DetailsPage);
