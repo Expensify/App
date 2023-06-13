@@ -21,8 +21,8 @@ export default {
     },
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 function Template(args) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
     return <DatePicker {...args} />;
 }
 

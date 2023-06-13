@@ -5,6 +5,7 @@ import React from 'react';
 import {KeyboardAvoidingView as KeyboardAvoidingViewComponent} from 'react-native';
 
 function KeyboardAvoidingView(props) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
     return <KeyboardAvoidingViewComponent {...props} />;
 }
 

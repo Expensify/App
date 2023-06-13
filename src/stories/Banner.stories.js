@@ -11,8 +11,8 @@ const story = {
     component: Banner,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 function Template(args) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Banner {...args} />;
 }
 

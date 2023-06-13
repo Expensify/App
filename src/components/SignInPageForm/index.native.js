@@ -1,8 +1,8 @@
 import React from 'react';
 import FormElement from '../FormElement';
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 function Form(props) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
     return <FormElement {...props} />;
 }
 

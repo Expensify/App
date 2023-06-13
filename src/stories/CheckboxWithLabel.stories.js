@@ -13,8 +13,8 @@ const story = {
     component: CheckboxWithLabel,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
 function Template(args) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
     return <CheckboxWithLabel {...args} />;
 }
 
