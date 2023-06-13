@@ -121,7 +121,7 @@ function ReportActionItem(props) {
 
     useEffect(() => {
         const urls = ReportActionsUtils.extractLinksFromMessageHtml(props.action);
-        if (_.isEqual(downloadedPreviews.current, urls)) {
+        if (_.isEqual(downloadedPreviews.current, urls) || props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
 
