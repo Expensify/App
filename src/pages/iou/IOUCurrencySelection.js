@@ -57,6 +57,7 @@ const defaultProps = {
 };
 
 function IOUCurrencySelection(props) {
+    const [searchValue, setCurrentSearchValue] = useState('');
     const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.selectedCurrencyCode, CONST.CURRENCY.USD);
     const currencyOptions = useMemo(
         () =>
@@ -73,6 +74,8 @@ function IOUCurrencySelection(props) {
         [selectedCurrencyCode, props.currencyList],
     );
 
+    const [currencyData, setCurrencyData] = useState(currencyOptions);
+
     const confirmCurrencySelection = useCallback(
         (option) => {
             const backTo = lodashGet(props.route, 'params.backTo', '');
@@ -88,8 +91,6 @@ function IOUCurrencySelection(props) {
         [props.route, props.navigation],
     );
 
-    const [searchValue, setCurrentSearchValue] = useState('');
-    const [currencyData, setCurrencyData] = useState(currencyOptions);
     const {translate} = props;
 
     const getSections = useMemo(() => {
