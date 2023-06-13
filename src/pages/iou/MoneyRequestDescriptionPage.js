@@ -54,7 +54,16 @@ class MoneyRequestDescriptionPage extends Component {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
         if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), shouldReset);
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        const isEmpty = _.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0;
+        // ID in Onyx could change by initiating a new request in a separate browser tab
+        const isMoneyRequestIdChange = prevProps.iou.id !== this.props.iou.id;
+        if (isEmpty || isMoneyRequestIdChange) {
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
         }
     }
 

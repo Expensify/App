@@ -84,6 +84,7 @@ class MoneyRequestAmountPage extends React.Component {
         this.focusTextInput = this.focusTextInput.bind(this);
         this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
         this.navigateBack = this.navigateBack.bind(this);
+        this.navigateToNextPage = this.navigateToNextPage.bind(this);
         this.amountViewID = 'amountView';
         this.numPadContainerViewID = 'numPadContainerView';
         this.numPadViewID = 'numPadView';
@@ -104,15 +105,18 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidMount() {
-        const moneyRequestId = `${this.iouType}${this.reportID}`;
-        const shouldReset = this.props.iou.id !== moneyRequestId;
-        if (shouldReset) {
-            IOU.resetMoneyRequestInfo(moneyRequestId);
-        }
+        if (this.isEditing) {
+            const moneyRequestId = `${this.iouType}${this.reportID}`;
+            const shouldReset = this.props.iou.id !== moneyRequestId;
 
-        if (this.isEditing && (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset)) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), shouldReset);
-            return;
+            if (shouldReset) {
+                IOU.resetMoneyRequestInfo(moneyRequestId);
+            }
+
+            if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || shouldReset) {
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
+                return;
+            }
         }
 
         // Focus automatically after navigating back from currency selector
@@ -122,6 +126,16 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.isEditing) {
+            const isEmpty = _.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0;
+            // ID in Onyx could change by initiating a new request in a separate browser tab
+            const isMoneyRequestIdChange = prevProps.iou.id !== this.props.iou.id;
+            if (isEmpty || isMoneyRequestIdChange) {
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
+                return;
+            }
+        }
+
         const prevCurrencyParam = lodashGet(prevProps.route.params, 'currency', '');
         const currencyParam = lodashGet(this.props.route.params, 'currency', '');
         if (currencyParam !== '' && prevCurrencyParam !== currencyParam) {
@@ -383,14 +397,29 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     navigateToNextPage() {
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(this.state.selectedCurrencyCode, Number.parseFloat(this.state.amount));
+        IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestCurrency(this.state.selectedCurrencyCode);
+
         if (this.isEditing) {
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(this.iouType, this.reportID));
             return;
+        }
+
+        const moneyRequestId = `${this.iouType}${this.reportID}`;
+        const isMoneyRequestIdMatch = this.props.iou.id === moneyRequestId;
+        // If the money request ID in Onyx does not match the ID from params, we want to start a new request
+        // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
+        if (!isMoneyRequestIdMatch) {
+            IOU.setMoneyRequestId(moneyRequestId);
+            IOU.setMoneyRequestDescription('');
+            IOU.setMoneyRequestParticipants([]);
         }
 
         // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
         if (this.props.report.reportID) {
-            if (_.isEmpty(this.props.iou.participants)) {
+            // We want to reinitialize the participants when the ID changes
+            if (_.isEmpty(this.props.iou.participants) || !isMoneyRequestIdMatch) {
                 const currentUserLogin = this.props.currentUserPersonalDetails.login;
                 const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
                     ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
@@ -461,12 +490,7 @@ class MoneyRequestAmountPage extends React.Component {
                                 <Button
                                     success
                                     style={[styles.w100, styles.mt5]}
-                                    onPress={() => {
-                                        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(this.state.selectedCurrencyCode, Number.parseFloat(this.state.amount));
-                                        IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
-                                        IOU.setMoneyRequestCurrency(this.state.selectedCurrencyCode);
-                                        this.navigateToNextPage();
-                                    }}
+                                    onPress={this.navigateToNextPage}
                                     pressOnEnter
                                     isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
                                     text={buttonText}

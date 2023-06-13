@@ -61,20 +61,30 @@ const defaultProps = {
 };
 
 const MoneyRequestConfirmPage = (props) => {
+    const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
     useEffect(() => {
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId;
-        if (shouldReset) {
+        // ID in Onyx could change by initiating a new request in a separate browser tab
+        const isMoneyRequestIdChange = prevMoneyRequestId.current !== props.iou.id;
+        const isMoneyRequestIdMatch = props.iou.id === moneyRequestId;
+
+        // Reset the money request Onyx if the ID in Onyx does not match the ID from params
+        // and is not caused by an ID change in Onyx.
+        if (!isMoneyRequestIdMatch && !isMoneyRequestIdChange) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
-        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), shouldReset);
+
+        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || !isMoneyRequestIdMatch || isMoneyRequestIdChange) {
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+
+        return () => {
+            prevMoneyRequestId.current = moneyRequestId;
+        };
+    }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
     const navigateBack = () => {
         let fallback;

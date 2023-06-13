@@ -1201,6 +1201,13 @@ function startMoneyRequest(iouType, reportID = '') {
 }
 
 /**
+ * @param {String} id
+ */
+function setMoneyRequestId(id) {
+    Onyx.merge(ONYXKEYS.IOU, {id});
+}
+
+/**
  * @param {Number} amount
  */
 function setMoneyRequestAmount(amount) {
@@ -1239,6 +1246,7 @@ export {
     sendMoneyWithWallet,
     startMoneyRequest,
     resetMoneyRequestInfo,
+    setMoneyRequestId,
     setMoneyRequestAmount,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
