@@ -19,6 +19,10 @@ const propTypes = {
 
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
+
+    /** image file name */
+    fileName: PropTypes.string.isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -268,7 +272,6 @@ class ImageView extends PureComponent {
                 style={[styles.imageViewContainer, styles.overflowAuto, styles.pRelative]}
             >
                 <PressableWithoutFeedback
-                    accessible={false}
                     style={{
                         ...StyleUtils.getZoomSizingStyle(
                             this.state.isZoomed,
@@ -285,6 +288,8 @@ class ImageView extends PureComponent {
                     }}
                     onPressIn={this.onContainerPressIn}
                     onPress={this.onContainerPress}
+                    accessibilityRole="image"
+                    accessibilityLabel={this.props.fileName}
                 >
                     <Image
                         source={{uri: this.props.url}}
