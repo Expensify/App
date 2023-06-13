@@ -422,7 +422,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             optimisticPersonalDetails[accountID] = {
                 login,
                 accountID,
-                avatar: UserUtils.getDefaultAvatar(accountID),
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
                 displayName: login,
             };
         });
