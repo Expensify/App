@@ -7,11 +7,10 @@ import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import themeColors from '../../styles/themes/default';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
 import withCurrentReportId from '../../components/withCurrentReportId';
-import compose from '../compose';
 import StatusBar from '../StatusBar';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -23,8 +22,6 @@ const navigationTheme = {
 };
 
 const propTypes = {
-    ...windowDimensionsPropTypes,
-
     /** Whether the current user is logged in with an authToken */
     authenticated: PropTypes.bool.isRequired,
 
@@ -101,9 +98,11 @@ const NavigationRoot = (props) => {
         animateStatusBarBackgroundColor();
     };
 
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
         <NavigationContainer
-            key={props.isSmallScreenWidth ? 'small' : 'big'}
+            key={isSmallScreenWidth ? 'small' : 'big'}
             onStateChange={updateSavedNavigationStateAndLogRoute}
             initialState={navigationStateRef.current}
             onReady={props.onReady}
@@ -121,4 +120,4 @@ const NavigationRoot = (props) => {
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;
-export default compose(withWindowDimensions, withCurrentReportId)(NavigationRoot);
+export default withCurrentReportId(NavigationRoot);
