@@ -221,7 +221,9 @@ function addActions(reportID, text = '', file) {
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
+        lastMessageHtml: lastCommentText,
         lastActorEmail: currentUserEmail,
+        lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
 
