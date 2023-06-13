@@ -63,7 +63,7 @@ const TaskPreview = (props) => {
     return (
         <Pressable
             onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
-            style={[styles.flexRow, styles.justifyContentBetween]}
+            style={[styles.flexRow, styles.justifyContentBetween, styles.chatItemMessage]}
         >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
