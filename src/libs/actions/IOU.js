@@ -970,8 +970,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [recipient.accountID]: {
-                    accountID: recipient.accountID,
+                [recipientAccountID]: {
+                    accountID: recipientAccountID,
                     avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
                     displayName: recipient.displayName || recipient.login,
                     login: recipient.login,
