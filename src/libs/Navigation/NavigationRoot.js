@@ -1,8 +1,8 @@
-import React, {useRef, useEffect} from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
-import {Animated, Easing} from 'react-native';
+import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
@@ -59,20 +59,15 @@ const NavigationRoot = (props) => {
 
     const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarAnimation = useRef(new Animated.Value(0));
+    const statusBarAnimation = useSharedValue(0);
 
-    useEffect(() => {
-        const animation = statusBarAnimation.current;
-        animation.addListener(() => {
-            const colorObj = animation.interpolate({
-                inputRange: [0, 1],
-                outputRange: [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current],
-            });
-            // eslint-disable-next-line no-underscore-dangle
-            StatusBar.setBackgroundColor(colorObj.__getValue());
-        });
-        return () => animation.removeAllListeners();
-    }, []);
+    useAnimatedReaction(
+        () => statusBarAnimation.value,
+        () => {
+            const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
+            runOnJS(StatusBar.setBackgroundColor)(color);
+        },
+    );
 
     const animateStatusBarBackgroundColor = () => {
         const currentRoute = navigationRef.getCurrentRoute();
@@ -84,14 +79,14 @@ const NavigationRoot = (props) => {
             return;
         }
 
-        statusBarAnimation.current.setValue(0);
-        Animated.timing(statusBarAnimation.current, {
-            toValue: 1,
-            duration: 300,
-            delay: 300,
-            easing: Easing.in(Easing.ease),
-            useNativeDriver: false,
-        }).start();
+        statusBarAnimation.value = 0;
+        statusBarAnimation.value = withDelay(
+            300,
+            withTiming(1, {
+                duration: 300,
+                easing: Easing.in,
+            }),
+        );
     };
 
     const updateSavedNavigationStateAndLogRoute = (state) => {
