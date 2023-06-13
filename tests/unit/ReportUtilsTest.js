@@ -17,13 +17,11 @@ const participantsPersonalDetails = {
         displayName: 'Ragnar Lothbrok',
         firstName: 'Ragnar',
         login: 'ragnar@vikings.net',
-        accountID: 1,
     },
     2: {
         accountID: 2,
         login: 'floki@vikings.net',
         displayName: 'floki@vikings.net',
-        accountID: 2,
     },
     3: {
         accountID: 3,
@@ -31,13 +29,11 @@ const participantsPersonalDetails = {
         firstName: 'Lagertha',
         login: 'lagertha@vikings.net',
         pronouns: 'She/her',
-        accountID: 3,
     },
     4: {
         accountID: 4,
         login: '+18332403627@expensify.sms',
         displayName: '(833) 240-3627',
-        accountID: 4,
     },
 };
 const policy = {
@@ -66,7 +62,7 @@ describe('ReportUtils', () => {
                     displayName: 'Ragnar Lothbrok',
                     login: 'ragnar@vikings.net',
                     avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_16.svg',
+                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
                     },
                     accountID: 1,
                     pronouns: undefined,
@@ -74,7 +70,7 @@ describe('ReportUtils', () => {
                 {
                     displayName: 'floki@vikings.net',
                     avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_24.svg',
+                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
                     },
                     login: 'floki@vikings.net',
                     accountID: 2,
@@ -83,7 +79,7 @@ describe('ReportUtils', () => {
                 {
                     displayName: 'Lagertha Lothbrok',
                     avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_11.svg',
+                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
                     },
                     login: 'lagertha@vikings.net',
                     accountID: 3,
@@ -92,7 +88,7 @@ describe('ReportUtils', () => {
                 {
                     displayName: '(833) 240-3627',
                     avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_15.svg',
+                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
                     },
                     login: '+18332403627@expensify.sms',
                     accountID: 4,
@@ -107,7 +103,7 @@ describe('ReportUtils', () => {
                     displayName: 'Ragnar',
                     login: 'ragnar@vikings.net',
                     avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_16.svg',
+                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
                     },
                     accountID: 1,
                     pronouns: undefined,
@@ -115,7 +111,7 @@ describe('ReportUtils', () => {
                 {
                     displayName: 'floki@vikings.net',
                     avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_24.svg',
+                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
                     },
                     login: 'floki@vikings.net',
                     accountID: 2,
@@ -124,7 +120,7 @@ describe('ReportUtils', () => {
                 {
                     displayName: 'Lagertha',
                     avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_11.svg',
+                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
                     },
                     login: 'lagertha@vikings.net',
                     accountID: 3,
@@ -133,7 +129,7 @@ describe('ReportUtils', () => {
                 {
                     displayName: '(833) 240-3627',
                     avatar: {
-                        testUri: '../../../assets/images/avatars/user/default-avatar_15.svg',
+                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
                     },
                     login: '+18332403627@expensify.sms',
                     accountID: 4,

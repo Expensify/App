@@ -101,7 +101,7 @@ const ReportActionItemSingle = (props) => {
                             noMargin
                         />
                     ) : (
-                        <UserDetailsTooltip accountID={accountID}>
+                        <UserDetailsTooltip accountID={actorAccountID}>
                             <View>
                                 <Avatar
                                     containerStyles={[styles.actionAvatar]}
@@ -124,7 +124,7 @@ const ReportActionItemSingle = (props) => {
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.reportActionID}-${index}`}
-                                    accountID={accountID}
+                                    accountID={actorAccountID}
                                     fragment={fragment}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
