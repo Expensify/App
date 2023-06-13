@@ -52,6 +52,7 @@ function buildOnyxDataForMoneyRequest(
     chatCreatedAction,
     iouCreatedAction,
     iouAction,
+    optimisticPersonalDetailListAction,
     reportPreviewAction,
     isNewChatReport,
     isNewIOUReport,
@@ -104,6 +105,14 @@ function buildOnyxDataForMoneyRequest(
             },
         },
     ];
+
+    if (isNewChatReport && !_.isEmpty(optimisticPersonalDetailListAction)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetailListAction,
+        });
+    }
 
     const successData = [
         ...(isNewChatReport
@@ -327,6 +336,15 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         '',
         iouReport.reportID,
     );
+    // Add optimistic personal details for participant
+    const optimisticPersonalDetailListAction = {
+        [payerAccountID]: {
+            accountID: payerAccountID,
+            avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+            displayName: participant.displayName || payerEmail,
+            login: participant.login,
+        },
+    };
 
     let isNewReportPreviewAction = false;
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -343,6 +361,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         optimisticCreatedActionForChat,
         optimisticCreatedActionForIOU,
         optimisticIOUAction,
+        optimisticPersonalDetailListAction,
         reportPreviewAction,
         isNewChatReport,
         isNewIOUReport,
@@ -564,6 +583,15 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             '',
             oneOnOneIOUReport.reportID,
         );
+        // Add optimistic personal details for new participants
+        const oneOnOnePersonalDetailListAction = {
+            [accountID]: {
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: participant.displayName || email,
+                login: participant.login,
+            },
+        };
 
         let isNewOneOnOneReportPreviewAction = false;
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
@@ -580,6 +608,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneCreatedActionForChat,
             oneOnOneCreatedActionForIOU,
             oneOnOneIOUAction,
+            oneOnOnePersonalDetailListAction,
             oneOnOneReportPreviewAction,
             isNewOneOnOneChatReport,
             isNewOneOnOneIOUReport,
@@ -1027,6 +1056,12 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         iouReport.reportID,
         true,
     );
+    const optimisticPersonalDetailsListAction = {
+        accountID: Number(recipient.accountID),
+        avatar: UserUtils.getDefaultAvatarURL(Number(recipient.accountID)),
+        displayName: recipient.displayName || recipient.login,
+        login: recipient.login,
+    };
 
     const optimisticData = [
         {
@@ -1072,6 +1107,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {[iouReport.policyID]: paymentMethodType},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetailsListAction,
         },
     ];
 
