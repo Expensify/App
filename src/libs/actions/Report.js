@@ -587,6 +587,19 @@ function readOldestAction(reportID, reportActionID) {
 }
 
 /**
+ * Gets metadata info about links in the provided report action
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ */
+function expandURLPreview(reportID, reportActionID) {
+    API.read('ExpandURLPreview', {
+        reportID,
+        reportActionID,
+    });
+}
+
+/**
  * Gets transactions and data associated with the linked report (expense or IOU report)
  *
  * @param {String} chatReportID
@@ -1783,6 +1796,7 @@ export {
     deleteReport,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
+    expandURLPreview,
     markCommentAsUnread,
     readNewestAction,
     readOldestAction,
