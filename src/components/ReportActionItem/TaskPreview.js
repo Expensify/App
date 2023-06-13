@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
@@ -17,6 +17,7 @@ import ROUTES from '../../ROUTES';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
 import RenderHTML from '../RenderHTML';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The ID of the associated taskReport */
@@ -61,9 +62,11 @@ const TaskPreview = (props) => {
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
-        <Pressable
+        <PressableWithoutFeedback
             onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
             style={[styles.flexRow, styles.justifyContentBetween]}
+            accessibilityRole="button"
+            accessibilityLabel={props.translate('newTaskPage.task')}
         >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
@@ -85,7 +88,7 @@ const TaskPreview = (props) => {
                 src={Expensicons.ArrowRight}
                 fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
             />
-        </Pressable>
+        </PressableWithoutFeedback>
     );
 };
 
