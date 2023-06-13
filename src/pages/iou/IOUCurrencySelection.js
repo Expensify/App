@@ -91,19 +91,18 @@ function IOUCurrencySelection(props) {
         [props.route, props.navigation],
     );
 
-    const {translate} = props;
+    const { translate } = props;
 
     const getSections = useMemo(() => {
         if (searchValue.trim() && !currencyData.length) {
             return [];
         }
-        const sections = [];
-        sections.push({
+        return [{
             title: translate('iOUCurrencySelection.allCurrencies'),
             data: currencyData,
             shouldShow: true,
             indexOffset: 0,
-        });
+        }];
 
         return sections;
     }, [searchValue, currencyData, translate]);
