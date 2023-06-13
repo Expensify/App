@@ -6,7 +6,9 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
+import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
+import * as Browser from '../libs/Browser';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -53,6 +55,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
+    [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
 };
 
 const emptyAvatarStyles = {
@@ -561,7 +564,7 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
 function getEmojiPickerStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            width: '100%',
+            width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
         };
     }
     return {
@@ -1016,13 +1019,15 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
 
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
     const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const borderWidth = 2;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(itemsHeight + padding),
-        height: itemsHeight,
+        top: -(height + padding),
+        height,
     };
 }
 
@@ -1123,6 +1128,30 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
 }
 
 /**
+ * Gets the correct height for emoji picker list based on screen dimensions
+ *
+ * @param {Boolean} hasAdditionalSpace
+ * @param {Number} windowHeight
+ * @returns {Object}
+ */
+function getEmojiPickerListHeight(hasAdditionalSpace, windowHeight) {
+    const style = {
+        ...spacing.ph4,
+        height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+    };
+
+    if (windowHeight) {
+        // dimensions of content above the emoji picker list
+        const dimensions = hasAdditionalSpace ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT;
+        return {
+            ...style,
+            maxHeight: windowHeight - dimensions,
+        };
+    }
+    return style;
+}
+
+/**
  * Returns style object for the user mention component based on whether the mention is ours or not.
  * @param {Boolean} isOurMention
  * @returns {Object}
@@ -1143,6 +1172,16 @@ function getMentionStyle(isOurMention) {
  */
 function getMentionTextColor(isOurMention) {
     return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+}
+
+/**
+ * Returns style object for the mobile on WEB
+ * @param {Number} windowHeight
+ * @param {Number} viewportOffsetTop
+ * @returns {Object}
+ */
+function getOuterModalStyle(windowHeight, viewportOffsetTop) {
+    return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
 export {
@@ -1206,7 +1245,9 @@ export {
     getLineHeightStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
+    getEmojiPickerListHeight,
     getMentionStyle,
     getMentionTextColor,
     getHeightOfMagicCodeInput,
+    getOuterModalStyle,
 };

@@ -94,6 +94,7 @@ const EmojiSuggestions = (props) => {
             onSelect={props.onSelect}
             isSuggestionPickerLarge={props.isEmojiPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
+            accessibilityLabelExtractor={keyExtractor}
         />
     );
 };

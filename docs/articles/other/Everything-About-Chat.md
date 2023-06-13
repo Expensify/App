@@ -23,6 +23,37 @@ In addition to 1:1 and group chat, members of a Workspace or Policy will have ac
 All workspace members are added to the #announce room by default. The #announce room lets you share important company announcements and have conversations between workspace members.
 
 All workspace admins can access the #admins room. Use the #admins room to collaborate with the other admins on your policy, and chat with your dedicated Expensify Onboarding Guide. If you have a subscription of 10 or more users, you're automatically assigned an Account Manager. You can ask for help and collaborate with your Account Manager in this same #admins room. Anytime someone on your team, your dedicated setup specialist, or your dedicated account manager makes any changes to your Workspace settings, that update is logged in the #admins room.
+## How to format text
+
+#### Italic
+###### To italicize your message, place an underscore on both sides of the text:
+*text*
+
+#### Bold
+###### To bold your message, place an asterisk on both sides of the text:
+**text**
+
+#### Strikethrough
+###### To strikethrough your message, place a tilde on both sides of the text:
+~text~
+
+#### Quote
+###### To turn your text into a blockquote, add a `>` symbol in front of the text:
+> your text
+
+#### Code
+###### To turn your message into code, place a backtick on both sides of the text:
+`text`
+
+#### Codeblock
+###### To turn your entire message into code block, place three backticks on both sides of the text:
+```
+text
+and even more text
+```
+#### Heading
+###### To turn your message into a heading, place the `#` symbol in front of the text:
+## Heading 
 
 # FAQs
 ## How do I add more than one person to a chat?

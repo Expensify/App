@@ -339,7 +339,6 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             isLoadingReportActions: true,
             isLoadingMoreReportActions: false,
             lastReadTime: DateUtils.getDBTime(),
-            reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
         },
     };
     const reportSuccessData = {
@@ -384,10 +383,6 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
     // and we need data to be available when we navigate to the chat page
     if (_.isEmpty(ReportUtils.getReport(reportID))) {
         optimisticReportData.onyxMethod = Onyx.METHOD.SET;
-        optimisticReportData.value = {
-            ...optimisticReportData.value,
-            reportID: reportID.toString(),
-        };
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
@@ -396,6 +391,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         // and we need the data to be available when we navigate to the chat page
         optimisticReportData.onyxMethod = Onyx.METHOD.SET;
         optimisticReportData.value = {
+            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             ...optimisticReportData.value,
             ...newReportObject,
             pendingFields: {
@@ -588,6 +584,19 @@ function readOldestAction(reportID, reportActionID) {
             ],
         },
     );
+}
+
+/**
+ * Gets metadata info about links in the provided report action
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ */
+function expandURLPreview(reportID, reportActionID) {
+    API.read('ExpandURLPreview', {
+        reportID,
+        reportActionID,
+    });
 }
 
 /**
@@ -806,6 +815,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
+            isDeletedParentAction: true,
         },
     ];
     const optimisticReportActions = {
@@ -935,6 +945,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
     const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
+    const reportComment = parser.htmlToText(htmlForNewComment);
 
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
@@ -966,7 +977,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                     ...originalMessage,
                     isEdited: true,
                     html: htmlForNewComment,
-                    text: textForNewComment,
+                    text: reportComment,
                 },
             ],
         },
@@ -982,7 +993,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
     if (reportActionID === lastVisibleAction.reportActionID) {
-        const reportComment = parser.htmlToText(htmlForNewComment);
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
             lastMessageText,
@@ -1786,6 +1796,7 @@ export {
     deleteReport,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
+    expandURLPreview,
     markCommentAsUnread,
     readNewestAction,
     readOldestAction,
