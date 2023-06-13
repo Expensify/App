@@ -10,7 +10,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 
 const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle'];
 
-constDPressableWithFeedbackPropTypes = {
+const PressableWithFeedbackPropTypes = {
     ..._.omit(GenericPressablePropTypes.pressablePropTypes, omittedProps),
     /**
      * Determines what opacity value should be applied to the underlaying view when Pressable is pressed.
