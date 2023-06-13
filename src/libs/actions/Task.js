@@ -289,7 +289,6 @@ function reopenTask(taskReportID, taskTitle) {
 }
 
 /**
- * @function editTask
  * @param {object} report
  * @param {string} ownerEmail
  * @param {Number} ownerAccountID
