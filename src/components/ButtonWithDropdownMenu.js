@@ -61,6 +61,7 @@ const ButtonWithDropdownMenu = (props) => {
                 horizontal: x + w,
                 vertical: y + h,
             });
+            setIsMenuVisible(true);
         });
     };
 
@@ -96,12 +97,7 @@ const ButtonWithDropdownMenu = (props) => {
                         success
                         isDisabled={props.isDisabled}
                         style={[styles.pl0]}
-                        onPress={() => {
-                            if (popoverAnchorPosition === null) {
-                                measurePopoverPosition();
-                            }
-                            setIsMenuVisible(true);
-                        }}
+                        onPress={measurePopoverPosition}
                         shouldRemoveLeftBorderRadius
                     >
                         <Icon
