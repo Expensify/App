@@ -97,12 +97,12 @@ function getDefaultAvatar(accountID = -1) {
 /**
  * Helper method to return default avatar URL associated with login
  *
- * @param {String} [accountID]
+ * @param {Number} [accountID]
  * @param {Boolean} [isNewDot]
  * @returns {String}
  */
 function getDefaultAvatarURL(accountID = '', isNewDot = false) {
-    if (Number(accountID) === CONST.EMAIL.CONCIERGE) {
+    if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
 
