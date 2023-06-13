@@ -22,6 +22,7 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -55,12 +56,6 @@ const defaultProps = {
 
 const OptionRowLHN = (props) => {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
-    const isPinned = _.get(optionItem, 'isPinned', false);
-    const isUnread = _.get(optionItem, 'isUnread', false);
-
-    React.useEffect(() => {
-        ReportActionContextMenu.hideContextMenu(false);
-    }, [isPinned, isUnread]);
 
     if (!optionItem) {
         return null;
@@ -169,7 +164,7 @@ const OptionRowLHN = (props) => {
                                                 props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                 hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
-                                            shouldShowTooltip={!optionItem.isChatRoom && !optionItem.isArchivedRoom}
+                                            shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>

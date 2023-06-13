@@ -44,6 +44,7 @@ export default {
         and: 'and',
         details: 'Details',
         privacy: 'Privacy',
+        hidden: 'Hidden',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
@@ -1074,6 +1075,7 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
+            notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}) => `Go to ${roomName} room`,
         },
         emptyWorkspace: {
