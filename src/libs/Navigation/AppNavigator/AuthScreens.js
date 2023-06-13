@@ -86,8 +86,10 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }),
+
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -122,7 +124,7 @@ class AuthScreens extends React.Component {
 
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
-            Report.navigateToLastOpenedPublicRoom(this.props.lastOpenedPublicRoomID);
+            Report.openLastOpenedPublicRoom(this.props.lastOpenedPublicRoomID);
         }
         Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);

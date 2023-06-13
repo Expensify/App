@@ -1685,7 +1685,7 @@ function setLastOpenedPublicRoom(reportID) {
  *
  * @param {String} lastOpenedPublicRoomID
  */
-function navigateToLastOpenedPublicRoom(lastOpenedPublicRoomID) {
+function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
     Navigation.isNavigationReady().then(() => {
         setLastOpenedPublicRoom('');
         Navigation.navigate(ROUTES.getReportRoute(lastOpenedPublicRoomID));
@@ -1816,5 +1816,5 @@ export {
     leaveRoom,
     setLastOpenedPublicRoom,
     flagComment,
-    navigateToLastOpenedPublicRoom,
+    openLastOpenedPublicRoom,
 };
