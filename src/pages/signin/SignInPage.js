@@ -20,6 +20,8 @@ import usePermissions from '../../hooks/usePermissions';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
 import * as StyleUtils from '../../styles/StyleUtils';
+import * as Report from '../../libs/actions/Report';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -47,11 +49,15 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
+
+    /** Last opened room id accesed as an anonymous user */
+    lastOpenedRoomId: PropTypes.string,
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
+    lastOpenedRoomId: ''
 };
 
 /**
@@ -83,7 +89,7 @@ function getRenderOptions({hasLogin, hasPassword, hasValidateCode, isPrimaryLogi
     };
 }
 
-function SignInPage({account, credentials}) {
+function SignInPage({account, credentials, lastOpenedRoomId}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {canUsePasswordlessLogins} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -93,6 +99,25 @@ function SignInPage({account, credentials}) {
     useEffect(() => {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
+    useEffect(() => {
+        window.history.pushState({}, '', ROUTES.getReportRoute(lastOpenedRoomId));
+        const browserBackPressed = () => {
+            if(lastOpenedRoomId && lastOpenedRoomId!==''){
+                //Use deeplink implementation to change navigation stack
+                Report.openReportFromDeepLink(ROUTES.getReportRoute(lastOpenedRoomId), false)
+            }else{
+                window.history.back();
+            }
+        };
+    
+        // Add event listener for the browser back button press
+        window.addEventListener('popstate', browserBackPressed);
+    
+        // Clean up the event listener when the component unmounts
+        return () => {
+          window.removeEventListener('popstate', browserBackPressed);
+        };
+      }, [lastOpenedRoomId]);
 
     const {
         shouldShowLoginForm,
@@ -177,4 +202,5 @@ SignInPage.displayName = 'SignInPage';
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
+    lastOpenedRoomId: {key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID},
 })(SignInPage);
