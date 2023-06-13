@@ -60,7 +60,6 @@ class PopoverReactionList extends React.Component {
         this.hideReactionList = this.hideReactionList.bind(this);
         this.measureReactionListPosition = this.measureReactionListPosition.bind(this);
         this.getReactionListMeasuredLocation = this.getReactionListMeasuredLocation.bind(this);
-        this.getSelectedReactionFromAction = this.getSelectedReactionFromAction.bind(this);
         this.getSelectedReaction = this.getSelectedReaction.bind(this);
         this.getReactionInformation = this.getReactionInformation.bind(this);
         this.dimensionsEventListener = null;
@@ -158,12 +157,11 @@ class PopoverReactionList extends React.Component {
      */
     getSelectedReaction(reportActions, reportActionID, emojiName) {
         const reportAction = _.find(reportActions, (action) => action.reportActionID === reportActionID);
-        const reactions = this.getSelectedReactionFromAction(reportAction, emojiName);
-        if (ReportUtils.isThread(this.props.report)) {
+        if (ReportUtils.isThreadFirstChat(reportAction) === true) {
             const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
-            return reactions || this.getSelectedReactionFromAction(parentReportAction, emojiName);
+            return this.getSelectedReactionFromAction(parentReportAction, emojiName);
         }
-        return reactions;
+        return this.getSelectedReactionFromAction(reportAction, emojiName);
     }
 
     /**
@@ -206,7 +204,7 @@ class PopoverReactionList extends React.Component {
     showReactionList(event, reactionListAnchor, emojiName, reportActionID) {
         const nativeEvent = event.nativeEvent || {};
         this.reactionListAnchor = reactionListAnchor;
-        const selectedReaction = this.getSelectedReaction(this.props.reportActions, this.state.reportActionID, this.state.emojiName);
+        const selectedReaction = this.getSelectedReaction(this.props.reportActions, reportActionID, emojiName);
         const {emojiCount, emojiCodes, hasUserReacted, users} = this.getReactionInformation(selectedReaction);
         this.getReactionListMeasuredLocation().then(({x, y}) => {
             this.setState({
