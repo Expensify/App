@@ -1218,6 +1218,17 @@ function addPolicyReport(policy, reportName, visibility) {
             },
         },
     ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
+            value: {
+                errorFields: {
+                    addWorkspaceRoom: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                },
+            }
+        },
+    ];
 
     API.write(
         'AddWorkspaceRoom',
@@ -1228,7 +1239,7 @@ function addPolicyReport(policy, reportName, visibility) {
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
         },
-        {optimisticData, successData},
+        {optimisticData, successData, failureData},
     );
     Navigation.dismissModal(policyReport.reportID);
 }
