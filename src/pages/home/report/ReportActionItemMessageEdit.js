@@ -1,7 +1,6 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React, {useState, useRef, useMemo, useEffect, useCallback} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -16,7 +15,6 @@ import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -27,9 +25,6 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import CONST from '../../../CONST';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
@@ -37,6 +32,9 @@ import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Hoverable from '../../../components/Hoverable';
 import usePrevious from '../../../hooks/usePrevious';
+import useLocalize from '../../../hooks/useLocalize';
+import useKeyboardState from '../../../hooks/useKeyboardState';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** All the data of the action */
@@ -63,10 +61,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
-    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
@@ -83,6 +77,10 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 function ReportActionItemMessageEdit(props) {
+    const {translate} = useLocalize();
+    const {isKeyboardShown} = useKeyboardState();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     const [draft, setDraft] = useState(() => {
         if (props.draftMessage === props.action.message[0].html) {
             // We only convert the report action message to markdown if the draft message is unchanged.
@@ -144,7 +142,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.isSmallScreenWidth, props.preferredSkinTone);
+            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, isSmallScreenWidth, props.preferredSkinTone);
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
@@ -171,7 +169,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, props.isSmallScreenWidth, props.preferredSkinTone],
+        [props.action.message, debouncedSaveDraft, isSmallScreenWidth, props.preferredSkinTone],
     );
 
     /**
@@ -235,7 +233,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const triggerSaveOrCancel = useCallback(
         (e) => {
-            if (!e || ComposerUtils.canSkipTriggerHotkeys(props.isSmallScreenWidth, props.isKeyboardShown)) {
+            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
                 return;
             }
             if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
@@ -246,14 +244,14 @@ function ReportActionItemMessageEdit(props) {
                 deleteDraft();
             }
         },
-        [deleteDraft, props.isKeyboardShown, props.isSmallScreenWidth, publishDraft],
+        [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
     );
 
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
                 <View style={[styles.justifyContentEnd]}>
-                    <Tooltip text={props.translate('common.cancel')}>
+                    <Tooltip text={translate('common.cancel')}>
                         <Hoverable>
                             {(hovered) => (
                                 <PressableWithFeedback
@@ -261,7 +259,7 @@ function ReportActionItemMessageEdit(props) {
                                     style={styles.chatItemSubmitButton}
                                     nativeID={cancelButtonID}
                                     accessibilityRole="button"
-                                    accessibilityLabel={props.translate('common.close')}
+                                    accessibilityLabel={translate('common.close')}
                                     // disable dimming
                                     hoverDimmingValue={1}
                                     pressDimmingValue={1}
@@ -298,7 +296,7 @@ function ReportActionItemMessageEdit(props) {
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
-                            maxLines={props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
+                            maxLines={isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
@@ -333,14 +331,14 @@ function ReportActionItemMessageEdit(props) {
                     </View>
 
                     <View style={styles.alignSelfEnd}>
-                        <Tooltip text={props.translate('common.saveChanges')}>
+                        <Tooltip text={translate('common.saveChanges')}>
                             <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
                                 nativeID={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
                                 accessibilityRole="button"
-                                accessibilityLabel={props.translate('common.saveChanges')}
+                                accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
                             >
@@ -364,16 +362,11 @@ function ReportActionItemMessageEdit(props) {
 ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withKeyboardState,
-)(
-    React.forwardRef((props, ref) => (
-        <ReportActionItemMessageEdit
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+
+export default React.forwardRef((props, ref) => (
+    <ReportActionItemMessageEdit
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
