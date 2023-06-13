@@ -6,27 +6,23 @@ import ThreePaneView from './ThreePaneView';
 import CustomRouter from './CustomRouter';
 
 const propTypes = {
-    /** Determines if the navigator should render the StackView (narrow) or ThreePaneView (wide) */
+    /* Determines if the navigator should render the StackView (narrow) or ThreePaneView (wide) */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
-    /** Children for the useNavigationBuilder hook */
+    /* Children for the useNavigationBuilder hook */
     children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
 
-    /** initialRouteName for this navigator */
+    /* initialRouteName for this navigator */
     initialRouteName: PropTypes.oneOf([PropTypes.string, PropTypes.undefined]),
 
-    /** Screen options defined for this navigator */
+    /* Screen options defined for this navigator */
     // eslint-disable-next-line react/forbid-prop-types
     screenOptions: PropTypes.object,
-
-    /** Screen listeners for this navigator */
-    screenListeners: PropTypes.objectOf(PropTypes.func),
 };
 
 const defaultProps = {
     initialRouteName: undefined,
     screenOptions: undefined,
-    screenListeners: undefined,
 };
 
 function ResponsiveStackNavigator(props) {
@@ -35,7 +31,6 @@ function ResponsiveStackNavigator(props) {
         screenOptions: props.screenOptions,
         initialRouteName: props.initialRouteName,
         isSmallScreenWidth: props.isSmallScreenWidth,
-        screenListeners: props.screenListeners,
     });
 
     return props.isSmallScreenWidth ? (
