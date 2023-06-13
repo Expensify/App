@@ -1694,6 +1694,18 @@ function setLastOpenedPublicRoom(reportID) {
 }
 
 /**
+ * Navigates to the last opened public room
+ *
+ * @param {String} lastOpenedPublicRoomID
+ */
+function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
+    Navigation.isNavigationReady().then(() => {
+        setLastOpenedPublicRoom('');
+        Navigation.navigate(ROUTES.getReportRoute(lastOpenedPublicRoomID));
+    });
+}
+
+/**
  * Flag a comment as offensive
  *
  * @param {String} reportID
@@ -1818,4 +1830,5 @@ export {
     leaveRoom,
     setLastOpenedPublicRoom,
     flagComment,
+    openLastOpenedPublicRoom,
 };
