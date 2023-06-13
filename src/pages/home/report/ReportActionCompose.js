@@ -252,7 +252,6 @@ function ReportActionCompose(props) {
         start: isMobileSafari && !shouldAutoFocus ? 0 : props.comment.length,
         end: isMobileSafari && !shouldAutoFocus ? 0 : props.comment.length,
     });
-    const [maxLines, setMaxLines] = useState(props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES);
     const [value, setValue] = useState(props.comment);
 
     const [composerHeight, setComposerHeight] = useState(0);
@@ -385,17 +384,6 @@ function ReportActionCompose(props) {
     );
 
     /**
-     * Set the maximum number of lines for the composer
-     */
-    const updateMaxLines = useCallback(() => {
-        let maxLinesNumber = props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-        if (props.isComposerFullSize) {
-            maxLinesNumber = CONST.COMPOSER.MAX_LINES_FULL;
-        }
-        setMaxLines(maxLinesNumber);
-    }, [props.isSmallScreenWidth, props.isComposerFullSize]);
-
-    /**
      * Used to show Popover menu on Workspace chat at first sign-in
      * @returns {Boolean}
      */
@@ -430,7 +418,6 @@ function ReportActionCompose(props) {
             focus(false);
         });
 
-        updateMaxLines();
         updateComment(comment.current);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -444,11 +431,7 @@ function ReportActionCompose(props) {
         return () => {
             ReportActionComposeFocusManager.clear();
         };
-    }, [focus, isFocused, props.disabled, props.isFocused, props.navigation, showPopoverMenu, updateComment, updateMaxLines]);
-
-    useEffect(() => {
-        updateMaxLines();
-    }, [props.isComposerFullSize, updateMaxLines]);
+    }, [focus, isFocused, props.disabled, props.isFocused, props.navigation, showPopoverMenu, updateComment]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -960,6 +943,7 @@ function ReportActionCompose(props) {
     const reportRecipient = props.personalDetails[participantsWithoutExpensifyEmails[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
     const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
+    const maxComposerLines = props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
     return (
@@ -1102,7 +1086,7 @@ function ReportActionCompose(props) {
                                             onChangeText={(commentValue) => updateComment(commentValue, true)}
                                             onKeyPress={triggerHotkeyActions}
                                             style={[styles.textInputCompose, props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                            maxLines={maxLines}
+                                            maxLines={maxComposerLines}
                                             onFocus={() => setIsFocused(true)}
                                             onBlur={() => {
                                                 setIsFocused(false);

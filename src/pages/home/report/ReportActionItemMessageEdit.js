@@ -1,8 +1,7 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, Keyboard, Pressable, TouchableOpacity, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -24,7 +23,6 @@ import Tooltip from '../../../components/Tooltip';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import getButtonState from '../../../libs/getButtonState';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import CONST from '../../../CONST';
@@ -35,6 +33,8 @@ import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
+import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
+import Hoverable from '../../../components/Hoverable';
 
 const propTypes = {
     /** All the data of the action */
@@ -279,24 +279,26 @@ class ReportActionItemMessageEdit extends React.Component {
                 <View style={[styles.chatItemMessage, styles.flexRow]}>
                     <View style={[styles.justifyContentEnd]}>
                         <Tooltip text={this.props.translate('common.cancel')}>
-                            <Pressable
-                                style={({hovered, pressed}) => [styles.chatItemSubmitButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
-                                nativeID={this.cancelButtonID}
-                                onPress={this.deleteDraft}
-                                hitSlop={{
-                                    top: 3,
-                                    right: 3,
-                                    bottom: 3,
-                                    left: 3,
-                                }}
-                            >
-                                {({hovered, pressed}) => (
-                                    <Icon
-                                        src={Expensicons.Close}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                    />
+                            <Hoverable>
+                                {(hovered) => (
+                                    <PressableWithFeedback
+                                        onPress={this.deleteDraft}
+                                        style={styles.chatItemSubmitButton}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={this.props.translate('common.close')}
+                                        // disable dimming
+                                        hoverDimmingValue={1}
+                                        pressDimmingValue={1}
+                                        hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
+                                        pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
+                                    >
+                                        <Icon
+                                            src={Expensicons.Close}
+                                            fill={StyleUtils.getIconFillColor(hovered ? CONST.BUTTON_STATES.ACTIVE : CONST.BUTTON_STATES.DEFAULT)}
+                                        />
+                                    </PressableWithFeedback>
                                 )}
-                            </Pressable>
+                            </Hoverable>
                         </Tooltip>
                     </View>
                     <View
@@ -355,23 +357,21 @@ class ReportActionItemMessageEdit extends React.Component {
 
                         <View style={styles.alignSelfEnd}>
                             <Tooltip text={this.props.translate('common.saveChanges')}>
-                                <TouchableOpacity
+                                <PressableWithFeedback
                                     style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                     onPress={this.publishDraft}
-                                    hitSlop={{
-                                        top: 3,
-                                        right: 3,
-                                        bottom: 3,
-                                        left: 3,
-                                    }}
                                     nativeID={this.saveButtonID}
                                     disabled={hasExceededMaxCommentLength}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={this.props.translate('common.saveChanges')}
+                                    hoverDimmingValue={1}
+                                    pressDimmingValue={0.2}
                                 >
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
                                     />
-                                </TouchableOpacity>
+                                </PressableWithFeedback>
                             </Tooltip>
                         </View>
                     </View>
