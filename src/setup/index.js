@@ -38,7 +38,7 @@ export default function () {
                 error: false,
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
-            [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+            [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: {},
         },
     });
 

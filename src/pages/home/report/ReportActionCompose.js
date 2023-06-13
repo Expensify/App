@@ -107,7 +107,7 @@ const propTypes = {
     }),
 
     /** Whether the composer input should be shown */
-    shouldShowComposeInput: PropTypes.bool,
+    shouldShowComposeInput: PropTypes.object,
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
@@ -192,7 +192,7 @@ class ReportActionCompose extends React.Component {
         // prevent auto focus on existing chat for mobile device
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-        this.shouldAutoFocus = !props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat()) && props.shouldShowComposeInput;
+        this.shouldAutoFocus = !props.modal.isVisible && (this.shouldFocusInputOnScreenFocus || this.isEmptyChat()) && _.isEmpty(props.shouldShowComposeInput);
 
         // These variables are used to decide whether to block the suggestions list from showing to prevent flickering
         this.shouldBlockEmojiCalc = false;

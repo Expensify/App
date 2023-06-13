@@ -131,7 +131,8 @@ class ReportActionItemMessageEdit extends React.Component {
 
         // Show the main composer when the focused message is deleted from another client
         // to prevent the main composer stays hidden until we swtich to another chat.
-        ComposerActions.setShouldShowComposeInput(true);
+        console.log('============= willUnmount =============', this.props.action.reportActionID);
+        ComposerActions.setShouldShowComposeInput(this.props.action.reportActionID, true);
     }
 
     /**
@@ -193,7 +194,8 @@ class ReportActionItemMessageEdit extends React.Component {
     deleteDraft() {
         this.debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
-        ComposerActions.setShouldShowComposeInput(true);
+        console.log('============= deleteDraft =============', this.props.action.reportActionID);
+        ComposerActions.setShouldShowComposeInput(this.props.action.reportActionID, true);
         ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -326,7 +328,8 @@ class ReportActionItemMessageEdit extends React.Component {
                                 onFocus={() => {
                                     this.setState({isFocused: true});
                                     ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                                    ComposerActions.setShouldShowComposeInput(false);
+                                    console.log('============= onFocus =============', this.props.action.reportActionID);
+                                    ComposerActions.setShouldShowComposeInput(this.props.action.reportActionID, false);
                                 }}
                                 onBlur={(event) => {
                                     this.setState({isFocused: false});
@@ -340,7 +343,8 @@ class ReportActionItemMessageEdit extends React.Component {
                                     if (this.messageEditInput === relatedTargetId) {
                                         return;
                                     }
-                                    openReportActionComposeViewWhenClosingMessageEdit();
+                                    console.log('============= onBlur =============', this.props.action.reportActionID);
+                                    openReportActionComposeViewWhenClosingMessageEdit(this.props.action.reportActionID);
                                 }}
                                 selection={this.state.selection}
                                 onSelectionChange={this.onSelectionChange}

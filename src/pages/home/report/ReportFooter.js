@@ -39,7 +39,7 @@ const propTypes = {
     pendingAction: PropTypes.string,
 
     /** Whether the composer input should be shown */
-    shouldShowComposeInput: PropTypes.bool,
+    shouldShowComposeInput: PropTypes.object,
 
     /** Whether user interactions should be disabled */
     shouldDisableCompose: PropTypes.bool,
@@ -62,6 +62,8 @@ function ReportFooter(props) {
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isAllowedToComment = ReportUtils.isAllowedToComment(props.report);
     const hideComposer = isArchivedRoom || !_.isEmpty(props.errors) || !isAllowedToComment;
+    const shouldShowComposeInput = _.isEmpty(props.shouldShowComposeInput);
+    console.log(isAllowedToComment, hideComposer, shouldShowComposeInput, props.shouldShowComposeInput);
 
     return (
         <>
@@ -73,7 +75,7 @@ function ReportFooter(props) {
                     )}
                 </View>
             )}
-            {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
+            {!hideComposer && (shouldShowComposeInput || !props.isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         {Session.isAnonymousUser() ? (
@@ -102,6 +104,8 @@ ReportFooter.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
-        shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
+        shouldShowComposeInput: {
+            key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+        },
     }),
 )(ReportFooter);

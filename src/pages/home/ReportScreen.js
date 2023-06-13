@@ -164,6 +164,7 @@ class ReportScreen extends React.Component {
         }
 
         this.fetchReportIfNeeded();
+        console.log('============= didUpdate =============');
         ComposerActions.setShouldShowComposeInput(true);
     }
 
