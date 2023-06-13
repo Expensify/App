@@ -25,8 +25,7 @@ const PressableWithFeedbackPropTypes = {
      */
     hoverDimmingValue: propTypes.number,
     /**
-     * a native ID for the pressable with feedback component
-     * @default ''
+     * a native ID for the pressable with feedback component.
      */
     nativeID: propTypes.string,
 };
