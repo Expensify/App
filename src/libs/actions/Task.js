@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
@@ -278,19 +279,18 @@ function reopenTask(taskReportID, taskTitle) {
  * @function editTask
  * @param {object} report
  * @param {string} ownerEmail
- * @param {string} title
- * @param {string} description
- * @param {string} assignee
+ * @param {{title?: string, description?: string, assignee?:string}} editedTask
  * @returns {object} action
  *
  */
 
-function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
+function editTaskAndNavigate(report, ownerEmail, {title, description, assignee}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
-    // Sometimes title is undefined, so we need to check for that, and we provide it to multiple functions
+    // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     const reportName = (title || report.reportName).trim();
+    const reportDescription = (!_.isUndefined(description) ? description : report.description).trim();
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
@@ -313,7 +313,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 reportName,
-                description: description.trim(),
+                description: reportDescription,
                 managerEmail: assignee || report.managerEmail,
             },
         },
@@ -368,7 +368,7 @@ function editTaskAndNavigate(report, ownerEmail, title, description, assignee) {
         {
             taskReportID: report.reportID,
             title: reportName,
-            description: (description || report.description).trim(),
+            description: reportDescription,
             assignee: assignee || report.managerEmail,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
@@ -422,6 +422,23 @@ function setDescriptionValue(description) {
 function setShareDestinationValue(shareDestination) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {shareDestination});
+}
+
+/**
+ * Auto-assign participant when creating a task in a DM
+ * @param {String} reportID
+ */
+
+function setAssigneeValueWithParentReportID(reportID) {
+    const report = ReportUtils.getReport(reportID);
+    const isDefault = !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report));
+    const participants = lodashGet(report, 'participants', []);
+    const hasMultipleParticipants = participants.length > 1;
+    if (!isDefault || hasMultipleParticipants || report.parentReportID) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.TASK, {assignee: participants[0]});
 }
 
 /**
@@ -591,6 +608,7 @@ export {
     setTaskReport,
     setDetailsValue,
     setAssigneeValue,
+    setAssigneeValueWithParentReportID,
     setShareDestinationValue,
     clearOutTaskInfo,
     reopenTask,

@@ -707,6 +707,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     }
     if (isConciergeChatReport(report)) {
         result.source = CONST.CONCIERGE_ICON_URL;
+        result.name = CONST.EMAIL.CONCIERGE;
         return [result];
     }
     if (isArchivedRoom(report)) {
@@ -804,6 +805,16 @@ function getPersonalDetailsForLogin(login) {
 }
 
 /**
+ * Gets the accountID for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then an empty string is returned.
+ * @param {String} login
+ * @returns {String}
+ */
+function getAccountIDForLogin(login) {
+    return lodashGet(allPersonalDetails, [login, 'accountID'], '');
+}
+
+/**
  * Get the displayName for a single report participant.
  *
  * @param {String} login
@@ -828,7 +839,8 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
         const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
-        const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
+        const avatar = UserUtils.getDefaultAvatar(participant.login);
+        const accountID = participant.accountID;
 
         let pronouns = participant.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -838,7 +850,9 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 
         return {
             displayName,
-            tooltip,
+            avatar,
+            login: participant.login,
+            accountID,
             pronouns,
         };
     });
@@ -2133,7 +2147,7 @@ function shouldReportShowSubscript(report) {
         return false;
     }
 
-    if (isPolicyExpenseChat(report) && !report.isOwnPolicyExpenseChat) {
+    if (isPolicyExpenseChat(report) && !isThread(report) && !isTaskReport(report) && !report.isOwnPolicyExpenseChat) {
         return true;
     }
 
@@ -2162,7 +2176,9 @@ function getParentReport(report) {
 }
 
 export {
+    getAccountIDForLogin,
     getReportParticipantsTitle,
+    getPersonalDetailsForLogin,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,
