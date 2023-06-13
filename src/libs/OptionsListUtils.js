@@ -181,20 +181,21 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
         // Somehow it's possible for the accountIDs coming from report.participantAccountIDs to contain undefined values so we use compact to remove them.
         .compact()
         .each((accountID) => {
+            const cleanAccountID = Number(accountID);
             let personalDetail = personalDetails[accountID];
             if (!personalDetail) {
                 // NOTE: this can possibly be changed to 'hidden'
                 personalDetail = {
-                    accountID,
-                    avatar: UserUtils.getDefaultAvatar(accountID),
+                    accountID: cleanAccountID,
+                    avatar: UserUtils.getDefaultAvatar(cleanAccountID),
                 };
             }
 
-            if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+            if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
                 personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
             }
 
-            personalDetailsForAccountIDs[accountID] = personalDetail;
+            personalDetailsForAccountIDs[cleanAccountID] = personalDetail;
         });
     return personalDetailsForAccountIDs;
 }

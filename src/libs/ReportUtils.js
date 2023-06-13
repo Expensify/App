@@ -757,6 +757,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     }
     if (isConciergeChatReport(report)) {
         result.source = CONST.CONCIERGE_ICON_URL;
+        result.name = CONST.EMAIL.CONCIERGE;
         return [result];
     }
     if (isArchivedRoom(report)) {
@@ -850,6 +851,7 @@ function getPersonalDetailsForAccountID(accountID) {
         return {
             accountID,
             displayName: 'Concierge',
+            login: CONST.EMAIL.CONCIERGE,
             avatar: UserUtils.getDefaultAvatar(accountID),
         };
     }
@@ -858,6 +860,16 @@ function getPersonalDetailsForAccountID(accountID) {
             avatar: UserUtils.getDefaultAvatar(accountID),
         }
     );
+}
+
+/**
+ * Gets the accountID for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then an empty string is returned.
+ * @param {String} login
+ * @returns {String}
+ */
+function getAccountIDForLogin(login) {
+    return lodashGet(allPersonalDetails, [login, 'accountID'], '');
 }
 
 /**
@@ -887,10 +899,9 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
  */
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
-        const personalDetails = getPersonalDetailsForAccountID(participant.accountID);
-        const displayName = getDisplayNameForParticipant(participant.accountID, isMultipleParticipantReport) || participant.login;
-
-        const tooltip = personalDetails.login ? Str.removeSMSDomain(personalDetails.login) : '';
+        const accountID = Number(participant.accountID);
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || participant.login;
+        const avatar = UserUtils.getDefaultAvatar(accountID);
 
         let pronouns = participant.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -900,7 +911,9 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 
         return {
             displayName,
-            tooltip,
+            avatar,
+            login: participant.login,
+            accountID,
             pronouns,
         };
     });
@@ -2205,6 +2218,7 @@ function getParentReport(report) {
 }
 
 export {
+    getAccountIDForLogin,
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
