@@ -1,17 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Pressable} from 'react-native';
-import * as Expensicons from './Icon/Expensicons';
-import compose from '../libs/compose';
-import Icon from './Icon';
-import Tooltip from './Tooltip';
-import Text from './Text';
-import styles from '../styles/styles';
-import variables from '../styles/variables';
-import getButtonState from '../libs/getButtonState';
-import * as StyleUtils from '../styles/StyleUtils';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import * as Expensicons from '../Icon/Expensicons';
+import compose from '../../libs/compose';
+import Icon from '../Icon';
+import Tooltip from '../Tooltip';
+import Text from '../Text';
+import styles from '../../styles/styles';
+import variables from '../../styles/variables';
+import getButtonState from '../../libs/getButtonState';
+import * as StyleUtils from '../../styles/StyleUtils';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from '../withDelayToggleButtonState';
 
 const propTypes = {
     ...withLocalizePropTypes,
