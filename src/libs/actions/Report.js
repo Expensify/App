@@ -412,6 +412,17 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         });
 
+        // Add optimistic personal details for new participants
+        const optimisticPersonalDetails = {};
+        _.map(participantLoginList, (login, index) => {
+            optimisticPersonalDetails[newReportObject.participantAccountIDs[index]] = {login, displayName: login};
+        });
+        onyxData.optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetails,
+        });
+
         // Add the createdReportActionID parameter to the API call
         params.createdReportActionID = optimisticCreatedAction.reportActionID;
 
