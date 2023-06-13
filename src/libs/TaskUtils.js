@@ -31,10 +31,6 @@ function getTaskOwnerEmail(taskReport) {
     return lodashGet(taskReport, 'ownerEmail', null);
 }
 
-function isTaskCanceled(taskReport) {
-    return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
-}
-
 /**
  * Can only Mark Task Complete if:
  *
@@ -53,5 +49,4 @@ export {
     // eslint-disable-next-line import/prefer-default-export
     getTaskAssigneeEmail,
     isTaskAssigneeOrTaskOwner,
-    isTaskCanceled,
 };
