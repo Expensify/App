@@ -8,7 +8,7 @@ import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
 import * as StyleUtils from '../../styles/StyleUtils';
 
-const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle', ];
+const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle'];
 
 const PressableWithFeedbackPropTypes = {
     ..._.omit(GenericPressablePropTypes.pressablePropTypes, omittedProps),
