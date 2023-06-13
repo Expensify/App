@@ -283,6 +283,7 @@ class ReportActionItemMessageEdit extends React.Component {
                                 {(hovered) => (
                                     <PressableWithFeedback
                                         onPress={this.deleteDraft}
+                                        nativeID={this.cancelButtonID}
                                         style={styles.chatItemSubmitButton}
                                         accessibilityRole="button"
                                         accessibilityLabel={this.props.translate('common.close')}

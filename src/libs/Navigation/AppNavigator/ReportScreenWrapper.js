@@ -12,8 +12,6 @@ import reportPropTypes from '../../../pages/reportPropTypes';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import {withNavigationPropTypes} from '../../../components/withNavigation';
 import * as App from '../../actions/App';
-import * as Report from '../../actions/Report';
-import * as Session from '../../actions/Session';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -32,9 +30,6 @@ const propTypes = {
             type: PropTypes.string,
         }),
     ),
-
-    /** The report ID of the last opened public room as anonymous user */
-    lastOpenedPublicRoomID: PropTypes.string,
 
     isFirstTimeNewExpensifyUser: PropTypes.bool,
 
@@ -58,7 +53,6 @@ const defaultProps = {
     betas: [],
     policies: {},
     isFirstTimeNewExpensifyUser: false,
-    lastOpenedPublicRoomID: null,
 };
 
 /**
@@ -100,15 +94,6 @@ class ReportScreenWrapper extends Component {
                 App.confirmReadyToOpenApp();
             }
         }
-    }
-
-    componentDidMount() {
-        if (!this.props.lastOpenedPublicRoomID || Session.isAnonymousUser()) {
-            return;
-        }
-        // Re-open the last opened public room if the user logged in
-        Report.setLastOpenedPublicRoom('');
-        Report.openReport(this.props.lastOpenedPublicRoomID);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -160,8 +145,5 @@ export default withOnyx({
     },
     isFirstTimeNewExpensifyUser: {
         key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-    },
-    lastOpenedPublicRoomID: {
-        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
     },
 })(ReportScreenWrapper);
