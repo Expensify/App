@@ -100,10 +100,13 @@ function SignInPage({account, credentials, lastOpenedRoomId}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
     useEffect(() => {
-        window.history.pushState({}, '', ROUTES.getReportRoute(lastOpenedRoomId));
+        if(lastOpenedRoomId && lastOpenedRoomId!==''){
+            // Push state is required to trigger the popstate event
+            window.history.pushState({}, '', ROUTES.getReportRoute(lastOpenedRoomId));
+        }
         const browserBackPressed = () => {
             if(lastOpenedRoomId && lastOpenedRoomId!==''){
-                //Use deeplink implementation to change navigation stack
+                // Use deeplink implementation to change navigation stack
                 Report.openReportFromDeepLink(ROUTES.getReportRoute(lastOpenedRoomId), false)
             }else{
                 window.history.back();
