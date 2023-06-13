@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {Component, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Button from '../Button';
@@ -13,9 +13,12 @@ import withNavigationFocus, {withNavigationFocusPropTypes} from '../withNavigati
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './selectionListRadioPropTypes';
+import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './selectionListPropTypes';
 import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
+import SelectionListDefault from './SelectionListDefault';
+import SelectionListSingle from './SelectionListSingle';
+import SelectionListMultiple from './SelectionListMultiple';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -24,12 +27,22 @@ const propTypes = {
     /** padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    // TODO: TYPES - REVIEW
+    canSelectSingle: PropTypes.bool,
+    canSelectMultiple: PropTypes.bool,
+
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationFocusPropTypes,
 };
 
-const SelectionListRadio = (props) => {
+const defaultProps = {
+    shouldDelayFocus: false,
+    safeAreaPaddingBottomStyle: {},
+    ...optionsSelectorDefaultProps,
+};
+
+const SelectionList = (props) => {
     const [shouldDisableRowSelection, setShouldDisableRowSelection] = useState(false);
     const shouldShowFooter = !props.isReadOnly && (props.shouldShowConfirmButton || props.footerContent) && !(props.canSelectMultipleOptions && _.isEmpty(props.selectedOptions));
     const defaultConfirmButtonText = _.isUndefined(props.confirmButtonText) ? props.translate('common.confirm') : props.confirmButtonText;
@@ -72,24 +85,6 @@ const SelectionListRadio = (props) => {
             disabledOptionsIndexes,
         };
     }, [props.sections]);
-
-    // const disabledOptionsIndexes = useMemo(() => {
-    //     const result = [];
-    //
-    //     let index = 0;
-    //     _.each(props.sections, (section) => {
-    //         _.each(section.data, (option) => {
-    //             if (section.isDisabled || option.isDisabled) {
-    //                 result.push(index);
-    //             }
-    //
-    //             index += 1;
-    //         });
-    //     });
-    //
-    //     return result;
-    // }, [props.sections]);
-
     const getInitiallyFocusedIndex = (allOptions) => {
         if (props.selectedOptions.length > 0) {
             return props.selectedOptions.length;
@@ -172,6 +167,39 @@ const SelectionListRadio = (props) => {
         });
     };
 
+    const getListComponent = () => {
+        let List = SelectionListDefault;
+
+        if (props.canSelectSingle) {
+            List = SelectionListSingle;
+        }
+
+        if (props.canSelectMultiple) {
+            List = SelectionListMultiple;
+        }
+
+        return (
+            <List
+                ref={listRef}
+                onSelectRow={selectRow}
+                focusedIndex={focusedIndex}
+                onLayout={() => {
+                    if (props.selectedOptions.length === 0) {
+                        scrollToIndex(focusedIndex, false);
+                    }
+
+                    if (props.onLayout) {
+                        props.onLayout();
+                    }
+                }}
+                contentContainerStyles={shouldShowFooter ? undefined : [props.safeAreaPaddingBottomStyle]}
+                isLoading={!props.shouldShowOptions}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            />
+        );
+    };
+
     useEffect(() => {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         const unsubscribeEnter = KeyboardShortcut.subscribe(
@@ -252,18 +280,6 @@ const SelectionListRadio = (props) => {
         };
     }, []);
 
-    // useEffect(() => {
-    //     const newOptions = flattenSections();
-    //     const newFocusedIndex = props.selectedOptions.length;
-    //
-    //     // TODO: Turn into a reducer
-    //     setAllOptions(newOptions);
-    //     setFocusedIndex(newFocusedIndex);
-    //
-    //     // TODO: If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-    //     // TODO: Otherwise, scroll to the focused index (as long as it's in range)
-    // }, [props.sections]);
-
     useEffect(() => {
         scrollToIndex(focusedIndex);
     }, [focusedIndex]);
@@ -287,34 +303,37 @@ const SelectionListRadio = (props) => {
             blurOnSubmit={Boolean(flattenedSections.allOptions.length)}
         />
     );
-    const optionsList = (
-        <OptionsList
-            ref={listRef}
-            optionHoveredStyle={props.optionHoveredStyle}
-            onSelectRow={selectRow}
-            sections={props.sections}
-            focusedIndex={focusedIndex}
-            selectedOptions={props.selectedOptions}
-            canSelectMultipleOptions={props.canSelectMultipleOptions}
-            hideSectionHeaders={props.hideSectionHeaders}
-            headerMessage={props.headerMessage}
-            boldStyle={props.boldStyle}
-            showTitleTooltip={props.showTitleTooltip}
-            isDisabled={props.isDisabled}
-            shouldHaveOptionSeparator={props.shouldHaveOptionSeparator}
-            onLayout={() => {
-                if (props.selectedOptions.length === 0) {
-                    scrollToIndex(focusedIndex, false);
-                }
 
-                if (props.onLayout) {
-                    props.onLayout();
-                }
-            }}
-            contentContainerStyles={shouldShowFooter ? undefined : [props.safeAreaPaddingBottomStyle]}
-            isLoading={!props.shouldShowOptions}
-        />
-    );
+    const list = getListComponent();
+
+    // const optionsList = (
+    //     <OptionsList
+    //         ref={listRef}
+    //         optionHoveredStyle={props.optionHoveredStyle}
+    //         onSelectRow={selectRow}
+    //         sections={props.sections}
+    //         focusedIndex={focusedIndex}
+    //         selectedOptions={props.selectedOptions}
+    //         canSelectMultipleOptions={props.canSelectMultipleOptions}
+    //         hideSectionHeaders={props.hideSectionHeaders}
+    //         headerMessage={props.headerMessage}
+    //         boldStyle={props.boldStyle}
+    //         showTitleTooltip={props.showTitleTooltip}
+    //         isDisabled={props.isDisabled}
+    //         shouldHaveOptionSeparator={props.shouldHaveOptionSeparator}
+    //         onLayout={() => {
+    //             if (props.selectedOptions.length === 0) {
+    //                 scrollToIndex(focusedIndex, false);
+    //             }
+    //
+    //             if (props.onLayout) {
+    //                 props.onLayout();
+    //             }
+    //         }}
+    //         contentContainerStyles={shouldShowFooter ? undefined : [props.safeAreaPaddingBottomStyle]}
+    //         isLoading={!props.shouldShowOptions}
+    //     />
+    // );
 
     return (
         <ArrowKeyFocusManager
@@ -326,7 +345,7 @@ const SelectionListRadio = (props) => {
             <View style={[styles.flex1]}>
                 {props.shouldTextInputAppearBelowOptions ? (
                     <>
-                        <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{optionsList}</View>
+                        <View style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100, styles.flexRow]}>{list}</View>
                         <View style={props.shouldUseStyleForChildren ? [styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0] : []}>
                             {props.children}
                             {props.shouldShowTextInput && textInput}
@@ -338,7 +357,7 @@ const SelectionListRadio = (props) => {
                             {props.children}
                             {props.shouldShowTextInput && textInput}
                         </View>
-                        {optionsList}
+                        {list}
                     </>
                 )}
             </View>
@@ -361,13 +380,8 @@ const SelectionListRadio = (props) => {
     );
 };
 
-const defaultProps = {
-    shouldDelayFocus: false,
-    safeAreaPaddingBottomStyle: {},
-    ...optionsSelectorDefaultProps,
-};
+SelectionList.displayName = 'SelectionList';
+SelectionList.defaultProps = defaultProps;
+SelectionList.propTypes = propTypes;
 
-SelectionListRadio.defaultProps = defaultProps;
-SelectionListRadio.propTypes = propTypes;
-
-export default compose(withLocalize, withNavigationFocus)(SelectionListRadio);
+export default compose(withLocalize, withNavigationFocus)(SelectionList);

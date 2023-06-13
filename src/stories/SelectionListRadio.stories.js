@@ -1,5 +1,5 @@
 import React from 'react';
-import SelectionListRadio from '../components/SelectionListRadio';
+import SelectionListRadio from '../components/SelectionList';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
