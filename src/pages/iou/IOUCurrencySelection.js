@@ -118,14 +118,14 @@ function IOUCurrencySelection(props) {
         [currencyOptions],
     );
 
-    const headerMessage = searchValue.trim() && !currencyData.length ? props.translate('common.noResultsFound') : '';
+    const headerMessage = searchValue.trim() && !currencyData.length ? translate('common.noResultsFound') : '';
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={props.translate('iOUCurrencySelection.selectCurrency')}
+                        title={translate('iOUCurrencySelection.selectCurrency')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.getIouRequestRoute(Navigation.getTopmostReportId()))}
                     />
                     <OptionsSelector
@@ -133,7 +133,7 @@ function IOUCurrencySelection(props) {
                         onSelectRow={confirmCurrencySelection}
                         value={searchValue}
                         onChangeText={changeSearchValue}
-                        textInputLabel={props.translate('common.search')}
+                        textInputLabel={translate('common.search')}
                         headerMessage={headerMessage}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         initiallyFocusedOptionKey={_.get(
