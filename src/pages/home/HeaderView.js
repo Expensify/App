@@ -180,7 +180,7 @@ const HeaderView = (props) => {
                                 {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
                                     <>
                                         {isThread ? (
-                                            <Pressable
+                                            <PressableWithoutFeedback
                                                 onPress={() => {
                                                     Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
                                                 }}
@@ -191,7 +191,7 @@ const HeaderView = (props) => {
                                                 >
                                                     {subtitle}
                                                 </Text>
-                                            </Pressable>
+                                            </PressableWithoutFeedback>
                                         ) : (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
