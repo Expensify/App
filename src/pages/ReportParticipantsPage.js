@@ -83,7 +83,7 @@ const getAllParticipants = (report, personalDetails) => {
         .value();
 };
 
-const ReportParticipantsPage = (props) => {
+function ReportParticipantsPage(props) {
     const participants = getAllParticipants(props.report, props.personalDetails);
 
     return (
@@ -125,7 +125,7 @@ const ReportParticipantsPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 ReportParticipantsPage.propTypes = propTypes;
 ReportParticipantsPage.defaultProps = defaultProps;

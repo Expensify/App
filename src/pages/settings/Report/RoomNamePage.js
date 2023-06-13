@@ -32,7 +32,7 @@ const defaultProps = {
     reports: {},
 };
 
-const RoomNamePage = (props) => {
+function RoomNamePage(props) {
     const report = props.report;
     const reports = props.reports;
     const translate = props.translate;
@@ -89,7 +89,7 @@ const RoomNamePage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 RoomNamePage.propTypes = propTypes;
 RoomNamePage.defaultProps = defaultProps;

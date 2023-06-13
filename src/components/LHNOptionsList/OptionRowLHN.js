@@ -54,7 +54,7 @@ const defaultProps = {
     style: null,
 };
 
-const OptionRowLHN = (props) => {
+function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
     if (!optionItem) {
@@ -244,7 +244,7 @@ const OptionRowLHN = (props) => {
             </Hoverable>
         </OfflineWithFeedback>
     );
-};
+}
 
 OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
