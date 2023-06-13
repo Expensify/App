@@ -36,7 +36,7 @@ import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Hoverable from '../../../components/Hoverable';
-import usePrevious from '../../../hooks/usePrevious'
+import usePrevious from '../../../hooks/usePrevious';
 
 const propTypes = {
     /** All the data of the action */
@@ -99,7 +99,6 @@ function ReportActionItemMessageEdit(props) {
     const textInputRef = useRef(null);
     const wasPreviouslyFocused = usePrevious(isFocused);
 
-
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
@@ -122,7 +121,7 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             ComposerActions.setShouldShowComposeInput(true);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     /**
