@@ -10,7 +10,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 
 const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle'];
 
-const PressableWithFeedbackPropTypes = {
+constDPressableWithFeedbackPropTypes = {
     ..._.omit(GenericPressablePropTypes.pressablePropTypes, omittedProps),
     /**
      * Determines what opacity value should be applied to the underlaying view when Pressable is pressed.
@@ -44,6 +44,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
     return (
         <GenericPressable
             ref={ref}
+            nativeID={props.nativeID}
             style={props.wrapperStyle}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsWithoutStyling}
