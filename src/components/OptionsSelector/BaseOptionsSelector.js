@@ -345,6 +345,7 @@ class BaseOptionsSelector extends Component {
                 focusedIndex={this.state.focusedIndex}
                 maxIndex={this.state.allOptions.length - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
+                shouldTriggerArrowDownWhenMaxIndexExceeded={false}
             >
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
                     {this.props.shouldTextInputAppearBelowOptions ? (
