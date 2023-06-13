@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import {View, BackHandler} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -112,13 +112,24 @@ function SignInPage({account, credentials, lastOpenedRoomId}) {
                 window.history.back();
             }
         };
-    
-        // Add event listener for the browser back button press
+        const androidBackButtonPressed = () => {
+            if(lastOpenedRoomId && lastOpenedRoomId!==''){
+                Report.openReportFromDeepLink(ROUTES.getReportRoute(lastOpenedRoomId), false)
+            }else{
+                BackHandler.exitApp()
+            }
+          return true;
+        };
+        // Add event listener for the browser back button press and android back button
         window.addEventListener('popstate', browserBackPressed);
-    
-        // Clean up the event listener when the component unmounts
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            androidBackButtonPressed,
+          );
+        // Clean up the event listeners when the component unmounts
         return () => {
           window.removeEventListener('popstate', browserBackPressed);
+          backHandler.remove();
         };
       }, [lastOpenedRoomId]);
 
