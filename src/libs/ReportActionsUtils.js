@@ -70,6 +70,14 @@ function isMoneyRequestAction(reportAction) {
 }
 
 /**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function hasCommentThread(reportAction) {
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
+}
+
+/**
  * Returns the parentReportAction if the given report is a thread.
  *
  * @param {Object} report
@@ -181,6 +189,25 @@ function getMostRecentIOURequestActionID(reportActions) {
 
     const sortedReportActions = getSortedReportActions(iouRequestActions);
     return _.last(sortedReportActions).reportActionID;
+}
+
+/**
+ * Returns array of links inside a given report action
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function extractLinksFromMessageHtml(reportAction) {
+    const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
+
+    // Regex to get link in href prop inside of <a/> component
+    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
+
+    if (!htmlContent) {
+        return;
+    }
+
+    return _.map([...htmlContent.matchAll(regex)], (match) => match[1]);
 }
 
 /**
@@ -455,6 +482,7 @@ export {
     getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
+    extractLinksFromMessageHtml,
     isDeletedAction,
     shouldReportActionBeVisible,
     isReportActionDeprecated,
@@ -463,6 +491,7 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
+    hasCommentThread,
     getLinkedTransactionID,
     getMostRecentReportActionLastModified,
     getReportPreviewAction,

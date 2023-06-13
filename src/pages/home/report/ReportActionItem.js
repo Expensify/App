@@ -19,6 +19,7 @@ import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemThread from './ReportActionItemThread';
+import LinkPreviewer from './LinkPreviewer';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
@@ -52,7 +53,6 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
-import Permissions from '../../../libs/Permissions';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
@@ -92,9 +92,6 @@ const propTypes = {
 
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -103,7 +100,6 @@ const defaultProps = {
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
-    betas: [],
 };
 
 function ReportActionItem(props) {
@@ -112,6 +108,7 @@ function ReportActionItem(props) {
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
+    const downloadedPreviews = useRef([]);
 
     const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
@@ -121,6 +118,16 @@ function ReportActionItem(props) {
 
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [isDraftEmpty]);
+
+    useEffect(() => {
+        const urls = ReportActionsUtils.extractLinksFromMessageHtml(props.action);
+        if (_.isEqual(downloadedPreviews.current, urls) || props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+
+        downloadedPreviews.current = urls;
+        Report.expandURLPreview(props.report.reportID, props.action.reportActionID);
+    }, [props.action, props.report.reportID]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
@@ -237,7 +244,6 @@ function ReportActionItem(props) {
                 <TaskAction
                     taskReportID={props.action.originalMessage.taskReportID.toString()}
                     actionName={props.action.actionName}
-                    isHovered={hovered}
                 />
             );
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
@@ -313,7 +319,7 @@ function ReportActionItem(props) {
                                 style={styles.buttonSmallText}
                                 selectable={false}
                             >
-                                {isHidden ? 'Reveal message' : 'Hide message'}
+                                {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                             </Text>
                         </Button>
                     )}
@@ -326,15 +332,20 @@ function ReportActionItem(props) {
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
-        const shouldDisplayThreadReplies =
-            hasReplies && props.action.childCommenterCount && Permissions.canUseThreads(props.betas) && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
+        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
         const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
+        const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
         return (
             <>
                 {children}
-                {hasReactions && (
+                {!_.isEmpty(props.action.linkMetadata) && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                        <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
+                    </View>
+                )}
+                {hasReactions && (
+                    <View style={draftMessageRightAlign}>
                         <ReportActionItemReactions
                             reportActionID={props.action.reportActionID}
                             reactions={reactions}
@@ -353,13 +364,15 @@ function ReportActionItem(props) {
                     </View>
                 )}
                 {shouldDisplayThreadReplies && (
-                    <ReportActionItemThread
-                        childReportID={`${props.action.childReportID}`}
-                        numberOfReplies={numberOfThreadReplies}
-                        mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
-                        isHovered={hovered}
-                        icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
-                    />
+                    <View style={draftMessageRightAlign}>
+                        <ReportActionItemThread
+                            childReportID={`${props.action.childReportID}`}
+                            numberOfReplies={numberOfThreadReplies}
+                            mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
+                            isHovered={hovered}
+                            icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
+                        />
+                    </View>
                 )}
             </>
         );
@@ -450,6 +463,7 @@ function ReportActionItem(props) {
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
+                                shouldHideOnDelete={!ReportActionsUtils.hasCommentThread(props.action)}
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
@@ -508,9 +522,6 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(

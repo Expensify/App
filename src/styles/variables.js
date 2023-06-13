@@ -37,6 +37,7 @@ export default {
     avatarSizeSmaller: 24,
     avatarSizeMidSubscript: 18,
     avatarSizeSubscript: 20,
+    avatarSizeMentionIcon: 16,
     avatarSizeSmallSubscript: 14,
     defaultAvatarPreviewSize: 360,
     fontSizeOnlyEmojis: 30,
@@ -72,10 +73,12 @@ export default {
     emojiSize: 20,
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
+    extraSmallMobileResponsiveWidthBreakpoint: 320,
     mobileResponsiveWidthBreakpoint: 800,
     modalFullscreenBackdropOpacity: 0.5,
     tabletResponsiveWidthBreakpoint: 1024,
     safeInsertPercentage: 0.7,
+    leftPaneMaxWidth: 375,
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
@@ -141,7 +144,7 @@ export default {
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
     googleEmptyListViewHeight: 14,
-    hoverDimValue: 0.5,
+    hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
 };
