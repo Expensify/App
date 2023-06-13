@@ -36,6 +36,7 @@ import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Hoverable from '../../../components/Hoverable';
+import usePrevious from '../../../hooks/usePrevious'
 
 const propTypes = {
     /** All the data of the action */
@@ -96,12 +97,8 @@ function ReportActionItemMessageEdit(props) {
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
 
     const textInputRef = useRef(null);
-    const isFocusedRef = useRef(false);
+    const wasPreviouslyFocused = usePrevious(isFocused);
 
-    useEffect(() => {
-        // required for keeping last state of isFocused variable
-        isFocusedRef.current = isFocused;
-    }, [isFocused]);
 
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
@@ -117,7 +114,7 @@ function ReportActionItemMessageEdit(props) {
 
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused
-            if (!isFocusedRef.current) {
+            if (wasPreviouslyFocused) {
                 return;
             }
 
@@ -125,6 +122,7 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             ComposerActions.setShouldShowComposeInput(true);
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     /**
@@ -262,6 +260,7 @@ function ReportActionItemMessageEdit(props) {
                                 <PressableWithFeedback
                                     onPress={deleteDraft}
                                     style={styles.chatItemSubmitButton}
+                                    nativeID={cancelButtonID}
                                     accessibilityRole="button"
                                     accessibilityLabel={props.translate('common.close')}
                                     // disable dimming
