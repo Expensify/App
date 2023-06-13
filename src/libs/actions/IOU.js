@@ -15,6 +15,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
+import * as UserUtils from '../UserUtils';
 
 const chatReports = {};
 const iouReports = {};
@@ -937,6 +938,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     ];
 
+    let optimisticPersonalDetailListData = {};
+
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
@@ -962,6 +965,20 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         });
 
+        // Add optimistic personal details for recipient
+        optimisticPersonalDetailListData = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [recipient.accountID]: {
+                    accountID: recipient.accountID,
+                    avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
+                    displayName: recipient.displayName || recipient.login,
+                    login: recipient.login,
+                },
+            },
+        };
+
         // Add an optimistic created action to the optimistic reportActions data
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
 
@@ -970,6 +987,9 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     }
 
     const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
+    if (!_.isEmpty(optimisticPersonalDetailListData)) {
+        optimisticData.push(optimisticPersonalDetailListData);
+    }
 
     return {
         params: {

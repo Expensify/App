@@ -213,7 +213,7 @@ function getSmallSizeAvatar(avatarURL, accountID) {
  * @returns {Number}
  */
 function generateAccountID() {
-    return (Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32));
+    return Math.floor(Math.random() * 2 ** 21) * 2 ** 32 + Math.floor(Math.random() * 2 ** 32);
 }
 
 export {
