@@ -22,6 +22,8 @@ import Log from '../../libs/Log';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as Report from '../../libs/actions/Report';
 import ROUTES from '../../ROUTES';
+import CONST from '../../CONST';
+import getPlatform from '../../libs/getPlatform';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -100,7 +102,7 @@ function SignInPage({account, credentials, lastOpenedRoomId}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
     useEffect(() => {
-        if(lastOpenedRoomId && lastOpenedRoomId!==''){
+        if(lastOpenedRoomId && lastOpenedRoomId!=='' && getPlatform() === CONST.PLATFORM.WEB){
             // Push state is required to trigger the popstate event
             window.history.pushState({}, '', ROUTES.getReportRoute(lastOpenedRoomId));
         }
@@ -121,15 +123,24 @@ function SignInPage({account, credentials, lastOpenedRoomId}) {
           return true;
         };
         // Add event listener for the browser back button press and android back button
-        window.addEventListener('popstate', browserBackPressed);
-        const backHandler = BackHandler.addEventListener(
-            'hardwareBackPress',
-            androidBackButtonPressed,
-          );
+        if(getPlatform() === CONST.PLATFORM.WEB) {
+            window.addEventListener('popstate', browserBackPressed);
+        }
+        else if(getPlatform() === CONST.PLATFORM.ANDROID){
+            BackHandler.addEventListener(
+                'hardwareBackPress',
+                androidBackButtonPressed,
+              );
+        }
+        
         // Clean up the event listeners when the component unmounts
         return () => {
-          window.removeEventListener('popstate', browserBackPressed);
-          backHandler.remove();
+            if(getPlatform() === CONST.PLATFORM.WEB) {
+                window.removeEventListener('popstate', browserBackPressed);
+            }
+            else if(getPlatform() === CONST.PLATFORM.ANDROID){
+                BackHandler.removeEventListener('hardwareBackPress', androidBackButtonPressed)
+            }
         };
       }, [lastOpenedRoomId]);
 
