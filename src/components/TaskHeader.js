@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import reportPropTypes from '../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -24,6 +25,7 @@ import * as Task from '../libs/actions/Task';
 import * as TaskUtils from '../libs/TaskUtils';
 import * as UserUtils from '../libs/UserUtils';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -32,7 +34,18 @@ const propTypes = {
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    session: {
+        email: null,
+    },
 };
 
 function TaskHeader(props) {
@@ -95,7 +108,7 @@ function TaskHeader(props) {
                                 ) : (
                                     <Button
                                         success
-                                        isDisabled={Task.isTaskCanceled(props.report)}
+                                        isDisabled={!TaskUtils.canMarkTaskComplete(props.report, props.session.email)}
                                         medium
                                         text={props.translate('newTaskPage.markAsDone')}
                                         onPress={() => Task.completeTask(props.report.reportID, title)}
@@ -126,6 +139,15 @@ function TaskHeader(props) {
 }
 
 TaskHeader.propTypes = propTypes;
+TaskHeader.defaultProps = defaultProps;
 TaskHeader.displayName = 'TaskHeader';
 
-export default compose(withWindowDimensions, withLocalize)(TaskHeader);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(TaskHeader);
