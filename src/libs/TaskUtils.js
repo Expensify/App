@@ -13,7 +13,7 @@ function getTaskAssigneeEmail(taskReport) {
     }
 
     if (taskReport.managerEmail) {
-        return taskReport.managerEmail
+        return taskReport.managerEmail;
     }
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
@@ -39,7 +39,7 @@ function getTaskOwnerEmail(taskReport) {
  */
 function isTaskAssigneeOrTaskOwner(taskReport, sessionEmail) {
     return sessionEmail === getTaskOwnerEmail(taskReport) || sessionEmail === getTaskAssigneeEmail(taskReport);
-};
+}
 
 export {
     // eslint-disable-next-line import/prefer-default-export
