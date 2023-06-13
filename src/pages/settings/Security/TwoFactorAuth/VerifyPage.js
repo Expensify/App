@@ -138,7 +138,7 @@ function VerifyPage(props) {
                         <TwoFactorAuthForm />
                     </View>
                 </ScrollView>
-                <FixedFooter style={[styles.twoFactorAuthFooter]}>
+                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
                     <Button
                         success
                         text={props.translate('common.next')}

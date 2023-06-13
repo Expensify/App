@@ -2218,7 +2218,8 @@ const styles = {
     },
 
     twoFactorAuthCodesButtonsContainer: (isExtraSmallScreenWidth) => ({
-        flexDirection: isExtraSmallScreenWidth ? 'column' : 'row',
+        flexDirection: 'row',
+        flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
         justifyContent: 'center',
         gap: 12,
         marginTop: 20,
@@ -2226,10 +2227,6 @@ const styles = {
 
     twoFactorAuthCodesButton: {
         minWidth: 100,
-    },
-
-    twoFactorAuthFooter: {
-        marginTop: 'auto',
     },
 
     anonymousRoomFooter: {
