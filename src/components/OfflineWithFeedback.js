@@ -89,6 +89,7 @@ function applyStrikeThrough(children) {
 
 const OfflineWithFeedback = (props) => {
     const hasErrors = !_.isEmpty(props.errors);
+    // Some errors might not have error messages when we want to apply opacity without showing any errors.
     const errorMessages = _.omit(props.errors, (e) => e === null);
     const hasErrorMessages = !_.isEmpty(errorMessages);
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
