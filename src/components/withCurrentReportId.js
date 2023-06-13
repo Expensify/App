@@ -9,6 +9,10 @@ const CurrentReportIdContext = createContext(null);
 const withCurrentReportIdPropTypes = {
     /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
+
+    /** Function used to update the current reportId. Should probably only ever be used in one place in the whole app. */
+    // eslint-disable-next-line react/no-unused-prop-types
+    updateCurrentReportId: PropTypes.func.isRequired,
 };
 
 class CurrentReportIdContextProvider extends React.Component {
@@ -61,6 +65,7 @@ export default function withCurrentReportId(WrappedComponent) {
         </CurrentReportIdContext.Consumer>
     ));
 
+    WithCurrentReportId.propTypes = withCurrentReportIdPropTypes;
     WithCurrentReportId.displayName = `withCurrentReportId(${getComponentDisplayName(WrappedComponent)})`;
 
     return WithCurrentReportId;

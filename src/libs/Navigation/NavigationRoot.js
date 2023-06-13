@@ -8,7 +8,7 @@ import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import themeColors from '../../styles/themes/default';
 import Log from '../Log';
-import withCurrentReportId from '../../components/withCurrentReportId';
+import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../components/withCurrentReportId';
 import StatusBar from '../StatusBar';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 
@@ -27,6 +27,8 @@ const propTypes = {
 
     /** Fired when react-navigation is ready */
     onReady: PropTypes.func.isRequired,
+
+    ...withCurrentReportIdPropTypes,
 };
 
 /**
