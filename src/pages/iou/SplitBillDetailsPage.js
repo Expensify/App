@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ModalHeader from './ModalHeader';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
 import personalDetailsPropType from '../personalDetailsPropType';
@@ -18,6 +17,7 @@ import reportPropTypes from '../reportPropTypes';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 
 const propTypes = {
     /* Onyx Props */
@@ -69,14 +69,13 @@ const SplitBillDetailsPage = (props) => {
     const payeePersonalDetails = _.filter(participants, (participant) => participant.login === reportAction.actorEmail)[0];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.login !== reportAction.actorEmail);
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
+    const splitComment = lodashGet(reportAction, 'originalMessage.comment');
+    const splitCurrency = lodashGet(reportAction, 'originalMessage.currency');
 
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
-                <ModalHeader
-                    title={props.translate('common.details')}
-                    shouldShowBackButton={false}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
@@ -87,6 +86,8 @@ const SplitBillDetailsPage = (props) => {
                             payeePersonalDetails={payeePersonalDetails}
                             participants={participantsExcludingPayee}
                             iouAmount={splitAmount}
+                            iouComment={splitComment}
+                            iouCurrencyCode={splitCurrency}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
                             shouldShowFooter={false}

@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {Pressable} from 'react-native';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 // We take FlatList from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {FlatList} from 'react-native-gesture-handler';
@@ -7,6 +6,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
 import {propTypes} from './autoCompleteSuggestionsPropTypes';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 /**
  * @param {Number} numRows
@@ -34,14 +34,16 @@ const BaseAutoCompleteSuggestions = (props) => {
      * @returns {JSX.Element}
      */
     const renderSuggestionMenuItem = ({item, index}) => (
-        <Pressable
+        <PressableWithFeedback
             style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(props.highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT, hovered, index)}
+            hoverDimmingValue={1}
             onMouseDown={(e) => e.preventDefault()}
             onPress={() => props.onSelect(index)}
             onLongPress={() => {}}
+            accessibilityLabel={props.accessibilityLabelExtractor(item, index)}
         >
             {props.renderSuggestionMenuItem(item, index)}
-        </Pressable>
+        </PressableWithFeedback>
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT * props.suggestions.length;

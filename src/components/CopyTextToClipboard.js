@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithDelayToggle from './PressableWithDelayToggle';
@@ -20,32 +20,25 @@ const defaultProps = {
     textStyles: [],
 };
 
-class CopyTextToClipboard extends React.Component {
-    constructor(props) {
-        super(props);
+const CopyTextToClipboard = (props) => {
+    const copyToClipboard = useCallback(() => {
+        Clipboard.setString(props.text);
+    }, [props.text]);
 
-        this.copyToClipboard = this.copyToClipboard.bind(this);
-    }
-
-    copyToClipboard() {
-        Clipboard.setString(this.props.text);
-    }
-
-    render() {
-        return (
-            <PressableWithDelayToggle
-                text={this.props.text}
-                tooltipText={this.props.translate('reportActionContextMenu.copyToClipboard')}
-                tooltipTextChecked={this.props.translate('reportActionContextMenu.copied')}
-                icon={Expensicons.Copy}
-                textStyles={this.props.textStyles}
-                onPress={this.copyToClipboard}
-            />
-        );
-    }
-}
+    return (
+        <PressableWithDelayToggle
+            text={props.text}
+            tooltipText={props.translate('reportActionContextMenu.copyToClipboard')}
+            tooltipTextChecked={props.translate('reportActionContextMenu.copied')}
+            icon={Expensicons.Copy}
+            textStyles={props.textStyles}
+            onPress={copyToClipboard}
+        />
+    );
+};
 
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;
+CopyTextToClipboard.displayName = 'CopyTextToClipboard';
 
 export default withLocalize(CopyTextToClipboard);
