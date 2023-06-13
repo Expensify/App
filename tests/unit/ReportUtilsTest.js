@@ -17,13 +17,11 @@ const participantsPersonalDetails = {
         displayName: 'Ragnar Lothbrok',
         firstName: 'Ragnar',
         login: 'ragnar@vikings.net',
-        accountID: 1,
     },
     2: {
         accountID: 2,
         login: 'floki@vikings.net',
         displayName: 'floki@vikings.net',
-        accountID: 2,
     },
     3: {
         accountID: 3,
@@ -31,13 +29,11 @@ const participantsPersonalDetails = {
         firstName: 'Lagertha',
         login: 'lagertha@vikings.net',
         pronouns: 'She/her',
-        accountID: 3,
     },
     4: {
         accountID: 4,
         login: '+18332403627@expensify.sms',
         displayName: '(833) 240-3627',
-        accountID: 4,
     },
 };
 const policy = {
