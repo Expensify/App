@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {Component, Pressable} from 'react';
+import React, {Component} from 'react';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import styles from '../../styles/styles';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
@@ -78,6 +78,7 @@ class PressableWithSecondaryInteraction extends Component {
         return (
             <PressableWithFeedback
                 style={StyleUtils.combineStyles(this.props.inline ? styles.dInline : this.props.style)}
+                wrapperStyle={StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [])}
                 onPressIn={this.props.onPressIn}
                 onLongPress={this.props.onSecondaryInteraction ? this.executeSecondaryInteraction : undefined}
                 pressDimmingValue={this.props.activeOpacity}
