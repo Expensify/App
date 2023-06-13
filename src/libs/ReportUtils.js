@@ -768,7 +768,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         return [actorIcon];
     }
     if (isTaskReport(report)) {
-        const ownerEmail = lodashGet(report, 'ownerEmail', '');
+        const ownerEmail = report.ownerEmail || '';
         const ownerIcon = {
             source: UserUtils.getAvatar(lodashGet(personalDetails, [ownerEmail, 'avatar']), ownerEmail),
             name: ownerEmail,
