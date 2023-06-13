@@ -90,6 +90,7 @@ function IOUCurrencySelection(props) {
 
     const [searchValue, setCurrentSearchValue] = useState('');
     const [currencyData, setCurrencyData] = useState(currencyOptions);
+    const {translate} = props;
 
     const getSections = useMemo(() => {
         if (searchValue.trim() && !currencyData.length) {
@@ -97,14 +98,14 @@ function IOUCurrencySelection(props) {
         }
         const sections = [];
         sections.push({
-            title: props.translate('iOUCurrencySelection.allCurrencies'),
+            title: translate('iOUCurrencySelection.allCurrencies'),
             data: currencyData,
             shouldShow: true,
             indexOffset: 0,
         });
 
         return sections;
-    }, [searchValue, currencyData, props.translate]);
+    }, [searchValue, currencyData, translate]);
 
     const changeSearchValue = useCallback(
         (searchQuery) => {
