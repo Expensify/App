@@ -54,6 +54,7 @@ import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
+import withCurrentReportId from '../../../components/withCurrentReportId';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -320,7 +321,7 @@ function ReportActionItem(props) {
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
-        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action);
+        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.currentReportId);
         const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
         const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
@@ -502,6 +503,7 @@ export default compose(
             return lodashGet(drafts, draftKey, '');
         },
     }),
+    withCurrentReportId,
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
@@ -519,6 +521,7 @@ export default compose(
             _.isEqual(prevProps.action, nextProps.action) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
-            prevProps.translate === nextProps.translate,
+            prevProps.translate === nextProps.translate &&
+            prevProps.currentReportId === nextProps.currentReportId,
     ),
 );
