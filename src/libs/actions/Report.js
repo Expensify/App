@@ -1682,7 +1682,7 @@ function setLastOpenedPublicRoom(reportID) {
 
 /**
  * Navigates to the last opened public room
- * 
+ *
  * @param {String} lastOpenedPublicRoomID
  */
 function navigateToLastOpenedPublicRoom(lastOpenedPublicRoomID) {
