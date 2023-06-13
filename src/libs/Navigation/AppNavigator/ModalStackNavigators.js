@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
+import SCREENS from '../../../SCREENS';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -321,7 +322,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsInitialPage = require('../../../pages/settings/InitialSettingsPage').default;
             return SettingsInitialPage;
         },
-        name: 'Settings_Root',
+        name: SCREENS.SETTINGS.ROOT,
     },
     {
         getComponent: () => {

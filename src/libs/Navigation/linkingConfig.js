@@ -34,7 +34,7 @@ export default {
                 screens: {
                     Settings: {
                         screens: {
-                            Settings_Root: {
+                            [SCREENS.SETTINGS.ROOT]: {
                                 path: ROUTES.SETTINGS,
                             },
                             Settings_Workspaces: {
