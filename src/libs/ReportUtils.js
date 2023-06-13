@@ -850,6 +850,7 @@ function getPersonalDetailsForAccountID(accountID) {
         return {
             accountID,
             displayName: 'Concierge',
+            login: CONST.EMAIL.CONCIERGE,
             avatar: UserUtils.getDefaultAvatar(accountID),
         };
     }
