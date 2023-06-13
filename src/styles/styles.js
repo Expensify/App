@@ -3414,6 +3414,10 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+
+    validateCodeTimer: {
+        color: themeColors.link,
+    }
 };
 
 export default styles;

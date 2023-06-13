@@ -253,6 +253,7 @@ function BaseValidateCodeForm(props) {
                         hasError={hasError}
                         autoFocus
                     />
+                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         {timeRemaining > 0 ? (
                             <Text style={[styles.mt2]}>
@@ -276,8 +277,6 @@ function BaseValidateCodeForm(props) {
                     </View>
                 </View>
             )}
-
-            {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
             <View>
                 <Button
                     isDisabled={props.network.isOffline}
