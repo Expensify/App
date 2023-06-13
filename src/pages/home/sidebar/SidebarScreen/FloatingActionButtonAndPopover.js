@@ -9,6 +9,7 @@ import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
 import NAVIGATORS from '../../../../NAVIGATORS';
+import SCREENS from '../../../../SCREENS';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
 import PopoverMenu from '../../../../components/PopoverMenu';
@@ -84,7 +85,7 @@ class FloatingActionButtonAndPopover extends React.Component {
     componentDidMount() {
         const navigationState = this.props.navigation.getState();
         const currentRoute = navigationState.routes[navigationState.index];
-        if(currentRoute && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        if(currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
         const routes = lodashGet(navigationState, 'routes', []);
