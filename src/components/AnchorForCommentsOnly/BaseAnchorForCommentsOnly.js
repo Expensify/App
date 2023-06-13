@@ -54,7 +54,6 @@ const BaseAnchorForCommentsOnly = (props) => {
     return (
         <PressableWithSecondaryInteraction
             inline
-            style={[styles.cursorDefault, StyleUtils.getFontSizeStyle(props.style.fontSize)]}
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(
                     isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
