@@ -69,7 +69,11 @@ const ButtonWithDropdownMenu = (props) => {
         if (!caretButton.current) {
             return;
         }
-        measurePopoverPositionAndShowMenu();
+        if (popoverAnchorPosition !== null) {
+            measurePopoverPositionAndShowMenu();
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowWidth, windowHeight]);
 
     const selectedItem = props.options[selectedItemIndex];
