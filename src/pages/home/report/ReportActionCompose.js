@@ -897,7 +897,7 @@ class ReportActionCompose extends React.Component {
         const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
         const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
         const shouldShowReportRecipientLocalTime =
-            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.login) && !this.props.isComposerFullSize;
+            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.accountID) && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
