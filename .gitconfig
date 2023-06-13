@@ -3,6 +3,6 @@
 [user]
     email = icreateuz@gmail.com
     name = Doston
-    signingkey = F237E4A5BB92C91115B3D9AB15747F3AB6DC5C1E
+    signingkey = 15747F3AB6DC5C1E
 [gpg]
     program = gpg
