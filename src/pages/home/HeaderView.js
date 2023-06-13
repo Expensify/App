@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -27,6 +27,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
 
 const propTypes = {
@@ -126,10 +127,12 @@ const HeaderView = (props) => {
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
-                    <Pressable
+                    <PressableWithoutFeedback
                         onPress={props.onNavigationMenuButtonClicked}
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
+                        accessibilityLabel={props.translate('common.back')}
+                        accessibilityRole="button"
                     >
                         <Tooltip
                             text={props.translate('common.back')}
@@ -139,14 +142,16 @@ const HeaderView = (props) => {
                                 <Icon src={Expensicons.BackArrow} />
                             </View>
                         </Tooltip>
-                    </Pressable>
+                    </PressableWithoutFeedback>
                 )}
                 {Boolean(props.report && title) && (
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Pressable
+                        <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={isTaskReport}
+                            accessibilityLabel={title}
+                            accessibilityRole="button"
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -187,7 +192,7 @@ const HeaderView = (props) => {
                                     />
                                 </View>
                             )}
-                        </Pressable>
+                        </PressableWithoutFeedback>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                             {shouldShowCallButton && (
                                 <VideoChatButtonAndMenu

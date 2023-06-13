@@ -183,7 +183,7 @@ const TaskAssigneeSelectorModal = (props) => {
             // This would cause the app to crash, so we need to make sure we have a DM thread
             TaskUtils.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             // Pass through the selected assignee
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, '', '', option.login, option.accountID);
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {assignee: option.login, assigneeAccountID: option.accountID});
         }
     };
 
