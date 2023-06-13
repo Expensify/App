@@ -7,8 +7,11 @@ import Navigation from '../libs/Navigation/Navigation';
 const CurrentReportIdContext = createContext(null);
 
 const withCurrentReportIdPropTypes = {
-    /** Actual content wrapped by this component */
-    children: PropTypes.node.isRequired,
+    /** Function to update the state */
+    updateCurrentReportId: PropTypes.func.isRequired,
+
+    /** The top most report id */
+    currentReportId: PropTypes.string.isRequired,
 };
 
 function CurrentReportIdContextProvider(props) {
@@ -40,15 +43,18 @@ function CurrentReportIdContextProvider(props) {
     return <CurrentReportIdContext.Provider value={contextValue}>{props.children}</CurrentReportIdContext.Provider>;
 }
 
-CurrentReportIdContextProvider.propTypes = withCurrentReportIdPropTypes;
+CurrentReportIdContextProvider.displayName = 'CurrentReportIdContextProvider';
+CurrentReportIdContextProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+};
 
 export default function withCurrentReportId(WrappedComponent) {
     const WithCurrentReportId = forwardRef((props, ref) => (
         <CurrentReportIdContext.Consumer>
-            {(translateUtils) => (
+            {(currentReportIdUtils) => (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...translateUtils}
+                    {...currentReportIdUtils}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     ref={ref}
