@@ -51,6 +51,7 @@ function parseAndLogRoute(state) {
 }
 
 const NavigationRoot = (props) => {
+    const {isSmallScreenWidth} = useWindowDimensions();
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
 
@@ -97,8 +98,6 @@ const NavigationRoot = (props) => {
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
     };
-
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <NavigationContainer
