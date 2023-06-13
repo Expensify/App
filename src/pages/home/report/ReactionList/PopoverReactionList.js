@@ -9,6 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReactionList from './BaseReactionList';
 import compose from '../../../../libs/compose';
+import reportPropTypes from '../../../reportPropTypes';
 import reportActionPropTypes from '../reportActionPropTypes';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
@@ -160,7 +161,7 @@ class PopoverReactionList extends React.Component {
      */
     getSelectedReaction(reportActions, reportActionID, emojiName) {
         const reportAction = _.find(reportActions, (action) => action.reportActionID === reportActionID);
-        if (ReportUtils.isThreadFirstChat(reportAction)) {
+        if (!reportAction || ReportUtils.isThreadFirstChat(reportAction, this.props.report.reportID)) {
             const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
             return this.getSelectedReactionFromAction(parentReportAction, emojiName);
         }
