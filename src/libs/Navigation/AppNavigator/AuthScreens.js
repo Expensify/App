@@ -1,11 +1,9 @@
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import {Animated, Easing} from 'react-native';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -33,8 +31,6 @@ import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
-import StatusBar from '../../StatusBar';
 
 let currentUserEmail;
 Onyx.connect({
@@ -103,12 +99,6 @@ class AuthScreens extends React.Component {
         super(props);
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
-
-        this.prevStatusBarBackgroundColor = themeColors.appBG;
-        this.statusBarBackgroundColor = themeColors.appBG;
-        this.statusBarAnimation = new Animated.Value(0);
-
-        this.animateStatusBarBackgroundColorChange = this.animateStatusBarBackgroundColorChange.bind(this);
     }
 
     componentDidMount() {
@@ -162,15 +152,6 @@ class AuthScreens extends React.Component {
             groupShortcutConfig.modifiers,
             true,
         );
-
-        this.statusBarAnimation.addListener(() => {
-            const colorObj = this.statusBarAnimation.interpolate({
-                inputRange: [0, 1],
-                outputRange: [this.prevStatusBarBackgroundColor, this.statusBarBackgroundColor],
-            });
-            // eslint-disable-next-line no-underscore-dangle
-            StatusBar.setBackgroundColor(colorObj.__getValue());
-        });
     }
 
     shouldComponentUpdate(nextProps) {
@@ -184,34 +165,9 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeGroupShortcut) {
             this.unsubscribeGroupShortcut();
         }
-        if (this.statusBarAnimation) {
-            this.statusBarAnimation.removeAllListeners();
-        }
         Session.cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
-    }
-
-    /**
-     * @param {Event} e – react-navigation state change event
-     */
-    animateStatusBarBackgroundColorChange(e) {
-        const focusedScreenName = getFocusedRouteNameFromRoute(_.last(lodashGet(e, 'data.state.routes', [{}])));
-        const focusedScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[focusedScreenName] || themeColors.appBG;
-
-        this.prevStatusBarBackgroundColor = this.statusBarBackgroundColor;
-        this.statusBarBackgroundColor = focusedScreenBackgroundColor;
-
-        if (this.statusBarBackgroundColor !== this.prevStatusBarBackgroundColor) {
-            this.statusBarAnimation.setValue(0);
-            Animated.timing(this.statusBarAnimation, {
-                toValue: 1,
-                duration: 300,
-                delay: 300,
-                easing: Easing.in(Easing.ease),
-                useNativeDriver: false,
-            }).start();
-        }
     }
 
     render() {
@@ -240,9 +196,6 @@ class AuthScreens extends React.Component {
                 // a header will briefly open and close the keyboard and crash Android.
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 keyboardHandlingEnabled={false}
-                screenListeners={{
-                    state: this.animateStatusBarBackgroundColorChange,
-                }}
             >
                 <RootStack.Screen
                     name={SCREENS.HOME}

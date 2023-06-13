@@ -1,7 +1,8 @@
-import React, {useRef} from 'react';
+import React, {useRef, useEffect, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
+import {Animated, Easing} from 'react-native';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
@@ -10,6 +11,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import Log from '../Log';
 import withCurrentReportId from '../../components/withCurrentReportId';
 import compose from '../compose';
+import StatusBar from '../StatusBar';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -55,10 +57,48 @@ const NavigationRoot = (props) => {
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
 
+    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
+    const statusBarBackgroundColor = useRef(themeColors.appBG);
+    const statusBarAnimation = useRef(new Animated.Value(0));
+
+    useEffect(() => {
+        const animation = statusBarAnimation.current;
+        animation.addListener(() => {
+            const colorObj = animation.interpolate({
+                inputRange: [0, 1],
+                outputRange: [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current],
+            });
+            // eslint-disable-next-line no-underscore-dangle
+            StatusBar.setBackgroundColor(colorObj.__getValue());
+        });
+        return () => animation.removeAllListeners();
+    }, []);
+
+    const animateStatusBarBackgroundColor = () => {
+        const currentRoute = navigationRef.getCurrentRoute();
+        const currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
+
+        prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
+        statusBarBackgroundColor.current = currentScreenBackgroundColor;
+        if (prevStatusBarBackgroundColor.current === statusBarBackgroundColor.current) {
+            return;
+        }
+
+        statusBarAnimation.current.setValue(0);
+        Animated.timing(statusBarAnimation.current, {
+            toValue: 1,
+            duration: 300,
+            delay: 300,
+            easing: Easing.in(Easing.ease),
+            useNativeDriver: false,
+        }).start();
+    };
+
     const updateSavedNavigationStateAndLogRoute = (state) => {
         navigationStateRef.current = state;
         props.updateCurrentReportId(state);
         parseAndLogRoute(state);
+        animateStatusBarBackgroundColor();
     };
 
     return (

@@ -6,7 +6,7 @@ import defaultModalScreenOptions from '../defaultModalScreenOptions';
 
 const Stack = createStackNavigator();
 
-function RigthModalNavigator() {
+function RightModalNavigator() {
     return (
         <Stack.Navigator>
             <Stack.Screen
@@ -118,4 +118,4 @@ function RigthModalNavigator() {
     );
 }
 
-export default RigthModalNavigator;
+export default RightModalNavigator;
