@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
@@ -6,7 +6,10 @@ import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import themeColors from '../../styles/themes/default';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
+import withCurrentReportId from '../../components/withCurrentReportId';
+import compose from '../compose';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -18,6 +21,8 @@ const navigationTheme = {
 };
 
 const propTypes = {
+    ...windowDimensionsPropTypes,
+
     /** Whether the current user is logged in with an authToken */
     authenticated: PropTypes.bool.isRequired,
 
@@ -48,9 +53,19 @@ function parseAndLogRoute(state) {
 
 const NavigationRoot = (props) => {
     useFlipper(navigationRef);
+    const navigationStateRef = useRef(undefined);
+
+    const updateSavedNavigationStateAndLogRoute = (state) => {
+        navigationStateRef.current = state;
+        props.updateCurrentReportId(state);
+        parseAndLogRoute(state);
+    };
+
     return (
         <NavigationContainer
-            onStateChange={parseAndLogRoute}
+            key={props.isSmallScreenWidth ? 'small' : 'big'}
+            onStateChange={updateSavedNavigationStateAndLogRoute}
+            initialState={navigationStateRef.current}
             onReady={props.onReady}
             theme={navigationTheme}
             ref={navigationRef}
@@ -66,4 +81,4 @@ const NavigationRoot = (props) => {
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;
-export default NavigationRoot;
+export default compose(withWindowDimensions, withCurrentReportId)(NavigationRoot);

@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import compose from '../libs/compose';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -12,6 +12,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Text to display in the banner. */
@@ -92,13 +93,13 @@ const Banner = (props) => (
                     </View>
                     {props.shouldShowCloseButton && (
                         <Tooltip text={props.translate('common.close')}>
-                            <Pressable
+                            <PressableWithFeedback
                                 onPress={props.onClose}
                                 accessibilityRole="button"
                                 accessibilityLabel={props.translate('common.close')}
                             >
                                 <Icon src={Expensicons.Close} />
-                            </Pressable>
+                            </PressableWithFeedback>
                         </Tooltip>
                     )}
                 </View>

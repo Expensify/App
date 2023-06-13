@@ -15,6 +15,7 @@ import withCurrentUserPersonalDetails from '../../../../components/withCurrentUs
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import emojis from '../../../../../assets/emojis';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -68,23 +69,22 @@ class PopoverReactionList extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        const prevSelectedReaction = this.getSelectedReaction(this.props.reportActions, this.state.reportActionID, this.state.emojiName);
         const selectedReaction = this.getSelectedReaction(nextProps.reportActions, nextState.reportActionID, nextState.emojiName);
-        const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
-        const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
+        const {emojiCount, emojiCodes, hasUserReacted, users} = this.getReactionInformation(selectedReaction);
+        const previousLocale = lodashGet(this.props, 'preferredLocale', CONST.LOCALES.DEFAULT);
+        const nextLocale = lodashGet(nextProps, 'preferredLocale', CONST.LOCALES.DEFAULT);
 
         return (
             this.state.isPopoverVisible !== nextState.isPopoverVisible ||
             this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition ||
             previousLocale !== nextLocale ||
             (this.state.isPopoverVisible &&
-                (!_.isEqual(prevSelectedReaction, selectedReaction) ||
+                (this.state.reportActionID !== nextState.reportActionID ||
                     this.state.emojiName !== nextState.emojiName ||
-                    this.state.emojiCount !== nextState.emojiCount ||
-                    this.state.hasUserReacted !== nextState.hasUserReacted ||
-                    this.state.reportActionID !== nextState.reportActionID ||
-                    !_.isEqual(this.state.emojiCodes, nextState.emojiCodes) ||
-                    !_.isEqual(this.state.users, nextState.users)))
+                    this.state.emojiCount !== emojiCount ||
+                    this.state.hasUserReacted !== hasUserReacted ||
+                    !_.isEqual(this.state.emojiCodes, emojiCodes) ||
+                    !_.isEqual(this.state.users, users)))
         );
     }
 
