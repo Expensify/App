@@ -378,6 +378,21 @@ function updateAvatar(file) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [personalDetails[currentUserEmail].accountID]: {
+                    avatar: file.uri,
+                    errorFields: {
+                        avatar: null,
+                    },
+                    pendingFields: {
+                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        },
     ];
     const successData = [
         {
@@ -385,6 +400,17 @@ function updateAvatar(file) {
             key: ONYXKEYS.PERSONAL_DETAILS,
             value: {
                 [currentUserEmail]: {
+                    pendingFields: {
+                        avatar: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [personalDetails[currentUserEmail].accountID]: {
                     pendingFields: {
                         avatar: null,
                     },
@@ -400,6 +426,18 @@ function updateAvatar(file) {
                 [currentUserEmail]: {
                     avatar: personalDetails[currentUserEmail].avatar,
                     avatarThumbnail: personalDetails[currentUserEmail].avatarThumbnail || personalDetails[currentUserEmail].avatar,
+                    pendingFields: {
+                        avatar: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [personalDetails[currentUserEmail].accountID]: {
+                    avatar: personalDetails[currentUserEmail].avatar,
                     pendingFields: {
                         avatar: null,
                     },
