@@ -470,6 +470,15 @@ function deleteAvatar() {
                         },
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [personalDetails[currentUserEmail].accountID]: {
+                            avatar: defaultAvatar,
+                        },
+                    },
+                },
             ],
             failureData: [
                 {
@@ -477,6 +486,15 @@ function deleteAvatar() {
                     key: ONYXKEYS.PERSONAL_DETAILS,
                     value: {
                         [currentUserEmail]: {
+                            avatar: personalDetails[currentUserEmail].avatar,
+                        },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [personalDetails[currentUserEmail].accountID]: {
                             avatar: personalDetails[currentUserEmail].avatar,
                         },
                     },
