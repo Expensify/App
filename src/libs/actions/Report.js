@@ -21,6 +21,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
 import * as ErrorUtils from '../ErrorUtils';
+import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 
@@ -415,7 +416,13 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails = {};
         _.map(participantLoginList, (login, index) => {
-            optimisticPersonalDetails[newReportObject.participantAccountIDs[index]] = {login, displayName: login};
+            const accountID = newReportObject.participantAccountIDs[index];
+            optimisticPersonalDetails[accountID] = {
+                login,
+                accountID,
+                avatar: UserUtils.getDefaultAvatar(accountID),
+                displayName: login,
+            };
         });
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
