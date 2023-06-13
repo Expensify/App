@@ -54,16 +54,25 @@ const ButtonWithDropdownMenu = (props) => {
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
-    useEffect(() => {
-        if (!caretButton.current) {
-            return;
-        }
+
+    const measurePopoverPosition = () => {
         caretButton.current.measureInWindow((x, y, w, h) => {
             setPopoverAnchorPosition({
                 horizontal: x + w,
                 vertical: y + h,
             });
-        });
+        }); 
+    }
+    
+    useEffect(() => {
+        if (!caretButton.current) {
+            return;
+        }
+        if(popoverAnchorPosition !== null){
+            measurePopoverPosition();
+        }        
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowWidth, windowHeight]);
 
     const selectedItem = props.options[selectedItemIndex];
@@ -88,6 +97,9 @@ const ButtonWithDropdownMenu = (props) => {
                         isDisabled={props.isDisabled}
                         style={[styles.pl0]}
                         onPress={() => {
+                            if(popoverAnchorPosition === null){
+                                measurePopoverPosition();
+                            }
                             setIsMenuVisible(true);
                         }}
                         shouldRemoveLeftBorderRadius
