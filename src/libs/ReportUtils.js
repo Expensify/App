@@ -452,9 +452,10 @@ function getPolicyName(report) {
         if (report.policyName) {
             return report.policyName;
         }
-        return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    } else if (policy.name) {
+        return policy.name;
     }
-    return policy.name || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
