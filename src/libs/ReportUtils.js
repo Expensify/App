@@ -645,11 +645,11 @@ function hasAutomatedExpensifyAccountIDs(accountIDs) {
  * Whether the time row should be shown for a report.
  * @param {Array<Object>} personalDetails
  * @param {Object} report
- * @param {String} login
+ * @param {Number} accountID
  * @return {Boolean}
  */
-function canShowReportRecipientLocalTime(personalDetails, report, login) {
-    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), login);
+function canShowReportRecipientLocalTime(personalDetails, report, accountID) {
+    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), accountID);
     const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
     const hasMultipleParticipants = participantsWithoutExpensifyAccountIDs.length > 1;
     const reportRecipient = personalDetails[participantsWithoutExpensifyAccountIDs[0]];

@@ -292,8 +292,11 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {object} report
  * @param {string} ownerEmail
  * @param {Number} ownerAccountID
- * @param {{title?: string, description?: string, assignee?:string, assigneeAccountID?:number}} editedTask
- * @returns {object} action
+ * @param {Object} editedTask
+ * @param {String} editedTask.title
+ * @param {String} editedTask.description
+ * @param {String} editedTask.assignee
+ * @param {Number} editedTask.assigneeAccountID
  */
 function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee, assigneeAccountID = 0}) {
     // Create the EditedReportAction on the task
