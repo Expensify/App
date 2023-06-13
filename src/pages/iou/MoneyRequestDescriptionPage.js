@@ -24,6 +24,7 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
         id: PropTypes.string,
+        amount: PropTypes.number,
         comment: PropTypes.string,
         participants: PropTypes.arrayOf(optionPropTypes),
     }),
@@ -32,6 +33,7 @@ const propTypes = {
 const defaultProps = {
     iou: {
         id: '',
+        amount: 0,
         comment: '',
         participants: [],
     },
