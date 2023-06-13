@@ -183,7 +183,7 @@
     "electron": "22.3.7",
     "electron-builder": "24.4.0",
     "eslint": "^7.6.0",
-    "eslint-config-expensify": "^2.0.36",
+    "eslint-config-expensify": "^2.0.38",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-jsx-a11y": "^6.6.1",
