@@ -108,7 +108,7 @@ function TaskHeader(props) {
                                 ) : (
                                     <Button
                                         success
-                                        isDisabled={!TaskUtils.canMarkTaskComplete(props.report, props.session.email)}
+                                        isDisabled={Task.isTaskCanceled(props.report) || !TaskUtils.isTaskAssigneeOrTaskOwner(props.report, props.session.email)}
                                         medium
                                         text={props.translate('newTaskPage.markAsDone')}
                                         onPress={() => Task.completeTask(props.report.reportID, title)}

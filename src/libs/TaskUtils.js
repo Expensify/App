@@ -45,16 +45,13 @@ function isTaskCanceled(taskReport) {
  * @param {String} sessionEmail
  * @returns {Boolean}
  */
-function canMarkTaskComplete(taskReport, sessionEmail) {
-    const taskAssigneeEmail = getTaskAssigneeEmail(taskReport);
-    const taskOwnerEmail = getTaskOwnerEmail(taskReport);
-
-    return (taskAssigneeEmail === sessionEmail || taskOwnerEmail === sessionEmail) && !isTaskCanceled(taskReport);
+function isTaskAssigneeOrTaskOwner(taskReport, sessionEmail) {
+    return sessionEmail === getTaskOwnerEmail(taskReport) || sessionEmail === getTaskAssigneeEmail(taskReport);
 };
 
 export {
     // eslint-disable-next-line import/prefer-default-export
     getTaskAssigneeEmail,
-    canMarkTaskComplete,
+    isTaskAssigneeOrTaskOwner,
     isTaskCanceled,
 };
