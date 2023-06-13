@@ -68,7 +68,7 @@ function BaseValidateCodeForm(props) {
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
-    const [linkSent, setLinkSent] = useState(false);
+    const [timeRemaining, setTimeRemaining] = useState(30);
 
     const prevIsVisible = usePrevious(props.isVisible);
     const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
@@ -76,6 +76,7 @@ function BaseValidateCodeForm(props) {
 
     const inputValidateCodeRef = useRef();
     const input2FARef = useRef();
+    const timerRef = useRef(timeRemaining);
 
     useEffect(() => {
         if (!inputValidateCodeRef.current || prevIsVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
@@ -94,10 +95,10 @@ function BaseValidateCodeForm(props) {
         }
 
         // Clear the code input if magic code valid or a new magic code was requested
-        if ((prevIsVisible && !props.isVisible) || (props.isVisible && linkSent && props.account.message)) {
+        if ((prevIsVisible && !props.isVisible) || (props.isVisible && timeRemaining === 30 && props.account.message)) {
             setValidateCode('');
         }
-    }, [props.isVisible, props.account.message, prevIsVisible, linkSent, validateCode]);
+    }, [props.isVisible, props.account.message, prevIsVisible, timeRemaining, validateCode]);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
@@ -127,6 +128,18 @@ function BaseValidateCodeForm(props) {
         input2FARef.current.clear();
     }, [twoFactorAuthCode]);
 
+    useEffect(() => {
+        timerRef.current = setInterval(() => {
+          if (timeRemaining < 0) {
+            clearInterval(timerRef.current);
+          } else {
+            setTimeRemaining((timeRemaining) => timeRemaining - 1);
+          }
+        }, 1000);
+
+        return () => {clearInterval(timerRef.current)};
+      }, [timeRemaining]);
+
     /**
      * Handle text input and clear formError upon text change
      *
@@ -137,7 +150,6 @@ function BaseValidateCodeForm(props) {
         const setInput = key === 'validateCode' ? setValidateCode : setTwoFactorAuthCode;
         setInput(text);
         setFormError((prevError) => ({...prevError, [key]: ''}));
-        setLinkSent(false);
 
         if (props.account.errors) {
             Session.clearAccountMessages();
@@ -153,7 +165,7 @@ function BaseValidateCodeForm(props) {
         User.resendValidateCode(props.credentials.login, true);
 
         // Give feedback to the user to let them know the email was sent so they don't spam the button.
-        setLinkSent(true);
+        setTimeRemaining(30);
     };
 
     /**
@@ -242,8 +254,11 @@ function BaseValidateCodeForm(props) {
                         autoFocus
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                        {linkSent ? (
-                            <Text style={[styles.mt2]}>{props.account.message ? props.translate(props.account.message) : ''}</Text>
+                        {timeRemaining > 0 ? (
+                            <Text style={[styles.mt2]}>
+                                {props.translate('validateCodeForm.requestNewCode')}
+                                <Text style={[styles.validateCodeTimer]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
+                            </Text>
                         ) : (
                             <PressableWithFeedback
                                 style={[styles.mt2, resendButtonStyle]}
