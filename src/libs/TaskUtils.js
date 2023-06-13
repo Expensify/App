@@ -32,10 +32,7 @@ function getTaskOwnerEmail(taskReport) {
 }
 
 /**
- * Can only Mark Task Complete if:
- *
- * - Current user is either the assignee or the owner
- * - And Task is not canceled
+ * Check if current user is either task assignee or task owner
  *
  * @param {Object} taskReport
  * @param {String} sessionEmail
