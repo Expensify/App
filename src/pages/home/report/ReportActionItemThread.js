@@ -44,7 +44,7 @@ const ReportActionItemThread = (props) => {
                     Report.navigateToAndOpenChildReport(props.childReportID);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={`${numberOfRepliesText} ${replyText}`}
+                accessibilityLabel={`${props.numberOfReplies} ${replyText}`}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                     <MultipleAvatars
