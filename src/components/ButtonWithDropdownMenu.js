@@ -61,18 +61,18 @@ const ButtonWithDropdownMenu = (props) => {
                 horizontal: x + w,
                 vertical: y + h,
             });
-        }); 
-    }
-    
+        });
+    };
+
     useEffect(() => {
         if (!caretButton.current) {
             return;
         }
-        if(popoverAnchorPosition !== null){
+        if (popoverAnchorPosition !== null) {
             measurePopoverPosition();
-        }        
+        }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowWidth, windowHeight]);
 
     const selectedItem = props.options[selectedItemIndex];
@@ -97,7 +97,7 @@ const ButtonWithDropdownMenu = (props) => {
                         isDisabled={props.isDisabled}
                         style={[styles.pl0]}
                         onPress={() => {
-                            if(popoverAnchorPosition === null){
+                            if (popoverAnchorPosition === null) {
                                 measurePopoverPosition();
                             }
                             setIsMenuVisible(true);
