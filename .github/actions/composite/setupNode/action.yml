@@ -8,10 +8,34 @@ runs:
       with:
         node-version-file: '.nvmrc'
         cache: npm
+        cache-dependency-path: |
+          package-lock.json
+          desktop/package-lock.json
 
-    - name: Install node packages
-      uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
+    - id: cache-node-modules
+      uses: actions/cache@v3
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+    - id: cache-desktop-node-modules
+      uses: actions/cache@v3
+      with:
+        path: desktop/node_modules
+        key: ${{ runner.os }}-desktop-node-modules-${{ hashFiles('desktop/package-lock.json') }}
+
+    - name: Install root project node packages
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      uses: nick-fields/retry@v2
       with:
         timeout_minutes: 30
         max_attempts: 3
         command: npm ci
+
+    - name: Install node packages for desktop submodule
+      if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
+      uses: nick-fields/retry@v2
+      with:
+        timeout_minutes: 30
+        max_attempts: 3
+        command: cd desktop && npm ci
