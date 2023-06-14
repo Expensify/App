@@ -379,7 +379,6 @@ function updateAvatar(file) {
             },
         },
     ];
-    
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
