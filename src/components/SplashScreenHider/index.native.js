@@ -2,8 +2,11 @@ import {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {StyleSheet} from 'react-native';
 import Reanimated, {useSharedValue, withTiming, Easing, useAnimatedStyle, runOnJS} from 'react-native-reanimated';
+import DeviceInfo from "react-native-device-info";
 import BootSplash from '../../libs/BootSplash';
-import Logo from '../../../assets/images/new-expensify-dark.svg';
+import LogoProduction from '../../../assets/images/new-expensify-dark.svg';
+import LogoDev from '../../../assets/images/new-expensify-dev.svg';
+import LogoAdHoc from '../../../assets/images/new-expensify-adhoc.svg';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -14,6 +17,15 @@ const propTypes = {
 const defaultProps = {
     onHide: () => {},
 };
+
+const getLogo = () => {
+    const bundleId = DeviceInfo.getBundleId()
+    switch (bundleId) {
+        case "com.expensify.chat.dev": return LogoDev;
+        case "com.expensify.chat.adhoc": return LogoAdHoc;
+        default: return LogoProduction
+    }
+}
 
 const SplashScreenHider = (props) => {
     const {onHide} = props;
@@ -29,6 +41,7 @@ const SplashScreenHider = (props) => {
     }));
 
     const hideHasBeenCalled = useRef(false);
+    const Logo = getLogo();
 
     const hide = useCallback(() => {
         // hide can only be called once
