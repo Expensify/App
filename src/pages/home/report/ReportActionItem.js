@@ -119,6 +119,7 @@ function ReportActionItem(props) {
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
+
     useEffect(() => {
         if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(props.action.message[0].moderationDecisions)) {
             return;
@@ -134,6 +135,9 @@ function ReportActionItem(props) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision.decision);
+
+        // props.action.message doesn't need to be a dependency, we only to check the change of props.action.message[0].moderationDecisions
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.action.message[0].moderationDecisions, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
