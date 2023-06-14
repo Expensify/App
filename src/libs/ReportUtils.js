@@ -446,16 +446,10 @@ function getPolicyName(report) {
     }
     const policy = _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
 
-    if (!policy) {
-        // Public rooms send back the policy name with the reportSummary,
-        // since they can also be accessed by people who aren't in the workspace
-        if (report.policyName) {
-            return report.policyName;
-        }
-    } else if (policy.name) {
-        return policy.name;
-    }
-    return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    //     // Public rooms send back the policy name with the reportSummary,
+    //     // since they can also be accessed by people who aren't in the workspace
+    
+    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable')
 }
 
 /**
