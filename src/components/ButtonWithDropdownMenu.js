@@ -54,30 +54,23 @@ const ButtonWithDropdownMenu = (props) => {
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
-
-    /**
-     * @param {Boolean} showMenu
-     */
-    const measurePopoverPositionAndShowMenu = (showMenu = true) => {
-        caretButton.current.measureInWindow((x, y, w, h) => {
-            setPopoverAnchorPosition({
-                horizontal: x + w,
-                vertical: y + h,
-            });
-            if (showMenu) {
-                setIsMenuVisible(true);
-            }
-        });
-    };
+    const selectedItem = props.options[selectedItemIndex];
 
     useEffect(() => {
         if (!caretButton.current) {
             return;
         }
-        measurePopoverPositionAndShowMenu(false);
-    }, [windowWidth, windowHeight]);
-
-    const selectedItem = props.options[selectedItemIndex];
+        if (!isMenuVisible) {
+            return;
+        }
+        caretButton.current.measureInWindow((x, y, w, h) => {
+            setPopoverAnchorPosition({
+                horizontal: x + w,
+                vertical: y + h,
+            });
+        });
+    }, [windowWidth, windowHeight, isMenuVisible]);
+    
     return (
         <View>
             {props.options.length > 1 ? (
@@ -98,7 +91,7 @@ const ButtonWithDropdownMenu = (props) => {
                         success
                         isDisabled={props.isDisabled}
                         style={[styles.pl0]}
-                        onPress={() => measurePopoverPositionAndShowMenu()}
+                        onPress={() => setIsMenuVisible(true)}
                         shouldRemoveLeftBorderRadius
                     >
                         <Icon
