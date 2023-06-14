@@ -380,6 +380,12 @@ function beginDeepLinkRedirectAfterTransition() {
     waitForSignOnTransitionToFinish().then(beginDeepLinkRedirect);
 }
 
+function handleRestrictedEvent(eventName) {
+    API.write('HandleRestrictedEvent', {
+        eventName,
+    });
+}
+
 export {
     setLocale,
     setLocaleAndNavigate,
@@ -389,6 +395,7 @@ export {
     openApp,
     reconnectApp,
     confirmReadyToOpenApp,
+    handleRestrictedEvent,
     beginDeepLinkRedirect,
     beginDeepLinkRedirectAfterTransition,
     createWorkspaceAndNavigateToIt,

@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
+import * as App from '../libs/actions/App';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
@@ -187,19 +188,12 @@ class AddPlaidBankAccount extends React.Component {
 
                                 // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
                                 if (error.eventName === 'ERROR' && this.props.bankAccountID && error.error_code) {
-                                    API.write('BankAccount_HandlePlaidError', {
-                                        bankAccountID: this.props.bankAccountID,
-                                        error: error.error_code,
-                                        error_description: error.error_message,
-                                        plaidRequestID: error.request_id,
-                                    });
+                                    BankAccounts.handlePlaidError(this.props.bankAccountID, error.error_code, error.error_message,error.request_id);
                                 }
 
                                 // Limit the number of times a user can submit Plaid credentials
                                 if (error.eventName === 'SUBMIT_CREDENTIALS') {
-                                    API.write('HandleRestrictedEvent', {
-                                        eventName: error.eventName,
-                                    });
+                                    App.handleRestrictedEvent(error.eventName);
                                 }
                             }}
                             // User prematurely exited the Plaid flow
