@@ -65,18 +65,12 @@ jobs:
 
   # Create a new patch version to prep for next release cycle
   createNewPatchVersion:
-    runs-on: ubuntu-latest
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
-    outputs:
-      NEW_VERSION: ${{ steps.createNewVersion.outputs.NEW_VERSION }}
-    steps:
-      - name: Create new version
-        id: createNewVersion
-        uses: Expensify/App/.github/workflows/createNewVersion.yml@main
-        with:
-          SEMVER_LEVEL: PATCH
-        secrets: inherit
+    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    secrets: inherit
+    with:
+      SEMVER_LEVEL: PATCH
 
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
