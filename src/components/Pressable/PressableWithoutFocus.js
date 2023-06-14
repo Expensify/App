@@ -46,7 +46,7 @@ class PressableWithoutFocus extends React.Component {
     }
 
     render() {
-        const restProps = _.omit(this.props, ['children', 'onPress', 'onLongPress', 'styles']);
+        const restProps = _.omit(this.props, ['children', 'onPress', 'onLongPress', 'style']);
         return (
             <GenericPressable
                 onPress={this.pressAndBlur}
