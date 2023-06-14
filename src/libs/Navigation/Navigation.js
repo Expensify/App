@@ -175,7 +175,9 @@ function getReportIDFromRoute() {
         return '';
     }
 
-    return lodashGet(navigationRef.current.getCurrentRoute(), ['params', 'reportID'], '');
+    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
+    const reportRoute = lodashGet(drawerState, ['routes', 0]);
+    return lodashGet(reportRoute, ['params', 'reportID'], '');
 }
 
 /**
