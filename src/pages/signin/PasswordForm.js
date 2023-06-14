@@ -154,12 +154,10 @@ function PasswordForm(props) {
         if (props.isVisible) {
             inputPasswordRef.current.focus();
         }
-        if (props.isVisible && password) {
+        if (!props.isVisible && password) {
             clearPassword();
         }
-        // We cannot add password to the dependency list because it will clear every time it updates
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isVisible]);
+    }, [props.isVisible, password]);
 
     useEffect(() => {
         if (!props.account.requiresTwoFactorAuth) {
@@ -173,8 +171,7 @@ function PasswordForm(props) {
             return;
         }
         validateAndSubmitForm();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- We don't need to call this when the function changes.
-    }, [twoFactorAuthCode]);
+    }, [twoFactorAuthCode, validateAndSubmitForm]);
 
     const isTwoFactorAuthRequired = Boolean(props.account.requiresTwoFactorAuth);
     const hasServerError = Boolean(props.account) && !_.isEmpty(props.account.errors);
