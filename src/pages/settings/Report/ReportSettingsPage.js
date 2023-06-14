@@ -12,7 +12,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import * as Report from '../../../libs/actions/Report';
 import * as Policy from '../../../libs/actions/Policy';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
@@ -104,11 +104,9 @@ class ReportSettingsPage extends Component {
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('common.settings')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(this.props.report.reportID))}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(this.props.report.reportID))}
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
@@ -201,11 +199,7 @@ class ReportSettingsPage extends Component {
                                 >
                                     {this.props.translate(`newRoomPage.visibilityOptions.${this.props.report.visibility}`)}
                                 </Text>
-                                <Text style={[styles.textLabelSupporting, styles.mt1]}>
-                                    {this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
-                                        ? this.props.translate('newRoomPage.restrictedDescription')
-                                        : this.props.translate('newRoomPage.privateDescription')}
-                                </Text>
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{this.props.translate(`newRoomPage.${this.props.report.visibility}Description`)}</Text>
                             </View>
                         )}
                     </View>
