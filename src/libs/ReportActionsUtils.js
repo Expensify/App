@@ -325,6 +325,10 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
