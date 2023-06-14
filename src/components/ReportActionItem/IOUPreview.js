@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -27,6 +27,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import refPropTypes from '../refPropTypes';
+import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -123,8 +124,8 @@ const defaultProps = {
     shouldShowPendingConversionMessage: false,
 };
 
-const IOUPreview = (props) => {
-    if (_.isEmpty(props.iouReport)) {
+function IOUPreview(props) {
+    if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
     const sessionEmail = lodashGet(props.session, 'email', null);
@@ -245,16 +246,18 @@ const IOUPreview = (props) => {
     }
 
     return (
-        <Pressable
+        <PressableWithFeedback
             onPress={props.onPreviewPressed}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
+            accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
+            accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
         >
             {childContainer}
-        </Pressable>
+        </PressableWithFeedback>
     );
-};
+}
 
 IOUPreview.propTypes = propTypes;
 IOUPreview.defaultProps = defaultProps;

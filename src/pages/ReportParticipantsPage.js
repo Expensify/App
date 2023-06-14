@@ -64,6 +64,7 @@ const getAllParticipants = (report, personalDetails) => {
             return {
                 alternateText: userLogin,
                 displayName: userPersonalDetail.displayName,
+                accountID: userPersonalDetail.accountID,
                 icons: [
                     {
                         source: UserUtils.getAvatar(userPersonalDetail.avatar, login),
@@ -82,7 +83,7 @@ const getAllParticipants = (report, personalDetails) => {
         .value();
 };
 
-const ReportParticipantsPage = (props) => {
+function ReportParticipantsPage(props) {
     const participants = getAllParticipants(props.report, props.personalDetails);
 
     return (
@@ -109,7 +110,7 @@ const ReportParticipantsPage = (props) => {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.login));
+                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip
@@ -124,7 +125,7 @@ const ReportParticipantsPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 ReportParticipantsPage.propTypes = propTypes;
 ReportParticipantsPage.defaultProps = defaultProps;

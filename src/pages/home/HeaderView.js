@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -26,7 +26,10 @@ import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
 import * as Task from '../../libs/actions/Task';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 import withParentReportAction, {withParentReportActionPropTypes} from '../../components/withParentReportAction';
 
 const propTypes = {
@@ -62,7 +65,7 @@ const defaultProps = {
     parentReport: {},
 };
 
-const HeaderView = (props) => {
+function HeaderView(props) {
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -111,7 +114,7 @@ const HeaderView = (props) => {
     }
     const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
-    const shouldShowSubscript = isPolicyExpenseChat && !props.report.isOwnPolicyExpenseChat && !ReportUtils.isArchivedRoom(props.report) && !isTaskReport;
+    const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(props.report);
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
@@ -121,10 +124,12 @@ const HeaderView = (props) => {
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
-                    <Pressable
+                    <PressableWithoutFeedback
                         onPress={props.onNavigationMenuButtonClicked}
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
+                        accessibilityLabel={props.translate('common.back')}
+                        accessibilityRole="button"
                     >
                         <Tooltip
                             text={props.translate('common.back')}
@@ -134,14 +139,16 @@ const HeaderView = (props) => {
                                 <Icon src={Expensicons.BackArrow} />
                             </View>
                         </Tooltip>
-                    </Pressable>
+                    </PressableWithoutFeedback>
                 )}
                 {Boolean(props.report && title) && (
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Pressable
+                        <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={isTaskReport}
+                            accessibilityLabel={title}
+                            accessibilityRole="button"
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -153,7 +160,7 @@ const HeaderView = (props) => {
                             ) : (
                                 <MultipleAvatars
                                     icons={icons}
-                                    shouldShowTooltip={!isChatRoom}
+                                    shouldShowTooltip={!isChatRoom || isThread}
                                 />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
@@ -166,12 +173,31 @@ const HeaderView = (props) => {
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
                                 {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
-                                    <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
-                                        numberOfLines={1}
-                                    >
-                                        {subtitle}
-                                    </Text>
+                                    <>
+                                        {isThread ? (
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                                                }}
+                                                accessibilityLabel={subtitle}
+                                                accessibilityRole="link"
+                                            >
+                                                <Text
+                                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {subtitle}
+                                                </Text>
+                                            </PressableWithoutFeedback>
+                                        ) : (
+                                            <Text
+                                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                numberOfLines={1}
+                                            >
+                                                {subtitle}
+                                            </Text>
+                                        )}
+                                    </>
                                 )}
                             </View>
                             {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
@@ -182,7 +208,7 @@ const HeaderView = (props) => {
                                     />
                                 </View>
                             )}
-                        </Pressable>
+                        </PressableWithoutFeedback>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                             {shouldShowCallButton && (
                                 <VideoChatButtonAndMenu
@@ -203,7 +229,7 @@ const HeaderView = (props) => {
             </View>
         </View>
     );
-};
+}
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;

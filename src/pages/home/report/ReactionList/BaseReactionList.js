@@ -57,7 +57,7 @@ const getItemLayout = (_, index) => ({
     offset: variables.listItemHeightNormal * index,
 });
 
-const BaseReactionList = (props) => {
+function BaseReactionList(props) {
     if (!props.isVisible) {
         return null;
     }
@@ -79,7 +79,7 @@ const BaseReactionList = (props) => {
             hoverStyle={styles.hoveredComponentBG}
             onSelectRow={() => {
                 props.onClose();
-                Navigation.navigate(ROUTES.getDetailsRoute(item.login));
+                Navigation.navigate(ROUTES.getProfileRoute(item.accountID));
             }}
             option={{
                 text: Str.removeSMSDomain(item.displayName),
@@ -116,7 +116,7 @@ const BaseReactionList = (props) => {
             />
         </>
     );
-};
+}
 
 BaseReactionList.propTypes = propTypes;
 BaseReactionList.defaultProps = defaultProps;
