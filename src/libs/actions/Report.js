@@ -1226,7 +1226,7 @@ function addPolicyReport(policy, reportName, visibility) {
                 errorFields: {
                     addWorkspaceRoom: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                 },
-            }
+            },
         },
     ];
 
