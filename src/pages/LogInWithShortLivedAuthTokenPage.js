@@ -48,7 +48,7 @@ const defaultProps = {
     },
 };
 
-const LogInWithShortLivedAuthTokenPage = (props) => {
+function LogInWithShortLivedAuthTokenPage(props) {
     useEffect(() => {
         const email = lodashGet(props, 'route.params.email', '');
 
@@ -99,7 +99,7 @@ const LogInWithShortLivedAuthTokenPage = (props) => {
             </View>
         </View>
     );
-};
+}
 
 LogInWithShortLivedAuthTokenPage.propTypes = propTypes;
 LogInWithShortLivedAuthTokenPage.defaultProps = defaultProps;

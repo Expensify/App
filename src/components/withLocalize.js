@@ -179,4 +179,4 @@ export default function withLocalize(WrappedComponent) {
     return WithLocalize;
 }
 
-export {withLocalizePropTypes, Provider as LocaleContextProvider, LocaleContext};
+export {withLocalizePropTypes, Provider as LocaleContextProvider};

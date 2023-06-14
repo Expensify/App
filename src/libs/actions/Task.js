@@ -425,6 +425,23 @@ function setShareDestinationValue(shareDestination) {
 }
 
 /**
+ * Auto-assign participant when creating a task in a DM
+ * @param {String} reportID
+ */
+
+function setAssigneeValueWithParentReportID(reportID) {
+    const report = ReportUtils.getReport(reportID);
+    const isDefault = !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report));
+    const participants = lodashGet(report, 'participants', []);
+    const hasMultipleParticipants = participants.length > 1;
+    if (!isDefault || hasMultipleParticipants || report.parentReportID) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.TASK, {assignee: participants[0]});
+}
+
+/**
  * Sets the assignee value for the task and checks for an existing chat with the assignee
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
@@ -591,6 +608,7 @@ export {
     setTaskReport,
     setDetailsValue,
     setAssigneeValue,
+    setAssigneeValueWithParentReportID,
     setShareDestinationValue,
     clearOutTaskInfo,
     reopenTask,

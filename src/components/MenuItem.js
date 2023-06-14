@@ -69,7 +69,7 @@ const defaultProps = {
     furtherDetailsIcon: undefined,
 };
 
-const MenuItem = (props) => {
+function MenuItem(props) {
     const isDeleted = _.contains(props.style, styles.offlineFeedback.deleted);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
@@ -278,7 +278,7 @@ const MenuItem = (props) => {
             )}
         </PressableWithSecondaryInteraction>
     );
-};
+}
 
 MenuItem.propTypes = propTypes;
 MenuItem.displayName = 'MenuItem';
