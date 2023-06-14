@@ -50,9 +50,9 @@ const defaultProps = {
     credentials: {},
 };
 
-const UnlinkLoginForm = (props) => {
-    const primaryLogin = Str.isSMSLogin(props.account.primaryLogin || '') ? Str.removeSMSDomain(props.account.primaryLogin || '') : props.account.primaryLogin;
-    const secondaryLogin = Str.isSMSLogin(props.credentials.login || '') ? Str.removeSMSDomain(props.credentials.login || '') : props.credentials.login;
+function UnlinkLoginForm(props) {
+    const primaryLogin = Str.isSMSLogin(props.account.primaryLogin) ? Str.removeSMSDomain(props.account.primaryLogin) : props.account.primaryLogin;
+    const secondaryLogin = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
 
     return (
         <>
@@ -67,7 +67,7 @@ const UnlinkLoginForm = (props) => {
                 <DotIndicatorMessage
                     style={[styles.mb5, styles.flex0]}
                     type="success"
-                    messages={{0: props.account.message}}
+                    messages={{0: props.translate(props.account.message)}}
                 />
             )}
             {!_.isEmpty(props.account.errors) && (
@@ -95,7 +95,7 @@ const UnlinkLoginForm = (props) => {
             </View>
         </>
     );
-};
+}
 
 UnlinkLoginForm.propTypes = propTypes;
 UnlinkLoginForm.defaultProps = defaultProps;

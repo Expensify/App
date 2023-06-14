@@ -30,7 +30,7 @@ const RenameAction = (props) => {
             {props.translate('newRoomPage.renamedRoomAction', {oldName, newName})}
         </Text>
     );
-};
+}
 
 RenameAction.propTypes = propTypes;
 RenameAction.displayName = 'RenameAction';

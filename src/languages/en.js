@@ -1406,6 +1406,7 @@ export default {
         lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
+        from: 'From',
     },
     qrCodes: {
         copyUrlToClipboard: 'Copy URL to clipboard',

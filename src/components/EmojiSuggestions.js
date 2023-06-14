@@ -57,7 +57,7 @@ const defaultProps = {highlightedEmojiIndex: 0};
  */
 const keyExtractor = (item, index) => `${item.name}+${index}}`;
 
-const EmojiSuggestions = (props) => {
+function EmojiSuggestions(props) {
     /**
      * Render an emoji suggestion menu item component.
      * @param {Object} item
@@ -94,9 +94,10 @@ const EmojiSuggestions = (props) => {
             onSelect={props.onSelect}
             isSuggestionPickerLarge={props.isEmojiPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
+            accessibilityLabelExtractor={keyExtractor}
         />
     );
-};
+}
 
 EmojiSuggestions.propTypes = propTypes;
 EmojiSuggestions.defaultProps = defaultProps;
