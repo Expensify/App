@@ -53,6 +53,7 @@ import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
+import withParentReportAction, {withParentReportActionPropTypes, withParentReportActionDefaultProps} from '../../../components/withParentReportAction';
 
 const propTypes = {
     /** Beta features list */
@@ -85,9 +86,6 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
-    /** The actions from the parent report */
-    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -119,6 +117,7 @@ const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
     ...keyboardStatePropTypes,
+    ...withParentReportActionPropTypes,
 };
 
 const defaultProps = {
@@ -128,7 +127,6 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: [],
-    parentReportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
@@ -136,6 +134,7 @@ const defaultProps = {
     pendingAction: null,
     shouldShowComposeInput: true,
     ...withCurrentUserPersonalDetailsDefaultProps,
+    ...withParentReportActionDefaultProps,
 };
 
 const {RNTextInputReset} = NativeModules;
@@ -817,7 +816,7 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
 
             const parentReportActionID = lodashGet(this.props.report, 'parentReportActionID', '');
-            const parentReportAction = lodashGet(this.props.parentReportActions, [parentReportActionID], {});
+            const parentReportAction = lodashGet(this.props.parentReportAction, [parentReportActionID], {});
             const lastReportAction = _.find([...this.props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
             if (lastReportAction !== -1 && lastReportAction) {
@@ -1215,6 +1214,7 @@ ReportActionCompose.propTypes = propTypes;
 ReportActionCompose.defaultProps = defaultProps;
 
 export default compose(
+    withParentReportAction,
     withWindowDimensions,
     withNavigation,
     withNavigationFocus,
@@ -1248,10 +1248,6 @@ export default compose(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            canEvict: false,
         },
     }),
 )(ReportActionCompose);
