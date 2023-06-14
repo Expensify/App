@@ -154,10 +154,10 @@ function PasswordForm(props) {
         if (props.isVisible) {
             inputPasswordRef.current.focus();
         }
-        if (!props.isVisible && password) {
+        if (!props.isVisible) {
             clearPassword();
         }
-    }, [props.isVisible, password]);
+    }, [props.isVisible]);
 
     useEffect(() => {
         if (!props.account.requiresTwoFactorAuth) {
