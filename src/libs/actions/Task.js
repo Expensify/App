@@ -11,6 +11,7 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 /**
  * Clears out the task info from the store
@@ -600,6 +601,46 @@ function dismissModalAndClearOutTaskInfo() {
     clearOutTaskInfo();
 }
 
+/**
+ * Returns Task assignee email
+ *
+ * @param {Object} taskReport
+ * @returns {String|null}
+ */
+function getTaskAssigneeEmail(taskReport) {
+    if (!taskReport) {
+        return null;
+    }
+
+    if (taskReport.managerEmail) {
+        return taskReport.managerEmail;
+    }
+
+    const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    return lodashGet(reportAction, 'childManagerEmail', null);
+}
+
+/**
+ * Returns Task owner email
+ *
+ * @param {Object} taskReport
+ * @returns {String|null}
+ */
+function getTaskOwnerEmail(taskReport) {
+    return lodashGet(taskReport, 'ownerEmail', null);
+}
+
+/**
+ * Check if current user is either task assignee or task owner
+ *
+ * @param {Object} taskReport
+ * @param {String} sessionEmail
+ * @returns {Boolean}
+ */
+function isTaskAssigneeOrTaskOwner(taskReport, sessionEmail) {
+    return sessionEmail === getTaskOwnerEmail(taskReport) || sessionEmail === getTaskAssigneeEmail(taskReport);
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -619,4 +660,6 @@ export {
     cancelTask,
     isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
+    getTaskAssigneeEmail,
+    isTaskAssigneeOrTaskOwner,
 };

@@ -25,11 +25,10 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
-import * as Task from '../../libs/actions/Task';
+import * as TaskUtils from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
-import * as TaskUtils from '../../libs/TaskUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
@@ -105,7 +104,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
-                onSelected: () => Task.completeTask(props.report.reportID, title),
+                onSelected: () => TaskUtils.completeTask(props.report.reportID, title),
             });
         }
 
@@ -114,7 +113,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report.reportID, title),
+                onSelected: () => TaskUtils.reopenTask(props.report.reportID, title),
             });
         }
 
@@ -123,7 +122,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: () => TaskUtils.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
             });
         }
     }

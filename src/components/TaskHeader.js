@@ -21,8 +21,7 @@ import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Button from './Button';
-import * as Task from '../libs/actions/Task';
-import * as TaskUtils from '../libs/TaskUtils';
+import * as TaskUtils from '../libs/actions/Task';
 import * as UserUtils from '../libs/UserUtils';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import ONYXKEYS from '../ONYXKEYS';
@@ -57,7 +56,7 @@ function TaskHeader(props) {
     const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
 
     useEffect(() => {
-        Task.setTaskReport(props.report);
+        TaskUtils.setTaskReport(props.report);
     }, [props.report]);
 
     return (
@@ -108,10 +107,10 @@ function TaskHeader(props) {
                                 ) : (
                                     <Button
                                         success
-                                        isDisabled={Task.isTaskCanceled(props.report) || !TaskUtils.isTaskAssigneeOrTaskOwner(props.report, props.session.email)}
+                                        isDisabled={TaskUtils.isTaskCanceled(props.report) || !TaskUtils.isTaskAssigneeOrTaskOwner(props.report, props.session.email)}
                                         medium
                                         text={props.translate('newTaskPage.markAsDone')}
-                                        onPress={() => Task.completeTask(props.report.reportID, title)}
+                                        onPress={() => TaskUtils.completeTask(props.report.reportID, title)}
                                     />
                                 )}
                             </View>
