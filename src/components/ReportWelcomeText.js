@@ -50,7 +50,7 @@ const defaultProps = {
     betas: [],
 };
 
-const ReportWelcomeText = (props) => {
+function ReportWelcomeText(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
@@ -121,7 +121,7 @@ const ReportWelcomeText = (props) => {
             </Text>
         </>
     );
-};
+}
 
 ReportWelcomeText.defaultProps = defaultProps;
 ReportWelcomeText.propTypes = propTypes;

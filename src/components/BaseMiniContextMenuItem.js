@@ -46,26 +46,28 @@ const defaultProps = {
  * @param {Object} props
  * @returns {JSX.Element}
  */
-const BaseMiniContextMenuItem = (props) => (
-    <Tooltip text={props.tooltipText}>
-        <Pressable
-            ref={props.innerRef}
-            focusable
-            onPress={props.onPress}
-            accessibilityLabel={props.tooltipText}
-            style={({hovered, pressed}) => [
-                styles.reportActionContextMenuMiniButton,
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
-            ]}
-        >
-            {(pressableState) => (
-                <View style={[StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal), styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    {_.isFunction(props.children) ? props.children(pressableState) : props.children}
-                </View>
-            )}
-        </Pressable>
-    </Tooltip>
-);
+function BaseMiniContextMenuItem(props) {
+    return (
+        <Tooltip text={props.tooltipText}>
+            <Pressable
+                ref={props.innerRef}
+                focusable
+                onPress={props.onPress}
+                accessibilityLabel={props.tooltipText}
+                style={({hovered, pressed}) => [
+                    styles.reportActionContextMenuMiniButton,
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+                ]}
+            >
+                {(pressableState) => (
+                    <View style={[StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        {_.isFunction(props.children) ? props.children(pressableState) : props.children}
+                    </View>
+                )}
+            </Pressable>
+        </Tooltip>
+    );
+}
 
 BaseMiniContextMenuItem.propTypes = propTypes;
 BaseMiniContextMenuItem.defaultProps = defaultProps;

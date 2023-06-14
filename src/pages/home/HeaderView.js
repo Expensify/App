@@ -70,7 +70,7 @@ const defaultProps = {
     parentReport: {},
 };
 
-const HeaderView = (props) => {
+function HeaderView(props) {
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -234,7 +234,7 @@ const HeaderView = (props) => {
             </View>
         </View>
     );
-};
+}
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
