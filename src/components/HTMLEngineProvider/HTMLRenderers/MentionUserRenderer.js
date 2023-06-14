@@ -26,7 +26,7 @@ const propTypes = {
  * */
 const showUserDetails = (email) => Navigation.navigate(ROUTES.getDetailsRoute(email));
 
-const MentionUserRenderer = (props) => {
+function MentionUserRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
 
     // We need to remove the leading @ from data as it is not part of the login
@@ -49,7 +49,7 @@ const MentionUserRenderer = (props) => {
             </Tooltip>
         </Text>
     );
-};
+}
 
 MentionUserRenderer.propTypes = propTypes;
 MentionUserRenderer.displayName = 'MentionUserRenderer';

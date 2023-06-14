@@ -71,7 +71,7 @@ const defaultProps = {
     loginList: {},
 };
 
-const AvatarWithIndicator = (props) => {
+function AvatarWithIndicator(props) {
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
     const cleanPolicies = _.pick(props.policies, (policy) => policy);
@@ -107,7 +107,7 @@ const AvatarWithIndicator = (props) => {
             </View>
         </Tooltip>
     );
-};
+}
 
 AvatarWithIndicator.defaultProps = defaultProps;
 AvatarWithIndicator.propTypes = propTypes;

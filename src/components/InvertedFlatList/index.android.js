@@ -3,13 +3,15 @@ import {View} from 'react-native';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import styles from '../../styles/styles';
 
-const InvertedCell = (props) => (
-    <View
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        style={styles.invert}
-    />
-);
+function InvertedCell(props) {
+    return (
+        <View
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            style={styles.invert}
+        />
+    );
+}
 
 export default forwardRef((props, ref) => (
     <BaseInvertedFlatList

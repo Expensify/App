@@ -13,7 +13,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const RenameAction = (props) => {
+function RenameAction(props) {
     const displayName = lodashGet(props.action, ['message', 0, 'text']);
     const oldName = lodashGet(props.action, 'originalMessage.oldName', '');
     const newName = lodashGet(props.action, 'originalMessage.newName', '');
@@ -24,7 +24,7 @@ const RenameAction = (props) => {
             {props.translate('newRoomPage.renamedRoomAction', {oldName, newName})}
         </Text>
     );
-};
+}
 
 RenameAction.propTypes = propTypes;
 RenameAction.displayName = 'RenameAction';
