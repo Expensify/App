@@ -97,7 +97,7 @@ const ReportPreview = (props) => {
     const managerEmail = props.iouReport.managerEmail || '';
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const displayingMessage = ReportUtils.getMoneyRequestReportName(props.iouReport, true);
+    const displayingMessage = ReportUtils.getMoneyRequestReportActionMessage(props.iouReport);
     return (
         <View style={[styles.chatItemMessage]}>
             {_.map(props.action.message, (message, index) => (

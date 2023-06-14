@@ -271,7 +271,7 @@ function getOptionData(reportID) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
     } else if (ReportActionsUtils.isReportReviewAction(lastReportActions[report.reportID])) {
         const iouReport = ReportUtils.getReport(report.iouReportID);
-        lastMessageTextFromReport = ReportUtils.getMoneyRequestReportName(iouReport, true);
+        lastMessageTextFromReport = ReportUtils.getMoneyRequestReportActionMessage(iouReport);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
