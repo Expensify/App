@@ -110,12 +110,14 @@ function TaskHeader(props) {
                 description={props.translate('newTaskPage.task')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
                 disabled={!isOpen}
+                interactive={isOpen}
             />
             <MenuItemWithTopDescription
                 title={lodashGet(props.report, 'description', '')}
                 description={props.translate('newTaskPage.description')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 disabled={!isOpen}
+                interactive={isOpen}
             />
         </View>
     );

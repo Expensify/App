@@ -199,11 +199,7 @@ class ReportSettingsPage extends Component {
                                 >
                                     {this.props.translate(`newRoomPage.visibilityOptions.${this.props.report.visibility}`)}
                                 </Text>
-                                <Text style={[styles.textLabelSupporting, styles.mt1]}>
-                                    {this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
-                                        ? this.props.translate('newRoomPage.restrictedDescription')
-                                        : this.props.translate('newRoomPage.privateDescription')}
-                                </Text>
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{this.props.translate(`newRoomPage.${this.props.report.visibility}Description`)}</Text>
                             </View>
                         )}
                     </View>
