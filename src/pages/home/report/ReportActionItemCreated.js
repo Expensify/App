@@ -36,7 +36,7 @@ const defaultProps = {
     personalDetails: {},
 };
 
-const ReportActionItemCreated = (props) => {
+function ReportActionItemCreated(props) {
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
@@ -75,7 +75,7 @@ const ReportActionItemCreated = (props) => {
             </View>
         </OfflineWithFeedback>
     );
-};
+}
 
 ReportActionItemCreated.defaultProps = defaultProps;
 ReportActionItemCreated.propTypes = propTypes;

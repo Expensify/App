@@ -77,7 +77,7 @@ const defaultProps = {
     style: [],
 };
 
-const ReportActionItemFragment = (props) => {
+function ReportActionItemFragment(props) {
     switch (props.fragment.type) {
         case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
@@ -171,7 +171,7 @@ const ReportActionItemFragment = (props) => {
         default:
             return <Text>props.fragment.text</Text>;
     }
-};
+}
 
 ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;

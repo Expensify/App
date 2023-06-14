@@ -7,27 +7,29 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 
 const linkStyles = [styles.textExtraSmallSupporting, styles.link];
 
-const Terms = (props) => (
-    <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>
-        {props.translate('termsOfUse.phrase1')}
-        <TextLink
-            style={linkStyles}
-            href={CONST.TERMS_URL}
-        >
-            {' '}
-            {props.translate('termsOfUse.phrase2')}{' '}
-        </TextLink>
-        {props.translate('termsOfUse.phrase3')}
-        <TextLink
-            style={linkStyles}
-            href={CONST.PRIVACY_URL}
-        >
-            {' '}
-            {props.translate('termsOfUse.phrase4')}
-        </TextLink>
-        {'. '}
-    </Text>
-);
+function Terms(props) {
+    return (
+        <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>
+            {props.translate('termsOfUse.phrase1')}
+            <TextLink
+                style={linkStyles}
+                href={CONST.TERMS_URL}
+            >
+                {' '}
+                {props.translate('termsOfUse.phrase2')}{' '}
+            </TextLink>
+            {props.translate('termsOfUse.phrase3')}
+            <TextLink
+                style={linkStyles}
+                href={CONST.PRIVACY_URL}
+            >
+                {' '}
+                {props.translate('termsOfUse.phrase4')}
+            </TextLink>
+            {'. '}
+        </Text>
+    );
+}
 
 Terms.propTypes = {...withLocalizePropTypes};
 Terms.displayName = 'Terms';

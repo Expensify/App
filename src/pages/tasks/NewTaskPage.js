@@ -66,7 +66,7 @@ const defaultProps = {
     session: {},
 };
 
-const NewTaskPage = (props) => {
+function NewTaskPage(props) {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
     const [errorMessage, setErrorMessage] = React.useState('');
@@ -192,7 +192,7 @@ const NewTaskPage = (props) => {
             </View>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskPage.displayName = 'NewTaskPage';
 NewTaskPage.propTypes = propTypes;

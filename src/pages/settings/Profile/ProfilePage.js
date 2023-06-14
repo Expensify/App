@@ -45,7 +45,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const ProfilePage = (props) => {
+function ProfilePage(props) {
     const getPronouns = () => {
         let pronounsKey = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -121,7 +121,7 @@ const ProfilePage = (props) => {
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;

@@ -43,7 +43,7 @@ const defaultProps = {
     onPressOpenPicker: undefined,
 };
 
-const AddReactionBubble = (props) => {
+function AddReactionBubble(props) {
     const ref = useRef();
 
     const onPress = () => {
@@ -94,7 +94,7 @@ const AddReactionBubble = (props) => {
             </Pressable>
         </Tooltip>
     );
-};
+}
 
 AddReactionBubble.propTypes = propTypes;
 AddReactionBubble.defaultProps = defaultProps;
