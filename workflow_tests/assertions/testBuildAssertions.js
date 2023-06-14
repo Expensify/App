@@ -287,7 +287,7 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
                 {key: 'CSC_LINK', value: '***'},
                 {key: 'CSC_KEY_PASSWORD', value: '***'},
                 {key: 'APPLE_ID', value: '***'},
-                {key: 'APPLE_ID_PASSWORD', value: '***'},
+                {key: 'APPLE_APP_SPECIFIC_PASSWORD', value: '***'},
                 {key: 'AWS_ACCESS_KEY_ID', value: '***'},
                 {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
             ],
