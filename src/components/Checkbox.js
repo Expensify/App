@@ -114,7 +114,7 @@ function Checkbox(props) {
             )}
         </Pressable>
     );
-};
+}
 
 Checkbox.propTypes = propTypes;
 Checkbox.defaultProps = defaultProps;
