@@ -17,33 +17,28 @@ Onyx.connect({
     },
 });
 
-function prepareBackHistory(){
-    if(!lastOpenedRoomId || lastOpenedRoomId ==='') {
-        return
+function prepareBackHistory() {
+    if (!lastOpenedRoomId || lastOpenedRoomId === '') {
+        return;
     }
     window.history.pushState({}, '', ROUTES.getReportRoute(lastOpenedRoomId));
 }
 
 function backButtonHandler() {
-    if(lastOpenedRoomId && lastOpenedRoomId!==''){
+    if (lastOpenedRoomId && lastOpenedRoomId !== '') {
         // Use deeplink implementation to change navigation stack
-        Report.openReportFromDeepLink(ROUTES.getReportRoute(lastOpenedRoomId), false)
-    }else{
+        Report.openReportFromDeepLink(ROUTES.getReportRoute(lastOpenedRoomId), false);
+    } else {
         window.history.back();
     }
 }
 
-function addBackButtonListener(handler){
+function addBackButtonListener(handler) {
     window.addEventListener('popstate', handler);
 }
 
-function removeBackButtonListener(handler){
+function removeBackButtonListener(handler) {
     window.removeEventListener('popstate', handler);
 }
 
-export {
-    prepareBackHistory,
-    backButtonHandler,
-    addBackButtonListener,
-    removeBackButtonListener,
-};
+export {prepareBackHistory, backButtonHandler, addBackButtonListener, removeBackButtonListener};

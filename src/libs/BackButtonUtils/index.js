@@ -7,9 +7,4 @@ function backButtonHandler() {}
 function addBackButtonListener() {}
 function removeBackButtonListener() {}
 
-export {
-    prepareBackHistory,
-    backButtonHandler,
-    addBackButtonListener,
-    removeBackButtonListener,
-};
+export {prepareBackHistory, backButtonHandler, addBackButtonListener, removeBackButtonListener};

@@ -21,29 +21,21 @@ Onyx.connect({
 function prepareBackHistory() {}
 
 function backButtonHandler() {
-    if(lastOpenedRoomId && lastOpenedRoomId!==''){
+    if (lastOpenedRoomId && lastOpenedRoomId !== '') {
         // Use deeplink implementation to change navigation stack
-        Report.openReportFromDeepLink(ROUTES.getReportRoute(lastOpenedRoomId), false)
-    }else{
-        BackHandler.exitApp()
+        Report.openReportFromDeepLink(ROUTES.getReportRoute(lastOpenedRoomId), false);
+    } else {
+        BackHandler.exitApp();
     }
     return true;
 }
 
-function addBackButtonListener(handler){
-    BackHandler.addEventListener(
-        'hardwareBackPress',
-        handler,
-      );
+function addBackButtonListener(handler) {
+    BackHandler.addEventListener('hardwareBackPress', handler);
 }
 
-function removeBackButtonListener(handler){
-    BackHandler.removeEventListener('hardwareBackPress', handler)
+function removeBackButtonListener(handler) {
+    BackHandler.removeEventListener('hardwareBackPress', handler);
 }
 
-export{
-    prepareBackHistory,
-    backButtonHandler,
-    addBackButtonListener,
-    removeBackButtonListener,
-};
+export {prepareBackHistory, backButtonHandler, addBackButtonListener, removeBackButtonListener};

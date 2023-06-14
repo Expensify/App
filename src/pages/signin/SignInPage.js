@@ -64,12 +64,12 @@ class SignInPage extends Component {
         Performance.measureTTI();
         App.setLocale(Localize.getDevicePreferredLocale());
         BackButtonUtils.prepareBackHistory();
-        BackButtonUtils.addBackButtonListener(BackButtonUtils.backButtonHandler);   
+        BackButtonUtils.addBackButtonListener(BackButtonUtils.backButtonHandler);
     }
-    
+
     componentWillUnmount() {
         BackButtonUtils.removeBackButtonListener(BackButtonUtils.backButtonHandler);
-    }       
+    }
 
     render() {
         // Show the login form if
