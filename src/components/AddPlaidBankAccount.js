@@ -184,6 +184,23 @@ class AddPlaidBankAccount extends React.Component {
                             }}
                             onError={(error) => {
                                 Log.hmmm('[PlaidLink] Error: ', error.message);
+
+                                // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
+                                if (error.eventName === 'ERROR' && this.props.bankAccountID && error.error_code) {
+                                    API.write('BankAccount_HandlePlaidError', {
+                                        bankAccountID: this.props.bankAccountID,
+                                        error: error.error_code,
+                                        error_description: error.error_message,
+                                        plaidRequestID: error.request_id,
+                                    });
+                                }
+
+                                // Limit the number of times a user can submit Plaid credentials
+                                if (error.eventName === 'SUBMIT_CREDENTIALS') {
+                                    API.write('HandleRestrictedEvent', {
+                                        eventName: error.eventName,
+                                    });
+                                }
                             }}
                             // User prematurely exited the Plaid flow
                             // eslint-disable-next-line react/jsx-props-no-multi-spaces
