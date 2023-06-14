@@ -41,7 +41,7 @@ function setUpActParams(act, event = null, eventOptions = null, secrets = null, 
     return updated_act;
 }
 
-function createMockStep(name, message, job_id = null, inputs = null, in_envs = null, outputs = null, out_envs = null, isSuccessful = true) {
+function createMockStep(name, message, job_id = null, inputs = null, in_envs = null, outputs = null, out_envs = null, isSuccessful = true, id = null) {
     const mockStepName = name;
     let mockWithCommand = 'echo [MOCK]';
     if (job_id) {
@@ -71,10 +71,14 @@ function createMockStep(name, message, job_id = null, inputs = null, in_envs = n
     if (!isSuccessful) {
         mockWithCommand += '\nexit 1';
     }
-    return {
+    const mockStep = {
         name: mockStepName,
         mockWith: mockWithCommand,
     };
+    if (id) {
+        mockStep.id = id;
+    }
+    return mockStep;
 }
 
 function createStepAssertion(name, isSuccessful = true, expectedOutput = null, jobId = null, message = null, inputs = null, envs = null) {
