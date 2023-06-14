@@ -34,7 +34,7 @@ const defaultProps = {
     task: {},
 };
 
-const NewTaskPage = (props) => {
+function NewTaskPage(props) {
     const inputRef = useRef();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
@@ -109,7 +109,7 @@ const NewTaskPage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskPage.displayName = 'NewTaskPage';
 NewTaskPage.propTypes = propTypes;

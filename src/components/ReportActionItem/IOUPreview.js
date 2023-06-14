@@ -124,7 +124,7 @@ const defaultProps = {
     shouldShowPendingConversionMessage: false,
 };
 
-const IOUPreview = (props) => {
+function IOUPreview(props) {
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
@@ -257,7 +257,7 @@ const IOUPreview = (props) => {
             {childContainer}
         </PressableWithFeedback>
     );
-};
+}
 
 IOUPreview.propTypes = propTypes;
 IOUPreview.defaultProps = defaultProps;
