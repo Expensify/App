@@ -89,6 +89,9 @@ function WorkspaceMembersPage(props) {
         Policy.openWorkspaceMembersPage(props.route.params.policyID, clientMemberEmails);
     }, [props.route.params.policyID, props.policyMemberList]);
 
+    /**
+     * Check if the current selection includes members that cannot be removed
+     */
     const validateSelection = useCallback(() => {
         const newErrors = {};
         _.each(selectedEmployees, (member) => {
@@ -262,17 +265,15 @@ function WorkspaceMembersPage(props) {
 
     /**
      * Check if the policy member is deleted from the workspace
+     * 
      * @param {Object} policyMember
      * @returns {Boolean}
      */
     const isDeletedPolicyMember = (policyMember) => !props.network.isOffline && policyMember.pendingAction === 'delete' && _.isEmpty(policyMember.errors);
 
     /**
-     * Do not move this or make it an anonymous function it is a method
-     * so it will not be recreated each time we render an item
-     *
-     * See: https://reactnative.dev/docs/optimizing-flatlist-configuration#avoid-anonymous-function-on-renderitem
-     *
+     * Render a workspace member component
+     * 
      * @param {Object} args
      * @param {Object} args.item
      * @param {Number} args.index
