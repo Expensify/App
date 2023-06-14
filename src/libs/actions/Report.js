@@ -23,6 +23,7 @@ import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Welcome from './Welcome';
+import SidebarUtils from '../SidebarUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1638,7 +1639,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Navigation.isReportScreenReady().then(() => {
+        SidebarUtils.isSidebarLoadedReady().then(() => {
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID));
             }
