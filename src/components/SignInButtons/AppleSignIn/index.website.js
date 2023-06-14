@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Config from 'react-native-config';
 import get from 'lodash/get';
@@ -8,6 +7,7 @@ import * as Session from '../../../libs/actions/Session';
 import Log from '../../../libs/Log';
 import * as Environment from '../../../libs/Environment/Environment';
 import CONST from '../../../CONST';
+import withNavigationFocus from '../../withNavigationFocus';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to lodashGet here to prevent headaches.
@@ -15,6 +15,13 @@ const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).
 
 const requiredPropTypes = {
     isDesktopFlow: PropTypes.bool.isRequired,
+};
+
+const singletonPropTypes = {
+    ...requiredPropTypes,
+
+    // From withNavigationFocus
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const propTypes = {
@@ -105,15 +112,17 @@ AppleSignInDiv.propTypes = requiredPropTypes;
 // The Sign in with Apple script may fail to render button if there are multiple
 // of these divs present in the app, as it matches based on div id. So we'll
 // only mount the div when it should be visible.
-function SingletonAppleSignInButton({isDesktopFlow}) {
-    const isFocused = useIsFocused();
+function SingletonAppleSignInButton({isFocused, isDesktopFlow}) {
     if (!isFocused) {
         return null;
     }
     return <AppleSignInDiv isDesktopFlow={isDesktopFlow} />;
 }
 
-SingletonAppleSignInButton.propTypes = requiredPropTypes;
+SingletonAppleSignInButton.propTypes = singletonPropTypes;
+
+// withNavigationFocus is used to only render the button when it is visible.
+const SingletonAppleSignInButtonWithFocus = withNavigationFocus(SingletonAppleSignInButton);
 
 function AppleSignIn({isDesktopFlow}) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
@@ -133,10 +142,10 @@ function AppleSignIn({isDesktopFlow}) {
         return null;
     }
 
-    return <SingletonAppleSignInButton isDesktopFlow={isDesktopFlow} />;
+    return <SingletonAppleSignInButtonWithFocus isDesktopFlow={isDesktopFlow} />;
 }
 
 AppleSignIn.propTypes = propTypes;
 AppleSignIn.defaultProps = defaultProps;
 
-export default AppleSignIn;
+export default withNavigationFocus(AppleSignIn);

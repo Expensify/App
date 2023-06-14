@@ -2,7 +2,6 @@ import React, {useRef, useEffect} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
-import {useIsFocused} from '@react-navigation/native';
 import compose from '../../../libs/compose';
 import SignInPageContent from './SignInPageContent';
 import Footer from './Footer';
@@ -16,6 +15,7 @@ import SignInHeroBackgroundImage from '../../../../assets/images/home-background
 import SignInHeroBackgroundImageMobile from '../../../../assets/images/home-background--mobile.svg';
 import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';
+import withNavigationFocus from '../../../components/withNavigationFocus';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -42,7 +42,6 @@ const SignInPageLayout = (props) => {
     const scrollViewRef = useRef();
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
-    const isFocused = useIsFocused();
 
     // To scroll on both mobile and web, we need to set the container height manually
     const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
@@ -61,7 +60,7 @@ const SignInPageLayout = (props) => {
 
     useEffect(scrollPageToTop, [props.welcomeHeader, props.welcomeText]);
 
-    if (!isFocused) {
+    if (!props.isFocused) {
         return null;
     }
 
@@ -144,4 +143,4 @@ const SignInPageLayout = (props) => {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default compose(withWindowDimensions, withSafeAreaInsets)(SignInPageLayout);
+export default compose(withWindowDimensions, withSafeAreaInsets, withNavigationFocus)(SignInPageLayout);
