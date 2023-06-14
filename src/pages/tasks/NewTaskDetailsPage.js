@@ -102,6 +102,9 @@ function NewTaskPage(props) {
                     <TextInput
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />
