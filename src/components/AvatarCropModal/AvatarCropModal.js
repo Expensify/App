@@ -8,7 +8,7 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Button from '../Button';
-import HeaderWithCloseButton from '../HeaderWithCloseButton';
+import HeaderWithBackButton from '../HeaderWithBackButton';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Modal from '../Modal';
@@ -58,7 +58,7 @@ const defaultProps = {
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-const AvatarCropModal = (props) => {
+function AvatarCropModal(props) {
     const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -361,9 +361,9 @@ const AvatarCropModal = (props) => {
             onModalHide={resetState}
         >
             {props.isSmallScreenWidth && <HeaderGap />}
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('avatarCropModal.title')}
-                onCloseButtonPress={props.onClose}
+                onBackButtonPress={props.onClose}
             />
             <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
             <GestureHandlerRootView
@@ -433,7 +433,7 @@ const AvatarCropModal = (props) => {
             />
         </Modal>
     );
-};
+}
 
 AvatarCropModal.displayName = 'AvatarCropModal';
 AvatarCropModal.propTypes = propTypes;

@@ -18,35 +18,37 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardNoVBAView = (props) => (
-    <Section
-        title={props.translate('workspace.card.header')}
-        icon={Illustrations.CreditCardsNew}
-    >
-        <View style={[styles.mv4]}>
-            <Text>{props.translate('workspace.card.noVBACopy')}</Text>
-        </View>
+function WorkspaceCardNoVBAView(props) {
+    return (
+        <Section
+            title={props.translate('workspace.card.header')}
+            icon={Illustrations.CreditCardsNew}
+        >
+            <View style={[styles.mv4]}>
+                <Text>{props.translate('workspace.card.noVBACopy')}</Text>
+            </View>
 
-        <UnorderedList
-            items={[
-                props.translate('workspace.card.benefit1'),
-                props.translate('workspace.card.benefit2'),
-                props.translate('workspace.card.benefit3'),
-                props.translate('workspace.card.benefit4'),
-            ]}
-        />
-        <Button
-            text={props.translate('workspace.common.connectBankAccount')}
-            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
-            icon={Expensicons.Bank}
-            style={[styles.mt6]}
-            iconStyles={[styles.mr5]}
-            shouldShowRightIcon
-            large
-            success
-        />
-    </Section>
-);
+            <UnorderedList
+                items={[
+                    props.translate('workspace.card.benefit1'),
+                    props.translate('workspace.card.benefit2'),
+                    props.translate('workspace.card.benefit3'),
+                    props.translate('workspace.card.benefit4'),
+                ]}
+            />
+            <Button
+                text={props.translate('workspace.common.connectBankAccount')}
+                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
+                icon={Expensicons.Bank}
+                style={[styles.mt6]}
+                iconStyles={[styles.mr5]}
+                shouldShowRightIcon
+                large
+                success
+            />
+        </Section>
+    );
+}
 
 WorkspaceCardNoVBAView.propTypes = propTypes;
 WorkspaceCardNoVBAView.displayName = 'WorkspaceCardNoVBAView';

@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
@@ -35,7 +35,7 @@ const defaultProps = {
     },
 };
 
-const NewTaskDescriptionPage = (props) => {
+function NewTaskDescriptionPage(props) {
     const inputRef = useRef(null);
 
     // The selection will be used to place the cursor at the end if there is prior text in the text input area
@@ -48,15 +48,6 @@ const NewTaskDescriptionPage = (props) => {
             setSelection({start: length, end: length});
         }
     }, [props.task.description]);
-
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Object}
-     */
-    function validate() {
-        // This field is optional and can be left blank, so we should not require validation for its value.
-        return {};
-    }
 
     // On submit, we want to call the assignTask function and wait to validate
     // the response
@@ -80,18 +71,16 @@ const NewTaskDescriptionPage = (props) => {
                 inputRef.current.focus();
             }}
         >
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('newTaskPage.description')}
                 onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 onSubmit={(values) => onSubmit(values)}
-                validate={() => validate()}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
@@ -112,7 +101,7 @@ const NewTaskDescriptionPage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskDescriptionPage.displayName = 'NewTaskDescriptionPage';
 NewTaskDescriptionPage.propTypes = propTypes;

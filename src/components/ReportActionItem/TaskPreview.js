@@ -49,17 +49,16 @@ const defaultProps = {
     isHovered: false,
 };
 
-const TaskPreview = (props) => {
+function TaskPreview(props) {
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
-    const isTaskCompleted =
-        (props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED) ||
-        (props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED);
+    const isTaskCompleted = props.taskReport
+        ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
+        : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
     const taskAssignee = props.taskReport.managerEmail || props.action.childManagerEmail;
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
-    const parentReportID = props.taskReport.parentReportID || props.action.parentReportID;
 
     return (
         <Pressable
@@ -74,9 +73,9 @@ const TaskPreview = (props) => {
                     disabled={TaskUtils.isTaskCanceled(props.taskReport)}
                     onPress={() => {
                         if (isTaskCompleted) {
-                            TaskUtils.reopenTask(props.taskReportID, parentReportID, taskTitle);
+                            TaskUtils.reopenTask(props.taskReportID, taskTitle);
                         } else {
-                            TaskUtils.completeTask(props.taskReportID, parentReportID, taskTitle);
+                            TaskUtils.completeTask(props.taskReportID, taskTitle);
                         }
                     }}
                 />
@@ -88,7 +87,7 @@ const TaskPreview = (props) => {
             />
         </Pressable>
     );
-};
+}
 
 TaskPreview.propTypes = propTypes;
 TaskPreview.defaultProps = defaultProps;
