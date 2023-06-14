@@ -134,7 +134,7 @@ function ReportActionItem(props) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision.decision);
-    }, [props.action.message, props.action.actionName]);
+    }, [props.action.message[0].moderationDecisions, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -267,7 +267,7 @@ function ReportActionItem(props) {
                                         : undefined,
                                 ]}
                             />
-                            {props.displayAsGroup && hasBeenFlagged && (
+                            {hasBeenFlagged && (
                                 <Button
                                     small
                                     style={[styles.mt2, styles.alignSelfStart]}
@@ -296,20 +296,6 @@ function ReportActionItem(props) {
                                 (ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge)) || ReportUtils.isArchivedRoom(props.report)
                             }
                         />
-                    )}
-                    {!props.displayAsGroup && hasBeenFlagged && (
-                        <Button
-                            small
-                            style={[styles.mt2, styles.alignSelfStart]}
-                            onPress={() => setIsHidden(!isHidden)}
-                        >
-                            <Text
-                                style={styles.buttonSmallText}
-                                selectable={false}
-                            >
-                                {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
-                            </Text>
-                        </Button>
                     )}
                 </ShowContextMenuContext.Provider>
             );
