@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-// eslint-disable-next-line no-restricted-imports
-import {View, TouchableOpacity, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -54,6 +53,7 @@ import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '../../../hooks/useKeyboardShortcut';
+import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -988,7 +988,7 @@ function ReportActionCompose(props) {
                                             >
                                                 {props.isComposerFullSize && (
                                                     <Tooltip text={props.translate('reportActionCompose.collapse')}>
-                                                        <TouchableOpacity
+                                                        <PressableWithFeedback
                                                             onPress={(e) => {
                                                                 e.preventDefault();
                                                                 updateShouldShowSuggestionMenuToFalse();
@@ -998,14 +998,16 @@ function ReportActionCompose(props) {
                                                             onMouseDown={(e) => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || props.disabled}
+                                                            accessibilityRole="button"
+                                                            accessibilityLabel={props.translate('reportActionCompose.collapse')}
                                                         >
                                                             <Icon src={Expensicons.Collapse} />
-                                                        </TouchableOpacity>
+                                                        </PressableWithFeedback>
                                                     </Tooltip>
                                                 )}
                                                 {!props.isComposerFullSize && isFullSizeComposerAvailable && (
                                                     <Tooltip text={props.translate('reportActionCompose.expand')}>
-                                                        <TouchableOpacity
+                                                        <PressableWithFeedback
                                                             onPress={(e) => {
                                                                 e.preventDefault();
                                                                 updateShouldShowSuggestionMenuToFalse();
@@ -1015,13 +1017,15 @@ function ReportActionCompose(props) {
                                                             onMouseDown={(e) => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || props.disabled}
+                                                            accessibilityRole="button"
+                                                            accessibilityLabel={props.translate('reportActionCompose.expand')}
                                                         >
                                                             <Icon src={Expensicons.Expand} />
-                                                        </TouchableOpacity>
+                                                        </PressableWithFeedback>
                                                     </Tooltip>
                                                 )}
                                                 <Tooltip text={props.translate('reportActionCompose.addAction')}>
-                                                    <TouchableOpacity
+                                                    <PressableWithFeedback
                                                         ref={actionButton}
                                                         onPress={(e) => {
                                                             e.preventDefault();
@@ -1032,9 +1036,11 @@ function ReportActionCompose(props) {
                                                         }}
                                                         style={styles.composerSizeButton}
                                                         disabled={isBlockedFromConcierge || props.disabled}
+                                                        accessibilityRole="button"
+                                                        accessibilityLabel={props.translate('reportActionCompose.addAction')}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
-                                                    </TouchableOpacity>
+                                                    </PressableWithFeedback>
                                                 </Tooltip>
                                             </View>
                                             <PopoverMenu
@@ -1136,22 +1142,18 @@ function ReportActionCompose(props) {
                         onMouseDown={(e) => e.preventDefault()}
                     >
                         <Tooltip text={props.translate('common.send')}>
-                            <TouchableOpacity
+                            <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                 onPress={submitForm}
                                 disabled={isCommentEmpty || isBlockedFromConcierge || props.disabled || hasExceededMaxCommentLength}
-                                hitSlop={{
-                                    top: 3,
-                                    right: 3,
-                                    bottom: 3,
-                                    left: 3,
-                                }}
+                                accessibilityRole="button"
+                                accessibilityLabel={props.translate('common.send')}
                             >
                                 <Icon
                                     src={Expensicons.Send}
                                     fill={isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
                                 />
-                            </TouchableOpacity>
+                            </PressableWithFeedback>
                         </Tooltip>
                     </View>
                 </View>
