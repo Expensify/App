@@ -183,6 +183,7 @@ class OptionRow extends Component {
                             hoverDimmingValue={1}
                             hoverStyle={this.props.hoverStyle}
                             focusStyle={this.props.hoverStyle}
+                            onMouseDown={this.props.onRowMouseDown}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>

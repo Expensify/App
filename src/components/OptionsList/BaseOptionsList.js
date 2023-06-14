@@ -174,6 +174,7 @@ class BaseOptionsList extends Component {
                 isDisabled={isDisabled}
                 shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={this.props.shouldDisableRowInnerPadding}
+                onRowMouseDown={this.props.onRowMouseDown}
             />
         );
     }

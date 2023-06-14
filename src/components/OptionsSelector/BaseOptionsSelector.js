@@ -261,6 +261,7 @@ class BaseOptionsSelector extends Component {
      * @returns {Promise}
      */
     selectRow(option, ref) {
+        console.log("selectRow")
         return new Promise((resolve) => {
             if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
                 if (this.relatedTarget && ref === this.relatedTarget) {
@@ -337,6 +338,14 @@ class BaseOptionsSelector extends Component {
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 listContainerStyles={this.props.listContainerStyles}
                 isLoading={!this.props.shouldShowOptions}
+                onRowMouseDown={(e) => {
+                    if (!e || !this.textInput.isFocused()) {
+                        return;
+                    }
+                    console.log("onRowMouseDown")
+                    
+                    e.preventDefault();
+                }}
             />
         );
         return (
