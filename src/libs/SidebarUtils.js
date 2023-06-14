@@ -11,6 +11,7 @@ import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as UserUtils from './UserUtils';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -99,6 +100,13 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, allReports, betas, policies));
+    if (_.isEmpty(reportsToDisplay)) {
+        // Display Concierge chat report when there is no report to be displayed
+        const conciergeChatReport = _.find(allReports, ReportUtils.isConciergeChatReport);
+        if (conciergeChatReport) {
+            reportsToDisplay.push(conciergeChatReport);
+        }
+    }
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {
@@ -332,8 +340,8 @@ function getOptionData(reportID) {
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
-    result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login), true);
+    result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     return result;
 }

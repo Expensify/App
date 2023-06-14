@@ -22,7 +22,7 @@ const propTypes = {
     onPress: PropTypes.func,
 
     /** Icon to display on the left side of component */
-    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
 
     /** Icon Width */
     iconWidth: PropTypes.number,
@@ -32,6 +32,15 @@ const propTypes = {
 
     /** Text to display for the item */
     title: PropTypes.string.isRequired,
+
+    /** Text that appears above the title */
+    label: PropTypes.string,
+
+    /** Boolean whether to display the title right icon */
+    shouldShowTitleIcon: PropTypes.bool,
+
+    /** Icon to display at right side of title */
+    titleIcon: PropTypes.func,
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon: PropTypes.bool,
@@ -101,6 +110,15 @@ const propTypes = {
 
     /** The ref to the menu item */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Any adjustments to style when menu item is hovered or pressed */
+    hoverAndPressStyle: PropTypes.arrayOf(PropTypes.object),
+
+    /** Text to display under the main item */
+    furtherDetails: PropTypes.string,
+
+    /** An icon to display under the main item */
+    furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 };
 
 export default propTypes;

@@ -6,9 +6,10 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
+import * as Policy from '../../libs/actions/Policy';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -56,6 +57,9 @@ const propTypes = {
     /** The guides call task ID to associate with the workspace page being shown */
     guidesCallTaskID: PropTypes.string,
 
+    /** The route where we navigate when the user press the back button */
+    backButtonRoute: PropTypes.string,
+
     /** Policy values needed in the component */
     policy: PropTypes.shape({
         name: PropTypes.string,
@@ -75,6 +79,7 @@ const defaultProps = {
     guidesCallTaskID: '',
     shouldUseScrollView: false,
     shouldSkipVBBACall: false,
+    backButtonRoute: '',
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -111,17 +116,16 @@ class WorkspacePageWithSections extends React.Component {
                 shouldEnablePickerAvoiding={false}
             >
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
+                    subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.headerText}
                         subtitle={policyName}
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={this.props.guidesCallTaskID}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        onBackButtonPress={() => Navigation.goBack(this.props.backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
                     />
                     {this.props.shouldUseScrollView ? (
                         <ScrollViewWithContext

@@ -149,7 +149,7 @@ const columns = ({scrollPageToTop}) => [
     },
 ];
 
-const Footer = (props) => {
+function Footer(props) {
     const isVertical = props.isSmallScreenWidth;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
@@ -178,13 +178,15 @@ const Footer = (props) => {
                                     {_.map(column.rows, (row) => (
                                         <Hoverable key={row.translationPath}>
                                             {(hovered) => (
-                                                <TextLink
-                                                    style={[styles.footerRow, hovered ? styles.textBlue : {}]}
-                                                    href={row.link}
-                                                    onPress={row.onPress}
-                                                >
-                                                    {props.translate(row.translationPath)}
-                                                </TextLink>
+                                                <View>
+                                                    <TextLink
+                                                        style={[styles.footerRow, hovered ? styles.textBlue : {}]}
+                                                        href={row.link}
+                                                        onPress={row.onPress}
+                                                    >
+                                                        {props.translate(row.translationPath)}
+                                                    </TextLink>
+                                                </View>
                                             )}
                                         </Hoverable>
                                     ))}
@@ -216,7 +218,7 @@ const Footer = (props) => {
             </View>
         </View>
     );
-};
+}
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';

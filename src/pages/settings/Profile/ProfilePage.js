@@ -6,10 +6,9 @@ import {withOnyx} from 'react-native-onyx';
 import {ScrollView} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import MenuItem from '../../../components/MenuItem';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -17,12 +16,11 @@ import CONST from '../../../CONST';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
-import * as ReportUtils from '../../../libs/ReportUtils';
+import * as UserUtils from '../../../libs/UserUtils';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
-import * as UserUtils from '../../../libs/UserUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
@@ -47,7 +45,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const ProfilePage = (props) => {
+function ProfilePage(props) {
     const getPronouns = () => {
         let pronounsKey = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -84,29 +82,24 @@ const ProfilePage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <ScrollView>
-                <OfflineWithFeedback
+                <AvatarWithImagePicker
+                    isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
+                    source={UserUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'login', ''))}
+                    onImageSelected={PersonalDetails.updateAvatar}
+                    onImageRemoved={PersonalDetails.deleteAvatar}
+                    anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
+                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                    size={CONST.AVATAR_SIZE.LARGE}
                     pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
                     errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                     errorRowStyles={[styles.mt6]}
-                    onClose={PersonalDetails.clearAvatarErrors}
-                >
-                    <AvatarWithImagePicker
-                        isUsingDefaultAvatar={ReportUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                        source={ReportUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'login', ''))}
-                        onImageSelected={PersonalDetails.updateAvatar}
-                        onImageRemoved={PersonalDetails.deleteAvatar}
-                        anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
-                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                        size={CONST.AVATAR_SIZE.LARGE}
-                    />
-                </OfflineWithFeedback>
+                    onErrorClose={PersonalDetails.clearAvatarErrors}
+                />
                 <View style={[styles.mt4]}>
                     {_.map(profileSettingsOptions, (detail, index) => (
                         <MenuItemWithTopDescription
@@ -128,7 +121,7 @@ const ProfilePage = (props) => {
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;

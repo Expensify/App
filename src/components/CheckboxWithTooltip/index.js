@@ -6,7 +6,7 @@ import {propTypes, defaultProps} from './checkboxWithTooltipPropTypes';
 import Tooltip from '../Tooltip';
 import withWindowDimensions from '../withWindowDimensions';
 
-const CheckboxWithTooltip = (props) => {
+function CheckboxWithTooltip(props) {
     if (props.isSmallScreenWidth || props.isMediumScreenWidth) {
         return (
             <CheckboxWithTooltipForMobileWebAndNative
@@ -26,8 +26,18 @@ const CheckboxWithTooltip = (props) => {
             disabled={props.disabled}
         />
     );
-    return <View style={props.style}>{props.toggleTooltip ? <Tooltip text={props.text}>{checkbox}</Tooltip> : checkbox}</View>;
-};
+    return (
+        <View style={props.style}>
+            {props.toggleTooltip ? (
+                <Tooltip text={props.text}>
+                    <View>{checkbox}</View>
+                </Tooltip>
+            ) : (
+                checkbox
+            )}
+        </View>
+    );
+}
 
 CheckboxWithTooltip.propTypes = propTypes;
 CheckboxWithTooltip.defaultProps = defaultProps;

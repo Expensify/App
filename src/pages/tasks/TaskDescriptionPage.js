@@ -1,16 +1,14 @@
-import _ from 'underscore';
 import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
@@ -37,29 +35,13 @@ const defaultProps = {
 };
 
 function TaskDescriptionPage(props) {
-    /**
-     * @param {Object} values
-     * @param {String} values.description
-     * @returns {Object} - An object containing the errors for each inputID
-     */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
-
-            if (_.isEmpty(values.description)) {
-                errors.description = props.translate('common.error.fieldRequired');
-            }
-
-            return errors;
-        },
-        [props],
-    );
+    const validate = useCallback(() => ({}), []);
 
     const submit = useCallback(
         (values) => {
             // Set the description of the report in the store and then call TaskUtils.editTaskReport
             // to update the description of the report on the server
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', values.description, '');
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, {description: values.description});
         },
         [props],
     );
@@ -71,12 +53,7 @@ function TaskDescriptionPage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
-            <HeaderWithCloseButton
-                title={props.translate('newTaskPage.task')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-            />
+            <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
@@ -89,7 +66,7 @@ function TaskDescriptionPage(props) {
                     <TextInput
                         inputID="description"
                         name="description"
-                        label={props.translate('newTaskPage.description')}
+                        label={props.translate('newTaskPage.descriptionOptional')}
                         defaultValue={(props.task.report && props.task.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />

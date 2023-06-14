@@ -26,7 +26,7 @@ const propTypes = {
  * */
 const showUserDetails = (email) => Navigation.navigate(ROUTES.getDetailsRoute(email));
 
-const MentionUserRenderer = (props) => {
+function MentionUserRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
 
     // We need to remove the leading @ from data as it is not part of the login
@@ -36,15 +36,12 @@ const MentionUserRenderer = (props) => {
 
     return (
         <Text>
-            <Tooltip
-                absolute
-                text={loginWhithoutLeadingAt}
-            >
+            <Tooltip text={loginWhithoutLeadingAt}>
                 <Text
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     color={StyleUtils.getMentionTextColor(isOurMention)}
-                    style={StyleUtils.getMentionStyle(isOurMention)}
+                    style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention)]}
                     onPress={() => showUserDetails(loginWhithoutLeadingAt)}
                 >
                     <TNodeChildrenRenderer tnode={props.tnode} />
@@ -52,7 +49,7 @@ const MentionUserRenderer = (props) => {
             </Tooltip>
         </Text>
     );
-};
+}
 
 MentionUserRenderer.propTypes = propTypes;
 MentionUserRenderer.displayName = 'MentionUserRenderer';
