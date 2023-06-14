@@ -31,7 +31,7 @@ const defaultProps = {
     style: [],
 };
 
-const FormHelpMessage = (props) => {
+function FormHelpMessage(props) {
     if (_.isEmpty(props.message) && _.isEmpty(props.children)) {
         return null;
     }
@@ -50,7 +50,7 @@ const FormHelpMessage = (props) => {
             </View>
         </View>
     );
-};
+}
 
 FormHelpMessage.propTypes = propTypes;
 FormHelpMessage.defaultProps = defaultProps;
