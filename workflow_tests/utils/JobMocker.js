@@ -21,6 +21,11 @@ class JobMocker {
                 if (job.secrets) {
                     delete job.secrets;
                 }
+                let jobWith;
+                if (job.with) {
+                    jobWith = job.with;
+                    delete job.with;
+                }
                 job.steps = _(mockJob.steps).map((step) => {
                     const mockStep = {
                         name: step.name,
@@ -29,10 +34,16 @@ class JobMocker {
                     if (step.id) {
                         mockStep.id = step.id;
                     }
+                    if (jobWith) {
+                        mockStep.with = jobWith;
+                    }
                     return mockStep;
                 });
                 if (mockJob.outputs) {
                     job.outputs = mockJob.outputs;
+                }
+                if (mockJob.runsOn) {
+                    job['runs-on'] = mockJob.runsOn;
                 }
             } else {
                 throw new Error('Could not find job');
