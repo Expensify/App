@@ -63,7 +63,7 @@ const defaultProps = {
     containerStyles: [],
 };
 
-const AttachmentView = (props) => {
+function AttachmentView(props) {
     const [loadComplete, setLoadComplete] = useState(false);
     const containerStyles = [styles.flex1, styles.flexRow, styles.alignSelfStretch];
 
@@ -155,7 +155,7 @@ const AttachmentView = (props) => {
             )}
         </View>
     );
-};
+}
 
 AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;

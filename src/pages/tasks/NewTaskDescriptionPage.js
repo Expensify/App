@@ -35,7 +35,7 @@ const defaultProps = {
     },
 };
 
-const NewTaskDescriptionPage = (props) => {
+function NewTaskDescriptionPage(props) {
     const inputRef = useRef(null);
 
     // On submit, we want to call the assignTask function and wait to validate
@@ -83,7 +83,7 @@ const NewTaskDescriptionPage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskDescriptionPage.displayName = 'NewTaskDescriptionPage';
 NewTaskDescriptionPage.propTypes = propTypes;

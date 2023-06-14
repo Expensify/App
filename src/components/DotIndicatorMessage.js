@@ -32,7 +32,7 @@ const defaultProps = {
     style: [],
 };
 
-const DotIndicatorMessage = (props) => {
+function DotIndicatorMessage(props) {
     if (_.isEmpty(props.messages)) {
         return null;
     }
@@ -72,7 +72,7 @@ const DotIndicatorMessage = (props) => {
             </View>
         </View>
     );
-};
+}
 
 DotIndicatorMessage.propTypes = propTypes;
 DotIndicatorMessage.defaultProps = defaultProps;

@@ -43,7 +43,7 @@ const defaultProps = {
     noMargin: false,
 };
 
-const SubscriptAvatar = (props) => {
+function SubscriptAvatar(props) {
     const isSmall = props.size === CONST.AVATAR_SIZE.SMALL;
     const subscriptSyle = props.size === CONST.AVATAR_SIZE.MID_SMALL_NORMAL ? styles.secondAvatarSubscriptMidSmallNormal : styles.secondAvatarSubscript;
     const containerStyle = isSmall ? styles.emptyAvatarSmall : styles.emptyAvatar;
@@ -85,7 +85,7 @@ const SubscriptAvatar = (props) => {
             </Tooltip>
         </View>
     );
-};
+}
 
 SubscriptAvatar.displayName = 'SubscriptAvatar';
 SubscriptAvatar.propTypes = propTypes;

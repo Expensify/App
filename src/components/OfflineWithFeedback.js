@@ -87,7 +87,7 @@ function applyStrikeThrough(children) {
     });
 }
 
-const OfflineWithFeedback = (props) => {
+function OfflineWithFeedback(props) {
     const hasErrors = !_.isEmpty(props.errors);
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
@@ -132,7 +132,7 @@ const OfflineWithFeedback = (props) => {
             )}
         </View>
     );
-};
+}
 
 OfflineWithFeedback.propTypes = propTypes;
 OfflineWithFeedback.defaultProps = defaultProps;
