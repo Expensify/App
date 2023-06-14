@@ -48,8 +48,6 @@ const defaultProps = {
 };
 
 function Checkbox(props) {
-    const [isFocused, setIsFocused] = useState(false);
-
     const handleSpaceKey = (event) => {
         if (event.code !== 'Space') {
             return;
@@ -65,13 +63,6 @@ function Checkbox(props) {
             return;
         }
 
-        const wasChecked = props.isChecked;
-
-        // If checkbox is checked and focused, make sure it's unfocused when pressed.
-        if (isFocused && wasChecked) {
-            setIsFocused(false);
-        }
-
         props.onPress();
     };
 
@@ -80,10 +71,7 @@ function Checkbox(props) {
             disabled={props.disabled}
             onPress={firePressHandlerOnClick}
             onMouseDown={props.onMouseDown}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
             ref={props.forwardedRef}
-            onPressOut={() => setIsFocused(false)}
             style={props.style}
             onKeyDown={handleSpaceKey}
             accessibilityRole="checkbox"
@@ -99,7 +87,7 @@ function Checkbox(props) {
                         props.isChecked && styles.checkedContainer,
                         props.hasError && styles.borderColorDanger,
                         props.disabled && styles.cursorDisabled,
-                        (isFocused || props.isChecked) && styles.borderColorFocus,
+                        props.isChecked && styles.borderColorFocus,
                     ]}
                     // Used as CSS selector to customize focus-visible style
                     dataSet={{checkbox: true}}
