@@ -16,9 +16,11 @@ import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import {propTypes as optionsSelectorPropTypes, defaultProps as optionsSelectorDefaultProps} from './selectionListPropTypes';
 import setSelection from '../../libs/setSelection';
 import compose from '../../libs/compose';
-import SelectionListDefault from './SelectionListDefault';
-import SelectionListSingle from './SelectionListSingle';
-import SelectionListMultiple from './SelectionListMultiple';
+import SelectionListItemDefault from './SelectionListItemDefault';
+import SelectionListItemSingle from './SelectionListItemSingle';
+import SelectionListItemMultiple from './SelectionListItemMultiple';
+import SectionList from '../SectionList';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -167,37 +169,99 @@ const SelectionList = (props) => {
         });
     };
 
-    const getListComponent = () => {
-        let List = SelectionListDefault;
+    const renderItem = ({item, index, section}) => {
+        let Item = SelectionListItemDefault;
 
         if (props.canSelectSingle) {
-            List = SelectionListSingle;
+            Item = SelectionListItemSingle;
         }
 
         if (props.canSelectMultiple) {
-            List = SelectionListMultiple;
+            Item = SelectionListItemMultiple;
         }
 
-        return (
-            <List
-                ref={listRef}
-                onSelectRow={selectRow}
-                focusedIndex={focusedIndex}
-                onLayout={() => {
-                    if (props.selectedOptions.length === 0) {
-                        scrollToIndex(focusedIndex, false);
-                    }
+        const isDisabled = props.isDisabled || section.isDisabled;
+        const isSelected = Boolean(item.customIcon); // TODO: Adjust how this is coming from TimezoneSelectPage
 
-                    if (props.onLayout) {
-                        props.onLayout();
-                    }
-                }}
-                contentContainerStyles={shouldShowFooter ? undefined : [props.safeAreaPaddingBottomStyle]}
-                isLoading={!props.shouldShowOptions}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+        return (
+            <Item
+                item={item}
+                isDisabled={isDisabled}
+                isSelected={isSelected}
+                onPress={selectRow}
             />
         );
+    };
+
+    /**
+     * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
+     *
+     * @returns {Array<Object>}
+     */
+    const buildFlatSectionArray = () => {
+        let offset = 0;
+
+        // Start with just an empty list header
+        const flatArray = [{length: 0, offset}];
+
+        // Build the flat array
+        for (let sectionIndex = 0; sectionIndex < props.sections.length; sectionIndex++) {
+            const section = props.sections[sectionIndex];
+
+            // Add the section header
+            const sectionHeaderHeight = section.title && !props.hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
+            flatArray.push({length: sectionHeaderHeight, offset});
+            offset += sectionHeaderHeight;
+
+            // Add section items
+            for (let i = 0; i < section.data.length; i++) {
+                let fullOptionHeight = variables.optionRowHeight;
+                if (i > 0 && props.shouldHaveOptionSeparator) {
+                    fullOptionHeight += variables.borderTopWidth;
+                }
+                flatArray.push({length: fullOptionHeight, offset});
+                offset += fullOptionHeight;
+            }
+
+            // Add the section footer
+            flatArray.push({length: 0, offset});
+        }
+
+        // Then add the list footer
+        flatArray.push({length: 0, offset});
+        return flatArray;
+    };
+
+    const flattenedData = buildFlatSectionArray();
+
+    /**
+     * This function is used to compute the layout of any given item in our list.
+     * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
+     *
+     * @param {Array} data - This is the same as the data we pass into the component
+     * @param {Number} flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
+     *
+     *     1. It ALWAYS includes a list header and a list footer, even if we don't provide/render those.
+     *     2. Each section includes a header, even if we don't provide/render one.
+     *
+     *     For example, given a list with two sections, two items in each section, no header, no footer, and no section headers, the flat array might look something like this:
+     *
+     *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
+     *
+     * @returns {Object}
+     */
+    const getItemLayout = (data, flatDataArrayIndex) => {
+        // if (!_.has(this.flattenedData, flatDataArrayIndex)) {
+        //     this.flattenedData = this.buildFlatSectionArray();
+        // }
+
+        const targetItem = flattenedData[flatDataArrayIndex];
+
+        return {
+            length: targetItem.length,
+            offset: targetItem.offset,
+            index: flatDataArrayIndex,
+        };
     };
 
     useEffect(() => {
@@ -304,36 +368,25 @@ const SelectionList = (props) => {
         />
     );
 
-    const list = getListComponent();
-
-    // const optionsList = (
-    //     <OptionsList
-    //         ref={listRef}
-    //         optionHoveredStyle={props.optionHoveredStyle}
-    //         onSelectRow={selectRow}
-    //         sections={props.sections}
-    //         focusedIndex={focusedIndex}
-    //         selectedOptions={props.selectedOptions}
-    //         canSelectMultipleOptions={props.canSelectMultipleOptions}
-    //         hideSectionHeaders={props.hideSectionHeaders}
-    //         headerMessage={props.headerMessage}
-    //         boldStyle={props.boldStyle}
-    //         showTitleTooltip={props.showTitleTooltip}
-    //         isDisabled={props.isDisabled}
-    //         shouldHaveOptionSeparator={props.shouldHaveOptionSeparator}
-    //         onLayout={() => {
-    //             if (props.selectedOptions.length === 0) {
-    //                 scrollToIndex(focusedIndex, false);
-    //             }
-    //
-    //             if (props.onLayout) {
-    //                 props.onLayout();
-    //             }
-    //         }}
-    //         contentContainerStyles={shouldShowFooter ? undefined : [props.safeAreaPaddingBottomStyle]}
-    //         isLoading={!props.shouldShowOptions}
-    //     />
-    // );
+    const list = (
+        <SectionList
+            ref={listRef}
+            indicatorStyle="white"
+            keyboardShouldPersistTaps="always"
+            showsVerticalScrollIndicator={false}
+            stickySectionHeadersEnabled={false}
+            initialNumToRender={12}
+            maxToRenderPerBatch={5}
+            windowSize={5}
+            viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+            sections={props.sections}
+            keyExtractor={(item) => item.keyForList}
+            renderItem={renderItem}
+            getItemLayout={getItemLayout}
+            extraData={props.focusedIndex}
+            contentContainerStyle={shouldShowFooter ? undefined : [props.safeAreaPaddingBottomStyle]}
+        />
+    );
 
     return (
         <ArrowKeyFocusManager

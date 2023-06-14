@@ -130,12 +130,11 @@ class TimezoneSelectPage extends Component {
                             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
                         />
                         <SelectionList
-                            // canSelectMultipleOptions
+                            canSelectSingle
                             textInputLabel={this.props.translate('timezonePage.timezone')}
                             value={this.state.timezoneInputText}
                             onChangeText={this.filterShownTimezones}
                             onSelectRow={this.saveSelectedTimezone}
-                            optionHoveredStyle={styles.hoveredComponentBG}
                             sections={[{data: this.state.timezoneOptions, indexOffset: 0, isDisabled: this.timezone.automatic}]}
                             shouldHaveOptionSeparator
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
