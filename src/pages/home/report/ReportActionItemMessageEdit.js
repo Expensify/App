@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React, {useState, useRef, useMemo, useEffect, useCallback} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -31,7 +30,6 @@ import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Hoverable from '../../../components/Hoverable';
-import usePrevious from '../../../hooks/usePrevious';
 import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
@@ -95,7 +93,12 @@ function ReportActionItemMessageEdit(props) {
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
 
     const textInputRef = useRef(null);
-    const wasPreviouslyFocused = usePrevious(isFocused);
+    const isFocusedRef = useRef(false);
+
+    useEffect(() => {
+        // required for keeping last state of isFocused variable
+        isFocusedRef.current = isFocused;
+    }, [isFocused]);
 
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
@@ -111,7 +114,7 @@ function ReportActionItemMessageEdit(props) {
 
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused
-            if (wasPreviouslyFocused) {
+            if (!isFocusedRef.current) {
                 return;
             }
 
@@ -119,7 +122,6 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             ComposerActions.setShouldShowComposeInput(true);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     /**
