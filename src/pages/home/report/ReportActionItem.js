@@ -136,7 +136,7 @@ function ReportActionItem(props) {
         }
         setModerationDecision(latestDecision.decision);
 
-        // props.action.message doesn't need to be a dependency, we only to check the change of props.action.message[0].moderationDecisions
+        // props.action.message doesn't need to be a dependency, we only need to check the change of props.action.message[0].moderationDecisions
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.action.message[0].moderationDecisions, props.action.actionName]);
 
