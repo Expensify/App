@@ -91,6 +91,23 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+
+        const shouldShowFilter = (contextAction) =>
+            contextAction.shouldShow(
+                ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
+                {},
+                false,
+                props.betas,
+                popoverAnchor,
+                false,
+                props.reportID,
+                optionItem.isPinned,
+            );
+        
+        if (_.filter(ContextMenuActions.default, shouldShowFilter).length === 0) {
+            return;
+        }
+
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
             event,
