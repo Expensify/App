@@ -47,10 +47,10 @@ function UserDetailsTooltip(props) {
                 </Text>
             </View>
         ),
-        [userDetails.avatar, userDetails.displayName, userDetails.login],
+        [userAvatar, userDisplayName, userLogin],
     );
 
-    if (!userDetails.displayName && !userDetails.login) {
+    if (!userDisplayName && !userLogin) {
         return props.children;
     }
 
