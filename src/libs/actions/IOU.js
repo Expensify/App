@@ -15,6 +15,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
+import * as UserUtils from '../UserUtils';
 
 const chatReports = {};
 const iouReports = {};
@@ -51,6 +52,7 @@ function buildOnyxDataForMoneyRequest(
     chatCreatedAction,
     iouCreatedAction,
     iouAction,
+    optimisticPersonalDetailListAction,
     reportPreviewAction,
     isNewChatReport,
     isNewIOUReport,
@@ -103,6 +105,14 @@ function buildOnyxDataForMoneyRequest(
             },
         },
     ];
+
+    if (isNewChatReport && !_.isEmpty(optimisticPersonalDetailListAction)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetailListAction,
+        });
+    }
 
     const successData = [
         ...(isNewChatReport
@@ -327,6 +337,16 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         iouReport.reportID,
     );
 
+    // Add optimistic personal details for participant
+    const optimisticPersonalDetailListAction = {
+        [payerAccountID]: {
+            accountID: payerAccountID,
+            avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+            displayName: participant.displayName || payerEmail,
+            login: participant.login,
+        },
+    };
+
     let isNewReportPreviewAction = false;
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (!reportPreviewAction) {
@@ -342,6 +362,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         optimisticCreatedActionForChat,
         optimisticCreatedActionForIOU,
         optimisticIOUAction,
+        optimisticPersonalDetailListAction,
         reportPreviewAction,
         isNewChatReport,
         isNewIOUReport,
@@ -564,6 +585,16 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneIOUReport.reportID,
         );
 
+        // Add optimistic personal details for new participants
+        const oneOnOnePersonalDetailListAction = {
+            [accountID]: {
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: participant.displayName || email,
+                login: participant.login,
+            },
+        };
+
         let isNewOneOnOneReportPreviewAction = false;
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (!oneOnOneReportPreviewAction) {
@@ -579,6 +610,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneCreatedActionForChat,
             oneOnOneCreatedActionForIOU,
             oneOnOneIOUAction,
+            oneOnOnePersonalDetailListAction,
             oneOnOneReportPreviewAction,
             isNewOneOnOneChatReport,
             isNewOneOnOneIOUReport,
@@ -937,6 +969,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     ];
 
+    let optimisticPersonalDetailListData = {};
+
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
@@ -962,6 +996,20 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         });
 
+        // Add optimistic personal details for recipient
+        optimisticPersonalDetailListData = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [recipientAccountID]: {
+                    accountID: recipientAccountID,
+                    avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
+                    displayName: recipient.displayName || recipient.login,
+                    login: recipient.login,
+                },
+            },
+        };
+
         // Add an optimistic created action to the optimistic reportActions data
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
 
@@ -970,6 +1018,9 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     }
 
     const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
+    if (!_.isEmpty(optimisticPersonalDetailListData)) {
+        optimisticData.push(optimisticPersonalDetailListData);
+    }
 
     return {
         params: {
@@ -1007,6 +1058,12 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         iouReport.reportID,
         true,
     );
+    const optimisticPersonalDetailsListAction = {
+        accountID: Number(recipient.accountID),
+        avatar: UserUtils.getDefaultAvatarURL(Number(recipient.accountID)),
+        displayName: recipient.displayName || recipient.login,
+        login: recipient.login,
+    };
 
     const optimisticData = [
         {
@@ -1052,6 +1109,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {[iouReport.policyID]: paymentMethodType},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetailsListAction,
         },
     ];
 
