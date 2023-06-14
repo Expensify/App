@@ -425,6 +425,16 @@ function getReportPreviewAction(chatReportID, iouReportID) {
     );
 }
 
+/**
+ * Get the iouReportID for a given report action.
+ * 
+ * @param {*} reportAction
+ * @returns {String}
+ */
+function getIouReportID(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
+}
+
 function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
@@ -452,4 +462,5 @@ export {
     getFormattedAmount,
     isSentMoneyReportAction,
     isReportReviewAction,
+    getIouReportID,
 };
