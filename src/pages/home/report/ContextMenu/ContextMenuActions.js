@@ -273,7 +273,7 @@ export default [
         textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
-            !ReportUtils.isMoneyRequestReport(undefined, reportID) && type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
+            type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat && !ReportUtils.isMoneyRequestReport(undefined, reportID),
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, false);
             if (closePopover) {
@@ -286,7 +286,7 @@ export default [
         textTranslateKey: 'common.unPin',
         icon: Expensicons.Pin,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
-            !ReportUtils.isMoneyRequestReport(undefined, reportID) && type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
+            type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat && !ReportUtils.isMoneyRequestReport(undefined, reportID),
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, true);
             if (closePopover) {
