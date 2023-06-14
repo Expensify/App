@@ -19,6 +19,7 @@ import UnreadActionIndicator from '../../../components/UnreadActionIndicator';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemThread from './ReportActionItemThread';
+import LinkPreviewer from './LinkPreviewer';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import ControlSelection from '../../../libs/ControlSelection';
@@ -107,6 +108,7 @@ function ReportActionItem(props) {
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
+    const downloadedPreviews = useRef([]);
 
     const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
@@ -116,6 +118,16 @@ function ReportActionItem(props) {
 
         focusTextInputAfterAnimation(textInputRef.current, 100);
     }, [isDraftEmpty]);
+
+    useEffect(() => {
+        const urls = ReportActionsUtils.extractLinksFromMessageHtml(props.action);
+        if (_.isEqual(downloadedPreviews.current, urls) || props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+
+        downloadedPreviews.current = urls;
+        Report.expandURLPreview(props.report.reportID, props.action.reportActionID);
+    }, [props.action, props.report.reportID]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
@@ -327,6 +339,11 @@ function ReportActionItem(props) {
         return (
             <>
                 {children}
+                {!_.isEmpty(props.action.linkMetadata) && (
+                    <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
+                        <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
+                    </View>
+                )}
                 {hasReactions && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemReactions
