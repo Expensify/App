@@ -151,10 +151,12 @@ function isTaskReport(report) {
  * Checks if a report is an IOU or expense report.
  *
  * @param {Object} report
+ * @param {Object} reportID
  * @returns {Boolean}
  */
-function isMoneyRequestReport(report) {
-    return isIOUReport(report) || isExpenseReport(report);
+function isMoneyRequestReport(report, reportID) {
+    const reportFromID = reportID ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : report;
+    return isIOUReport(reportFromID) || isExpenseReport(reportFromID);
 }
 
 /**
