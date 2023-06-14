@@ -33,32 +33,34 @@ const socialsList = [
     },
 ];
 
-const Socials = () => (
-    <View style={[styles.flexRow, styles.flexWrap]}>
-        {_.map(socialsList, (social) => (
-            <PressableWithoutFeedback
-                key={social.link}
-                href={social.link}
-                onPress={(e) => {
-                    e.preventDefault();
-                    Link.openExternalLink(social.link);
-                }}
-                accessible={false}
-                style={[styles.mr1, styles.mt1]}
-                shouldUseAutoHitSlop={false}
-            >
-                {({hovered, pressed}) => (
-                    <Icon
-                        src={social.iconURL}
-                        height={variables.iconSizeLarge}
-                        width={variables.iconSizeLarge}
-                        fill={hovered || pressed ? themeColors.link : themeColors.textLight}
-                    />
-                )}
-            </PressableWithoutFeedback>
-        ))}
-    </View>
-);
+function Socials() {
+    return (
+        <View style={[styles.flexRow, styles.flexWrap]}>
+            {_.map(socialsList, (social) => (
+                <PressableWithoutFeedback
+                    key={social.link}
+                    href={social.link}
+                    onPress={(e) => {
+                        e.preventDefault();
+                        Link.openExternalLink(social.link);
+                    }}
+                    accessible={false}
+                    style={[styles.mr1, styles.mt1]}
+                    shouldUseAutoHitSlop={false}
+                >
+                    {({hovered, pressed}) => (
+                        <Icon
+                            src={social.iconURL}
+                            height={variables.iconSizeLarge}
+                            width={variables.iconSizeLarge}
+                            fill={hovered || pressed ? themeColors.link : themeColors.textLight}
+                        />
+                    )}
+                </PressableWithoutFeedback>
+            ))}
+        </View>
+    );
+}
 
 Socials.displayName = 'Socials';
 
