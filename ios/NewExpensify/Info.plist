@@ -32,7 +32,11 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
+<<<<<<< HEAD
 	<string>1.3.28.2</string>
+=======
+	<string>1.3.28.1</string>
+>>>>>>> 4343d287ce (Merge pull request #20784 from Expensify/Rory-RevertPodsCache)
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
