@@ -2,8 +2,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FireworksAnimation from '../../../assets/animations/Fireworks.json';
 import ReviewingBankInfoAnimation from '../../../assets/animations/ReviewingBankInfo.json';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import userWalletPropTypes from './userWalletPropTypes';
 import CONST from '../../CONST';
@@ -30,19 +29,14 @@ const defaultProps = {
     },
 };
 
-const ActivateStep = (props) => {
+function ActivateStep(props) {
     const isGoldWallet = props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
     const animation = isGoldWallet ? FireworksAnimation : ReviewingBankInfoAnimation;
     const continueButtonText = props.walletTerms.chatReportID ? props.translate('activateStep.continueToPayment') : props.translate('activateStep.continueToTransfer');
 
     return (
         <>
-            <HeaderWithCloseButton
-                title={props.translate('activateStep.headerTitle')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <HeaderWithBackButton title={props.translate('activateStep.headerTitle')} />
             <ConfirmationPage
                 animation={animation}
                 heading={props.translate(`activateStep.${isGoldWallet ? 'activated' : 'checkBackLater'}Title`)}
@@ -53,7 +47,7 @@ const ActivateStep = (props) => {
             />
         </>
     );
-};
+}
 
 ActivateStep.propTypes = propTypes;
 ActivateStep.defaultProps = defaultProps;

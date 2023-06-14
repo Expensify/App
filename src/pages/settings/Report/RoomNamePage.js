@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import CONST from '../../../CONST';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Form from '../../../components/Form';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -32,7 +32,7 @@ const defaultProps = {
     reports: {},
 };
 
-const RoomNamePage = (props) => {
+function RoomNamePage(props) {
     const report = props.report;
     const reports = props.reports;
     const translate = props.translate;
@@ -48,30 +48,28 @@ const RoomNamePage = (props) => {
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
-                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
+                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.pleaseEnterRoomName');
             } else if (!ValidationUtils.isValidRoomName(values.roomName)) {
                 // We error if the room name has invalid characters
-                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
+                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomNameInvalidError');
             } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+                ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
             } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report.policyID)) {
                 // The room name can't be set to one that already exists on the policy
-                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
+                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
             }
 
             return errors;
         },
-        [report, reports, translate],
+        [report, reports],
     );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={translate('newRoomPage.roomName')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID))}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
@@ -91,7 +89,7 @@ const RoomNamePage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 RoomNamePage.propTypes = propTypes;
 RoomNamePage.defaultProps = defaultProps;

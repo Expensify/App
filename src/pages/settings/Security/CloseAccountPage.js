@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
@@ -78,7 +78,7 @@ class CloseAccountPage extends Component {
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail) || userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
-            errors.phoneOrEmail = this.props.translate('closeAccountPage.enterYourDefaultContactMethod');
+            errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
         }
         return errors;
     }
@@ -87,11 +87,9 @@ class CloseAccountPage extends Component {
         const userEmailOrPhone = this.props.formatPhoneNumber(this.props.session.email);
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('closeAccountPage.closeAccount')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
@@ -128,9 +126,10 @@ class CloseAccountPage extends Component {
                             onCancel={this.hideConfirmModal}
                             isVisible={this.state.isConfirmModalVisible}
                             prompt={this.props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                            confirmText={this.props.translate('common.yes')}
+                            confirmText={this.props.translate('common.yesContinue')}
                             cancelText={this.props.translate('common.cancel')}
                             shouldShowCancelButton
+                            danger
                         />
                     </View>
                 </Form>

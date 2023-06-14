@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
@@ -34,7 +34,7 @@ const defaultProps = {
     task: {},
 };
 
-const NewTaskPage = (props) => {
+function NewTaskPage(props) {
     const inputRef = useRef();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
@@ -53,7 +53,7 @@ const NewTaskPage = (props) => {
 
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', props.translate('newTaskPage.pleaseEnterTaskName'));
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
         }
 
         return errors;
@@ -75,7 +75,7 @@ const NewTaskPage = (props) => {
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
         >
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}
                 onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
@@ -102,6 +102,9 @@ const NewTaskPage = (props) => {
                     <TextInput
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />
@@ -109,7 +112,7 @@ const NewTaskPage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskPage.displayName = 'NewTaskPage';
 NewTaskPage.propTypes = propTypes;

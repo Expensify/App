@@ -46,7 +46,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const ReportActionItemReactions = (props) => {
+function ReportActionItemReactions(props) {
     const popoverReactionListAnchor = useRef(null);
     const reactionsWithCount = _.filter(props.reactions, (reaction) => reaction.users.length > 0);
 
@@ -100,7 +100,7 @@ const ReportActionItemReactions = (props) => {
             {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
         </View>
     );
-};
+}
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;

@@ -3,7 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -69,7 +69,7 @@ const defaultProps = {
     parentReport: {},
 };
 
-const MoneyRequestHeader = (props) => {
+function MoneyRequestHeader(props) {
     // These are only used for the single transaction view and not for expense and iou reports
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
@@ -92,7 +92,7 @@ const MoneyRequestHeader = (props) => {
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={props.isSingleTransactionView}
                 shouldShowThreeDotsButton={!isPayer && !isSettled && props.isSingleTransactionView}
@@ -108,9 +108,8 @@ const MoneyRequestHeader = (props) => {
                 parentReport={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
-                shouldShowCloseButton={false}
                 shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
             />
             <View style={[styles.ph5, styles.pb2]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
@@ -201,7 +200,7 @@ const MoneyRequestHeader = (props) => {
             )}
         </View>
     );
-};
+}
 
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;

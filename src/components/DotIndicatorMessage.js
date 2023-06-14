@@ -17,7 +17,7 @@ const propTypes = {
      *      timestamp: 'message',
      *  }
      */
-    messages: PropTypes.objectOf(PropTypes.string),
+    messages: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))])),
 
     // The type of message, 'error' shows a red dot, 'success' shows a green dot
     type: PropTypes.oneOf(['error', 'success']).isRequired,
@@ -32,7 +32,7 @@ const defaultProps = {
     style: [],
 };
 
-const DotIndicatorMessage = (props) => {
+function DotIndicatorMessage(props) {
     if (_.isEmpty(props.messages)) {
         return null;
     }
@@ -72,7 +72,7 @@ const DotIndicatorMessage = (props) => {
             </View>
         </View>
     );
-};
+}
 
 DotIndicatorMessage.propTypes = propTypes;
 DotIndicatorMessage.defaultProps = defaultProps;

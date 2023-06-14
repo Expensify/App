@@ -129,7 +129,7 @@ const defaultProps = {
     onFieldChange: () => {},
 };
 
-const IdentityForm = (props) => {
+function IdentityForm(props) {
     // dob field has multiple validations/errors, we are handling it temporarily like this.
     const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '') || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
     const identityFormInputKeys = ['firstName', 'lastName', 'dob', 'ssnLast4'];
@@ -198,7 +198,7 @@ const IdentityForm = (props) => {
             />
         </View>
     );
-};
+}
 
 IdentityForm.propTypes = propTypes;
 IdentityForm.defaultProps = defaultProps;

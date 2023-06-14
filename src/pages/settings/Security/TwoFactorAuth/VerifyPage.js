@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -92,16 +92,14 @@ function VerifyPage(props) {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
                 shouldShowStepCounter
                 stepCounter={{
                     step: 2,
                     text: props.translate('twoFactorAuth.stepVerify'),
                 }}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_CODES)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_CODES)}
             />
             <FullPageOfflineBlockingView>
                 <ScrollView style={styles.mb5}>
