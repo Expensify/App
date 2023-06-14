@@ -533,48 +533,6 @@ function isThreadFirstChat(reportAction, reportID) {
 }
 
 /**
- * Get either the policyName or domainName the chat is tied to
- * @param {Object} report
- * @returns {String}
- */
-function getChatRoomSubtitle(report) {
-    if (isThread(report)) {
-        if (!getChatType(report)) {
-            return '';
-        }
-
-        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-
-        // If thread is not from a DM or group chat, the subtitle will follow the pattern 'Workspace Name • #roomName'
-        const workspaceName = getPolicyName(report);
-        let roomName = '';
-        if (isChatRoom(report)) {
-            if (parentReport) {
-                roomName = lodashGet(parentReport, 'displayName', '');
-            } else {
-                roomName = lodashGet(report, 'displayName', '');
-            }
-        }
-
-        return roomName ? [workspaceName, roomName].join(' • ') : workspaceName;
-    }
-    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
-        return '';
-    }
-    if (getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
-        // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
-        return report.reportName.substring(1);
-    }
-    if ((isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        return Localize.translateLocal('workspace.common.workspace');
-    }
-    if (isArchivedRoom(report)) {
-        return report.oldPolicyName || '';
-    }
-    return getPolicyName(report);
-}
-
-/**
  * Get welcome message based on room type
  * @param {Object} report
  * @returns {Object}
@@ -749,6 +707,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     }
     if (isConciergeChatReport(report)) {
         result.source = CONST.CONCIERGE_ICON_URL;
+        result.name = CONST.EMAIL.CONCIERGE;
         return [result];
     }
     if (isArchivedRoom(report)) {
@@ -846,6 +805,16 @@ function getPersonalDetailsForLogin(login) {
 }
 
 /**
+ * Gets the accountID for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then an empty string is returned.
+ * @param {String} login
+ * @returns {String}
+ */
+function getAccountIDForLogin(login) {
+    return lodashGet(allPersonalDetails, [login, 'accountID'], '');
+}
+
+/**
  * Get the displayName for a single report participant.
  *
  * @param {String} login
@@ -857,11 +826,8 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
         return '';
     }
     const personalDetails = getPersonalDetailsForLogin(login);
-
     const longName = personalDetails.displayName;
-
     const shortName = personalDetails.firstName || longName;
-
     return shouldUseShortForm ? shortName : longName;
 }
 
@@ -873,7 +839,8 @@ function getDisplayNameForParticipant(login, shouldUseShortForm = false) {
 function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
     return _.map(participants, (participant) => {
         const displayName = getDisplayNameForParticipant(participant.login, isMultipleParticipantReport);
-        const tooltip = participant.login ? Str.removeSMSDomain(participant.login) : '';
+        const avatar = UserUtils.getDefaultAvatar(participant.login);
+        const accountID = participant.accountID;
 
         let pronouns = participant.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -883,7 +850,9 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
 
         return {
             displayName,
-            tooltip,
+            avatar,
+            login: participant.login,
+            accountID,
             pronouns,
         };
     });
@@ -1039,6 +1008,60 @@ function getReportName(report) {
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
     return _.map(participantsWithoutCurrentUser, (login) => getDisplayNameForParticipant(login, isMultipleParticipantReport)).join(', ');
+}
+
+/**
+ * Recursively navigates through parent to get the root reports name only for DM reports.
+ * @param {Object} report
+ * @returns {String|*}
+ */
+function getDMRootReportName(report) {
+    if (isThread(report) && !getChatType(report)) {
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        return getDMRootReportName(parentReport);
+    }
+
+    return getReportName(report);
+}
+
+/**
+ * Get either the policyName or domainName the chat is tied to
+ * @param {Object} report
+ * @returns {String}
+ */
+function getChatRoomSubtitle(report) {
+    if (isThread(report)) {
+        if (!getChatType(report)) {
+            return `${Localize.translateLocal('threads.from')} ${getDMRootReportName(report)}`;
+        }
+
+        let roomName = '';
+        if (isChatRoom(report)) {
+            const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+            if (parentReport) {
+                roomName = lodashGet(parentReport, 'displayName', '');
+            } else {
+                roomName = lodashGet(report, 'displayName', '');
+            }
+        }
+
+        const workspaceName = getPolicyName(report);
+        return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+    }
+    if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
+        return '';
+    }
+    if (getChatType(report) === CONST.REPORT.CHAT_TYPE.DOMAIN_ALL) {
+        // The domainAll rooms are just #domainName, so we ignore the prefix '#' to get the domainName
+        return report.reportName.substring(1);
+    }
+    if ((isPolicyExpenseChat(report) && report.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
+        return Localize.translateLocal('workspace.common.workspace');
+    }
+    if (isArchivedRoom(report)) {
+        return report.oldPolicyName || '';
+    }
+    return getPolicyName(report);
 }
 
 /**
@@ -2153,7 +2176,9 @@ function getParentReport(report) {
 }
 
 export {
+    getAccountIDForLogin,
     getReportParticipantsTitle,
+    getPersonalDetailsForLogin,
     isReportMessageAttachment,
     findLastAccessedReport,
     canEditReportAction,

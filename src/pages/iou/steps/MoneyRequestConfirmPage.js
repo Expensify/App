@@ -60,7 +60,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const MoneyRequestConfirmPage = (props) => {
+function MoneyRequestConfirmPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
@@ -202,7 +202,7 @@ const MoneyRequestConfirmPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 MoneyRequestConfirmPage.displayName = 'MoneyRequestConfirmPage';
 MoneyRequestConfirmPage.propTypes = propTypes;

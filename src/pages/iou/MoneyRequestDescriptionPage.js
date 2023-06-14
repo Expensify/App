@@ -100,7 +100,6 @@ class MoneyRequestDescriptionPage extends Component {
                     formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                     onSubmit={this.updateComment}
                     submitButtonText={this.props.translate('common.save')}
-                    validate={() => ({})}
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>

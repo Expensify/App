@@ -69,7 +69,7 @@ const defaultProps = {
     furtherDetailsIcon: undefined,
 };
 
-const MenuItem = (props) => {
+function MenuItem(props) {
     const isDeleted = _.contains(props.style, styles.offlineFeedback.deleted);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
@@ -78,10 +78,10 @@ const MenuItem = (props) => {
             styles.popoverMenuText,
             props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
+            props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
             props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined,
             styles.pre,
             styles.ltr,
-            props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
         ],
         props.titleStyle,
@@ -278,7 +278,7 @@ const MenuItem = (props) => {
             )}
         </PressableWithSecondaryInteraction>
     );
-};
+}
 
 MenuItem.propTypes = propTypes;
 MenuItem.displayName = 'MenuItem';
