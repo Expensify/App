@@ -106,6 +106,7 @@ function WorkspaceMembersPage(props) {
 
     useEffect(() => {
         getWorkspaceMembers();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -269,7 +270,7 @@ function WorkspaceMembersPage(props) {
 
     /**
      * Check if the policy member is deleted from the workspace
-     * 
+     *
      * @param {Object} policyMember
      * @returns {Boolean}
      */
@@ -277,7 +278,7 @@ function WorkspaceMembersPage(props) {
 
     /**
      * Render a workspace member component
-     * 
+     *
      * @param {Object} args
      * @param {Object} args.item
      * @param {Number} args.index
