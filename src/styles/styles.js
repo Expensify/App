@@ -2217,13 +2217,12 @@ const styles = {
         textAlign: 'center',
     },
 
-    twoFactorAuthCodesButtonsContainer: (isExtraSmallScreenWidth) => ({
+    twoFactorAuthCodesButtonsContainer: {
         flexDirection: 'row',
-        flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
         justifyContent: 'center',
         gap: 12,
         marginTop: 20,
-    }),
+    },
 
     twoFactorAuthCodesButton: {
         minWidth: 100,
