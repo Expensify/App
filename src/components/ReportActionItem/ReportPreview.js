@@ -93,7 +93,7 @@ const defaultProps = {
     },
 };
 
-const ReportPreview = (props) => {
+function ReportPreview(props) {
     const managerEmail = props.iouReport.managerEmail || '';
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
@@ -146,7 +146,7 @@ const ReportPreview = (props) => {
             )}
         </View>
     );
-};
+}
 
 ReportPreview.propTypes = propTypes;
 ReportPreview.defaultProps = defaultProps;

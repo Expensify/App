@@ -8,13 +8,15 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDime
 import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
 
-const KeyboardSpacer = (props) => (
-    <BaseKeyboardSpacer
-        topSpacing={StyleUtils.hasSafeAreas(props.windowWidth, props.windowHeight) ? CONST.IOS_KEYBOARD_SPACE_OFFSET : 0}
-        keyboardShowMethod="keyboardWillShow"
-        keyboardHideMethod="keyboardWillHide"
-    />
-);
+function KeyboardSpacer(props) {
+    return (
+        <BaseKeyboardSpacer
+            topSpacing={StyleUtils.hasSafeAreas(props.windowWidth, props.windowHeight) ? CONST.IOS_KEYBOARD_SPACE_OFFSET : 0}
+            keyboardShowMethod="keyboardWillShow"
+            keyboardHideMethod="keyboardWillHide"
+        />
+    );
+}
 
 KeyboardSpacer.propTypes = windowDimensionsPropTypes;
 KeyboardSpacer.displayName = 'KeyboardSpacer';

@@ -41,7 +41,7 @@ const defaultProps = {
     iconContainerStyles: [],
 };
 
-const Section = (props) => {
+function Section(props) {
     const IconComponent = props.IconComponent;
     return (
         <>
@@ -68,7 +68,7 @@ const Section = (props) => {
             </View>
         </>
     );
-};
+}
 
 Section.displayName = 'Section';
 Section.propTypes = propTypes;
