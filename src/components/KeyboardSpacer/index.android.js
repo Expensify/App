@@ -7,13 +7,15 @@ import StatusBar from '../../libs/StatusBar';
 import BaseKeyboardSpacer from './BaseKeyboardSpacer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-const KeyboardSpacer = () => (
-    <BaseKeyboardSpacer
-        topSpacing={StatusBar.currentHeight}
-        keyboardShowMethod="keyboardDidShow"
-        keyboardHideMethod="keyboardDidHide"
-    />
-);
+function KeyboardSpacer() {
+    return (
+        <BaseKeyboardSpacer
+            topSpacing={StatusBar.currentHeight}
+            keyboardShowMethod="keyboardDidShow"
+            keyboardHideMethod="keyboardDidHide"
+        />
+    );
+}
 
 KeyboardSpacer.propTypes = windowDimensionsPropTypes;
 KeyboardSpacer.displayName = 'KeyboardSpacer';

@@ -12,7 +12,7 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 
 const propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
 
-const ImageRenderer = (props) => {
+function ImageRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -82,7 +82,7 @@ const ImageRenderer = (props) => {
             )}
         </ShowContextMenuContext.Consumer>
     );
-};
+}
 
 ImageRenderer.propTypes = propTypes;
 ImageRenderer.displayName = 'ImageRenderer';

@@ -12,7 +12,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // eslint-disable-next-line arrow-body-style
-const MockedCalendarPicker = (props) => {
+function MockedCalendarPicker(props) {
     return (
         <CalendarPicker
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -21,7 +21,7 @@ const MockedCalendarPicker = (props) => {
             preferredLocale={CONST.LOCALES.EN}
         />
     );
-};
+}
 
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
