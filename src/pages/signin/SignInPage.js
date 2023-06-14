@@ -64,11 +64,11 @@ class SignInPage extends Component {
         Performance.measureTTI();
         App.setLocale(Localize.getDevicePreferredLocale());
         BackButtonUtils.prepareBackHistory();
-        BackButtonUtils.addBackButtonListener(BackButtonUtils.backButtonHandler);
+        BackButtonUtils.addBackButtonListener();
     }
 
     componentWillUnmount() {
-        BackButtonUtils.removeBackButtonListener(BackButtonUtils.backButtonHandler);
+        BackButtonUtils.removeBackButtonListener();
     }
 
     render() {

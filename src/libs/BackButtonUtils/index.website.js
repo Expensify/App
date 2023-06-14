@@ -33,12 +33,12 @@ function backButtonHandler() {
     }
 }
 
-function addBackButtonListener(handler) {
-    window.addEventListener('popstate', handler);
+function addBackButtonListener() {
+    window.addEventListener('popstate', backButtonHandler);
 }
 
-function removeBackButtonListener(handler) {
-    window.removeEventListener('popstate', handler);
+function removeBackButtonListener() {
+    window.removeEventListener('popstate', backButtonHandler);
 }
 
 export {prepareBackHistory, backButtonHandler, addBackButtonListener, removeBackButtonListener};

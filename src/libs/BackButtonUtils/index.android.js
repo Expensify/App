@@ -30,12 +30,12 @@ function backButtonHandler() {
     return true;
 }
 
-function addBackButtonListener(handler) {
-    BackHandler.addEventListener('hardwareBackPress', handler);
+function addBackButtonListener() {
+    BackHandler.addEventListener('hardwareBackPress', backButtonHandler);
 }
 
-function removeBackButtonListener(handler) {
-    BackHandler.removeEventListener('hardwareBackPress', handler);
+function removeBackButtonListener() {
+    BackHandler.removeEventListener('hardwareBackPress', backButtonHandler);
 }
 
 export {prepareBackHistory, backButtonHandler, addBackButtonListener, removeBackButtonListener};
