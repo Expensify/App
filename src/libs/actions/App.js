@@ -143,8 +143,9 @@ AppState.addEventListener('change', (nextAppState) => {
  */
 function openApp() {
     isReadyToOpenApp.then(() => {
+        // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
         const connectionID = Onyx.connect({
-            key: ONYXKEYS.POLICY,
+            key: ONYXKEYS.COLLECTION.POLICY,
             waitForCollectionCallback: true,
             callback: (policies) => {
                 Onyx.disconnect(connectionID);
