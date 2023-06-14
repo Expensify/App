@@ -29,13 +29,8 @@ jobs:
     needs: validateActor
     runs-on: ubuntu-latest
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event.inputs.NEW_VERSION == '' }}
-    outputs:
-      NEW_VERSION: ${{ steps.createNewVersion.outputs.NEW_VERSION }}
-    steps:
-      - name: Create new version
-        id: createNewVersion
-        uses: Expensify/App/.github/workflows/createNewVersion.yml@main
-        secrets: inherit
+    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    secrets: inherit
 
   cherryPick:
     needs: [validateActor, createNewVersion]

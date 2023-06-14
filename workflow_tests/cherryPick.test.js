@@ -64,14 +64,23 @@ describe('test workflow cherryPick', () => {
                 );
                 const testMockSteps = {
                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__FALSE__STEP_MOCKS,
-                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                     cherryPick: mocks.getCherryPickMockSteps(true, true, true),
+                };
+                const testMockJobs = {
+                    createNewVersion: {
+                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                        outputs: {
+                            // eslint-disable-next-line no-template-curly-in-string
+                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                        },
+                    },
                 };
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
 
                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -91,8 +100,16 @@ describe('test workflow cherryPick', () => {
                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                 const testMockSteps = {
                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__FALSE__STEP_MOCKS,
-                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                     cherryPick: mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts),
+                };
+                const testMockJobs = {
+                    createNewVersion: {
+                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                        outputs: {
+                            // eslint-disable-next-line no-template-curly-in-string
+                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                        },
+                    },
                 };
                 act = utils.setUpActParams(
                     act,
@@ -115,6 +132,7 @@ describe('test workflow cherryPick', () => {
                     mockSteps: testMockSteps,
                     actor,
                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
 
                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -138,9 +156,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -162,6 +188,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -188,9 +215,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -212,6 +247,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -241,9 +277,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -265,6 +309,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -291,9 +336,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -315,6 +368,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -347,9 +401,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -371,6 +433,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -397,9 +460,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -421,6 +492,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -450,9 +522,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -474,6 +554,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -500,9 +581,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -524,6 +613,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -560,9 +650,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -584,6 +682,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -610,9 +709,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -634,6 +741,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -663,9 +771,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -687,6 +803,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -713,9 +830,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -737,6 +862,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -769,9 +895,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -793,6 +927,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -819,9 +954,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -843,6 +986,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -872,9 +1016,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -896,6 +1048,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -922,9 +1075,17 @@ describe('test workflow cherryPick', () => {
                                 let act = new eAct.ExtendedAct(repoPath, workflowPath);
                                 const testMockSteps = {
                                     validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                                    createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                                 };
                                 testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, prIsMergeable, !mergeConflicts);
+                                const testMockJobs = {
+                                    createNewVersion: {
+                                        steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                        outputs: {
+                                            // eslint-disable-next-line no-template-curly-in-string
+                                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                                        },
+                                    },
+                                };
                                 act = utils.setUpActParams(
                                     act,
                                     event,
@@ -946,6 +1107,7 @@ describe('test workflow cherryPick', () => {
                                     mockSteps: testMockSteps,
                                     actor,
                                     logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                                    mockJobs: testMockJobs,
                                 });
 
                                 assertions.assertValidateActorJobExecuted(result, actor);
@@ -993,14 +1155,23 @@ describe('test workflow cherryPick', () => {
             );
             const testMockSteps = {
                 validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                createNewVersion: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
                 cherryPick: mocks.getCherryPickMockSteps(true, true, true),
+            };
+            const testMockJobs = {
+                createNewVersion: {
+                    steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                    outputs: {
+                        // eslint-disable-next-line no-template-curly-in-string
+                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
+                    },
+                },
             };
             const result = await act.runEvent(event, {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
                 mockSteps: testMockSteps,
                 actor: 'Dummy Author',
                 logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                mockJobs: testMockJobs,
             });
 
             assertions.assertValidateActorJobExecuted(result, 'Dummy Author', false);
