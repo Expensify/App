@@ -16,14 +16,16 @@ const defaultProps = {
     icon: null,
 };
 
-const ButtonBase = ({onPress, icon}) => (
-    <PressableWithoutFeedback
-        onPress={onPress}
-        style={styles.signInButtonBase}
-    >
-        {icon}
-    </PressableWithoutFeedback>
-);
+function ButtonBase({onPress, icon}) {
+    return (
+        <PressableWithoutFeedback
+            onPress={onPress}
+            style={styles.signInButtonBase}
+        >
+            {icon}
+        </PressableWithoutFeedback>
+    );
+}
 
 ButtonBase.displayName = 'ButtonBase';
 ButtonBase.propTypes = propTypes;

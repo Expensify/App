@@ -38,7 +38,7 @@ function appleSignInRequest() {
  * @returns {React.Component}
  */
 
-const AppleSignIn = () => {
+function AppleSignIn() {
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
@@ -53,7 +53,7 @@ const AppleSignIn = () => {
             icon={appleLogoIcon}
         />
     );
-};
+}
 
 AppleSignIn.displayName = 'AppleSignIn';
 

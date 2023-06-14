@@ -16,20 +16,22 @@ const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg')
  * @returns {React.Component}
  */
 
-const AppleSignIn = (props) => (
-    <View
-        style={styles.appleButtonContainer}
-        accessibilityRole="button"
-        accessibilityLabel={props.translate('common.signInWithApple')}
-    >
-        <ButtonBase
-            onPress={() => {
-                window.open(appleSignInWebRouteForDesktopFlow);
-            }}
-            icon={appleLogoIcon}
-        />
-    </View>
-);
+function AppleSignIn(props) {
+    return (
+        <View
+            style={styles.appleButtonContainer}
+            accessibilityRole="button"
+            accessibilityLabel={props.translate('common.signInWithApple')}
+        >
+            <ButtonBase
+                onPress={() => {
+                    window.open(appleSignInWebRouteForDesktopFlow);
+                }}
+                icon={appleLogoIcon}
+            />
+        </View>
+    );
+}
 
 AppleSignIn.displayName = 'AppleSignIn';
 AppleSignIn.propTypes = propTypes;
