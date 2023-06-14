@@ -25,7 +25,7 @@ import colors from '../../styles/colors';
 import reportPropTypes from '../reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import ThreeDotsMenu from '../../components/ThreeDotsMenu';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
@@ -99,12 +99,12 @@ const HeaderView = (props) => {
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
     if (isTaskReport) {
-        const isTaskAssigneeOrTaskOwner = TaskUtils.isTaskAssigneeOrTaskOwner(props.report, props.session.email);
+        const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.email);
         if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
-                onSelected: () => TaskUtils.completeTask(props.report.reportID, title),
+                onSelected: () => Task.completeTask(props.report.reportID, title),
             });
         }
 
@@ -113,7 +113,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
-                onSelected: () => TaskUtils.reopenTask(props.report.reportID, title),
+                onSelected: () => Task.reopenTask(props.report.reportID, title),
             });
         }
 
@@ -122,7 +122,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => TaskUtils.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
             });
         }
     }
