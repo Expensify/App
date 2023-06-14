@@ -1203,6 +1203,7 @@ function addPolicyReport(policy, reportName, visibility) {
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         policy.id,
         CONST.REPORT.OWNER_EMAIL_FAKE,
+        0,
         false,
         '',
         visibility,
