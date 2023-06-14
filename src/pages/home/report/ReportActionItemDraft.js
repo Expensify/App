@@ -8,11 +8,13 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const ReportActionItemDraft = (props) => (
-    <View style={[styles.chatItemDraft]}>
-        <View style={styles.flex1}>{props.children}</View>
-    </View>
-);
+function ReportActionItemDraft(props) {
+    return (
+        <View style={[styles.chatItemDraft]}>
+            <View style={styles.flex1}>{props.children}</View>
+        </View>
+    );
+}
 
 ReportActionItemDraft.propTypes = propTypes;
 ReportActionItemDraft.displayName = 'ReportActionItemDraft';

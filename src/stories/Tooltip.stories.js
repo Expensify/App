@@ -11,32 +11,34 @@ const story = {
     component: Tooltip,
 };
 
-const Template = (args) => (
-    <div
-        style={{
-            width: 100,
-        }}
-    >
-        <Tooltip
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...args}
-            maxWidth={args.maxWidth || undefined}
+function Template(args) {
+    return (
+        <div
+            style={{
+                width: 100,
+            }}
         >
-            <div
-                style={{
-                    width: 100,
-                    height: 60,
-                    display: 'flex',
-                    backgroundColor: 'red',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}
+            <Tooltip
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...args}
+                maxWidth={args.maxWidth || undefined}
             >
-                Hover me
-            </div>
-        </Tooltip>
-    </div>
-);
+                <div
+                    style={{
+                        width: 100,
+                        height: 60,
+                        display: 'flex',
+                        backgroundColor: 'red',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    Hover me
+                </div>
+            </Tooltip>
+        </div>
+    );
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -47,7 +49,7 @@ Default.args = {
     maxWidth: 0,
 };
 
-const RenderContent = () => {
+function RenderContent() {
     const [size, setSize] = React.useState(40);
 
     const renderTooltipContent = () => (
@@ -86,7 +88,7 @@ const RenderContent = () => {
             </Tooltip>
         </div>
     );
-};
+}
 
 export default story;
 export {Default, RenderContent};

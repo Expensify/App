@@ -13,7 +13,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const EditedRenderer = (props) => {
+function EditedRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
     const isPendingDelete = Boolean(props.tnode.attributes.deleted !== undefined);
     return (
@@ -34,7 +34,7 @@ const EditedRenderer = (props) => {
             {props.translate('reportActionCompose.edited')}
         </Text>
     );
-};
+}
 
 EditedRenderer.propTypes = propTypes;
 EditedRenderer.displayName = 'EditedRenderer';

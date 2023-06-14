@@ -69,7 +69,7 @@ const defaultProps = {
     task: {},
 };
 
-const TaskAssigneeSelectorModal = (props) => {
+function TaskAssigneeSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -216,7 +216,7 @@ const TaskAssigneeSelectorModal = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 TaskAssigneeSelectorModal.propTypes = propTypes;

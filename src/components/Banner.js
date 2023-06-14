@@ -54,59 +54,61 @@ const defaultProps = {
     textStyles: [],
 };
 
-const Banner = (props) => (
-    <Hoverable>
-        {(isHovered) => {
-            const isClickable = props.onClose || props.onPress;
-            const shouldHighlight = isClickable && isHovered;
-            return (
-                <View
-                    style={[
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.p5,
-                        styles.borderRadiusNormal,
-                        shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
-                        styles.breakAll,
-                        ...props.containerStyles,
-                    ]}
-                >
-                    <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
-                        {props.shouldShowIcon && (
-                            <View style={[styles.mr3]}>
-                                <Icon
-                                    src={Expensicons.Exclamation}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
-                                />
-                            </View>
-                        )}
-                        {props.shouldRenderHTML ? (
-                            <RenderHTML html={props.text} />
-                        ) : (
-                            <Text
-                                style={[...props.textStyles]}
-                                onPress={props.onPress}
-                            >
-                                {props.text}
-                            </Text>
+function Banner(props) {
+    return (
+        <Hoverable>
+            {(isHovered) => {
+                const isClickable = props.onClose || props.onPress;
+                const shouldHighlight = isClickable && isHovered;
+                return (
+                    <View
+                        style={[
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            styles.p5,
+                            styles.borderRadiusNormal,
+                            shouldHighlight ? styles.activeComponentBG : styles.hoveredComponentBG,
+                            styles.breakAll,
+                            ...props.containerStyles,
+                        ]}
+                    >
+                        <View style={[styles.flexRow, styles.flexGrow1, styles.mw100, styles.alignItemsCenter]}>
+                            {props.shouldShowIcon && (
+                                <View style={[styles.mr3]}>
+                                    <Icon
+                                        src={Expensicons.Exclamation}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
+                                    />
+                                </View>
+                            )}
+                            {props.shouldRenderHTML ? (
+                                <RenderHTML html={props.text} />
+                            ) : (
+                                <Text
+                                    style={[...props.textStyles]}
+                                    onPress={props.onPress}
+                                >
+                                    {props.text}
+                                </Text>
+                            )}
+                        </View>
+                        {props.shouldShowCloseButton && (
+                            <Tooltip text={props.translate('common.close')}>
+                                <PressableWithFeedback
+                                    onPress={props.onClose}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={props.translate('common.close')}
+                                >
+                                    <Icon src={Expensicons.Close} />
+                                </PressableWithFeedback>
+                            </Tooltip>
                         )}
                     </View>
-                    {props.shouldShowCloseButton && (
-                        <Tooltip text={props.translate('common.close')}>
-                            <PressableWithFeedback
-                                onPress={props.onClose}
-                                accessibilityRole="button"
-                                accessibilityLabel={props.translate('common.close')}
-                            >
-                                <Icon src={Expensicons.Close} />
-                            </PressableWithFeedback>
-                        </Tooltip>
-                    )}
-                </View>
-            );
-        }}
-    </Hoverable>
-);
+                );
+            }}
+        </Hoverable>
+    );
+}
 
 Banner.propTypes = propTypes;
 Banner.defaultProps = defaultProps;
