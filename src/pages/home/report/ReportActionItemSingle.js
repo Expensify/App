@@ -65,7 +65,7 @@ const showUserDetails = (accountID) => {
     Navigation.navigate(ROUTES.getProfileRoute(accountID));
 };
 
-const ReportActionItemSingle = (props) => {
+function ReportActionItemSingle(props) {
     const actorEmail = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const actorAccountID = props.action.actorAccountID;
     const {avatar, displayName, pendingFields} = props.personalDetailsList[actorAccountID] || {};
@@ -139,7 +139,7 @@ const ReportActionItemSingle = (props) => {
             </View>
         </View>
     );
-};
+}
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;

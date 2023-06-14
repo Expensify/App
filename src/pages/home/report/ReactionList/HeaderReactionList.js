@@ -24,17 +24,19 @@ const defaultProps = {
     hasUserReacted: false,
 };
 
-const HeaderReactionList = (props) => (
-    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !props.isSmallScreenWidth && styles.pt4]}>
-        <View style={styles.flexRow}>
-            <View style={[styles.emojiReactionListHeaderBubble, StyleUtils.getEmojiReactionBubbleStyle(false, props.hasUserReacted)]}>
-                <Text style={[styles.miniQuickEmojiReactionText, StyleUtils.getEmojiReactionBubbleTextStyle(true)]}>{props.emojiCodes.join('')}</Text>
-                <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.emojiCount}</Text>
+function HeaderReactionList(props) {
+    return (
+        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !props.isSmallScreenWidth && styles.pt4]}>
+            <View style={styles.flexRow}>
+                <View style={[styles.emojiReactionListHeaderBubble, StyleUtils.getEmojiReactionBubbleStyle(false, props.hasUserReacted)]}>
+                    <Text style={[styles.miniQuickEmojiReactionText, StyleUtils.getEmojiReactionBubbleTextStyle(true)]}>{props.emojiCodes.join('')}</Text>
+                    <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.emojiCount}</Text>
+                </View>
+                <Text style={styles.reactionListHeaderText}>{`:${props.emojiName}:`}</Text>
             </View>
-            <Text style={styles.reactionListHeaderText}>{`:${props.emojiName}:`}</Text>
         </View>
-    </View>
-);
+    );
+}
 
 HeaderReactionList.propTypes = propTypes;
 HeaderReactionList.defaultProps = defaultProps;

@@ -58,7 +58,7 @@ const defaultProps = {
     },
 };
 
-const ContactMethodsPage = (props) => {
+function ContactMethodsPage(props) {
     const loginNames = _.keys(props.loginList);
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
@@ -139,7 +139,7 @@ const ContactMethodsPage = (props) => {
             </FixedFooter>
         </ScreenWrapper>
     );
-};
+}
 
 ContactMethodsPage.propTypes = propTypes;
 ContactMethodsPage.defaultProps = defaultProps;

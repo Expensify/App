@@ -84,7 +84,7 @@ export default function (WrappedComponent) {
         ...policyDefaultProps,
     };
 
-    const WithPolicy = (props) => {
+    function WithPolicy(props) {
         const currentRoute = _.last(useNavigationState((state) => state.routes || []));
         const policyID = getPolicyIDFromRoute(currentRoute);
 
@@ -100,7 +100,7 @@ export default function (WrappedComponent) {
                 ref={props.forwardedRef}
             />
         );
-    };
+    }
 
     WithPolicy.propTypes = propTypes;
     WithPolicy.defaultProps = defaultProps;

@@ -11,7 +11,7 @@ import HapticFeedback from '../../libs/HapticFeedback';
  * @param {Object} props
  * @returns {React.Component}
  */
-const PressableWithSecondaryInteraction = (props) => {
+function PressableWithSecondaryInteraction(props) {
     // Use Text node for inline mode to prevent content overflow.
     const Node = props.inline ? Text : Pressable;
     return (
@@ -35,7 +35,7 @@ const PressableWithSecondaryInteraction = (props) => {
             {props.children}
         </Node>
     );
-};
+}
 
 PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
 PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;

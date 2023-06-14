@@ -77,7 +77,7 @@ function keyExtractor(item) {
     return item.reportActionID;
 }
 
-const ReportActionsList = (props) => {
+function ReportActionsList(props) {
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -191,7 +191,7 @@ const ReportActionsList = (props) => {
             />
         </Animated.View>
     );
-};
+}
 
 ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;

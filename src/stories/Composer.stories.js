@@ -21,7 +21,7 @@ const story = {
 
 const parser = new ExpensiMark();
 
-const Default = (args) => {
+function Default(args) {
     const [pastedFile, setPastedFile] = useState(null);
     const [comment, setComment] = useState(args.defaultValue);
     const renderedHTML = parser.replace(comment);
@@ -63,7 +63,7 @@ const Default = (args) => {
             </View>
         </View>
     );
-};
+}
 
 Default.args = {
     autoFocus: true,

@@ -33,7 +33,7 @@ export default function (WrappedComponent) {
         },
     };
 
-    const WithCurrentUserPersonalDetails = (props) => {
+    function WithCurrentUserPersonalDetails(props) {
         const accountID = props.session.accountID;
         const currentUserPersonalDetails = useMemo(() => ({...props.personalDetails[accountID], accountID}), [props.personalDetails, accountID]);
         return (
@@ -44,7 +44,7 @@ export default function (WrappedComponent) {
                 currentUserPersonalDetails={currentUserPersonalDetails}
             />
         );
-    };
+    }
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
     WithCurrentUserPersonalDetails.propTypes = propTypes;

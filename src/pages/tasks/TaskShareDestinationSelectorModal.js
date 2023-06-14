@@ -41,7 +41,7 @@ const defaultProps = {
     reports: {},
 };
 
-const TaskShareDestinationSelectorModal = (props) => {
+function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -169,7 +169,7 @@ const TaskShareDestinationSelectorModal = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
 TaskShareDestinationSelectorModal.propTypes = propTypes;
