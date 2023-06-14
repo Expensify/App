@@ -21,7 +21,17 @@ const CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS = [CHERRYPICK__VALIDATEACTOR__
 const CHERRYPICK__VALIDATEACTOR__FALSE__STEP_MOCKS = [CHERRYPICK__VALIDATEACTOR__CHECK_IF_USER_IS_DEPLOYER_FALSE__STEP_MOCK];
 
 // createnewversion
-const CHERRYPICK__CREATENEWVERSION__CREATE_NEW_VERSION__STEP_MOCK = utils.createMockStep('Create new version', 'Creating new version', 'CREATENEWVERSION', [], [], {NEW_VERSION: '1.2.3'});
+const CHERRYPICK__CREATENEWVERSION__CREATE_NEW_VERSION__STEP_MOCK = utils.createMockStep(
+    'Create new version',
+    'Creating new version',
+    'CREATENEWVERSION',
+    [],
+    [],
+    {NEW_VERSION: '1.2.3'},
+    null,
+    true,
+    'createNewVersion',
+);
 const CHERRYPICK__CREATENEWVERSION__STEP_MOCKS = [CHERRYPICK__CREATENEWVERSION__CREATE_NEW_VERSION__STEP_MOCK];
 
 // cherrypick
