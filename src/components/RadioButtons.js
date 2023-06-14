@@ -30,8 +30,9 @@ class RadioButtons extends React.Component {
     render() {
         return (
             <View>
-                {_.map(this.props.items, (item) => (
+                {_.map(this.props.items, (item, index) => (
                     <RadioButtonWithLabel
+                        key={`${item.label}-${index}`}
                         isChecked={item.value === this.state.checkedValue}
                         style={[styles.mt4]}
                         onPress={() => {

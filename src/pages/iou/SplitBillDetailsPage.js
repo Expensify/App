@@ -62,7 +62,7 @@ function getReportID(route) {
     return route.params.reportID.toString();
 }
 
-const SplitBillDetailsPage = (props) => {
+function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const personalDetails = OptionsListUtils.getPersonalDetailsForLogins(reportAction.originalMessage.participants, props.personalDetails);
     const participants = OptionsListUtils.getParticipantsOptions(reportAction.originalMessage, personalDetails);
@@ -75,10 +75,7 @@ const SplitBillDetailsPage = (props) => {
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
-                <HeaderWithBackButton
-                    title={props.translate('common.details')}
-                    shouldShowBackButton={false}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
@@ -100,7 +97,7 @@ const SplitBillDetailsPage = (props) => {
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
-};
+}
 
 SplitBillDetailsPage.propTypes = propTypes;
 SplitBillDetailsPage.defaultProps = defaultProps;

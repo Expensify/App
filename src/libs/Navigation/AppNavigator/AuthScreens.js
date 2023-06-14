@@ -19,6 +19,7 @@ import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
+import * as Report from '../../actions/Report';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createResponsiveStackNavigator from './createResponsiveStackNavigator';
 import SCREENS from '../../../SCREENS';
@@ -85,6 +86,10 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }),
+
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -92,6 +97,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    lastOpenedPublicRoomID: null,
 };
 
 class AuthScreens extends React.Component {
@@ -115,6 +121,11 @@ class AuthScreens extends React.Component {
 
         App.openApp();
         App.setUpPoliciesAndNavigate(this.props.session);
+
+        if (this.props.lastOpenedPublicRoomID) {
+            // Re-open the last opened public room if the user logged in from a public room link
+            Report.openLastOpenedPublicRoom(this.props.lastOpenedPublicRoomID);
+        }
         Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -273,6 +284,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        lastOpenedPublicRoomID: {
+            key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
         },
     }),
 )(AuthScreens);

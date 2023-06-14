@@ -43,7 +43,7 @@ const defaultProps = {
     noMargin: false,
 };
 
-const SubscriptAvatar = (props) => {
+function SubscriptAvatar(props) {
     const containerStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.emptyAvatarSmall : styles.emptyAvatar;
 
     // Default the margin style to what is normal for small or normal sized avatars
@@ -84,7 +84,7 @@ const SubscriptAvatar = (props) => {
             </Tooltip>
         </View>
     );
-};
+}
 
 SubscriptAvatar.displayName = 'SubscriptAvatar';
 SubscriptAvatar.propTypes = propTypes;

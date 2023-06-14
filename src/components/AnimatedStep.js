@@ -21,7 +21,7 @@ const defaultProps = {
     style: [],
 };
 
-const AnimatedStep = (props) => {
+function AnimatedStep(props) {
     function getAnimationStyle(direction) {
         let animationStyle;
 
@@ -43,7 +43,7 @@ const AnimatedStep = (props) => {
             {props.children}
         </Animatable.View>
     );
-};
+}
 
 AnimatedStep.propTypes = propTypes;
 AnimatedStep.defaultProps = defaultProps;
