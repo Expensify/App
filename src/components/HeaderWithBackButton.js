@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, Keyboard} from 'react-native';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Header from './Header';
 import Navigation from '../libs/Navigation/Navigation';
@@ -18,6 +19,7 @@ import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
+import CONST from '../CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import PinButton from './PinButton';
 
@@ -64,6 +66,12 @@ const propTypes = {
         right: PropTypes.number,
         bottom: PropTypes.number,
         left: PropTypes.number,
+    }),
+
+    /** The anchor alignment of the menu */
+    threeDotsAnchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
     /** Whether we should show a close button */
@@ -134,6 +142,10 @@ const defaultProps = {
     threeDotsAnchorPosition: {
         vertical: 0,
         horizontal: 0,
+    },
+    threeDotsAnchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
 };
 
@@ -233,6 +245,7 @@ class HeaderWithBackButton extends Component {
                                 menuItems={this.props.threeDotsMenuItems}
                                 onIconPress={this.props.onThreeDotsButtonPress}
                                 anchorPosition={this.props.threeDotsAnchorPosition}
+                                anchorAlignment={this.props.threeDotsAnchorAlignment}
                             />
                         )}
 

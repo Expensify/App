@@ -85,6 +85,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** Is the window width narrow, like on a mobile device */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -125,6 +128,7 @@ const defaultProps = {
     modal: {},
     report: {},
     reportActions: [],
+    parentReportActions: {},
     blockedFromConcierge: {},
     personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
@@ -210,7 +214,6 @@ class ReportActionCompose extends React.Component {
                 start: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
                 end: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
             },
-            maxLines: props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES,
             value: props.comment,
 
             // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
@@ -233,7 +236,6 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
-        this.setMaxLines();
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -251,10 +253,6 @@ class ReportActionCompose extends React.Component {
         // open creates a jarring and broken UX.
         if (this.willBlurTextInputOnTapOutside && this.props.isFocused && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
-        }
-
-        if (this.props.isComposerFullSize !== prevProps.isComposerFullSize) {
-            this.setMaxLines();
         }
 
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
@@ -396,17 +394,6 @@ class ReportActionCompose extends React.Component {
      */
     setExceededMaxCommentLength(hasExceededMaxCommentLength) {
         this.setState({hasExceededMaxCommentLength});
-    }
-
-    /**
-     * Set the maximum number of lines for the composer
-     */
-    setMaxLines() {
-        let maxLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-        if (this.props.isComposerFullSize) {
-            maxLines = CONST.COMPOSER.MAX_LINES_FULL;
-        }
-        this.setState({maxLines});
     }
 
     // eslint-disable-next-line rulesdir/prefer-early-return
@@ -829,7 +816,9 @@ class ReportActionCompose extends React.Component {
         ) {
             e.preventDefault();
 
-            const lastReportAction = _.find(this.props.reportActions, (action) => ReportUtils.canEditReportAction(action));
+            const parentReportActionID = lodashGet(this.props.report, 'parentReportActionID', '');
+            const parentReportAction = lodashGet(this.props.parentReportActions, [parentReportActionID], {});
+            const lastReportAction = _.find([...this.props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
 
             if (lastReportAction !== -1 && lastReportAction) {
                 Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);
@@ -917,6 +906,7 @@ class ReportActionCompose extends React.Component {
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
+        const maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
         return (
             <View
@@ -1079,7 +1069,7 @@ class ReportActionCompose extends React.Component {
                                                 onChangeText={(comment) => this.updateComment(comment, true)}
                                                 onKeyPress={this.triggerHotkeyActions}
                                                 style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                                maxLines={this.state.maxLines}
+                                                maxLines={maxComposerLines}
                                                 onFocus={() => this.setIsFocused(true)}
                                                 onBlur={() => {
                                                     this.setIsFocused(false);
@@ -1256,6 +1246,10 @@ export default compose(
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            canEvict: false,
         },
     }),
 )(ReportActionCompose);
