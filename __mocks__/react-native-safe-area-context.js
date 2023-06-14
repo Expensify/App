@@ -9,15 +9,17 @@ const insets = {
 };
 
 function withSafeAreaInsets(WrappedComponent) {
-    const WithSafeAreaInsets = (props) => (
-        <WrappedComponent
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            // eslint-disable-next-line react/prop-types
-            ref={props.forwardedRef}
-            insets={insets}
-        />
-    );
+    function WithSafeAreaInsets(props) {
+        return (
+            <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                // eslint-disable-next-line react/prop-types
+                ref={props.forwardedRef}
+                insets={insets}
+            />
+        );
+    }
     return forwardRef((props, ref) => (
         <WithSafeAreaInsets
             // eslint-disable-next-line react/jsx-props-no-spreading

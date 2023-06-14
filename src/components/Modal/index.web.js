@@ -6,7 +6,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import StatusBar from '../../libs/StatusBar';
 
-const Modal = (props) => {
+function Modal(props) {
     const setStatusBarColor = (color = themeColors.appBG) => {
         if (!props.fullscreen) {
             return;
@@ -36,7 +36,7 @@ const Modal = (props) => {
             {props.children}
         </BaseModal>
     );
-};
+}
 
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;

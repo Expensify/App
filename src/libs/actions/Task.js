@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -54,7 +53,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
-        lastMessageText: Str.htmlDecode(lastCommentText),
+        lastMessageText: lastCommentText,
         lastActorEmail: currentUserEmail,
         lastReadTime: currentTime,
     };
@@ -124,7 +123,7 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
 
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
-            lastMessageText: Str.htmlDecode(lastAssigneeCommentText),
+            lastMessageText: lastAssigneeCommentText,
             lastActorEmail: currentUserEmail,
             lastReadTime: currentTime,
         };
@@ -338,7 +337,7 @@ function editTaskAndNavigate(report, ownerEmail, {title, description, assignee})
 
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
-            lastMessageText: Str.htmlDecode(lastAssigneeCommentText),
+            lastMessageText: lastAssigneeCommentText,
             lastActorEmail: ownerEmail,
             lastReadTime: currentTime,
         };
@@ -422,6 +421,23 @@ function setDescriptionValue(description) {
 function setShareDestinationValue(shareDestination) {
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {shareDestination});
+}
+
+/**
+ * Auto-assign participant when creating a task in a DM
+ * @param {String} reportID
+ */
+
+function setAssigneeValueWithParentReportID(reportID) {
+    const report = ReportUtils.getReport(reportID);
+    const isDefault = !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report));
+    const participants = lodashGet(report, 'participants', []);
+    const hasMultipleParticipants = participants.length > 1;
+    if (!isDefault || hasMultipleParticipants || report.parentReportID) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.TASK, {assignee: participants[0]});
 }
 
 /**
@@ -591,6 +607,7 @@ export {
     setTaskReport,
     setDetailsValue,
     setAssigneeValue,
+    setAssigneeValueWithParentReportID,
     setShareDestinationValue,
     clearOutTaskInfo,
     reopenTask,
