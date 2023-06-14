@@ -418,7 +418,11 @@ function getReportPreviewAction(chatReportID, iouReportID) {
 }
 
 function isCreatedTaskReportAction(reportAction) {
-    return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID') && lodashGet(reportAction, ['originalMessage', 'html']).startsWith('Created a task: ');
+    return (
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        _.has(reportAction.originalMessage, 'taskReportID') &&
+        lodashGet(reportAction, ['originalMessage', 'html']).startsWith('Created a task: ')
+    );
 }
 
 export {
