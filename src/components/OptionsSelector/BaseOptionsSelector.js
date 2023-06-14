@@ -342,8 +342,6 @@ class BaseOptionsSelector extends Component {
                     if (!e || !this.textInput.isFocused()) {
                         return;
                     }
-                    console.log('onRowMouseDown');
-
                     e.preventDefault();
                 }}
             />
