@@ -11,6 +11,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize from '../withLocalize';
 import compose from '../../libs/compose';
+import * as UserUtils from '../../libs/UserUtils';
 
 function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
@@ -34,7 +35,7 @@ function UserDetailsTooltip(props) {
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={userAvatar}
+                        source={UserUtils.getAvatar(userAvatar, userLogin)}
                     />
                 </View>
 

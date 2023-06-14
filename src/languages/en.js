@@ -1247,6 +1247,7 @@ export default {
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
+        roomRenamedTo: ({newName}) => `Room renamed to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
