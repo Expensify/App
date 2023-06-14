@@ -26,7 +26,7 @@ describe('test workflow testBuild', () => {
         DEVELOPER_ID_SECRET_PASSPHRASE: 'dummy_developer_id_secret_passphrase',
         CSC_LINK: 'dummy_csc_link',
         CSC_KEY_PASSWORD: 'dummy_csc_key_password',
-        APPLE_ID_PASSWORD: 'dummy_apple_id_password',
+        APPLE_APP_SPECIFIC_PASSWORD: 'dummy_apple_id_password',
         APPLE_ID: 'dummy_apple_id_value',
     };
 
