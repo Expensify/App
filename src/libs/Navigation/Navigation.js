@@ -11,6 +11,7 @@ import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
 import getStateFromPath from './getStateFromPath';
+import SCREENS from '../../SCREENS';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -135,7 +136,7 @@ function dismissModal(targetReportID) {
     switch (lastRoute.name) {
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
-        case 'Report_Attachments':
+        case SCREENS.REPORT_ATTACHMENTS:
             // if we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
                 const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));

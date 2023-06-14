@@ -251,7 +251,7 @@ class AuthScreens extends React.Component {
                     }}
                 />
                 <RootStack.Screen
-                    name="Report_Attachments"
+                    name={SCREENS.REPORT_ATTACHMENTS}
                     options={{
                         headerShown: false,
                         presentation: 'transparentModal',

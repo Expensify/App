@@ -68,7 +68,7 @@ export default {
     getReportRoute: (reportID) => `r/${reportID}`,
     REPORT_WITH_ID_DETAILS_SHARE_CODE: 'r/:reportID/details/shareCode',
     getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
-    REPORT_ATTACHMENT: 'r/:reportID/attachment',
+    REPORT_ATTACHMENTS: 'r/:reportID/attachment',
     getReportAttachmentRoute: (reportID, source) => `r/${reportID}/attachment?source=${encodeURI(source)}`,
     SELECT_YEAR: 'select-year',
     getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
