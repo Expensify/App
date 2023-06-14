@@ -50,7 +50,7 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
-const AvatarWithDisplayName = (props) => {
+function AvatarWithDisplayName(props) {
     const title = props.isAnonymous ? props.report.displayName : ReportUtils.getDisplayNameForParticipant(props.report.ownerEmail, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
@@ -92,7 +92,7 @@ const AvatarWithDisplayName = (props) => {
                             tooltipEnabled
                             numberOfLines={1}
                             textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={props.isAnonymous}
+                            shouldUseFullTitle={isExpenseReport || props.isAnonymous}
                         />
                         {!_.isEmpty(subtitle) && (
                             <Text
@@ -107,7 +107,7 @@ const AvatarWithDisplayName = (props) => {
             )}
         </View>
     );
-};
+}
 AvatarWithDisplayName.propTypes = propTypes;
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 AvatarWithDisplayName.defaultProps = defaultProps;
