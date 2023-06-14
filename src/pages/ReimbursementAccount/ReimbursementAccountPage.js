@@ -27,7 +27,7 @@ import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
@@ -343,16 +343,6 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        if (this.state.shouldShowContinueSetupButton) {
-            return (
-                <ContinueBankAccountSetup
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    continue={this.continue}
-                    policyName={policyName}
-                />
-            );
-        }
-
         let errorComponent;
         const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
 
@@ -376,13 +366,23 @@ class ReimbursementAccountPage extends React.Component {
         if (errorComponent) {
             return (
                 <ScreenWrapper>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('workspace.common.connectBankAccount')}
-                        onCloseButtonPress={Navigation.dismissModal}
                         subtitle={policyName}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
                     {errorComponent}
                 </ScreenWrapper>
+            );
+        }
+
+        if (this.state.shouldShowContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    continue={this.continue}
+                    policyName={policyName}
+                />
             );
         }
 

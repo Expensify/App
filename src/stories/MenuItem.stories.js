@@ -54,6 +54,17 @@ RightIconAndDescription.args = {
     shouldShowRightIcon: true,
 };
 
+const RightIconAndDescriptionWithLabel = Template.bind({});
+RightIconAndDescriptionWithLabel.args = {
+    label: 'Account number',
+    title: 'Alberta Bobbeth Charleson',
+    description: 'Account ending in 1111',
+    icon: Chase,
+    iconHeight: variables.iconSizeExtraLarge,
+    iconWidth: variables.iconSizeExtraLarge,
+    shouldShowRightIcon: true,
+};
+
 const Selected = Template.bind({});
 Selected.args = {
     title: 'Alberta Bobbeth Charleson',
@@ -116,4 +127,16 @@ BrickRoadIndicatorFailure.args = {
 };
 
 export default story;
-export {Default, Description, RightIcon, RightIconAndDescription, Selected, BadgeText, Focused, Disabled, BrickRoadIndicatorSuccess, BrickRoadIndicatorFailure};
+export {
+    Default,
+    Description,
+    RightIcon,
+    RightIconAndDescription,
+    Selected,
+    BadgeText,
+    Focused,
+    Disabled,
+    BrickRoadIndicatorSuccess,
+    BrickRoadIndicatorFailure,
+    RightIconAndDescriptionWithLabel,
+};

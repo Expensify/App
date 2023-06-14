@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {View, ScrollView, Pressable} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
@@ -10,7 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -27,6 +27,7 @@ import CONST from '../CONST';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -137,11 +138,7 @@ const ReportDetailsPage = (props) => {
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                <HeaderWithCloseButton
-                    title={props.translate('common.details')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>
@@ -159,13 +156,15 @@ const ReportDetailsPage = (props) => {
                                 />
                             </View>
                             {isPolicyAdmin ? (
-                                <Pressable
+                                <PressableWithoutFeedback
+                                    accessibilityRole="button"
+                                    accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.report.policyID));
                                     }}
                                 >
                                     {chatRoomSubtitleText}
-                                </Pressable>
+                                </PressableWithoutFeedback>
                             ) : (
                                 chatRoomSubtitleText
                             )}

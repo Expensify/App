@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import UserDetailsTooltip from './UserDetailsTooltip';
 import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -13,7 +14,6 @@ import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import Tooltip from './Tooltip';
 import reportPropTypes from '../pages/reportPropTypes';
 import CONST from '../CONST';
 
@@ -92,16 +92,21 @@ const ReportWelcomeText = (props) => {
                 {isDefault && (
                     <Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistory')}</Text>
-                        {_.map(displayNamesWithTooltips, ({displayName, pronouns, tooltip}, index) => (
+                        {_.map(displayNamesWithTooltips, ({displayName, pronouns, accountID}, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
-                                <Tooltip text={tooltip}>
+                                <UserDetailsTooltip accountID={accountID}>
                                     <Text
                                         style={[styles.textStrong]}
-                                        onPress={() => Navigation.navigate(ROUTES.getDetailsRoute(participants[index]))}
+                                        onPress={() => {
+                                            const accountDetails = props.personalDetails[participants[index]];
+                                            if (accountDetails && accountDetails.accountID) {
+                                                Navigation.navigate(ROUTES.getProfileRoute(accountDetails.accountID));
+                                            }
+                                        }}
                                     >
                                         {displayName}
                                     </Text>
-                                </Tooltip>
+                                </UserDetailsTooltip>
                                 {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
                                 {index === displayNamesWithTooltips.length - 2 && <Text>{` ${props.translate('common.and')} `}</Text>}
