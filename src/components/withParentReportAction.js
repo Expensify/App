@@ -29,8 +29,7 @@ export default function (WrappedComponent) {
         report: {},
         parentReportActions: {},
     };
-
-    const WithParentReportAction = (props) => {
+    function WithParentReportAction(props)  {
         const parentReportActionID = props.report && props.report.parentReportActionID ? props.report.parentReportActionID : {};
         const parentReportAction = props.parentReportActions[parentReportActionID] || {};
 
