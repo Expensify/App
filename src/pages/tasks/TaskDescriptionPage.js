@@ -41,7 +41,7 @@ function TaskDescriptionPage(props) {
         (values) => {
             // Set the description of the report in the store and then call TaskUtils.editTaskReport
             // to update the description of the report on the server
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', values.description, '');
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, {description: values.description});
         },
         [props],
     );
