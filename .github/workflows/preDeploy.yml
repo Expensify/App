@@ -82,16 +82,10 @@ jobs:
             :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
 
   createNewVersion:
-    runs-on: ubuntu-latest
     needs: chooseDeployActions
     if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
+    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
     secrets: inherit
-    outputs:
-      NEW_VERSION: ${{ steps.createNewVersion.outputs.NEW_VERSION }}
-    steps:
-      - name: Create new version
-        id: createNewVersion
-        uses: Expensify/App/.github/workflows/createNewVersion.yml@main
 
   updateStaging:
     needs: [chooseDeployActions, createNewVersion]
@@ -243,11 +237,8 @@ jobs:
 
   e2ePerformanceTests:
     needs: [chooseDeployActions]
-    runs-on: ubuntu-20.04-64core
     if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY }}
-    steps:
-      - name: Perform E2E tests
-        uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml@main
-        secrets: inherit
-        with:
-          PR_NUMBER: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}
+    uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml@main
+    secrets: inherit
+    with:
+      PR_NUMBER: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}
