@@ -27,7 +27,7 @@ const defaultProps = {
  *     - If the user is authenticated, find their concierge chat and re-route to it
  *     - Else re-route to the login page
  */
-const ConciergePage = (props) => {
+function ConciergePage(props) {
     useFocusEffect(() => {
         if (_.has(props.session, 'authToken')) {
             // Pop the concierge loading page before opening the concierge report.
@@ -39,7 +39,7 @@ const ConciergePage = (props) => {
     });
 
     return <FullScreenLoadingIndicator />;
-};
+}
 
 ConciergePage.propTypes = propTypes;
 ConciergePage.defaultProps = defaultProps;
