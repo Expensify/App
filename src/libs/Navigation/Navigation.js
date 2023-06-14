@@ -132,19 +132,24 @@ function dismissModal(targetReportID) {
     }
     const rootState = navigationRef.getRootState();
     const lastRoute = _.last(rootState.routes);
-    if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
-        // if we are not in the target report, we need to navigate to it after dismissing the modal
-        if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
-            const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
+    switch (lastRoute.name) {
+        case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
+        case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
+        case 'Report_Attachments':
+            // if we are not in the target report, we need to navigate to it after dismissing the modal
+            if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
+                const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
 
-            const action = getActionFromState(state, linkingConfig.config);
-            action.type = 'REPLACE';
-            navigationRef.current.dispatch(action);
-        } else {
-            navigationRef.current.dispatch(StackActions.pop());
+                const action = getActionFromState(state, linkingConfig.config);
+                action.type = 'REPLACE';
+                navigationRef.current.dispatch(action);
+            } else {
+                navigationRef.current.dispatch(StackActions.pop());
+            }
+            break;
+        default: {
+            Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
         }
-    } else {
-        Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
     }
 }
 

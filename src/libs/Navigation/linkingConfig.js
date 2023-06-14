@@ -14,6 +14,7 @@ export default {
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
+            Report_Attachments: ROUTES.REPORT_ATTACHMENT,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -23,7 +24,6 @@ export default {
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID,
-                    Report_Attachments: ROUTES.REPORT_ATTACHMENT,
                 },
             },
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
