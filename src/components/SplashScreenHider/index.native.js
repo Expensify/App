@@ -15,7 +15,7 @@ const defaultProps = {
     onHide: () => {},
 };
 
-const SplashScreenHider = (props) => {
+function SplashScreenHider(props) {
     const {onHide} = props;
 
     const opacity = useSharedValue(1);
@@ -77,7 +77,7 @@ const SplashScreenHider = (props) => {
             </Reanimated.View>
         </Reanimated.View>
     );
-};
+}
 
 SplashScreenHider.displayName = 'SplashScreenHider';
 SplashScreenHider.propTypes = propTypes;

@@ -76,38 +76,41 @@ const getLongTermsSections = () =>
         </View>
     ));
 
-const LongTermsForm = () => (
-    <>
-        <CollapsibleSection title={Localize.translateLocal('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections()}</CollapsibleSection>
+function LongTermsForm() {
+    return (
+        <>
+            <CollapsibleSection title={Localize.translateLocal('termsStep.longTermsForm.listOfAllFees')}>{getLongTermsSections()}</CollapsibleSection>
 
-        <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
-            {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')} {CONST.TERMS.FDIC_PREPAID} {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
-        </Text>
-        <Text style={[styles.mb4, styles.textMicroSupporting]}>{Localize.translateLocal('termsStep.noOverdraftOrCredit')}</Text>
-        <Text style={[styles.mb4, styles.textMicroSupporting]}>
-            {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments')} {CONST.EMAIL.CONCIERGE}{' '}
-            {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')} {CONST.NEW_EXPENSIFY_URL}.
-        </Text>
-        <Text style={[styles.mb6, styles.textMicroSupporting]}>
-            {Localize.translateLocal('termsStep.longTermsForm.generalInformation')} {CONST.TERMS.CFPB_PREPAID}
-            {'. '}
-            {Localize.translateLocal('termsStep.longTermsForm.generalInformation2')} {CONST.TERMS.CFPB_COMPLAINT}.
-        </Text>
+            <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
+                {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')} {CONST.TERMS.FDIC_PREPAID}{' '}
+                {Localize.translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
+            </Text>
+            <Text style={[styles.mb4, styles.textMicroSupporting]}>{Localize.translateLocal('termsStep.noOverdraftOrCredit')}</Text>
+            <Text style={[styles.mb4, styles.textMicroSupporting]}>
+                {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments')} {CONST.EMAIL.CONCIERGE}{' '}
+                {Localize.translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')} {CONST.NEW_EXPENSIFY_URL}.
+            </Text>
+            <Text style={[styles.mb6, styles.textMicroSupporting]}>
+                {Localize.translateLocal('termsStep.longTermsForm.generalInformation')} {CONST.TERMS.CFPB_PREPAID}
+                {'. '}
+                {Localize.translateLocal('termsStep.longTermsForm.generalInformation2')} {CONST.TERMS.CFPB_COMPLAINT}.
+            </Text>
 
-        <View style={styles.flexRow}>
-            <Icon
-                style={styles.flex1}
-                src={Expensicons.Printer}
-            />
-            <TextLink
-                style={styles.ml1}
-                href={CONST.FEES_URL}
-            >
-                {Localize.translateLocal('termsStep.longTermsForm.printerFriendlyView')}
-            </TextLink>
-        </View>
-    </>
-);
+            <View style={styles.flexRow}>
+                <Icon
+                    style={styles.flex1}
+                    src={Expensicons.Printer}
+                />
+                <TextLink
+                    style={styles.ml1}
+                    href={CONST.FEES_URL}
+                >
+                    {Localize.translateLocal('termsStep.longTermsForm.printerFriendlyView')}
+                </TextLink>
+            </View>
+        </>
+    );
+}
 
 LongTermsForm.displayName = 'LongTermsForm';
 export default LongTermsForm;

@@ -149,7 +149,7 @@ const columns = ({scrollPageToTop}) => [
     },
 ];
 
-const Footer = (props) => {
+function Footer(props) {
     const isVertical = props.isSmallScreenWidth;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
@@ -218,7 +218,7 @@ const Footer = (props) => {
             </View>
         </View>
     );
-};
+}
 
 Footer.propTypes = propTypes;
 Footer.displayName = 'Footer';

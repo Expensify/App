@@ -29,6 +29,8 @@ import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -68,7 +70,7 @@ const defaultProps = {
     parentReport: {},
 };
 
-const HeaderView = (props) => {
+function HeaderView(props) {
     const participants = lodashGet(props.report, 'participants', []);
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
@@ -79,7 +81,7 @@ const HeaderView = (props) => {
     const isTaskReport = ReportUtils.isTaskReport(props.report);
     const reportHeaderData = (isTaskReport || !isThread) && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
-    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, props.parentReport);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -176,12 +178,31 @@ const HeaderView = (props) => {
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
                                 {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
-                                    <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
-                                        numberOfLines={1}
-                                    >
-                                        {subtitle}
-                                    </Text>
+                                    <>
+                                        {isThread ? (
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                                                }}
+                                                accessibilityLabel={subtitle}
+                                                accessibilityRole="link"
+                                            >
+                                                <Text
+                                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {subtitle}
+                                                </Text>
+                                            </PressableWithoutFeedback>
+                                        ) : (
+                                            <Text
+                                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                numberOfLines={1}
+                                            >
+                                                {subtitle}
+                                            </Text>
+                                        )}
+                                    </>
                                 )}
                             </View>
                             {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
@@ -213,7 +234,7 @@ const HeaderView = (props) => {
             </View>
         </View>
     );
-};
+}
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;

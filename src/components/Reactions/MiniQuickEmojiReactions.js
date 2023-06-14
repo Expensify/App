@@ -45,7 +45,7 @@ const defaultProps = {
  * @param {Props} props
  * @returns {JSX.Element}
  */
-const MiniQuickEmojiReactions = (props) => {
+function MiniQuickEmojiReactions(props) {
     const ref = useRef();
 
     const openEmojiPicker = () => {
@@ -87,7 +87,7 @@ const MiniQuickEmojiReactions = (props) => {
             </BaseMiniContextMenuItem>
         </View>
     );
-};
+}
 
 MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 MiniQuickEmojiReactions.propTypes = propTypes;
