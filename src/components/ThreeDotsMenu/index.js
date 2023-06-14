@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import Icon from '../Icon';
 import PopoverMenu from '../PopoverMenu';
 import styles from '../../styles/styles';
@@ -8,6 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Tooltip from '../Tooltip';
 import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
+import CONST from '../../CONST';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
@@ -39,6 +41,12 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }).isRequired,
+
+    /** The anchor alignment of the menu */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
 };
 
 const defaultProps = {
@@ -47,6 +55,10 @@ const defaultProps = {
     iconStyles: [],
     icon: Expensicons.ThreeDots,
     onIconPress: () => {},
+    anchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
 };
 
 class ThreeDotsMenu extends Component {
@@ -97,6 +109,7 @@ class ThreeDotsMenu extends Component {
                     onClose={this.hidePopoverMenu}
                     isVisible={this.state.isPopupMenuVisible}
                     anchorPosition={this.props.anchorPosition}
+                    anchorAlignment={this.props.anchorAlignment}
                     onItemSelected={this.hidePopoverMenu}
                     menuItems={this.props.menuItems}
                 />

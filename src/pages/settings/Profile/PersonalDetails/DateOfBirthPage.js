@@ -34,7 +34,7 @@ const defaultProps = {
     },
 };
 
-const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
+function DateOfBirthPage({translate, route, privatePersonalDetails}) {
     /**
      * The year should be set on the route when navigating back from the year picker
      * This lets us pass the selected year without having to overwrite the value in Onyx
@@ -93,7 +93,7 @@ const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 DateOfBirthPage.propTypes = propTypes;
 DateOfBirthPage.defaultProps = defaultProps;

@@ -35,7 +35,6 @@ const GenericPressable = forwardRef((props, ref) => {
         onKeyPress,
         disabled,
         style,
-        accessibilityHint,
         shouldUseHapticsOnLongPress,
         shouldUseHapticsOnPress,
         nextFocusRef,
@@ -135,7 +134,7 @@ const GenericPressable = forwardRef((props, ref) => {
 
     return (
         <Pressable
-            hitSlop={shouldUseAutoHitSlop && hitSlop}
+            hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={onLayout}
             ref={ref}
             onPress={!isDisabled ? onPressHandler : undefined}
