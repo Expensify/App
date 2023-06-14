@@ -101,7 +101,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
-                onSelected: () => Task.reopenTask(props.report.reportID, props.report.reportName),
+                onSelected: () => Task.reopenTask(props.report.reportID, props.report.reportName, report.lastMessageText),
             });
         }
 
@@ -110,7 +110,7 @@ const HeaderView = (props) => {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum),
+                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum, props.report.lastMessageText),
             });
         }
     }

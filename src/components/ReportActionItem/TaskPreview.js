@@ -76,7 +76,7 @@ const TaskPreview = (props) => {
                     disabled={TaskUtils.isTaskCanceled(props.taskReport)}
                     onPress={() => {
                         if (isTaskCompleted) {
-                            TaskUtils.reopenTask(props.taskReportID, taskTitle);
+                            TaskUtils.reopenTask(props.taskReportID, taskTitle, props.taskReport.lastMessageText);
                         } else {
                             TaskUtils.completeTask(props.taskReportID, taskTitle, props.taskReport.lastMessageText);
                         }

@@ -175,9 +175,9 @@ function createTaskAndNavigate(currentUserEmail, parentReportID, title, descript
  * Completes an open task
  * @param {string} taskReportID ReportID of the task
  * @param {string} taskTitle Title of the task
- * @param {string} taskLastMessageText Current last message text shown in LNH preview
+ * @param {string} originalLastMessageText Original last message text shown in LNH preview
  */
-function completeTask(taskReportID, taskTitle, taskLastMessageText) {
+function completeTask(taskReportID, taskTitle, originalLastMessageText) {
     const message = `completed task: ${taskTitle}`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
@@ -207,7 +207,7 @@ function completeTask(taskReportID, taskTitle, taskLastMessageText) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
-                lastMessageText: taskLastMessageText,
+                lastMessageText: originalLastMessageText,
             },
         },
         {
@@ -231,8 +231,9 @@ function completeTask(taskReportID, taskTitle, taskLastMessageText) {
  * Reopens a closed task
  * @param {string} taskReportID ReportID of the task
  * @param {string} taskTitle Title of the task
+ * @param {string} originalLastMessageText Original last message text shown in LNH preview
  */
-function reopenTask(taskReportID, taskTitle) {
+function reopenTask(taskReportID, taskTitle, originalLastMessageText) {
     const message = `reopened task: ${taskTitle}`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
@@ -264,6 +265,7 @@ function reopenTask(taskReportID, taskTitle) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.APPROVED,
+                lastMessageText: originalLastMessageText,
             },
         },
         {
@@ -525,8 +527,9 @@ function getShareDestination(reportID, reports, personalDetails) {
  * @param {string} taskTitle
  * @param {number} originalStateNum
  * @param {number} originalStatusNum
+ * @param {string} originalLastMessageText Original last message text shown in LNH preview
  */
-function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
+function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum, originalLastMessageText) {
     const message = `canceled task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
@@ -565,6 +568,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: {
                 stateNum: originalStateNum,
                 statusNum: originalStatusNum,
+                lastMessageText: originalLastMessageText,
             },
         },
         {
