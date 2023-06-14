@@ -95,7 +95,7 @@ const ButtonWithDropdownMenu = (props) => {
                         success
                         isDisabled={props.isDisabled}
                         style={[styles.pl0]}
-                        onPress={measurePopoverPositionAndShowMenu}
+                        onPress={() => measurePopoverPositionAndShowMenu()}
                         shouldRemoveLeftBorderRadius
                     >
                         <Icon
