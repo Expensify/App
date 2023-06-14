@@ -20,6 +20,7 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -67,7 +68,7 @@ const defaultProps = {
     isSelected: false,
     boldStyle: false,
     showTitleTooltip: false,
-    onSelectRow: () => {},
+    onSelectRow: undefined,
     isDisabled: false,
     optionIsFocused: false,
     style: null,
@@ -150,6 +151,10 @@ class OptionRow extends Component {
                         <PressableWithFeedback
                             ref={(el) => (pressableRef = el)}
                             onPress={(e) => {
+                                if (!this.props.onSelectRow) {
+                                    return;
+                                }
+
                                 this.setState({isDisabled: true});
                                 if (e) {
                                     e.preventDefault();
@@ -171,6 +176,7 @@ class OptionRow extends Component {
                                 this.props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                                 this.props.optionIsFocused ? styles.sidebarLinkActive : null,
                                 this.props.shouldHaveOptionSeparator && styles.borderTop,
+                                !this.props.onSelectRow && !this.props.isDisabled ? styles.cursorDefault : null,
                             ]}
                             accessibilityLabel={this.props.option.text}
                             accessibilityRole="button"
@@ -198,7 +204,7 @@ class OptionRow extends Component {
                                                     this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                     hovered && !this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                                 ]}
-                                                shouldShowTooltip={this.props.showTitleTooltip && !this.props.option.isChatRoom && !this.props.option.isArchivedRoom}
+                                                shouldShowTooltip={this.props.showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(this.props.option)}
                                             />
                                         ))}
                                     <View style={contentContainerStyles}>

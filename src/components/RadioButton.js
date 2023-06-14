@@ -1,9 +1,10 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Whether radioButton is checked */
@@ -11,6 +12,9 @@ const propTypes = {
 
     /** A function that is called when the box/label is pressed */
     onPress: PropTypes.func.isRequired,
+
+    /** Specifies the accessibility label for the radio button */
+    accessibilityLabel: PropTypes.string.isRequired,
 
     /** Should the input be styled for errors  */
     hasError: PropTypes.bool,
@@ -24,21 +28,27 @@ const defaultProps = {
     disabled: false,
 };
 
-const RadioButton = (props) => (
-    <Pressable
-        disabled={props.disabled}
-        onPress={props.onPress}
-    >
-        <View style={[styles.radioButtonContainer, props.isChecked && styles.checkedContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
-            <Icon
-                src={Expensicons.Checkmark}
-                fill="white"
-                height={14}
-                width={14}
-            />
-        </View>
-    </Pressable>
-);
+function RadioButton(props) {
+    return (
+        <PressableWithFeedback
+            disabled={props.disabled}
+            onPress={props.onPress}
+            hoverDimmingValue={1}
+            pressDimmingValue={1}
+            accessibilityLabel={props.accessibilityLabel}
+            accessibilityRole="radio"
+        >
+            <View style={[styles.radioButtonContainer, props.isChecked && styles.checkedContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
+                <Icon
+                    src={Expensicons.Checkmark}
+                    fill="white"
+                    height={14}
+                    width={14}
+                />
+            </View>
+        </PressableWithFeedback>
+    );
+}
 
 RadioButton.propTypes = propTypes;
 RadioButton.defaultProps = defaultProps;

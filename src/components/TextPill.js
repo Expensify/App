@@ -16,7 +16,7 @@ const defaultProps = {
     style: [],
 };
 
-const TextPill = (props) => {
+function TextPill(props) {
     const propsStyle = StyleUtils.parseStyleAsArray(props.style);
 
     return (
@@ -29,7 +29,7 @@ const TextPill = (props) => {
             {props.text}
         </Text>
     );
-};
+}
 
 TextPill.propTypes = propTypes;
 TextPill.defaultProps = defaultProps;
