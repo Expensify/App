@@ -341,7 +341,6 @@ export default {
                     },
                 },
             },
-            [SCREENS.NOT_FOUND]: '*',
         },
     },
 };

@@ -28,6 +28,16 @@ function CentralPaneNavigator() {
                     }}
                     component={ReportScreenWrapper}
                 />
+                <Stack.Screen
+                    name="Report_Attachments"
+                    options={{
+                        headerShown: false,
+                    }}
+                    getComponent={() => {
+                        const ReportAttachments = require('../../../../pages/home/report/ReportAttachments').default;
+                        return ReportAttachments;
+                    }}
+                />
             </Stack.Navigator>
         </FreezeWrapper>
     );
