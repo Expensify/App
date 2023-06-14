@@ -832,7 +832,6 @@ function getAccountIDForLogin(login) {
 
 /**
  * Get the displayName for a single report participant.
- * Defaults to login if no display name is set.
  *
  * @param {Number} accountID
  * @param {Boolean} [shouldUseShortForm]
@@ -843,7 +842,7 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
         return '';
     }
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    const longName = personalDetails.displayName || (personalDetails.login && Str.removeSMSDomain(personalDetails.login));
+    const longName = personalDetails.displayName;
     const shortName = personalDetails.firstName || longName;
     return shouldUseShortForm ? shortName : longName;
 }
