@@ -76,6 +76,7 @@ module.exports = {
                 project: './tsconfig.json',
             },
             rules: {
+                'react/static-property-placement': 'off',
                 'import/no-extraneous-dependencies': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
                 '@typescript-eslint/no-unsafe-argument': 'off',
