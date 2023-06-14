@@ -228,6 +228,13 @@ function MoneyRequestConfirmationList(props) {
         [props.session.email],
     );
 
+    const navigateToUserDetail = (option) => {
+        if (!option.login) {
+            return;
+        }
+        Navigation.navigate(ROUTES.getDetailsRoute(option.login));
+    }
+
     /**
      * @param {String} paymentMethod
      */
@@ -290,12 +297,13 @@ function MoneyRequestConfirmationList(props) {
         <OptionsSelector
             sections={optionSelectorSections}
             value=""
-            onSelectRow={canModifyParticipants ? toggleOption : undefined}
+            onSelectRow={canModifyParticipants ? toggleOption : navigateToUserDetail}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
             disableArrowKeysActions={!canModifyParticipants}
             boldStyle
+            showTitleTooltip
             shouldTextInputAppearBelowOptions
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
