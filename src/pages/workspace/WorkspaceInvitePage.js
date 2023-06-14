@@ -24,6 +24,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
+import * as Browser from '../../libs/Browser';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -276,7 +277,6 @@ class WorkspaceInvitePage extends React.Component {
                             <OptionsSelector
                                 contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}
                                 listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
-                                autoFocus={false}
                                 canSelectMultipleOptions
                                 sections={sections}
                                 selectedOptions={this.state.selectedOptions}
@@ -288,7 +288,7 @@ class WorkspaceInvitePage extends React.Component {
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
                                 boldStyle
-                                shouldFocusOnSelectRow
+                                shouldFocusOnSelectRow={!Browser.isMobile()}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             />
                         </View>
