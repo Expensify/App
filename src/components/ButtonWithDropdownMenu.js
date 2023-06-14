@@ -70,7 +70,7 @@ const ButtonWithDropdownMenu = (props) => {
             });
         });
     }, [windowWidth, windowHeight, isMenuVisible]);
-    
+
     return (
         <View>
             {props.options.length > 1 ? (
