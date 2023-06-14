@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -25,6 +25,7 @@ import * as Localize from '../../libs/Localize';
 import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import withNavigationFocus from '../../components/withNavigationFocus';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -172,16 +173,17 @@ class WorkspaceInviteMessagePage extends React.Component {
                         submitButtonText={this.props.translate('common.invite')}
                         enabledWhenOffline
                         footerContent={
-                            <Pressable
+                            <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
                                 accessibilityRole="link"
+                                accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[styles.mv2, styles.alignSelfStart]}
                             >
                                 <View style={[styles.flexRow]}>
                                     <Text style={[styles.mr1, styles.label, styles.link]}>{this.props.translate('common.privacy')}</Text>
                                 </View>
-                            </Pressable>
+                            </PressableWithoutFeedback>
                         }
                     >
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -204,7 +206,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 autoCorrect={false}
                                 autoGrowHeight
                                 textAlignVertical="top"
-                                containerStyles={[styles.workspaceInviteWelcome]}
+                                containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
                                 onChangeText={(text) => this.setState({welcomeNote: text})}

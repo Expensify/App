@@ -26,7 +26,7 @@ const defaultProps = {
     size: 'normal',
 };
 
-const LocalePicker = (props) => {
+function LocalePicker(props) {
     const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
         value: key,
         label: language.label,
@@ -48,7 +48,7 @@ const LocalePicker = (props) => {
             backgroundColor={themeColors.signInPage}
         />
     );
-};
+}
 
 LocalePicker.defaultProps = defaultProps;
 LocalePicker.propTypes = propTypes;

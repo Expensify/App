@@ -65,7 +65,7 @@ const showUserDetails = (accountID) => {
     Navigation.navigate(ROUTES.getProfileRoute(accountID));
 };
 
-const ReportActionItemSingle = (props) => {
+function ReportActionItemSingle(props) {
     const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const {accountID, avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
     const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
@@ -138,7 +138,7 @@ const ReportActionItemSingle = (props) => {
             </View>
         </View>
     );
-};
+}
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;

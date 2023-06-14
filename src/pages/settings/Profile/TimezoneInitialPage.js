@@ -25,7 +25,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const TimezoneInitialPage = (props) => {
+function TimezoneInitialPage(props) {
     const timezone = lodashGet(props.currentUserPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
 
     /**
@@ -69,7 +69,7 @@ const TimezoneInitialPage = (props) => {
             </View>
         </ScreenWrapper>
     );
-};
+}
 
 TimezoneInitialPage.propTypes = propTypes;
 TimezoneInitialPage.defaultProps = defaultProps;
