@@ -69,7 +69,7 @@ const defaultProps = {
     parentReport: {},
 };
 
-const MoneyRequestHeader = (props) => {
+function MoneyRequestHeader(props) {
     // These are only used for the single transaction view and not for expense and iou reports
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
@@ -200,7 +200,7 @@ const MoneyRequestHeader = (props) => {
             )}
         </View>
     );
-};
+}
 
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;

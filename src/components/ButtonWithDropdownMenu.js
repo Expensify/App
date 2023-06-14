@@ -48,7 +48,7 @@ const defaultProps = {
     style: [],
 };
 
-const ButtonWithDropdownMenu = (props) => {
+function ButtonWithDropdownMenu(props) {
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
@@ -130,7 +130,7 @@ const ButtonWithDropdownMenu = (props) => {
             )}
         </View>
     );
-};
+}
 
 ButtonWithDropdownMenu.propTypes = propTypes;
 ButtonWithDropdownMenu.defaultProps = defaultProps;

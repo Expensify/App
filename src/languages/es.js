@@ -1871,6 +1871,7 @@ export default {
         lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
+        from: 'De',
     },
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',
