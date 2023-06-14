@@ -149,7 +149,10 @@ function ReportActionItemFragment(props) {
         }
         case 'TEXT':
             return (
-                <UserDetailsTooltip accountID={props.accountID} delegate={props.delegate}>
+                <UserDetailsTooltip
+                    accountID={props.accountID}
+                    delegate={props.delegate}
+                >
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}

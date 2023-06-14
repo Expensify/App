@@ -39,13 +39,9 @@ function UserDetailsTooltip(props) {
                     />
                 </View>
 
-                <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>
-                    {userDisplayName}
-                </Text>
+                <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{userDisplayName}</Text>
 
-                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
-                    {userLogin}
-                </Text>
+                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{userLogin}</Text>
             </View>
         ),
         [userAvatar, userDisplayName, userLogin],
@@ -65,10 +61,11 @@ UserDetailsTooltip.displayName = 'UserDetailsTooltip';
 export default compose(
     withLocalize,
     withOnyx({
-    personalDetailsList: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-}))(UserDetailsTooltip);
+        personalDetailsList: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+    }),
+)(UserDetailsTooltip);

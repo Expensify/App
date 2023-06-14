@@ -74,7 +74,7 @@ function ReportActionItemSingle(props) {
     // the Copilot feature is implemented.
     if (props.action.delegate) {
         const delegateDetails = props.personalDetails[props.action.delegate];
-        const delegateDisplayName = delegateDetails.displayName
+        const delegateDisplayName = delegateDetails.displayName;
         actorEmail = delegateDetails.login;
         displayName = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
         avatar = delegateDetails.avatar;

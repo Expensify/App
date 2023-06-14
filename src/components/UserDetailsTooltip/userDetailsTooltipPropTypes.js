@@ -26,7 +26,7 @@ const propTypes = {
     delegate: PropTypes.string,
 
     /** Localization props */
-    ...withLocalizePropTypes
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
