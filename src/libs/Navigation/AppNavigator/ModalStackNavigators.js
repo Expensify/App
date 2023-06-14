@@ -111,6 +111,16 @@ const IOUSendModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const SplitDetailsModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SplitBillDetailsPage = require('../../../pages/iou/SplitBillDetailsPage').default;
+            return SplitBillDetailsPage;
+        },
+        name: 'SplitDetails_Root',
+    },
+]);
+
 const DetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -118,6 +128,16 @@ const DetailsModalStackNavigator = createModalStackNavigator([
             return DetailsPage;
         },
         name: 'Details_Root',
+    },
+]);
+
+const ProfileModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
+        },
+        name: 'Profile_Root',
     },
 ]);
 
@@ -193,6 +213,16 @@ const TaskModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const ReportWelcomeMessageModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ReportWelcomeMessagePage = require('../../../pages/ReportWelcomeMessagePage').default;
+            return ReportWelcomeMessagePage;
+        },
+        name: 'Report_WelcomeMessage_Root',
+    },
+]);
+
 const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -203,8 +233,8 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const DetailsPage = require('../../../pages/DetailsPage').default;
-            return DetailsPage;
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
         },
         name: 'ReportParticipants_Details',
     },
@@ -526,6 +556,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const WorkspaceRateAndUnitPage = require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default;
+            return WorkspaceRateAndUnitPage;
+        },
+        name: 'Workspace_RateAndUnit',
+    },
+    {
+        getComponent: () => {
             const WorkspaceBillsPage = require('../../../pages/workspace/bills/WorkspaceBillsPage').default;
             return WorkspaceBillsPage;
         },
@@ -587,6 +624,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return GetAssistancePage;
         },
         name: 'GetAssistance',
+    },
+    {
+        getComponent: () => {
+            const YearPickerPage = require('../../../pages/YearPickerPage').default;
+            return YearPickerPage;
+        },
+        name: 'YearPicker_Root',
     },
     {
         getComponent: () => {
@@ -675,14 +719,27 @@ const YearPickerStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const FlagCommentStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const FlagCommentPage = require('../../../pages/FlagCommentPage').default;
+            return FlagCommentPage;
+        },
+        name: 'FlagComment_Root',
+    },
+]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
     IOUSendModalStackNavigator,
+    SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
+    ProfileModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,
+    ReportWelcomeMessageModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
     NewGroupModalStackNavigator,
@@ -694,4 +751,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
     YearPickerStackNavigator,
+    FlagCommentStackNavigator,
 };

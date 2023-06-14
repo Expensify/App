@@ -1,12 +1,12 @@
 import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -28,12 +28,13 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -318,25 +319,32 @@ class WorkspaceMembersPage extends React.Component {
      * @returns {React.Component}
      */
     renderItem({item}) {
+        const hasError = !_.isEmpty(item.errors) || this.state.errors[item.login];
+        const isChecked = _.contains(this.state.selectedEmployees, item.login);
         return (
             <OfflineWithFeedback
-                errorRowStyles={[styles.peopleRowBorderBottom]}
                 onClose={() => this.dismissError(item)}
                 pendingAction={item.pendingAction}
                 errors={item.errors}
             >
-                <TouchableOpacity
-                    style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom]}
+                <PressableWithFeedback
+                    style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
                     onPress={() => this.toggleUser(item.login, item.pendingAction)}
-                    activeOpacity={0.7}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{
+                        checked: isChecked,
+                    }}
+                    accessibilityLabel={this.props.formatPhoneNumber(item.displayName)}
+                    // disable hover dimming
+                    hoverDimmingValue={1}
+                    pressDimmingValue={0.7}
                 >
                     <Checkbox
-                        isChecked={_.contains(this.state.selectedEmployees, item.login)}
+                        isChecked={isChecked}
                         onPress={() => this.toggleUser(item.login, item.pendingAction)}
                     />
                     <View style={styles.flex1}>
                         <OptionRow
-                            onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                             boldStyle
                             option={{
                                 text: this.props.formatPhoneNumber(item.displayName),
@@ -344,13 +352,14 @@ class WorkspaceMembersPage extends React.Component {
                                 participantsList: [item],
                                 icons: [
                                     {
-                                        source: ReportUtils.getAvatar(item.avatar, item.login),
+                                        source: UserUtils.getAvatar(item.avatar, item.login),
                                         name: item.login,
                                         type: CONST.ICON_TYPE_AVATAR,
                                     },
                                 ],
                                 keyForList: item.login,
                             }}
+                            onSelectRow={() => this.toggleUser(item.login, item.pendingAction)}
                         />
                     </View>
                     {(this.props.session.email === item.login || item.role === 'admin') && (
@@ -358,7 +367,7 @@ class WorkspaceMembersPage extends React.Component {
                             <Text style={[styles.peopleBadgeText]}>{this.props.translate('common.admin')}</Text>
                         </View>
                     )}
-                </TouchableOpacity>
+                </PressableWithFeedback>
                 {!_.isEmpty(this.state.errors[item.login]) && (
                     <FormHelpMessage
                         isError
@@ -412,19 +421,17 @@ class WorkspaceMembersPage extends React.Component {
                 {({safeAreaPaddingBottomStyle}) => (
                     <FullPageNotFoundView
                         shouldShow={_.isEmpty(this.props.policy)}
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
-                        <HeaderWithCloseButton
+                        <HeaderWithBackButton
                             title={this.props.translate('workspace.common.members')}
                             subtitle={policyName}
-                            onCloseButtonPress={() => Navigation.dismissModal()}
                             onBackButtonPress={() => {
                                 this.updateSearchValue('');
-                                Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+                                Navigation.goBack(ROUTES.getWorkspaceInitialRoute(policyID));
                             }}
                             shouldShowGetAssistanceButton
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                            shouldShowBackButton
                         />
                         <ConfirmModal
                             danger
@@ -453,7 +460,7 @@ class WorkspaceMembersPage extends React.Component {
                                     onPress={this.askForConfirmationToRemove}
                                 />
                             </View>
-                            <View style={[styles.w100, styles.pv4, styles.ph5]}>
+                            <View style={[styles.w100, styles.pv3, styles.ph5]}>
                                 <TextInput
                                     value={this.state.searchValue}
                                     onChangeText={this.updateSearchValue}

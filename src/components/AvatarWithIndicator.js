@@ -16,7 +16,6 @@ import walletTermsPropTypes from '../pages/EnablePayments/walletTermsPropTypes';
 import * as PolicyUtils from '../libs/PolicyUtils';
 import * as PaymentMethods from '../libs/actions/PaymentMethods';
 import * as ReimbursementAccountProps from '../pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
 import * as UserUtils from '../libs/UserUtils';
 import themeColors from '../styles/themes/default';
 
@@ -72,7 +71,7 @@ const defaultProps = {
     loginList: {},
 };
 
-const AvatarWithIndicator = (props) => {
+function AvatarWithIndicator(props) {
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
     const cleanPolicies = _.pick(props.policies, (policy) => policy);
@@ -103,12 +102,12 @@ const AvatarWithIndicator = (props) => {
     return (
         <Tooltip text={props.tooltipText}>
             <View style={[styles.sidebarAvatar]}>
-                <Avatar source={ReportUtils.getSmallSizeAvatar(props.source)} />
+                <Avatar source={UserUtils.getSmallSizeAvatar(props.source)} />
                 {(shouldShowErrorIndicator || shouldShowInfoIndicator) && <View style={StyleSheet.flatten(indicatorStyles)} />}
             </View>
         </Tooltip>
     );
-};
+}
 
 AvatarWithIndicator.defaultProps = defaultProps;
 AvatarWithIndicator.propTypes = propTypes;

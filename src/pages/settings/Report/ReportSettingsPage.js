@@ -12,7 +12,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import * as Report from '../../../libs/actions/Report';
 import * as Policy from '../../../libs/actions/Policy';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
@@ -22,6 +22,8 @@ import withReportOrNotFound from '../../home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import ROUTES from '../../../ROUTES';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
     /** Route params */
@@ -79,11 +81,22 @@ class ReportSettingsPage extends Component {
         return !Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
     }
 
+    /**
+     * We only want policy owners and admins to be able to modify the welcome message.
+     *
+     * @param {Object|null} linkedWorkspace - the workspace the report is on, null if the user isn't a member of the workspace
+     * @returns {Boolean}
+     */
+    shouldDisableWelcomeMessage(linkedWorkspace) {
+        return !ReportUtils.isArchivedRoom(this.props.report) && !_.isEmpty(linkedWorkspace) && Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role === CONST.POLICY.ROLE.ADMIN;
+    }
+
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report) && !ReportUtils.isThread(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
+        const shouldDisableWelcomeMessage = this.shouldDisableRename(linkedWorkspace);
         const writeCapability = this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
         const writeCapabilityText = this.props.translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
         const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
@@ -91,11 +104,9 @@ class ReportSettingsPage extends Component {
         return (
             <ScreenWrapper>
                 <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('common.settings')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.getReportDetailsRoute(this.props.report.reportID))}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(this.props.report.reportID))}
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
@@ -188,14 +199,18 @@ class ReportSettingsPage extends Component {
                                 >
                                     {this.props.translate(`newRoomPage.visibilityOptions.${this.props.report.visibility}`)}
                                 </Text>
-                                <Text style={[styles.textLabelSupporting, styles.mt1]}>
-                                    {this.props.report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED
-                                        ? this.props.translate('newRoomPage.restrictedDescription')
-                                        : this.props.translate('newRoomPage.privateDescription')}
-                                </Text>
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{this.props.translate(`newRoomPage.${this.props.report.visibility}Description`)}</Text>
                             </View>
                         )}
                     </View>
+                    {!shouldDisableWelcomeMessage && (
+                        <MenuItem
+                            title={this.props.translate('welcomeMessagePage.welcomeMessage')}
+                            icon={Expensicons.ChatBubble}
+                            onPress={() => Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(this.props.report.reportID))}
+                            shouldShowRightIcon
+                        />
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );

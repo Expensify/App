@@ -34,6 +34,14 @@ Onyx.connect({
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isCreatedAction(reportAction) {
+    return lodashGet(reportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = lodashGet(reportAction, 'message', []);
@@ -46,6 +54,14 @@ function isDeletedAction(reportAction) {
  */
 function isMoneyRequestAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function hasCommentThread(reportAction) {
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
 }
 
 /**
@@ -163,6 +179,25 @@ function getMostRecentIOURequestActionID(reportActions) {
 }
 
 /**
+ * Returns array of links inside a given report action
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function extractLinksFromMessageHtml(reportAction) {
+    const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
+
+    // Regex to get link in href prop inside of <a/> component
+    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
+
+    if (!htmlContent) {
+        return;
+    }
+
+    return _.map([...htmlContent.matchAll(regex)], (match) => match[1]);
+}
+
+/**
  * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
@@ -227,6 +262,10 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
 
     if (isReportMessageAttachment(message)) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
+    }
+
+    if (isCreatedAction(lastVisibleAction)) {
+        return '';
     }
 
     const messageText = lodashGet(message, 'text', '');
@@ -387,6 +426,7 @@ export {
     getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
+    extractLinksFromMessageHtml,
     isDeletedAction,
     shouldReportActionBeVisible,
     isReportActionDeprecated,
@@ -395,6 +435,7 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
+    hasCommentThread,
     getLinkedTransactionID,
     getReportPreviewAction,
     isCreatedTaskReportAction,

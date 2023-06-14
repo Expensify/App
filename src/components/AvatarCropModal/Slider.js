@@ -25,7 +25,7 @@ const defaultProps = {
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-const Slider = (props) => {
+function Slider(props) {
     const sliderValue = props.sliderValue;
     const [tooltipIsVisible, setTooltipIsVisible] = useState(true);
 
@@ -49,7 +49,10 @@ const Slider = (props) => {
             >
                 <Animated.View style={[styles.sliderKnob, rSliderStyle]}>
                     {tooltipIsVisible && (
-                        <Tooltip text={props.translate('common.zoom')}>
+                        <Tooltip
+                            text={props.translate('common.zoom')}
+                            shiftVertical={-2}
+                        >
                             <View style={[styles.sliderKnobTooltipView]} />
                         </Tooltip>
                     )}
@@ -57,7 +60,7 @@ const Slider = (props) => {
             </PanGestureHandler>
         </View>
     );
-};
+}
 
 Slider.displayName = 'Slider';
 Slider.propTypes = propTypes;
