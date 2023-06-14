@@ -68,7 +68,7 @@ function PronounsPage(props) {
             .value();
 
         setPronounsList(pronouns);
-    }, [props]);
+    }, [props.currentUserPersonalDetails.pronouns]);
 
     const onChangeText = (value = '') => {
         setSearchValue(value);
