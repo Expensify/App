@@ -61,7 +61,6 @@ function ReportWelcomeMessagePage(props) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
-                    validate={() => ({})}
                     submitButtonText={props.translate('common.save')}
                     enabledWhenOffline
                 >
