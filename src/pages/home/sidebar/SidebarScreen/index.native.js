@@ -7,7 +7,7 @@ import withWindowDimensions from '../../../../components/withWindowDimensions';
 
 function SidebarScreen(props) {
     return (
-        <FreezeWrapper keepVisible={!props.isSmallScreenWidth}>
+        <FreezeWrapper keepVisible>
             <BaseSidebarScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
