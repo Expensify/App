@@ -228,12 +228,16 @@ function MoneyRequestConfirmationList(props) {
         [props.session.email],
     );
 
+    /**
+     * Navigate to User's detail page
+     * @param {Object} option
+     */
     const navigateToUserDetail = (option) => {
         if (!option.login) {
             return;
         }
         Navigation.navigate(ROUTES.getDetailsRoute(option.login));
-    }
+    };
 
     /**
      * @param {String} paymentMethod
