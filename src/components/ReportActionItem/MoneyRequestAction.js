@@ -90,7 +90,7 @@ const defaultProps = {
     style: [],
 };
 
-const MoneyRequestAction = (props) => {
+function MoneyRequestAction(props) {
     const isSplitBillAction = lodashGet(props.action, 'originalMessage.type', '') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
     const onIOUPreviewPressed = () => {
@@ -158,7 +158,7 @@ const MoneyRequestAction = (props) => {
             />
         </>
     );
-};
+}
 
 MoneyRequestAction.propTypes = propTypes;
 MoneyRequestAction.defaultProps = defaultProps;

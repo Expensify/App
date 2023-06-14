@@ -12,22 +12,24 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInPageGraphics = (props) => (
-    <Pressable
-        style={[StyleUtils.getHeight(props.windowHeight), StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor)]}
-        onPress={() => {
-            Link.openExternalLink(backgroundStyle.redirectUri);
-        }}
-        disabled={_.isEmpty(backgroundStyle.redirectUri)}
-    >
-        <SVGImage
-            width="100%"
-            height="100%"
-            src={backgroundStyle.backgroundImageUri}
-            resizeMode="contain"
-        />
-    </Pressable>
-);
+function SignInPageGraphics(props) {
+    return (
+        <Pressable
+            style={[StyleUtils.getHeight(props.windowHeight), StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor)]}
+            onPress={() => {
+                Link.openExternalLink(backgroundStyle.redirectUri);
+            }}
+            disabled={_.isEmpty(backgroundStyle.redirectUri)}
+        >
+            <SVGImage
+                width="100%"
+                height="100%"
+                src={backgroundStyle.backgroundImageUri}
+                resizeMode="contain"
+            />
+        </Pressable>
+    );
+}
 
 SignInPageGraphics.displayName = 'SignInPageGraphics';
 SignInPageGraphics.propTypes = propTypes;

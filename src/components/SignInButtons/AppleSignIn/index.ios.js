@@ -7,7 +7,7 @@ import * as Session from '../../../libs/actions/Session';
 const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
 
 /**
- * Apple Sign In method for iOS that returns identityToken
+ * Apple Sign In method for iOS that returns identityToken.
  * @returns {Promise<string>}
  */
 
@@ -16,7 +16,7 @@ function appleSignInRequest() {
         .performRequest({
             requestedOperation: appleAuth.Operation.LOGIN,
 
-            // FULL_NAME must come first, see https://github.com/invertase/react-native-apple-authentication/issues/293
+            // FULL_NAME must come first, see https://github.com/invertase/react-native-apple-authentication/issues/293.
             requestedScopes: [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
         })
         .then((response) =>
@@ -31,11 +31,11 @@ function appleSignInRequest() {
 }
 
 /**
- * Apple Sign In button for iOS
+ * Apple Sign In button for iOS.
  * @returns {React.Component}
  */
 
-const AppleSignIn = () => {
+function AppleSignIn() {
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
@@ -50,7 +50,7 @@ const AppleSignIn = () => {
             icon={appleLogoIcon}
         />
     );
-};
+}
 
 AppleSignIn.displayName = 'AppleSignIn';
 

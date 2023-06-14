@@ -1,5 +1,4 @@
 import React from 'react';
-import {Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {propTypes as anchorForAttachmentsOnlyPropTypes, defaultProps as anchorForAttachmentsOnlyDefaultProps} from './anchorForAttachmentsOnlyPropTypes';
@@ -11,6 +10,7 @@ import fileDownload from '../../libs/fileDownload';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 import {ShowContextMenuContext, showContextMenuForReport} from '../ShowContextMenuContext';
 import * as ReportUtils from '../../libs/ReportUtils';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -34,7 +34,7 @@ const defaultProps = {
     ...anchorForAttachmentsOnlyDefaultProps,
 };
 
-const BaseAnchorForAttachmentsOnly = (props) => {
+function BaseAnchorForAttachmentsOnly(props) {
     const sourceURL = props.source;
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
     const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
@@ -45,7 +45,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
     return (
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
-                <Pressable
+                <PressableWithoutFeedback
                     style={props.style}
                     onPress={() => {
                         if (isDownloading) {
@@ -57,6 +57,8 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                     onPressIn={props.onPressIn}
                     onPressOut={props.onPressOut}
                     onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    accessibilityLabel={fileName}
+                    accessibilityRole="button"
                 >
                     <AttachmentView
                         source={sourceURLWithAuth}
@@ -64,11 +66,11 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                         shouldShowDownloadIcon
                         shouldShowLoadingSpinnerIcon={isDownloading}
                     />
-                </Pressable>
+                </PressableWithoutFeedback>
             )}
         </ShowContextMenuContext.Consumer>
     );
-};
+}
 
 BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
 BaseAnchorForAttachmentsOnly.propTypes = propTypes;

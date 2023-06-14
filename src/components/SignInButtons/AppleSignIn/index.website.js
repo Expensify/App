@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {useIsFocused} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Config from 'react-native-config';
 import get from 'lodash/get';
@@ -8,17 +7,25 @@ import * as Session from '../../../libs/actions/Session';
 import Log from '../../../libs/Log';
 import * as Environment from '../../../libs/Environment/Environment';
 import CONST from '../../../CONST';
+import withNavigationFocus from '../../withNavigationFocus';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
-// add a trim() call to lodashGet here to prevent headaches
+// add a trim() call to lodashGet here to prevent headaches.
 const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).trim();
 
 const requiredPropTypes = {
     isDesktopFlow: PropTypes.bool.isRequired,
 };
 
+const singletonPropTypes = {
+    ...requiredPropTypes,
+
+    // From withNavigationFocus
+    isFocused: PropTypes.bool.isRequired,
+};
+
 const propTypes = {
-    // Prop to indicate if this is the desktop flow or not
+    // Prop to indicate if this is the desktop flow or not.
     isDesktopFlow: PropTypes.bool,
 };
 const defaultProps = {
@@ -26,7 +33,7 @@ const defaultProps = {
 };
 
 /**
- * Apple Sign In Configuration for Web
+ * Apple Sign In Configuration for Web.
  */
 const config = {
     clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONST.APPLE_SIGN_IN_SERVICE_ID),
@@ -39,7 +46,7 @@ const config = {
 };
 
 /**
- * Apple Sign In success and failure listeners
+ * Apple Sign In success and failure listeners.
  */
 
 const successListener = (event) => {
@@ -53,18 +60,18 @@ const failureListener = (event) => {
 };
 
 /**
- * Apple Sign In button for Web
+ * Apple Sign In button for Web.
  * @returns {React.Component}
  */
 
 function AppleSignInDiv({isDesktopFlow}) {
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
-        // first mounted
+        // first mounted.
         window.AppleID.auth.init(config);
     }, []);
     //  Result listeners need to live within the focused item to avoid duplicate
-    //  side effects on success and failure
+    //  side effects on success and failure.
     React.useEffect(() => {
         document.addEventListener('AppleIDSignInOnSuccess', successListener);
         document.addEventListener('AppleIDSignInOnFailure', failureListener);
@@ -105,15 +112,17 @@ AppleSignInDiv.propTypes = requiredPropTypes;
 // The Sign in with Apple script may fail to render button if there are multiple
 // of these divs present in the app, as it matches based on div id. So we'll
 // only mount the div when it should be visible.
-function SingletonAppleSignInButton({isDesktopFlow}) {
-    const isFocused = useIsFocused();
+function SingletonAppleSignInButton({isFocused, isDesktopFlow}) {
     if (!isFocused) {
         return null;
     }
     return <AppleSignInDiv isDesktopFlow={isDesktopFlow} />;
 }
 
-SingletonAppleSignInButton.propTypes = requiredPropTypes;
+SingletonAppleSignInButton.propTypes = singletonPropTypes;
+
+// withNavigationFocus is used to only render the button when it is visible.
+const SingletonAppleSignInButtonWithFocus = withNavigationFocus(SingletonAppleSignInButton);
 
 function AppleSignIn({isDesktopFlow}) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
@@ -133,10 +142,10 @@ function AppleSignIn({isDesktopFlow}) {
         return null;
     }
 
-    return <SingletonAppleSignInButton isDesktopFlow={isDesktopFlow} />;
+    return <SingletonAppleSignInButtonWithFocus isDesktopFlow={isDesktopFlow} />;
 }
 
 AppleSignIn.propTypes = propTypes;
 AppleSignIn.defaultProps = defaultProps;
 
-export default AppleSignIn;
+export default withNavigationFocus(AppleSignIn);

@@ -1,7 +1,6 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
-import SetPasswordPage from '../../../pages/SetPasswordPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import SCREENS from '../../../SCREENS';
@@ -12,45 +11,42 @@ import GoogleSignInDesktopPage from '../../../pages/signin/GoogleSignInDesktopPa
 
 const RootStack = createStackNavigator();
 
-const PublicScreens = () => (
-    <RootStack.Navigator>
-        <RootStack.Screen
-            name={SCREENS.HOME}
-            options={defaultScreenOptions}
-            component={SignInPage}
-        />
-        <RootStack.Screen
-            name={SCREENS.TRANSITION_FROM_OLD_DOT}
-            options={defaultScreenOptions}
-            component={LogInWithShortLivedAuthTokenPage}
-        />
-        <RootStack.Screen
-            name="ValidateLogin"
-            options={defaultScreenOptions}
-            component={ValidateLoginPage}
-        />
-        <RootStack.Screen
-            name="UnlinkLogin"
-            options={defaultScreenOptions}
-            component={UnlinkLoginPage}
-        />
-        <RootStack.Screen
-            name="SetPassword"
-            options={defaultScreenOptions}
-            component={SetPasswordPage}
-        />
-        <RootStack.Screen
-            name="AppleSignInDesktop"
-            options={defaultScreenOptions}
-            component={AppleSignInDesktopPage}
-        />
-        <RootStack.Screen
-            name="GoogleSignInDesktop"
-            options={defaultScreenOptions}
-            component={GoogleSignInDesktopPage}
-        />
-    </RootStack.Navigator>
-);
+function PublicScreens() {
+    return (
+        <RootStack.Navigator>
+            <RootStack.Screen
+                name={SCREENS.HOME}
+                options={defaultScreenOptions}
+                component={SignInPage}
+            />
+            <RootStack.Screen
+                name={SCREENS.TRANSITION_FROM_OLD_DOT}
+                options={defaultScreenOptions}
+                component={LogInWithShortLivedAuthTokenPage}
+            />
+            <RootStack.Screen
+                name="ValidateLogin"
+                options={defaultScreenOptions}
+                component={ValidateLoginPage}
+            />
+            <RootStack.Screen
+                name="UnlinkLogin"
+                options={defaultScreenOptions}
+                component={UnlinkLoginPage}
+            />
+            <RootStack.Screen
+                name="AppleSignInDesktop"
+                options={defaultScreenOptions}
+                component={AppleSignInDesktopPage}
+            />
+            <RootStack.Screen
+                name="GoogleSignInDesktop"
+                options={defaultScreenOptions}
+                component={GoogleSignInDesktopPage}
+            />
+        </RootStack.Navigator>
+    );
+}
 
 PublicScreens.displayName = 'PublicScreens';
 export default PublicScreens;

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useState} from 'react';
-import {View, ScrollView, Pressable} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -14,7 +14,7 @@ import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -30,6 +30,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     ...policyPropTypes,
@@ -63,7 +64,7 @@ function dismissError(policyID) {
     Policy.removeWorkspace(policyID);
 }
 
-const WorkspaceInitialPage = (props) => {
+function WorkspaceInitialPage(props) {
     const policy = props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
@@ -163,19 +164,18 @@ const WorkspaceInitialPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 >
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={props.translate('workspace.common.workspace')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowThreeDotsButton
                         shouldShowGetAssistanceButton
                         guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INITIAL}
                         threeDotsMenuItems={threeDotsMenuItems}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffset(props.windowWidth)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <OfflineWithFeedback
@@ -188,10 +188,12 @@ const WorkspaceInitialPage = (props) => {
                                 <View style={styles.avatarSectionWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Tooltip text={props.translate('workspace.common.settings')}>
-                                            <Pressable
+                                            <PressableWithoutFeedback
                                                 disabled={hasPolicyCreationError}
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={() => openEditor(policy.id)}
+                                                accessibilityLabel={props.translate('workspace.common.settings')}
+                                                accessibilityRole="button"
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
@@ -202,14 +204,16 @@ const WorkspaceInitialPage = (props) => {
                                                     name={policyName}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
                                                 />
-                                            </Pressable>
+                                            </PressableWithoutFeedback>
                                         </Tooltip>
                                         {!_.isEmpty(policy.name) && (
                                             <Tooltip text={props.translate('workspace.common.settings')}>
-                                                <Pressable
+                                                <PressableWithoutFeedback
                                                     disabled={hasPolicyCreationError}
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
                                                     onPress={() => openEditor(policy.id)}
+                                                    accessibilityLabel={props.translate('workspace.common.settings')}
+                                                    accessibilityRole="button"
                                                 >
                                                     <Text
                                                         numberOfLines={1}
@@ -217,7 +221,7 @@ const WorkspaceInitialPage = (props) => {
                                                     >
                                                         {policy.name}
                                                     </Text>
-                                                </Pressable>
+                                                </PressableWithoutFeedback>
                                             </Tooltip>
                                         )}
                                     </View>
@@ -252,7 +256,7 @@ const WorkspaceInitialPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 WorkspaceInitialPage.propTypes = propTypes;
 WorkspaceInitialPage.defaultProps = defaultProps;
