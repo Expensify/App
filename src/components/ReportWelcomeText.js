@@ -22,11 +22,11 @@ const personalDetailsPropTypes = PropTypes.shape({
     login: PropTypes.string.isRequired,
 
     /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet) */
-    avatar: PropTypes.string.isRequired,
+    the person doesn't have their own avatar uploaded yet, except for anon users) */
+    avatar: PropTypes.string,
 
     /** This is either the user's full name, or their login if full name is an empty string */
-    displayName: PropTypes.string.isRequired,
+    displayName: PropTypes.string,
 });
 
 const propTypes = {
@@ -82,6 +82,7 @@ function ReportWelcomeText(props) {
                 )}
                 {isChatRoom && (
                     <>
+                        <Text>{props.translate('reportActionsView.beginningOfChatHistory')}</Text>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
                         <Text
                             style={[styles.textStrong]}
