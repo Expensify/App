@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {View, BackHandler} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -20,10 +20,7 @@ import usePermissions from '../../hooks/usePermissions';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
 import * as StyleUtils from '../../styles/StyleUtils';
-import * as Report from '../../libs/actions/Report';
-import ROUTES from '../../ROUTES';
-import CONST from '../../CONST';
-import getPlatform from '../../libs/getPlatform';
+import * as BackButtonUtils from '../../libs/BackButtonUtils';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -102,45 +99,11 @@ function SignInPage({account, credentials, lastOpenedRoomId}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
     useEffect(() => {
-        if(lastOpenedRoomId && lastOpenedRoomId!=='' && getPlatform() === CONST.PLATFORM.WEB){
-            // Push state is required to trigger the popstate event
-            window.history.pushState({}, '', ROUTES.getReportRoute(lastOpenedRoomId));
-        }
-        const browserBackPressed = () => {
-            if(lastOpenedRoomId && lastOpenedRoomId!==''){
-                // Use deeplink implementation to change navigation stack
-                Report.openReportFromDeepLink(ROUTES.getReportRoute(lastOpenedRoomId), false)
-            }else{
-                window.history.back();
-            }
-        };
-        const androidBackButtonPressed = () => {
-            if(lastOpenedRoomId && lastOpenedRoomId!==''){
-                Report.openReportFromDeepLink(ROUTES.getReportRoute(lastOpenedRoomId), false)
-            }else{
-                BackHandler.exitApp()
-            }
-          return true;
-        };
-        // Add event listener for the browser back button press and android back button
-        if(getPlatform() === CONST.PLATFORM.WEB) {
-            window.addEventListener('popstate', browserBackPressed);
-        }
-        else if(getPlatform() === CONST.PLATFORM.ANDROID){
-            BackHandler.addEventListener(
-                'hardwareBackPress',
-                androidBackButtonPressed,
-              );
-        }
-        
-        // Clean up the event listeners when the component unmounts
+        BackButtonUtils.prepareBackHistory();
+        const handler = BackButtonUtils.backButtonHandler;
+        BackButtonUtils.addBackButtonListener(handler);
         return () => {
-            if(getPlatform() === CONST.PLATFORM.WEB) {
-                window.removeEventListener('popstate', browserBackPressed);
-            }
-            else if(getPlatform() === CONST.PLATFORM.ANDROID){
-                BackHandler.removeEventListener('hardwareBackPress', androidBackButtonPressed)
-            }
+            BackButtonUtils.removeBackButtonListener(handler);
         };
       }, [lastOpenedRoomId]);
 
