@@ -38,7 +38,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInPageLayout = (props) => {
+function SignInPageLayout(props) {
     const scrollViewRef = useRef();
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
@@ -138,7 +138,7 @@ const SignInPageLayout = (props) => {
             )}
         </View>
     );
-};
+}
 
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';

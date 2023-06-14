@@ -58,7 +58,7 @@ const defaultProps = {
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-const AvatarCropModal = (props) => {
+function AvatarCropModal(props) {
     const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -433,7 +433,7 @@ const AvatarCropModal = (props) => {
             />
         </Modal>
     );
-};
+}
 
 AvatarCropModal.displayName = 'AvatarCropModal';
 AvatarCropModal.propTypes = propTypes;

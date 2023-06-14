@@ -88,7 +88,7 @@ const defaultProps = {
     validate: () => ({}),
 };
 
-const Form = (props) => {
+function Form(props) {
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState({...props.draftValues});
     const formRef = useRef(null);
@@ -403,7 +403,7 @@ const Form = (props) => {
             }
         </SafeAreaConsumer>
     );
-};
+}
 
 Form.displayName = 'Form';
 Form.propTypes = propTypes;
