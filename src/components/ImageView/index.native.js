@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, InteractionManager, PanResponder} from 'react-native';
+import {View, PanResponder} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import styles from '../../styles/styles';
@@ -103,24 +103,21 @@ class ImageView extends PureComponent {
      * @param {Object} nativeEvent
      */
     configureImageZoom({nativeEvent}) {
-        // Wait till animations are over to prevent stutter in navigation animation
-        this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
-            let imageWidth = nativeEvent.width;
-            let imageHeight = nativeEvent.height;
-            const containerWidth = Math.round(this.props.windowWidth);
-            const containerHeight = Math.round(this.state.containerHeight ? this.state.containerHeight : this.props.windowHeight);
+        let imageWidth = nativeEvent.width;
+        let imageHeight = nativeEvent.height;
+        const containerWidth = Math.round(this.props.windowWidth);
+        const containerHeight = Math.round(this.state.containerHeight ? this.state.containerHeight : this.props.windowHeight);
 
-            const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
+        const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
-            imageHeight *= aspectRatio;
-            imageWidth *= aspectRatio;
+        imageHeight *= aspectRatio;
+        imageWidth *= aspectRatio;
 
-            // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
-            const maxDimensionsScale = 11;
-            imageWidth = Math.min(imageWidth, containerWidth * maxDimensionsScale);
-            imageHeight = Math.min(imageHeight, containerHeight * maxDimensionsScale);
-            this.setState({imageHeight, imageWidth, isLoading: false});
-        });
+        // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
+        const maxDimensionsScale = 11;
+        imageWidth = Math.min(imageWidth, containerWidth * maxDimensionsScale);
+        imageHeight = Math.min(imageHeight, containerHeight * maxDimensionsScale);
+        this.setState({imageHeight, imageWidth, isLoading: false});
     }
 
     /**

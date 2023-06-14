@@ -77,7 +77,7 @@ const defaultProps = {
     style: [],
 };
 
-const ReportActionItemFragment = (props) => {
+function ReportActionItemFragment(props) {
     switch (props.fragment.type) {
         case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
@@ -124,7 +124,7 @@ const ReportActionItemFragment = (props) => {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {convertToLTR(Str.htmlDecode(text))}
+                    {convertToLTR(text)}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}
@@ -171,7 +171,7 @@ const ReportActionItemFragment = (props) => {
         default:
             return <Text>props.fragment.text</Text>;
     }
-};
+}
 
 ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;

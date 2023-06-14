@@ -16,7 +16,7 @@ const defaultProps = {
     shouldAnimate: true,
 };
 
-const ReportActionsSkeletonView = (props) => {
+function ReportActionsSkeletonView(props) {
     // Determines the number of content items based on container height
     const possibleVisibleContentItems = Math.ceil(props.containerHeight / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines = [];
@@ -52,7 +52,7 @@ const ReportActionsSkeletonView = (props) => {
         }
     }
     return <View>{skeletonViewLines}</View>;
-};
+}
 
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
 ReportActionsSkeletonView.propTypes = propTypes;
