@@ -50,15 +50,15 @@ const defaultProps = {
 function Checkbox(props) {
     const [isFocused, setIsFocused] = useState(false);
 
-    const handleSpaceKey = (event) => {
+    function handleSpaceKey(event) {
         if (event.code !== 'Space') {
             return;
         }
 
         props.onPress();
-    };
+    }
 
-    const firePressHandlerOnClick = (event) => {
+    function firePressHandlerOnClick(event) {
         // Pressable can be triggered with Enter key and by a click. As this is a checkbox,
         // We do not want to toggle it, when Enter key is pressed.
         if (event.type && event.type !== 'click') {
@@ -73,7 +73,7 @@ function Checkbox(props) {
         }
 
         props.onPress();
-    };
+    }
 
     return (
         <Pressable
