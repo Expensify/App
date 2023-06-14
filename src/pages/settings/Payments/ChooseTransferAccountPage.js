@@ -28,7 +28,7 @@ const defaultProps = {
     walletTransfer: {},
 };
 
-const ChooseTransferAccountPage = (props) => {
+function ChooseTransferAccountPage(props) {
     /**
      * Go back to transfer balance screen with the selected bank account set
      * @param {Object} event Click event object
@@ -77,7 +77,7 @@ const ChooseTransferAccountPage = (props) => {
             />
         </ScreenWrapper>
     );
-};
+}
 
 ChooseTransferAccountPage.propTypes = propTypes;
 ChooseTransferAccountPage.defaultProps = defaultProps;

@@ -47,7 +47,7 @@ const defaultProps = {
     personalDetails: {},
 };
 
-const ArchivedReportFooter = (props) => {
+function ArchivedReportFooter(props) {
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
     let displayName = lodashGet(props.personalDetails, `${props.report.ownerEmail}.displayName`, props.report.ownerEmail);
 
@@ -71,7 +71,7 @@ const ArchivedReportFooter = (props) => {
             shouldShowIcon
         />
     );
-};
+}
 
 ArchivedReportFooter.propTypes = propTypes;
 ArchivedReportFooter.defaultProps = defaultProps;

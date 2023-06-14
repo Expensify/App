@@ -35,7 +35,7 @@ const propTypes = {
 const defaultProps = {
     taskReport: {},
 };
-const TaskAction = (props) => {
+function TaskAction(props) {
     const taskReportName = props.taskReport.reportName || '';
 
     let messageLinkText = '';
@@ -61,7 +61,7 @@ const TaskAction = (props) => {
             </View>
         </>
     );
-};
+}
 
 TaskAction.propTypes = propTypes;
 TaskAction.defaultProps = defaultProps;

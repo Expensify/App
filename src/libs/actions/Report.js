@@ -600,51 +600,6 @@ function expandURLPreview(reportID, reportActionID) {
 }
 
 /**
- * Gets transactions and data associated with the linked report (expense or IOU report)
- *
- * @param {String} chatReportID
- * @param {String} linkedReportID
- */
-function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
-    API.read(
-        'OpenMoneyRequestsReportPage',
-        {
-            reportID: chatReportID,
-            linkedReportID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-        },
-    );
-}
-
-/**
  * Marks the new report actions as read
  *
  * @param {String} reportID
@@ -1694,6 +1649,18 @@ function setLastOpenedPublicRoom(reportID) {
 }
 
 /**
+ * Navigates to the last opened public room
+ *
+ * @param {String} lastOpenedPublicRoomID
+ */
+function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
+    Navigation.isNavigationReady().then(() => {
+        setLastOpenedPublicRoom('');
+        Navigation.navigate(ROUTES.getReportRoute(lastOpenedPublicRoomID));
+    });
+}
+
+/**
  * Flag a comment as offensive
  *
  * @param {String} reportID
@@ -1805,7 +1772,6 @@ export {
     navigateToAndOpenReport,
     navigateToAndOpenChildReport,
     updatePolicyRoomNameAndNavigate,
-    openMoneyRequestsReportPage,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
@@ -1818,4 +1784,5 @@ export {
     leaveRoom,
     setLastOpenedPublicRoom,
     flagComment,
+    openLastOpenedPublicRoom,
 };

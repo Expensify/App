@@ -3,7 +3,7 @@ import _ from 'lodash';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 import Text from '../Text';
 
-const InlineCodeBlock = (props) => {
+function InlineCodeBlock(props) {
     const TDefaultRenderer = props.TDefaultRenderer;
     const textStyles = _.omit(props.textStyle, 'textDecorationLine');
 
@@ -15,7 +15,7 @@ const InlineCodeBlock = (props) => {
             <Text style={{...props.boxModelStyle, ...textStyles}}>{props.defaultRendererProps.tnode.data}</Text>
         </TDefaultRenderer>
     );
-};
+}
 
 InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;
 InlineCodeBlock.displayName = 'InlineCodeBlock';
