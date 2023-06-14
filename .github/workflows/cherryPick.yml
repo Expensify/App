@@ -27,7 +27,6 @@ jobs:
 
   createNewVersion:
     needs: validateActor
-    runs-on: ubuntu-latest
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event.inputs.NEW_VERSION == '' }}
     uses: Expensify/App/.github/workflows/createNewVersion.yml@main
     secrets: inherit
