@@ -149,7 +149,6 @@ class ReportScreen extends React.Component {
 
         this.fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-        Navigation.setIsReportScreenIsReady();
     }
 
     componentDidUpdate(prevProps) {
