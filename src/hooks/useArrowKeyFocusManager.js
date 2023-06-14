@@ -1,7 +1,8 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import useKeyboardShortcut from './useKeyboardShortcut';
 import CONST from '../CONST';
 
+const EMPTY_ARRAY = Object.freeze([]);
 /**
  * A hook that makes it easy to use the arrow keys to manage focus of items in a list
  *
@@ -13,59 +14,67 @@ import CONST from '../CONST';
  * @param {Boolean} [config.shouldExcludeTextAreaNodes] – Whether arrow keys should have any effect when a TextArea node is focused
  * @returns {Array}
  */
-export default function useArrowKeyFocusManager({maxIndex, onFocusedIndexChange = () => {}, initialFocusedIndex = 0, disabledIndexes = [], shouldExcludeTextAreaNodes = true}) {
+export default function useArrowKeyFocusManager({
+    maxIndex,
+    onFocusedIndexChange = () => {},
+    initialFocusedIndex = 0,
+    disabledIndexes = EMPTY_ARRAY,
+    shouldExcludeTextAreaNodes = true,
+    isActive,
+}) {
     const [focusedIndex, setFocusedIndex] = useState(initialFocusedIndex);
+    const arrowConfig = useMemo(
+        () => ({
+            excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
+            isActive,
+        }),
+        [isActive, shouldExcludeTextAreaNodes],
+    );
+
     useEffect(() => onFocusedIndexChange(focusedIndex), [focusedIndex, onFocusedIndexChange]);
 
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ARROW_UP,
-        () => {
-            if (maxIndex < 0) {
-                return;
-            }
+    const arrowUpCallback = useCallback(() => {
+        if (maxIndex < 0) {
+            return;
+        }
 
-            const currentFocusedIndex = focusedIndex > 0 ? focusedIndex - 1 : maxIndex;
+        setFocusedIndex((actualIndex) => {
+            const currentFocusedIndex = actualIndex > 0 ? actualIndex - 1 : maxIndex;
             let newFocusedIndex = currentFocusedIndex;
 
             while (disabledIndexes.includes(newFocusedIndex)) {
                 newFocusedIndex = newFocusedIndex > 0 ? newFocusedIndex - 1 : maxIndex;
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
-                    return; // no-op
+                    return actualIndex; // no-op
                 }
             }
+            return newFocusedIndex;
+        });
+    }, [disabledIndexes, maxIndex]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
 
-            setFocusedIndex(newFocusedIndex);
-        },
-        {
-            excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
-        },
-    );
+    const arrowDownCallback = useCallback(() => {
+        if (maxIndex < 0) {
+            return;
+        }
 
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN,
-        () => {
-            if (maxIndex < 0) {
-                return;
-            }
-
-            const currentFocusedIndex = focusedIndex < maxIndex ? focusedIndex + 1 : 0;
+        setFocusedIndex((actualIndex) => {
+            const currentFocusedIndex = actualIndex < maxIndex ? actualIndex + 1 : 0;
             let newFocusedIndex = currentFocusedIndex;
 
             while (disabledIndexes.includes(newFocusedIndex)) {
                 newFocusedIndex = newFocusedIndex < maxIndex ? newFocusedIndex + 1 : 0;
                 if (newFocusedIndex === currentFocusedIndex) {
                     // all indexes are disabled
-                    return; // no-op
+                    return actualIndex;
                 }
             }
 
-            setFocusedIndex(newFocusedIndex);
-        },
-        {
-            excludedNodes: shouldExcludeTextAreaNodes ? ['TEXTAREA'] : [],
-        },
-    );
+            return newFocusedIndex;
+        });
+    }, [disabledIndexes, maxIndex]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
 
     // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndex is only exposed in case you want to reset focusedIndex or focus a specific item
     return [focusedIndex, setFocusedIndex];

@@ -1,5 +1,7 @@
-import {useEffect, useRef, useCallback} from 'react';
+import {useEffect} from 'react';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
+
+const EMPTY_ARRAY = Object.freeze([]);
 
 /**
  * Register a keyboard shortcut handler.
@@ -9,12 +11,11 @@ import KeyboardShortcut from '../libs/KeyboardShortcut';
  * @param {Object} [config]
  */
 export default function useKeyboardShortcut(shortcut, callback, config = {}) {
-    const {captureOnInputs = true, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = [], isActive = true} = config;
+    const {captureOnInputs = true, shouldBubble = false, priority = 0, shouldPreventDefault = true, excludedNodes = EMPTY_ARRAY, isActive = true} = config;
 
-    const subscription = useRef(null);
-    const subscribe = useCallback(
-        () =>
-            KeyboardShortcut.subscribe(
+    useEffect(() => {
+        if (isActive) {
+            return KeyboardShortcut.subscribe(
                 shortcut.shortcutKey,
                 callback,
                 shortcut.descriptionKey,
@@ -24,14 +25,8 @@ export default function useKeyboardShortcut(shortcut, callback, config = {}) {
                 priority,
                 shouldPreventDefault,
                 excludedNodes,
-            ),
-        [callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers, shortcut.shortcutKey, shouldBubble, shouldPreventDefault],
-    );
-
-    useEffect(() => {
-        const unsubscribe = subscription.current || (() => {});
-        unsubscribe();
-        subscription.current = isActive ? subscribe() : null;
-        return isActive ? subscription.current : () => {};
-    }, [isActive, subscribe]);
+            );
+        }
+        return () => {};
+    }, [isActive, callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers, shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
 }

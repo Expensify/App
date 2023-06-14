@@ -41,6 +41,7 @@ const defaultProps = {
 function PopoverMenu(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
 
     const selectItem = (index) => {
         const selectedItem = props.menuItems[index];
@@ -48,7 +49,6 @@ function PopoverMenu(props) {
         setSelectedItemIndex(index);
     };
 
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1});
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         () => {
