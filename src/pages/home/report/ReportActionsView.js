@@ -21,7 +21,7 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import * as ReactionList from './ReactionList/ReactionList';
+import ReactionListRefContext from './ReactionList/ReactionListRefContext';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 
@@ -65,6 +65,7 @@ class ReportActionsView extends React.Component {
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
 
+        this.reactionListRef = React.createRef();
         this.state = {
             isFloatingMessageCounterVisible: false,
             newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
@@ -343,18 +344,20 @@ class ReportActionsView extends React.Component {
                     isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
                     onClick={this.scrollToBottomAndMarkReportAsRead}
                 />
-                <ReportActionsList
-                    report={this.props.report}
-                    onScroll={this.trackScroll}
-                    onLayout={this.recordTimeToMeasureItemLayout}
-                    sortedReportActions={this.props.reportActions}
-                    mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
-                    isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
-                    loadMoreChats={this.loadMoreChats}
-                    newMarkerReportActionID={this.state.newMarkerReportActionID}
-                />
+                <ReactionListRefContext.Provider value={this.reactionListRef}>
+                    <ReportActionsList
+                        report={this.props.report}
+                        onScroll={this.trackScroll}
+                        onLayout={this.recordTimeToMeasureItemLayout}
+                        sortedReportActions={this.props.reportActions}
+                        mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
+                        isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                        loadMoreChats={this.loadMoreChats}
+                        newMarkerReportActionID={this.state.newMarkerReportActionID}
+                    />
+                </ReactionListRefContext.Provider>
                 <PopoverReactionList
-                    ref={ReactionList.reactionListRef}
+                    ref={this.reactionListRef}
                     reportID={this.props.report.reportID}
                 />
                 <CopySelectionHelper />
