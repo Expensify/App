@@ -41,18 +41,15 @@ function TaskTitlePage(props) {
      * @param {String} values.title
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
+    const validate = useCallback((values) => {
+        const errors = {};
 
-            if (_.isEmpty(values.title)) {
-                errors.title = props.translate('newTaskPage.pleaseEnterTaskName');
-            }
+        if (_.isEmpty(values.title)) {
+            errors.title = 'newTaskPage.pleaseEnterTaskName';
+        }
 
-            return errors;
-        },
-        [props],
-    );
+        return errors;
+    }, []);
 
     const submit = useCallback(
         (values) => {

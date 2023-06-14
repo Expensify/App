@@ -9,7 +9,7 @@ import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContex
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
 
-const ImageRenderer = (props) => {
+function ImageRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -77,7 +77,7 @@ const ImageRenderer = (props) => {
             )}
         </ShowContextMenuContext.Consumer>
     );
-};
+}
 
 ImageRenderer.propTypes = htmlRendererPropTypes;
 ImageRenderer.displayName = 'ImageRenderer';

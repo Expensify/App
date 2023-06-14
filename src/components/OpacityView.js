@@ -35,7 +35,7 @@ const defaultProps = {
     dimmingValue: variables.hoverDimValue,
 };
 
-const OpacityView = (props) => {
+function OpacityView(props) {
     const opacity = useSharedValue(1);
     const opacityStyle = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -54,7 +54,7 @@ const OpacityView = (props) => {
             <View style={StyleUtils.parseStyleAsArray(props.style)}>{props.children}</View>
         </Animated.View>
     );
-};
+}
 
 OpacityView.displayName = 'OpacityView';
 OpacityView.propTypes = propTypes;
