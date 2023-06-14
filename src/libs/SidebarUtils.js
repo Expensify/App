@@ -272,7 +272,7 @@ function getOptionData(reportID) {
     } else if (ReportActionsUtils.isReportReviewAction(lastReportActions[report.reportID])) {
         const iouReportID = ReportActionsUtils.getIouReportID(lastReportActions[report.reportID]);
         const iouReport = ReportUtils.getReport(iouReportID);
-        lastMessageTextFromReport = ReportUtils.getMoneyRequestReportActionMessage(iouReport);
+        lastMessageTextFromReport = ReportUtils.getMoneyRequestReportActionMessage(iouReport, lastReportActions[report.reportID]);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }

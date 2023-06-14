@@ -964,14 +964,29 @@ function getTransactionReportName(reportAction) {
 /**
  * Get money request message for a IOU report
  *
- * @param {Object} iouReport
+ * @param {Object} report
+ * @param {Object} reportAction
  * @returns  {String}
  */
-function getMoneyRequestReportActionMessage(iouReport) {
-    const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(iouReport), iouReport.currency);
-    const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport.managerEmail, true);
-    
-    if (iouReport.hasOutstandingIOU) {
+function getMoneyRequestReportActionMessage(report, reportAction) {
+    let formattedAmount = null;
+    let isHavingOustandingIOU = null;
+    const totalAmount = getMoneyRequestTotal(report);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail, true);
+
+    if (totalAmount > 0) {
+        formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
+        isHavingOustandingIOU = report.hasOutstandingIOU;
+    } else {
+        const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
+
+        // The totalAmount is 0 after sign in/sign up because OpenApp API won't return iouReports if it's paid, so we need to retrieve it from the reportActionMessage
+        // reportActionMessage is in the format of either "payer@mail.com paid $1.00" or "paid $1.00"
+        formattedAmount = _.last(reportActionMessage.split(' '));
+        isHavingOustandingIOU = Boolean(reportActionMessage.match(/ paid /));
+    }
+
+    if (isHavingOustandingIOU) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
     return Localize.translateLocal('iou.payerSettled', {amount: formattedAmount});
