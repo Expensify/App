@@ -728,7 +728,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
         CONST.IOU.REPORT_ACTION_TYPE.DELETE,
         amount,
         moneyRequestAction.originalMessage.currency,
-        Str.htmlDecode(moneyRequestAction.originalMessage.comment),
+        moneyRequestAction.originalMessage.comment,
         [],
         transactionID,
         '',

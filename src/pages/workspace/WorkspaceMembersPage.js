@@ -291,7 +291,7 @@ class WorkspaceMembersPage extends React.Component {
                 return;
             }
 
-            errors[member] = this.props.translate('workspace.people.error.cannotRemove');
+            errors[member] = 'workspace.people.error.cannotRemove';
         });
 
         this.setState({errors});

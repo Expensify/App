@@ -422,34 +422,30 @@ function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
     const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserAccountID);
 
-    API.write(
-        'DeleteUserAvatar',
-        {},
+    const optimisticData = [
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            avatar: defaultAvatar,
-                        },
-                    },
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [currentUserAccountID]: {
+                    avatar: defaultAvatar,
                 },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            avatar: personalDetails[currentUserAccountID].avatar,
-                        },
-                    },
-                },
-            ],
+            },
         },
-    );
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [currentUserAccountID]: {
+                    avatar: personalDetails[currentUserAccountID].avatar,
+                },
+            },
+        },
+    ];
+
+    API.write('DeleteUserAvatar', {}, {optimisticData, failureData});
 }
 
 /**

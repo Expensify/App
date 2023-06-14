@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -63,7 +62,7 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
 
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
-        lastMessageText: Str.htmlDecode(lastCommentText),
+        lastMessageText: lastCommentText,
         lastActorEmail: currentUserEmail,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
@@ -134,7 +133,7 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
 
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
-            lastMessageText: Str.htmlDecode(lastAssigneeCommentText),
+            lastMessageText: lastAssigneeCommentText,
             lastActorEmail: currentUserEmail,
             lastActorAccountID: currentUserAccountID,
             lastReadTime: currentTime,
@@ -358,7 +357,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
 
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
-            lastMessageText: Str.htmlDecode(lastAssigneeCommentText),
+            lastMessageText: lastAssigneeCommentText,
             lastActorAccountID: ownerAccountID,
             lastReadTime: currentTime,
         };

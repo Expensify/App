@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
@@ -181,7 +180,7 @@ export default [
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        const plainText = Str.htmlDecode(parser.htmlToText(content));
+                        const plainText = parser.htmlToText(content);
                         Clipboard.setHtml(content, plainText);
                     }
                 }
