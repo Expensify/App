@@ -338,8 +338,8 @@ function WorkspaceMembersPage(props) {
                     )}
                 </OfflineWithFeedback>
             );
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [selectedEmployees, errors, props.session.email, dismissError, toggleUser],
     );
 
