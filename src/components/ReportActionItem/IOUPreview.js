@@ -89,7 +89,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(
         PropTypes.shape({
             /** This is either the user's full name, or their login if full name is an empty string */
-            displayName: PropTypes.string.isRequired,
+            displayName: PropTypes.string,
         }),
     ),
 
