@@ -27,9 +27,6 @@ const singletonPropTypes = {
 const propTypes = {
     // Prop to indicate if this is the desktop flow or not.
     isDesktopFlow: PropTypes.bool,
-
-    // From withNavigationFocus
-    isFocused: PropTypes.bool.isRequired,
 };
 const defaultProps = {
     isDesktopFlow: false,
@@ -124,7 +121,10 @@ function SingletonAppleSignInButton({isFocused, isDesktopFlow}) {
 
 SingletonAppleSignInButton.propTypes = singletonPropTypes;
 
-function AppleSignIn({isDesktopFlow, isFocused}) {
+// withNavigationFocus is used to only render the button when it is visible.
+const SingletonAppleSignInButtonWithFocus = withNavigationFocus(SingletonAppleSignInButton);
+
+function AppleSignIn({isDesktopFlow}) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
     useEffect(() => {
         if (window.appleAuthScriptLoaded) return;
@@ -142,12 +142,7 @@ function AppleSignIn({isDesktopFlow, isFocused}) {
         return null;
     }
 
-    return (
-        <SingletonAppleSignInButton
-            isFocused={isFocused}
-            isDesktopFlow={isDesktopFlow}
-        />
-    );
+    return <SingletonAppleSignInButtonWithFocus isDesktopFlow={isDesktopFlow} />;
 }
 
 AppleSignIn.propTypes = propTypes;
