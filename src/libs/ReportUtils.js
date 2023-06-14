@@ -2282,6 +2282,5 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
-    getMoneyRequestReportName,
     getMoneyRequestReportActionMessage,
 };
