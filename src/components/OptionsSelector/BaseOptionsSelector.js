@@ -261,7 +261,6 @@ class BaseOptionsSelector extends Component {
      * @returns {Promise}
      */
     selectRow(option, ref) {
-        console.log('selectRow');
         return new Promise((resolve) => {
             if (this.props.shouldShowTextInput && this.props.shouldFocusOnSelectRow) {
                 if (this.relatedTarget && ref === this.relatedTarget) {
