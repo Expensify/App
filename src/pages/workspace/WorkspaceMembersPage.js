@@ -98,7 +98,7 @@ function WorkspaceMembersPage(props) {
             newErrors[member] = props.translate('workspace.people.error.cannotRemove');
         });
         setErrors(newErrors);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedEmployees]);
 
     useEffect(() => {
@@ -150,7 +150,7 @@ function WorkspaceMembersPage(props) {
             }
             return OptionsListUtils.isSearchStringMatch(search, memberDetails);
         });
-    }
+    };
 
     /**
      * Open the modal to invite a user
@@ -158,7 +158,7 @@ function WorkspaceMembersPage(props) {
     const inviteUser = () => {
         setSearchValue('');
         Navigation.navigate(ROUTES.getWorkspaceInviteRoute(props.route.params.policyID));
-    }
+    };
 
     /**
      * Remove selected users from the workspace
@@ -173,7 +173,7 @@ function WorkspaceMembersPage(props) {
         Policy.removeMembers(membersToRemove, props.route.params.policyID);
         setSelectedEmployees([]);
         setConfirmModalVisible(false);
-    }
+    };
 
     /**
      * Show the modal to confirm removal of the selected members
@@ -183,7 +183,7 @@ function WorkspaceMembersPage(props) {
             return;
         }
         setConfirmModalVisible(true);
-    }
+    };
 
     /**
      * Add or remove all users passed from the selectedEmployees list
@@ -191,29 +191,35 @@ function WorkspaceMembersPage(props) {
      */
     const toggleAllUsers = (memberList) => {
         const emailList = _.keys(memberList);
-        setSelectedEmployees((prevSelected) => !_.every(emailList, (memberEmail) => _.contains(prevSelected, memberEmail)) ? emailList : []);
+        setSelectedEmployees((prevSelected) => (!_.every(emailList, (memberEmail) => _.contains(prevSelected, memberEmail)) ? emailList : []));
         validateSelection();
-    }
+    };
 
     /**
      * Add user from the selectedEmployees list
      *
      * @param {String} login
      */
-    const addUser = useCallback((login) => {
-        setSelectedEmployees((prevSelected) => [...prevSelected, login]);
-        validateSelection();
-    }, [validateSelection]);
+    const addUser = useCallback(
+        (login) => {
+            setSelectedEmployees((prevSelected) => [...prevSelected, login]);
+            validateSelection();
+        },
+        [validateSelection],
+    );
 
     /**
      * Remove user from the selectedEmployees list
      *
      * @param {String} login
      */
-    const removeUser = useCallback((login) => {
-        setSelectedEmployees((prevSelected) => _.without(prevSelected, login));
-        validateSelection();
-    }, [validateSelection]);
+    const removeUser = useCallback(
+        (login) => {
+            setSelectedEmployees((prevSelected) => _.without(prevSelected, login));
+            validateSelection();
+        },
+        [validateSelection],
+    );
 
     /**
      * Toggle user from the selectedEmployees list
@@ -222,31 +228,37 @@ function WorkspaceMembersPage(props) {
      * @param {String} pendingAction
      *
      */
-    const toggleUser = useCallback((login, pendingAction) => {
-        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
+    const toggleUser = useCallback(
+        (login, pendingAction) => {
+            if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return;
+            }
 
-        // Add or remove the user if the checkbox is enabled
-        if (_.contains(selectedEmployees, login)) {
-            removeUser(login);
-        } else {
-            addUser(login);
-        }
-    }, [selectedEmployees, addUser, removeUser]);
+            // Add or remove the user if the checkbox is enabled
+            if (_.contains(selectedEmployees, login)) {
+                removeUser(login);
+            } else {
+                addUser(login);
+            }
+        },
+        [selectedEmployees, addUser, removeUser],
+    );
 
     /**
      * Dismisses the errors on one item
      *
      * @param {Object} item
      */
-    const dismissError = useCallback((item) => {
-        if (item.pendingAction === 'delete') {
-            Policy.clearDeleteMemberError(props.route.params.policyID, item.login);
-        } else {
-            Policy.clearAddMemberError(props.route.params.policyID, item.login);
-        }
-    }, [props.route.params.policyID]);
+    const dismissError = useCallback(
+        (item) => {
+            if (item.pendingAction === 'delete') {
+                Policy.clearDeleteMemberError(props.route.params.policyID, item.login);
+            } else {
+                Policy.clearAddMemberError(props.route.params.policyID, item.login);
+            }
+        },
+        [props.route.params.policyID],
+    );
 
     /**
      * Check if the policy member is deleted from the workspace
@@ -254,7 +266,7 @@ function WorkspaceMembersPage(props) {
      * @returns {Boolean}
      */
     const isDeletedPolicyMember = (policyMember) => !props.network.isOffline && policyMember.pendingAction === 'delete' && _.isEmpty(policyMember.errors);
-    
+
     /**
      * Do not move this or make it an anonymous function it is a method
      * so it will not be recreated each time we render an item
@@ -267,66 +279,69 @@ function WorkspaceMembersPage(props) {
      *
      * @returns {React.Component}
      */
-    const renderItem = useCallback(({item}) => {
-        const hasError = !_.isEmpty(item.errors) || errors[item.login];
-        const isChecked = _.contains(selectedEmployees, item.login);
-        return (
-            <OfflineWithFeedback
-                onClose={() => dismissError(item)}
-                pendingAction={item.pendingAction}
-                errors={item.errors}
-            >
-                <PressableWithFeedback
-                    style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.login]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
-                    onPress={() => toggleUser(item.login, item.pendingAction)}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{
-                        checked: isChecked,
-                    }}
-                    accessibilityLabel={props.formatPhoneNumber(item.displayName)}
-                    // disable hover dimming
-                    hoverDimmingValue={1}
-                    pressDimmingValue={0.7}
+    const renderItem = useCallback(
+        ({item}) => {
+            const hasError = !_.isEmpty(item.errors) || errors[item.login];
+            const isChecked = _.contains(selectedEmployees, item.login);
+            return (
+                <OfflineWithFeedback
+                    onClose={() => dismissError(item)}
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
                 >
-                    <Checkbox
-                        isChecked={isChecked}
+                    <PressableWithFeedback
+                        style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.login]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
                         onPress={() => toggleUser(item.login, item.pendingAction)}
-                    />
-                    <View style={styles.flex1}>
-                        <OptionRow
-                            boldStyle
-                            option={{
-                                text: props.formatPhoneNumber(item.displayName),
-                                alternateText: props.formatPhoneNumber(item.login),
-                                participantsList: [item],
-                                icons: [
-                                    {
-                                        source: UserUtils.getAvatar(item.avatar, item.login),
-                                        name: item.login,
-                                        type: CONST.ICON_TYPE_AVATAR,
-                                    },
-                                ],
-                                keyForList: item.login,
-                            }}
-                            onSelectRow={() => toggleUser(item.login, item.pendingAction)}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{
+                            checked: isChecked,
+                        }}
+                        accessibilityLabel={props.formatPhoneNumber(item.displayName)}
+                        // disable hover dimming
+                        hoverDimmingValue={1}
+                        pressDimmingValue={0.7}
+                    >
+                        <Checkbox
+                            isChecked={isChecked}
+                            onPress={() => toggleUser(item.login, item.pendingAction)}
                         />
-                    </View>
-                    {(props.session.email === item.login || item.role === 'admin') && (
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={[styles.peopleBadgeText]}>{props.translate('common.admin')}</Text>
+                        <View style={styles.flex1}>
+                            <OptionRow
+                                boldStyle
+                                option={{
+                                    text: props.formatPhoneNumber(item.displayName),
+                                    alternateText: props.formatPhoneNumber(item.login),
+                                    participantsList: [item],
+                                    icons: [
+                                        {
+                                            source: UserUtils.getAvatar(item.avatar, item.login),
+                                            name: item.login,
+                                            type: CONST.ICON_TYPE_AVATAR,
+                                        },
+                                    ],
+                                    keyForList: item.login,
+                                }}
+                                onSelectRow={() => toggleUser(item.login, item.pendingAction)}
+                            />
                         </View>
+                        {(props.session.email === item.login || item.role === 'admin') && (
+                            <View style={[styles.badge, styles.peopleBadge]}>
+                                <Text style={[styles.peopleBadgeText]}>{props.translate('common.admin')}</Text>
+                            </View>
+                        )}
+                    </PressableWithFeedback>
+                    {!_.isEmpty(errors[item.login]) && (
+                        <FormHelpMessage
+                            isError
+                            message={errors[item.login]}
+                        />
                     )}
-                </PressableWithFeedback>
-                {!_.isEmpty(errors[item.login]) && (
-                    <FormHelpMessage
-                        isError
-                        message={errors[item.login]}
-                    />
-                )}
-            </OfflineWithFeedback>
-        );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedEmployees, errors, props.session.email, dismissError, toggleUser]);
+                </OfflineWithFeedback>
+            );
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        },
+        [selectedEmployees, errors, props.session.email, dismissError, toggleUser],
+    );
 
     const policyMemberList = lodashGet(props, 'policyMemberList', {});
     const policyOwner = lodashGet(props.policy, 'owner');
@@ -420,9 +435,7 @@ function WorkspaceMembersPage(props) {
                             <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                 <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                     <Checkbox
-                                        isChecked={
-                                            !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (memberEmail) => _.contains(selectedEmployees, memberEmail))
-                                        }
+                                        isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (memberEmail) => _.contains(selectedEmployees, memberEmail))}
                                         onPress={() => toggleAllUsers(removableMembers)}
                                     />
                                     <View style={[styles.flex1]}>
