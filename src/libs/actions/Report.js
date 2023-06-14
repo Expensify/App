@@ -1196,7 +1196,7 @@ function navigateToConciergeChat() {
  */
 function addPolicyReport(policy, reportName, visibility) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserEmail, ..._.pluck(policy.employeeList, 'email')]);
+    const participants = _.unique([currentUserAccountID, ..._.pluck(policy.employeeList, 'accountID')]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
