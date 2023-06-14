@@ -274,6 +274,45 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
+    // Optimistically update the parent report action if the report is a thread
+    const report = ReportUtils.getReport(reportID);
+    if (ReportUtils.isThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const childVisibleActionCount = parentReportAction.childVisibleActionCount ? parentReportAction.childVisibleActionCount + 1 : 1;
+        const childCommenterCount = parentReportAction.childCommenterCount ? parentReportAction.childCommenterCount : 1;
+        const childLastVisibleActionCreated = currentTime;
+        let childOldestFourEmails = parentReportAction.childOldestFourEmails;
+        if (!childOldestFourEmails) {
+            childOldestFourEmails = currentUserEmail;
+        } else {
+            const oldestFourEmails = childOldestFourEmails.split(',');
+            const index = _.findIndex(oldestFourEmails, (email) => email === currentUserEmail);
+            if (index !== -1) {
+                oldestFourEmails.splice(index, 1);
+            }
+            oldestFourEmails.push(currentUserEmail);
+            if (oldestFourEmails.length > 4) {
+                oldestFourEmails.splice(0, 1);
+            }
+            childOldestFourEmails = oldestFourEmails.join(',');
+        }
+
+        const optimisticParentReportAction = {
+            childVisibleActionCount,
+            childCommenterCount,
+            childLastVisibleActionCreated,
+            childOldestFourEmails,
+        };
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {
+                [parentReportAction.reportActionID]: optimisticParentReportAction,
+            },
+        });
+    }
+
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone()) {
         const timezone = DateUtils.getCurrentTimezone();
