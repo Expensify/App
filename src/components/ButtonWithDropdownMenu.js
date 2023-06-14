@@ -55,6 +55,9 @@ const ButtonWithDropdownMenu = (props) => {
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
 
+    /**
+     * @param {Boolean} showMenu
+     */
     const measurePopoverPositionAndShowMenu = (showMenu = true) => {
         caretButton.current.measureInWindow((x, y, w, h) => {
             setPopoverAnchorPosition({
