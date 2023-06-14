@@ -336,6 +336,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         '',
         iouReport.reportID,
     );
+
     // Add optimistic personal details for participant
     const optimisticPersonalDetailListAction = {
         [payerAccountID]: {
@@ -583,6 +584,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             '',
             oneOnOneIOUReport.reportID,
         );
+
         // Add optimistic personal details for new participants
         const oneOnOnePersonalDetailListAction = {
             [accountID]: {
