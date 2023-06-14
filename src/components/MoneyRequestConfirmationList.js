@@ -229,6 +229,17 @@ function MoneyRequestConfirmationList(props) {
     );
 
     /**
+     * Navigate to details page of selected user
+     * @param {Object} option
+     */
+    const navigateToUserDetail = (option) => {
+        if (!option.login) {
+            return;
+        }
+        Navigation.navigate(ROUTES.getDetailsRoute(option.login));
+    };
+
+    /**
      * @param {String} paymentMethod
      */
     const confirm = useCallback(
@@ -290,12 +301,13 @@ function MoneyRequestConfirmationList(props) {
         <OptionsSelector
             sections={optionSelectorSections}
             value=""
-            onSelectRow={canModifyParticipants ? toggleOption : undefined}
+            onSelectRow={canModifyParticipants ? toggleOption : navigateToUserDetail}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
             disableArrowKeysActions={!canModifyParticipants}
             boldStyle
+            showTitleTooltip
             shouldTextInputAppearBelowOptions
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
