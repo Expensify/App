@@ -73,6 +73,7 @@ describe('test workflow cherryPick', () => {
                             // eslint-disable-next-line no-template-curly-in-string
                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                         },
+                        runsOn: 'ubuntu-latest',
                     },
                 };
                 const result = await act.runEvent(event, {
@@ -109,6 +110,7 @@ describe('test workflow cherryPick', () => {
                             // eslint-disable-next-line no-template-curly-in-string
                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                         },
+                        runsOn: 'ubuntu-latest',
                     },
                 };
                 act = utils.setUpActParams(
@@ -165,6 +167,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -224,6 +227,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -286,6 +290,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -345,6 +350,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -410,6 +416,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -469,6 +476,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -531,6 +539,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -590,6 +599,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -659,6 +669,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -718,6 +729,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -780,6 +792,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -839,6 +852,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -904,6 +918,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -963,6 +978,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -1025,6 +1041,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -1084,6 +1101,7 @@ describe('test workflow cherryPick', () => {
                                             // eslint-disable-next-line no-template-curly-in-string
                                             NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                         },
+                                        runsOn: 'ubuntu-latest',
                                     },
                                 };
                                 act = utils.setUpActParams(
@@ -1164,6 +1182,7 @@ describe('test workflow cherryPick', () => {
                         // eslint-disable-next-line no-template-curly-in-string
                         NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                     },
+                    runsOn: 'ubuntu-latest',
                 },
             };
             const result = await act.runEvent(event, {
