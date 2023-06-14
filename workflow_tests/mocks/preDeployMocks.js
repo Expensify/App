@@ -75,7 +75,17 @@ const COMMENT_ON_DEFERRED_PR_MOCK_STEP = utils.createMockStep('Comment on deferr
 const SKIP_DEPLOY_JOB_MOCK_STEPS = [COMMENT_ON_DEFERRED_PR_MOCK_STEP];
 
 // create_new_version
-const CREATE_NEW_VERSION_MOCK_STEP = utils.createMockStep('Create new version', 'Creating new version', 'CREATE_NEW_VERSION', null, null, {NEW_VERSION: '1.2.3'});
+const CREATE_NEW_VERSION_MOCK_STEP = utils.createMockStep(
+    'Create new version',
+    'Creating new version',
+    'CREATE_NEW_VERSION',
+    null,
+    null,
+    {NEW_VERSION: '1.2.3'},
+    null,
+    true,
+    'createNewVersion',
+);
 const CREATE_NEW_VERSION_JOB_MOCK_STEPS = [CREATE_NEW_VERSION_MOCK_STEP];
 
 // update_staging
