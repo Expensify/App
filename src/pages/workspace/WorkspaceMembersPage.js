@@ -105,6 +105,10 @@ function WorkspaceMembersPage(props) {
     }, [selectedEmployees]);
 
     useEffect(() => {
+        getWorkspaceMembers();
+    }, []);
+
+    useEffect(() => {
         validateSelection();
     }, [props.preferredLocale, validateSelection]);
 
