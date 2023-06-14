@@ -168,10 +168,10 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.unsubscribeVisibilityListener) {
-            this.unsubscribeVisibilityListener();
+        if (!this.unsubscribeVisibilityListener) {
+            return;
         }
-        Navigation.resetIsReportScreenReadyPromise();
+        this.unsubscribeVisibilityListener();
     }
 
     /**
