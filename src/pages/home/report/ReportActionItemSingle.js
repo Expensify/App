@@ -66,8 +66,20 @@ const showUserDetails = (accountID) => {
 };
 
 const ReportActionItemSingle = (props) => {
-    const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {accountID, avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
+    let actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    let {avatar, displayName} = props.personalDetails[actorEmail] || {};
+    const {accountID, pendingFields} = props.personalDetails[actorEmail] || {};
+
+    // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
+    // the Copilot feature is implemented.
+    if (props.action.delegate) {
+        const delegateDetails = props.personalDetails[props.action.delegate];
+        const delegateDisplayName = delegateDetails.displayName
+        actorEmail = delegateDetails.login;
+        displayName = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
+        avatar = delegateDetails.avatar;
+    }
+
     const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -100,7 +112,10 @@ const ReportActionItemSingle = (props) => {
                             noMargin
                         />
                     ) : (
-                        <UserDetailsTooltip accountID={accountID}>
+                        <UserDetailsTooltip
+                            accountID={accountID}
+                            delegate={props.action.delegate}
+                        >
                             <View>
                                 <Avatar
                                     containerStyles={[styles.actionAvatar]}
@@ -127,6 +142,7 @@ const ReportActionItemSingle = (props) => {
                                     fragment={fragment}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
+                                    delegate={props.action.delegate}
                                     isSingleLine
                                 />
                             ))}
