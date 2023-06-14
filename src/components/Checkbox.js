@@ -101,6 +101,8 @@ function Checkbox(props) {
                         props.disabled && styles.cursorDisabled,
                         (isFocused || props.isChecked) && styles.borderColorFocus,
                     ]}
+                    // Used as CSS selector to customize focus-visible style
+                    dataSet={{checkbox: true}}
                 >
                     {props.isChecked && (
                         <Icon
