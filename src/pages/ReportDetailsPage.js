@@ -58,7 +58,7 @@ const defaultProps = {
     personalDetails: {},
 };
 
-const ReportDetailsPage = (props) => {
+function ReportDetailsPage(props) {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(props.report), [props.report]);
@@ -189,7 +189,7 @@ const ReportDetailsPage = (props) => {
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
-};
+}
 
 ReportDetailsPage.displayName = 'ReportDetailsPage';
 ReportDetailsPage.propTypes = propTypes;

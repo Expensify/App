@@ -57,7 +57,7 @@ const getItemLayout = (_, index) => ({
     offset: variables.listItemHeightNormal * index,
 });
 
-const BaseReactionList = (props) => {
+function BaseReactionList(props) {
     if (!props.isVisible) {
         return null;
     }
@@ -116,7 +116,7 @@ const BaseReactionList = (props) => {
             />
         </>
     );
-};
+}
 
 BaseReactionList.propTypes = propTypes;
 BaseReactionList.defaultProps = defaultProps;
