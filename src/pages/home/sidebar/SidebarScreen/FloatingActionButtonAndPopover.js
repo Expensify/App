@@ -84,11 +84,11 @@ class FloatingActionButtonAndPopover extends React.Component {
 
     componentDidMount() {
         const navigationState = this.props.navigation.getState();
-        const currentRoute = navigationState.routes[navigationState.index];
-        if(currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
+        const routes = lodashGet(navigationState, 'routes', []);
+        const currentRoute = routes[navigationState.index];
+        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
             return;
         }
-        const routes = lodashGet(navigationState, 'routes', []);
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
