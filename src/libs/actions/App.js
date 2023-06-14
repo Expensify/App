@@ -138,19 +138,6 @@ AppState.addEventListener('change', (nextAppState) => {
     appState = nextAppState;
 });
 
-function getPolicies() {
-    return new Promise((resolve) => {
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.COLLECTION.POLICY,
-            waitForCollectionCallback: true,
-            callback: (policies) => {
-                Onyx.disconnect(connectionID);
-                resolve(policies);
-            },
-        });
-    });
-}
-
 /**
  * Fetches data needed for app initialization
  */
