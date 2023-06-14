@@ -15,6 +15,7 @@ import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserAccountID;
 let currentUserEmail;
@@ -137,17 +138,50 @@ AppState.addEventListener('change', (nextAppState) => {
     appState = nextAppState;
 });
 
-/**
- * Fetches data needed for app initialization
- */
-function openApp() {
-    isReadyToOpenApp.then(() => {
-        // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
+function getPolicies() {
+    return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.POLICY,
             waitForCollectionCallback: true,
             callback: (policies) => {
                 Onyx.disconnect(connectionID);
+                resolve(policies);
+            },
+        });
+    });
+}
+function getCollection(key) {
+    return new Promise((resolve) => {
+        const connectionID = Onyx.connect({
+            key,
+            waitForCollectionCallback: true,
+            callback: (reports) => {
+                Onyx.disconnect(connectionID);
+                resolve(reports);
+            },
+        });
+    });
+}
+
+function getReports() {
+}
+
+/**
+ * Fetches data needed for app initialization
+ */
+function openApp() {
+    let hasExistingReportData = false;
+    isReadyToOpenApp.then(() =>
+        // If we are opening the app after a first sign in then we will have no data whatsoever. This is easily checked by looking to see if
+        // the user has any report data at all. All users should have at least one report with Concierge so this is a reliable way to check if
+        // we are signing in the first time or if the app is being opened after it was killed or the page refreshed.
+        getCollection(ONYXKEYS.COLLECTION.REPORT)
+            .then((reports) => {
+                console.log({reports});
+                hasExistingReportData = !_.isEmpty(reports);
+                return getCollection(ONYXKEYS.COLLECTION.POLICY);
+            })
+            .then((policies) => {
                 API.read(
                     'OpenApp',
                     {policyIDList: getNonOptimisticPolicyIDs(policies)},
@@ -175,18 +209,22 @@ function openApp() {
                         ],
                     },
                 );
-            },
-        });
-    });
+            })
+    );
 }
 
 /**
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
+    // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID
+    // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+    //
+    // - Look through the local report actions to find the most recently modified report action
+    // - We Send this to the server so that it can compute which chats are critical for the user to see so we can update them in the LHN
     API.write(
         CONST.NETWORK.COMMAND.RECONNECT_APP,
-        {policyIDList: getNonOptimisticPolicyIDs(allPolicies)},
+        {policyIDList: getNonOptimisticPolicyIDs(allPolicies), mostRecentReportActionLastModified: ReportActionsUtils.getMostRecentReportActionLastModified()},
         {
             optimisticData: [
                 {
