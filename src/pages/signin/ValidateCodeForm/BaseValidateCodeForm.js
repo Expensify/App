@@ -76,7 +76,7 @@ function BaseValidateCodeForm(props) {
 
     const inputValidateCodeRef = useRef();
     const input2FARef = useRef();
-    const timerRef = useRef(timeRemaining);
+    const timerRef = useRef();
 
     useEffect(() => {
         if (!inputValidateCodeRef.current || prevIsVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
@@ -94,7 +94,7 @@ function BaseValidateCodeForm(props) {
             return;
         }
 
-        // Clear the code input if magic code valid or a new magic code was requested
+        // Clear the code input if a new magic code was requested
         if ((prevIsVisible && !props.isVisible) || (props.isVisible && timeRemaining === 30)) {
             setValidateCode('');
         }
@@ -129,16 +129,13 @@ function BaseValidateCodeForm(props) {
     }, [twoFactorAuthCode]);
 
     useEffect(() => {
-        timerRef.current = setInterval(() => {
-            if (timeRemaining < 0) {
-                clearInterval(timerRef.current);
-            } else {
+        if (timeRemaining > 0) {
+            timerRef.current = setTimeout(() => {
                 setTimeRemaining(timeRemaining - 1);
-            }
-        }, 1000);
-
+            }, 1000);
+        }
         return () => {
-            clearInterval(timerRef.current);
+            clearTimeout(timerRef.current);
         };
     }, [timeRemaining]);
 
