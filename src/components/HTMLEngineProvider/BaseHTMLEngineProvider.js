@@ -55,13 +55,13 @@ const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // Beware that each prop should be referentialy stable between renders to avoid
 // costly invalidations and commits.
-const BaseHTMLEngineProvider = (props) => {
+function BaseHTMLEngineProvider(props) {
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false}), [props.textSelectable]);
 
     // We need to pass multiple system-specific fonts for emojis but
     // we can't apply multiple fonts at once so we need to pass fallback fonts.
-    const fallbackFonts = {'ExpensifyNeue-Regular': fontFamily.EMOJI_TEXT_FONT};
+    const fallbackFonts = {'ExpensifyNeue-Regular': fontFamily.EXP_NEUE};
 
     return (
         <TRenderEngineProvider
@@ -83,7 +83,7 @@ const BaseHTMLEngineProvider = (props) => {
             </RenderHTMLConfigProvider>
         </TRenderEngineProvider>
     );
-};
+}
 
 BaseHTMLEngineProvider.displayName = 'BaseHTMLEngineProvider';
 BaseHTMLEngineProvider.propTypes = propTypes;

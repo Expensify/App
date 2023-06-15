@@ -24,12 +24,17 @@ const PressableWithFeedbackPropTypes = {
      * @default variables.hoverDimValue
      */
     hoverDimmingValue: propTypes.number,
+    /**
+     *  Used to locate this view from native classes.
+     */
+    nativeID: propTypes.string,
 };
 
 const PressableWithFeedbackDefaultProps = {
     ..._.omit(GenericPressablePropTypes.defaultProps, omittedProps),
     pressDimmingValue: variables.pressDimValue,
     hoverDimmingValue: variables.hoverDimValue,
+    nativeID: '',
     wrapperStyle: [],
 };
 
@@ -73,7 +78,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                         ...(state.focused ? StyleUtils.parseStyleAsArray(props.focusStyle, state) : []),
                     ]}
                 >
-                    {props.children}
+                    {_.isFunction(props.children) ? props.children(state) : props.children}
                 </OpacityView>
             )}
         </GenericPressable>

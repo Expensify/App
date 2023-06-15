@@ -8,7 +8,6 @@ import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
-import Tooltip from '../../../components/Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -19,13 +18,14 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
 import editedLabelStyles from '../../../styles/editedLabelStyles';
+import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
+    /** Users accountID */
+    accountID: PropTypes.string.isRequired,
+
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,
-
-    /** Text to be shown for tooltip When Fragment is report Actor */
-    tooltipText: PropTypes.string,
 
     /** Is this fragment an attachment? */
     isAttachment: PropTypes.bool,
@@ -73,12 +73,11 @@ const defaultProps = {
     },
     loading: false,
     isSingleLine: false,
-    tooltipText: '',
     source: '',
     style: [],
 };
 
-const ReportActionItemFragment = (props) => {
+function ReportActionItemFragment(props) {
     switch (props.fragment.type) {
         case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
@@ -122,11 +121,10 @@ const ReportActionItemFragment = (props) => {
 
             return (
                 <Text
-                    family="EMOJI_TEXT_FONT"
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {convertToLTR(Str.htmlDecode(text))}
+                    {convertToLTR(text)}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}
@@ -147,14 +145,14 @@ const ReportActionItemFragment = (props) => {
         }
         case 'TEXT':
             return (
-                <Tooltip text={props.tooltipText}>
+                <UserDetailsTooltip accountID={props.accountID}>
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}
                     >
                         {props.fragment.text}
                     </Text>
-                </Tooltip>
+                </UserDetailsTooltip>
             );
         case 'LINK':
             return <Text>LINK</Text>;
@@ -173,7 +171,7 @@ const ReportActionItemFragment = (props) => {
         default:
             return <Text>props.fragment.text</Text>;
     }
-};
+}
 
 ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;

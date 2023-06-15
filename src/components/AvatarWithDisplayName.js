@@ -49,7 +49,7 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
-const AvatarWithDisplayName = (props) => {
+function AvatarWithDisplayName(props) {
     const title = props.isAnonymous ? props.report.displayName : ReportUtils.getDisplayNameForParticipant(props.report.ownerEmail, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
@@ -101,7 +101,7 @@ const AvatarWithDisplayName = (props) => {
             )}
         </View>
     );
-};
+}
 AvatarWithDisplayName.propTypes = propTypes;
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 AvatarWithDisplayName.defaultProps = defaultProps;
