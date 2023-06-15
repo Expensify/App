@@ -475,7 +475,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     } else {
         reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
         result.keyForList = String(accountIDs[0]);
-        result.alternateText = '';
+        result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, `${accountIDs[0]}.login`, ''));
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
