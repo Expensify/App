@@ -23,6 +23,7 @@ import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Welcome from './Welcome';
+import SidebarUtils from '../SidebarUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -597,51 +598,6 @@ function expandURLPreview(reportID, reportActionID) {
         reportID,
         reportActionID,
     });
-}
-
-/**
- * Gets transactions and data associated with the linked report (expense or IOU report)
- *
- * @param {String} chatReportID
- * @param {String} linkedReportID
- */
-function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
-    API.read(
-        'OpenMoneyRequestsReportPage',
-        {
-            reportID: chatReportID,
-            linkedReportID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-        },
-    );
 }
 
 /**
@@ -1638,7 +1594,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Navigation.isReportScreenReady().then(() => {
+        SidebarUtils.isSidebarLoadedReady().then(() => {
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID));
             }
@@ -1817,7 +1773,6 @@ export {
     navigateToAndOpenReport,
     navigateToAndOpenChildReport,
     updatePolicyRoomNameAndNavigate,
-    openMoneyRequestsReportPage,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,

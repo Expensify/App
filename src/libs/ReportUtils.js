@@ -617,12 +617,12 @@ function canShowReportRecipientLocalTime(personalDetails, report, login) {
 }
 
 /**
- * Html decode, shorten last message text to fixed length and trim spaces.
+ * Shorten last message text to fixed length and trim spaces.
  * @param {String} lastMessageText
  * @returns {String}
  */
 function formatReportLastMessageText(lastMessageText) {
-    return Str.htmlDecode(String(lastMessageText)).trim().replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return String(lastMessageText).trim().replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -725,6 +725,16 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         };
 
         return [actorIcon];
+    }
+    if (isTaskReport(report)) {
+        const ownerEmail = report.ownerEmail || '';
+        const ownerIcon = {
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [ownerEmail, 'avatar']), ownerEmail),
+            name: ownerEmail,
+            type: CONST.ICON_TYPE_AVATAR,
+        };
+
+        return [ownerIcon];
     }
     if (isDomainRoom(report)) {
         result.source = Expensicons.DomainRoomAvatar;
@@ -1318,7 +1328,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
 
     return [
         {
-            html: iouMessage,
+            html: _.escape(iouMessage),
             text: iouMessage,
             isEdited: false,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
