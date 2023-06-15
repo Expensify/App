@@ -24,17 +24,17 @@ function PinButton(props) {
     return (
         <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
             <PressableWithFeedback
-            onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned))}
-            style={[styles.touchableButtonImage]}
-            accessibilityState={{checked: props.report.isPinned}}
-            accessibilityLabel={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}
-            accessibilityRole="button"
-        >
-            <Icon
-                src={Expensicons.Pin}
-                fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
-            />
-        </PressableWithFeedback>
+                onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned))}
+                style={[styles.touchableButtonImage]}
+                accessibilityState={{checked: props.report.isPinned}}
+                accessibilityLabel={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}
+                accessibilityRole="button"
+            >
+                <Icon
+                    src={Expensicons.Pin}
+                    fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
+                />
+            </PressableWithFeedback>
         </Tooltip>
     );
 }
