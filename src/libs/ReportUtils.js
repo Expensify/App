@@ -147,6 +147,15 @@ function isTaskReport(report) {
     return lodashGet(report, 'type') === CONST.REPORT.TYPE.TASK;
 }
 
+function isTaskCompleted(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED
+        && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;;
+}
+
+function isTaskAssignee(report) {
+    return lodashGet(report, 'managerEmail') === currentUserEmail;
+}
+
 /**
  * Checks if a report is an IOU or expense report.
  *
@@ -2255,6 +2264,8 @@ export {
     isExpenseReport,
     isIOUReport,
     isTaskReport,
+    isTaskCompleted,
+    isTaskAssignee,
     isMoneyRequestReport,
     chatIncludesChronos,
     getNewMarkerReportActionID,
