@@ -23,13 +23,13 @@ const propTypes = {
     shouldExcludeTextAreaNodes: PropTypes.bool,
 
     /** If this value is true, then the arrow down callback would be triggered when the max index is exceeded */
-    shouldTriggerArrowDownWhenMaxIndexExceeded: PropTypes.bool,
+    shouldResetIndexOnEndReached: PropTypes.bool,
 };
 
 const defaultProps = {
     disabledIndexes: [],
     shouldExcludeTextAreaNodes: true,
-    shouldTriggerArrowDownWhenMaxIndexExceeded: true,
+    shouldResetIndexOnEndReached: true,
 };
 
 class ArrowKeyFocusManager extends Component {
@@ -61,7 +61,7 @@ class ArrowKeyFocusManager extends Component {
         if (prevProps.maxIndex === this.props.maxIndex) {
             return;
         }
-        if (this.props.focusedIndex > this.props.maxIndex && this.props.shouldTriggerArrowDownWhenMaxIndexExceeded) {
+        if (this.props.focusedIndex > this.props.maxIndex && this.props.shouldResetIndexOnEndReached) {
             this.onArrowDownKey();
         }
     }
