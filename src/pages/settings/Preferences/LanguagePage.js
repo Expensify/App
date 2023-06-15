@@ -21,7 +21,7 @@ const propTypes = {
     preferredLocale: PropTypes.string.isRequired,
 };
 
-const LanguagePage = (props) => {
+function LanguagePage(props) {
     const localesToLanguages = _.map(props.translate('languagePage.languages'), (language, key) => ({
         value: key,
         text: language.label,
@@ -55,7 +55,7 @@ const LanguagePage = (props) => {
             />
         </ScreenWrapper>
     );
-};
+}
 
 LanguagePage.displayName = 'LanguagePage';
 LanguagePage.propTypes = propTypes;

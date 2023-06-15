@@ -21,7 +21,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import variables from '../../../styles/variables';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 
-const AddPayPalMePage = (props) => {
+function AddPayPalMePage(props) {
     const [payPalMeUsername, setPayPalMeUsername] = useState('');
     const [payPalMeUsernameError, setPayPalMeUsernameError] = useState(false);
     const payPalMeInput = useRef(null);
@@ -107,7 +107,7 @@ const AddPayPalMePage = (props) => {
             </FixedFooter>
         </ScreenWrapper>
     );
-};
+}
 
 AddPayPalMePage.propTypes = {...withLocalizePropTypes};
 AddPayPalMePage.displayName = 'AddPayPalMePage';

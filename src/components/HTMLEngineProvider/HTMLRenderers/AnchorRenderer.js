@@ -16,7 +16,7 @@ import * as Url from '../../../libs/Url';
 import ROUTES from '../../../ROUTES';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 
-const AnchorRenderer = (props) => {
+function AnchorRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
 
     // An auth token is needed to download Expensify chat attachments
@@ -104,7 +104,7 @@ const AnchorRenderer = (props) => {
             <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>
     );
-};
+}
 
 AnchorRenderer.propTypes = htmlRendererPropTypes;
 AnchorRenderer.displayName = 'AnchorRenderer';
