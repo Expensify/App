@@ -164,6 +164,13 @@ android {
         }
     }
 
+    // since we don't need variants adhocDebug and e2eDebug, we can force grade to ignore them
+    variantFilter { variant ->
+        if (variant.name == "adhocDebug" || variant.name == "e2eDebug") {
+            setIgnore(true)
+        }
+    }
+
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
