@@ -93,7 +93,6 @@ class Checkbox extends React.Component {
                     checked: this.props.isChecked,
                 }}
                 accessibilityLabel={this.props.accessibilityLabel}
-                hoverDimmingValue={1}
                 pressDimmingValue={1}
             >
                 {this.props.children ? (
