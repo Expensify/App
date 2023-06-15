@@ -36,8 +36,8 @@ const propTypes = {
 
 function TaskHeader(props) {
     const title = ReportUtils.getReportName(props.report);
-    const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
-    const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerID);
+    const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerID, 'avatar']), props.report.managerID);
     const isOpen = props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN;
     const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
 
@@ -60,7 +60,7 @@ function TaskHeader(props) {
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {!_.isEmpty(props.report.managerEmail) && (
+                                {!_.isEmpty(props.report.managerID) && (
                                     <>
                                         <Avatar
                                             source={assigneeAvatar}
@@ -110,12 +110,14 @@ function TaskHeader(props) {
                 description={props.translate('newTaskPage.task')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
                 disabled={!isOpen}
+                interactive={isOpen}
             />
             <MenuItemWithTopDescription
                 title={lodashGet(props.report, 'description', '')}
                 description={props.translate('newTaskPage.description')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 disabled={!isOpen}
+                interactive={isOpen}
             />
         </View>
     );

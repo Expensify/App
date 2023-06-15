@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -25,6 +25,7 @@ import FormHelpMessage from '../../../components/FormHelpMessage';
 import MagicCodeInput from '../../../components/MagicCodeInput';
 import Terms from '../Terms';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
+import usePrevious from '../../../hooks/usePrevious';
 
 const propTypes = {
     /* Onyx Props */
@@ -63,47 +64,68 @@ const defaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
-class BaseValidateCodeForm extends React.Component {
-    constructor(props) {
-        super(props);
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.resendValidateCode = this.resendValidateCode.bind(this);
-        this.clearSignInData = this.clearSignInData.bind(this);
+function BaseValidateCodeForm(props) {
+    const [formError, setFormError] = useState({});
+    const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
+    const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
+    const [linkSent, setLinkSent] = useState(false);
 
-        this.state = {
-            formError: {},
-            validateCode: props.credentials.validateCode || '',
-            twoFactorAuthCode: '',
-            linkSent: false,
-        };
-    }
+    const prevIsVisible = usePrevious(props.isVisible);
+    const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
+    const prevValidateCode = usePrevious(props.credentials.validateCode);
 
-    componentDidMount() {
-        if (!canFocusInputOnScreenFocus() || !this.inputValidateCode || !this.props.isVisible) {
+    const inputValidateCodeRef = useRef();
+    const input2FARef = useRef();
+
+    useEffect(() => {
+        if (!inputValidateCodeRef.current || prevIsVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
             return;
         }
-        this.inputValidateCode.focus();
-    }
+        inputValidateCodeRef.current.focus();
+    }, [props.isVisible, prevIsVisible]);
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.isVisible && this.props.isVisible) {
-            this.inputValidateCode.focus();
-        }
-        if (prevProps.isVisible && !this.props.isVisible && this.state.validateCode) {
-            this.clearValidateCode();
+    useEffect(() => {
+        if (!inputValidateCodeRef.current) {
+            return;
         }
 
-        // Clear the code input if a new magic code was requested
-        if (this.props.isVisible && this.state.linkSent && this.props.account.message && this.state.validateCode) {
-            this.clearValidateCode();
+        if (!validateCode) {
+            return;
         }
-        if (!prevProps.credentials.validateCode && this.props.credentials.validateCode) {
-            this.setState({validateCode: this.props.credentials.validateCode});
+
+        // Clear the code input if magic code valid or a new magic code was requested
+        if ((prevIsVisible && !props.isVisible) || (props.isVisible && linkSent && props.account.message)) {
+            setValidateCode('');
         }
-        if (!prevProps.account.requiresTwoFactorAuth && this.props.account.requiresTwoFactorAuth) {
-            this.input2FA.focus();
+    }, [props.isVisible, props.account.message, prevIsVisible, linkSent, validateCode]);
+
+    useEffect(() => {
+        if (prevValidateCode || !props.credentials.validateCode) {
+            return;
         }
-    }
+        setValidateCode(props.credentials.validateCode);
+    }, [props.credentials.validateCode, prevValidateCode]);
+
+    useEffect(() => {
+        if (!input2FARef.current || prevRequiresTwoFactorAuth || !props.account.requiresTwoFactorAuth) {
+            return;
+        }
+        input2FARef.current.focus();
+    }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
+
+    useEffect(() => {
+        if (!inputValidateCodeRef.current || validateCode.length > 0) {
+            return;
+        }
+        inputValidateCodeRef.current.clear();
+    }, [validateCode]);
+
+    useEffect(() => {
+        if (!input2FARef.current || twoFactorAuthCode.length > 0) {
+            return;
+        }
+        input2FARef.current.clear();
+    }, [twoFactorAuthCode]);
 
     /**
      * Handle text input and clear formError upon text change
@@ -111,176 +133,159 @@ class BaseValidateCodeForm extends React.Component {
      * @param {String} text
      * @param {String} key
      */
-    onTextInput(text, key) {
-        this.setState({
-            [key]: text,
-            formError: {[key]: ''},
-            linkSent: false,
-        });
+    const onTextInput = (text, key) => {
+        const setInput = key === 'validateCode' ? setValidateCode : setTwoFactorAuthCode;
+        setInput(text);
+        setFormError((prevError) => ({...prevError, [key]: ''}));
+        setLinkSent(false);
 
-        if (this.props.account.errors) {
+        if (props.account.errors) {
             Session.clearAccountMessages();
         }
-    }
-
-    /**
-     * Clear Validate Code from the state
-     */
-    clearValidateCode() {
-        this.setState({validateCode: ''}, () => this.inputValidateCode.clear());
-    }
+    };
 
     /**
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
-    resendValidateCode() {
-        if (this.input2FA) {
-            this.setState({twoFactorAuthCode: ''}, this.input2FA.clear);
-        }
-        this.setState({formError: {}});
-        User.resendValidateCode(this.props.credentials.login, true);
+    const resendValidateCode = () => {
+        setTwoFactorAuthCode('');
+        setFormError({});
+        User.resendValidateCode(props.credentials.login, true);
 
         // Give feedback to the user to let them know the email was sent so they don't spam the button.
-        this.setState({linkSent: true});
-    }
+        setLinkSent(true);
+    };
 
     /**
      * Clears local and Onyx sign in states
      */
-    clearSignInData() {
-        this.setState({twoFactorAuthCode: '', formError: {}, validateCode: ''});
+    const clearSignInData = () => {
+        setTwoFactorAuthCode('');
+        setFormError({});
+        setValidateCode('');
         Session.clearSignInData();
-    }
+    };
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    validateAndSubmitForm() {
-        const requiresTwoFactorAuth = this.props.account.requiresTwoFactorAuth;
-
+    const validateAndSubmitForm = useCallback(() => {
+        const requiresTwoFactorAuth = props.account.requiresTwoFactorAuth;
         if (requiresTwoFactorAuth) {
-            if (this.input2FA) {
-                this.input2FA.blur();
+            if (input2FARef.current) {
+                input2FARef.current.blur();
             }
-
-            if (!this.state.twoFactorAuthCode.trim()) {
-                this.setState({formError: {twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'}});
+            if (!twoFactorAuthCode.trim()) {
+                setFormError({twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'});
                 return;
             }
-
-            if (!ValidationUtils.isValidTwoFactorCode(this.state.twoFactorAuthCode)) {
-                this.setState({formError: {twoFactorAuthCode: 'passwordForm.error.incorrect2fa'}});
+            if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
+                setFormError({twoFactorAuthCode: 'passwordForm.error.incorrect2fa'});
                 return;
             }
         } else {
-            if (this.inputValidateCode) {
-                this.inputValidateCode.blur();
+            if (inputValidateCodeRef.current) {
+                inputValidateCodeRef.current.blur();
             }
-
-            if (!this.state.validateCode.trim()) {
-                this.setState({formError: {validateCode: 'validateCodeForm.error.pleaseFillMagicCode'}});
+            if (!validateCode.trim()) {
+                setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
                 return;
             }
-            if (!ValidationUtils.isValidValidateCode(this.state.validateCode)) {
-                this.setState({formError: {validateCode: 'validateCodeForm.error.incorrectMagicCode'}});
+            if (!ValidationUtils.isValidValidateCode(validateCode)) {
+                setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
                 return;
             }
         }
+        setFormError({});
 
-        this.setState({
-            formError: {},
-        });
-
-        const accountID = lodashGet(this.props, 'credentials.accountID');
+        const accountID = lodashGet(props.credentials, 'accountID');
         if (accountID) {
-            Session.signInWithValidateCode(accountID, this.state.validateCode, this.props.preferredLocale, this.state.twoFactorAuthCode);
+            Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, twoFactorAuthCode);
         } else {
-            Session.signIn('', this.state.validateCode, this.state.twoFactorAuthCode, this.props.preferredLocale);
+            Session.signIn('', validateCode, twoFactorAuthCode, props.preferredLocale);
         }
-    }
+    }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
-    render() {
-        const hasError = Boolean(this.props.account) && !_.isEmpty(this.props.account.errors);
-        const resendButtonStyle = this.props.network.isOffline ? styles.buttonOpacityDisabled : {};
-        return (
-            <>
-                {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
-                {this.props.account.requiresTwoFactorAuth ? (
-                    <View style={[styles.mv3]}>
-                        <MagicCodeInput
-                            autoComplete={this.props.autoComplete}
-                            ref={(el) => (this.input2FA = el)}
-                            label={this.props.translate('common.twoFactorCode')}
-                            name="twoFactorAuthCode"
-                            value={this.state.twoFactorAuthCode}
-                            onChangeText={(text) => this.onTextInput(text, 'twoFactorAuthCode')}
-                            onFulfill={this.validateAndSubmitForm}
-                            maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={this.state.formError.twoFactorAuthCode ? this.props.translate(this.state.formError.twoFactorAuthCode) : ''}
-                            hasError={hasError}
-                            autoFocus
-                        />
-                    </View>
-                ) : (
-                    <View style={[styles.mv3]}>
-                        <MagicCodeInput
-                            autoComplete={this.props.autoComplete}
-                            ref={(el) => (this.inputValidateCode = el)}
-                            label={this.props.translate('common.magicCode')}
-                            name="validateCode"
-                            value={this.state.validateCode}
-                            onChangeText={(text) => this.onTextInput(text, 'validateCode')}
-                            onFulfill={this.validateAndSubmitForm}
-                            errorText={this.state.formError.validateCode ? this.props.translate(this.state.formError.validateCode) : ''}
-                            hasError={hasError}
-                            autoFocus
-                        />
-                        <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                            {this.state.linkSent ? (
-                                <Text style={[styles.mt2]}>{this.props.account.message ? this.props.translate(this.props.account.message) : ''}</Text>
-                            ) : (
-                                <PressableWithFeedback
-                                    style={[styles.mt2, resendButtonStyle]}
-                                    onPress={this.resendValidateCode}
-                                    underlayColor={themeColors.componentBG}
-                                    disabled={this.props.network.isOffline}
-                                    hoverDimmingValue={1}
-                                    pressDimmingValue={0.2}
-                                    accessibilityRole="button"
-                                    accessibilityLabel={this.props.translate('validateCodeForm.magicCodeNotReceived')}
-                                >
-                                    <Text style={[styles.link]}>{this.props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
-                                </PressableWithFeedback>
-                            )}
-                        </View>
-                    </View>
-                )}
-
-                {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(this.props.account)} />}
-                <View>
-                    <Button
-                        isDisabled={this.props.network.isOffline}
-                        success
-                        style={[styles.mv3]}
-                        text={this.props.translate('common.signIn')}
-                        isLoading={
-                            this.props.account.isLoading &&
-                            this.props.account.loadingForm === (this.props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
-                        }
-                        onPress={this.validateAndSubmitForm}
+    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
+    const resendButtonStyle = props.network.isOffline ? styles.buttonOpacityDisabled : {};
+    return (
+        <>
+            {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
+            {props.account.requiresTwoFactorAuth ? (
+                <View style={[styles.mv3]}>
+                    <MagicCodeInput
+                        autoComplete={props.autoComplete}
+                        ref={input2FARef}
+                        label={props.translate('common.twoFactorCode')}
+                        name="twoFactorAuthCode"
+                        value={twoFactorAuthCode}
+                        onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
+                        onFulfill={validateAndSubmitForm}
+                        maxLength={CONST.TFA_CODE_LENGTH}
+                        errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ''}
+                        hasError={hasError}
+                        autoFocus
                     />
-                    <ChangeExpensifyLoginLink onPress={this.clearSignInData} />
                 </View>
-                <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
-                    <Terms />
+            ) : (
+                <View style={[styles.mv3]}>
+                    <MagicCodeInput
+                        autoComplete={props.autoComplete}
+                        ref={inputValidateCodeRef}
+                        label={props.translate('common.magicCode')}
+                        name="validateCode"
+                        value={validateCode}
+                        onChangeText={(text) => onTextInput(text, 'validateCode')}
+                        onFulfill={validateAndSubmitForm}
+                        errorText={formError.validateCode ? props.translate(formError.validateCode) : ''}
+                        hasError={hasError}
+                        autoFocus
+                    />
+                    <View style={[styles.changeExpensifyLoginLinkContainer]}>
+                        {linkSent ? (
+                            <Text style={[styles.mt2]}>{props.account.message ? props.translate(props.account.message) : ''}</Text>
+                        ) : (
+                            <PressableWithFeedback
+                                style={[styles.mt2, resendButtonStyle]}
+                                onPress={resendValidateCode}
+                                underlayColor={themeColors.componentBG}
+                                disabled={props.network.isOffline}
+                                hoverDimmingValue={1}
+                                pressDimmingValue={0.2}
+                                accessibilityRole="button"
+                                accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
+                            >
+                                <Text style={[styles.link]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                            </PressableWithFeedback>
+                        )}
+                    </View>
                 </View>
-            </>
-        );
-    }
+            )}
+
+            {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
+            <View>
+                <Button
+                    isDisabled={props.network.isOffline}
+                    success
+                    style={[styles.mv3]}
+                    text={props.translate('common.signIn')}
+                    isLoading={
+                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                    }
+                    onPress={validateAndSubmitForm}
+                />
+                <ChangeExpensifyLoginLink onPress={clearSignInData} />
+            </View>
+            <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
+                <Terms />
+            </View>
+        </>
+    );
 }
 
 BaseValidateCodeForm.propTypes = propTypes;
 BaseValidateCodeForm.defaultProps = defaultProps;
+BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export default compose(
     withLocalize,

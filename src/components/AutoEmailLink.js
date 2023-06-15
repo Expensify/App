@@ -21,32 +21,34 @@ const defaultProps = {
  *     - Else just render it inside `Text` component
  */
 
-const AutoEmailLink = (props) => (
-    <Text style={props.style}>
-        {_.map(props.text.split(CONST.REG_EXP.EXTRACT_EMAIL), (str, index) => {
-            if (CONST.REG_EXP.EMAIL.test(str)) {
+function AutoEmailLink(props) {
+    return (
+        <Text style={props.style}>
+            {_.map(props.text.split(CONST.REG_EXP.EXTRACT_EMAIL), (str, index) => {
+                if (CONST.REG_EXP.EMAIL.test(str)) {
+                    return (
+                        <TextLink
+                            key={`${index}-${str}`}
+                            href={`mailto:${str}`}
+                            style={styles.link}
+                        >
+                            {str}
+                        </TextLink>
+                    );
+                }
+
                 return (
-                    <TextLink
+                    <Text
+                        style={props.style}
                         key={`${index}-${str}`}
-                        href={`mailto:${str}`}
-                        style={styles.link}
                     >
                         {str}
-                    </TextLink>
+                    </Text>
                 );
-            }
-
-            return (
-                <Text
-                    style={props.style}
-                    key={`${index}-${str}`}
-                >
-                    {str}
-                </Text>
-            );
-        })}
-    </Text>
-);
+            })}
+        </Text>
+    );
+}
 
 AutoEmailLink.displayName = 'AutoEmailLink';
 AutoEmailLink.propTypes = propTypes;

@@ -11,7 +11,7 @@ const defaultProps = {
     onHide: () => {},
 };
 
-const SplashScreenHider = (props) => {
+function SplashScreenHider(props) {
     const {onHide} = props;
 
     useEffect(() => {
@@ -19,7 +19,7 @@ const SplashScreenHider = (props) => {
     }, [onHide]);
 
     return null;
-};
+}
 
 SplashScreenHider.displayName = 'SplashScreenHider';
 SplashScreenHider.propTypes = propTypes;
