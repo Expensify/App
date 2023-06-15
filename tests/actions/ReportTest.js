@@ -525,6 +525,10 @@ describe('actions/Report', () => {
         const EMOJI = {
             code: EMOJI_CODE,
             name: EMOJI_NAME,
+            shortcode: {
+                en: EMOJI_NAME,
+                es: EMOJI_NAME,
+            }
         };
 
         let reportActions;
@@ -629,10 +633,15 @@ describe('actions/Report', () => {
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
         const EMOJI_CODE = '😄';
-        const EMOJI_NAME = 'smile';
+        const EMOJI_NAME_EN = 'smile';
+        const EMOJI_NAME_ES = 'sonrisa';
         const EMOJI = {
             code: EMOJI_CODE,
-            name: EMOJI_NAME,
+            name: EMOJI_NAME_EN,
+            shortcode: {
+                en: EMOJI_NAME_EN,
+                es: EMOJI_NAME_ES,
+            }
         };
 
         let reportActions;

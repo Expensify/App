@@ -10,6 +10,11 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as TestHelper from '../utils/TestHelper';
 import CONST from '../../src/CONST';
 
+const convertFrequentlyUsedEmoji = (item) => ({
+    ..._.omit(item, 'name'),
+    ..._.find(Emoji, emoji => !emoji.header && emoji.code === item.code)
+})
+
 describe('EmojiTest', () => {
     it('matches all the emojis in the list', () => {
         // Given the set of Emojis available in the application
@@ -123,27 +128,44 @@ describe('EmojiTest', () => {
 
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '⚰️', name: 'coffin'}]);
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([
+            {
+                code: '⚰️',
+                name: 'coffin',
+                shortcode: {
+                    en: 'coffin',
+                    es: 'ataúd',
+                }
+            }
+        ]);
     });
 
     it('suggests a limited number of matching emojis', () => {
         const text = 'Hi :face';
         const limit = 3;
-        expect(EmojiUtils.suggestEmojis(text, limit).length).toBe(limit);
+        expect(EmojiUtils.suggestEmojis(text, 'en', limit).length).toBe(limit);
     });
 
     it('correct suggests emojis accounting for keywords', () => {
         const text = ':thumb';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([
             {
                 code: '👍',
                 name: '+1',
-                types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
+                shortcode: {
+                    en: '+1',
+                    es: '+1',
+                },
+                types: ['👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿'],
             },
             {
                 code: '👎',
                 name: '-1',
-                types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+                shortcode: {
+                    en: '-1',
+                    es: '-1',
+                },
+                types: ['👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿'],
             },
         ]);
     });
@@ -196,20 +218,44 @@ describe('EmojiTest', () => {
             return waitForPromisesToResolve().then(() => {
                 // When add a new emoji
                 const currentTime = moment().unix();
-                const smileEmoji = {code: '😄', name: 'smile'};
+                const smileEmoji = {
+                    code: '😄',
+                    shortcode: {
+                        en: 'smile',
+                        es: 'sonrisa',
+                    },
+                    keywords: {
+                        en: ['eye', 'face', 'mouth', 'open', 'smile', 'grinning face with smiling eyes'],
+                        es: ['abierta', 'cara', 'ojo', 'sonrisa', 'cara sonriendo con ojos sonrientes'],
+                    }
+                };
                 const newEmoji = [smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the new emoji should be at the last item of the list
                 const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
-                const expectedFrequentlyEmojisList = [...frequentlyEmojisList, expectedSmileEmoji];
+
+                const expectedFrequentlyEmojisList = [
+                    ..._.map(frequentlyEmojisList, convertFrequentlyUsedEmoji),
+                    expectedSmileEmoji
+                ];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
         });
 
         it('should put more frequent and recent used emoji to the front', () => {
             // Given an existing frequently used emojis list
-            const smileEmoji = {code: '😄', name: 'smile'};
+            const smileEmoji = {
+                code: '😄',
+                shortcode: {
+                    en: 'smile',
+                    es: 'sonrisa',
+                },
+                keywords: {
+                    en: ['eye', 'face', 'mouth', 'open', 'smile', 'grinning face with smiling eyes'],
+                    es: ['abierta', 'cara', 'ojo', 'sonrisa', 'cara sonriendo con ojos sonrientes'],
+                },
+            };
             const frequentlyEmojisList = [
                 {
                     code: '😠',
@@ -246,7 +292,11 @@ describe('EmojiTest', () => {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the count should be increased and put into the very front of the other emoji within the same count
-                const expectedFrequentlyEmojisList = [frequentlyEmojisList[0], {...smileEmoji, count: 2, lastUpdatedAt: currentTime}, ...frequentlyEmojisList.slice(1, -1)];
+                const expectedFrequentlyEmojisList = [
+                    convertFrequentlyUsedEmoji(frequentlyEmojisList[0]),
+                    {...smileEmoji, count: 2, lastUpdatedAt: currentTime},
+                    ..._.map(frequentlyEmojisList.slice(1, -1), convertFrequentlyUsedEmoji)
+                ];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
         });
@@ -289,11 +339,11 @@ describe('EmojiTest', () => {
                 // Then the count should be increased for existing emoji and sorted descending by count and lastUpdatedAt
                 const expectedFrequentlyEmojisList = [
                     {...zzzEmoji, count: 3, lastUpdatedAt: currentTime},
-                    frequentlyEmojisList[0],
+                    convertFrequentlyUsedEmoji(frequentlyEmojisList[0]),
                     {...smileEmoji, count: 2, lastUpdatedAt: currentTime},
-                    frequentlyEmojisList[1],
+                    convertFrequentlyUsedEmoji(frequentlyEmojisList[1]),
                     {...impEmoji, count: 1, lastUpdatedAt: currentTime},
-                    frequentlyEmojisList[3],
+                    convertFrequentlyUsedEmoji(frequentlyEmojisList[3]),
                 ];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
@@ -301,10 +351,50 @@ describe('EmojiTest', () => {
 
         it('make sure the most recent new emoji is added to the list even it is full with count > 1', () => {
             // Given an existing full (24 items) frequently used emojis list
-            const smileEmoji = {code: '😄', name: 'smile'};
-            const zzzEmoji = {code: '💤', name: 'zzz'};
-            const impEmoji = {code: '👿', name: 'imp'};
-            const bookEmoji = {code: '📚', name: 'books'};
+            const smileEmoji = {
+                code: '😄',
+                shortcode: {
+                    en: 'smile',
+                    es: 'sonrisa',
+                },
+                keywords: {
+                    en: ['eye', 'face', 'mouth', 'open', 'smile', 'grinning face with smiling eyes'],
+                    es: ['abierta', 'cara', 'ojo', 'sonrisa', 'cara sonriendo con ojos sonrientes'],
+                },
+            };
+            const zzzEmoji = {
+                code: '💤',
+                shortcode: {
+                    en: 'zzz',
+                    es: 'zzz',
+                },
+                keywords: {
+                    en: ['comic', 'good night', 'sleep', 'ZZZ'],
+                    es: ['cómic', 'dormir', 'sueño', 'zzz', 'símbolo de sueño'],
+                },
+            };
+            const impEmoji = {
+                code: '👿',
+                shortcode: {
+                    en: 'imp',
+                    es: 'diablillo',
+                },
+                keywords: {
+                    en: ['demon', 'devil', 'face', 'fantasy', 'imp', 'angry face with horns'],
+                    es: ['cara', 'cuernos', 'demonio', 'diablo', 'cara enfadada con cuernos'],
+                },
+            };
+            const bookEmoji = {
+                code: '📚',
+                shortcode: {
+                    en: 'books',
+                    es: 'libros',
+                },
+                keywords: {
+                    en: ['book', 'books'],
+                    es: ['libro', 'libros'],
+                },
+            };
             const frequentlyEmojisList = [
                 {
                     code: '😠',
@@ -458,7 +548,7 @@ describe('EmojiTest', () => {
                 // Then the last emojis from the list should be replaced with the most recent new emoji (smile)
                 const expectedFrequentlyEmojisList = [
                     {...bookEmoji, count: 4, lastUpdatedAt: currentTime},
-                    ...frequentlyEmojisList.slice(0, -2),
+                    ..._.map(frequentlyEmojisList.slice(0, -2), convertFrequentlyUsedEmoji),
                     {...smileEmoji, count: 1, lastUpdatedAt: currentTime},
                 ];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
