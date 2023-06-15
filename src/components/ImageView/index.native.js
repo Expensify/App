@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, InteractionManager, PanResponder} from 'react-native';
+import {View, PanResponder} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import styles from '../../styles/styles';
@@ -18,6 +18,9 @@ const propTypes = {
 
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
+
+    /** Handles scale changed event in image zoom component. Used on native only */
+    onScaleChanged: PropTypes.func.isRequired,
 
     /** Function for handle on press */
     onPress: PropTypes.func,
@@ -100,24 +103,21 @@ class ImageView extends PureComponent {
      * @param {Object} nativeEvent
      */
     configureImageZoom({nativeEvent}) {
-        // Wait till animations are over to prevent stutter in navigation animation
-        this.state.interactionPromise = InteractionManager.runAfterInteractions(() => {
-            let imageWidth = nativeEvent.width;
-            let imageHeight = nativeEvent.height;
-            const containerWidth = Math.round(this.props.windowWidth);
-            const containerHeight = Math.round(this.state.containerHeight ? this.state.containerHeight : this.props.windowHeight);
+        let imageWidth = nativeEvent.width;
+        let imageHeight = nativeEvent.height;
+        const containerWidth = Math.round(this.props.windowWidth);
+        const containerHeight = Math.round(this.state.containerHeight ? this.state.containerHeight : this.props.windowHeight);
 
-            const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
+        const aspectRatio = Math.min(containerHeight / imageHeight, containerWidth / imageWidth);
 
-            imageHeight *= aspectRatio;
-            imageWidth *= aspectRatio;
+        imageHeight *= aspectRatio;
+        imageWidth *= aspectRatio;
 
-            // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
-            const maxDimensionsScale = 11;
-            imageWidth = Math.min(imageWidth, containerWidth * maxDimensionsScale);
-            imageHeight = Math.min(imageHeight, containerHeight * maxDimensionsScale);
-            this.setState({imageHeight, imageWidth, isLoading: false});
-        });
+        // Resize the image to max dimensions possible on the Native platforms to prevent crashes on Android. To keep the same behavior, apply to IOS as well.
+        const maxDimensionsScale = 11;
+        imageWidth = Math.min(imageWidth, containerWidth * maxDimensionsScale);
+        imageHeight = Math.min(imageHeight, containerHeight * maxDimensionsScale);
+        this.setState({imageHeight, imageWidth, isLoading: false});
     }
 
     /**
@@ -190,12 +190,21 @@ class ImageView extends PureComponent {
                                     scale: 2,
                                     duration: 100,
                                 });
+
+                                // onMove will be called after the zoom animation.
+                                // So it's possible to zoom and swipe and stuck in between the images.
+                                // Sending scale just when we actually trigger the animation makes this nearly impossible.
+                                // you should be really fast to catch in between state updates.
+                                // And this lucky case will be fixed by migration to UI thread only code
+                                // with gesture handler and reanimated.
+                                this.props.onScaleChanged(2);
                             }
 
                             // We must be either swiping down or double tapping since we are at zoom scale 1
                             return false;
                         }}
                         onMove={({scale}) => {
+                            this.props.onScaleChanged(scale);
                             this.imageZoomScale = scale;
                         }}
                     >

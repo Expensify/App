@@ -9,7 +9,7 @@ import withWindowDimensions from '../withWindowDimensions';
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
-const Popover = (props) => {
+function Popover(props) {
     if (!props.fullscreen && !props.isSmallScreenWidth) {
         return createPortal(
             <Modal
@@ -37,7 +37,7 @@ const Popover = (props) => {
             onLayout={props.onLayout}
         />
     );
-};
+}
 
 Popover.propTypes = propTypes;
 Popover.defaultProps = defaultProps;

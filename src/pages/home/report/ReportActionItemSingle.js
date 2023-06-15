@@ -14,7 +14,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -22,6 +21,7 @@ import CONST from '../../../CONST';
 import SubscriptAvatar from '../../../components/SubscriptAvatar';
 import reportPropTypes from '../../reportPropTypes';
 import * as UserUtils from '../../../libs/UserUtils';
+import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
     /** All the data of the action */
@@ -61,13 +61,13 @@ const defaultProps = {
     report: undefined,
 };
 
-const showUserDetails = (email) => {
-    Navigation.navigate(ROUTES.getDetailsRoute(email));
+const showUserDetails = (accountID) => {
+    Navigation.navigate(ROUTES.getProfileRoute(accountID));
 };
 
-const ReportActionItemSingle = (props) => {
+function ReportActionItemSingle(props) {
     const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
+    const {accountID, avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
     const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -88,7 +88,7 @@ const ReportActionItemSingle = (props) => {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(actorEmail)}
+                onPress={() => showUserDetails(accountID)}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
@@ -100,14 +100,14 @@ const ReportActionItemSingle = (props) => {
                             noMargin
                         />
                     ) : (
-                        <Tooltip text={actorEmail}>
+                        <UserDetailsTooltip accountID={accountID}>
                             <View>
                                 <Avatar
                                     containerStyles={[styles.actionAvatar]}
                                     source={avatarSource}
                                 />
                             </View>
-                        </Tooltip>
+                        </UserDetailsTooltip>
                     )}
                 </OfflineWithFeedback>
             </Pressable>
@@ -118,13 +118,13 @@ const ReportActionItemSingle = (props) => {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(actorEmail)}
+                            onPress={() => showUserDetails(accountID)}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.reportActionID}-${index}`}
+                                    accountID={accountID}
                                     fragment={fragment}
-                                    tooltipText={actorEmail}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
                                     isSingleLine
@@ -138,7 +138,7 @@ const ReportActionItemSingle = (props) => {
             </View>
         </View>
     );
-};
+}
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;

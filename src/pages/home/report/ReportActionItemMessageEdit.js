@@ -1,7 +1,6 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
-import React from 'react';
-import {InteractionManager, Keyboard, Pressable, TouchableOpacity, View} from 'react-native';
+import React, {useState, useRef, useMemo, useEffect, useCallback} from 'react';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -10,12 +9,12 @@ import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import { containerComposeStyles } from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import compose from '../../../libs/compose';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -23,17 +22,19 @@ import Tooltip from '../../../components/Tooltip';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import getButtonState from '../../../libs/getButtonState';
 import reportPropTypes from '../../reportPropTypes';
 import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import CONST from '../../../CONST';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withKeyboardState, {keyboardStatePropTypes} from '../../../components/withKeyboardState';
 import refPropTypes from '../../../components/refPropTypes';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
+import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
+import Hoverable from '../../../components/Hoverable';
+import useLocalize from '../../../hooks/useLocalize';
+import useKeyboardState from '../../../hooks/useKeyboardState';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
+
 
 const propTypes = {
     /** All the data of the action */
@@ -60,10 +61,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
-    ...keyboardStatePropTypes,
 };
 
 const defaultProps = {
@@ -73,329 +70,307 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
-class ReportActionItemMessageEdit extends React.Component {
-    constructor(props) {
-        super(props);
-        this.updateDraft = this.updateDraft.bind(this);
-        this.deleteDraft = this.deleteDraft.bind(this);
-        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000);
-        this.publishDraft = this.publishDraft.bind(this);
-        this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
-        this.onSelectionChange = this.onSelectionChange.bind(this);
-        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
-        this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
-        this.saveButtonID = 'saveButton';
-        this.cancelButtonID = 'cancelButton';
-        this.emojiButtonID = 'emojiButton';
-        this.messageEditInput = 'messageEditInput';
+// native ids
+const saveButtonID = 'saveButton';
+const cancelButtonID = 'cancelButton';
+const emojiButtonID = 'emojiButton';
+const messageEditInput = 'messageEditInput';
 
-        let draftMessage;
-        if (this.props.draftMessage === this.props.action.message[0].html) {
+function ReportActionItemMessageEdit(props) {
+    const {translate} = useLocalize();
+    const {isKeyboardShown} = useKeyboardState();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    const [draft, setDraft] = useState(() => {
+        if (props.draftMessage === props.action.message[0].html) {
             // We only convert the report action message to markdown if the draft message is unchanged.
             const parser = new ExpensiMark();
-            draftMessage = parser.htmlToMarkdown(this.props.draftMessage).trim();
-        } else {
-            // We need to decode saved draft message because it's escaped before saving.
-            draftMessage = Str.htmlDecode(this.props.draftMessage);
+            return parser.htmlToMarkdown(props.draftMessage).trim();
         }
+        // We need to decode saved draft message because it's escaped before saving.
+        return Str.htmlDecode(props.draftMessage);
+    });
+    const [selection, setSelection] = useState({start: 0, end: 0});
+    const [isFocused, setIsFocused] = useState(false);
+    const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
 
-        this.state = {
-            draft: draftMessage,
-            selection: {
-                start: 0,
-                end: 0,
-            },
-            isFocused: false,
-            hasExceededMaxCommentLength: false,
-        };
-    }
+    const textInputRef = useRef(null);
+    const isFocusedRef = useRef(false);
 
-    componentDidMount() {
+    useEffect(() => {
+        // required for keeping last state of isFocused variable
+        isFocusedRef.current = isFocused;
+    }, [isFocused]);
+
+    useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
-        this.setState((prevState) => ({
-            selection: {
-                start: prevState.draft.length,
-                end: prevState.draft.length,
-            },
-        }));
-    }
-
-    componentWillUnmount() {
-        // Skip if this is not the focused message so the other edit composer stays focused.
-        if (!this.state.isFocused) {
-            return;
-        }
-
-        // Show the main composer when the focused message is deleted from another client
-        // to prevent the main composer stays hidden until we swtich to another chat.
-        ComposerActions.setShouldShowComposeInput(true);
-    }
-
-    /**
-     * Update Selection on change cursor position.
-     *
-     * @param {Event} e
-     */
-    onSelectionChange(e) {
-        this.setState({selection: e.nativeEvent.selection});
-    }
-
-    /**
-     * Updates the composer when the comment length is exceeded
-     * Shows red borders and prevents the comment from being sent
-     *
-     * @param {Boolean} hasExceededMaxCommentLength
-     */
-    setExceededMaxCommentLength(hasExceededMaxCommentLength) {
-        this.setState({hasExceededMaxCommentLength});
-    }
-
-    /**
-     * Update the value of the draft in Onyx
-     *
-     * @param {String} draft
-     */
-    updateDraft(draft) {
-        const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(draft, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
-
-        if (!_.isEmpty(emojis)) {
-            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
-        }
-
-        this.setState((prevState) => {
-            const newState = {draft: newDraft};
-            if (draft !== newDraft) {
-                const remainder = prevState.draft.slice(prevState.selection.end).length;
-                newState.selection = {
-                    start: newDraft.length - remainder,
-                    end: newDraft.length - remainder,
-                };
-            }
-            return newState;
+        setDraft((prevDraft) => {
+            setSelection({
+                start: prevDraft.length,
+                end: prevDraft.length,
+            });
+            return prevDraft;
         });
 
-        // This component is rendered only when draft is set to a non-empty string. In order to prevent component
-        // unmount when user deletes content of textarea, we set previous message instead of empty string.
-        if (newDraft.trim().length > 0) {
-            // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
-            this.debouncedSaveDraft(_.escape(newDraft));
-        } else {
-            this.debouncedSaveDraft(this.props.action.message[0].html);
-        }
-    }
+        return () => {
+            // Skip if this is not the focused message so the other edit composer stays focused
+            if (!isFocusedRef.current) {
+                return;
+            }
 
-    /**
-     * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
-     */
-    deleteDraft() {
-        this.debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
-        ComposerActions.setShouldShowComposeInput(true);
-        ReportActionComposeFocusManager.focus();
-
-        // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
-        if (this.props.index === 0) {
-            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-                ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, false);
-                keyboardDidHideListener.remove();
-            });
-        }
-    }
+            // Show the main composer when the focused message is deleted from another client
+            // to prevent the main composer stays hidden until we swtich to another chat.
+            ComposerActions.setShouldShowComposeInput(true);
+        };
+    }, []);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
      * @param {String} newDraft
      */
-    debouncedSaveDraft(newDraft) {
-        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, newDraft);
-    }
+    const debouncedSaveDraft = useMemo(
+        () =>
+            _.debounce((newDraft) => {
+                Report.saveReportActionDraft(props.reportID, props.action.reportActionID, newDraft);
+            }, 1000),
+        [props.reportID, props.action.reportActionID],
+    );
+
+    /**
+     * Update the value of the draft in Onyx
+     *
+     * @param {String} newDraftInput
+     */
+    const updateDraft = useCallback(
+        (newDraftInput) => {
+            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, isSmallScreenWidth, props.preferredSkinTone);
+
+            if (!_.isEmpty(emojis)) {
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+            }
+            setDraft((prevDraft) => {
+                if (newDraftInput !== newDraft) {
+                    setSelection((prevSelection) => {
+                        const remainder = prevDraft.slice(prevSelection.end).length;
+                        return {
+                            start: newDraft.length - remainder,
+                            end: newDraft.length - remainder,
+                        };
+                    });
+                }
+                return newDraft;
+            });
+
+            // This component is rendered only when draft is set to a non-empty string. In order to prevent component
+            // unmount when user deletes content of textarea, we set previous message instead of empty string.
+            if (newDraft.trim().length > 0) {
+                // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
+                debouncedSaveDraft(_.escape(newDraft));
+            } else {
+                debouncedSaveDraft(props.action.message[0].html);
+            }
+        },
+        [props.action.message, debouncedSaveDraft, isSmallScreenWidth, props.preferredSkinTone],
+    );
+
+    /**
+     * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
+     */
+    const deleteDraft = useCallback(() => {
+        debouncedSaveDraft.cancel();
+        Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
+        ComposerActions.setShouldShowComposeInput(true);
+        ReportActionComposeFocusManager.focus();
+
+        // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
+        if (props.index === 0) {
+            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+                ReportScrollManager.scrollToIndex({animated: true, index: props.index}, false);
+                keyboardDidHideListener.remove();
+            });
+        }
+    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
      * the new content.
      */
-    publishDraft() {
+    const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(this.state.draft) > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.getCommentLength(draft) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
         // To prevent re-mount after user saves edit before debounce duration (example: within 1 second), we cancel
         // debounce here.
-        this.debouncedSaveDraft.cancel();
+        debouncedSaveDraft.cancel();
 
-        const trimmedNewDraft = this.state.draft.trim();
+        const trimmedNewDraft = draft.trim();
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
-            ReportActionContextMenu.showDeleteModal(this.props.reportID, this.props.action, false, this.deleteDraft, () =>
-                InteractionManager.runAfterInteractions(() => this.textInput.focus()),
-            );
+            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
             return;
         }
-        Report.editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
-        this.deleteDraft();
-    }
+        Report.editReportComment(props.reportID, props.action, trimmedNewDraft);
+        deleteDraft();
+    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID]);
 
     /**
      * @param {String} emoji
      */
-    addEmojiToTextBox(emoji) {
-        this.setState((prevState) => ({
-            selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
-            },
+    const addEmojiToTextBox = (emoji) => {
+        setSelection((prevSelection) => ({
+            start: prevSelection.start + emoji.length,
+            end: prevSelection.start + emoji.length,
         }));
-        this.updateDraft(ComposerUtils.insertText(this.state.draft, this.state.selection, emoji));
-    }
+        updateDraft(ComposerUtils.insertText(draft, selection, emoji));
+    };
 
     /**
      * Key event handlers that short cut to saving/canceling.
      *
      * @param {Event} e
      */
-    triggerSaveOrCancel(e) {
-        if (!e || ComposerUtils.canSkipTriggerHotkeys(this.props.isSmallScreenWidth, this.props.isKeyboardShown)) {
-            return;
-        }
-        if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
-            e.preventDefault();
-            this.publishDraft();
-        } else if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
-            e.preventDefault();
-            this.deleteDraft();
-        }
-    }
+    const triggerSaveOrCancel = useCallback(
+        (e) => {
+            if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
+                return;
+            }
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !e.shiftKey) {
+                e.preventDefault();
+                publishDraft();
+            } else if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
+                e.preventDefault();
+                deleteDraft();
+            }
+        },
+        [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
+    );
 
-    render() {
-        const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
-        return (
-            <>
-                <View style={[styles.chatItemMessage, styles.flexRow]}>
-                    <View style={[styles.justifyContentEnd]}>
-                        <Tooltip text={this.props.translate('common.cancel')}>
-                            <Pressable
-                                style={({hovered, pressed}) => [styles.chatItemSubmitButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
-                                nativeID={this.cancelButtonID}
-                                onPress={this.deleteDraft}
-                                hitSlop={{
-                                    top: 3,
-                                    right: 3,
-                                    bottom: 3,
-                                    left: 3,
-                                }}
-                            >
-                                {({hovered, pressed}) => (
-                                    <Icon
-                                        src={Expensicons.Close}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                    />
-                                )}
-                            </Pressable>
-                        </Tooltip>
-                    </View>
-                    <View
-                        style={[
-                            this.state.isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-                            styles.flexRow,
-                            styles.flex1,
-                            styles.chatItemComposeBox,
-                            hasExceededMaxCommentLength && styles.borderColorDanger,
-                        ]}
-                    >
-                        <View style={styles.textInputComposeSpacing}>
-                            <Composer
-                                multiline
-                                ref={(el) => {
-                                    this.textInput = el;
-                                    this.props.forwardedRef.current = el;
-                                }}
-                                nativeID={this.messageEditInput}
-                                onChangeText={this.updateDraft} // Debounced saveDraftComment
-                                onKeyPress={this.triggerSaveOrCancel}
-                                value={this.state.draft}
-                                maxLines={this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
-                                style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
-                                onFocus={() => {
-                                    this.setState({isFocused: true});
-                                    ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
-                                    ComposerActions.setShouldShowComposeInput(false);
-                                }}
-                                onBlur={(event) => {
-                                    this.setState({isFocused: false});
-                                    const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
-
-                                    // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                                    if (_.contains([this.saveButtonID, this.cancelButtonID, this.emojiButtonID], relatedTargetId)) {
-                                        return;
-                                    }
-
-                                    if (this.messageEditInput === relatedTargetId) {
-                                        return;
-                                    }
-                                    openReportActionComposeViewWhenClosingMessageEdit();
-                                }}
-                                selection={this.state.selection}
-                                onSelectionChange={this.onSelectionChange}
-                            />
-                        </View>
-                        <View style={styles.editChatItemEmojiWrapper}>
-                            <EmojiPickerButton
-                                isDisabled={this.props.shouldDisableEmojiPicker}
-                                onModalHide={() => InteractionManager.runAfterInteractions(() => this.textInput.focus())}
-                                onEmojiSelected={this.addEmojiToTextBox}
-                                nativeID={this.emojiButtonID}
-                            />
-                        </View>
-
-                        <View style={styles.alignSelfEnd}>
-                            <Tooltip text={this.props.translate('common.saveChanges')}>
-                                <TouchableOpacity
-                                    style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
-                                    onPress={this.publishDraft}
-                                    hitSlop={{
-                                        top: 3,
-                                        right: 3,
-                                        bottom: 3,
-                                        left: 3,
-                                    }}
-                                    nativeID={this.saveButtonID}
-                                    disabled={hasExceededMaxCommentLength}
+    return (
+        <>
+            <View style={[styles.chatItemMessage, styles.flexRow]}>
+                <View style={[styles.justifyContentEnd]}>
+                    <Tooltip text={translate('common.cancel')}>
+                        <Hoverable>
+                            {(hovered) => (
+                                <PressableWithFeedback
+                                    onPress={deleteDraft}
+                                    style={styles.chatItemSubmitButton}
+                                    nativeID={cancelButtonID}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={translate('common.close')}
+                                    // disable dimming
+                                    hoverDimmingValue={1}
+                                    pressDimmingValue={1}
+                                    hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
+                                    pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
                                 >
                                     <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
+                                        src={Expensicons.Close}
+                                        fill={StyleUtils.getIconFillColor(hovered ? CONST.BUTTON_STATES.ACTIVE : CONST.BUTTON_STATES.DEFAULT)}
                                     />
-                                </TouchableOpacity>
-                            </Tooltip>
-                        </View>
+                                </PressableWithFeedback>
+                            )}
+                        </Hoverable>
+                    </Tooltip>
+                </View>
+                <View
+                    style={[
+                        isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        styles.flexRow,
+                        styles.flex1,
+                        styles.chatItemComposeBox,
+                        hasExceededMaxCommentLength && styles.borderColorDanger,
+                    ]}
+                >
+                    <View style={containerComposeStyles}>
+                        <Composer
+                            multiline
+                            ref={(el) => {
+                                textInputRef.current = el;
+                                // eslint-disable-next-line no-param-reassign
+                                props.forwardedRef.current = el;
+                            }}
+                            nativeID={messageEditInput}
+                            onChangeText={updateDraft} // Debounced saveDraftComment
+                            onKeyPress={triggerSaveOrCancel}
+                            value={draft}
+                            maxLines={isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
+                            style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
+                            onFocus={() => {
+                                setIsFocused(true);
+                                ReportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
+                                ComposerActions.setShouldShowComposeInput(false);
+                            }}
+                            onBlur={(event) => {
+                                setIsFocused(false);
+                                const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
+
+                                // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
+                                if (_.contains([saveButtonID, cancelButtonID, emojiButtonID], relatedTargetId)) {
+                                    return;
+                                }
+
+                                if (messageEditInput === relatedTargetId) {
+                                    return;
+                                }
+                                openReportActionComposeViewWhenClosingMessageEdit();
+                            }}
+                            selection={selection}
+                            onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                        />
+                    </View>
+                    <View style={styles.editChatItemEmojiWrapper}>
+                        <EmojiPickerButton
+                            isDisabled={props.shouldDisableEmojiPicker}
+                            onModalHide={() => InteractionManager.runAfterInteractions(() => textInputRef.current.focus())}
+                            onEmojiSelected={addEmojiToTextBox}
+                            nativeID={emojiButtonID}
+                        />
+                    </View>
+
+                    <View style={styles.alignSelfEnd}>
+                        <Tooltip text={translate('common.saveChanges')}>
+                            <PressableWithFeedback
+                                style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
+                                onPress={publishDraft}
+                                nativeID={saveButtonID}
+                                disabled={hasExceededMaxCommentLength}
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('common.saveChanges')}
+                                hoverDimmingValue={1}
+                                pressDimmingValue={0.2}
+                            >
+                                <Icon
+                                    src={Expensicons.Checkmark}
+                                    fill={hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
+                                />
+                            </PressableWithFeedback>
+                        </Tooltip>
                     </View>
                 </View>
-                <ExceededCommentLength
-                    comment={this.state.draft}
-                    onExceededMaxCommentLength={this.setExceededMaxCommentLength}
-                />
-            </>
-        );
-    }
+            </View>
+            <ExceededCommentLength
+                comment={draft}
+                onExceededMaxCommentLength={(hasExceeded) => setHasExceededMaxCommentLength(hasExceeded)}
+            />
+        </>
+    );
 }
 
 ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withKeyboardState,
-)(
-    React.forwardRef((props, ref) => (
-        <ReportActionItemMessageEdit
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
+
+export default React.forwardRef((props, ref) => (
+    <ReportActionItemMessageEdit
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));

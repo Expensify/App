@@ -10,8 +10,14 @@ const propTypes = {
             /** The name to display in bold */
             displayName: PropTypes.string,
 
-            /** The tooltip to show when the associated name is hovered */
-            tooltip: PropTypes.string,
+            /** The Account ID for the tooltip */
+            accountID: PropTypes.string,
+
+            /** The login for the tooltip fallback */
+            login: PropTypes.string,
+
+            /** The avatar for the tooltip fallback */
+            avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
         }),
     ),
 

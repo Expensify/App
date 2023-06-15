@@ -25,21 +25,23 @@ const defaultProps = {
     containerStyles: [],
 };
 
-const CommunicationsLink = (props) => (
-    <View style={[styles.flexRow, styles.pRelative, ...props.containerStyles]}>
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.communicationsLinkHeight]}>
-            <View style={styles.flexShrink1}>{props.children}</View>
-            <ContextMenuItem
-                icon={Expensicons.Copy}
-                text={props.translate('reportActionContextMenu.copyToClipboard')}
-                successIcon={Expensicons.Checkmark}
-                successText={props.translate('reportActionContextMenu.copied')}
-                isMini
-                onPress={() => Clipboard.setString(props.value)}
-            />
+function CommunicationsLink(props) {
+    return (
+        <View style={[styles.flexRow, styles.pRelative, ...props.containerStyles]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.communicationsLinkHeight]}>
+                <View style={styles.flexShrink1}>{props.children}</View>
+                <ContextMenuItem
+                    icon={Expensicons.Copy}
+                    text={props.translate('reportActionContextMenu.copyToClipboard')}
+                    successIcon={Expensicons.Checkmark}
+                    successText={props.translate('reportActionContextMenu.copied')}
+                    isMini
+                    onPress={() => Clipboard.setString(props.value)}
+                />
+            </View>
         </View>
-    </View>
-);
+    );
+}
 
 CommunicationsLink.propTypes = propTypes;
 CommunicationsLink.defaultProps = defaultProps;

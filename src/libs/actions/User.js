@@ -135,6 +135,7 @@ function requestContactMethodValidateCode(contactMethod) {
                     validateCodeSent: false,
                     errorFields: {
                         validateCodeSent: null,
+                        validateLogin: null,
                     },
                     pendingFields: {
                         validateCodeSent: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -359,7 +360,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
     ];
 
     API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -500,11 +501,6 @@ function addPaypalMeAddress(address) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-            value: address,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PAYPAL,
             value: {
                 title: 'PayPal.me',
@@ -543,11 +539,6 @@ function deletePaypalMeAddress() {
 
     // Success data required for Android, more info here https://github.com/Expensify/App/pull/17903#discussion_r1175763081
     const successData = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-            value: '',
-        },
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PAYPAL,
