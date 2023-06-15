@@ -1397,6 +1397,7 @@ export default {
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
         prestyledText: 'Prestyled text',
+        viewAttachment: 'View Attachment',
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',

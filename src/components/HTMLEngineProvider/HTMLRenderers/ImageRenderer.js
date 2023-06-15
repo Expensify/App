@@ -67,7 +67,7 @@ function ImageRenderer(props) {
                             onPress={show}
                             onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                             accessibilityRole="imagebutton"
-                            accessibilityLabel={props.translate('common.attachment')}
+                            accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
                         >
                             <ThumbnailImage
                                 previewSourceURL={previewSource}

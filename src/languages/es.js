@@ -1863,6 +1863,7 @@ export default {
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         prestyledText: 'texto preestilizado',
+        viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
