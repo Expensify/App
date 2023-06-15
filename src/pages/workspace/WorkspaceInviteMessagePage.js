@@ -1,13 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
@@ -25,6 +24,8 @@ import ROUTES from '../../ROUTES';
 import * as Localize from '../../libs/Localize';
 import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withNavigationFocus from '../../components/withNavigationFocus';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -80,17 +81,14 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     componentDidMount() {
-        this.focusTimeout = setTimeout(() => {
-            this.welcomeMessageInputRef.focus();
-            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
-            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
-                const length = this.welcomeMessageInputRef.value.length;
-                this.welcomeMessageInputRef.setSelectionRange(length, length);
-            }
-        }, CONST.ANIMATED_TRANSITION);
+        this.focusWelcomeMessageInput();
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.isFocused && this.props.isFocused) {
+            this.focusWelcomeMessageInput();
+        }
+
         if (
             !(
                 (prevProps.preferredLocale !== this.props.preferredLocale || prevProps.policy.name !== this.props.policy.name) &&
@@ -115,11 +113,6 @@ class WorkspaceInviteMessagePage extends React.Component {
         });
     }
 
-    getAvatarTooltips() {
-        const filteredPersonalDetails = _.pick(this.props.personalDetails, this.props.invitedMembersDraft);
-        return _.map(filteredPersonalDetails, (personalDetail) => Str.removeSMSDomain(personalDetail.login));
-    }
-
     sendInvitation() {
         Policy.addMembersToWorkspace(this.props.invitedMembersDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
@@ -135,10 +128,21 @@ class WorkspaceInviteMessagePage extends React.Component {
         Link.openExternalLink(CONST.PRIVACY_URL);
     }
 
+    focusWelcomeMessageInput() {
+        this.focusTimeout = setTimeout(() => {
+            this.welcomeMessageInputRef.focus();
+            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
+            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
+                const length = this.welcomeMessageInputRef.value.length;
+                this.welcomeMessageInputRef.setSelectionRange(length, length);
+            }
+        }, CONST.ANIMATED_TRANSITION);
+    }
+
     validate() {
         const errorFields = {};
         if (_.isEmpty(this.props.invitedMembersDraft)) {
-            errorFields.welcomeMessage = this.props.translate('workspace.inviteMessage.inviteNoMembersError');
+            errorFields.welcomeMessage = 'workspace.inviteMessage.inviteNoMembersError';
         }
         return errorFields;
     }
@@ -150,9 +154,9 @@ class WorkspaceInviteMessagePage extends React.Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('workspace.inviteMessage.inviteMessageTitle')}
                         subtitle={policyName}
                         shouldShowGetAssistanceButton
@@ -169,16 +173,17 @@ class WorkspaceInviteMessagePage extends React.Component {
                         submitButtonText={this.props.translate('common.invite')}
                         enabledWhenOffline
                         footerContent={
-                            <Pressable
+                            <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
                                 accessibilityRole="link"
+                                accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[styles.mv2, styles.alignSelfStart]}
                             >
                                 <View style={[styles.flexRow]}>
                                     <Text style={[styles.mr1, styles.label, styles.link]}>{this.props.translate('common.privacy')}</Text>
                                 </View>
-                            </Pressable>
+                            </PressableWithoutFeedback>
                         }
                     >
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -187,7 +192,6 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 icons={OptionsListUtils.getAvatarsForLogins(this.props.invitedMembersDraft, this.props.personalDetails)}
                                 shouldStackHorizontally
                                 secondAvatarStyle={[styles.secondAvatarInline]}
-                                avatarTooltips={this.getAvatarTooltips()}
                             />
                         </View>
                         <View style={[styles.mb5]}>
@@ -202,7 +206,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 autoCorrect={false}
                                 autoGrowHeight
                                 textAlignVertical="top"
-                                containerStyles={[styles.workspaceInviteWelcome]}
+                                containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
                                 onChangeText={(text) => this.setState({welcomeNote: text})}
@@ -232,4 +236,5 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
         },
     }),
+    withNavigationFocus,
 )(WorkspaceInviteMessagePage);

@@ -11,6 +11,7 @@ import CONST from '../CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
+import * as UserUtils from './UserUtils';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -89,6 +90,26 @@ Onyx.connect({
     callback: (val) => (preferredLocale = val || CONST.LOCALES.DEFAULT),
 });
 
+let resolveSidebarIsReadyPromise;
+
+let sidebarIsReadyPromise = new Promise((resolve) => {
+    resolveSidebarIsReadyPromise = resolve;
+});
+
+function resetIsSidebarLoadedReadyPromise() {
+    sidebarIsReadyPromise = new Promise((resolve) => {
+        resolveSidebarIsReadyPromise = resolve;
+    });
+}
+
+function isSidebarLoadedReady() {
+    return sidebarIsReadyPromise;
+}
+
+function setIsSidebarLoadedReady() {
+    resolveSidebarIsReadyPromise();
+}
+
 /**
  * @param {String} reportIDFromRoute
  * @returns {String[]} An array of reportIDs sorted in the proper order
@@ -99,6 +120,13 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, currentUserLogin, allReports, betas, policies));
+    if (_.isEmpty(reportsToDisplay)) {
+        // Display Concierge chat report when there is no report to be displayed
+        const conciergeChatReport = _.find(allReports, ReportUtils.isConciergeChatReport);
+        if (conciergeChatReport) {
+            reportsToDisplay.push(conciergeChatReport);
+        }
+    }
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     _.each(reportsToDisplay, (report) => {
@@ -248,7 +276,6 @@ function getOptionData(reportID) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
-    const parentReport = result.parentReportID ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${result.parentReportID}`] : null;
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -292,7 +319,13 @@ function getOptionData(reportID) {
     }
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
-        result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        const lastAction = visibleReportActionItems[report.reportID];
+        if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            const newName = lodashGet(lastAction, 'originalMessage.newName', '');
+            result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
+        } else {
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        }
     } else {
         if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
@@ -332,8 +365,8 @@ function getOptionData(reportID) {
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, policies, ReportUtils.getAvatar(personalDetail.avatar, personalDetail.login));
-    result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login), true);
+    result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     return result;
 }
@@ -341,4 +374,7 @@ function getOptionData(reportID) {
 export default {
     getOptionData,
     getOrderedReportIDs,
+    setIsSidebarLoadedReady,
+    isSidebarLoadedReady,
+    resetIsSidebarLoadedReadyPromise,
 };

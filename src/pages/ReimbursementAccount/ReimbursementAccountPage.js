@@ -27,7 +27,7 @@ import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
@@ -116,7 +116,7 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline && prevProps.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             this.fetchData();
         }
         if (!this.state.hasACHDataBeenLoaded) {
@@ -331,24 +331,20 @@ class ReimbursementAccountPage extends React.Component {
 
         const isLoading = this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading;
 
+        // Prevent the full-page blocking offline view from being displayed for these steps if the device goes offline.
+        const shouldShowOfflineLoader = !(
+            this.props.network.isOffline &&
+            _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
+        );
+
         // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
         // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
-        if ((!this.state.hasACHDataBeenLoaded || isLoading) && !(this.props.network.isOffline && currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)) {
+        if ((!this.state.hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader) {
             const isSubmittingVerificationsData = _.contains([CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep);
             return (
                 <ReimbursementAccountLoadingIndicator
                     isSubmittingVerificationsData={isSubmittingVerificationsData}
                     onBackButtonPress={this.goBack}
-                />
-            );
-        }
-
-        if (this.state.shouldShowContinueSetupButton) {
-            return (
-                <ContinueBankAccountSetup
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    continue={this.continue}
-                    policyName={policyName}
                 />
             );
         }
@@ -376,13 +372,23 @@ class ReimbursementAccountPage extends React.Component {
         if (errorComponent) {
             return (
                 <ScreenWrapper>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={this.props.translate('workspace.common.connectBankAccount')}
-                        onCloseButtonPress={Navigation.dismissModal}
                         subtitle={policyName}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
                     {errorComponent}
                 </ScreenWrapper>
+            );
+        }
+
+        if (this.state.shouldShowContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    continue={this.continue}
+                    policyName={policyName}
+                />
             );
         }
 

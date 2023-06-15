@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import {TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -13,10 +13,12 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
-import * as ReportUtils from '../../libs/ReportUtils';
+import * as UserUtils from '../../libs/UserUtils';
 import networkPropTypes from '../../components/networkPropTypes';
 import {withNetwork} from '../../components/OnyxProvider';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
+import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -47,7 +49,7 @@ const defaultProps = {
     account: {},
 };
 
-const ResendValidationForm = (props) => {
+function ResendValidationForm(props) {
     const isSMSLogin = Str.isSMSLogin(props.credentials.login);
 
     // replacing spaces with "hard spaces" to prevent breaking the number
@@ -59,7 +61,7 @@ const ResendValidationForm = (props) => {
         <>
             <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <Avatar
-                    source={ReportUtils.getDefaultAvatar(props.credentials.login)}
+                    source={UserUtils.getDefaultAvatar(props.credentials.login)}
                     imageStyles={[styles.mr2]}
                 />
                 <View style={[styles.flex1]}>
@@ -79,7 +81,7 @@ const ResendValidationForm = (props) => {
                 <DotIndicatorMessage
                     style={[styles.mb5, styles.flex0]}
                     type="success"
-                    messages={{0: props.translate(props.account.message)}}
+                    messages={{0: props.account.message}}
                 />
             )}
             {!_.isEmpty(props.account.errors) && (
@@ -90,21 +92,28 @@ const ResendValidationForm = (props) => {
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <TouchableOpacity onPress={() => redirectToSignIn()}>
+                <PressableWithFeedback
+                    onPress={() => redirectToSignIn()}
+                    accessibilityRole="button"
+                    accessibilityLabel={props.translate('common.back')}
+                    // disable hover dim for switch
+                    hoverDimmingValue={1}
+                    pressDimmingValue={0.2}
+                >
                     <Text style={[styles.link]}>{props.translate('common.back')}</Text>
-                </TouchableOpacity>
+                </PressableWithFeedback>
                 <Button
                     medium
                     success
                     text={props.translate('resendValidationForm.resendLink')}
-                    isLoading={props.account.isLoading}
+                    isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.RESEND_VALIDATION_FORM}
                     onPress={() => (props.account.validated ? Session.resendResetPassword() : Session.resendValidationLink())}
                     isDisabled={props.network.isOffline}
                 />
             </View>
         </>
     );
-};
+}
 
 ResendValidationForm.propTypes = propTypes;
 ResendValidationForm.defaultProps = defaultProps;
