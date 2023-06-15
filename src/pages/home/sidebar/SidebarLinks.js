@@ -143,7 +143,7 @@ class SidebarLinks extends React.Component {
      * @param {String} option.reportID
      */
     showReportPage(option) {
-        if (this.props.isCreateMenuOpen) {
+        if (this.props.isCreateMenuOpen || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
             // Prevent opening Report page when click LHN row quickly after clicking FAB icon
             return;
         }
