@@ -408,6 +408,48 @@ function updateAvatar(file) {
         },
     ];
 
+    const accountID = lodashGet(personalDetails, [currentUserEmail, 'accountID'], '');
+    if (accountID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [accountID]: {
+                    avatar: file.uri,
+                    errorFields: {
+                        avatar: null,
+                    },
+                    pendingFields: {
+                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [accountID]: {
+                    pendingFields: {
+                        avatar: null,
+                    },
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [accountID]: {
+                    avatar: personalDetails[currentUserEmail].avatar,
+                    pendingFields: {
+                        avatar: null,
+                    },
+                },
+            },
+        });
+    }
+
     API.write('UpdateUserAvatar', {file}, {optimisticData, successData, failureData});
 }
 
@@ -418,34 +460,52 @@ function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
     const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserEmail);
 
-    API.write(
-        'DeleteUserAvatar',
-        {},
+    const optimisticData = [
         {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
-                    value: {
-                        [currentUserEmail]: {
-                            avatar: defaultAvatar,
-                        },
-                    },
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: defaultAvatar,
                 },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
-                    value: {
-                        [currentUserEmail]: {
-                            avatar: personalDetails[currentUserEmail].avatar,
-                        },
-                    },
-                },
-            ],
+            },
         },
-    );
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS,
+            value: {
+                [currentUserEmail]: {
+                    avatar: personalDetails[currentUserEmail].avatar,
+                },
+            },
+        },
+    ];
+
+    const accountID = lodashGet(personalDetails, [currentUserEmail, 'accountID'], '');
+    if (accountID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [personalDetails[currentUserEmail].accountID]: {
+                    avatar: defaultAvatar,
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [personalDetails[currentUserEmail].accountID]: {
+                    avatar: personalDetails[currentUserEmail].avatar,
+                },
+            },
+        });
+    }
+
+    API.write('DeleteUserAvatar', {}, {optimisticData, failureData});
 }
 
 /**

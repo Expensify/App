@@ -85,7 +85,7 @@ function AddressPage(props) {
 
             // Check "State" dropdown is a valid state if selected Country is USA.
             if (isUSAForm && !COMMON_CONST.STATES[values.state]) {
-                errors.state = translate('common.error.fieldRequired');
+                errors.state = 'common.error.fieldRequired';
             }
 
             // Add "Field required" errors if any required field is empty
@@ -93,7 +93,7 @@ function AddressPage(props) {
                 if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
                     return;
                 }
-                errors[fieldKey] = translate('common.error.fieldRequired');
+                errors[fieldKey] = 'common.error.fieldRequired';
             });
 
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
@@ -106,18 +106,18 @@ function AddressPage(props) {
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
                     if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
-                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
+                        errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat}];
                     } else {
-                        errors.zipPostCode = translate('common.error.fieldRequired');
+                        errors.zipPostCode = 'common.error.fieldRequired';
                     }
                 }
             } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim().toUpperCase())) {
-                errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
+                errors.zipPostCode = 'privatePersonalDetails.error.incorrectZipFormat';
             }
 
             return errors;
         },
-        [translate, isUSAForm],
+        [isUSAForm],
     );
 
     return (
