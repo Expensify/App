@@ -24,6 +24,7 @@ import ROUTES from '../../ROUTES';
 import * as Localize from '../../libs/Localize';
 import Form from '../../components/Form';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import withNavigationFocus from '../../components/withNavigationFocus';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -80,17 +81,14 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     componentDidMount() {
-        this.focusTimeout = setTimeout(() => {
-            this.welcomeMessageInputRef.focus();
-            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
-            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
-                const length = this.welcomeMessageInputRef.value.length;
-                this.welcomeMessageInputRef.setSelectionRange(length, length);
-            }
-        }, CONST.ANIMATED_TRANSITION);
+        this.focusWelcomeMessageInput();
     }
 
     componentDidUpdate(prevProps) {
+        if (!prevProps.isFocused && this.props.isFocused) {
+            this.focusWelcomeMessageInput();
+        }
+
         if (
             !(
                 (prevProps.preferredLocale !== this.props.preferredLocale || prevProps.policy.name !== this.props.policy.name) &&
@@ -130,10 +128,21 @@ class WorkspaceInviteMessagePage extends React.Component {
         Link.openExternalLink(CONST.PRIVACY_URL);
     }
 
+    focusWelcomeMessageInput() {
+        this.focusTimeout = setTimeout(() => {
+            this.welcomeMessageInputRef.focus();
+            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
+            if (this.welcomeMessageInputRef.value && this.welcomeMessageInputRef.setSelectionRange) {
+                const length = this.welcomeMessageInputRef.value.length;
+                this.welcomeMessageInputRef.setSelectionRange(length, length);
+            }
+        }, CONST.ANIMATED_TRANSITION);
+    }
+
     validate() {
         const errorFields = {};
         if (_.isEmpty(this.props.invitedMembersDraft)) {
-            errorFields.welcomeMessage = this.props.translate('workspace.inviteMessage.inviteNoMembersError');
+            errorFields.welcomeMessage = 'workspace.inviteMessage.inviteNoMembersError';
         }
         return errorFields;
     }
@@ -197,7 +206,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 autoCorrect={false}
                                 autoGrowHeight
                                 textAlignVertical="top"
-                                containerStyles={[styles.workspaceInviteWelcome]}
+                                containerStyles={[styles.autoGrowHeightMultilineInput]}
                                 defaultValue={this.state.welcomeNote}
                                 value={this.state.welcomeNote}
                                 onChangeText={(text) => this.setState({welcomeNote: text})}
@@ -227,4 +236,5 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
         },
     }),
+    withNavigationFocus,
 )(WorkspaceInviteMessagePage);
