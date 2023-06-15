@@ -12,7 +12,7 @@ import * as Report from '../../src/libs/actions/Report';
 jest.mock('../../src/libs/Permissions');
 
 const ONYXKEYS = {
-    PERSONAL_DETAILS: 'personalDetails',
+    PERSONAL_DETAILS_LIST: 'personalDetailsList',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -134,7 +134,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -181,7 +181,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -219,11 +219,11 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             };
             const report2 = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
+                ...LHNTestUtils.getFakeReport([3, 4]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
             const report3 = {
-                ...LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']),
+                ...LHNTestUtils.getFakeReport([5, 6]),
                 chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
             };
 
@@ -233,7 +233,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -284,7 +284,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                         }),
@@ -311,7 +311,7 @@ describe('Sidebar', () => {
 
         describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
             // Given a report that is the active report and doesn't change
-            const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
+            const report1 = LHNTestUtils.getFakeReport([3, 4]);
 
             // Given a free policy that doesn't change
             const policy = {
@@ -371,7 +371,7 @@ describe('Sidebar', () => {
                                 Onyx.multiSet({
                                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                     [ONYXKEYS.BETAS]: betas,
-                                    [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
@@ -404,9 +404,9 @@ describe('Sidebar', () => {
         it('hides unread chats', () => {
             // Given the sidebar is rendered in #focus mode (hides read chats)
             // with report 1 and 2 having unread actions
-            const report1 = LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com'], 0, true);
-            const report2 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com'], 0, true);
-            const report3 = LHNTestUtils.getFakeReport(['email5@test.com', 'email6@test.com']);
+            const report1 = LHNTestUtils.getFakeReport([1, 2], 0, true);
+            const report2 = LHNTestUtils.getFakeReport([3, 4], 0, true);
+            const report3 = LHNTestUtils.getFakeReport([5, 6]);
             LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
             return (
@@ -415,7 +415,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -470,11 +470,11 @@ describe('Sidebar', () => {
         it('always shows pinned and draft chats', () => {
             // Given a draft report and a pinned report
             const draftReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 hasDraft: true,
             };
             const pinnedReport = {
-                ...LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']),
+                ...LHNTestUtils.getFakeReport([3, 4]),
                 isPinned: true,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks(draftReport.reportID);
@@ -485,7 +485,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${pinnedReport.reportID}`]: pinnedReport,
                         }),
@@ -505,18 +505,18 @@ describe('Sidebar', () => {
         it('archived rooms are displayed only when they have unread messages', () => {
             // Given an archived chat report, an archived default policy room, and an archived user created policy room
             const archivedReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const archivedPolicyRoomReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const archivedUserCreatedPolicyRoomReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -532,7 +532,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]: archivedPolicyRoomReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`]: archivedUserCreatedPolicyRoomReport,
@@ -576,11 +576,11 @@ describe('Sidebar', () => {
         it('policy rooms are displayed only when they have unread messages', () => {
             // Given a default policy room and user created policy room
             const policyRoomReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
             };
             const userCreatedPolicyRoomReport = {
-                ...LHNTestUtils.getFakeReport(['email1@test.com', 'email2@test.com']),
+                ...LHNTestUtils.getFakeReport([1, 2]),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
             LHNTestUtils.getDefaultRenderedSidebarLinks();
@@ -594,7 +594,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`]: userCreatedPolicyRoomReport,
                         }),
@@ -632,7 +632,7 @@ describe('Sidebar', () => {
 
     describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
         // Given a report that is the active report and doesn't change
-        const report1 = LHNTestUtils.getFakeReport(['email3@test.com', 'email4@test.com']);
+        const report1 = LHNTestUtils.getFakeReport([3, 4]);
 
         // Given a free policy that doesn't change
         const policy = {
@@ -692,7 +692,7 @@ describe('Sidebar', () => {
                             Onyx.multiSet({
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
@@ -743,7 +743,7 @@ describe('Sidebar', () => {
                             Onyx.multiSet({
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
@@ -793,7 +793,7 @@ describe('Sidebar', () => {
                             Onyx.multiSet({
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
@@ -841,7 +841,7 @@ describe('Sidebar', () => {
                             Onyx.multiSet({
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
@@ -885,7 +885,7 @@ describe('Sidebar', () => {
                             Onyx.multiSet({
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
