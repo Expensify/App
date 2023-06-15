@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './modalPropTypes';
@@ -7,6 +7,8 @@ import themeColors from '../../styles/themes/default';
 import StatusBar from '../../libs/StatusBar';
 
 function Modal(props) {
+    const [previousStatusBarColor, setPreviousStatusBarColor] = useState();
+
     const setStatusBarColor = (color = themeColors.appBG) => {
         if (!props.fullscreen) {
             return;
@@ -16,12 +18,15 @@ function Modal(props) {
     };
 
     const hideModal = () => {
-        setStatusBarColor();
+        setStatusBarColor(previousStatusBarColor);
         props.onModalHide();
     };
 
     const showModal = () => {
-        setStatusBarColor(StyleUtils.getThemeBackgroundColor());
+        const statusBarColor = StatusBar.getBackgroundColor();
+
+        setPreviousStatusBarColor(statusBarColor);
+        setStatusBarColor(StyleUtils.getThemeBackgroundColor(statusBarColor));
         props.onModalShow();
     };
 

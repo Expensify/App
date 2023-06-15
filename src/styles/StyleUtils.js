@@ -692,12 +692,13 @@ function convertRGBToUnitValues(red, green, blue) {
  * Determines the theme color for a modal based on the app's background color,
  * the modal's backdrop, and the backdrop's opacity.
  *
+ * @param {String} bgColor - theme background color
  * @returns {String} The theme color as an RGB value.
  */
-function getThemeBackgroundColor() {
+function getThemeBackgroundColor(bgColor = themeColors.appBG) {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
+    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(bgColor);
     const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
