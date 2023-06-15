@@ -133,7 +133,7 @@ function BaseValidateCodeForm(props) {
           if (timeRemaining < 0) {
             clearInterval(timerRef.current);
           } else {
-            setTimeRemaining((timeRemaining) => timeRemaining - 1);
+            setTimeRemaining(timeRemaining - 1);
           }
         }, 1000);
 
