@@ -2,9 +2,14 @@ import {useState, useEffect, useCallback, useMemo} from 'react';
 import useKeyboardShortcut from './useKeyboardShortcut';
 import CONST from '../CONST';
 
+// Creating a default array this way because objects ({}) and arrays ([]) are not stable types.
+// The "disabledIndexes" array needs to be stable to prevent the "useCallback" hook from being recreated unnecessarily.
+// Freezing the array ensures that it cannot be unintentionally modified.
 const EMPTY_ARRAY = Object.freeze([]);
 /**
  * A hook that makes it easy to use the arrow keys to manage focus of items in a list
+ *
+ * Recommendation: To ensure stability, wrap the `onFocusedIndexChange` function with the useCallback hook before using it with this hook.
  *
  * @param {Object} config
  * @param {Number} config.maxIndex – typically the number of items in your list
