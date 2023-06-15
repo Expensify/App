@@ -56,12 +56,22 @@ jobs:
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
     steps:
-      - name: Update production branch
-        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
+      - uses: actions/checkout@v3
         with:
-          TARGET_BRANCH: production
-          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          ref: staging
+          token: ${{ inputs.OS_BOTIFY_TOKEN }}
+
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ inputs.GPG_PASSPHRASE }}
+
+      - name: Update production branch
+        run: |
+          git switch production
+          git switch staging
+          git branch -D production
+          git switch -c production
+          git push --force origin production
 
   # Create a new patch version to prep for next release cycle
   createNewPatchVersion:
