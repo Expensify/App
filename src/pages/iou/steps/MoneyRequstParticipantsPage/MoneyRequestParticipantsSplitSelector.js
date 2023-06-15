@@ -29,6 +29,7 @@ const propTypes = {
     participants: PropTypes.arrayOf(
         PropTypes.shape({
             login: PropTypes.string.isRequired,
+            accountID: PropTypes.number.isRequired,
             alternateText: PropTypes.string,
             hasDraftComment: PropTypes.bool,
             icons: PropTypes.arrayOf(avatarPropTypes),
@@ -124,12 +125,12 @@ function MoneyRequestParticipantsSplitSelector(props) {
      * @param {Object} option
      */
     const toggleOption = (option) => {
-        const isOptionInList = _.some(props.participants, (selectedOption) => selectedOption.login === option.login);
+        const isOptionInList = _.some(props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(props.participants, (selectedOption) => selectedOption.login === option.login);
+            newSelectedOptions = _.reject(props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
         } else {
             newSelectedOptions = [...props.participants, option];
         }
@@ -215,7 +216,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
