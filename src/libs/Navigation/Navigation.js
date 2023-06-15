@@ -141,7 +141,7 @@ function dismissModal(targetReportID) {
             action.type = 'REPLACE';
             navigationRef.current.dispatch(action);
         } else {
-            navigationRef.current.dispatch(StackActions.pop());
+            navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key });
         }
     } else {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
