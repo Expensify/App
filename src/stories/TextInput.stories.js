@@ -11,8 +11,10 @@ const story = {
     component: TextInput,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = (args) => <TextInput {...args} />;
+function Template(args) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <TextInput {...args} />;
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -100,7 +102,7 @@ MaxLengthInput.args = {
     maxLength: 50,
 };
 
-const HintAndErrorInput = (args) => {
+function HintAndErrorInput(args) {
     const [error, setError] = useState('');
     return (
         <TextInput
@@ -116,7 +118,7 @@ const HintAndErrorInput = (args) => {
             errorText={error}
         />
     );
-};
+}
 HintAndErrorInput.args = {
     label: 'HintAndError input',
     name: 'HintAndError',

@@ -10,7 +10,7 @@ import PressableWithFeedback from '../Pressable/PressableWithFeedback';
  * @param {Object} props
  * @returns {React.Component}
  */
-const PressableWithSecondaryInteraction = (props) => {
+function PressableWithSecondaryInteraction(props) {
     // Use Text node for inline mode to prevent content overflow.
     const Node = props.inline ? Text : PressableWithFeedback;
     const executeSecondaryInteraction = (e) => {
@@ -32,7 +32,7 @@ const PressableWithSecondaryInteraction = (props) => {
             {props.children}
         </Node>
     );
-};
+}
 
 PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
 PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
