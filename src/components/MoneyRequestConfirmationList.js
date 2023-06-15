@@ -230,7 +230,7 @@ function MoneyRequestConfirmationList(props) {
     );
 
     /**
-     * Navigate to details page of selected user
+     * Navigate to profile of selected user
      * @param {Object} option
      */
     const navigateToUserDetail = (option) => {
