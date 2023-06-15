@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect} from 'react';
+import React, {useEffect, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -63,18 +63,21 @@ const defaultProps = {
     comment: '',
 };
 
-// function OptionRowLHN(props) {
-const OptionRowLHN = (props) => {
+function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
-    useEffect(() => {
+    const runUseEffectOnlyOnce = useCallback(() => {
         if (!optionItem) {
             return null;
         }
-        if (!optionItem.hasDraftComment && props.comment.length > 0) {
+        if (!optionItem.hasDraftComment && props.comment && props.comment.length > 0 && !props.isFocused) {
             Report.setReportWithDraft(props.reportID, true);
         }
-    }, []);
+    }, [optionItem, props.comment, props.isFocused, props.reportID]);
+
+    useEffect(() => {
+        runUseEffectOnlyOnce();
+    }, [runUseEffectOnlyOnce]);
 
     let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
@@ -259,7 +262,7 @@ const OptionRowLHN = (props) => {
             </Hoverable>
         </OfflineWithFeedback>
     );
-};
+}
 
 OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;

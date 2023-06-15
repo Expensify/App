@@ -29,7 +29,7 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {withNetwork} from '../../../components/OnyxProvider';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -245,6 +245,10 @@ class ReportActionCompose extends React.Component {
                 showPopoverMenu: this.showPopoverMenu,
             });
         }
+
+        if (this.props.comment.length !== 0) {
+            Report.setReportWithDraft(this.props.reportID, true);
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -415,7 +419,7 @@ class ReportActionCompose extends React.Component {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
         if (
             !Permissions.canUseTasks(this.props.betas) ||
-            (lodashGet(this.props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
+            (lodashGet(this.props.report, 'participants', []).length === 1 && _.some(reportParticipants, (email) => _.contains(CONST.EXPENSIFY_EMAILS, email)))
         ) {
             return [];
         }
@@ -893,11 +897,11 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        const reportParticipants = _.without(lodashGet(this.props.report, 'participantAccountIDs', []), this.props.currentUserPersonalDetails.accountID);
-        const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
-        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
+        const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
+        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
         const shouldShowReportRecipientLocalTime =
-            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.accountID) && !this.props.isComposerFullSize;
+            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.login) && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
@@ -1220,6 +1224,7 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withNetwork(),
+    withPersonalDetails(),
     withCurrentUserPersonalDetails,
     withKeyboardState,
     withOnyx({
@@ -1243,7 +1248,7 @@ export default compose(
             selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
