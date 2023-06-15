@@ -63,7 +63,7 @@ jobs:
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         with:
-          GPG_PASSPHRASE: ${{ inputs.GPG_PASSPHRASE }}
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Update production branch
         run: |
