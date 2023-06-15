@@ -144,6 +144,26 @@ function isTaskReport(report) {
 }
 
 /**
+ * Checks if a task is completed
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskCompleted(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
+}
+
+/**
+ * Checks if the current user is assigned to the task report
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskAssignee(report) {
+    return lodashGet(report, 'managerEmail') === currentUserEmail;
+}
+
+/**
  * Checks if a report is an IOU or expense report.
  *
  * @param {Object} report
@@ -2296,6 +2316,8 @@ export {
     isExpenseReport,
     isIOUReport,
     isTaskReport,
+    isTaskCompleted,
+    isTaskAssignee,
     isMoneyRequestReport,
     chatIncludesChronos,
     getNewMarkerReportActionID,
