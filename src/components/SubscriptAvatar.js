@@ -45,7 +45,7 @@ const defaultProps = {
 
 function SubscriptAvatar(props) {
     const isSmall = props.size === CONST.AVATAR_SIZE.SMALL;
-    const subscriptSyle = props.size === CONST.AVATAR_SIZE.MID_SMALL_NORMAL ? styles.secondAvatarSubscriptMidSmallNormal : styles.secondAvatarSubscript;
+    const subscriptSyle = props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
     const containerStyle = isSmall ? styles.emptyAvatarSmall : styles.emptyAvatar;
     // Default the margin style to what is normal for small or normal sized avatars
     let marginStyle = isSmall ? styles.emptyAvatarMarginSmall : styles.emptyAvatarMargin;
@@ -67,7 +67,7 @@ function SubscriptAvatar(props) {
                 </View>
             </Tooltip>
             <Tooltip text={props.secondaryTooltip}>
-                <View style={props.size === CONST.AVATAR_SIZE.MID_SMALL_NORMAL ? styles.flex1 : {}}>
+                <View style={props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}}>
                     <Avatar
                         imageStyles={null}
                         containerStyles={[props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : subscriptSyle]}

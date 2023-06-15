@@ -1835,7 +1835,7 @@ const styles = {
         right: -1,
     },
 
-    secondAvatarSubscriptMidSmallNormal: {
+    secondAvatarSubscriptSmallNormal: {
         position: 'absolute',
         bottom: 0,
         right: 0,
@@ -1914,9 +1914,9 @@ const styles = {
         width: variables.avatarSizeNormal,
     },
 
-    emptyAvatarMidSmallNormal: {
-        height: variables.avatarSizeMidSmallNormal,
-        width: variables.avatarSizeMidSmallNormal,
+    emptyAvatarSmallNormal: {
+        height: variables.avatarSizeSmallNormal,
+        width: variables.avatarSizeSmallNormal,
     },
 
     emptyAvatarSmall: {

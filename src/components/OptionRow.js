@@ -132,7 +132,7 @@ class OptionRow extends Component {
         const hoveredBackgroundColor = this.props.hoverStyle && this.props.hoverStyle.backgroundColor ? this.props.hoverStyle.backgroundColor : this.props.backgroundColor;
         const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
         const isMultipleParticipant = lodashGet(this.props.option, 'participantsList.length', 0) > 1;
-        const defaultSubscriptSize = this.props.option.isExpenseReport ? CONST.AVATAR_SIZE.MID_SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
+        const defaultSubscriptSize = this.props.option.isExpenseReport ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
 
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((this.props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
