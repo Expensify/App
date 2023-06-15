@@ -260,7 +260,7 @@ function getOptionData(reportID) {
     result.isTaskReport = ReportUtils.isTaskReport(report);
     if (result.isTaskReport) {
         result.isTaskCompleted = ReportUtils.isTaskCompleted(report);
-        result.isTaskAssignee = ReportUtils.isTaskAssignee(report, currentUserLogin.email);
+        result.isTaskAssignee = ReportUtils.isTaskAssignee(report);
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);

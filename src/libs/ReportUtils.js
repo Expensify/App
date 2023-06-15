@@ -149,7 +149,7 @@ function isTaskReport(report) {
 
 function isTaskCompleted(report) {
     return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED
-        && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;;
+        && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
 }
 
 function isTaskAssignee(report) {
