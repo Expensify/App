@@ -66,17 +66,15 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     });
                 });
             }}
+            hoverStyle={props.hoverStyle}
+            pressStyle={props.pressStyle}
+            focusStyle={props.focusStyle}
         >
             {(state) => (
                 <OpacityView
                     shouldDim={Boolean(!disabled && (state.pressed || state.hovered))}
                     dimmingValue={state.pressed ? props.pressDimmingValue : props.hoverDimmingValue}
-                    style={[
-                        ...StyleUtils.parseStyleFromFunction(props.style, state),
-                        ...(!disabled && state.pressed ? StyleUtils.parseStyleFromFunction(props.pressStyle, state) : []),
-                        ...(!disabled && state.hovered ? StyleUtils.parseStyleAsArray(props.hoverStyle, state) : []),
-                        ...(state.focused ? StyleUtils.parseStyleAsArray(props.focusStyle, state) : []),
-                    ]}
+                    style={[...StyleUtils.parseStyleFromFunction(props.style, state)]}
                 >
                     {_.isFunction(props.children) ? props.children(state) : props.children}
                 </OpacityView>
