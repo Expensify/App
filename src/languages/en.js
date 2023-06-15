@@ -266,7 +266,7 @@ export default {
         copyURLToClipboard: 'Copy URL to clipboard',
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
-        markAsRead: 'Mark as Read',
+        markAsRead: 'Mark as read',
         editComment: 'Edit comment',
         deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
         deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
