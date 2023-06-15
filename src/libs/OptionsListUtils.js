@@ -15,6 +15,7 @@ import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
+import * as ReportActionUtils from './ReportActionsUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -441,6 +442,14 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
             lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
         } else {
             lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+
+            // Yeah this is a bit ugly. If the latest report action has been moderated as pending remove, and is not visible, then set the last message text to the latest visible action text.
+            const actions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] || {};
+            const latestAction = _.first(ReportActionUtils.getSortedReportActions(_.values(actions), true)) || {};
+            if (lodashGet(latestAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+                const latestVisibleAction = _.find(actions, (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID)) || {};
+                lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
+            }
         }
 
         const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
