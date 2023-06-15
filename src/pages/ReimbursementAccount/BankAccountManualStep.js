@@ -41,13 +41,13 @@ class BankAccountManualStep extends React.Component {
             !values.accountNumber ||
             (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
         ) {
-            errorFields.accountNumber = this.props.translate('bankAccount.error.accountNumber');
+            errorFields.accountNumber = 'bankAccount.error.accountNumber';
         }
         if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
-            errorFields.routingNumber = this.props.translate('bankAccount.error.routingNumber');
+            errorFields.routingNumber = 'bankAccount.error.routingNumber';
         }
         if (!values.acceptTerms) {
-            errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
+            errorFields.acceptTerms = 'common.error.acceptTerms';
         }
 
         return errorFields;

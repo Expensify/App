@@ -5,7 +5,7 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import InlineCodeBlock from '../../InlineCodeBlock';
 
-const CodeRenderer = (props) => {
+function CodeRenderer(props) {
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
@@ -37,7 +37,7 @@ const CodeRenderer = (props) => {
             key={props.key}
         />
     );
-};
+}
 
 CodeRenderer.propTypes = htmlRendererPropTypes;
 CodeRenderer.displayName = 'CodeRenderer';
