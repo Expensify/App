@@ -35,8 +35,10 @@ const propTypes = {
 };
 
 function TaskHeader(props) {
+    console.log(props.report);
     const title = ReportUtils.getReportName(props.report);
     const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerID);
+    console.log(props.report.managerID, assigneeName);
     const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerID, 'avatar']), props.report.managerID);
     const isOpen = props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN;
     const isCompleted = ReportUtils.isTaskCompleted(props.report);
@@ -60,7 +62,7 @@ function TaskHeader(props) {
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {!_.isEmpty(props.report.managerID) && (
+                                {props.report.managerID && (
                                     <>
                                         <Avatar
                                             source={assigneeAvatar}
