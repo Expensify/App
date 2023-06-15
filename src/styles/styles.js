@@ -3417,7 +3417,7 @@ const styles = {
 
     validateCodeTimer: {
         color: themeColors.link,
-    }
+    },
 };
 
 export default styles;

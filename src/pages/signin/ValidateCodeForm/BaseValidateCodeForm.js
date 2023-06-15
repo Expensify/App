@@ -130,15 +130,17 @@ function BaseValidateCodeForm(props) {
 
     useEffect(() => {
         timerRef.current = setInterval(() => {
-          if (timeRemaining < 0) {
-            clearInterval(timerRef.current);
-          } else {
-            setTimeRemaining(timeRemaining - 1);
-          }
+            if (timeRemaining < 0) {
+                clearInterval(timerRef.current);
+            } else {
+                setTimeRemaining(timeRemaining - 1);
+            }
         }, 1000);
 
-        return () => {clearInterval(timerRef.current)};
-      }, [timeRemaining]);
+        return () => {
+            clearInterval(timerRef.current);
+        };
+    }, [timeRemaining]);
 
     /**
      * Handle text input and clear formError upon text change
@@ -255,7 +257,7 @@ function BaseValidateCodeForm(props) {
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                        {timeRemaining > 0  && !props.network.isOffline ? (
+                        {timeRemaining > 0 && !props.network.isOffline ? (
                             <Text style={[styles.mt2]}>
                                 {props.translate('validateCodeForm.requestNewCode')}
                                 <Text style={[styles.validateCodeTimer]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
