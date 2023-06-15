@@ -13,19 +13,21 @@ const defaultProps = {
     forwardedRef: () => {},
 };
 
-const RNTextInput = (props) => (
-    <TextInput
-        allowFontScaling={false}
-        ref={(ref) => {
-            if (!_.isFunction(props.forwardedRef)) {
-                return;
-            }
-            props.forwardedRef(ref);
-        }}
-        // eslint-disable-next-line
-        {...props}
-    />
-);
+function RNTextInput(props) {
+    return (
+        <TextInput
+            allowFontScaling={false}
+            ref={(ref) => {
+                if (!_.isFunction(props.forwardedRef)) {
+                    return;
+                }
+                props.forwardedRef(ref);
+            }}
+            // eslint-disable-next-line
+            {...props}
+        />
+    );
+}
 
 RNTextInput.propTypes = propTypes;
 RNTextInput.defaultProps = defaultProps;

@@ -1,7 +1,9 @@
 import React from 'react';
 import BasePaymentsPage from './BasePaymentsPage';
 
-const PaymentsPage = () => <BasePaymentsPage shouldListenForResize />;
+function PaymentsPage() {
+    return <BasePaymentsPage shouldListenForResize />;
+}
 
 PaymentsPage.displayName = 'PaymentsPage';
 

@@ -55,7 +55,7 @@ const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // Beware that each prop should be referentialy stable between renders to avoid
 // costly invalidations and commits.
-const BaseHTMLEngineProvider = (props) => {
+function BaseHTMLEngineProvider(props) {
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false}), [props.textSelectable]);
 
@@ -83,7 +83,7 @@ const BaseHTMLEngineProvider = (props) => {
             </RenderHTMLConfigProvider>
         </TRenderEngineProvider>
     );
-};
+}
 
 BaseHTMLEngineProvider.displayName = 'BaseHTMLEngineProvider';
 BaseHTMLEngineProvider.propTypes = propTypes;

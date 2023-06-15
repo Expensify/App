@@ -20,9 +20,10 @@ const defaultProps = {
     report: null,
 };
 
-const PinButton = (props) => (
-    <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
-        <PressableWithFeedback
+function PinButton(props) {
+    return (
+        <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
+            <PressableWithFeedback
             onPress={Session.checkIfActionIsAllowed(() => Report.togglePinnedState(props.report.reportID, props.report.isPinned))}
             style={[styles.touchableButtonImage]}
             accessibilityState={{checked: props.report.isPinned}}
@@ -34,8 +35,9 @@ const PinButton = (props) => (
                 fill={props.report.isPinned ? themeColors.heading : themeColors.icon}
             />
         </PressableWithFeedback>
-    </Tooltip>
-);
+        </Tooltip>
+    );
+}
 
 PinButton.displayName = 'PinButton';
 PinButton.propTypes = propTypes;
