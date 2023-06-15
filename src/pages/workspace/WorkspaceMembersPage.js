@@ -103,7 +103,7 @@ class WorkspaceMembersPage extends React.Component {
             this.setState((prevState) => ({
                 selectedEmployees: _.intersection(
                     prevState.selectedEmployees,
-                    _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails)),
+                    _.map(_.values(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails)), (accountID) => Number(accountID)),
                 ),
             }));
         }
@@ -214,10 +214,10 @@ class WorkspaceMembersPage extends React.Component {
      * @param {Object} memberList
      */
     toggleAllUsers(memberList) {
-        const emailList = _.keys(memberList);
+        const accountIDList = _.map(_.keys(memberList), (memberAccountID) => Number(memberAccountID));
         this.setState(
             (prevState) => ({
-                selectedEmployees: !_.every(emailList, (memberEmail) => _.contains(prevState.selectedEmployees, memberEmail)) ? emailList : [],
+                selectedEmployees: !_.every(accountIDList, (memberAccountID) => _.contains(prevState.selectedEmployees, memberAccountID)) ? accountIDList : [],
             }),
             () => this.validate(),
         );
@@ -236,17 +236,17 @@ class WorkspaceMembersPage extends React.Component {
         }
 
         // Add or remove the user if the checkbox is enabled
-        if (_.contains(this.state.selectedEmployees, accountID)) {
-            this.removeUser(accountID);
+        if (_.contains(this.state.selectedEmployees, Number(accountID))) {
+            this.removeUser(Number(accountID));
         } else {
-            this.addUser(accountID);
+            this.addUser(Number(accountID));
         }
     }
 
     /**
      * Add user from the selectedEmployees list
      *
-     * @param {String} accountID
+     * @param {Number} accountID
      */
     addUser(accountID) {
         this.setState(
@@ -260,7 +260,7 @@ class WorkspaceMembersPage extends React.Component {
     /**
      * Remove user from the selectedEmployees list
      *
-     * @param {String} accountID
+     * @param {Number} accountID
      */
     removeUser(accountID) {
         this.setState(
@@ -320,7 +320,7 @@ class WorkspaceMembersPage extends React.Component {
      */
     renderItem({item}) {
         const hasError = !_.isEmpty(item.errors) || this.state.errors[item.login];
-        const isChecked = _.contains(this.state.selectedEmployees, item.accountID);
+        const isChecked = _.contains(this.state.selectedEmployees, Number(item.accountID));
         return (
             <OfflineWithFeedback
                 onClose={() => this.dismissError(item)}
@@ -474,7 +474,9 @@ class WorkspaceMembersPage extends React.Component {
                                 <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <Checkbox
-                                            isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(this.state.selectedEmployees, accountID))}
+                                            isChecked={
+                                                !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(this.state.selectedEmployees, Number(accountID)))
+                                            }
                                             onPress={() => this.toggleAllUsers(removableMembers)}
                                         />
                                         <View style={[styles.flex1]}>
