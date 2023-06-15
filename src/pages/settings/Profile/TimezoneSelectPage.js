@@ -16,6 +16,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import SelectionList from '../../../components/SelectionList';
+import SelectionListRadio from '../../../components/SelectionListRadio';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -129,17 +130,27 @@ class TimezoneSelectPage extends Component {
                             title={this.props.translate('timezonePage.timezone')}
                             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
                         />
-                        <SelectionList
-                            canSelectSingle
+                        <SelectionListRadio
                             textInputLabel={this.props.translate('timezonePage.timezone')}
-                            value={this.state.timezoneInputText}
+                            textInputValue={this.state.timezoneInputText}
                             onChangeText={this.filterShownTimezones}
                             onSelectRow={this.saveSelectedTimezone}
                             sections={[{data: this.state.timezoneOptions, indexOffset: 0, isDisabled: this.timezone.automatic}]}
-                            shouldHaveOptionSeparator
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             initiallyFocusedOptionKey={_.get(_.filter(this.state.timezoneOptions, (tz) => tz.text === this.timezone.selected)[0], 'keyForList')}
                         />
+
+                        {/* TODO: REMOVE */}
+                        {/* <SelectionListRadio */}
+                        {/*     textInputLabel={this.props.translate('timezonePage.timezone')} */}
+                        {/*     value={this.state.timezoneInputText} */}
+                        {/*     onChangeText={this.filterShownTimezones} */}
+                        {/*     onSelectRow={this.saveSelectedTimezone} */}
+                        {/*     optionHoveredStyle={styles.hoveredComponentBG} */}
+                        {/*     sections={[{data: this.state.timezoneOptions, indexOffset: 0, isDisabled: this.timezone.automatic}]} */}
+                        {/*     shouldHaveOptionSeparator */}
+                        {/*     safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle} */}
+                        {/*     initiallyFocusedOptionKey={_.get(_.filter(this.state.timezoneOptions, (tz) => tz.text === this.timezone.selected)[0], 'keyForList')} */}
+                        {/* /> */}
                     </>
                 )}
             </ScreenWrapper>
