@@ -74,16 +74,17 @@ Onyx.connect({
 });
 
 const lastReportActions = {};
-const allReportActions = {};
+const allSortedReportActions = {}
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
         if (!key || !actions) {
             return;
         }
-        allReportActions[key] = actions;
+        const sortedReportActions = ReportActionUtils.getSortedReportActions(_.values(actions), true);
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        lastReportActions[reportID] = _.last(_.toArray(actions));
+        allSortedReportActions[reportID] = sortedReportActions;
+        lastReportActions[reportID] = _.first(sortedReportActions);
     },
 });
 
@@ -444,10 +445,8 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
             lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
             // Yeah this is a bit ugly. If the latest report action has been moderated as pending remove, and is not visible, then set the last message text to the latest visible action text.
-            const actions = allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] || {};
-            const latestAction = _.first(ReportActionUtils.getSortedReportActions(_.values(actions), true)) || {};
-            if (lodashGet(latestAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
-                const latestVisibleAction = _.find(actions, (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID)) || {};
+            if (lodashGet(lastReportActions[report.reportID], 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+                const latestVisibleAction = _.find(allSortedReportActions, (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID)) || {};
                 lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
             }
         }
