@@ -55,7 +55,7 @@ class EmojiPickerMenu extends Component {
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
+        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.name?.en === 'Flags');
         this.emojis =
             getOperatingSystem() === CONST.OS.WINDOWS
                 ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex))
@@ -63,7 +63,7 @@ class EmojiPickerMenu extends Component {
 
         // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
-        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis);
+        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis, this.props.preferredLocale);
 
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
@@ -395,7 +395,7 @@ class EmojiPickerMenu extends Component {
             this.setFirstNonHeaderIndex(this.emojis);
             return;
         }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.emojis.length);
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.props.preferredLocale, this.emojis.length);
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
@@ -428,8 +428,8 @@ class EmojiPickerMenu extends Component {
      * @param {Object} item
      * @returns {String}
      */
-    keyExtractor(item) {
-        return `emoji_picker_${item.code}`;
+    keyExtractor(item, index) {
+        return `emoji_picker_${item.code}_${index}`;
     }
 
     /**
@@ -450,7 +450,7 @@ class EmojiPickerMenu extends Component {
         if (header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${code}`)}</Text>
+                    <Text style={styles.textLabelSupporting}>{item.name[this.props.preferredLocale]}</Text>
                 </View>
             );
         }

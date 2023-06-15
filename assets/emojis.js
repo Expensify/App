@@ -38078,5 +38078,14 @@ const emojiNames = emojis.reduce((prev, cur) => {
     return prev;
 }, {});
 
-export { skinTones, emojiNames };
+const categoryFrequentlyUsed = {
+    header: true,
+    name: {
+        en: 'Frequently Used',
+        es: 'Usado frecuentemente'
+    },
+    icon: FrequentlyUsed,
+};
+
+export { skinTones, emojiNames, categoryFrequentlyUsed };
 export default emojis;

@@ -5,12 +5,20 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
+import emojis, {emojiNames, categoryFrequentlyUsed} from '../../assets/emojis';
 import FrequentlyUsed from '../../assets/images/history.svg';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-    callback: (val) => (frequentlyUsedEmojis = val),
+    callback: (val) => {
+        frequentlyUsedEmojis = _.map(val, item => {
+            const emoji = emojis.find(emoji => emoji.code === item.code && !emoji.header);
+            if (emoji) {
+                return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+            }
+        })
+    },
 });
 
 /**
@@ -97,14 +105,15 @@ function containsOnlyEmojis(message) {
  * @param {Object[]} emojis
  * @returns {Object[]}
  */
-function getHeaderEmojis(emojis) {
+function getHeaderEmojis(emojis, lang) {
     const headerIndices = [];
     _.each(emojis, (emoji, index) => {
         if (!emoji.header) {
             return;
         }
-        headerIndices.push({code: emoji.code, index, icon: emoji.icon});
+        headerIndices.push({name: emoji.name[lang], index, icon: emoji.icon});
     });
+
     return headerIndices;
 }
 
@@ -156,15 +165,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
         return addSpacesToEmojiCategories(emojis);
     }
 
-    let allEmojis = [
-        {
-            header: true,
-            code: 'frequentlyUsed',
-            icon: FrequentlyUsed,
-        },
-    ];
-
-    allEmojis = allEmojis.concat(frequentlyUsedEmojis, emojis);
+    const allEmojis = [categoryFrequentlyUsed].concat(frequentlyUsedEmojis, emojis);
     return addSpacesToEmojiCategories(allEmojis);
 }
 
@@ -224,7 +225,12 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * @param {Number} preferredSkinTone
  * @returns {Object}
  */
-function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
+function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = 'en') {
+    const trie = emojisTrie[lang];
+    if (!trie) {
+        return {text, emojis: []};
+    }
+
     let newText = text;
     const emojis = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
@@ -233,7 +239,7 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
     }
     for (let i = 0; i < emojiData.length; i++) {
         const name = emojiData[i].slice(1, -1);
-        const checkEmoji = emojisTrie.search(name);
+        const checkEmoji = trie.search(name);
         if (checkEmoji && checkEmoji.metaData.code) {
             let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
             emojis.push({
@@ -260,31 +266,37 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
  * @param {Number} [limit] - matching emojis limit
  * @returns {Array}
  */
-function suggestEmojis(text, limit = 5) {
+function suggestEmojis(text, lang, limit = 5) {
+    const trie = emojisTrie[lang];
+    if (!trie) {
+        return [];
+    }
+
     const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
-    if (emojiData) {
-        const matching = [];
-        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
-        for (let j = 0; j < nodes.length; j++) {
-            if (nodes[j].metaData.code && !_.find(matching, (obj) => obj.name === nodes[j].name)) {
-                if (matching.length === limit) {
-                    return matching;
-                }
-                matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
+    if (!emojiData) {
+        return [];
+    }
+
+    const matching = [];
+    const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
+    for (let j = 0; j < nodes.length; j++) {
+        if (nodes[j].metaData.code && !_.find(matching, (obj) => obj.name === nodes[j].name)) {
+            if (matching.length === limit) {
+                return matching;
             }
-            const suggestions = nodes[j].metaData.suggestions;
-            for (let i = 0; i < suggestions.length; i++) {
-                if (matching.length === limit) {
-                    return matching;
-                }
-                if (!_.find(matching, (obj) => obj.name === suggestions[i].name)) {
-                    matching.push(suggestions[i]);
-                }
+            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
+        }
+        const suggestions = nodes[j].metaData.suggestions;
+        for (let i = 0; i < suggestions.length; i++) {
+            if (matching.length === limit) {
+                return matching;
+            }
+            if (!_.find(matching, (obj) => obj.name === suggestions[i].name)) {
+                matching.push(suggestions[i]);
             }
         }
-        return matching;
     }
-    return [];
+    return matching;
 }
 
 /**
@@ -342,6 +354,13 @@ const getUniqueEmojiCodes = (emoji, users) => {
     return emojiCodes;
 };
 
+/**
+ * Given an English emoji name, get a 
+ */
+const getEmojiName = (enName, lang) => {
+    return _.get(emojiNames, [enName, lang], '');
+}
+
 export {
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
@@ -354,4 +373,5 @@ export {
     getPreferredSkinToneIndex,
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
+    getEmojiName,
 };

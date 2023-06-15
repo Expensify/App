@@ -7,11 +7,13 @@ import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
+import withLocalize from '../withLocalize';
+import compose from '../../libs/compose';
 import * as Report from '../../libs/actions/Report';
+import * as EmojiUtils from '../../libs/EmojiUtils';
 import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
-import * as EmojiUtils from '../../libs/EmojiUtils';
 
 const propTypes = {
     /**
@@ -58,12 +60,12 @@ function ReportActionItemReactions(props) {
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
                 const reactionUsers = _.map(reaction.users, (sender) => sender.accountID.toString());
-                const emoji = _.find(emojis, (e) => e.name === reaction.emoji);
+                const emoji = _.find(emojis, (e) => e.shortcode?.en === reaction.emoji);
                 const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
                 const onPress = () => {
-                    props.toggleReaction(emoji);
+                    props.toggleReaction(emoji, );
                 };
 
                 const onReactionListOpen = (event) => {
@@ -74,7 +76,7 @@ function ReportActionItemReactions(props) {
                     <Tooltip
                         renderTooltipContent={() => (
                             <ReactionTooltipContent
-                                emojiName={reaction.emoji}
+                                emojiName={EmojiUtils.getEmojiName(reaction.emoji, props.preferredLocale)}
                                 emojiCodes={emojiCodes}
                                 accountIDs={reactionUsers}
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
@@ -105,4 +107,4 @@ function ReportActionItemReactions(props) {
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
 ReportActionItemReactions.defaultProps = defaultProps;
-export default withCurrentUserPersonalDetails(ReportActionItemReactions);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(ReportActionItemReactions);

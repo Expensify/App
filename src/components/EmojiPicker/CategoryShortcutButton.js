@@ -11,8 +11,8 @@ import themeColors from '../../styles/themes/default';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
-    /** The emoji code of the category header */
-    code: PropTypes.string.isRequired,
+    /** The emoji name of the category header */
+    name: PropTypes.string.isRequired,
 
     /** The icon representation of the category that this button links to */
     icon: PropTypes.func.isRequired,
@@ -34,7 +34,7 @@ class CategoryShortcutButton extends PureComponent {
     render() {
         return (
             <Tooltip
-                text={this.props.translate(`emojiPicker.headers.${this.props.code}`)}
+                text={this.props.name}
                 shiftVertical={-4}
             >
                 <PressableWithoutFeedback

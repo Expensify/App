@@ -514,7 +514,7 @@ class ReportActionCompose extends React.Component {
             shouldShowEmojiSuggestionMenu: false,
             isAutoSuggestionPickerLarge,
         };
-        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
+        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, this.props.preferredLocale);
 
         if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
             nextState.suggestedEmojis = newSuggestedEmojis;
@@ -718,7 +718,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone, this.props.preferredLocale);
 
         if (!_.isEmpty(emojis)) {
             User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));

@@ -49,7 +49,7 @@ class EmojiPickerMenu extends Component {
 
         // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
-        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis);
+        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis, this.props.preferredLocale);
 
         // This is the indices of each header's Row
         // The positions are static, and are calculated as index/numColumns (8 in our case)
@@ -93,7 +93,7 @@ class EmojiPickerMenu extends Component {
 
             return;
         }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.emojis.length);
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.props.preferredLocale, this.emojis.length);
 
         this.setState({
             filteredEmojis: newFilteredEmojiList,
@@ -150,7 +150,7 @@ class EmojiPickerMenu extends Component {
      * @returns {String}
      */
     keyExtractor(item, index) {
-        return `${index}${item.code}`;
+        return `emoji_picker_${item.code}_${index}`;
     }
 
     /**
@@ -170,7 +170,7 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${item.code}`)}</Text>
+                    <Text style={styles.textLabelSupporting}>{item.name[this.props.preferredLocale]}</Text>
                 </View>
             );
         }
