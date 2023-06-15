@@ -124,7 +124,9 @@ In order to bundle actions with their dependencies into a single Node.js executa
 
 ## Imperative Workflows
 
-We have a unique way of defining certain workflows which can be manually triggered by the `workflow_dispatch` event. See `createNewVersion.yml` and `updateProtectedBranch.yml` for examples. Used in combination with the custom [`triggerWorkflowAndWait` action](https://github.com/Expensify/App/blob/d07dcf4e3e0b3f11bec73726856e6d5f8624704c/.github/actions/triggerWorkflowAndWait/triggerWorkflowAndWait.js), workflows can be synchronously executed like a function from another workflow, like this:
+**Edit:** These workflows are still present, but should be considered deprecated. GitHub has since introduced callable workflows, so we should use those going forward.
+
+We have a unique way of defining certain workflows which can be manually triggered by the `workflow_dispatch` event. See `createNewVersion.yml` for examples. Used in combination with the custom [`triggerWorkflowAndWait` action](https://github.com/Expensify/App/blob/d07dcf4e3e0b3f11bec73726856e6d5f8624704c/.github/actions/triggerWorkflowAndWait/triggerWorkflowAndWait.js), workflows can be synchronously executed like a function from another workflow, like this:
 
 ```yaml
 - name: Create new BUILD version
