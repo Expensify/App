@@ -18,6 +18,9 @@ export default {
             [SCREENS.HOME]: {
                 path: ROUTES.HOME,
             },
+            SignIn: {
+                path: SCREENS.SIGNIN,
+            },
 
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {

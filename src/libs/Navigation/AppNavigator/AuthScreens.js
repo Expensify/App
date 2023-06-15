@@ -32,6 +32,9 @@ import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import styles from '../../../styles/styles';
+import SignInPage from '../../../pages/signin/SignInPage';
+import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
+import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
 
 let currentUserEmail;
 Onyx.connect({
@@ -84,7 +87,7 @@ const modalScreenListeners = {
 const propTypes = {
     /** Session of currently logged in user */
     session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
+        email: PropTypes.string,
     }),
 
     /** The report ID of the last opened public room as anonymous user */
@@ -271,6 +274,21 @@ class AuthScreens extends React.Component {
                     options={rightModalNavigatorScreenOptions}
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                name={SCREENS.SIGNIN}
+                options={defaultScreenOptions}
+                component={SignInPage}
+                />
+                <RootStack.Screen
+                    name="LogInWithShortLivedAuthToken"
+                    options={defaultScreenOptions}
+                    component={LogInWithShortLivedAuthTokenPage}
+                />
+                <RootStack.Screen
+                    name="UnlinkLogin"
+                    options={defaultScreenOptions}
+                    component={UnlinkLoginPage}
                 />
             </RootStack.Navigator>
         );
