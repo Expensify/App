@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import lodashFind from 'lodash/find';
+import lodashKeys from 'lodash/keys';
 import lodashIntersection from 'lodash/intersection';
 import Onyx from 'react-native-onyx';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -825,10 +827,12 @@ function getPersonalDetailsForAccountID(accountID) {
  * Gets the accountID for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
  * then an empty string is returned.
  * @param {String} login
- * @returns {String}
+ * @returns {Number}
  */
 function getAccountIDForLogin(login) {
-    return lodashGet(allPersonalDetails, [login, 'accountID'], '');
+    const keys = lodashKeys(allPersonalDetails);
+    const result = lodashFind(keys, (key) => allPersonalDetails[key].login === login) || '0';
+    return Number(result);
 }
 
 /**
