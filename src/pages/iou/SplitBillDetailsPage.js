@@ -7,7 +7,6 @@ import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import ModalHeader from './ModalHeader';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MoneyRequestConfirmationList from '../../components/MoneyRequestConfirmationList';
 import personalDetailsPropType from '../personalDetailsPropType';
@@ -18,6 +17,7 @@ import reportPropTypes from '../reportPropTypes';
 import withReportOrNotFound from '../home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 
 const propTypes = {
     /* Onyx Props */
@@ -62,21 +62,20 @@ function getReportID(route) {
     return route.params.reportID.toString();
 }
 
-const SplitBillDetailsPage = (props) => {
+function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const personalDetails = OptionsListUtils.getPersonalDetailsForLogins(reportAction.originalMessage.participants, props.personalDetails);
+    const personalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(reportAction.originalMessage.participantAccountIDs, props.personalDetails);
     const participants = OptionsListUtils.getParticipantsOptions(reportAction.originalMessage, personalDetails);
-    const payeePersonalDetails = _.filter(participants, (participant) => participant.login === reportAction.actorEmail)[0];
-    const participantsExcludingPayee = _.filter(participants, (participant) => participant.login !== reportAction.actorEmail);
+    const payeePersonalDetails = _.filter(participants, (participant) => participant.accountID === reportAction.actorAccountID)[0];
+    const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
+    const splitComment = lodashGet(reportAction, 'originalMessage.comment');
+    const splitCurrency = lodashGet(reportAction, 'originalMessage.currency');
 
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
-                <ModalHeader
-                    title={props.translate('common.details')}
-                    shouldShowBackButton={false}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
@@ -87,6 +86,8 @@ const SplitBillDetailsPage = (props) => {
                             payeePersonalDetails={payeePersonalDetails}
                             participants={participantsExcludingPayee}
                             iouAmount={splitAmount}
+                            iouComment={splitComment}
+                            iouCurrencyCode={splitCurrency}
                             iouType={CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
                             isReadOnly
                             shouldShowFooter={false}
@@ -96,7 +97,7 @@ const SplitBillDetailsPage = (props) => {
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
-};
+}
 
 SplitBillDetailsPage.propTypes = propTypes;
 SplitBillDetailsPage.defaultProps = defaultProps;
@@ -107,7 +108,7 @@ export default compose(
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,

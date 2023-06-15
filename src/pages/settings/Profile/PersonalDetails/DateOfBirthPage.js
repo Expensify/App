@@ -4,18 +4,18 @@ import {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import styles from '../../../../styles/styles';
-import Navigation from '../../../../libs/Navigation/Navigation';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import CONST from '../../../../CONST';
+import Navigation from '../../../../libs/Navigation/Navigation';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,7 +34,7 @@ const defaultProps = {
     },
 };
 
-const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
+function DateOfBirthPage({translate, route, privatePersonalDetails}) {
     /**
      * The year should be set on the route when navigating back from the year picker
      * This lets us pass the selected year without having to overwrite the value in Onyx
@@ -49,32 +49,27 @@ const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
      * @param {String} values.dob - date of birth
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
-            const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
-            const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
+    const validate = useCallback((values) => {
+        const errors = {};
+        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
 
-            if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-                errors.dob = translate('common.error.fieldRequired');
-            }
-            const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
-            if (dateError) {
-                errors.dob = dateError;
-            }
+        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
+            errors.dob = 'common.error.fieldRequired';
+        }
+        const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
+        if (dateError) {
+            errors.dob = dateError;
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    }, []);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={translate('common.dob')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
@@ -95,7 +90,7 @@ const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 DateOfBirthPage.propTypes = propTypes;
 DateOfBirthPage.defaultProps = defaultProps;

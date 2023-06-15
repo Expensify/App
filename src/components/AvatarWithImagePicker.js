@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
@@ -12,6 +12,7 @@ import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import ConfirmModal from './ConfirmModal';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
@@ -20,6 +21,7 @@ import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Avatar source to display */
@@ -63,6 +65,19 @@ const propTypes = {
     /** Image crop vector mask */
     editorMaskImage: PropTypes.func,
 
+    /** Additional style object for the error row */
+    errorRowStyles: stylePropTypes,
+
+    /** A function to run when the X button next to the error is clicked */
+    onErrorClose: PropTypes.func,
+
+    /** The type of action that's pending  */
+    pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
+    /** The errors to display  */
+    // eslint-disable-next-line react/forbid-prop-types
+    errors: PropTypes.object,
+
     ...withLocalizePropTypes,
 };
 
@@ -78,6 +93,10 @@ const defaultProps = {
     fallbackIcon: Expensicons.FallbackAvatar,
     type: CONST.ICON_TYPE_AVATAR,
     editorMaskImage: undefined,
+    errorRowStyles: [],
+    onErrorClose: () => {},
+    pendingAction: null,
+    errors: null,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -256,24 +275,36 @@ class AvatarWithImagePicker extends React.Component {
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-                <Pressable onPress={() => this.setState({isMenuVisible: true})}>
+                <PressableWithoutFeedback
+                    onPress={() => this.setState({isMenuVisible: true})}
+                    accessibilityRole="button"
+                    accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
+                >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
-                        <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
-                            <View>
-                                {this.props.source ? (
-                                    <Avatar
-                                        containerStyles={styles.avatarLarge}
-                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                        source={this.props.source}
-                                        fallbackIcon={this.props.fallbackIcon}
-                                        size={this.props.size}
-                                        type={this.props.type}
-                                    />
-                                ) : (
-                                    <DefaultAvatar />
-                                )}
-                            </View>
-                        </Tooltip>
+                        <OfflineWithFeedback
+                            pendingAction={this.props.pendingAction}
+                            errors={this.props.errors}
+                            errorRowStyles={this.props.errorRowStyles}
+                            onClose={this.props.onErrorClose}
+                        >
+                            <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
+                                <View>
+                                    {this.props.source ? (
+                                        <Avatar
+                                            containerStyles={styles.avatarLarge}
+                                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                            source={this.props.source}
+                                            fallbackIcon={this.props.fallbackIcon}
+                                            size={this.props.size}
+                                            type={this.props.type}
+                                        />
+                                    ) : (
+                                        <DefaultAvatar />
+                                    )}
+                                </View>
+                            </Tooltip>
+                        </OfflineWithFeedback>
+
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => (
                                 <>
@@ -299,7 +330,7 @@ class AvatarWithImagePicker extends React.Component {
                             )}
                         </AttachmentPicker>
                     </View>
-                </Pressable>
+                </PressableWithoutFeedback>
                 <ConfirmModal
                     title={this.state.errorModalTitle}
                     onConfirm={this.hideErrorModal}

@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
@@ -101,20 +101,20 @@ class WorkspaceNewRoomPage extends React.Component {
 
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
             // We error if the user doesn't enter a room name or left blank
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.pleaseEnterRoomName');
         } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
             // We error if the room name has invalid characters
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameInvalidError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomNameInvalidError');
         } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+            ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
         } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
         }
 
         if (!values.policyID) {
-            errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
+            errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
         }
 
         return errors;
@@ -147,10 +147,7 @@ class WorkspaceNewRoomPage extends React.Component {
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
-                <HeaderWithCloseButton
-                    title={this.props.translate('newRoomPage.newRoom')}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
+                <HeaderWithBackButton title={this.props.translate('newRoomPage.newRoom')} />
                 <Form
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                     submitButtonText={this.props.translate('newRoomPage.createRoom')}

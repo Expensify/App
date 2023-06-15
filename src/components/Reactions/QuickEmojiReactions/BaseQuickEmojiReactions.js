@@ -46,30 +46,32 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
-const BaseQuickEmojiReactions = (props) => (
-    <View style={styles.quickReactionsContainer}>
-        {_.map(CONST.QUICK_REACTIONS, (emoji) => (
-            <Tooltip
-                text={`:${emoji.name}:`}
-                key={emoji.name}
-            >
-                <View>
-                    <EmojiReactionBubble
-                        emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
-                        isContextMenu
-                        onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
-                    />
-                </View>
-            </Tooltip>
-        ))}
-        <AddReactionBubble
-            isContextMenu
-            onPressOpenPicker={props.onPressOpenPicker}
-            onWillShowPicker={props.onWillShowPicker}
-            onSelectEmoji={props.onEmojiSelected}
-        />
-    </View>
-);
+function BaseQuickEmojiReactions(props) {
+    return (
+        <View style={styles.quickReactionsContainer}>
+            {_.map(CONST.QUICK_REACTIONS, (emoji) => (
+                <Tooltip
+                    text={`:${emoji.name}:`}
+                    key={emoji.name}
+                >
+                    <View>
+                        <EmojiReactionBubble
+                            emojiCodes={[EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)]}
+                            isContextMenu
+                            onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
+                        />
+                    </View>
+                </Tooltip>
+            ))}
+            <AddReactionBubble
+                isContextMenu
+                onPressOpenPicker={props.onPressOpenPicker}
+                onWillShowPicker={props.onWillShowPicker}
+                onSelectEmoji={props.onEmojiSelected}
+            />
+        </View>
+    );
+}
 
 BaseQuickEmojiReactions.displayName = 'BaseQuickEmojiReactions';
 BaseQuickEmojiReactions.propTypes = propTypes;

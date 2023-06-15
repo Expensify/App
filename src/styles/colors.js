@@ -30,6 +30,7 @@ export default {
     white: '#E7ECE9',
     blueLink: '#5AB0FF',
     blueLinkHover: '#B0D9FF',
+    blueLinkPreview: '#2EAAE2',
     greenDefaultButton: '#184E3D',
     greenDefaultButtonHover: '#2C6755',
     greenDefaultButtonPressed: '#467164',
