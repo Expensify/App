@@ -103,7 +103,6 @@ const TESTBUILD__IOS__CREATE_ENV_ADHOC__STEP_MOCK = utils.createMockStep(
 );
 const TESTBUILD__IOS__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setup Node', 'IOS', [], []);
 const TESTBUILD__IOS__SETUP_RUBY__STEP_MOCK = utils.createMockStep('Setup Ruby', 'Setup Ruby', 'IOS', ['ruby-version', 'bundler-cache'], []);
-const TESTBUILD__IOS__CACHE__STEP_MOCK = utils.createMockStep('Cache', 'Caching', 'IOS', ['path', 'key']);
 const TESTBUILD__IOS__INSTALL_COCOAPODS__STEP_MOCK = utils.createMockStep('Install cocoapods', 'Install cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command'], []);
 const TESTBUILD__IOS__DECRYPT_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt profile', 'Decrypt profile', 'IOS', [], ['LARGE_SECRET_PASSPHRASE']);
 const TESTBUILD__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = utils.createMockStep('Decrypt certificate', 'Decrypt certificate', 'IOS', [], ['LARGE_SECRET_PASSPHRASE']);
@@ -121,7 +120,6 @@ const TESTBUILD__IOS__STEP_MOCKS = [
     TESTBUILD__IOS__CREATE_ENV_ADHOC__STEP_MOCK,
     TESTBUILD__IOS__SETUP_NODE__STEP_MOCK,
     TESTBUILD__IOS__SETUP_RUBY__STEP_MOCK,
-    TESTBUILD__IOS__CACHE__STEP_MOCK,
     TESTBUILD__IOS__INSTALL_COCOAPODS__STEP_MOCK,
     TESTBUILD__IOS__DECRYPT_PROFILE__STEP_MOCK,
     TESTBUILD__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,

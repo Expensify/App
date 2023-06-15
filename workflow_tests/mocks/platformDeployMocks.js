@@ -95,7 +95,6 @@ const PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS = [
 const PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'IOS', ['fetch-depth']);
 const PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK = utils.createMockStep('Setup Ruby', 'Setting up Ruby', 'IOS', ['ruby-version', 'bundler-cache']);
-const PLATFORM_DEPLOY__IOS__CACHE__STEP_MOCK = utils.createMockStep('Cache', 'Caching', 'IOS', ['path', 'key']);
 const PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK = utils.createMockStep('Install cocoapods', 'Installing cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command']);
 const PLATFORM_DEPLOY__IOS__DECRYPT_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt profile', 'Decrypting profile', 'IOS', null, ['LARGE_SECRET_PASSPHRASE']);
 const PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = utils.createMockStep('Decrypt certificate', 'Decrypting certificate', 'IOS', null, ['LARGE_SECRET_PASSPHRASE']);
@@ -123,7 +122,6 @@ const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
     PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK,
-    PLATFORM_DEPLOY__IOS__CACHE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_PROFILE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,
