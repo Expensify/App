@@ -24,6 +24,7 @@ import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescr
 import ROUTES from '../../../ROUTES';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
+import {isChatRoom} from "../../../libs/ReportUtils";
 
 const propTypes = {
     /** Route params */
@@ -88,7 +89,7 @@ class ReportSettingsPage extends Component {
      * @returns {Boolean}
      */
     shouldDisableWelcomeMessage(linkedWorkspace) {
-        return !ReportUtils.isArchivedRoom(this.props.report) && !_.isEmpty(linkedWorkspace) && Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role === CONST.POLICY.ROLE.ADMIN;
+        return ReportUtils.isArchivedRoom(this.props.report) || !ReportUtils.isChatRoom(this.props.report) || (!_.isEmpty(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN);
     }
 
     render() {
