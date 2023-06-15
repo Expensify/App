@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import CONST from '../../CONST';
 import getEnvironment from './getEnvironment';
 import CONFIG from '../../CONFIG';
+import * as Url from '../Url';
 
 const ENVIRONMENT_URLS = {
     [CONST.ENVIRONMENT.DEV]: CONST.DEV_NEW_EXPENSIFY_URL + CONFIG.DEV_PORT,
@@ -43,7 +44,12 @@ function isInternalTestBuild() {
  */
 function getEnvironmentURL() {
     return new Promise((resolve) => {
-        getEnvironment().then((environment) => resolve(ENVIRONMENT_URLS[environment]));
+        getEnvironment().then((environment) => 
+        {
+            // Our approach is to use staging url only for staging environment and use production url for all other environments.
+            const environmentURL = (environment === CONST.ENVIRONMENT.STAGING) ?  Url.addTrailingForwardSlash(CONST.STAGING_NEW_EXPENSIFY_URL) : CONST.NEW_EXPENSIFY_URL;
+            resolve(environmentURL);
+        });
     });
 }
 
