@@ -60,7 +60,7 @@ function isMoneyRequestAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
-function isReportReviewAction(reportAction) {
+function isReportPreviewAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
@@ -431,7 +431,7 @@ function getReportPreviewAction(chatReportID, iouReportID) {
  * @param {*} reportAction
  * @returns {String}
  */
-function getIouReportID(reportAction) {
+function getIOUReportID(reportAction) {
     return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
 }
 
@@ -461,6 +461,6 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
-    isReportReviewAction,
-    getIouReportID,
+    isReportPreviewAction,
+    getIOUReportID,
 };

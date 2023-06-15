@@ -231,7 +231,7 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             children = (
                 <ReportPreview
-                    iouReportID={ReportActionsUtils.getIouReportID(props.action)}
+                    iouReportID={ReportActionsUtils.getIOUReportID(props.action)}
                     chatReportID={props.report.reportID}
                     action={props.action}
                     isHovered={hovered}

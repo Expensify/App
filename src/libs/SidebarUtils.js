@@ -269,8 +269,8 @@ function getOptionData(reportID) {
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
-    } else if (ReportActionsUtils.isReportReviewAction(lastReportActions[report.reportID])) {
-        const iouReportID = ReportActionsUtils.getIouReportID(lastReportActions[report.reportID]);
+    } else if (ReportActionsUtils.isReportPreviewAction(lastReportActions[report.reportID])) {
+        const iouReportID = ReportActionsUtils.getIOUReportID(lastReportActions[report.reportID]);
         const iouReport = ReportUtils.getReport(iouReportID);
         lastMessageTextFromReport = ReportUtils.getMoneyRequestReportActionMessage(iouReport, lastReportActions[report.reportID]);
     } else {
