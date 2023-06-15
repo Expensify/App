@@ -75,9 +75,9 @@ function IOUCurrencySelection(props) {
         [props.route, props.navigation],
     );
 
-    const {translate} = props;
+    const {translate, currencyList} = props;
     const {sections, headerMessage, initiallyFocusedOptionKey} = useMemo(() => {
-        const currencyOptions = _.map(props.currencyList, (currencyInfo, currencyCode) => {
+        const currencyOptions = _.map(currencyList, (currencyInfo, currencyCode) => {
             const isSelectedCurrency = currencyCode === selectedCurrencyCode;
             return {
                 text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
@@ -109,7 +109,7 @@ function IOUCurrencySelection(props) {
                   ],
             headerMessage: isEmpty ? translate('common.noResultsFound') : '',
         };
-    }, [props.currencyList, searchValue, selectedCurrencyCode, translate]);
+    }, [currencyList, searchValue, selectedCurrencyCode, translate]);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
