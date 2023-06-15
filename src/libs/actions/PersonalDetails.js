@@ -289,7 +289,7 @@ function updateSelectedTimezone(selectedTimezone) {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             timezone,
                         },
                     },
