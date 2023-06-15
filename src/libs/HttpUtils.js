@@ -36,7 +36,10 @@ let reconnectAppCancellationController = new AbortController();
  * @returns {Promise}
  */
 function processHTTPRequest(url, method = 'get', body = null, command = '') {
-    const signal = command === CONST.NETWORK.COMMAND.RECONNECT_APP ? reconnectAppCancellationController.signal : cancellationController.signal;
+    let signal;
+    if (command !== 'Log') {
+        signal = command === CONST.NETWORK.COMMAND.RECONNECT_APP ? reconnectAppCancellationController.signal : cancellationController.signal;
+    }
 
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
