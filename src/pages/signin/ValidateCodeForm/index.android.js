@@ -9,12 +9,14 @@ const defaultProps = {
 const propTypes = {
     isVisible: PropTypes.bool,
 };
-const ValidateCodeForm = (props) => (
-    <BaseValidateCodeForm
-        isVisible={props.isVisible}
-        autoComplete="sms-otp"
-    />
-);
+function ValidateCodeForm(props) {
+    return (
+        <BaseValidateCodeForm
+            isVisible={props.isVisible}
+            autoComplete="sms-otp"
+        />
+    );
+}
 
 ValidateCodeForm.displayName = 'ValidateCodeForm';
 ValidateCodeForm.propTypes = propTypes;
