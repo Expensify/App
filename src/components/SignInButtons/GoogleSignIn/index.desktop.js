@@ -13,7 +13,7 @@ const propTypes = {...withLocalizePropTypes};
 const googleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.GOOGLE_SIGN_IN}`;
 
 /**
- * Google Sign In button for desktop flow
+ * Google Sign In button for desktop flow.
  * @returns {React.Component}
  */
 

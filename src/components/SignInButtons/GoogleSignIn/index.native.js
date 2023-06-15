@@ -8,7 +8,7 @@ import CONST from '../../../CONST';
 const googleLogoIcon = require('../../../../assets/images/signIn/google-logo.svg').default;
 
 /**
- * Google Sign In method for iOS and android that returns identityToken
+ * Google Sign In method for iOS and android that returns identityToken.
  * @returns {Promise<string>}
  */
 
@@ -41,7 +41,7 @@ function googleSignInRequest() {
 }
 
 /**
- * Google Sign In button for iOS
+ * Google Sign In button for iOS.
  * @returns {React.Component}
  */
 

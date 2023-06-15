@@ -12,7 +12,7 @@ const appleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}
 const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
 
 /**
- * Apple Sign In button for desktop flow
+ * Apple Sign In button for desktop flow.
  * @returns {React.Component}
  */
 
