@@ -23,6 +23,7 @@ import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Welcome from './Welcome';
+import SidebarUtils from '../SidebarUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -587,48 +588,16 @@ function readOldestAction(reportID, reportActionID) {
 }
 
 /**
- * Gets transactions and data associated with the linked report (expense or IOU report)
+ * Gets metadata info about links in the provided report action
  *
- * @param {String} chatReportID
- * @param {String} linkedReportID
+ * @param {String} reportID
+ * @param {String} reportActionID
  */
-function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
-    API.read(
-        'OpenMoneyRequestsReportPage',
-        {
-            reportID: chatReportID,
-            linkedReportID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-        },
-    );
+function expandURLPreview(reportID, reportActionID) {
+    API.read('ExpandURLPreview', {
+        reportID,
+        reportActionID,
+    });
 }
 
 /**
@@ -932,6 +901,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
     const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
+    const reportComment = parser.htmlToText(htmlForNewComment);
 
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
@@ -963,7 +933,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                     ...originalMessage,
                     isEdited: true,
                     html: htmlForNewComment,
-                    text: textForNewComment,
+                    text: reportComment,
                 },
             ],
         },
@@ -979,7 +949,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
     if (reportActionID === lastVisibleAction.reportActionID) {
-        const reportComment = parser.htmlToText(htmlForNewComment);
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
             lastMessageText,
@@ -1625,7 +1594,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
 
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Navigation.isReportScreenReady().then(() => {
+        SidebarUtils.isSidebarLoadedReady().then(() => {
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID));
             }
@@ -1678,6 +1647,18 @@ function leaveRoom(reportID) {
  */
 function setLastOpenedPublicRoom(reportID) {
     Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
+}
+
+/**
+ * Navigates to the last opened public room
+ *
+ * @param {String} lastOpenedPublicRoomID
+ */
+function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
+    Navigation.isNavigationReady().then(() => {
+        setLastOpenedPublicRoom('');
+        Navigation.navigate(ROUTES.getReportRoute(lastOpenedPublicRoomID));
+    });
 }
 
 /**
@@ -1783,6 +1764,7 @@ export {
     deleteReport,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
+    expandURLPreview,
     markCommentAsUnread,
     readNewestAction,
     readOldestAction,
@@ -1791,7 +1773,6 @@ export {
     navigateToAndOpenReport,
     navigateToAndOpenChildReport,
     updatePolicyRoomNameAndNavigate,
-    openMoneyRequestsReportPage,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
@@ -1804,4 +1785,5 @@ export {
     leaveRoom,
     setLastOpenedPublicRoom,
     flagComment,
+    openLastOpenedPublicRoom,
 };

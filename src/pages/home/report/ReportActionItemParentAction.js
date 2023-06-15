@@ -44,7 +44,7 @@ const defaultProps = {
     shouldHideThreadDividerLine: false,
 };
 
-const ReportActionItemParentAction = (props) => {
+function ReportActionItemParentAction(props) {
     const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
 
     // In case of transaction threads, we do not want to render the parent report action.
@@ -74,7 +74,7 @@ const ReportActionItemParentAction = (props) => {
             {!props.shouldHideThreadDividerLine && <View style={[styles.threadDividerLine]} />}
         </OfflineWithFeedback>
     );
-};
+}
 
 ReportActionItemParentAction.defaultProps = defaultProps;
 ReportActionItemParentAction.propTypes = propTypes;

@@ -13,7 +13,7 @@ import themeColors from '../../styles/themes/default';
 const propTypes = {
     ...withLocalizePropTypes,
 };
-const Enable2FAPrompt = (props) => {
+function Enable2FAPrompt(props) {
     const secureYourAccountUrl = encodeURI(`settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.getBankAccountRoute()}","isFromNewDot":"true"}`);
 
     return (
@@ -40,7 +40,7 @@ const Enable2FAPrompt = (props) => {
             </View>
         </Section>
     );
-};
+}
 
 Enable2FAPrompt.propTypes = propTypes;
 Enable2FAPrompt.displayName = 'Enable2FAPrompt';

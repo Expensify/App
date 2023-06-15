@@ -43,7 +43,7 @@ const defaultProps = {
     },
 };
 
-const GetAssistancePage = (props) => {
+function GetAssistancePage(props) {
     const menuItems = [
         {
             title: props.translate('getAssistancePage.chatWithConcierge'),
@@ -73,6 +73,7 @@ const GetAssistancePage = (props) => {
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
+            link: guideCalendarLink,
         });
     }
 
@@ -95,7 +96,7 @@ const GetAssistancePage = (props) => {
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 GetAssistancePage.propTypes = propTypes;
 GetAssistancePage.defaultProps = defaultProps;

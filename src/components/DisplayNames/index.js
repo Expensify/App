@@ -5,6 +5,7 @@ import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
+import UserDetailsTooltip from '../UserDetailsTooltip';
 
 class DisplayNames extends PureComponent {
     constructor(props) {
@@ -86,11 +87,16 @@ class DisplayNames extends PureComponent {
             >
                 {this.props.shouldUseFullTitle
                     ? this.props.fullTitle
-                    : _.map(this.props.displayNamesWithTooltips, ({displayName, tooltip}, index) => (
+                    : _.map(this.props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
                           <Fragment key={index}>
-                              <Tooltip
+                              <UserDetailsTooltip
                                   key={index}
-                                  text={tooltip}
+                                  accountID={accountID}
+                                  fallbackUserDetails={{
+                                      avatar,
+                                      login,
+                                      displayName,
+                                  }}
                                   shiftHorizontal={() => this.getTooltipShiftX(index)}
                               >
                                   {/*  // We need to get the refs to all the names which will be used to correct
@@ -101,11 +107,11 @@ class DisplayNames extends PureComponent {
                                   >
                                       {displayName}
                                   </Text>
-                              </Tooltip>
+                              </UserDetailsTooltip>
                               {index < this.props.displayNamesWithTooltips.length - 1 && <Text style={this.props.textStyles}>,&nbsp;</Text>}
                           </Fragment>
                       ))}
-                {this.props.displayNamesWithTooltips.length > 1 && this.state.isEllipsisActive && (
+                {this.props.displayNamesWithTooltips.length > 1 && Boolean(this.state.isEllipsisActive) && (
                     <View style={styles.displayNameTooltipEllipsis}>
                         <Tooltip text={this.props.fullTitle}>
                             {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}

@@ -49,7 +49,7 @@ const defaultProps = {
     isHovered: false,
 };
 
-const TaskPreview = (props) => {
+function TaskPreview(props) {
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
@@ -87,7 +87,7 @@ const TaskPreview = (props) => {
             />
         </Pressable>
     );
-};
+}
 
 TaskPreview.propTypes = propTypes;
 TaskPreview.defaultProps = defaultProps;
