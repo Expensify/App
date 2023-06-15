@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useContext} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -8,10 +8,10 @@ import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import * as Report from '../../libs/actions/Report';
-import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import * as EmojiUtils from '../../libs/EmojiUtils';
+import ReactionListRefContext from '../../pages/home/report/ReactionList/ReactionListRefContext';
 
 const propTypes = {
     /**
@@ -47,6 +47,7 @@ const defaultProps = {
 };
 
 function ReportActionItemReactions(props) {
+    const reactionListRef = useContext(ReactionListRefContext);
     const popoverReactionListAnchor = useRef(null);
     const reactionsWithCount = _.filter(props.reactions, (reaction) => reaction.users.length > 0);
 
@@ -67,7 +68,7 @@ function ReportActionItemReactions(props) {
                 };
 
                 const onReactionListOpen = (event) => {
-                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
+                    reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
                 };
 
                 return (
