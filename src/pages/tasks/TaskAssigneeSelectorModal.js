@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,13 +10,11 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Timing from '../../libs/actions/Timing';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
-import Performance from '../../libs/Performance';
 import ROUTES from '../../ROUTES';
 
 import * as TaskUtils from '../../libs/actions/Task';
@@ -86,7 +84,7 @@ function TaskAssigneeSelectorModal(props) {
         setFilteredCurrentUserOption(results.currentUserOption);
     }, [props]);
 
-    const updateOptions = useCallback(() => {
+    useEffect(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getNewChatOptions(
             props.reports,
             props.personalDetails,
@@ -105,21 +103,8 @@ function TaskAssigneeSelectorModal(props) {
         setFilteredCurrentUserOption(currentUserOption);
     }, [props, searchValue]);
 
-    useEffect(() => {
-        Timing.start(CONST.TIMING.SEARCH_RENDER);
-        Performance.markStart(CONST.TIMING.SEARCH_RENDER);
-
-        updateOptions();
-
-        return () => {
-            Timing.end(CONST.TIMING.SEARCH_RENDER);
-            Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
-        };
-    }, [updateOptions]);
-
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
-        updateOptions();
     };
 
     const sections = useMemo(() => {
@@ -205,10 +190,6 @@ function TaskAssigneeSelectorModal(props) {
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            onLayout={() => {
-                                Timing.end(CONST.TIMING.SEARCH_RENDER);
-                                Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
-                            }}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>
