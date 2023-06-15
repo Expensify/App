@@ -451,7 +451,7 @@ function getMostRecentReportActionLastModified() {
     // any reports that have been updated before either a recently updated report or reportAction as we should be up to date on these
     _.each(allReports, (report) => {
         const reportLastVisibleActionLastModified = report.lastVisibleActionLastModified || report.lastVisibleActionCreated;
-        if (reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
+        if (!reportLastVisibleActionLastModified || reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
             return;
         }
 
