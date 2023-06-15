@@ -11,7 +11,7 @@ const propTypes = {
             displayName: PropTypes.string,
 
             /** The Account ID for the tooltip */
-            accountID: PropTypes.string,
+            accountID: PropTypes.number,
 
             /** The login for the tooltip fallback */
             login: PropTypes.string,
