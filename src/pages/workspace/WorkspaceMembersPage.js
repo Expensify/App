@@ -217,7 +217,7 @@ class WorkspaceMembersPage extends React.Component {
         const emailList = _.keys(memberList);
         this.setState(
             (prevState) => ({
-                selectedEmployees: !_.every(emailList, (memberEmail) => _.contains(prevState.selectedEmployees, memberEmail)) ? emailList : [],
+                selectedEmployees: !_.every(emailList, (memberAccountID) => _.contains(prevState.selectedEmployees, memberAccountID)) ? emailList : [],
             }),
             () => this.validate(),
         );
@@ -320,7 +320,7 @@ class WorkspaceMembersPage extends React.Component {
      */
     renderItem({item}) {
         const hasError = !_.isEmpty(item.errors) || this.state.errors[item.login];
-        const isChecked = _.contains(this.state.selectedEmployees, item.accountID);
+        const isChecked = _.contains(this.state.selectedEmployees, item.accountID.toString());
         return (
             <OfflineWithFeedback
                 onClose={() => this.dismissError(item)}
