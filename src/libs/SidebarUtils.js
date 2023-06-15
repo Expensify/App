@@ -262,6 +262,7 @@ function getOptionData(reportID) {
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
+    const lastReportAction = lastReportActions[report.reportID];
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
@@ -269,10 +270,9 @@ function getOptionData(reportID) {
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
-    } else if (ReportActionsUtils.isReportPreviewAction(lastReportActions[report.reportID])) {
-        const iouReportID = ReportActionsUtils.getIOUReportID(lastReportActions[report.reportID]);
-        const iouReport = ReportUtils.getReport(iouReportID);
-        lastMessageTextFromReport = ReportUtils.getMoneyRequestReportActionMessage(iouReport, lastReportActions[report.reportID]);
+    } else if (ReportActionsUtils.isReportPreviewAction(lastReportAction)) {
+        const iouReport = ReportUtils.getReport(ReportActionsUtils.getIOUReportID(lastReportAction));
+        lastMessageTextFromReport = ReportUtils.getMoneyRequestReportActionMessage(iouReport, lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
