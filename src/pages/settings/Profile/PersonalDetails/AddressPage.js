@@ -57,7 +57,7 @@ const defaultProps = {
  * @param {Object} values - form input values
  */
 function updateAddress(values) {
-    PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim(), values.country);
+    PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
 }
 
 function AddressPage(props) {
@@ -104,14 +104,14 @@ function AddressPage(props) {
             const countryZipFormat = lodashGet(countryRegexDetails, 'samples');
 
             if (countrySpecificZipRegex) {
-                if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
+                if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
                     if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
                         errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
                     } else {
                         errors.zipPostCode = translate('common.error.fieldRequired');
                     }
                 }
-            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
+            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim().toUpperCase())) {
                 errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
             }
 
