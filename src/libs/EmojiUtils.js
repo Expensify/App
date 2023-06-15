@@ -6,7 +6,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
 import emojis, {emojiNames, categoryFrequentlyUsed} from '../../assets/emojis';
-import FrequentlyUsed from '../../assets/images/history.svg';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
@@ -355,11 +354,15 @@ const getUniqueEmojiCodes = (emoji, users) => {
 };
 
 /**
- * Given an English emoji name, get a 
+ * Given an English emoji name, get its localized version
+ * 
+ * @param {String} enName
+ * @param {String} lang
+ * @returns {String}
  */
 const getEmojiName = (enName, lang) => {
     return _.get(emojiNames, [enName, lang], '');
-}
+};
 
 export {
     getHeaderEmojis,
