@@ -358,7 +358,7 @@ class ReportActionsView extends React.Component {
                 </ReactionListRefContext.Provider>
                 <PopoverReactionList
                     ref={this.reactionListRef}
-                    reportID={this.props.report.reportID}
+                    report={this.props.report}
                 />
                 <CopySelectionHelper />
             </>

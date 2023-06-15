@@ -131,6 +131,7 @@ function ReportActionItem(props) {
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
+
     useEffect(() => {
         if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(props.action.message[0].moderationDecisions)) {
             return;
@@ -146,7 +147,10 @@ function ReportActionItem(props) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision.decision);
-    }, [props.action.message, props.action.actionName]);
+
+        // props.action.message doesn't need to be a dependency, we only need to check the change of props.action.message[0].moderationDecisions
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.action.message[0].moderationDecisions, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -279,7 +283,7 @@ function ReportActionItem(props) {
                                         : undefined,
                                 ]}
                             />
-                            {props.displayAsGroup && hasBeenFlagged && (
+                            {hasBeenFlagged && (
                                 <Button
                                     small
                                     style={[styles.mt2, styles.alignSelfStart]}
@@ -308,20 +312,6 @@ function ReportActionItem(props) {
                                 (ReportUtils.chatIncludesConcierge(props.report) && User.isBlockedFromConcierge(props.blockedFromConcierge)) || ReportUtils.isArchivedRoom(props.report)
                             }
                         />
-                    )}
-                    {!props.displayAsGroup && hasBeenFlagged && (
-                        <Button
-                            small
-                            style={[styles.mt2, styles.alignSelfStart]}
-                            onPress={() => setIsHidden(!isHidden)}
-                        >
-                            <Text
-                                style={styles.buttonSmallText}
-                                selectable={false}
-                            >
-                                {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
-                            </Text>
-                        </Button>
                     )}
                 </ShowContextMenuContext.Provider>
             );
