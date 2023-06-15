@@ -428,7 +428,7 @@ function getReportPreviewAction(chatReportID, iouReportID) {
 /**
  * Get the iouReportID for a given report action.
  *
- * @param {*} reportAction
+ * @param {Object} reportAction
  * @returns {String}
  */
 function getIOUReportID(reportAction) {
