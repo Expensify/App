@@ -57,24 +57,8 @@ const defaultProps = {
 };
 
 function IOUCurrencySelection(props) {
-    const [searchValue, setCurrentSearchValue] = useState('');
+    const [searchValue, setSearchValue] = useState('');
     const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.selectedCurrencyCode, CONST.CURRENCY.USD);
-    const currencyOptions = useMemo(
-        () =>
-            _.map(props.currencyList, (currencyInfo, currencyCode) => {
-                const isSelectedCurrency = currencyCode === selectedCurrencyCode;
-                return {
-                    text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
-                    currencyCode,
-                    keyForList: currencyCode,
-                    customIcon: isSelectedCurrency ? greenCheckmark : undefined,
-                    boldStyle: isSelectedCurrency,
-                };
-            }),
-        [selectedCurrencyCode, props.currencyList],
-    );
-
-    const [currencyData, setCurrencyData] = useState(currencyOptions);
 
     const confirmCurrencySelection = useCallback(
         (option) => {
@@ -92,33 +76,40 @@ function IOUCurrencySelection(props) {
     );
 
     const {translate} = props;
+    const {sections, headerMessage, initiallyFocusedOptionKey} = useMemo(() => {
+        const currencyOptions = _.map(props.currencyList, (currencyInfo, currencyCode) => {
+            const isSelectedCurrency = currencyCode === selectedCurrencyCode;
+            return {
+                text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
+                currencyCode,
+                keyForList: currencyCode,
+                customIcon: isSelectedCurrency ? greenCheckmark : undefined,
+                boldStyle: isSelectedCurrency,
+            };
+        });
 
-    const getSections = useMemo(() => {
-        if (searchValue.trim() && !currencyData.length) {
-            return [];
-        }
-        return [
-            {
-                title: translate('iOUCurrencySelection.allCurrencies'),
-                data: currencyData,
-                shouldShow: true,
-                indexOffset: 0,
-            },
-        ];
-    }, [searchValue, currencyData, translate]);
+        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue), 'i');
+        const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
+        const isEmpty = searchValue.trim() && !filteredCurrencies.length;
 
-    const changeSearchValue = useCallback(
-        (searchQuery) => {
-            const searchRegex = new RegExp(Str.escapeForRegExp(searchQuery), 'i');
-            const filteredCurrencies = _.filter(currencyOptions, (currencyOption) => searchRegex.test(currencyOption.text));
-
-            setCurrentSearchValue(searchQuery);
-            setCurrencyData(filteredCurrencies);
-        },
-        [currencyOptions],
-    );
-
-    const headerMessage = searchValue.trim() && !currencyData.length ? translate('common.noResultsFound') : '';
+        return {
+            initiallyFocusedOptionKey: _.get(
+                _.find(filteredCurrencies, (currency) => currency.currencyCode === selectedCurrencyCode),
+                'keyForList',
+            ),
+            sections: isEmpty
+                ? []
+                : [
+                      {
+                          title: translate('iOUCurrencySelection.allCurrencies'),
+                          data: filteredCurrencies,
+                          shouldShow: true,
+                          indexOffset: 0,
+                      },
+                  ],
+            headerMessage: isEmpty ? translate('common.noResultsFound') : '',
+        };
+    }, [props.currencyList, searchValue, selectedCurrencyCode, translate]);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -129,17 +120,14 @@ function IOUCurrencySelection(props) {
                         onBackButtonPress={() => Navigation.goBack(ROUTES.getIouRequestRoute(Navigation.getTopmostReportId()))}
                     />
                     <OptionsSelector
-                        sections={getSections}
+                        sections={sections}
                         onSelectRow={confirmCurrencySelection}
                         value={searchValue}
-                        onChangeText={changeSearchValue}
+                        onChangeText={setSearchValue}
                         textInputLabel={translate('common.search')}
                         headerMessage={headerMessage}
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        initiallyFocusedOptionKey={_.get(
-                            _.find(currencyData, (currency) => currency.currencyCode === selectedCurrencyCode),
-                            'keyForList',
-                        )}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         shouldHaveOptionSeparator
                     />
                 </>
