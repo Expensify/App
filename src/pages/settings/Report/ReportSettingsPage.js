@@ -88,7 +88,9 @@ class ReportSettingsPage extends Component {
      * @returns {Boolean}
      */
     shouldDisableWelcomeMessage(linkedWorkspace) {
-        return ReportUtils.isArchivedRoom(this.props.report) || !ReportUtils.isChatRoom(this.props.report) || (!_.isEmpty(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN);
+        return (
+            ReportUtils.isArchivedRoom(this.props.report) || !ReportUtils.isChatRoom(this.props.report) || (!_.isEmpty(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN)
+        );
     }
 
     render() {
