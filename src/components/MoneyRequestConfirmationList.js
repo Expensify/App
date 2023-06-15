@@ -20,6 +20,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -236,7 +237,7 @@ function MoneyRequestConfirmationList(props) {
         if (!option.login) {
             return;
         }
-        Navigation.navigate(ROUTES.getDetailsRoute(option.login));
+        Navigation.navigate(ROUTES.getProfileRoute(ReportUtils.getAccountIDForLogin(option.login)));
     };
 
     /**
