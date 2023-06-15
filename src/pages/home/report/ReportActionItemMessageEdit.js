@@ -9,7 +9,7 @@ import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import { containerComposeStyles } from '../../../styles/containerComposeStyles';
+import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
@@ -34,7 +34,6 @@ import Hoverable from '../../../components/Hoverable';
 import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
-
 
 const propTypes = {
     /** All the data of the action */

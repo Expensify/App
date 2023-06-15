@@ -51,7 +51,7 @@ import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
-import { containerComposeStyles } from '../../../styles/containerComposeStyles';
+import containerComposeStyles from '../../../styles/containerComposeStyles';
 import * as Browser from '../../../libs/Browser';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
