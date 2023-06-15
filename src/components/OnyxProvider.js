@@ -19,13 +19,23 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const OnyxProvider = (props) => (
-    <ComposeProviders
-        components={[NetworkProvider, PersonalDetailsProvider, ReportActionsDraftsProvider, CurrentDateProvider, BlockedFromConciergeProvider, BetasProvider, ReportCommentDraftsProvider]}
-    >
-        {props.children}
-    </ComposeProviders>
-);
+function OnyxProvider(props) {
+    return (
+        <ComposeProviders
+            components={[
+                NetworkProvider,
+                PersonalDetailsProvider,
+                ReportActionsDraftsProvider,
+                CurrentDateProvider,
+                BlockedFromConciergeProvider,
+                BetasProvider,
+                ReportCommentDraftsProvider,
+            ]}
+        >
+            {props.children}
+        </ComposeProviders>
+    );
+}
 
 OnyxProvider.displayName = 'OnyxProvider';
 OnyxProvider.propTypes = propTypes;
