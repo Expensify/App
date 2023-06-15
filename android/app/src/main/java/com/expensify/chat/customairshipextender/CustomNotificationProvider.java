@@ -179,7 +179,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         try {
-            JsonMap reportMap = payload.get("onyxData").getList().get(1).getMap().get("value").getMap();
+            JsonMap reportMap = payload.get(ONYX_DATA_KEY).getList().get(1).getMap().get("value").getMap();
             String reportId = reportMap.keySet().iterator().next();
             JsonMap messageData = reportMap.get(reportId).getMap();
 
@@ -189,7 +189,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String message = messageData.get("message").getList().get(0).getMap().get("text").getString();
 
             String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
-//            String conversationTitle = roomName.isEmpty() ? "Chat with " + name : roomName;
 
             // Retrieve or create the Person object who sent the latest report comment
             Person person = notificationCache.people.get(accountID);
