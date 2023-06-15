@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import {InteractionManager} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
@@ -12,7 +13,7 @@ function SidebarScreen(props) {
     const popoverModal = useRef(null);
 
     useFocusEffect(() => {
-        StatusBar.setBackgroundColor(themeColors.sidebar);
+        InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(themeColors.sidebar));
     });
 
     /**

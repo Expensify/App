@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, InteractionManager} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {PortalHost} from '@gorhom/portal';
@@ -141,7 +141,7 @@ class ReportScreen extends React.Component {
 
     componentDidMount() {
         if (this.isMobileBrowser) {
-            StatusBar.setBackgroundColor(themeColors.appBG);
+            InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(themeColors.appBG));
         }
 
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {

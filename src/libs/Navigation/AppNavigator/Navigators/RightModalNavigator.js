@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import {InteractionManager} from 'react-native';
 import {createStackNavigator} from '@react-navigation/stack';
 
 import * as ModalStackNavigators from '../ModalStackNavigators';
@@ -12,7 +13,7 @@ const Stack = createStackNavigator();
 function RigthModalNavigator() {
     useEffect(() => {
         if (!Browser.isMobile()) return;
-        StatusBar.setBackgroundColor(themeColors.appBG);
+        InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(themeColors.appBG));
     }, []);
 
     return (
