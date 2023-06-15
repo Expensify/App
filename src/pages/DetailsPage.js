@@ -16,7 +16,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
-import Tooltip from '../components/Tooltip';
+import UserDetailsTooltip from '../components/UserDetailsTooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
@@ -90,19 +90,31 @@ const getPhoneNumber = (details) => {
 class DetailsPage extends React.PureComponent {
     render() {
         const login = lodashGet(this.props.route.params, 'login', '');
-        let details = lodashGet(this.props.personalDetails, login);
+        let details = _.find(this.props.personalDetails, (detail) => detail.login === login.toLowerCase());
 
         if (!details) {
-            details = {
-                login,
-                displayName: ReportUtils.getDisplayNameForParticipant(login),
-                avatar: UserUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
-            };
+            // TODO: these personal details aren't in my local test account but are in
+            // my staging account, i wonder why!
+            if (login === CONST.EMAIL.CONCIERGE) {
+                details = {
+                    accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    login,
+                    displayName: 'Concierge',
+                    avatar: UserUtils.getDefaultAvatar(CONST.ACCOUNT_ID.CONCIERGE),
+                };
+            } else {
+                details = {
+                    accountID: -1,
+                    login,
+                    displayName: login,
+                    avatar: UserUtils.getDefaultAvatar(),
+                };
+            }
         }
 
         const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
 
-        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
+        const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([details.accountID]) && details.timezone;
         let pronouns = details.pronouns;
 
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -131,7 +143,7 @@ class DetailsPage extends React.PureComponent {
                                 <View style={styles.avatarSectionWrapper}>
                                     <AttachmentModal
                                         headerTitle={details.displayName}
-                                        source={UserUtils.getFullSizeAvatar(details.avatar, details.login)}
+                                        source={UserUtils.getFullSizeAvatar(details.avatar, details.accountID)}
                                         isAuthTokenRequired
                                         originalFileName={details.originalFileName}
                                     >
@@ -144,7 +156,7 @@ class DetailsPage extends React.PureComponent {
                                                     <Avatar
                                                         containerStyles={[styles.avatarLarge, styles.mb3]}
                                                         imageStyles={[styles.avatarLarge]}
-                                                        source={UserUtils.getAvatar(details.avatar, details.login)}
+                                                        source={UserUtils.getAvatar(details.avatar, details.accountID)}
                                                         size={CONST.AVATAR_SIZE.LARGE}
                                                     />
                                                 </OfflineWithFeedback>
@@ -168,9 +180,9 @@ class DetailsPage extends React.PureComponent {
                                                 {this.props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                             </Text>
                                             <CommunicationsLink value={phoneOrEmail}>
-                                                <Tooltip text={phoneOrEmail}>
+                                                <UserDetailsTooltip accountID={details.accountID}>
                                                     <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
-                                                </Tooltip>
+                                                </UserDetailsTooltip>
                                             </CommunicationsLink>
                                         </View>
                                     ) : null}
@@ -191,7 +203,7 @@ class DetailsPage extends React.PureComponent {
                                     <MenuItem
                                         title={`${this.props.translate('common.message')}${details.displayName}`}
                                         icon={Expensicons.ChatBubble}
-                                        onPress={() => Report.navigateToAndOpenReport([details.login])}
+                                        onPress={() => Report.navigateToAndOpenReport([login])}
                                         wrapperStyle={styles.breakAll}
                                         shouldShowRightIcon
                                     />
@@ -212,7 +224,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,

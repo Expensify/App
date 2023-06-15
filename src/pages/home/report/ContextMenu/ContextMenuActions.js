@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import * as Report from '../../../../libs/actions/Report';
@@ -43,7 +42,7 @@ const CONTEXT_MENU_TYPES = {
 export default [
     {
         shouldKeepOpen: true,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message'),
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && !ReportActionUtils.isMessageDeleted(reportAction),
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
             const isMini = !closePopover;
 
@@ -91,12 +90,7 @@ export default [
         shouldShow: (type, reportAction) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
-            return (
-                isAttachment &&
-                message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML &&
-                reportAction.reportActionID &&
-                !lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false)
-            );
+            return isAttachment && message.html !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && reportAction.reportActionID && !ReportActionUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction}) => {
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
@@ -164,7 +158,8 @@ export default [
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED &&
             reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.TASKREOPENED &&
             !ReportActionUtils.isCreatedTaskReportAction(reportAction) &&
-            !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))),
+            !ReportUtils.isReportMessageAttachment(_.last(lodashGet(reportAction, ['message'], [{}]))) &&
+            !ReportActionUtils.isMessageDeleted(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -181,7 +176,7 @@ export default [
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        const plainText = Str.htmlDecode(parser.htmlToText(content));
+                        const plainText = parser.htmlToText(content);
                         Clipboard.setHtml(content, plainText);
                     }
                 }
@@ -206,7 +201,7 @@ export default [
 
             // Only hide the copylink menu item when context menu is opened over img element.
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
-            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
+            return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
@@ -271,7 +266,11 @@ export default [
         icon: Expensicons.Trashcan,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canDeleteReportAction(reportAction, reportID) && !isArchivedRoom && !isChronosReport,
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            ReportUtils.canDeleteReportAction(reportAction, reportID) &&
+            !isArchivedRoom &&
+            !isChronosReport &&
+            !ReportActionUtils.isMessageDeleted(reportAction),
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
