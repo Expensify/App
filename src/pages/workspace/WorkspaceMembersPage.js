@@ -103,7 +103,7 @@ class WorkspaceMembersPage extends React.Component {
             this.setState((prevState) => ({
                 selectedEmployees: _.intersection(
                     prevState.selectedEmployees,
-                    _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails)),
+                    _.map(_.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails)), (accountID) => accountID.toString()),
                 ),
             }));
         }
@@ -217,7 +217,7 @@ class WorkspaceMembersPage extends React.Component {
         const emailList = _.keys(memberList);
         this.setState(
             (prevState) => ({
-                selectedEmployees: !_.every(emailList, (memberAccountID) => _.contains(prevState.selectedEmployees, memberAccountID)) ? emailList : [],
+                selectedEmployees: !_.every(emailList, (memberAccountID) => _.contains(prevState.selectedEmployees, memberAccountID.toString())) ? emailList : [],
             }),
             () => this.validate(),
         );
@@ -236,10 +236,10 @@ class WorkspaceMembersPage extends React.Component {
         }
 
         // Add or remove the user if the checkbox is enabled
-        if (_.contains(this.state.selectedEmployees, accountID)) {
-            this.removeUser(accountID);
+        if (_.contains(this.state.selectedEmployees, accountID.toString())) {
+            this.removeUser(accountID.toString());
         } else {
-            this.addUser(accountID);
+            this.addUser(accountID.toString());
         }
     }
 
