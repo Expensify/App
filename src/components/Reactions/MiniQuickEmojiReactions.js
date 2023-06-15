@@ -63,9 +63,9 @@ function MiniQuickEmojiReactions(props) {
         <View style={styles.flexRow}>
             {_.map(CONST.QUICK_REACTIONS, (emoji) => (
                 <BaseMiniContextMenuItem
-                    key={emoji.name}
+                    key={emoji.code}
                     isDelayButtonStateComplete={false}
-                    tooltipText={`:${emoji.name}:`}
+                    tooltipText={`:${emoji.shortcode[props.preferredLocale]}:`}
                     onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
                 >
                     <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
