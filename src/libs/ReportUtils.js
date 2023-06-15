@@ -980,10 +980,10 @@ function getMoneyRequestReportActionMessage(report, reportAction) {
     } else {
         const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
-        // The totalAmount is 0 after sign in/sign up because OpenApp API won't return iouReports if it's paid, so we need to retrieve it from the reportActionMessage
-        // reportActionMessage is in the format of either "payer@mail.com paid $1.00" or "paid $1.00"
+        // The totalAmount is 0 after Sign in because OpenApp API won't return iouReports if it's paid, so we need to retrieve it from the reportActionMessage
+        // reportActionMessage is in the format of either "payer@mail.com owes $1.00" or "paid $1.00"
         formattedAmount = _.last(reportActionMessage.split(' '));
-        isHavingOustandingIOU = Boolean(reportActionMessage.match(/ paid /));
+        isHavingOustandingIOU = Boolean(reportActionMessage.match(/ owes /));
     }
 
     if (isHavingOustandingIOU) {
