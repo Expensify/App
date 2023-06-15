@@ -65,11 +65,12 @@ function getReportID(route) {
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const participants = OptionsListUtils.getParticipantsOptions(
-        _.map(reportAction.originalMessage.participants, (participant) => ({login: participant, selected: true})),
+        _.map(reportAction.originalMessage.participantAccountIDs, (accountID) => ({accountID, selected: true})),
         props.personalDetails,
     );
-    const payeePersonalDetails = _.filter(participants, (participant) => participant.login === reportAction.actorEmail)[0];
-    const participantsExcludingPayee = _.filter(participants, (participant) => participant.login !== reportAction.actorEmail);
+    const payeePersonalDetails = _.filter(participants, (participant) => participant.accountID === reportAction.actorAccountID)[0];
+    const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
+    
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
     const splitComment = lodashGet(reportAction, 'originalMessage.comment');
     const splitCurrency = lodashGet(reportAction, 'originalMessage.currency');
@@ -110,7 +111,7 @@ export default compose(
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,

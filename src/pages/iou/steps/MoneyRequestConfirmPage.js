@@ -103,19 +103,42 @@ function MoneyRequestConfirmPage(props) {
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
-                IOU.splitBill(selectedParticipants, props.currentUserPersonalDetails.login, props.iou.amount, trimmedComment, props.iou.currency, reportID.current);
+                IOU.splitBill(
+                    selectedParticipants,
+                    props.currentUserPersonalDetails.login,
+                    props.currentUserPersonalDetails.accountID,
+                    props.iou.amount,
+                    trimmedComment,
+                    props.iou.currency,
+                    reportID.current,
+                );
                 return;
             }
 
             // If the request is created from the global create menu, we also navigate the user to the group report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT) {
-                IOU.splitBillAndOpenReport(selectedParticipants, props.currentUserPersonalDetails.login, props.iou.amount, trimmedComment, props.iou.currency);
+                IOU.splitBillAndOpenReport(
+                    selectedParticipants,
+                    props.currentUserPersonalDetails.login,
+                    props.currentUserPersonalDetails.accountID,
+                    props.iou.amount,
+                    trimmedComment,
+                    props.iou.currency,
+                );
                 return;
             }
 
-            IOU.requestMoney(props.report, props.iou.amount, props.iou.currency, props.currentUserPersonalDetails.login, selectedParticipants[0], trimmedComment);
+            IOU.requestMoney(
+                props.report,
+                props.iou.amount,
+                props.iou.currency,
+                props.currentUserPersonalDetails.login,
+                props.currentUserPersonalDetails.accountID,
+                selectedParticipants[0],
+                trimmedComment,
+            );
         },
-        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.iou.currency, props.report],
+        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report],
     );
 
     /**
@@ -130,20 +153,20 @@ function MoneyRequestConfirmPage(props) {
             const participant = props.iou.participants[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                IOU.sendMoneyElsewhere(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyElsewhere(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
-                IOU.sendMoneyViaPaypal(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyViaPaypal(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                IOU.sendMoneyWithWallet(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.login, participant);
+                IOU.sendMoneyWithWallet(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
             }
         },
-        [props.iou.amount, props.iou.comment, props.iou.participants, props.iou.currency, props.currentUserPersonalDetails.login, props.report],
+        [props.iou.amount, props.iou.comment, props.iou.participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
     );
 
     const participants = useMemo(
@@ -219,7 +242,7 @@ export default compose(
             key: ONYXKEYS.IOU,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(MoneyRequestConfirmPage);

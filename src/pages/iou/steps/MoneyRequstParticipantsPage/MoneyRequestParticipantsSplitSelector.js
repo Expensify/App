@@ -27,7 +27,7 @@ const propTypes = {
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
-            login: PropTypes.string,
+            accountID: PropTypes.number,
             isPolicyExpenseChat: PropTypes.bool,
             isOwnPolicyExpenseChat: PropTypes.bool,
             selected: PropTypes.bool,
@@ -165,12 +165,12 @@ class MoneyRequestParticipantsSplitSelector extends Component {
      * @param {Object} option
      */
     toggleOption(option) {
-        const isOptionInList = _.some(this.props.participants, (selectedOption) => selectedOption.login === option.login);
+        const isOptionInList = _.some(this.props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.login === option.login);
+            newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
         } else {
             newSelectedOptions = [...this.props.participants, {login: option.login, selected: true}];
         }
@@ -236,7 +236,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
