@@ -57,7 +57,7 @@ function ReportActionItemReactions(props) {
         >
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
-                const reactionUsers = _.map(reaction.users, (sender) => sender.accountID.toString());
+                const reactionUsers = _.map(reaction.users, (sender) => sender.accountID);
                 const emoji = _.find(emojis, (e) => e.name === reaction.emoji);
                 const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
@@ -80,7 +80,7 @@ function ReportActionItemReactions(props) {
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
-                        renderTooltipContentKey={[...reactionUsers, ...emojiCodes]}
+                        renderTooltipContentKey={[..._.map(reactionUsers, (user) => user.toString()), ...emojiCodes]}
                         key={reaction.emoji}
                     >
                         <View>
