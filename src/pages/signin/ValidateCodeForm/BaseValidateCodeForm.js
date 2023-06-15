@@ -95,10 +95,10 @@ function BaseValidateCodeForm(props) {
         }
 
         // Clear the code input if magic code valid or a new magic code was requested
-        if ((prevIsVisible && !props.isVisible) || (props.isVisible && timeRemaining === 30 && props.account.message)) {
+        if ((prevIsVisible && !props.isVisible) || (props.isVisible && timeRemaining === 30)) {
             setValidateCode('');
         }
-    }, [props.isVisible, props.account.message, prevIsVisible, timeRemaining, validateCode]);
+    }, [props.isVisible, prevIsVisible, timeRemaining, validateCode]);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
