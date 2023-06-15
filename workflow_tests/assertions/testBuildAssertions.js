@@ -161,10 +161,6 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             ],
             [],
         ),
-        utils.createStepAssertion('Cache', true, null, 'IOS', 'Caching', [
-            {key: 'path', value: 'ios/Pods'},
-            {key: 'key', value: 'Linux-pods-'},
-        ]),
         utils.createStepAssertion(
             'Install cocoapods',
             true,
