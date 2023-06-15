@@ -78,7 +78,7 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
 
     useEffect(() => {
-        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_ACCOUNT_IDS, false);
+        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, false);
 
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);
@@ -93,7 +93,7 @@ function TaskAssigneeSelectorModal(props) {
             props.betas,
             searchValue.trim(),
             [],
-            CONST.EXPENSIFY_ACCOUNT_IDS,
+            CONST.EXPENSIFY_EMAILS,
             false,
         );
 

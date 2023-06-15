@@ -582,15 +582,6 @@ function chatIncludesConcierge(report) {
 }
 
 /**
- * Returns true if there is any automated expensify account in emails
- * @param {Array} emails
- * @returns {Boolean}
- */
-function hasAutomatedExpensifyEmails(emails) {
-    return _.intersection(emails, CONST.EXPENSIFY_EMAILS).length > 0;
-}
-
-/**
  * Returns true if there is any automated expensify account in accountIDs
  * @param {Array} accountIDs
  * @returns {Boolean}
@@ -2260,7 +2251,6 @@ export {
     isPublicAnnounceRoom,
     isConciergeChatReport,
     isCurrentUserTheOnlyParticipant,
-    hasAutomatedExpensifyEmails,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
     hasOutstandingIOU,

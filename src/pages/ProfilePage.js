@@ -108,7 +108,7 @@ function ProfilePage(props) {
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([accountID]) && !_.isEmpty(timezone);
+    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([accountID]) && !_.isEmpty(timezone);
 
     let pronouns = lodashGet(details, 'pronouns', '');
     if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {

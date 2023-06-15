@@ -83,7 +83,7 @@ function HeaderView(props) {
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
-    const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
+    const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
