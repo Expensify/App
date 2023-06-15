@@ -1290,20 +1290,20 @@ const CONST = {
 
     QUICK_REACTIONS: [
         {
-            shortcode: {en: "+1", es: "+1"},
+            shortcode: {en: '+1', es: '+1'},
             code: '👍',
             types: ['👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿'],
         },
         {
-            shortcode: {en: "heart", es: "corazón"},
+            shortcode: {en: 'heart', es: 'corazón'},
             code: '❤️',
         },
         {
-            shortcode: {en: "joy", es: "alegría"},
+            shortcode: {en: 'joy', es: 'alegría'},
             code: '😂',
         },
         {
-            shortcode: {en: "fire", es: "fuego"},
+            shortcode: {en: 'fire', es: 'fuego'},
             code: '🔥',
         },
     ],

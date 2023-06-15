@@ -55,7 +55,7 @@ class EmojiPickerMenu extends Component {
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.name?.en === 'Flags');
+        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && _.get(emoji, ['name', 'en']) === 'Flags');
         this.emojis =
             getOperatingSystem() === CONST.OS.WINDOWS
                 ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex))
@@ -426,6 +426,7 @@ class EmojiPickerMenu extends Component {
      * Return a unique key for each emoji item
      *
      * @param {Object} item
+     * @param {Number} index
      * @returns {String}
      */
     keyExtractor(item, index) {

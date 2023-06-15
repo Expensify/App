@@ -5,18 +5,18 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
-import emojis, {emojiNames, categoryFrequentlyUsed} from '../../assets/emojis';
+import allEmojis, {emojiNames, categoryFrequentlyUsed} from '../../assets/emojis';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
     callback: (val) => {
-        frequentlyUsedEmojis = _.map(val, item => {
-            const emoji = emojis.find(emoji => emoji.code === item.code && !emoji.header);
-            if (emoji) {
-                return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+        frequentlyUsedEmojis = _.map(val, (item) => {
+            const emojiObject = _.find(allEmojis, (emoji) => emoji.code === item.code && !emoji.header);
+            if (emojiObject) {
+                return {...emojiObject, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
             }
-        })
+        });
     },
 });
 
@@ -100,8 +100,9 @@ function containsOnlyEmojis(message) {
 }
 
 /**
- * Get the header emojis with their code, icon and index
+ * Get the header emojis with their name, icon and index
  * @param {Object[]} emojis
+ * @param {String} lang
  * @returns {Object[]}
  */
 function getHeaderEmojis(emojis, lang) {
@@ -164,8 +165,8 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const allEmojis = [categoryFrequentlyUsed].concat(frequentlyUsedEmojis, emojis);
-    return addSpacesToEmojiCategories(allEmojis);
+    const mergedEmojis = [categoryFrequentlyUsed].concat(frequentlyUsedEmojis, emojis);
+    return addSpacesToEmojiCategories(mergedEmojis);
 }
 
 /**
@@ -222,6 +223,7 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * @param {String} text
  * @param {Boolean} isSmallScreenWidth
  * @param {Number} preferredSkinTone
+ * @param {String} lang
  * @returns {Object}
  */
 function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = 'en') {
@@ -262,6 +264,7 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
 /**
  * Suggest emojis when typing emojis prefix after colon
  * @param {String} text
+ * @param {String} lang
  * @param {Number} [limit] - matching emojis limit
  * @returns {Array}
  */
@@ -355,14 +358,12 @@ const getUniqueEmojiCodes = (emoji, users) => {
 
 /**
  * Given an English emoji name, get its localized version
- * 
+ *
  * @param {String} enName
  * @param {String} lang
  * @returns {String}
  */
-const getEmojiName = (enName, lang) => {
-    return _.get(emojiNames, [enName, lang], '');
-};
+const getEmojiName = (enName, lang) => _.get(emojiNames, [enName, lang], '');
 
 export {
     getHeaderEmojis,
