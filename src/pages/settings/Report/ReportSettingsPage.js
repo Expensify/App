@@ -96,7 +96,7 @@ class ReportSettingsPage extends Component {
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
-        const shouldDisableWelcomeMessage = this.shouldDisableRename(linkedWorkspace);
+        const shouldDisableWelcomeMessage = this.shouldDisableWelcomeMessage(linkedWorkspace);
         const writeCapability = this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
         const writeCapabilityText = this.props.translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
         const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
