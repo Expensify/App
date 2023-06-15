@@ -181,7 +181,6 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
         let personalDetail = personalDetails[accountID];
         if (!personalDetail) {
             personalDetail = {
-                accountID: cleanAccountID,
                 avatar: UserUtils.getDefaultAvatar(cleanAccountID),
             };
         }
@@ -190,6 +189,7 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
             personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
         }
 
+        personalDetail.accountID = cleanAccountID;
         personalDetailsForAccountIDs[cleanAccountID] = personalDetail;
     });
     return personalDetailsForAccountIDs;
