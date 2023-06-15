@@ -29,7 +29,7 @@ export default function (WrappedComponent) {
         report: {},
         parentReportActions: {},
     };
-    function WithParentReportAction(props)  {
+    function WithParentReportAction(props) {
         const parentReportActionID = props.report && props.report.parentReportActionID ? props.report.parentReportActionID : {};
         const parentReportAction = props.parentReportActions[parentReportActionID] || {};
 
@@ -41,7 +41,7 @@ export default function (WrappedComponent) {
                 parentReportAction={parentReportAction}
             />
         );
-    };
+    }
 
     WithParentReportAction.displayName = `WithParentReportAction(${getComponentDisplayName(WrappedComponent)})`;
     WithParentReportAction.propTypes = propTypes;
