@@ -1184,7 +1184,7 @@ function getOuterModalStyle(windowHeight, viewportOffsetTop) {
     return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
-function getExtraSmallWrappingStyle(isExtraSmallScreenWidth) {
+function getWrappingStyle(isExtraSmallScreenWidth) {
     return {
         flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
     };
@@ -1256,5 +1256,5 @@ export {
     getMentionTextColor,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
-    getExtraSmallWrappingStyle,
+    getWrappingStyle,
 };

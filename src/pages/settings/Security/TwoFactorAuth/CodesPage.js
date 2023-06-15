@@ -96,7 +96,7 @@ function CodesPage(props) {
                                                 </Text>
                                             ))}
                                     </View>
-                                    <View style={[styles.twoFactorAuthCodesButtonsContainer, StyleUtils.getExtraSmallWrappingStyle(props.isExtraSmallScreenWidth)]}>
+                                    <View style={[styles.twoFactorAuthCodesButtonsContainer, StyleUtils.getWrappingStyle(props.isExtraSmallScreenWidth)]}>
                                         <PressableWithDelayToggle
                                             text={props.translate('twoFactorAuth.copyCodes')}
                                             icon={Expensicons.Copy}
