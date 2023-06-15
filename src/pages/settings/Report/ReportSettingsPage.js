@@ -24,7 +24,6 @@ import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescr
 import ROUTES from '../../../ROUTES';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
-import {isChatRoom} from "../../../libs/ReportUtils";
 
 const propTypes = {
     /** Route params */
