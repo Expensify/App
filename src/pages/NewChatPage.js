@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -60,7 +60,7 @@ function NewChatPage(props) {
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
 
-    const sections = useMemo(() => {
+    function getSections() {
         const sectionsList = [];
         let indexOffset = 0;
 
@@ -110,8 +110,7 @@ function NewChatPage(props) {
         }
 
         return sectionsList;
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- to avoid destructuring props and adding all 'props' as a dependency
-    }, [props.isGroupChat, props.translate, selectedOptions, filteredRecentReports, filteredPersonalDetails, filteredUserToInvite, maxParticipantsReached]);
+    }
 
     const updateOptionsWithSearchTerm = (newSearchTerm = '') => {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
@@ -132,7 +131,7 @@ function NewChatPage(props) {
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    const toggleOption = (option) => {
+    function toggleOption(option) {
         const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
@@ -149,7 +148,7 @@ function NewChatPage(props) {
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
         setFilteredUserToInvite(userToInvite);
-    };
+    }
 
     /**
      * Creates a new 1:1 chat with the option and the current user,
@@ -157,9 +156,9 @@ function NewChatPage(props) {
      *
      * @param {Object} option
      */
-    const createChat = (option) => {
+    function createChat(option) {
         Report.navigateToAndOpenReport([option.login]);
-    };
+    }
 
     /**
      * Creates a new group chat with all the selected options and the current user,
@@ -184,6 +183,8 @@ function NewChatPage(props) {
         // 2. updateOptionsWithSearchTerm - it will change its reference upon each rerender unnecessarily
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.reports, props.personalDetails]);
+
+    const sections = getSections();
 
     return (
         <ScreenWrapper
