@@ -103,7 +103,7 @@ class WorkspaceMembersPage extends React.Component {
             this.setState((prevState) => ({
                 selectedEmployees: _.intersection(
                     prevState.selectedEmployees,
-                    _.map(_.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails)), (accountID) => accountID.toString()),
+                    _.map(_.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails)), (accountID) => Number(accountID)),
                 ),
             }));
         }
@@ -217,7 +217,7 @@ class WorkspaceMembersPage extends React.Component {
         const emailList = _.keys(memberList);
         this.setState(
             (prevState) => ({
-                selectedEmployees: !_.every(emailList, (memberAccountID) => _.contains(prevState.selectedEmployees, memberAccountID.toString())) ? emailList : [],
+                selectedEmployees: !_.every(emailList, (memberAccountID) => _.contains(prevState.selectedEmployees, Number(memberAccountID))) ? emailList : [],
             }),
             () => this.validate(),
         );
@@ -236,10 +236,10 @@ class WorkspaceMembersPage extends React.Component {
         }
 
         // Add or remove the user if the checkbox is enabled
-        if (_.contains(this.state.selectedEmployees, accountID.toString())) {
-            this.removeUser(accountID.toString());
+        if (_.contains(this.state.selectedEmployees, Number(accountID))) {
+            this.removeUser(Number(accountID));
         } else {
-            this.addUser(accountID.toString());
+            this.addUser(Number(accountID));
         }
     }
 
@@ -320,7 +320,7 @@ class WorkspaceMembersPage extends React.Component {
      */
     renderItem({item}) {
         const hasError = !_.isEmpty(item.errors) || this.state.errors[item.login];
-        const isChecked = _.contains(this.state.selectedEmployees, item.accountID.toString());
+        const isChecked = _.contains(this.state.selectedEmployees, Number(item.accountID));
         return (
             <OfflineWithFeedback
                 onClose={() => this.dismissError(item)}
