@@ -308,12 +308,10 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
     let assigneeChatReportID;
-    if (assigneeAccountID && assigneeAccountID !== report.managerID) {
-        const assigneeChatReport = ReportUtils.getChatByParticipants([assigneeAccountID]);
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID) {
+        assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID]).reportID;
 
-        // assigneeChatReportID may not exist if we're assigning the task to ourselves and if it's not shared in a room
-        if (assigneeChatReport && assigneeChatReport.reportID !== report.parentReportID.toString()) {
-            assigneeChatReportID = assigneeChatReport.reportID;
+        if (assigneeChatReportID !== report.parentReportID.toString()) {
             optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
                 report.reportID,
                 reportName,
