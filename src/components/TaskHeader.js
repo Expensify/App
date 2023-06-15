@@ -59,7 +59,7 @@ function TaskHeader(props) {
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {props.report.managerID > 0 && (
+                                {props.report.managerID && props.report.managerID > 0 && (
                                     <>
                                         <Avatar
                                             source={assigneeAvatar}
