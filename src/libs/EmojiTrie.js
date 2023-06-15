@@ -24,20 +24,20 @@ function createTrie(lang = 'en') {
 
         const node = trie.search(shortcode);
         if (!node) {
-            trie.add(shortcode, {code: item.code, types: item.types, suggestions: []});
+            trie.add(shortcode, {code: item.code, types: item.types, shortcode: item.shortcode, suggestions: []});
         } else {
-            trie.update(shortcode, {code: item.code, types: item.types, suggestions: node.metaData.suggestions});
+            trie.update(shortcode, {code: item.code, types: item.types, shortcode: item.shortcode, suggestions: node.metaData.suggestions});
         }
 
         const keywords = item.keywords[lang];
         for (let j = 0; j < keywords.length; j++) {
             const keywordNode = trie.search(keywords[j]);
             if (!keywordNode) {
-                trie.add(keywords[j], {suggestions: [{code: item.code, types: item.types, name: shortcode}]});
+                trie.add(keywords[j], {suggestions: [{code: item.code, types: item.types, name: shortcode, shortcode: item.shortcode}]});
             } else {
                 trie.update(keywords[j], {
                     ...keywordNode.metaData,
-                    suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name: shortcode}],
+                    suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name: shortcode, shortcode: item.shortcode}],
                 });
             }
         }
