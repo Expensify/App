@@ -19,11 +19,8 @@ const propTypes = {
     /** List of personalDetails (keyed by accountID)  */
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
-    /** List of personalDetails (keyed by login)  */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
-    /** The email of the copilot who took this action on behalf of the user */
-    delegate: PropTypes.string,
+    /** The accountID of the copilot who took this action on behalf of the user */
+    delegateAccountID: PropTypes.number,
 
     /** Localization props */
     ...withLocalizePropTypes,
@@ -33,8 +30,7 @@ const defaultProps = {
     accountID: '',
     fallbackUserDetails: {displayName: '', login: '', avatar: ''},
     personalDetailsList: {},
-    personalDetails: {},
-    delegate: '',
+    delegateAccountID: 0,
 };
 
 export {propTypes, defaultProps};

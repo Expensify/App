@@ -18,15 +18,17 @@ function UserDetailsTooltip(props) {
     let userDisplayName = String(userDetails.displayName).trim() ? userDetails.displayName : '';
     let userLogin = String(userDetails.login).trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
     let userAvatar = userDetails.avatar;
+    let userAccountID = props.accountID;
 
     // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
     // the Copilot feature is implemented.
-    if (props.delegate) {
-        const delegateUserDetails = lodashGet(props.personalDetails, props.delegate, {});
+    if (props.delegateAccountID) {
+        const delegateUserDetails = lodashGet(props.personalDetailsList, props.delegateAccountID, {});
         const delegateUserDisplayName = String(delegateUserDetails.displayName).trim() ? delegateUserDetails.displayName : '';
         userDisplayName = `${delegateUserDisplayName} (${props.translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails.login;
         userAvatar = delegateUserDetails.avatar;
+        userAccountID = props.delegateAccountID;
     }
 
     const renderTooltipContent = useCallback(
@@ -35,7 +37,7 @@ function UserDetailsTooltip(props) {
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={UserUtils.getAvatar(userAvatar, userLogin)}
+                        source={UserUtils.getAvatar(userAvatar, userAccountID)}
                     />
                 </View>
 
@@ -44,7 +46,7 @@ function UserDetailsTooltip(props) {
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{userLogin}</Text>
             </View>
         ),
-        [userAvatar, userDisplayName, userLogin],
+        [userAvatar, userDisplayName, userLogin, userAccountID],
     );
 
     if (!userDisplayName && !userLogin) {
@@ -63,9 +65,6 @@ export default compose(
     withOnyx({
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
 )(UserDetailsTooltip);

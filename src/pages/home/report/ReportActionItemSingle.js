@@ -66,22 +66,21 @@ const showUserDetails = (accountID) => {
 };
 
 function ReportActionItemSingle(props) {
-    let actorEmail = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const actorEmail = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const actorAccountID = props.action.actorAccountID;
-    let {avatar, displayName} = props.personalDetailsList[actorEmail] || {};
-    const {pendingFields} = props.personalDetailsList[actorEmail] || {};
+    let {avatar, displayName} = props.personalDetailsList[actorAccountID] || {};
+    const {pendingFields} = props.personalDetailsList[actorAccountID] || {};
 
     // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
     // the Copilot feature is implemented.
-    if (props.action.delegate) {
-        const delegateDetails = props.personalDetails[props.action.delegate];
+    if (props.action.delegateAccountID) {
+        const delegateDetails = props.personalDetailsList[props.action.delegateAccountID];
         const delegateDisplayName = delegateDetails.displayName;
-        actorEmail = delegateDetails.login;
         displayName = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
         avatar = delegateDetails.avatar;
     }
 
-    const avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
+    const avatarSource = UserUtils.getAvatar(avatar, props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -101,7 +100,7 @@ function ReportActionItemSingle(props) {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(actorAccountID)}
+                onPress={() => showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID)}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
@@ -115,7 +114,7 @@ function ReportActionItemSingle(props) {
                     ) : (
                         <UserDetailsTooltip
                             accountID={actorAccountID}
-                            delegate={props.action.delegate}
+                            delegateAccountID={props.action.delegateAccountID}
                         >
                             <View>
                                 <Avatar
@@ -134,7 +133,7 @@ function ReportActionItemSingle(props) {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(actorAccountID)}
+                            onPress={() => showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID)}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
@@ -143,7 +142,7 @@ function ReportActionItemSingle(props) {
                                     fragment={fragment}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
-                                    delegate={props.action.delegate}
+                                    delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                 />
                             ))}

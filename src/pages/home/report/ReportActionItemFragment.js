@@ -57,8 +57,8 @@ const propTypes = {
     // Additional styles to add after local styles
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    /** The email of the copilot who took this action on behalf of the user */
-    delegate: PropTypes.string,
+    /** The accountID of the copilot who took this action on behalf of the user */
+    delegateAccountID: PropTypes.number,
 
     ...windowDimensionsPropTypes,
 
@@ -78,7 +78,7 @@ const defaultProps = {
     isSingleLine: false,
     source: '',
     style: [],
-    delegate: '',
+    delegateAccountID: 0,
 };
 
 function ReportActionItemFragment(props) {
@@ -151,7 +151,7 @@ function ReportActionItemFragment(props) {
             return (
                 <UserDetailsTooltip
                     accountID={props.accountID}
-                    delegate={props.delegate}
+                    delegateAccountID={props.delegateAccountID}
                 >
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
