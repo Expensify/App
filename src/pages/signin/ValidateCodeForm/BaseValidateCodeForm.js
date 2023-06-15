@@ -98,8 +98,7 @@ function BaseValidateCodeForm(props) {
         if (prevIsVisible && !props.isVisible) {
             setValidateCode('');
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isVisible, prevIsVisible]);
+    }, [props.isVisible, prevIsVisible, validateCode]);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
