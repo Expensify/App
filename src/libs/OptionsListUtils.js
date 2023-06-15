@@ -362,6 +362,34 @@ function getAllReportErrors(report, reportActions) {
 }
 
 /**
+ * Get the last message text from the report directly or from other sources for special cases.
+ * @param {Object} report
+ * @returns {String}
+ */
+function getLastMessageTextForReport(report) {
+    let lastMessageTextFromReport = '';
+    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
+        lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+    } else {
+        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+
+        // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
+        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => {
+            const isWhisper = (action.whisperedTo || []).length > 0;
+            return !isWhisper;
+        }) || {};
+        if (lodashGet(lastNonWhisper, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+            const latestVisibleAction = _.find(allSortedReportActions[report.reportID], (action) => {
+                const isWhisper = (action.whisperedTo || []).length > 0;
+                return ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !isWhisper;
+            }) || {};
+            lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
+        }
+    }
+    return lastMessageTextFromReport
+}
+
+/**
  * Creates a report list option
  *
  * @param {Array<String>} logins
@@ -438,26 +466,7 @@ function createOption(logins, personalDetails, report, reportActions = {}, {show
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        let lastMessageTextFromReport = '';
-        if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
-            lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
-        } else {
-            lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-
-            // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
-            const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => {
-                const isWhisper = (action.whisperedTo || []).length > 0;
-                return !isWhisper;
-            }) || {};
-            if (lodashGet(lastNonWhisper, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
-                const latestVisibleAction = _.find(allSortedReportActions[report.reportID], (action) => {
-                    const isWhisper = (action.whisperedTo || []).length > 0;
-                    return ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !isWhisper;
-                }) || {};
-                lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
-            }
-        }
-
+        const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorEmail] || null;
         let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.login !== currentUserLogin ? `${lastActorDetails.displayName}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
@@ -993,4 +1002,5 @@ export {
     getParticipantsOptions,
     isSearchStringMatch,
     shouldOptionShowTooltip,
+    getLastMessageTextForReport,
 };
