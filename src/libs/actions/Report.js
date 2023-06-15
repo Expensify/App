@@ -1451,8 +1451,8 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
 
 /**
  * Returns true if the accountID has reacted to the report action (with the given skin tone).
- * @param {String} accountID
- * @param {Array<Object | String | number>} users
+ * @param {Number} accountID
+ * @param {Array<Object | Number>} users
  * @param {Number} [skinTone]
  * @returns {boolean}
  */
@@ -1461,12 +1461,12 @@ function hasAccountIDReacted(accountID, users, skinTone) {
         _.find(users, (user) => {
             let userAccountID;
             if (typeof user === 'object') {
-                userAccountID = `${user.accountID}`;
+                userAccountID = user.accountID;
             } else {
-                userAccountID = `${user}`;
+                userAccountID = user;
             }
 
-            return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
+            return userAccountID === accountID && (skinTone == null ? true : user.skinTone === skinTone);
         }) !== undefined
     );
 }
