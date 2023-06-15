@@ -788,11 +788,9 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    ...myPersonalDetails,
                     login: newDefaultContactMethod,
                     displayName: PersonalDetails.getDisplayName(newDefaultContactMethod, myPersonalDetails),
                 },
-                [oldDefaultContactMethod]: null,
             },
         },
     ];
