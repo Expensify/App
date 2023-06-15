@@ -638,8 +638,8 @@ function getTaskAssigneeEmail(taskReport) {
         return null;
     }
 
-    if (taskReport.managerEmail) {
-        return taskReport.managerEmail;
+    if (taskReport.managerID) {
+        return taskReport.managerID;
     }
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
