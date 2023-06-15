@@ -115,7 +115,7 @@ function BaseValidateCodeForm(props) {
     }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
 
     useEffect(() => {
-        // To avoid reset of linkSent from other hook we only clear the inputValidateCode when linkSent is false
+        // Avoid resetting the input when the linkSent is true to keep showing the sent status even when the input is empty.
         if (!inputValidateCodeRef.current || validateCode.length > 0 || linkSent) {
             return;
         }
@@ -153,7 +153,8 @@ function BaseValidateCodeForm(props) {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
-        // Clearnig manually here instead relying on the hook bcoz of not allowing to reset the linkSent value
+        // We need to clear the input manually as we are preventing the hook which clears it from firing when linkSent is true.
+        // Clearing the input via state will trigger the changeText on Input which resets the linkSent value but we need linkSent to show the `sent status`
         inputValidateCodeRef.current.clear();
         User.resendValidateCode(props.credentials.login, true);
 
