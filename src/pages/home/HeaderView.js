@@ -79,6 +79,7 @@ function HeaderView(props) {
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
+    const isChildReport = ReportUtils.isChildReport(props.report);
     const reportHeaderData = !isTaskReport && !isThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
@@ -91,7 +92,7 @@ function HeaderView(props) {
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
     if (isTaskReport) {
-        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
+        if (ReportUtils.isOpenTaskReport(props.report)) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
@@ -100,7 +101,7 @@ function HeaderView(props) {
         }
 
         // Task is marked as completed
-        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+        if (ReportUtils.isCompletedTaskReport(props.report)) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
@@ -149,7 +150,7 @@ function HeaderView(props) {
                 {Boolean(props.report && title) && (
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <PressableWithoutFeedback
-                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
+                            onPress={() => !isChildReport && ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={isTaskReport}
                             accessibilityLabel={title}
@@ -175,11 +176,11 @@ function HeaderView(props) {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChildReport}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
+                                {(isChatRoom || isPolicyExpenseChat || isChildReport) && !_.isEmpty(subtitle) && (
                                     <>
-                                        {isThread ? (
+                                        {isChildReport ? (
                                             <PressableWithoutFeedback
                                                 onPress={() => {
                                                     Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));

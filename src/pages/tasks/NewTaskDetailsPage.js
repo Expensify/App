@@ -93,7 +93,7 @@ function NewTaskPage(props) {
                     <TextInput
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
-                        label={props.translate('newTaskPage.title')}
+                        label={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
                     />

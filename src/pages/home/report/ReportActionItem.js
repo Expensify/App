@@ -53,6 +53,7 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
+import TaskView from '../../../components/ReportActionItem/TaskView';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
@@ -400,6 +401,9 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (ReportUtils.isTaskReport(props.report)) {
+            return <TaskView report={props.report} />;
+        }
         return <ReportActionItemCreated reportID={props.report.reportID} />;
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {

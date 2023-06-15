@@ -614,10 +614,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     API.write('CancelTask', {taskReportID, optimisticReportActionID}, {optimisticData, failureData});
 }
 
-function isTaskCanceled(taskReport) {
-    return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
-}
-
 /**
  * Closes the current open task modal and clears out the task info from the store.
  */
@@ -643,6 +639,5 @@ export {
     getAssignee,
     getShareDestination,
     cancelTask,
-    isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
 };

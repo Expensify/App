@@ -192,7 +192,7 @@ function TaskAssigneeSelectorModal(props) {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={props.translate('newTaskPage.assignee')}
+                        title={props.translate('task.assignee')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>

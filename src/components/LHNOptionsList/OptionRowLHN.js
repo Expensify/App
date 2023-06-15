@@ -83,7 +83,7 @@ function OptionRowLHN(props) {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
+    const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isOpenTask || optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
 
     /**
      * Show the ReportActionContextMenu modal popover.

@@ -50,7 +50,7 @@ function TaskAction(props) {
             messageLinkText = props.translate('task.messages.reopened');
             break;
         default:
-            messageLinkText = props.translate('newTaskPage.task');
+            messageLinkText = props.translate('task.task');
     }
 
     return (

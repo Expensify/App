@@ -1262,15 +1262,11 @@ export default {
         },
     },
     newTaskPage: {
-        task: 'Tarea',
         assignTask: 'Asignar tarea',
-        assignee: 'Cesionario',
         assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario.',
         assignMe: 'Asignar a mí mismo',
         confirmTask: 'Confirmar tarea',
         confirmError: 'Por favor introduce un título y selecciona un destino de tarea.',
-        title: 'Título',
-        description: 'Descripción',
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor introduce un título',
@@ -1279,6 +1275,11 @@ export default {
         pleaseEnterTaskDestination: 'Por favor selecciona con quien deseas compartir.',
     },
     task: {
+        task: 'Tarea',
+        createdBy: '', // TODO:
+        title: 'Título',
+        description: 'Descripción',
+        assignee: 'Cesionario',
         completed: 'Completada',
         messages: {
             completed: 'tarea completada',

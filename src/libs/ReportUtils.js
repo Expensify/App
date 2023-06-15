@@ -144,6 +144,37 @@ function isTaskReport(report) {
 }
 
 /**
+ * Checks if a report is an open task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isOpenTaskReport(report) {
+    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS.OPEN;
+}
+
+/**
+ * Checks if a report is a canceled task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isCanceledTaskReport(report) {
+    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.CLOSED;
+}
+
+/**
+ * Checks if a report is a completed task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isCompletedTaskReport(report) {
+    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
+}
+
+
+/**
  * Checks if a report is an IOU or expense report.
  *
  * @param {Object} report
@@ -539,6 +570,16 @@ function isThreadParent(reportAction) {
  */
 function isThreadFirstChat(reportAction, reportID) {
     return !_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === reportID;
+}
+
+/**
+ * Checks if a report is a child report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isChildReport(report) {
+    return isThread(report) || isTaskReport(report);
 }
 
 /**
@@ -1033,7 +1074,7 @@ function getReportName(report) {
  * @returns {String|*}
  */
 function getDMRootReportName(report) {
-    if (isThread(report) && !getChatType(report)) {
+    if ((isThread(report) || isTaskReport(report)) && !getChatType(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         return getDMRootReportName(parentReport);
     }
@@ -1047,7 +1088,7 @@ function getDMRootReportName(report) {
  * @returns {String}
  */
 function getChatRoomSubtitle(report) {
-    if (isThread(report)) {
+    if (isChildReport(report)) {
         if (!getChatType(report)) {
             return `${Localize.translateLocal('threads.from')} ${getDMRootReportName(report)}`;
         }
@@ -2296,6 +2337,9 @@ export {
     isExpenseReport,
     isIOUReport,
     isTaskReport,
+    isOpenTaskReport,
+    isCanceledTaskReport,
+    isCompletedTaskReport,
     isMoneyRequestReport,
     chatIncludesChronos,
     getNewMarkerReportActionID,
@@ -2310,6 +2354,7 @@ export {
     isThread,
     isThreadParent,
     isThreadFirstChat,
+    isChildReport,
     shouldReportShowSubscript,
     isReportDataReady,
     isSettled,

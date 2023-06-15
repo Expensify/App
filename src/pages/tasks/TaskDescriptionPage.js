@@ -64,7 +64,7 @@ function TaskDescriptionPage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
-            <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
+            <HeaderWithBackButton title={props.translate('task.task')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}

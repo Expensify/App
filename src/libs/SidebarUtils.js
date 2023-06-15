@@ -285,6 +285,7 @@ function getOptionData(reportID) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
+    result.isOpenTask = Task.isOpenTask(report);
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 

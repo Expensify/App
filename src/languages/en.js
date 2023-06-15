@@ -1256,15 +1256,12 @@ export default {
         },
     },
     newTaskPage: {
-        task: 'Task',
         assignTask: 'Assign task',
-        assignee: 'Assignee',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
         assignMe: 'Assign to me',
         confirmTask: 'Confirm task',
         confirmError: 'Please enter a title and select a share destination.',
-        title: 'Title',
-        description: 'Description',
+        
         descriptionOptional: 'Description (optional)',
         shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
@@ -1273,6 +1270,11 @@ export default {
         pleaseEnterTaskDestination: 'Please select with whom you want to share.',
     },
     task: {
+        task: 'Task',
+        title: 'Title',
+        description: 'Description',
+        createdBy: 'Created By',
+        assignee: 'Assignee',
         completed: 'Completed',
         messages: {
             completed: 'completed task',

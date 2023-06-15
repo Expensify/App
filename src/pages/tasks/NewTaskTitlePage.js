@@ -77,7 +77,7 @@ function NewTaskTitlePage(props) {
             includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
-                title={props.translate('newTaskPage.title')}
+                title={props.translate('task.title')}
                 onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
@@ -95,7 +95,7 @@ function NewTaskTitlePage(props) {
                         defaultValue={props.task.title}
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
-                        label={props.translate('newTaskPage.title')}
+                        label={props.translate('task.title')}
                     />
                 </View>
             </Form>

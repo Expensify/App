@@ -15,7 +15,8 @@ import getButtonState from '../../libs/getButtonState';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
+import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 
 const propTypes = {
@@ -70,12 +71,12 @@ function TaskPreview(props) {
                     style={[styles.mr2]}
                     containerStyle={[styles.taskCheckbox]}
                     isChecked={isTaskCompleted}
-                    disabled={TaskUtils.isTaskCanceled(props.taskReport)}
+                    disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
                     onPress={() => {
                         if (isTaskCompleted) {
-                            TaskUtils.reopenTask(props.taskReportID, taskTitle);
+                            Task.reopenTask(props.taskReportID, taskTitle);
                         } else {
-                            TaskUtils.completeTask(props.taskReportID, taskTitle);
+                            Task.completeTask(props.taskReportID, taskTitle);
                         }
                     }}
                 />
