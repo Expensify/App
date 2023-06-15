@@ -46,7 +46,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const ReportActionItemReactions = (props) => {
+function ReportActionItemReactions(props) {
     const popoverReactionListAnchor = useRef(null);
     const reactionsWithCount = _.filter(props.reactions, (reaction) => reaction.users.length > 0);
 
@@ -57,7 +57,7 @@ const ReportActionItemReactions = (props) => {
         >
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
-                const reactionUsers = _.map(reaction.users, (sender) => sender.accountID.toString());
+                const reactionUsers = _.map(reaction.users, (sender) => sender.accountID);
                 const emoji = _.find(emojis, (e) => e.name === reaction.emoji);
                 const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
@@ -80,7 +80,7 @@ const ReportActionItemReactions = (props) => {
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
-                        renderTooltipContentKey={[...reactionUsers, ...emojiCodes]}
+                        renderTooltipContentKey={[..._.map(reactionUsers, (user) => user.toString()), ...emojiCodes]}
                         key={reaction.emoji}
                     >
                         <View>
@@ -100,7 +100,7 @@ const ReportActionItemReactions = (props) => {
             {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
         </View>
     );
-};
+}
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;

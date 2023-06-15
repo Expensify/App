@@ -88,20 +88,32 @@ const getPhoneNumber = (details) => {
 };
 
 function DetailsPage(props) {
-    const login = lodashGet(props.route.params, 'login', '');
-    let details = lodashGet(props.personalDetails, login);
+    const login = lodashGet(this.props.route.params, 'login', '');
+    let details = _.find(this.props.personalDetails, (detail) => detail.login === login.toLowerCase());
 
     if (!details) {
-        details = {
-            login,
-            displayName: ReportUtils.getDisplayNameForParticipant(login),
-            avatar: UserUtils.getAvatar(lodashGet(details, 'avatar', ''), login),
-        };
+        // TODO: these personal details aren't in my local test account but are in
+        // my staging account, i wonder why!
+        if (login === CONST.EMAIL.CONCIERGE) {
+            details = {
+                accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                login,
+                displayName: 'Concierge',
+                avatar: UserUtils.getDefaultAvatar(CONST.ACCOUNT_ID.CONCIERGE),
+            };
+        } else {
+            details = {
+                accountID: -1,
+                login,
+                displayName: login,
+                avatar: UserUtils.getDefaultAvatar(),
+            };
+        }
     }
 
     const isSMSLogin = details.login ? Str.isSMSLogin(details.login) : false;
 
-    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([details.login]) && details.timezone;
+    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([details.accountID]) && details.timezone;
     let pronouns = details.pronouns;
 
     if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -118,7 +130,7 @@ function DetailsPage(props) {
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
                 <HeaderWithBackButton
-                    title={props.translate('common.details')}
+                    title={this.props.translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
                 />
                 <View
@@ -130,7 +142,7 @@ function DetailsPage(props) {
                             <View style={styles.avatarSectionWrapper}>
                                 <AttachmentModal
                                     headerTitle={details.displayName}
-                                    source={UserUtils.getFullSizeAvatar(details.avatar, details.login)}
+                                    source={UserUtils.getFullSizeAvatar(details.avatar, details.accountID)}
                                     isAuthTokenRequired
                                     originalFileName={details.originalFileName}
                                 >
@@ -143,7 +155,7 @@ function DetailsPage(props) {
                                                 <Avatar
                                                     containerStyles={[styles.avatarLarge, styles.mb3]}
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={UserUtils.getAvatar(details.avatar, details.login)}
+                                                    source={UserUtils.getAvatar(details.avatar, details.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
@@ -164,11 +176,11 @@ function DetailsPage(props) {
                                             style={[styles.textLabelSupporting, styles.mb1]}
                                             numberOfLines={1}
                                         >
-                                            {props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                            {this.props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                         </Text>
                                         <CommunicationsLink value={phoneOrEmail}>
                                             <UserDetailsTooltip accountID={details.accountID}>
-                                                <Text numberOfLines={1}>{isSMSLogin ? props.formatPhoneNumber(phoneNumber) : details.login}</Text>
+                                                <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
                                             </UserDetailsTooltip>
                                         </CommunicationsLink>
                                     </View>
@@ -179,7 +191,7 @@ function DetailsPage(props) {
                                             style={[styles.textLabelSupporting, styles.mb1]}
                                             numberOfLines={1}
                                         >
-                                            {props.translate('profilePage.preferredPronouns')}
+                                            {this.props.translate('profilePage.preferredPronouns')}
                                         </Text>
                                         <Text numberOfLines={1}>{pronouns}</Text>
                                     </View>
@@ -188,9 +200,9 @@ function DetailsPage(props) {
                             </View>
                             {!isCurrentUser && (
                                 <MenuItem
-                                    title={`${props.translate('common.message')}${details.displayName}`}
+                                    title={`${this.props.translate('common.message')}${details.displayName}`}
                                     icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.navigateToAndOpenReport([details.login])}
+                                    onPress={() => Report.navigateToAndOpenReport([login])}
                                     wrapperStyle={styles.breakAll}
                                     shouldShowRightIcon
                                 />
@@ -211,7 +223,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
