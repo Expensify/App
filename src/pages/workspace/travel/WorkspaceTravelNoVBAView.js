@@ -17,28 +17,30 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceTravelNoVBAView = (props) => (
-    <>
-        <Section
-            title={props.translate('workspace.travel.unlockConciergeBookingTravel')}
-            icon={Illustrations.Luggage}
-        >
-            <View style={[styles.mv3]}>
-                <Text>{props.translate('workspace.travel.noVBACopy')}</Text>
-            </View>
-            <Button
-                text={props.translate('workspace.common.connectBankAccount')}
-                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
-                icon={Expensicons.Bank}
-                style={[styles.mt4]}
-                iconStyles={[styles.buttonCTAIcon]}
-                shouldShowRightIcon
-                large
-                success
-            />
-        </Section>
-    </>
-);
+function WorkspaceTravelNoVBAView(props) {
+    return (
+        <>
+            <Section
+                title={props.translate('workspace.travel.unlockConciergeBookingTravel')}
+                icon={Illustrations.Luggage}
+            >
+                <View style={[styles.mv3]}>
+                    <Text>{props.translate('workspace.travel.noVBACopy')}</Text>
+                </View>
+                <Button
+                    text={props.translate('workspace.common.connectBankAccount')}
+                    onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
+                    icon={Expensicons.Bank}
+                    style={[styles.mt4]}
+                    iconStyles={[styles.buttonCTAIcon]}
+                    shouldShowRightIcon
+                    large
+                    success
+                />
+            </Section>
+        </>
+    );
+}
 
 WorkspaceTravelNoVBAView.propTypes = propTypes;
 WorkspaceTravelNoVBAView.displayName = 'WorkspaceTravelNoVBAView';
