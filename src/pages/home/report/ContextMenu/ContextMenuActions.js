@@ -118,8 +118,8 @@ export default [
         icon: Expensicons.ChatBubble,
         successTextTranslateKey: '',
         successIcon: null,
-        shouldShow: (type, reportAction) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction),
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isParentReport) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !isParentReport,
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
             if (closePopover) {
@@ -208,10 +208,10 @@ export default [
             const isAttachmentTarget = lodashGet(menuTarget, 'tagName') === 'IMG' && isAttachment;
             return Permissions.canUseCommentLinking(betas) && type === CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget;
         },
-        onPress: (closePopover, {reportAction}) => {
+        onPress: (closePopover, {reportID, reportAction, isParentReport}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = parseInt(lodashGet(reportAction, 'reportActionID'), 10);
-                const activeReportID = Navigation.getTopmostReportId();
+                const activeReportID = isParentReport ? reportAction.childReportID : reportID;
                 Clipboard.setString(`${environmentURL}/r/${activeReportID}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -224,8 +224,8 @@ export default [
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
         shouldShow: (type) => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
-        onPress: (closePopover, {reportAction}) => {
-            const activeReportID = Navigation.getTopmostReportId();
+        onPress: (closePopover, {reportID, reportAction, isParentReport}) => {
+            const activeReportID = isParentReport ? reportAction.childReportID : reportID;
             Report.markCommentAsUnread(activeReportID, reportAction.created);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);

@@ -55,7 +55,6 @@ import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
-import withCurrentReportId from '../../../components/withCurrentReportId';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -71,6 +70,9 @@ const propTypes = {
 
     /** Is this the most recent IOU Action? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
+
+    /** Is this the action from parent report */
+    isParentReport: PropTypes.bool,
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
@@ -101,6 +103,7 @@ const defaultProps = {
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
+    isParentReport: false,
 };
 
 function ReportActionItem(props) {
@@ -180,9 +183,11 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(props.report),
                 ReportUtils.chatIncludesChronos(props.report),
+                null,
+                props.isParentReport,
             );
         },
-        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
+        [props.draftMessage, props.action, props.report, props.isParentReport, toggleContextMenuFromActiveReportAction],
     );
 
     const toggleReaction = useCallback(
@@ -333,7 +338,7 @@ function ReportActionItem(props) {
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
-        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.currentReportId);
+        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !props.isParentReport;
         const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
         const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
@@ -454,6 +459,7 @@ function ReportActionItem(props) {
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
+                            isParentReport={props.isParentReport}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
@@ -520,7 +526,6 @@ export default compose(
             return lodashGet(drafts, draftKey, '');
         },
     }),
-    withCurrentReportId,
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
@@ -539,6 +544,6 @@ export default compose(
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
             prevProps.translate === nextProps.translate &&
-            prevProps.currentReportId === nextProps.currentReportId,
+            prevProps.isParentReport === nextProps.isParentReport,
     ),
 );

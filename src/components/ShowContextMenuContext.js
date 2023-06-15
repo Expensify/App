@@ -21,8 +21,9 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  * @param {Object} action - ReportAction for ContextMenu
  * @param {Function} checkIfContextMenuActive Callback to update context menu active state
  * @param {Boolean} [isArchivedRoom=false] - Is the report an archived room
+ * @param {Boolean} [isParentReport=false] - Is the report action from parent report
  */
-function showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive, isArchivedRoom = false) {
+function showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive, isArchivedRoom = false, isParentReport = false) {
     if (!DeviceCapabilities.canUseTouchScreen()) {
         return;
     }
@@ -37,6 +38,7 @@ function showContextMenuForReport(event, anchor, reportID, action, checkIfContex
         checkIfContextMenuActive,
         checkIfContextMenuActive,
         isArchivedRoom,
+        isParentReport,
     );
 }
 

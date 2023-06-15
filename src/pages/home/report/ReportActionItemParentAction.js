@@ -66,6 +66,7 @@ function ReportActionItemParentAction(props) {
                 <View style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]} />
                 {parentReportAction && (
                     <ReportActionItem
+                        isParentReport
                         report={props.parentReport}
                         action={parentReportAction}
                         displayAsGroup={false}

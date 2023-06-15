@@ -8,6 +8,9 @@ const propTypes = {
     /** The report action this context menu is attached to. */
     reportAction: PropTypes.shape(reportActionPropTypes).isRequired,
 
+    /** Is the report action from parent report */
+    isParentReport: PropTypes.bool,
+
     /** If true, this component will be a small, row-oriented menu that displays icons but not text.
     If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row. */
     isMini: PropTypes.bool,
@@ -23,6 +26,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isParentReport: false,
     isMini: false,
     isVisible: false,
     selection: '',

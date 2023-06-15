@@ -524,12 +524,13 @@ function isThreadParent(reportAction) {
 /**
  * Returns true if reportAction is the first chat preview of a Thread
  *
+ * @deprecated
  * @param {Object} reportAction
- * @param {String} [reportID]
+ * @param {String} reportID
  * @returns {Boolean}
  */
-function isThreadFirstChat(reportAction, reportID = '') {
-    return !_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === (reportID || Navigation.getTopmostReportId());
+function isThreadFirstChat(reportAction, reportID) {
+    return !_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === reportID;
 }
 
 /**
