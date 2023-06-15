@@ -1,12 +1,20 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 
 import * as ModalStackNavigators from '../ModalStackNavigators';
 import defaultModalScreenOptions from '../defaultModalScreenOptions';
+import StatusBar from '../../../StatusBar';
+import * as Browser from '../../../Browser';
+import themeColors from '../../../../styles/themes/default';
 
 const Stack = createStackNavigator();
 
 function RigthModalNavigator() {
+    useEffect(() => {
+        if (!Browser.isMobile()) return;
+        StatusBar.setBackgroundColor(themeColors.appBG);
+    }, []);
+
     return (
         <Stack.Navigator>
             <Stack.Screen
