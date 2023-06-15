@@ -1684,8 +1684,7 @@ function flagComment(reportID, reportAction, severity) {
                 decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
             },
         ];
-    }
-    else {
+    } else {
         updatedDecision = [
             {
                 decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
