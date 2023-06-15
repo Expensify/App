@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState, useMemo} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View, useWindowDimensions} from 'react-native';
 import {Gesture, GestureDetector, createNativeWrapper} from 'react-native-gesture-handler';
 import Animated, {
@@ -38,29 +38,47 @@ const config = {
 };
 
 function getScaledDimensions({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
-    console.log({
-        canvasWidth,
-        canvasHeight,
-        imageWidth,
-        imageHeight,
-    });
+    const scaleFactorX = imageWidth / canvasWidth;
+    const scaleFactorY = imageHeight / canvasHeight;
 
-    const scaleFactor = imageWidth / canvasWidth;
+    const scaledWidth = imageWidth / scaleFactorY;
+    const scaledHeight = imageHeight / scaleFactorX;
 
-    const width = canvasWidth;
-    const height = imageHeight / scaleFactor;
+    if (scaledWidth > canvasWidth) {
+        return {
+            width: canvasWidth,
+            height: scaledHeight,
+        };
+    }
 
-    console.log({
-        canvasWidth,
-        canvasHeight,
-        imageWidth,
-        imageHeight,
-        width,
-        height,
-        scaleFactor,
-    });
+    return {
+        width: scaledWidth,
+        height: canvasHeight,
+    };
 
-    return {width, height};
+    // console.log({
+    //     canvasWidth,
+    //     canvasHeight,
+    //     imageWidth,
+    //     imageHeight,
+    // });
+
+    // const scaleFactor = imageWidth / canvasWidth;
+
+    // const width = canvasWidth;
+    // const height = imageHeight / scaleFactor;
+
+    // console.log({
+    //     canvasWidth,
+    //     canvasHeight,
+    //     imageWidth,
+    //     imageHeight,
+    //     width,
+    //     height,
+    //     scaleFactor,
+    // });
+
+    // return {width, height};
 }
 
 const defaultDimensions = {
@@ -70,6 +88,7 @@ const defaultDimensions = {
 
 function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, isActive, onSwipe, onSwipeSuccess, renderImage, renderFallback, onTap}) {
     const {pagerRef, shouldPagerScroll, isScrolling} = useContext(Context);
+    const windowDimensions = useWindowDimensions();
 
     const [showFallback, setShowFallback] = useState(typeof imageHeight === 'undefined' || typeof imageWidth === 'undefined');
 
@@ -83,6 +102,25 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                   imageHeight,
               }),
     );
+
+    const dimensionsWithScale = useMemo(() => {
+        const scaleFactorX = windowDimensions.width / imageDimensions.width;
+        const scaleFactorY = windowDimensions.height / imageDimensions.height;
+
+        const scaledWidth = imageDimensions.width * scaleFactorY;
+
+        if (scaledWidth > windowDimensions.width) {
+            return {
+                ...imageDimensions,
+                scale: scaleFactorX,
+            };
+        }
+
+        return {
+            ...imageDimensions,
+            scale: scaleFactorY,
+        };
+    }, [imageDimensions, windowDimensions]);
 
     const canvasX = useSharedValue(canvasWidth);
     const canvasY = useSharedValue(canvasHeight);
@@ -585,7 +623,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
 
                                         {renderImage({
                                             onResolveImageDimensions: onLoad,
-                                            ...imageDimensions,
+                                            ...dimensionsWithScale,
                                             style: showFallback ? {opacity: 0, position: 'absolute'} : {},
                                         })}
                                     </Animated.View>
