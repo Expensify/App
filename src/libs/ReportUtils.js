@@ -151,7 +151,7 @@ function isTaskReport(report) {
  * Checks if a report is an IOU or expense report.
  *
  * @param {Object} report
- * @param {Object} reportID
+ * @param {Object|String} reportOrID
  * @returns {Boolean}
  */
 function isMoneyRequestReport(report, reportID) {
