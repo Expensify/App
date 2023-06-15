@@ -1,8 +1,8 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -13,6 +13,7 @@ import Hoverable from '../Hoverable';
 import DisplayNames from '../DisplayNames';
 import colors from '../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import {withReportCommentDrafts} from '../OnyxProvider';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
@@ -62,12 +63,18 @@ const defaultProps = {
     comment: '',
 };
 
+// function OptionRowLHN(props) {
 const OptionRowLHN = (props) => {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
-    if (!optionItem) {
-        return null;
-    }
+    useEffect(() => {
+        if (!optionItem) {
+            return null;
+        }
+        if (!optionItem.hasDraftComment && props.comment.length > 0) {
+            Report.setReportWithDraft(props.reportID, true);
+        }
+    }, []);
 
     let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
@@ -92,10 +99,6 @@ const OptionRowLHN = (props) => {
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
-
-    if (!optionItem.hasDraftComment && props.comment.length > 0 && !props.isFocused) {
-        Report.setReportWithDraft(props.reportID, true);
-    }
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -264,9 +267,11 @@ OptionRowLHN.displayName = 'OptionRowLHN';
 
 export default compose(
     withLocalize,
-    withOnyx({
-        comment: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
+    withReportCommentDrafts({
+        propName: 'comment',
+        transformValue: (drafts, props) => {
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
+            return lodashGet(drafts, draftKey, '');
         },
     }),
 )(OptionRowLHN);
