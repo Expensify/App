@@ -17,20 +17,22 @@ const googleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL
  * @returns {React.Component}
  */
 
-const GoogleSignIn = (props) => (
-    <View
-        style={styles.appleButtonContainer}
-        accessibilityRole="button"
-        accessibilityLabel={props.translate('common.signInWithGoogle')}
-    >
-        <ButtonBase
-            onPress={() => {
-                window.open(googleSignInWebRouteForDesktopFlow);
-            }}
-            icon={googleLogoIcon}
-        />
-    </View>
-);
+function GoogleSignIn(props) {
+    return (
+        <View
+            style={styles.appleButtonContainer}
+            accessibilityRole="button"
+            accessibilityLabel={props.translate('common.signInWithGoogle')}
+        >
+            <ButtonBase
+                onPress={() => {
+                    window.open(googleSignInWebRouteForDesktopFlow);
+                }}
+                icon={googleLogoIcon}
+            />
+        </View>
+    );
+}
 
 GoogleSignIn.displayName = 'GoogleSignIn';
 GoogleSignIn.propTypes = propTypes;
