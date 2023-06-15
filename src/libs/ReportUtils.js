@@ -150,8 +150,7 @@ function isTaskReport(report) {
  * @returns {Boolean}
  */
 function isTaskCompleted(report) {
-    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED
-        && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
 }
 
 /**
