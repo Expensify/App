@@ -90,10 +90,15 @@ function BaseValidateCodeForm(props) {
             return;
         }
 
+        if (!validateCode) {
+            return;
+        }
+
         // Clear the code input if magic code valid
         if (prevIsVisible && !props.isVisible) {
             setValidateCode('');
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible, prevIsVisible]);
 
     useEffect(() => {
@@ -111,6 +116,7 @@ function BaseValidateCodeForm(props) {
     }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
 
     useEffect(() => {
+        // To avoid reset of linkSent from other hook we only clear the inputValidateCode when linkSent is false
         if (!inputValidateCodeRef.current || validateCode.length > 0 || linkSent) {
             return;
         }
@@ -148,6 +154,7 @@ function BaseValidateCodeForm(props) {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
+        // Clearnig manually here instead relying on the hook bcoz of not allowing to reset the linkSent value
         inputValidateCodeRef.current.clear();
         User.resendValidateCode(props.credentials.login, true);
 
