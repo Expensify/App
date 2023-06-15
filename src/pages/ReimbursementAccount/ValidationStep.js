@@ -71,7 +71,7 @@ class ValidationStep extends React.Component {
             if (ValidationUtils.isRequiredFulfilled(filteredValue)) {
                 return;
             }
-            errors[key] = this.props.translate('common.error.invalidAmount');
+            errors[key] = 'common.error.invalidAmount';
         });
 
         return errors;

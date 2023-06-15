@@ -62,7 +62,7 @@ function getReportID(route) {
     return route.params.reportID.toString();
 }
 
-const SplitBillDetailsPage = (props) => {
+function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const personalDetails = OptionsListUtils.getPersonalDetailsForLogins(reportAction.originalMessage.participants, props.personalDetails);
     const participants = OptionsListUtils.getParticipantsOptions(reportAction.originalMessage, personalDetails);
@@ -97,7 +97,7 @@ const SplitBillDetailsPage = (props) => {
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
-};
+}
 
 SplitBillDetailsPage.propTypes = propTypes;
 SplitBillDetailsPage.defaultProps = defaultProps;

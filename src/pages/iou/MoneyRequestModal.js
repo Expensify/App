@@ -95,7 +95,7 @@ const Steps = {
     MoneyRequestConfirm: 'moneyRequest.confirm',
 };
 
-const MoneyRequestModal = (props) => {
+function MoneyRequestModal(props) {
     // Skip MoneyRequestParticipants step if participants are passed in
     const reportParticipants = lodashGet(props, 'report.participants', []);
     const steps = useMemo(
@@ -394,7 +394,7 @@ const MoneyRequestModal = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 MoneyRequestModal.displayName = 'MoneyRequestModal';
 MoneyRequestModal.propTypes = propTypes;

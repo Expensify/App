@@ -29,7 +29,7 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
-const PriorityModePage = (props) => {
+function PriorityModePage(props) {
     const priorityModes = _.map(props.translate('priorityModePage.priorityModes'), (mode, key) => ({
         value: key,
         text: mode.label,
@@ -68,7 +68,7 @@ const PriorityModePage = (props) => {
             />
         </ScreenWrapper>
     );
-};
+}
 
 PriorityModePage.displayName = 'PriorityModePage';
 PriorityModePage.propTypes = propTypes;

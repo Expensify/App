@@ -36,7 +36,7 @@ const defaultProps = {
     },
 };
 
-const NewTaskTitlePage = (props) => {
+function NewTaskTitlePage(props) {
     const inputRef = useRef(null);
 
     /**
@@ -48,7 +48,7 @@ const NewTaskTitlePage = (props) => {
 
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', props.translate('newTaskPage.pleaseEnterTaskName'));
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
         }
 
         return errors;
@@ -101,7 +101,7 @@ const NewTaskTitlePage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskTitlePage.displayName = 'NewTaskTitlePage';
 NewTaskTitlePage.propTypes = propTypes;
