@@ -17,7 +17,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
-import Tooltip from '../components/Tooltip';
+import UserDetailsTooltip from '../components/UserDetailsTooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
@@ -179,9 +179,9 @@ function ProfilePage(props) {
                                         {props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                     </Text>
                                     <CommunicationsLink value={phoneOrEmail}>
-                                        <Tooltip text={phoneOrEmail}>
+                                        <UserDetailsTooltip accountID={details.accountID}>
                                             <Text numberOfLines={1}>{isSMSLogin ? props.formatPhoneNumber(phoneNumber) : login}</Text>
-                                        </Tooltip>
+                                        </UserDetailsTooltip>
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
