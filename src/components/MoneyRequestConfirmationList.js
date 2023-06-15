@@ -20,6 +20,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -229,6 +230,17 @@ function MoneyRequestConfirmationList(props) {
     );
 
     /**
+     * Navigate to profile of selected user
+     * @param {Object} option
+     */
+    const navigateToUserDetail = (option) => {
+        if (!option.login) {
+            return;
+        }
+        Navigation.navigate(ROUTES.getProfileRoute(ReportUtils.getAccountIDForLogin(option.login)));
+    };
+
+    /**
      * @param {String} paymentMethod
      */
     const confirm = useCallback(
@@ -290,12 +302,13 @@ function MoneyRequestConfirmationList(props) {
         <OptionsSelector
             sections={optionSelectorSections}
             value=""
-            onSelectRow={canModifyParticipants ? toggleOption : undefined}
+            onSelectRow={canModifyParticipants ? toggleOption : navigateToUserDetail}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
             disableArrowKeysActions={!canModifyParticipants}
             boldStyle
+            showTitleTooltip
             shouldTextInputAppearBelowOptions
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}

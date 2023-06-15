@@ -42,8 +42,7 @@ function MentionUserRenderer(props) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     href={ROUTES.getDetailsRoute(loginWithoutLeadingAt)}
-                    color={StyleUtils.getMentionTextColor(isOurMention)}
-                    style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention)]}
+                    style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
                     onPress={() => showUserDetails(loginWithoutLeadingAt)}
                 >
                     <TNodeChildrenRenderer tnode={props.tnode} />

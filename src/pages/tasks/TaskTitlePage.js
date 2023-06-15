@@ -55,8 +55,7 @@ function TaskTitlePage(props) {
         (values) => {
             // Set the description of the report in the store and then call TaskUtils.editTaskReport
             // to update the description of the report on the server
-
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, {title: values.title});
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {title: values.title});
         },
         [props],
     );
