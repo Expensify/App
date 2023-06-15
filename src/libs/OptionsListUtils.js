@@ -78,7 +78,7 @@ Onyx.connect({
 });
 
 const lastReportActions = {};
-const allSortedReportActions = {}
+const allSortedReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -380,19 +380,21 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
-        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => {
-            const isWhisper = (action.whisperedTo || []).length > 0;
-            return !isWhisper;
-        }) || {};
-        if (lodashGet(lastNonWhisper, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
-            const latestVisibleAction = _.find(allSortedReportActions[report.reportID], (action) => {
+        const lastNonWhisper =
+            _.find(allSortedReportActions[report.reportID], (action) => {
                 const isWhisper = (action.whisperedTo || []).length > 0;
-                return ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !isWhisper;
+                return !isWhisper;
             }) || {};
+        if (lodashGet(lastNonWhisper, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+            const latestVisibleAction =
+                _.find(allSortedReportActions[report.reportID], (action) => {
+                    const isWhisper = (action.whisperedTo || []).length > 0;
+                    return ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !isWhisper;
+                }) || {};
             lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
         }
     }
-    return lastMessageTextFromReport
+    return lastMessageTextFromReport;
 }
 
 /**
