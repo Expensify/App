@@ -1609,15 +1609,6 @@ function getCurrentUserAccountID() {
 }
 
 /**
- * Set the route from the deep link which the user use to open the app
- * @param {String} url
- */
-function setReportScreenRoute(url) {
-    const route = ReportUtils.getRouteFromLink(url);
-    Onyx.merge(ONYXKEYS.REPORT_SCREEN_ROUTE, route);
-}
-
-/**
  * Leave a report by setting the state to submitted and closed
  *
  * @param {String} reportID
@@ -1794,7 +1785,6 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
-    setReportScreenRoute,
     getCurrentUserAccountID,
     leaveRoom,
     setLastOpenedPublicRoom,

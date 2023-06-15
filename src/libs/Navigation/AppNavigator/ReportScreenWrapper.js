@@ -28,7 +28,7 @@ class ReportScreenWrapper extends Component {
     constructor(props) {
         super(props);
 
-        const reportID = lodashGet(this.props.route, 'params.reportID', null)
+        const reportID = lodashGet(this.props.route, 'params.reportID', null);
 
         // It's possible that props.reports aren't fully loaded yet
         // in that case the reportID is undefined
