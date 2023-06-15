@@ -82,7 +82,6 @@ function ReportWelcomeText(props) {
                 )}
                 {isChatRoom && (
                     <>
-                        <Text>{props.translate('reportActionsView.beginningOfChatHistory')}</Text>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
                         <Text
                             style={[styles.textStrong]}

@@ -263,7 +263,6 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
 
         // If the chat already exists, we don't want to create a new one - just make sure it's not archived
         if (oldChat) {
-            // TODO: figure out if we need to use accountID keys here
             workspaceMembersChats.reportCreationData[login] = {
                 reportID: oldChat.reportID,
             };
