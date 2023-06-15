@@ -113,7 +113,12 @@ class SidebarLinks extends React.Component {
 
     componentDidMount() {
         App.setSidebarLoaded();
+        SidebarUtils.setIsSidebarLoadedReady();
         this.isSidebarLoaded = true;
+    }
+
+    componentWillUnmount() {
+        SidebarUtils.resetIsSidebarLoadedReadyPromise();
     }
 
     showSearchPage() {

@@ -96,6 +96,26 @@ Onyx.connect({
     callback: (val) => (preferredLocale = val || CONST.LOCALES.DEFAULT),
 });
 
+let resolveSidebarIsReadyPromise;
+
+let sidebarIsReadyPromise = new Promise((resolve) => {
+    resolveSidebarIsReadyPromise = resolve;
+});
+
+function resetIsSidebarLoadedReadyPromise() {
+    sidebarIsReadyPromise = new Promise((resolve) => {
+        resolveSidebarIsReadyPromise = resolve;
+    });
+}
+
+function isSidebarLoadedReady() {
+    return sidebarIsReadyPromise;
+}
+
+function setIsSidebarLoadedReady() {
+    resolveSidebarIsReadyPromise();
+}
+
 /**
  * @param {String} reportIDFromRoute
  * @returns {String[]} An array of reportIDs sorted in the proper order
@@ -365,4 +385,7 @@ function getOptionData(reportID) {
 export default {
     getOptionData,
     getOrderedReportIDs,
+    setIsSidebarLoadedReady,
+    isSidebarLoadedReady,
+    resetIsSidebarLoadedReadyPromise,
 };
