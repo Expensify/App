@@ -154,9 +154,9 @@ function isTaskReport(report) {
  * @param {Object|String} reportOrID
  * @returns {Boolean}
  */
-function isMoneyRequestReport(report, reportID) {
-    const reportFromID = reportID ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : report;
-    return isIOUReport(reportFromID) || isExpenseReport(reportFromID);
+function isMoneyRequestReport(reportOrID) {
+    const report = _.isObject(reportOrID) ? report : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return isIOUReport(report) || isExpenseReport(report);
 }
 
 /**
