@@ -1,10 +1,10 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
-import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './ValidateLoginPage/validateLinkPropTypes';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import Navigation from '../libs/Navigation/Navigation';
-import * as Session from '../libs/actions/Session';
-import ROUTES from '../ROUTES';
+import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from '../ValidateLoginPage/validateLinkPropTypes';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import Navigation from '../../libs/Navigation/Navigation';
+import * as Session from '../../libs/actions/Session';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
