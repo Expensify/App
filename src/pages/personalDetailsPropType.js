@@ -17,7 +17,7 @@ export default PropTypes.shape({
     avatarUploading: PropTypes.bool,
 
     // accountID of the current user from their personal details
-    accountID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    accountID: PropTypes.number,
 
     // login of the current user from their personal details
     login: PropTypes.string,
