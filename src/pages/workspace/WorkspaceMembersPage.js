@@ -214,10 +214,10 @@ class WorkspaceMembersPage extends React.Component {
      * @param {Object} memberList
      */
     toggleAllUsers(memberList) {
-        const emailList = _.keys(memberList);
+        const accountIDList = _.map(_.keys(memberList), (member) => Number(member));
         this.setState(
             (prevState) => ({
-                selectedEmployees: !_.every(emailList, (memberAccountID) => _.contains(prevState.selectedEmployees, Number(memberAccountID))) ? emailList : [],
+                selectedEmployees: !_.every(accountIDList, (memberAccountID) => _.contains(prevState.selectedEmployees, Number(memberAccountID))) ? accountIDList : [],
             }),
             () => this.validate(),
         );
@@ -246,7 +246,7 @@ class WorkspaceMembersPage extends React.Component {
     /**
      * Add user from the selectedEmployees list
      *
-     * @param {String} accountID
+     * @param {Number} accountID
      */
     addUser(accountID) {
         this.setState(
@@ -260,7 +260,7 @@ class WorkspaceMembersPage extends React.Component {
     /**
      * Remove user from the selectedEmployees list
      *
-     * @param {String} accountID
+     * @param {Number} accountID
      */
     removeUser(accountID) {
         this.setState(
@@ -474,7 +474,9 @@ class WorkspaceMembersPage extends React.Component {
                                 <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                     <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                         <Checkbox
-                                            isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(this.state.selectedEmployees, accountID))}
+                                            isChecked={
+                                                !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(this.state.selectedEmployees, Number(accountID)))
+                                            }
                                             onPress={() => this.toggleAllUsers(removableMembers)}
                                         />
                                         <View style={[styles.flex1]}>
