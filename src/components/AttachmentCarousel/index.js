@@ -279,9 +279,8 @@ class AttachmentCarousel extends React.Component {
         let isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
 
         if (this.canUseTouchScreen) {
-            const temp = isBackDisabled;
-            isBackDisabled = isForwardDisabled;
-            isForwardDisabled = temp;
+            isForwardDisabled = isBackDisabled;
+            isBackDisabled = this.state.page === 0;
         }
 
         return (
