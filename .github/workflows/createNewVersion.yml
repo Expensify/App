@@ -61,13 +61,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Create new branch
-        run: |
-          git pull
-          BRANCH_NAME="version-${{ inputs.SEMVER_LEVEL }}-$(uuidgen)"
-          git checkout -b "$BRANCH_NAME"
-          git push --set-upstream origin "$BRANCH_NAME"
-          echo "VERSION_BRANCH=$BRANCH_NAME" >> "$GITHUB_ENV"
+      - run: git pull
 
       - name: Generate version
         id: bumpVersion
@@ -85,15 +79,9 @@ jobs:
             ./ios/NewExpensify/Info.plist \
             ./ios/NewExpensifyTests/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
-          git push origin ${{ env.VERSION_BRANCH }}
 
       - name: Update main branch
-        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
-        with:
-          TARGET_BRANCH: main
-          SOURCE_BRANCH: ${{ env.VERSION_BRANCH }}
-          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+        run: git push origin main
 
       - if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
