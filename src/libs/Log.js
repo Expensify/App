@@ -20,7 +20,6 @@ function LogCommand(parameters) {
     requireParameters(['logPacket', 'expensifyCashAppVersion'], parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
-    // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
     return Network.post(commandName, {...parameters, forceNetworkRequest: true});
 }
 
