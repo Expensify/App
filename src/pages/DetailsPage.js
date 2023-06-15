@@ -88,8 +88,8 @@ const getPhoneNumber = (details) => {
 };
 
 function DetailsPage(props) {
-    const login = lodashGet(this.props.route.params, 'login', '');
-    let details = _.find(this.props.personalDetails, (detail) => detail.login === login.toLowerCase());
+    const login = lodashGet(props.route.params, 'login', '');
+    let details = _.find(props.personalDetails, (detail) => detail.login === login.toLowerCase());
 
     if (!details) {
         // TODO: these personal details aren't in my local test account but are in
@@ -130,7 +130,7 @@ function DetailsPage(props) {
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(login)}>
                 <HeaderWithBackButton
-                    title={this.props.translate('common.details')}
+                    title={props.translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
                 />
                 <View
@@ -176,11 +176,11 @@ function DetailsPage(props) {
                                             style={[styles.textLabelSupporting, styles.mb1]}
                                             numberOfLines={1}
                                         >
-                                            {this.props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                            {props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                         </Text>
                                         <CommunicationsLink value={phoneOrEmail}>
                                             <UserDetailsTooltip accountID={details.accountID}>
-                                                <Text numberOfLines={1}>{isSMSLogin ? this.props.formatPhoneNumber(phoneNumber) : details.login}</Text>
+                                                <Text numberOfLines={1}>{isSMSLogin ? props.formatPhoneNumber(phoneNumber) : details.login}</Text>
                                             </UserDetailsTooltip>
                                         </CommunicationsLink>
                                     </View>
@@ -191,7 +191,7 @@ function DetailsPage(props) {
                                             style={[styles.textLabelSupporting, styles.mb1]}
                                             numberOfLines={1}
                                         >
-                                            {this.props.translate('profilePage.preferredPronouns')}
+                                            {props.translate('profilePage.preferredPronouns')}
                                         </Text>
                                         <Text numberOfLines={1}>{pronouns}</Text>
                                     </View>
@@ -200,7 +200,7 @@ function DetailsPage(props) {
                             </View>
                             {!isCurrentUser && (
                                 <MenuItem
-                                    title={`${this.props.translate('common.message')}${details.displayName}`}
+                                    title={`${props.translate('common.message')}${details.displayName}`}
                                     icon={Expensicons.ChatBubble}
                                     onPress={() => Report.navigateToAndOpenReport([login])}
                                     wrapperStyle={styles.breakAll}
