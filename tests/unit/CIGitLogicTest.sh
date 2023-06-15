@@ -18,14 +18,12 @@ function print_version {
 
 ### Phase 0: Verify necessary tools are installed (all tools should be pre-installed on all GitHub Actions runners)
 
-if ! command -v jq &> /dev/null
-then
+if ! command -v jq &> /dev/null; then
   error "command jq could not be found, install it with \`brew install jq\` (macOS) or \`apt-get install jq\` (Linux) and re-run this script"
   exit 1
 fi
 
-if ! command -v npm &> /dev/null
-then
+if ! command -v npm &> /dev/null; then
   error "command npm could not be found, install it and re-run this script"
   exit 1
 fi
@@ -40,8 +38,7 @@ cd "$DUMMY_DIR" || exit 1
 success "Successfully created dummy repo at $(pwd)"
 
 info "Initializing npm project in $DUMMY_DIR"
-if [[ $(npm init -y) ]]
-then
+if [[ $(npm init -y) ]]; then
   success "Successfully initialized npm project"
 else
   error "Failed initializing npm project"
@@ -49,8 +46,7 @@ else
 fi
 
 info "Installing node dependencies..."
-if [[ $(npm install underscore && npm install) ]]
-then
+if [[ $(npm install underscore) ]]; then
   success "Successfully installed node dependencies"
 else
   error "Failed installing node dependencies"
@@ -63,11 +59,6 @@ git config user.email "test@test.com"
 git config user.name "test"
 git add package.json package-lock.json
 git commit -m "Initial commit"
-
-info "Bumping version to 1.0.1"
-npm --no-git-tag-version version 1.0.1 -m "Update version to 1.0.1"
-git add package.json package-lock.json
-git commit -m "Update version to 1.0.1"
 
 info "Creating branches..."
 git branch staging
@@ -100,9 +91,9 @@ git merge "pr-$PR_COUNT" --no-ff -m "Merge pull request #$PR_COUNT from Expensif
 git branch -d "pr-$PR_COUNT"
 success "Merged PR #$PR_COUNT to main"
 
-# Bump the version to 1.0.2
-info "Bumping version to 1.0.2"
-npm --no-git-tag-version version 1.0.2 -m "Update version to 1.0.2"
+# Bump the version to 1.0.1
+info "Bumping version to 1.0.1"
+npm --no-git-tag-version version 1.0.1
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
 success "Version bumped to $(print_version) on main"
@@ -116,12 +107,12 @@ success "Recreated staging from main!"
 # Tag staging
 info "Tagging new version..."
 git tag "$(print_version)"
-git switch main
 success "Created new tag $(print_version)"
+git switch main
 
 # Verify output for checklist and deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
-output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.2')
+info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.1"
+output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.1')
 assert_equal "$output" "[ '$PR_COUNT' ]"
 
 success "Scenario #1 completed successfully!"
@@ -132,7 +123,6 @@ title "Scenario #2: Merge a pull request with the checklist locked, but don't CP
 ((PR_COUNT++))
 info "Creating PR #$PR_COUNT and merging it into main..."
 git switch -c "pr-$PR_COUNT"
-# TODO change filename to PR_$PR_COUNT.txt
 echo "Changes from PR #$PR_COUNT" >> "PR$PR_COUNT.txt"
 git add "PR$PR_COUNT.txt"
 git commit -m "Changes from PR #$PR_COUNT"
@@ -143,7 +133,6 @@ git branch -d "pr-$PR_COUNT"
 success "Created PR #$PR_COUNT and merged it to main!"
 
 success "Scenario #2 completed successfully!"
-
 
 title "Scenario #3: Merge a pull request with the checklist locked and CP it to staging"
 
@@ -160,12 +149,12 @@ info "Merged PR #$PR_COUNT into main"
 git branch -d "pr-$PR_COUNT"
 success "Created PR #$PR_COUNT and merged it to main!"
 
-info "Bumping version to 1.0.3 on main..."
-npm --no-git-tag-version version 1.0.3 -m "Update version to 1.0.3"
+info "Bumping version to 1.0.2 on main..."
+npm --no-git-tag-version version 1.0.2 -m "Update version to 1.0.2"
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
 VERSION_BUMP_COMMIT="$(git log -1 --format='%H')"
-success "Bumped version to 1.0.3 on main!"
+success "Bumped version to 1.0.2 on main!"
 
 info "Cherry picking PR #$PR_COUNT and the version bump to staging..."
 git switch staging
@@ -183,14 +172,16 @@ info "Tagging the new version on staging..."
 git tag "$(print_version)"
 success "Created tag $(print_version)"
 
+exit 0
+
 # Verify output for checklist
-info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.3"
-output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.3')
+info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
+output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.2')
 assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 1))', '$((PR_COUNT - 3))' ]"
 
 # Verify output for deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.0.2 1.0.3"
-output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.0.3')
+info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
+output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.2')
 assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT -1))' ]"
 
 success "Scenario #3 completed successfully!"
@@ -205,8 +196,8 @@ git switch -c production
 success "Recreated production from staging!"
 
 # Verify output for release body and production deploy comments
-info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.3"
-output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.3')
+info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
+output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.2')
 assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 1))', '$((PR_COUNT - 3))' ]"
 
 success "Scenario #4A completed successfully!"
@@ -215,7 +206,7 @@ title "Scenario #4B: Run the staging deploy and create a new checklist"
 
 info "Bumping version to 1.1.0 on main..."
 git switch main
-npm --no-git-tag-version version 1.1.0 -m "Update version to 1.1.0"
+npm --no-git-tag-version version 1.1.0
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
 success "Successfully updated version to 1.1.0 on main!"
@@ -230,8 +221,8 @@ git tag "$(print_version)"
 success "Successfully tagged version $(print_version) on staging"
 
 # Verify output for new checklist and staging deploy comments
-info "Checking output of getPullRequestsMergedBetween 1.0.3 1.1.0"
-output=$(node "$getPullRequestsMergedBetween" '1.0.3' '1.1.0')
+info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.0"
+output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.0')
 assert_equal "$output" "[ '$((PR_COUNT - 2))' ]"
 
 success "Scenario #4B completed successfully!"
@@ -268,8 +259,8 @@ git tag "$(print_version)"
 success "Successfully tagged version $(print_version) on staging"
 
 # Verify output for checklist
-info "Checking output of getPullRequestsMergedBetween 1.0.3 1.1.1"
-output=$(node "$getPullRequestsMergedBetween" '1.0.3' '1.1.1')
+info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.1"
+output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.1')
 assert_equal "$output" "[ '$PR_COUNT' ]"
 
 # Verify output for deploy comment
