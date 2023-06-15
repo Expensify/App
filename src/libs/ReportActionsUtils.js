@@ -421,6 +421,16 @@ function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
 
+/**
+ * A helper method to identify if the message is deleted or not.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isMessageDeleted(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -443,4 +453,5 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isMessageDeleted,
 };

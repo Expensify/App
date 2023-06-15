@@ -38,7 +38,7 @@ const defaultProps = {
     wordStyles: [],
 };
 
-const WrappedText = (props) => {
+function WrappedText(props) {
     if (!_.isString(props.children)) {
         return null;
     }
@@ -67,7 +67,7 @@ const WrappedText = (props) => {
             ))}
         </>
     );
-};
+}
 
 WrappedText.propTypes = propTypes;
 WrappedText.defaultProps = defaultProps;

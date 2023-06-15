@@ -108,7 +108,7 @@ function ProfilePage(props) {
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([login]) && !_.isEmpty(timezone);
+    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([accountID]) && !_.isEmpty(timezone);
 
     let pronouns = lodashGet(details, 'pronouns', '');
     if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -142,7 +142,7 @@ function ProfilePage(props) {
                         <View style={styles.avatarSectionWrapper}>
                             <AttachmentModal
                                 headerTitle={displayName}
-                                source={UserUtils.getFullSizeAvatar(avatar, login || accountID)}
+                                source={UserUtils.getFullSizeAvatar(avatar, accountID)}
                                 isAuthTokenRequired
                                 originalFileName={originalFileName}
                             >
@@ -155,7 +155,7 @@ function ProfilePage(props) {
                                             <Avatar
                                                 containerStyles={[styles.avatarLarge, styles.mb3]}
                                                 imageStyles={[styles.avatarLarge]}
-                                                source={UserUtils.getAvatar(avatar, login || accountID)}
+                                                source={UserUtils.getAvatar(avatar, accountID)}
                                                 size={CONST.AVATAR_SIZE.LARGE}
                                             />
                                         </OfflineWithFeedback>

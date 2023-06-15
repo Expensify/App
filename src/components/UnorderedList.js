@@ -13,19 +13,21 @@ const defaultProps = {
     items: [],
 };
 
-const UnorderedList = (props) => (
-    <>
-        {_.map(props.items, (itemText) => (
-            <View
-                key={itemText}
-                style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}
-            >
-                <Text style={[styles.mr2]}>{'\u2022'}</Text>
-                <Text>{itemText}</Text>
-            </View>
-        ))}
-    </>
-);
+function UnorderedList(props) {
+    return (
+        <>
+            {_.map(props.items, (itemText) => (
+                <View
+                    key={itemText}
+                    style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}
+                >
+                    <Text style={[styles.mr2]}>{'\u2022'}</Text>
+                    <Text>{itemText}</Text>
+                </View>
+            ))}
+        </>
+    );
+}
 
 UnorderedList.displayName = 'UnorderedList';
 UnorderedList.propTypes = propTypes;

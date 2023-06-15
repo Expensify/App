@@ -53,7 +53,7 @@ const defaultProps = {
     },
 };
 
-const PersonalDetailsInitialPage = (props) => {
+function PersonalDetailsInitialPage(props) {
     useEffect(() => {
         if (props.network.isOffline) {
             return;
@@ -120,7 +120,7 @@ const PersonalDetailsInitialPage = (props) => {
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 PersonalDetailsInitialPage.propTypes = propTypes;
 PersonalDetailsInitialPage.defaultProps = defaultProps;
