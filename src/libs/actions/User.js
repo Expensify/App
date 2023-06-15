@@ -787,7 +787,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [newDefaultContactMethod]: {
+                [currentUserAccountID]: {
                     ...myPersonalDetails,
                     login: newDefaultContactMethod,
                     displayName: PersonalDetails.getDisplayName(newDefaultContactMethod, myPersonalDetails),
@@ -835,8 +835,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [newDefaultContactMethod]: null,
-                [oldDefaultContactMethod]: {...myPersonalDetails},
+                [currentUserAccountID]: {...myPersonalDetails},
             },
         },
     ];
