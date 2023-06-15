@@ -35,7 +35,7 @@ jobs:
 
       - name: Jest tests
         run: npx jest --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
-  
+
   storybookTests:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
@@ -55,5 +55,5 @@ jobs:
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
-      - name: getPullRequestsMergedBetween
-        run: tests/unit/getPullRequestsMergedBetweenTest.sh
+      - name: Test CI git logic
+        run: tests/unit/CIGitLogicTest.sh
