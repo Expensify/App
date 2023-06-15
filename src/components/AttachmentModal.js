@@ -9,7 +9,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
-import AttachmentCarousel from './AttachmentCarousel/index.native';
+import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
