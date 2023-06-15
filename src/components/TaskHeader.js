@@ -39,7 +39,7 @@ function TaskHeader(props) {
     const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerID);
     const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerID, 'avatar']), props.report.managerID);
     const isOpen = props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN;
-    const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
+    const isCompleted = ReportUtils.isTaskCompleted(props.report);
 
     useEffect(() => {
         TaskUtils.setTaskReport(props.report);
