@@ -219,7 +219,7 @@ function ReportActionItemMessageEdit(props) {
         }
         Report.editReportComment(reportID, props.action, trimmedNewDraft);
         deleteDraft();
-    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID]);
+    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID, props.report]);
 
     /**
      * @param {String} emoji
