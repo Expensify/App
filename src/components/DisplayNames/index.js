@@ -1,38 +1,30 @@
 import _ from 'underscore';
-import React, {Fragment, PureComponent} from 'react';
-import {View} from 'react-native';
+import React, {Fragment, useRef} from 'react';
+import {View, useState} from 'react-native';
 import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
 import UserDetailsTooltip from '../UserDetailsTooltip';
 
-class DisplayNames extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.containerRef = null;
-        this.childRefs = [];
-        this.state = {
-            isEllipsisActive: false,
-        };
-        this.setContainerLayout = this.setContainerLayout.bind(this);
-        this.getTooltipShiftX = this.getTooltipShiftX.bind(this);
-    }
+function DisplayNames(props) {
+    const containerRef = useRef(null);
+    const childRefs = [];
+    const [isEllipsisActive, setIsEllipsisActive] = useState(false);
+    const containerLayout = useRef(null);
 
-    componentDidMount() {
-        this.setState({
-            isEllipsisActive: this.containerRef && this.containerRef.offsetWidth && this.containerRef.scrollWidth && this.containerRef.offsetWidth < this.containerRef.scrollWidth,
-        });
-    }
+    useEffect(() => {
+        setIsEllipsisActive(containerRef && containerRef.current.offsetWidth && containerRef.current.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth);
+    }, []);
 
     /**
      * Set the container layout for post calculations
      *
      * @param {*} {nativeEvent}
      */
-    setContainerLayout({nativeEvent}) {
-        this.containerLayout = nativeEvent.layout;
-    }
+    const setContainerLayout = ({nativeEvent}) => {
+        containerLayout.current = nativeEvent.layout;
+    };
 
     /**
      * We may need to shift the Tooltip horizontally as some of the inline text wraps well with ellipsis,
@@ -46,15 +38,15 @@ class DisplayNames extends PureComponent {
      * @param {Number} index Used to get the Ref to the node at the current index
      * @returns {Number} Distance to shift the tooltip horizontally
      */
-    getTooltipShiftX(index) {
+    const getTooltipShiftX = (index) => {
         // Only shift the tooltip in case the containerLayout or Refs to the text node are available
-        if (!this.containerLayout || !this.childRefs[index]) {
+        if (!containerLayout.current || !childRefs[index]) {
             return;
         }
-        const {width: containerWidth, left: containerLeft} = this.containerLayout;
+        const {width: containerWidth, left: containerLeft} = containerLayout.current;
 
         // We have to return the value as Number so we can't use `measureWindow` which takes a callback
-        const {width: textNodeWidth, left: textNodeLeft} = this.childRefs[index].getBoundingClientRect();
+        const {width: textNodeWidth, left: textNodeLeft} = childRefs[index].getBoundingClientRect();
         const tooltipX = textNodeWidth / 2 + textNodeLeft;
         const containerRight = containerWidth + containerLeft;
         const textNodeRight = textNodeWidth + textNodeLeft;
@@ -62,66 +54,64 @@ class DisplayNames extends PureComponent {
 
         // When text right end is beyond the Container right end
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
-    }
+    };
 
-    render() {
-        if (!this.props.tooltipEnabled) {
-            // No need for any complex text-splitting, just return a simple Text component
-            return (
-                <Text
-                    style={[...this.props.textStyles, this.props.numberOfLines === 1 ? styles.pre : styles.preWrap]}
-                    numberOfLines={this.props.numberOfLines}
-                >
-                    {this.props.fullTitle}
-                </Text>
-            );
-        }
-
+    if (!props.tooltipEnabled) {
+        // No need for any complex text-splitting, just return a simple Text component
         return (
-            // Tokenization of string only support 1 numberOfLines on Web
             <Text
-                style={[...this.props.textStyles, styles.pRelative]}
-                onLayout={this.setContainerLayout}
-                numberOfLines={1}
-                ref={(el) => (this.containerRef = el)}
+                style={[...props.textStyles, props.numberOfLines === 1 ? styles.pre : styles.preWrap]}
+                numberOfLines={props.numberOfLines}
             >
-                {this.props.shouldUseFullTitle
-                    ? this.props.fullTitle
-                    : _.map(this.props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
-                          <Fragment key={index}>
-                              <UserDetailsTooltip
-                                  key={index}
-                                  accountID={accountID}
-                                  fallbackUserDetails={{
-                                      avatar,
-                                      login,
-                                      displayName,
-                                  }}
-                                  shiftHorizontal={() => this.getTooltipShiftX(index)}
-                              >
-                                  {/*  // We need to get the refs to all the names which will be used to correct
-                                    the horizontal position of the tooltip */}
-                                  <Text
-                                      ref={(el) => (this.childRefs[index] = el)}
-                                      style={[...this.props.textStyles, styles.pre]}
-                                  >
-                                      {displayName}
-                                  </Text>
-                              </UserDetailsTooltip>
-                              {index < this.props.displayNamesWithTooltips.length - 1 && <Text style={this.props.textStyles}>,&nbsp;</Text>}
-                          </Fragment>
-                      ))}
-                {this.props.displayNamesWithTooltips.length > 1 && Boolean(this.state.isEllipsisActive) && (
-                    <View style={styles.displayNameTooltipEllipsis}>
-                        <Tooltip text={this.props.fullTitle}>
-                            {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
-                            <Text>....</Text>
-                        </Tooltip>
-                    </View>
-                )}
+                {props.fullTitle}
             </Text>
         );
     }
+
+    return (
+        // Tokenization of string only support 1 numberOfLines on Web
+        <Text
+            style={[...props.textStyles, styles.pRelative]}
+            onLayout={setContainerLayout}
+            numberOfLines={1}
+            ref={(el) => (containerRef = el)}
+        >
+            {props.shouldUseFullTitle
+                ? props.fullTitle
+                : _.map(props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
+                      <Fragment key={index}>
+                          <UserDetailsTooltip
+                              key={index}
+                              accountID={accountID}
+                              fallbackUserDetails={{
+                                  avatar,
+                                  login,
+                                  displayName,
+                              }}
+                              shiftHorizontal={() => getTooltipShiftX(index)}
+                          >
+                              {/*  // We need to get the refs to all the names which will be used to correct
+                                    the horizontal position of the tooltip */}
+                              <Text
+                                  ref={(el) => (childRefs.current[index] = el)}
+                                  style={[...props.textStyles, styles.pre]}
+                              >
+                                  {displayName}
+                              </Text>
+                          </UserDetailsTooltip>
+                          {index < props.displayNamesWithTooltips.length - 1 && <Text style={props.textStyles}>,&nbsp;</Text>}
+                      </Fragment>
+                  ))}
+            {props.displayNamesWithTooltips.length > 1 && Boolean(isEllipsisActive) && (
+                <View style={styles.displayNameTooltipEllipsis}>
+                    <Tooltip text={props.fullTitle}>
+                        {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
+                        <Text>....</Text>
+                    </Tooltip>
+                </View>
+            )}
+        </Text>
+    );
 }
 DisplayNames.propTypes = propTypes;
 DisplayNames.defaultProps = defaultProps;
