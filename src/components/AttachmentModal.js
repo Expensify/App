@@ -5,7 +5,6 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
