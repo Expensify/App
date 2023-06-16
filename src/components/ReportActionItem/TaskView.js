@@ -24,7 +24,7 @@ const propTypes = {
 
 function TaskView(props) {
     useEffect(() => {
-        Task.setTaskReport(props.report);
+        Task.setTaskReport({...props.report, isExistingTaskReport: true});
     }, [props.report]);
 
     const taskTitle = props.report.reportName;

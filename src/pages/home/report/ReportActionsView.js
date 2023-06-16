@@ -193,6 +193,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (lodashGet(this.props, 'report.managerEmail') !== lodashGet(nextProps, 'report.managerEmail')) {
+            return true;
+        }
+
         return !_.isEqual(lodashGet(this.props.report, 'icons', []), lodashGet(nextProps.report, 'icons', []));
     }
 

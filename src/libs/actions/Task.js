@@ -297,7 +297,7 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {String} editedTask.assignee
  * @param {Number} editedTask.assigneeAccountID
  */
-function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee, assigneeAccountID = 0}) {
+function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee, assigneeAccountID = 0, assigneeEmail = ''}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
@@ -335,6 +335,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
                 reportName,
                 description: reportDescription,
                 managerID: assigneeAccountID || report.managerID,
+                managerEmail: assigneeEmail || report.managerEmail,
             },
         },
     ];

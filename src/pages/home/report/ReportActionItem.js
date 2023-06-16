@@ -544,6 +544,7 @@ export default compose(
             prevProps.report.reportName === nextProps.report.reportName &&
             prevProps.report.description === nextProps.report.description &&
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
-            prevProps.report.managerID === nextProps.report.managerID,
+            prevProps.report.managerID === nextProps.report.managerID &&
+            prevProps.report.managerEmail === nextProps.report.managerEmail,
     ),
 );
