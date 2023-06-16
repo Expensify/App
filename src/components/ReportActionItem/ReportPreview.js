@@ -124,15 +124,6 @@ function ReportPreview(props) {
                                 <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
                                     {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
                                 </Text>
-                                {!props.iouReport.hasOutstandingIOU && (
-                                    <View style={styles.iouPreviewBoxCheckmark}>
-                                        <Icon
-                                            style={[styles.ml10]}
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
                             </View>
                         )}
                     </View>
