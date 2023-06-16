@@ -111,6 +111,11 @@ function MagicCodeInput(props) {
             setFocusedIndex(0);
             inputRefs.current[0].focus();
         },
+        resetFocus() {
+            setInput('');
+            setFocusedIndex(0);
+            inputRefs.current[0].focus();
+        },
         clear() {
             setInput('');
             setFocusedIndex(0);
