@@ -2547,7 +2547,7 @@ const styles = {
     },
 
     iouPreviewBoxCheckmark: {
-        marginLeft: 4,
+        marginLeft: 8,
         alignSelf: 'center',
     },
 
