@@ -344,6 +344,11 @@ const styles = {
         fontSize: variables.fontSizeXXXLarge,
     },
 
+    textXXXLargeWLineHeight: {
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
+    },
+
     textHero: {
         fontSize: variables.fontSizeHero,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
