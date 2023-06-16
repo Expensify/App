@@ -536,7 +536,7 @@ function isPolicyExpenseChatAdmin(report, policies) {
  * @param {Object} report
  * @returns {Boolean}
  */
-function isThread(report) {
+function isChatThread(report) {
     return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
 }
 
@@ -733,7 +733,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         result.source = Expensicons.DeletedRoomAvatar;
         return [result];
     }
-    if (isThread(report)) {
+    if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
         const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
@@ -1006,7 +1006,7 @@ function getTransactionReportName(reportAction) {
  */
 function getReportName(report) {
     let formattedName;
-    if (isThread(report)) {
+    if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
@@ -1053,7 +1053,7 @@ function getReportName(report) {
  * @returns {String|*}
  */
 function getDMRootReportName(report) {
-    if (isThread(report) && !getChatType(report)) {
+    if (isChatThread(report) && !getChatType(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         return getDMRootReportName(parentReport);
     }
@@ -1067,7 +1067,7 @@ function getDMRootReportName(report) {
  * @returns {String}
  */
 function getChatRoomSubtitle(report) {
-    if (isThread(report)) {
+    if (isChatThread(report)) {
         if (!getChatType(report)) {
             return `${Localize.translateLocal('threads.from')} ${getDMRootReportName(report)}`;
         }
@@ -1119,7 +1119,7 @@ function getReport(reportID) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
@@ -1918,7 +1918,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, iouR
     if (
         !report ||
         !report.reportID ||
-        (_.isEmpty(report.participantAccountIDs) && !isThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
+        (_.isEmpty(report.participantAccountIDs) && !isChatThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
     ) {
         return false;
     }
@@ -1973,7 +1973,7 @@ function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participantAccountIDs || isThread(report)) {
+        if (!report || !report.participantAccountIDs || isChatThread(report)) {
             return false;
         }
 
@@ -2113,7 +2113,7 @@ function canRequestMoney(report) {
  */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
     // In any thread, we do not allow any new money requests yet
-    if (isThread(report)) {
+    if (isChatThread(report)) {
         return [];
     }
 
@@ -2219,7 +2219,7 @@ function shouldReportShowSubscript(report) {
         return false;
     }
 
-    if (isPolicyExpenseChat(report) && !isThread(report) && !isTaskReport(report) && !report.isOwnPolicyExpenseChat) {
+    if (isPolicyExpenseChat(report) && !isChatThread(report) && !isTaskReport(report) && !report.isOwnPolicyExpenseChat) {
         return true;
     }
 
@@ -2329,7 +2329,7 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
-    isThread,
+    isChatThread,
     isThreadParent,
     isThreadFirstChat,
     shouldReportShowSubscript,
