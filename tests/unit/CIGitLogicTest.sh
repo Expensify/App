@@ -10,8 +10,6 @@ getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
-PR_COUNT=0
-
 function print_version {
   < package.json jq -r .version
 }
@@ -88,19 +86,18 @@ success "Setup complete!"
 
 title "Scenario #1: Merge a pull request while the checklist is unlocked"
 
-((PR_COUNT++))
-info "Creating PR #$PR_COUNT and merging it into main..."
-git switch -c "pr-$PR_COUNT"
-echo "Changes from PR #$PR_COUNT" >> "PR$PR_COUNT.txt"
-git add "PR$PR_COUNT.txt"
-git commit -m "Changes from PR #$PR_COUNT"
-success "Created PR #$PR_COUNT in branch pr-$PR_COUNT"
+info "Creating PR #1 and merging it into main..."
+git switch -c "pr-1"
+echo "Changes from PR #1" >> "PR1.txt"
+git add "PR1.txt"
+git commit -m "Changes from PR #1"
+success "Created PR #1 in branch pr-1"
 
-info "Merging PR #$PR_COUNT to main"
+info "Merging PR #1 to main"
 git switch main
-git merge "pr-$PR_COUNT" --no-ff -m "Merge pull request #$PR_COUNT from Expensify/pr-$PR_COUNT"
-git branch -d "pr-$PR_COUNT"
-success "Merged PR #$PR_COUNT to main"
+git merge "pr-1" --no-ff -m "Merge pull request #1 from Expensify/pr-1"
+git branch -d "pr-1"
+success "Merged PR #1 to main"
 
 # Bump the version to 1.0.1
 info "Bumping version to 1.0.1"
@@ -125,42 +122,40 @@ git switch main
 # Verify output for checklist and deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.1"
 output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.1')
-assert_equal "$output" "[ '$PR_COUNT' ]"
+assert_equal "$output" "[ '1' ]"
 
 success "Scenario #1 completed successfully!"
 
 
 title "Scenario #2: Merge a pull request with the checklist locked, but don't CP it"
 
-((PR_COUNT++))
-info "Creating PR #$PR_COUNT and merging it into main..."
+info "Creating PR #2 and merging it into main..."
 setup_git_as_human
-git switch -c "pr-$PR_COUNT"
-echo "Changes from PR #$PR_COUNT" >> "PR$PR_COUNT.txt"
-git add "PR$PR_COUNT.txt"
-git commit -m "Changes from PR #$PR_COUNT"
+git switch -c "pr-2"
+echo "Changes from PR #2" >> "PR2.txt"
+git add "PR2.txt"
+git commit -m "Changes from PR #2"
 git switch main
-git merge "pr-$PR_COUNT" --no-ff -m "Merge pull request #$PR_COUNT from Expensify/pr-$PR_COUNT"
-info "Merged PR #$PR_COUNT into main"
-git branch -d "pr-$PR_COUNT"
-success "Created PR #$PR_COUNT and merged it to main!"
+git merge "pr-2" --no-ff -m "Merge pull request #2 from Expensify/pr-2"
+info "Merged PR #2 into main"
+git branch -d "pr-2"
+success "Created PR #2 and merged it to main!"
 
 success "Scenario #2 completed successfully!"
 
 title "Scenario #3: Merge a pull request with the checklist locked and CP it to staging"
 
-((PR_COUNT++))
-info "Creating PR #$PR_COUNT and merging it into main..."
-git switch -c "pr-$PR_COUNT"
-echo "Changes from PR #$PR_COUNT" >> "PR$PR_COUNT.txt"
-git add "PR$PR_COUNT.txt"
-git commit -m "Changes from PR #$PR_COUNT"
+info "Creating PR #3 and merging it into main..."
+git switch -c "pr-3"
+echo "Changes from PR #3" >> "PR3.txt"
+git add "PR3.txt"
+git commit -m "Changes from PR #3"
 git switch main
-git merge "pr-$PR_COUNT" --no-ff -m "Merge pull request #$PR_COUNT from Expensify/pr-$PR_COUNT"
+git merge "pr-3" --no-ff -m "Merge pull request #3 from Expensify/pr-3"
 PR_MERGE_COMMIT="$(git log -1 --format='%H')"
-info "Merged PR #$PR_COUNT into main"
-git branch -d "pr-$PR_COUNT"
-success "Created PR #$PR_COUNT and merged it to main!"
+info "Merged PR #3 into main"
+git branch -d "pr-3"
+success "Created PR #3 and merged it to main!"
 
 info "Bumping version to 1.0.2 on main..."
 setup_git_as_osbotify
@@ -170,17 +165,16 @@ git commit -m "Update version to $(print_version)"
 VERSION_BUMP_COMMIT="$(git log -1 --format='%H')"
 success "Bumped version to 1.0.2 on main!"
 
-info "Cherry picking PR #$PR_COUNT and the version bump to staging..."
+info "Cherry picking PR #3 and the version bump to staging..."
 git switch staging
 git switch -c cherry-pick-staging
 git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
 git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
 git switch staging
-((PR_COUNT++))
-git merge cherry-pick-staging --no-ff -m "Merge pull request #$PR_COUNT from Expensify/cherry-pick-staging"
+git merge cherry-pick-staging --no-ff -m "Merge pull request #4 from Expensify/cherry-pick-staging"
 git branch -d cherry-pick-staging
-info "Merged PR #$PR_COUNT into staging"
-success "Successfully cherry-picked PR #$((PR_COUNT - 1)) to staging!"
+info "Merged PR #4 into staging"
+success "Successfully cherry-picked PR #3 to staging!"
 
 info "Tagging the new version on staging..."
 git tag "$(print_version)"
@@ -189,12 +183,12 @@ success "Created tag $(print_version)"
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
 output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.2')
-assert_equal "$output" "[ '$((PR_COUNT - 1))', '$((PR_COUNT - 3))' ]"
+assert_equal "$output" "[ '3', '1' ]"
 
 # Verify output for deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
 output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.2')
-assert_equal "$output" "[ '$((PR_COUNT -1))' ]"
+assert_equal "$output" "[ '3' ]"
 
 success "Scenario #3 completed successfully!"
 
@@ -210,7 +204,7 @@ success "Recreated production from staging!"
 # Verify output for release body and production deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
 output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.2')
-assert_equal "$output" "[ '$((PR_COUNT - 1))', '$((PR_COUNT - 3))' ]"
+assert_equal "$output" "[ '3', '1' ]"
 
 success "Scenario #4A completed successfully!"
 
@@ -235,26 +229,25 @@ success "Successfully tagged version $(print_version) on staging"
 # Verify output for new checklist and staging deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.0"
 output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.0')
-assert_equal "$output" "[ '$((PR_COUNT - 2))' ]"
+assert_equal "$output" "[ '2' ]"
 
 success "Scenario #4B completed successfully!"
 
 
 title "Scenario #5: Merging another pull request when the checklist is unlocked"
 
-((PR_COUNT++))
-info "Creating PR #$PR_COUNT and merging it to main..."
+info "Creating PR #5 and merging it to main..."
 setup_git_as_human
 git switch main
-git switch -c "pr-$PR_COUNT"
-echo "Changes from PR #$PR_COUNT" >> "PR$PR_COUNT.txt"
-git add "PR$PR_COUNT.txt"
-git commit -m "Changes from PR #$PR_COUNT"
+git switch -c "pr-5"
+echo "Changes from PR #5" >> "PR5.txt"
+git add "PR5.txt"
+git commit -m "Changes from PR #5"
 git switch main
-git merge "pr-$PR_COUNT" --no-ff -m "Merge pull request #$PR_COUNT from Expensify/pr-$PR_COUNT"
-info "Merged PR #$PR_COUNT into main"
-git branch -d "pr-$PR_COUNT"
-success "Created PR #$PR_COUNT and merged it into main!"
+git merge "pr-5" --no-ff -m "Merge pull request #5 from Expensify/pr-5"
+info "Merged PR #5 into main"
+git branch -d "pr-5"
+success "Created PR #5 and merged it into main!"
 
 info "Bumping version to 1.1.1 on main..."
 setup_git_as_osbotify
@@ -275,12 +268,12 @@ success "Successfully tagged version $(print_version) on staging"
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.1"
 output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.1')
-assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 3))' ]"
+assert_equal "$output" "[ '5', '2' ]"
 
 # Verify output for deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.1.0 1.1.1"
 output=$(node "$getPullRequestsMergedBetween" '1.1.0' '1.1.1')
-assert_equal "$output" "[ '$PR_COUNT' ]"
+assert_equal "$output" "[ '5' ]"
 
 success "Scenario #6 completed successfully!"
 
