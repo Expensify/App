@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -11,6 +10,7 @@ import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as Task from '../../libs/actions/Task';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
@@ -44,6 +44,12 @@ function TaskView(props) {
             <MenuItemWithTopDescription
                 label={props.translate('task.description')}
                 title={props.report.description}
+                onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
+                shouldShowRightIcon
+            />
+            <MenuItemWithTopDescription
+                label={props.translate('task.createdBy')}
+                title={OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.managerID], props.personalDetails)}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 shouldShowRightIcon
             />

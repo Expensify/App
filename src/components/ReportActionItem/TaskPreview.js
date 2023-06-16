@@ -54,7 +54,7 @@ function TaskPreview(props) {
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
-    const isCompletedTaskReport = props.taskReport
+    const isTaskCompleted = props.taskReport
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
@@ -70,10 +70,10 @@ function TaskPreview(props) {
                 <Checkbox
                     style={[styles.mr2]}
                     containerStyle={[styles.taskCheckbox]}
-                    isChecked={isCompletedTaskReport}
+                    isChecked={isTaskCompleted}
                     disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
                     onPress={() => {
-                        if (isCompletedTaskReport) {
+                        if (isTaskCompleted) {
                             Task.reopenTask(props.taskReportID, taskTitle);
                         } else {
                             Task.completeTask(props.taskReportID, taskTitle);
