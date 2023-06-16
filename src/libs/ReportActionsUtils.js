@@ -448,6 +448,7 @@ export {
     isDeletedAction,
     shouldReportActionBeVisible,
     isReportActionDeprecated,
+    isCreatedAction,
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
     getLastClosedReportAction,

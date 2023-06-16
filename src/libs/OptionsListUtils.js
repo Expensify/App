@@ -380,12 +380,12 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
-        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
+        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action) && !ReportActionUtils.isCreatedAction(action)) || {};
         if (lodashGet(lastNonWhisper, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
             const latestVisibleAction =
                 _.find(
                     allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !ReportActionUtils.isWhisperAction(action),
+                    (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !ReportActionUtils.isWhisperAction(action) && !ReportActionUtils.isCreatedAction(action),
                 ) || {};
             lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
         }
@@ -472,6 +472,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
+        console.log('lastMessageTextFromReport', lastMessageTextFromReport);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
         let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
