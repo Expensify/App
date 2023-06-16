@@ -132,16 +132,16 @@ const sanitizeStringForJSONParse = __nccwpck_require__(9338);
  *
  * @param {String} fromRef
  * @param {String} toRef
- * @returns {Promise<Object<{commit: String, subject: String}>>}
+ * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
-function getMergeLogsAsJSON(fromRef, toRef) {
-    const command = `git log --format='{"commit": "%H", "subject": "%s"},' ${fromRef}...${toRef}`;
+function getCommitHistoryAsJSON(fromRef, toRef) {
+    const command = `git log --format='{"commit": "%H", "authorName": "%an", "subject": "%s"},' ${fromRef}...${toRef}`;
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
-        const spawnedProcess = spawn('git', ['log', '--format={"commit": "%H", "subject": "%s"},', `${fromRef}...${toRef}`]);
+        const spawnedProcess = spawn('git', ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromRef}...${toRef}`]);
         spawnedProcess.on('message', console.log);
         spawnedProcess.stdout.on('data', (chunk) => {
             console.log(chunk.toString());
@@ -173,26 +173,39 @@ function getMergeLogsAsJSON(fromRef, toRef) {
 /**
  * Parse merged PRs, excluding those from irrelevant branches.
  *
- * @param {Array<String>} commitMessages
+ * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
  * @returns {Array<String>}
  */
-function getValidMergedPRs(commitMessages) {
-    return _.reduce(
-        commitMessages,
-        (mergedPRs, commitMessage) => {
-            if (!_.isString(commitMessage)) {
-                return mergedPRs;
-            }
+function getValidMergedPRs(commits) {
+    const mergedPRs = new Set();
+    _.each(commits, (commit) => {
+        const author = commit.authorName;
+        if (author === 'OSBotify') {
+            return;
+        }
 
-            const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/(?:main|version-|update-staging-from-main|update-production-from-staging))/);
-            if (!_.isNull(match) && match[1]) {
-                mergedPRs.push(match[1]);
-            }
+        const message = commit.subject;
+        if (!_.isString(message)) {
+            return;
+        }
 
-            return mergedPRs;
-        },
-        [],
-    );
+        const match = message.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        if (!_.isArray(match) || match.length < 2) {
+            return;
+        }
+
+        const pr = match[1];
+        if (mergedPRs.has(pr)) {
+            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
+            // That also means that we don't want to include it in the current checklist, so we remove it now.
+            mergedPRs.delete(pr);
+            return;
+        }
+
+        mergedPRs.add(pr);
+    });
+
+    return Array.from(mergedPRs);
 }
 
 /**
@@ -203,35 +216,14 @@ function getValidMergedPRs(commitMessages) {
  * @returns {Promise<Array<String>>} – Pull request numbers
  */
 function getPullRequestsMergedBetween(fromRef, toRef) {
-    let targetMergeList;
-    return getMergeLogsAsJSON(fromRef, toRef)
-        .then((mergeList) => {
-            console.log(`Commits made between ${fromRef} and ${toRef}:`, mergeList);
-            targetMergeList = mergeList;
+    return getCommitHistoryAsJSON(fromRef, toRef).then((commitList) => {
+        console.log(`Commits made between ${fromRef} and ${toRef}:`, commitList);
 
-            // Get the full history on this branch, inclusive of the oldest commit from our target comparison
-            const oldestCommit = _.last(mergeList).commit;
-            return getMergeLogsAsJSON(oldestCommit, 'HEAD');
-        })
-        .then((fullMergeList) => {
-            // Remove from the final merge list any commits whose message appears in the full merge list more than once.
-            // This indicates that the PR should not be included in our list because it is a duplicate, and thus has already been processed by our CI
-            // See https://github.com/Expensify/App/issues/4977 for details
-            const duplicateMergeList = _.chain(fullMergeList)
-                .groupBy('subject')
-                .values()
-                .filter((i) => i.length > 1)
-                .flatten()
-                .pluck('commit')
-                .value();
-            const finalMergeList = _.filter(targetMergeList, (i) => !_.contains(duplicateMergeList, i.commit));
-            console.log('Filtered out the following commits which were duplicated in the full git log:', _.difference(targetMergeList, finalMergeList));
-
-            // Find which commit messages correspond to merged PR's
-            const pullRequestNumbers = getValidMergedPRs(_.pluck(finalMergeList, 'subject'));
-            console.log(`List of pull requests merged between ${fromRef} and ${toRef}`, pullRequestNumbers);
-            return pullRequestNumbers;
-        });
+        // Find which commit messages correspond to merged PR's
+        const pullRequestNumbers = getValidMergedPRs(commitList);
+        console.log(`List of pull requests merged between ${fromRef} and ${toRef}`, pullRequestNumbers);
+        return pullRequestNumbers;
+    });
 }
 
 module.exports = {
