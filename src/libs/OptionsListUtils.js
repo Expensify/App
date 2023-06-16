@@ -680,12 +680,12 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text && personalDetail.text.toLowerCase()], 'asc');
     }
 
-    // Always exclude already selected options and the currently logged in user
-    const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
-
-    _.each(excludeLogins, (login) => {
-        loginOptionsToExclude.push({login});
-    });
+    // Always exclude already selected options and the currently logged in user (accountID)
+    const accountIDOptionsToExclude = [...selectedOptions, {accountID: currentUserAccountID}];
+    // TODO: make this convert logins to accountIDs OR replace these all with accountIDs
+    // _.each(excludeLogins, (login) => {
+    //     accountIDOptionsToExclude.push({accountID: });
+    // });
 
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
@@ -718,9 +718,9 @@ function getOptions(
 
             recentReportOptions.push(reportOption);
 
-            // Add this login to the exclude list so it won't appear when we process the personal details
-            if (reportOption.login) {
-                loginOptionsToExclude.push({login: reportOption.login});
+            // Add this accountID to the exclude list so it won't appear when we process the personal details
+            if (reportOption.accountID) {
+                accountIDOptionsToExclude.push({accountID: reportOption.accountID});
             }
         }
     }
@@ -728,7 +728,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === personalDetailOption.login)) {
+            if (_.some(accountIDOptionsToExclude, (accountIDOptionToExclude) => accountIDOptionToExclude.accountID === personalDetailOption.accountID)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -748,6 +748,7 @@ function getOptions(
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
+    console.log('NO OPTIONS', {noOptions, noOptionsMatchExactly})
 
     if (
         searchValue &&
@@ -755,7 +756,7 @@ function getOptions(
         !isCurrentUser({login: searchValue}) &&
         _.every(selectedOptions, (option) => option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || parsedPhoneNumber.possible) &&
-        !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
+        // TODO: reference accountIDOptionsToExclude here too - maybe search through personalDetails for searchValue?
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // Generates an optimistic account ID for new users not yet saved in Onyx
