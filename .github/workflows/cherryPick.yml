@@ -114,12 +114,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Check if ShortVersionString is up to date
-        id: isShortVersionStringUpdated
-        uses: Expensify/App/.github/actions/javascript/checkBundleVersionStringMatch@main
-
       - name: Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched
-        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
+        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) }}
         run: gh pr edit --add-label "Engineering,Hourly"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -137,16 +133,6 @@ jobs:
           "This pull request has merge conflicts and can not be automatically merged. :disappointed:
            Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
            **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving."
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: If PR has a bundle version mismatch, comment with the instructions for assignee
-        if: ${{ !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
-        run: |
-          gh pr comment --body \
-          "The CFBundleShortVersionString value in this PR is not compatible with the CFBundleVersion, so cherry picking it will result in an iOS deploy failure.
-           Please manually resolve the mismatch, push your changes, and then request another reviewer to review and merge.
-           **Important:** This mismatch can be caused by a failed Update Protected Branch workflow followed by a manual CP, but please confirm the cause of the mismatch before updating any version numbers."
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
