@@ -64,6 +64,27 @@ function merge_pr {
   success "Merged PR #$1 to main"
 }
 
+function cherry_pick_pr {
+  info "Cherry-picking PR $1 to staging..."
+  merge_pr "$1"
+  PR_MERGE_COMMIT="$(git rev-parse HEAD)"
+
+  bump_version patch
+  VERSION_BUMP_COMMIT="$(git rev-parse HEAD)"
+
+  git switch staging
+  git switch -c cherry-pick-staging
+  git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
+  git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
+
+  git switch staging
+  git merge cherry-pick-staging --no-ff -m "Merge pull request #$(($1 + 1)) from Expensify/cherry-pick-staging"
+  git branch -d cherry-pick-staging
+  info "Merged PR #$(($1 + 1)) into staging"
+
+  success "Successfully cherry-picked PR #$1 to staging!"
+}
+
 ### Phase 0: Verify necessary tools are installed (all tools should be pre-installed on all GitHub Actions runners)
 
 if ! command -v jq &> /dev/null; then
@@ -168,26 +189,7 @@ git switch -c pr-3
 echo "Changes from PR #3" >> PR3.txt
 git add PR3.txt
 git commit -m "Changes from PR #3"
-git switch main
-git merge pr-3 --no-ff -m "Merge pull request #3 from Expensify/pr-3"
-PR_MERGE_COMMIT="$(git rev-parse HEAD)"
-info "Merged PR #3 into main"
-git branch -d pr-3
-success "Created PR #3 and merged it to main!"
-
-bump_version patch
-VERSION_BUMP_COMMIT="$(git rev-parse HEAD)"
-
-info "Cherry picking PR #3 and the version bump to staging..."
-git switch staging
-git switch -c cherry-pick-staging
-git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs "$PR_MERGE_COMMIT"
-git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
-git switch staging
-git merge cherry-pick-staging --no-ff -m "Merge pull request #4 from Expensify/cherry-pick-staging"
-git branch -d cherry-pick-staging
-info "Merged PR #4 into staging"
-success "Successfully cherry-picked PR #3 to staging!"
+cherry_pick_pr 3
 
 info "Tagging the new version on staging..."
 git tag "$(print_version)"
