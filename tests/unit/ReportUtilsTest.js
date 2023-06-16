@@ -10,23 +10,28 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 jest.mock('../../src/libs/Permissions');
 
 const currentUserEmail = 'bjorn@vikings.net';
+const currentUserAccountID = 5;
 const participantsPersonalDetails = {
-    'ragnar@vikings.net': {
+    1: {
+        accountID: 1,
         displayName: 'Ragnar Lothbrok',
         firstName: 'Ragnar',
         login: 'ragnar@vikings.net',
     },
-    'floki@vikings.net': {
+    2: {
+        accountID: 2,
         login: 'floki@vikings.net',
         displayName: 'floki@vikings.net',
     },
-    'lagertha@vikings.net': {
+    3: {
+        accountID: 3,
         displayName: 'Lagertha Lothbrok',
         firstName: 'Lagertha',
         login: 'lagertha@vikings.net',
         pronouns: 'She/her',
     },
-    '+18332403627@expensify.sms': {
+    4: {
+        accountID: 4,
         login: '+18332403627@expensify.sms',
         displayName: '(833) 240-3627',
     },
@@ -41,8 +46,8 @@ Onyx.init({keys: ONYXKEYS});
 describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS]: participantsPersonalDetails,
-            [ONYXKEYS.SESSION]: {email: currentUserEmail},
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+            [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
             [ONYXKEYS.COUNTRY_CODE]: 1,
             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
         });
@@ -55,22 +60,38 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, false)).toStrictEqual([
                 {
                     displayName: 'Ragnar Lothbrok',
-                    tooltip: 'ragnar@vikings.net',
+                    login: 'ragnar@vikings.net',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
+                    },
+                    accountID: 1,
                     pronouns: undefined,
                 },
                 {
                     displayName: 'floki@vikings.net',
-                    tooltip: 'floki@vikings.net',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
+                    },
+                    login: 'floki@vikings.net',
+                    accountID: 2,
                     pronouns: undefined,
                 },
                 {
                     displayName: 'Lagertha Lothbrok',
-                    tooltip: 'lagertha@vikings.net',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
+                    },
+                    login: 'lagertha@vikings.net',
+                    accountID: 3,
                     pronouns: 'She/her',
                 },
                 {
                     displayName: '(833) 240-3627',
-                    tooltip: '+18332403627',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
+                    },
+                    login: '+18332403627@expensify.sms',
+                    accountID: 4,
                     pronouns: undefined,
                 },
             ]);
@@ -80,22 +101,38 @@ describe('ReportUtils', () => {
             expect(ReportUtils.getDisplayNamesWithTooltips(participantsPersonalDetails, true)).toStrictEqual([
                 {
                     displayName: 'Ragnar',
-                    tooltip: 'ragnar@vikings.net',
+                    login: 'ragnar@vikings.net',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_2.svg',
+                    },
+                    accountID: 1,
                     pronouns: undefined,
                 },
                 {
                     displayName: 'floki@vikings.net',
-                    tooltip: 'floki@vikings.net',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_3.svg',
+                    },
+                    login: 'floki@vikings.net',
+                    accountID: 2,
                     pronouns: undefined,
                 },
                 {
                     displayName: 'Lagertha',
-                    tooltip: 'lagertha@vikings.net',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_4.svg',
+                    },
+                    login: 'lagertha@vikings.net',
+                    accountID: 3,
                     pronouns: 'She/her',
                 },
                 {
                     displayName: '(833) 240-3627',
-                    tooltip: '+18332403627',
+                    avatar: {
+                        testUri: '../../../assets/images/avatars/user/default-avatar_5.svg',
+                    },
+                    login: '+18332403627@expensify.sms',
+                    accountID: 4,
                     pronouns: undefined,
                 },
             ]);
@@ -108,6 +145,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         participants: [currentUserEmail, 'ragnar@vikings.net'],
+                        participantAccountIDs: [currentUserAccountID, 1],
                     }),
                 ).toBe('Ragnar Lothbrok');
             });
@@ -116,6 +154,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         participants: [currentUserEmail, 'floki@vikings.net'],
+                        participantAccountIDs: [currentUserAccountID, 2],
                     }),
                 ).toBe('floki@vikings.net');
             });
@@ -124,6 +163,7 @@ describe('ReportUtils', () => {
                 expect(
                     ReportUtils.getReportName({
                         participants: [currentUserEmail, '+18332403627@expensify.sms'],
+                        participantAccountIDs: [currentUserAccountID, 4],
                     }),
                 ).toBe('(833) 240-3627');
             });
@@ -133,6 +173,7 @@ describe('ReportUtils', () => {
             expect(
                 ReportUtils.getReportName({
                     participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+18332403627@expensify.sms'],
+                    participantAccountIDs: [currentUserAccountID, 1, 2, 3, 4],
                 }),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
@@ -192,6 +233,7 @@ describe('ReportUtils', () => {
                             policyID: policy.policyID,
                             isOwnPolicyExpenseChat: true,
                             ownerEmail: 'ragnar@vikings.net',
+                            ownerAccountID: 1,
                         }),
                     ).toBe('Vikings Policy');
                 });
@@ -203,6 +245,7 @@ describe('ReportUtils', () => {
                             policyID: policy.policyID,
                             isOwnPolicyExpenseChat: false,
                             ownerEmail: 'ragnar@vikings.net',
+                            ownerAccountID: 1,
                         }),
                     ).toBe('Ragnar Lothbrok');
                 });
@@ -212,6 +255,7 @@ describe('ReportUtils', () => {
                 const baseArchivedPolicyExpenseChat = {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     ownerEmail: 'ragnar@vikings.net',
+                    ownerAccountID: 1,
                     policyID: policy.policyID,
                     oldPolicyName: policy.name,
                     statusNum: CONST.REPORT.STATUS.CLOSED,
@@ -268,7 +312,7 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
             };
             const iouReports = {};
-            expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
         });
         it('returns false when the matched IOU report does not have an owner email', () => {
             const report = {
@@ -280,7 +324,7 @@ describe('ReportUtils', () => {
                     reportID: '1',
                 },
             };
-            expect(ReportUtils.hasOutstandingIOU(report, undefined, iouReports)).toBe(false);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
         });
         it('returns false when the matched IOU report does not have an owner email', () => {
             const report = {
@@ -290,10 +334,10 @@ describe('ReportUtils', () => {
             const iouReports = {
                 report_1: {
                     reportID: '1',
-                    ownerEmail: 'a@a.com',
+                    ownerAccountID: 99,
                 },
             };
-            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
         });
         it('returns true when the report has an oustanding IOU', () => {
             const report = {
@@ -304,10 +348,10 @@ describe('ReportUtils', () => {
             const iouReports = {
                 report_1: {
                     reportID: '1',
-                    ownerEmail: 'a@a.com',
+                    ownerAccountID: 99,
                 },
             };
-            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(true);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(true);
         });
         it('returns false when the report has no oustanding IOU', () => {
             const report = {
@@ -318,10 +362,10 @@ describe('ReportUtils', () => {
             const iouReports = {
                 report_1: {
                     reportID: '1',
-                    ownerEmail: 'a@a.com',
+                    ownerAccountID: 99,
                 },
             };
-            expect(ReportUtils.hasOutstandingIOU(report, 'b@b.com', iouReports)).toBe(false);
+            expect(ReportUtils.hasOutstandingIOU(report, iouReports)).toBe(false);
         });
     });
 
@@ -329,8 +373,9 @@ describe('ReportUtils', () => {
         const participants = _.keys(participantsPersonalDetails);
 
         beforeAll(() => {
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
-                [currentUserEmail]: {
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
                     login: currentUserEmail,
                 },
             });
@@ -340,20 +385,20 @@ describe('ReportUtils', () => {
 
         describe('return empty iou options if', () => {
             it('participants contains excluded iou emails', () => {
-                const allEmpty = _.every(CONST.EXPENSIFY_EMAILS, (email) => {
-                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, email], [CONST.BETAS.IOU]);
+                const allEmpty = _.every(CONST.EXPENSIFY_ACCOUNT_IDS, (accountID) => {
+                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, accountID], [CONST.BETAS.IOU]);
                     return moneyRequestOptions.length === 0;
                 });
                 expect(allEmpty).toBe(true);
             });
 
             it('no participants except self', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail], [CONST.BETAS.IOU]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID], [CONST.BETAS.IOU]);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
             it('no iou permission', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, participants], []);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], []);
                 expect(moneyRequestOptions.length).toBe(0);
             });
         });
@@ -367,7 +412,7 @@ describe('ReportUtils', () => {
                             ...LHNTestUtils.getFakeReport(),
                             chatType,
                         };
-                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserEmail, participants[0]], [CONST.BETAS.IOU]);
+                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participants[0]], [CONST.BETAS.IOU]);
                         return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
                     },
                 );
@@ -375,33 +420,33 @@ describe('ReportUtils', () => {
             });
 
             it('has multiple participants exclude self', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, ...participants], [CONST.BETAS.IOU]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], [CONST.BETAS.IOU]);
+                expect(moneyRequestOptions.length).toBe(1);
+                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
+            });
+
+            it(' does not have iou send permission', () => {
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], [CONST.BETAS.IOU]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             });
         });
 
         describe('return only iou request option if', () => {
-            it(' does not have iou send permission', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserEmail, participants], [CONST.BETAS.IOU]);
-                expect(moneyRequestOptions.length).toBe(1);
-                expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
-            });
-
             it('a policy expense chat', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserEmail, participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             });
         });
 
         it('return both iou send and request money in DM', () => {
-            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserEmail, participants[0]], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserAccountID, participants[0]], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);

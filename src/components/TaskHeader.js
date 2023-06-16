@@ -1,8 +1,7 @@
 import React, {useEffect} from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import reportPropTypes from '../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -22,6 +21,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Button from './Button';
 import * as TaskUtils from '../libs/actions/Task';
 import * as UserUtils from '../libs/UserUtils';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -35,11 +35,10 @@ const propTypes = {
 
 function TaskHeader(props) {
     const title = ReportUtils.getReportName(props.report);
-    const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerEmail);
-    const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerEmail, 'avatar']), props.report.managerEmail);
+    const assigneeName = ReportUtils.getDisplayNameForParticipant(props.report.managerID);
+    const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [props.report.managerID, 'avatar']), props.report.managerID);
     const isOpen = props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN;
-    const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
-    const parentReportID = props.report.parentReportID;
+    const isCompleted = ReportUtils.isTaskCompleted(props.report);
 
     useEffect(() => {
         TaskUtils.setTaskReport(props.report);
@@ -50,13 +49,17 @@ function TaskHeader(props) {
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
-                    <TouchableOpacity
+                    <PressableWithFeedback
                         onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                         disabled={!isOpen}
+                        accessibilityRole="button"
+                        accessibilityLabel={props.translate('newTaskPage.assignee')}
+                        hoverDimmingValue={1}
+                        pressDimmingValue={0.2}
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {!_.isEmpty(props.report.managerEmail) && (
+                                {props.report.managerID && props.report.managerID > 0 && (
                                     <>
                                         <Avatar
                                             source={assigneeAvatar}
@@ -92,12 +95,12 @@ function TaskHeader(props) {
                                         isDisabled={TaskUtils.isTaskCanceled(props.report)}
                                         medium
                                         text={props.translate('newTaskPage.markAsDone')}
-                                        onPress={() => TaskUtils.completeTask(props.report.reportID, parentReportID, title)}
+                                        onPress={() => TaskUtils.completeTask(props.report.reportID, title)}
                                     />
                                 )}
                             </View>
                         </View>
-                    </TouchableOpacity>
+                    </PressableWithFeedback>
                 </View>
             </View>
             <MenuItemWithTopDescription
@@ -106,12 +109,14 @@ function TaskHeader(props) {
                 description={props.translate('newTaskPage.task')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
                 disabled={!isOpen}
+                interactive={isOpen}
             />
             <MenuItemWithTopDescription
                 title={lodashGet(props.report, 'description', '')}
                 description={props.translate('newTaskPage.description')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 disabled={!isOpen}
+                interactive={isOpen}
             />
         </View>
     );

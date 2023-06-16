@@ -11,10 +11,10 @@ import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import Navigation from '../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import * as Browser from '../libs/Browser';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
@@ -206,12 +206,11 @@ class NewChatPage extends Component {
         if (!this.props.isGroupChat) {
             return;
         }
-
-        const userLogins = _.pluck(this.state.selectedOptions, 'login');
-        if (userLogins.length < 1) {
+        const logins = _.pluck(this.state.selectedOptions, 'login');
+        if (logins.length < 1) {
             return;
         }
-        Report.navigateToAndOpenReport(userLogins);
+        Report.navigateToAndOpenReport(logins);
     }
 
     render() {
@@ -232,10 +231,8 @@ class NewChatPage extends Component {
             >
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
-                            title={this.props.isGroupChat ? this.props.translate('sidebarScreen.newGroup') : this.props.translate('sidebarScreen.newChat')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
+                        <HeaderWithBackButton title={this.props.isGroupChat ? this.props.translate('sidebarScreen.newGroup') : this.props.translate('sidebarScreen.newChat')} />
+
                         <View style={[styles.flex1, styles.w100, styles.pRelative, this.state.selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                             <OptionsSelector
                                 canSelectMultipleOptions={this.props.isGroupChat}
@@ -246,7 +243,7 @@ class NewChatPage extends Component {
                                 onChangeText={this.updateOptionsWithSearchTerm}
                                 headerMessage={headerMessage}
                                 boldStyle
-                                shouldFocusOnSelectRow={this.props.isGroupChat}
+                                shouldFocusOnSelectRow={this.props.isGroupChat && !Browser.isMobile()}
                                 shouldShowConfirmButton={this.props.isGroupChat}
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                                 confirmButtonText={this.props.translate('newChatPage.createGroup')}
@@ -273,7 +270,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

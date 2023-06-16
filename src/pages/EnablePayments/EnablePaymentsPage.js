@@ -15,11 +15,12 @@ import OnfidoStep from './OnfidoStep';
 import AdditionalDetailsStep from './AdditionalDetailsStep';
 import TermsStep from './TermsStep';
 import ActivateStep from './ActivateStep';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import FailedKYC from './FailedKYC';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Information about the network from Onyx */
@@ -59,9 +60,9 @@ class EnablePaymentsPage extends React.Component {
                     if (this.props.userWallet.errorCode === CONST.WALLET.ERROR.KYC) {
                         return (
                             <>
-                                <HeaderWithCloseButton
+                                <HeaderWithBackButton
                                     title={this.props.translate('additionalDetailsStep.headerTitle')}
-                                    onCloseButtonPress={() => Navigation.dismissModal()}
+                                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
                                 />
                                 <FailedKYC />
                             </>

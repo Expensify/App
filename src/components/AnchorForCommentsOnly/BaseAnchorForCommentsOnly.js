@@ -21,6 +21,9 @@ const propTypes = {
     /** Press out handler for the link */
     onPressOut: PropTypes.func,
 
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...anchorForCommentsOnlyPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -28,13 +31,14 @@ const propTypes = {
 const defaultProps = {
     onPressIn: undefined,
     onPressOut: undefined,
+    containerStyles: [],
     ...anchorForCommentsOnlyDefaultProps,
 };
 
 /*
  * This is a default anchor component for regular links.
  */
-const BaseAnchorForCommentsOnly = (props) => {
+function BaseAnchorForCommentsOnly(props) {
     let linkRef;
     const rest = _.omit(props, _.keys(propTypes));
     const linkProps = {};
@@ -44,13 +48,14 @@ const BaseAnchorForCommentsOnly = (props) => {
         linkProps.href = props.href;
     }
     const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : styles.userSelectText;
+    const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
         <PressableWithSecondaryInteraction
             inline
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(
-                    Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, '')) ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                    isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                     event,
                     props.href,
                     lodashGet(linkRef, 'current'),
@@ -67,7 +72,7 @@ const BaseAnchorForCommentsOnly = (props) => {
                     accessibilityRole="link"
                     hrefAttrs={{
                         rel: props.rel,
-                        target: props.target,
+                        target: isEmail ? '_self' : props.target,
                     }}
                     href={linkProps.href}
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
@@ -80,7 +85,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             </Tooltip>
         </PressableWithSecondaryInteraction>
     );
-};
+}
 
 BaseAnchorForCommentsOnly.propTypes = propTypes;
 BaseAnchorForCommentsOnly.defaultProps = defaultProps;

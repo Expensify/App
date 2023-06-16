@@ -4,10 +4,9 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize from '../../components/withLocalize';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
-import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -42,51 +41,51 @@ class RequestorStep extends React.Component {
         const errors = {};
 
         if (!ValidationUtils.isRequiredFulfilled(values.firstName)) {
-            errors.firstName = this.props.translate('bankAccount.error.firstName');
+            errors.firstName = 'bankAccount.error.firstName';
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.lastName)) {
-            errors.lastName = this.props.translate('bankAccount.error.lastName');
+            errors.lastName = 'bankAccount.error.lastName';
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
-            errors.dob = this.props.translate('bankAccount.error.dob');
+            errors.dob = 'bankAccount.error.dob';
         }
 
         if (values.dob) {
             if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
-                errors.dob = this.props.translate('bankAccount.error.age');
+                errors.dob = 'bankAccount.error.age';
             } else if (!ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
-                errors.dob = this.props.translate('bankAccount.error.dob');
+                errors.dob = 'bankAccount.error.dob';
             }
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.ssnLast4) || !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
-            errors.ssnLast4 = this.props.translate('bankAccount.error.ssnLast4');
+            errors.ssnLast4 = 'bankAccount.error.ssnLast4';
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressStreet)) {
-            errors.requestorAddressStreet = this.props.translate('bankAccount.error.address');
+            errors.requestorAddressStreet = 'bankAccount.error.address';
         }
 
         if (values.requestorAddressStreet && !ValidationUtils.isValidAddress(values.requestorAddressStreet)) {
-            errors.requestorAddressStreet = this.props.translate('bankAccount.error.addressStreet');
+            errors.requestorAddressStreet = 'bankAccount.error.addressStreet';
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressCity)) {
-            errors.requestorAddressCity = this.props.translate('bankAccount.error.addressCity');
+            errors.requestorAddressCity = 'bankAccount.error.addressCity';
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressState)) {
-            errors.requestorAddressState = this.props.translate('bankAccount.error.addressState');
+            errors.requestorAddressState = 'bankAccount.error.addressState';
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.requestorAddressZipCode) || !ValidationUtils.isValidZipCode(values.requestorAddressZipCode)) {
-            errors.requestorAddressZipCode = this.props.translate('bankAccount.error.zipCode');
+            errors.requestorAddressZipCode = 'bankAccount.error.zipCode';
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.isControllingOfficer)) {
-            errors.isControllingOfficer = this.props.translate('requestorStep.isControllingOfficerError');
+            errors.isControllingOfficer = 'requestorStep.isControllingOfficerError';
         }
 
         return errors;
@@ -115,14 +114,12 @@ class RequestorStep extends React.Component {
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('requestorStep.headerTitle')}
                     stepCounter={{step: 3, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
-                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}

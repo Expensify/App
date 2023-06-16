@@ -38,7 +38,7 @@ const defaultProps = {
     },
 };
 
-const PopoverMenu = (props) => {
+function PopoverMenu(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
 
@@ -64,7 +64,7 @@ const PopoverMenu = (props) => {
     return (
         <PopoverWithMeasuredContent
             anchorPosition={props.anchorPosition}
-            anchorAlignment={props.anchorOrigin}
+            anchorAlignment={props.anchorAlignment}
             onClose={props.onClose}
             isVisible={props.isVisible}
             onModalHide={() => {
@@ -97,7 +97,7 @@ const PopoverMenu = (props) => {
             </View>
         </PopoverWithMeasuredContent>
     );
-};
+}
 
 PopoverMenu.propTypes = propTypes;
 PopoverMenu.defaultProps = defaultProps;

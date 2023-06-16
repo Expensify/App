@@ -21,7 +21,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const NewPasswordForm = (props) => {
+function NewPasswordForm(props) {
     const [passwordHintError, setPasswordHintError] = useState(false);
 
     const isValidPassword = () => props.password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
@@ -61,7 +61,7 @@ const NewPasswordForm = (props) => {
             <Text style={[styles.formHelp, styles.mt1, isInvalidPassword() && styles.formError]}>{props.translate('setPasswordPage.newPasswordPrompt')}</Text>
         </View>
     );
-};
+}
 
 NewPasswordForm.propTypes = propTypes;
 NewPasswordForm.displayName = 'NewPasswordForm';

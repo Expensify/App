@@ -15,7 +15,7 @@ export default {
     },
 };
 
-const Template = (args) => {
+function Template(args) {
     const [value, setValue] = useState('');
     return (
         <AddressSearch
@@ -25,7 +25,7 @@ const Template = (args) => {
             {...args}
         />
     );
-};
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
