@@ -183,7 +183,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (ReportUtils.isTaskReport(report) && report.stateNum !== CONST.REPORT.STATE.OPEN && report.statusNum !== CONST.REPORT.STATUS.OPEN) {
+        if (ReportUtils.isTaskReport(report) && ReportUtils.isCompletedTaskReport(report)) {
             archivedReports.push(report);
             return;
         }
@@ -266,6 +266,10 @@ function getOptionData(reportID) {
     result.isThread = ReportUtils.isThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
+    if (result.isTaskReport) {
+        result.isCompletedTaskReport = ReportUtils.isCompletedTaskReport(report);
+        result.isTaskAssignee = ReportUtils.isTaskAssignee(report);
+    }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);

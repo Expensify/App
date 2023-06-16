@@ -154,7 +154,7 @@ function isOpenTaskReport(report) {
 }
 
 /**
- * Checks if a report is a canceled task report.
+ * Checks if the current user is assigned to the task report
  *
  * @param {Object} report
  * @returns {Boolean}
@@ -171,6 +171,10 @@ function isCanceledTaskReport(report) {
  */
 function isCompletedTaskReport(report) {
     return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
+}
+
+function isTaskAssignee(report) {
+    return lodashGet(report, 'managerEmail') === currentUserEmail;
 }
 
 /**
@@ -2339,6 +2343,7 @@ export {
     isOpenTaskReport,
     isCanceledTaskReport,
     isCompletedTaskReport,
+    isTaskAssignee,
     isMoneyRequestReport,
     chatIncludesChronos,
     getNewMarkerReportActionID,
