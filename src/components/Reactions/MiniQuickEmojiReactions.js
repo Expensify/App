@@ -40,6 +40,7 @@ const propTypes = {
 const defaultProps = {
     onEmojiPickerClosed: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    reportAction: {},
 };
 
 /**

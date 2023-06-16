@@ -39,6 +39,7 @@ const baseQuickEmojiReactionsPropTypes = {
 const baseQuickEmojiReactionsDefaultProps = {
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
+    reportAction: {},
 };
 
 const propTypes = {

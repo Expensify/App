@@ -29,7 +29,7 @@ function hideEmojiPicker(isNavigating) {
     if (!emojiPickerRef.current) {
         return;
     }
-    return emojiPickerRef.current.hideEmojiPicker(isNavigating);
+    emojiPickerRef.current.hideEmojiPicker(isNavigating);
 }
 
 /**

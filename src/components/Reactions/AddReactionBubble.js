@@ -47,6 +47,7 @@ const defaultProps = {
     isContextMenu: false,
     onWillShowPicker: () => {},
     onPressOpenPicker: undefined,
+    reportAction: {},
 };
 
 function AddReactionBubble(props) {
