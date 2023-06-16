@@ -1058,14 +1058,14 @@ function getReportName(report) {
 }
 
 /**
- * Recursively navigates through parent to get the root reports name only for DM reports.
+ * Recursively navigates through thread parents to get the root reports name.
  * @param {Object} report
  * @returns {String|*}
  */
-function getDMRootReportName(report) {
-    if (isChatThread(report) && !getChatType(report)) {
+function getRootReportName(report) {
+    if (isThread(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-        return getDMRootReportName(parentReport);
+        return getRootReportName(parentReport);
     }
 
     return getReportName(report);
@@ -1079,7 +1079,7 @@ function getDMRootReportName(report) {
 function getChatRoomSubtitle(report) {
     if (isChatThread(report)) {
         if (!getChatType(report)) {
-            return `${Localize.translateLocal('threads.from')} ${getDMRootReportName(report)}`;
+            return `${Localize.translateLocal('threads.from')} ${getRootReportName(report)}`;
         }
 
         let roomName = '';
@@ -1118,10 +1118,6 @@ function getChatRoomSubtitle(report) {
  */
 function getChatRoomSubtitleLink(report) {
     if (isThread(report)) {
-        if (!getChatType(report)) {
-            return `${Localize.translateLocal('threads.from')} ${getDMRootReportName(report)}`;
-        }
-
         let roomName = '';
         if (isChatRoom(report)) {
             const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
@@ -1130,10 +1126,12 @@ function getChatRoomSubtitleLink(report) {
             } else {
                 roomName = lodashGet(report, 'displayName', '');
             }
+
+            const workspaceName = getPolicyName(report);
+            return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
         }
 
-        const workspaceName = getPolicyName(report);
-        return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+        return `${Localize.translateLocal('threads.from')} ${getRootReportName(report)}`;
     }
     return '';
 }
