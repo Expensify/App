@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import reportPropTypes from '../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -6,6 +6,7 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
+import * as Task from '../libs/actions/Task';
 import TaskHeaderActionButton from './TaskHeaderActionButton';
 
 const propTypes = {
@@ -18,6 +19,10 @@ const propTypes = {
 };
 
 function TaskHeader(props) {
+    useEffect(() => {
+        Task.setTaskReport(props.report);
+    }, [props.report]);
+
     return (
         <View style={styles.borderBottom}>
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
