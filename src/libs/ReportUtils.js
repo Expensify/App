@@ -173,7 +173,6 @@ function isCompletedTaskReport(report) {
     return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
-
 /**
  * Checks if a report is an IOU or expense report.
  *

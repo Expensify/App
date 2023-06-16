@@ -12,7 +12,7 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
     /** Task Report Info */
@@ -53,9 +53,9 @@ function TaskTitlePage(props) {
 
     const submit = useCallback(
         (values) => {
-            // Set the description of the report in the store and then call TaskUtils.editTaskReport
+            // Set the description of the report in the store and then call Task.editTaskReport
             // to update the description of the report on the server
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {title: values.title});
+            Task.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {title: values.title});
         },
         [props],
     );

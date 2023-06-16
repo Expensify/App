@@ -14,6 +14,7 @@ import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
+import Checkbox from './Checkbox';
 import colors from '../styles/colors';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
@@ -33,6 +34,8 @@ const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
     shouldShowSelectedState: false,
+    shouldUseSquareSelectedState: false,
+    shouldShowSelectedStateBeforeTitle: false,
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
     shouldShowHeaderTitle: false,
@@ -67,6 +70,7 @@ const defaultProps = {
     hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
+    onPressSelection: () => {},
 };
 
 function MenuItem(props) {
@@ -96,6 +100,19 @@ function MenuItem(props) {
     ]);
 
     const fallbackAvatarSize = props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+
+    const selectedState = props.shouldUseSquareSelectedState ? (
+        <Checkbox
+            onPress={() => props.onPressSelection()}
+            isChecked={props.isSelected}
+            style={props.shouldShowSelectedStateBeforeTitle && styles.mr3}
+        />
+    ) : (
+        <SelectCircle
+            isChecked={props.isSelected}
+            style={props.shouldShowSelectedStateBeforeTitle && styles.mr3}
+        />
+    );
 
     return (
         <PressableWithSecondaryInteraction
@@ -177,60 +194,64 @@ function MenuItem(props) {
                                     )}
                                 </View>
                             )}
-                            <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
-                                {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
-                                    <Text
-                                        style={descriptionTextStyle}
-                                        numberOfLines={2}
-                                    >
-                                        {props.description}
-                                    </Text>
-                                )}
-                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    {Boolean(props.title) && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                {props.shouldShowSelectedState && props.shouldShowSelectedStateBeforeTitle && selectedState}
+                                <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
+                                    {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                         <Text
-                                            style={titleTextStyle}
-                                            numberOfLines={1}
+                                            style={descriptionTextStyle}
+                                            numberOfLines={2}
                                         >
-                                            {convertToLTR(props.title)}
+                                            {props.description}
                                         </Text>
                                     )}
-                                    {Boolean(props.shouldShowTitleIcon) && (
-                                        <View style={[styles.ml2]}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                        {Boolean(props.title) && (
+                                            <Text
+                                                style={titleTextStyle}
+                                                numberOfLines={1}
+                                            >
+                                                {convertToLTR(props.title)}
+                                            </Text>
+                                        )}
+                                        {Boolean(props.shouldShowTitleIcon) && (
+                                            <View style={[styles.ml2]}>
+                                                <Icon
+                                                    src={props.titleIcon}
+                                                    fill={themeColors.iconSuccessFill}
+                                                />
+                                            </View>
+                                        )}
+                                    </View>
+                                    {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
+                                        <Text
+                                            style={descriptionTextStyle}
+                                            numberOfLines={2}
+                                        >
+                                            {props.description}
+                                        </Text>
+                                    )}
+                                    {Boolean(props.furtherDetails) && (
+                                        <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
                                             <Icon
-                                                src={props.titleIcon}
-                                                fill={themeColors.iconSuccessFill}
+                                                src={props.furtherDetailsIcon}
+                                                height={variables.iconSizeNormal}
+                                                width={variables.iconSizeNormal}
+                                                inline
                                             />
+                                            <Text
+                                                style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
+                                                numberOfLines={2}
+                                            >
+                                                {props.furtherDetails}
+                                            </Text>
                                         </View>
                                     )}
                                 </View>
-                                {Boolean(props.description) && !props.shouldShowDescriptionOnTop && (
-                                    <Text
-                                        style={descriptionTextStyle}
-                                        numberOfLines={2}
-                                    >
-                                        {props.description}
-                                    </Text>
-                                )}
-                                {Boolean(props.furtherDetails) && (
-                                    <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
-                                        <Icon
-                                            src={props.furtherDetailsIcon}
-                                            height={variables.iconSizeNormal}
-                                            width={variables.iconSizeNormal}
-                                            inline
-                                        />
-                                        <Text
-                                            style={[styles.furtherDetailsText, styles.ph2, styles.pt1]}
-                                            numberOfLines={2}
-                                        >
-                                            {props.furtherDetails}
-                                        </Text>
-                                    </View>
-                                )}
                             </View>
                         </View>
                     </View>
+
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
                         {Boolean(props.badgeText) && (
                             <Badge
@@ -272,7 +293,7 @@ function MenuItem(props) {
                                 />
                             </View>
                         )}
-                        {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
+                        {props.shouldShowSelectedState && !props.shouldShowSelectedStateBeforeTitle && selectedState}
                     </View>
                 </>
             )}

@@ -48,6 +48,12 @@ const propTypes = {
     /** Should we make this selectable with a checkbox */
     shouldShowSelectedState: PropTypes.bool,
 
+    /** Should the selected state be a square or circular checkbox */
+    shouldUseSquareSelectedState: PropTypes.bool,
+
+    /** Should the selected state display before or after the title */
+    shouldShowSelectedStateBeforeTitle: PropTypes.bool,
+
     /** Should the title show with normal font weight (not bold) */
     shouldShowBasicTitle: PropTypes.bool,
 
@@ -119,6 +125,9 @@ const propTypes = {
 
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+
+    /** Callback for when the selection state is pressed/changed */
+    onPressSelection: PropTypes.func,
 };
 
 export default propTypes;

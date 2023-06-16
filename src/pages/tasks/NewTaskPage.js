@@ -16,7 +16,7 @@ import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import MenuItem from '../../components/MenuItem';
 import reportPropTypes from '../reportPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
@@ -82,28 +82,28 @@ function NewTaskPage(props) {
             if (!assigneeDetails) {
                 return setErrorMessage(props.translate('task.assigneeError'));
             }
-            const displayDetails = TaskUtils.getAssignee(assigneeDetails);
+            const displayDetails = Task.getAssignee(assigneeDetails);
             setAssignee(displayDetails);
         }
 
         // If we don't have an assignee and we are creating a task from a report
         // this allows us to auto assign a participant of the report.
         if (!props.task.assignee && props.task.parentReportID) {
-            TaskUtils.setAssigneeValueWithParentReportID(props.task.parentReportID);
+            Task.setAssigneeValueWithParentReportID(props.task.parentReportID);
         }
 
         // We only set the parentReportID if we are creating a task from a report
         // this allows us to go ahead and set that report as the share destination
         // and disable the share destination selector
         if (props.task.parentReportID) {
-            TaskUtils.setShareDestinationValue(props.task.parentReportID);
+            Task.setShareDestinationValue(props.task.parentReportID);
         }
 
         // If we have a share destination, we want to set the parent report and
         // the share destination data
         if (props.task.shareDestination) {
             setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
-            const displayDetails = TaskUtils.getShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
+            const displayDetails = Task.getShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
             setShareDestination(displayDetails);
         }
     }, [props]);
@@ -126,7 +126,7 @@ function NewTaskPage(props) {
             return;
         }
 
-        TaskUtils.createTaskAndNavigate(
+        Task.createTaskAndNavigate(
             props.session.email,
             props.session.accountID,
             parentReport.reportID,
@@ -146,7 +146,7 @@ function NewTaskPage(props) {
         <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.confirmTask')}
-                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK_DETAILS)}
             />

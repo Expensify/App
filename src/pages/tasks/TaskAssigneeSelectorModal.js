@@ -19,7 +19,7 @@ import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
 import ROUTES from '../../ROUTES';
 
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
     /** Beta features list */
@@ -173,7 +173,7 @@ function TaskAssigneeSelectorModal(props) {
         if (!props.route.params && option.accountID) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+            Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             return Navigation.goBack();
         }
 
@@ -181,9 +181,9 @@ function TaskAssigneeSelectorModal(props) {
         if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
             // There was an issue where sometimes a new assignee didn't have a DM thread
             // This would cause the app to crash, so we need to make sure we have a DM thread
-            TaskUtils.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+            Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             // Pass through the selected assignee
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {assignee: option.login, assigneeAccountID: option.accountID});
+            Task.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {assignee: option.login, assigneeAccountID: option.accountID});
         }
     };
 

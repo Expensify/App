@@ -530,6 +530,14 @@ export default compose(
             _.isEqual(prevProps.action, nextProps.action) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
-            prevProps.translate === nextProps.translate,
+            prevProps.translate === nextProps.translate &&
+            // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
+            ReportUtils.isTaskReport(prevProps.report) &&
+            prevProps.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+            ReportUtils.isTaskReport(nextProps.report) &&
+            nextProps.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+            prevProps.report.reportName === nextProps.report.reportName &&
+            prevProps.report.description === nextProps.report.description &&
+            ReportUtils.isCompletedTaskReport(prevProps.report) !== ReportUtils.isCompletedTaskReport(nextProps.report),
     ),
 );

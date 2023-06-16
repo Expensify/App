@@ -10,33 +10,42 @@ import compose from '../../libs/compose';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
+import styles from '../../styles/styles';
+import * as ReportUtils from '../../libs/ReportUtils';
+import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
-    /** Personal details so we can get the ones for the report participants */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
-
     ...withLocalizePropTypes,
 };
 
 function TaskView(props) {
+    const taskTitle = props.report.reportName;
     return (
         <View>
             <MenuItemWithTopDescription
                 label={props.translate('task.title')}
-                title={props.report.reportName}
-                // description={shareDestination.displayName ? shareDestination.subtitle : props.translate('newTaskPage.shareSomewhere')}
-                // icon={shareDestination.icons}
+                title={taskTitle}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
                 shouldShowRightIcon
+                shouldShowSelectedState
+                shouldShowSelectedStateBeforeTitle
+                shouldUseSquareSelectedState
+                titleStyle={styles.newKansasLarge}
+                isSelected={ReportUtils.isCompletedTaskReport(props.report)}
+                onPressSelection={() => {
+                    if (ReportUtils.isCompletedTaskReport(props.report)) {
+                        Task.reopenTask(props.taskReportID, taskTitle);
+                    } else {
+                        Task.completeTask(props.taskReportID, taskTitle);
+                    }
+                }}
             />
             <MenuItemWithTopDescription
                 label={props.translate('task.description')}
                 title={props.report.description}
-                // description={shareDestination.displayName ? shareDestination.subtitle : props.translate('newTaskPage.shareSomewhere')}
-                // icon={shareDestination.icons}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 shouldShowRightIcon
             />

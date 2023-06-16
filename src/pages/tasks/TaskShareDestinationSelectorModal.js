@@ -17,7 +17,7 @@ import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import Performance from '../../libs/Performance';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
@@ -132,7 +132,7 @@ function TaskShareDestinationSelectorModal(props) {
         if (option.reportID) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setShareDestinationValue(option.reportID);
+            Task.setShareDestinationValue(option.reportID);
             Navigation.goBack();
         }
     };

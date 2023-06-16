@@ -50,7 +50,7 @@ function TaskHeader(props) {
                                 isDisabled={isCanceled}
                                 medium
                                 text={props.translate(isCompleted ? 'newTaskPage.markAsIncomplete' : 'newTaskPage.markAsDone')}
-                                onPress={() => isCompleted ? TaskUtils.reopenTask(props.report.reportID, title) : TaskUtils.completeTask(props.report.reportID, title)}
+                                onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, title) : Task.completeTask(props.report.reportID, title))}
                                 style={props.isSmallScreenWidth && styles.flex1}
                             />
                         </View>

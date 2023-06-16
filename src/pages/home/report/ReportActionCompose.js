@@ -50,7 +50,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
-import * as TaskUtils from '../../../libs/actions/Task';
+import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
@@ -424,7 +424,7 @@ class ReportActionCompose extends React.Component {
             {
                 icon: Expensicons.Task,
                 text: this.props.translate('newTaskPage.assignTask'),
-                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(this.props.reportID),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(this.props.reportID),
             },
         ];
     }

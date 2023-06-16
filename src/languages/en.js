@@ -1261,7 +1261,7 @@ export default {
         assignMe: 'Assign to me',
         confirmTask: 'Confirm task',
         confirmError: 'Please enter a title and select a share destination.',
-        
+
         descriptionOptional: 'Description (optional)',
         shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
