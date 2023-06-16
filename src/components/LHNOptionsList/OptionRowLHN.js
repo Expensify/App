@@ -81,8 +81,12 @@ function OptionRowLHN(props) {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
     const defaultSubscriptSize = optionItem.isExpenseReport ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
+    const shouldShowGreenDotIndicator =
+        !hasBrickError &&
+        (optionItem.isUnreadWithMention ||
+            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
+            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted));
 
     /**
      * Show the ReportActionContextMenu modal popover.
