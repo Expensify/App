@@ -36,6 +36,7 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../hooks/usePrevious';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -81,13 +82,8 @@ function WorkspaceMembersPage(props) {
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        /**
-         * We filter clientMemberEmails to only pass members without errors
-         * Otherwise, the members with errors would immediately be removed before the user has a chance to read the error
-         */
-        const clientMemberEmails = _.keys(_.pick(props.policyMemberList, (member) => _.isEmpty(member.errors)));
-        Policy.openWorkspaceMembersPage(props.route.params.policyID, clientMemberEmails);
-    }, [props.route.params.policyID, props.policyMemberList]);
+        Policy.openWorkspaceMembersPage(props.route.params.policyID, _.keys(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)));
+    }, [props.route.params.policyID, props.policyMembers, props.personalDetails]);
 
     /**
      * Check if the current selection includes members that cannot be removed
@@ -114,8 +110,8 @@ function WorkspaceMembersPage(props) {
     }, [props.preferredLocale, validateSelection]);
 
     useEffect(() => {
-        setSelectedEmployees((prevSelected) => _.intersection(prevSelected, _.keys(props.policyMemberList)));
-    }, [props.policyMemberList]);
+        setSelectedEmployees((prevSelected) => _.intersection(prevSelected, _.map(_.values(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID))));
+    }, [props.policyMembers]);
 
     useEffect(() => {
         const isReconnecting = prevIsOffline && !props.network.isOffline;
@@ -177,8 +173,9 @@ function WorkspaceMembersPage(props) {
         }
 
         // Remove the admin from the list
-        const membersToRemove = _.without(selectedEmployees, props.session.email);
-        Policy.removeMembers(membersToRemove, props.route.params.policyID);
+        const accountIDsToRemove = _.without(selectedEmployees, props.session.accountID);
+        
+        Policy.removeMembers(accountIDsToRemove, props.route.params.policyID);
         setSelectedEmployees([]);
         setConfirmModalVisible(false);
     };
@@ -198,8 +195,8 @@ function WorkspaceMembersPage(props) {
      * @param {Object} memberList
      */
     const toggleAllUsers = (memberList) => {
-        const emailList = _.keys(memberList);
-        setSelectedEmployees((prevSelected) => (!_.every(emailList, (memberEmail) => _.contains(prevSelected, memberEmail)) ? emailList : []));
+        const accountIDList = _.map(_.keys(memberList), (memberAccountID) => Number(memberAccountID));
+        setSelectedEmployees((prevSelected) => (!_.every(emailList, (memberAccountID) => _.contains(prevSelected, memberAccountID)) ? accountIDList : []));
         validateSelection();
     };
 
@@ -209,8 +206,8 @@ function WorkspaceMembersPage(props) {
      * @param {String} login
      */
     const addUser = useCallback(
-        (login) => {
-            setSelectedEmployees((prevSelected) => [...prevSelected, login]);
+        (accountID) => {
+            setSelectedEmployees((prevSelected) => [...prevSelected, accountID]);
             validateSelection();
         },
         [validateSelection],
@@ -222,8 +219,8 @@ function WorkspaceMembersPage(props) {
      * @param {String} login
      */
     const removeUser = useCallback(
-        (login) => {
-            setSelectedEmployees((prevSelected) => _.without(prevSelected, login));
+        (accountID) => {
+            setSelectedEmployees((prevSelected) => _.without(prevSelected, accountID));
             validateSelection();
         },
         [validateSelection],
@@ -232,21 +229,21 @@ function WorkspaceMembersPage(props) {
     /**
      * Toggle user from the selectedEmployees list
      *
-     * @param {String} login
+     * @param {String} accountID
      * @param {String} pendingAction
      *
      */
     const toggleUser = useCallback(
-        (login, pendingAction) => {
+        (accountID, pendingAction) => {
             if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
 
             // Add or remove the user if the checkbox is enabled
-            if (_.contains(selectedEmployees, login)) {
-                removeUser(login);
+            if (_.contains(selectedEmployees, Number(accountID))) {
+                removeUser(accountID);
             } else {
-                addUser(login);
+                addUser(accountID);
             }
         },
         [selectedEmployees, addUser, removeUser],
@@ -260,9 +257,9 @@ function WorkspaceMembersPage(props) {
     const dismissError = useCallback(
         (item) => {
             if (item.pendingAction === 'delete') {
-                Policy.clearDeleteMemberError(props.route.params.policyID, item.login);
+                Policy.clearDeleteMemberError(props.route.params.policyID, item.accountID);
             } else {
-                Policy.clearAddMemberError(props.route.params.policyID, item.login);
+                Policy.clearAddMemberError(props.route.params.policyID, item.accountID);
             }
         },
         [props.route.params.policyID],
@@ -288,7 +285,7 @@ function WorkspaceMembersPage(props) {
     const renderItem = useCallback(
         ({item}) => {
             const hasError = !_.isEmpty(item.errors) || errors[item.login];
-            const isChecked = _.contains(selectedEmployees, item.login);
+            const isChecked = _.contains(selectedEmployees, Number(item.accountID));
             return (
                 <OfflineWithFeedback
                     onClose={() => dismissError(item)}
@@ -297,7 +294,7 @@ function WorkspaceMembersPage(props) {
                 >
                     <PressableWithFeedback
                         style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.login]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
-                        onPress={() => toggleUser(item.login, item.pendingAction)}
+                        onPress={() => toggleUser(item.accountID, item.pendingAction)}
                         accessibilityRole="checkbox"
                         accessibilityState={{
                             checked: isChecked,
@@ -309,7 +306,7 @@ function WorkspaceMembersPage(props) {
                     >
                         <Checkbox
                             isChecked={isChecked}
-                            onPress={() => toggleUser(item.login, item.pendingAction)}
+                            onPress={() => toggleUser(item.accountID, item.pendingAction)}
                         />
                         <View style={styles.flex1}>
                             <OptionRow
@@ -320,14 +317,14 @@ function WorkspaceMembersPage(props) {
                                     participantsList: [item],
                                     icons: [
                                         {
-                                            source: UserUtils.getAvatar(item.avatar, item.login),
+                                            source: UserUtils.getAvatar(item.avatar, item.accountID),
                                             name: item.login,
                                             type: CONST.ICON_TYPE_AVATAR,
                                         },
                                     ],
                                     keyForList: item.login,
                                 }}
-                                onSelectRow={() => toggleUser(item.login, item.pendingAction)}
+                                onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
                         </View>
                         {(props.session.email === item.login || item.role === 'admin') && (
@@ -349,16 +346,19 @@ function WorkspaceMembersPage(props) {
         [selectedEmployees, errors, props.session.email, dismissError, toggleUser],
     );
 
-    const policyMemberList = lodashGet(props, 'policyMemberList', {});
     const policyOwner = lodashGet(props.policy, 'owner');
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const removableMembers = {};
     let data = [];
-    _.each(policyMemberList, (policyMember, email) => {
+    _.each(props.policyMembers, (policyMember, accountID) => {
         if (isDeletedPolicyMember(policyMember)) {
             return;
         }
-        const details = lodashGet(props.personalDetails, email, {displayName: email, login: email});
+        const details = props.personalDetails[accountID];
+        if (!details) {
+            Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
+            return;
+        }
         data.push({
             ...policyMember,
             ...details,
@@ -378,7 +378,7 @@ function WorkspaceMembersPage(props) {
         if (member.login === props.session.email || member.login === props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
-        removableMembers[member.login] = member;
+        removableMembers[member.accountID] = member;
     });
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
@@ -481,7 +481,7 @@ export default compose(
     withNetwork(),
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         session: {
             key: ONYXKEYS.SESSION,
