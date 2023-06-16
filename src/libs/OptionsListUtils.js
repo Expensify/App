@@ -385,7 +385,10 @@ function getLastMessageTextForReport(report) {
             const latestVisibleAction =
                 _.find(
                     allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !ReportActionUtils.isWhisperAction(action) && !ReportActionUtils.isCreatedAction(action),
+                    (action) =>
+                        ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) &&
+                        !ReportActionUtils.isWhisperAction(action) &&
+                        !ReportActionUtils.isCreatedAction(action),
                 ) || {};
             lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
         }
