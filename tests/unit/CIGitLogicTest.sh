@@ -39,6 +39,20 @@ function bump_version {
   success "Version bumped to $(print_version) on main"
 }
 
+function update_staging_from_main {
+  info "Recreating staging from main..."
+  git branch -D staging
+  git switch -c staging
+  success "Recreated staging from main!"
+}
+
+function update_production_from_staging {
+  info "Recreating production from staging..."
+  git branch -D production
+  git switch -c production
+  success "Recreated production from staging!"
+}
+
 ### Phase 0: Verify necessary tools are installed (all tools should be pre-installed on all GitHub Actions runners)
 
 if ! command -v jq &> /dev/null; then
@@ -113,12 +127,7 @@ git branch -d pr-1
 success "Merged PR #1 to main"
 
 bump_version patch
-
-# Recreate staging from main
-info "Recreating staging from main..."
-git branch -D staging
-git switch -c staging
-success "Recreated staging from main!"
+update_staging_from_main
 
 # Tag staging
 info "Tagging new version..."
@@ -197,10 +206,7 @@ success "Scenario #3 completed successfully!"
 title "Scenario #4: Close the checklist"
 title "Scenario #4A: Run the production deploy"
 
-info "Recreating production from staging..."
-git branch -D production
-git switch -c production
-success "Recreated production from staging!"
+update_production_from_staging
 
 # Verify output for release body and production deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
@@ -246,11 +252,7 @@ git branch -d pr-5
 success "Created PR #5 and merged it into main!"
 
 bump_version patch
-
-info "Recreating staging from main..."
-git branch -D staging
-git switch -c staging
-success "Recreated staging from main!"
+update_staging_from_main
 
 info "Tagging staging..."
 git tag "$(print_version)"
