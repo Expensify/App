@@ -12,6 +12,7 @@ import OptionsSelector from '../components/OptionsSelector';
 import themeColors from '../styles/themes/default';
 import * as Expensicons from '../components/Icon/Expensicons';
 import CONST from '../CONST';
+import SelectionListRadio from '../components/SelectionListRadio';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -102,21 +103,35 @@ class YearPickerPage extends React.Component {
                     title={this.props.translate('yearPickerPage.year')}
                     onBackButtonPress={() => Navigation.goBack(`${this.props.route.params.backTo}?year=${this.currentYear}` || ROUTES.HOME)}
                 />
-                <OptionsSelector
+
+                <SelectionListRadio
                     textInputLabel={this.props.translate('yearPickerPage.selectYear')}
+                    textInputValue={this.state.inputText}
+                    textInputMaxLength={4}
                     onChangeText={this.filterYearList}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                    maxLength={4}
-                    value={this.state.inputText}
+                    headerMessage={headerMessage}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
                     onSelectRow={(option) => this.updateSelectedYear(option.value)}
-                    headerMessage={headerMessage}
                     initiallyFocusedOptionKey={this.currentYear.toString()}
-                    hideSectionHeaders
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    shouldHaveOptionSeparator
-                    contentContainerStyles={[styles.ph5]}
                 />
+
+                {/* TODO: REMOVE */}
+                {/* <OptionsSelector */}
+                {/*     textInputLabel={this.props.translate('yearPickerPage.selectYear')} */}
+                {/*     onChangeText={this.filterYearList} */}
+                {/*     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD} */}
+                {/*     maxLength={4} */}
+                {/*     value={this.state.inputText} */}
+                {/*     sections={[{data: this.state.yearOptions, indexOffset: 0}]} */}
+                {/*     onSelectRow={(option) => this.updateSelectedYear(option.value)} */}
+                {/*     headerMessage={headerMessage} */}
+                {/*     initiallyFocusedOptionKey={this.currentYear.toString()} */}
+                {/*     hideSectionHeaders */}
+                {/*     optionHoveredStyle={styles.hoveredComponentBG} */}
+                {/*     shouldHaveOptionSeparator */}
+                {/*     contentContainerStyles={[styles.ph5]} */}
+                {/* /> */}
             </ScreenWrapper>
         );
     }

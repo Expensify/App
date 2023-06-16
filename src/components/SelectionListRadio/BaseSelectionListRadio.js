@@ -24,7 +24,9 @@ const propTypes = {
     textInputLabel: PropTypes.string,
     textInputPlaceholder: PropTypes.string,
     textInputValue: PropTypes.string,
+    textInputMaxLength: PropTypes.number,
     onChangeText: PropTypes.func,
+    keyboardType: PropTypes.string,
     initiallyFocusedOptionKey: PropTypes.string,
     hideSectionHeaders: PropTypes.bool,
     shouldDelayFocus: PropTypes.bool,
@@ -38,6 +40,8 @@ const defaultProps = {
     textInputLabel: '',
     textInputPlaceholder: '',
     textInputValue: '',
+    textInputMaxLength: undefined,
+    keyboardType: CONST.KEYBOARD_TYPE.DEFAULT,
     onChangeText: () => {},
     initiallyFocusedOptionKey: '',
     hideSectionHeaders: true,
@@ -293,10 +297,12 @@ const SelectionListRadio = (props) => {
                     <View style={[styles.ph5, styles.pv5]}>
                         <TextInput
                             ref={textInputRef}
-                            value={props.textInputValue}
                             label={props.textInputLabel}
-                            onChangeText={props.onChangeText}
+                            value={props.textInputValue}
                             placeholder={props.textInputPlaceholder}
+                            maxLength={props.textInputMaxLength}
+                            onChangeText={props.onChangeText}
+                            keyboardType={props.keyboardType}
                             selectTextOnFocus
                         />
                     </View>
