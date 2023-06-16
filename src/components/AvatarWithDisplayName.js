@@ -17,6 +17,10 @@ import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
+import {getChatRoomSubtitleLink} from '../libs/ReportUtils';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -57,6 +61,7 @@ function AvatarWithDisplayName(props) {
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const avatarContainerStyle = StyleUtils.getEmptyAvatarStyle(props.size) || styles.emptyAvatar;
+    const subtitleLink = ReportUtils.getChatRoomSubtitleLink(props.report);
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
@@ -88,6 +93,22 @@ function AvatarWithDisplayName(props) {
                             textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
                             shouldUseFullTitle={isExpenseReport || props.isAnonymous}
                         />
+                        {!_.isEmpty(subtitleLink) && (
+                            <PressableWithoutFeedback
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                                }}
+                                accessibilityLabel={subtitle}
+                                accessibilityRole="link"
+                            >
+                                <Text
+                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
+                                    numberOfLines={1}
+                                >
+                                    {subtitleLink}
+                                </Text>
+                            </PressableWithoutFeedback>
+                        )}
                         {!_.isEmpty(subtitle) && (
                             <Text
                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
