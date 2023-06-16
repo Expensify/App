@@ -14,7 +14,6 @@ import Badge from './Badge';
 import CONST from '../CONST';
 import menuItemPropTypes from './menuItemPropTypes';
 import SelectCircle from './SelectCircle';
-import Checkbox from './Checkbox';
 import colors from '../styles/colors';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
@@ -34,8 +33,6 @@ const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
     shouldShowSelectedState: false,
-    shouldUseSquareSelectedState: false,
-    shouldShowSelectedStateBeforeTitle: false,
     shouldShowBasicTitle: false,
     shouldShowDescriptionOnTop: false,
     shouldShowHeaderTitle: false,
@@ -70,7 +67,6 @@ const defaultProps = {
     hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
-    onPressSelection: () => {},
 };
 
 function MenuItem(props) {
