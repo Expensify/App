@@ -837,7 +837,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
         alternateText: personalDetail.login,
         icons: [
             {
-                source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.login),
+                source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
                 name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },
