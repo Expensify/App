@@ -85,6 +85,14 @@ function cherry_pick_pr {
   success "Successfully cherry-picked PR #$1 to staging!"
 }
 
+function tag_staging {
+  info "Tagging new version from the staging branch..."
+  setup_git_as_osbotify
+  git switch staging
+  git tag "$(print_version)"
+  success "Created new tag $(print_version)"
+}
+
 ### Phase 0: Verify necessary tools are installed (all tools should be pre-installed on all GitHub Actions runners)
 
 if ! command -v jq &> /dev/null; then
@@ -134,11 +142,8 @@ git branch production
 
 success "Initialized Git repo!"
 
-info "Creating initial tag..."
-git switch staging
-git tag "$(print_version)"
+tag_staging
 git switch main
-success "Created initial tag $(print_version)"
 
 success "Setup complete!"
 
@@ -146,6 +151,7 @@ success "Setup complete!"
 title "Scenario #1: Merge a pull request while the checklist is unlocked"
 
 info "Creating PR #1..."
+setup_git_as_human
 git switch -c pr-1
 echo "Changes from PR #1" >> PR1.txt
 git add PR1.txt
@@ -157,9 +163,7 @@ bump_version patch
 update_staging_from_main
 
 # Tag staging
-info "Tagging new version..."
-git tag "$(print_version)"
-success "Created new tag $(print_version)"
+tag_staging
 git switch main
 
 # Verify output for checklist and deploy comment
@@ -191,9 +195,7 @@ git add PR3.txt
 git commit -m "Changes from PR #3"
 cherry_pick_pr 3
 
-info "Tagging the new version on staging..."
-git tag "$(print_version)"
-success "Created tag $(print_version)"
+tag_staging
 
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
@@ -224,10 +226,7 @@ title "Scenario #4B: Run the staging deploy and create a new checklist"
 
 bump_version minor
 update_staging_from_main
-
-info "Tagging new version on staging..."
-git tag "$(print_version)"
-success "Successfully tagged version $(print_version) on staging"
+tag_staging
 
 # Verify output for new checklist and staging deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.0"
@@ -250,10 +249,7 @@ merge_pr 5
 
 bump_version patch
 update_staging_from_main
-
-info "Tagging staging..."
-git tag "$(print_version)"
-success "Successfully tagged version $(print_version) on staging"
+tag_staging
 
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.1"
