@@ -25,6 +25,7 @@ import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
+import MultipleAvatars from "../MultipleAvatars";
 
 const propTypes = {
     /** All the data of the action */
@@ -97,7 +98,7 @@ const defaultProps = {
 function ReportPreview(props) {
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
-    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
+    const managerName = (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true)) || managerEmail;
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
@@ -114,27 +115,35 @@ function ReportPreview(props) {
                     style={[styles.flexRow, styles.justifyContentBetween]}
                     focusable
                 >
-                    <View style={[styles.flexShrink1]}>
+                    <View style={[styles.iouPreviewBox]}>
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                         {props.iouReport.hasOutstandingIOU ? (
-                            <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                {lodashGet(message, 'html', props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount}))}
+                            <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                                {props.translate('iou.payerOwes', {payer: managerName})}
                             </Text>
                         ) : (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                    {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
+                                <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                                    {props.translate('iou.payerPaid', {payer: managerName})}
                                 </Text>
+                            </View>
+                        )}
+                            </View>
+                        </View>
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={styles.textHeadline}>{reportAmount}</Text>
                                 {!props.iouReport.hasOutstandingIOU && (
                                     <View style={styles.iouPreviewBoxCheckmark}>
                                         <Icon
-                                            style={[styles.ml10]}
                                             src={Expensicons.Checkmark}
                                             fill={themeColors.iconSuccessFill}
                                         />
                                     </View>
                                 )}
                             </View>
-                        )}
+                        </View>
                     </View>
                     <Icon
                         src={Expensicons.ArrowRight}
