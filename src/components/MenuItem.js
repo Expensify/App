@@ -195,7 +195,7 @@ function MenuItem(props) {
                                     )}
                                 </View>
                             )}
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
                                 {props.shouldShowSelectedState && props.shouldShowSelectedStateBeforeTitle && selectedState}
                                 <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
                                     {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
@@ -210,7 +210,7 @@ function MenuItem(props) {
                                         {Boolean(props.title) && (
                                             <Text
                                                 style={titleTextStyle}
-                                                numberOfLines={1}
+                                                numberOfLines={2}
                                             >
                                                 {convertToLTR(props.title)}
                                             </Text>
