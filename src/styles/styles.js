@@ -3342,7 +3342,7 @@ const styles = {
     },
 
     moneyRequestHeaderCheckmark: {
-        marginLeft: 5,
+        marginLeft: 8,
         alignSelf: 'center',
     },
 
