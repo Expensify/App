@@ -54,12 +54,12 @@ const defaultProps = {
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails) => {
-    const {participants} = report;
+    const {participantAccountIDs} = report;
 
-    return _.chain(participants)
-        .map((login) => {
-            const userLogin = Str.removeSMSDomain(login);
-            const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
+    return _.chain(participantAccountIDs)
+        .map((accountID, index) => {
+            const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || 'Hidden', avatar: ''});
+            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || 'Hidden';
 
             return {
                 alternateText: userLogin,
@@ -67,23 +67,23 @@ const getAllParticipants = (report, personalDetails) => {
                 accountID: userPersonalDetail.accountID,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(userPersonalDetail.avatar, login),
-                        name: login,
+                        source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
+                        name: userLogin,
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                keyForList: userLogin,
-                login,
+                keyForList: `${index}-${userLogin}`,
+                login: userLogin,
                 text: userPersonalDetail.displayName,
                 tooltipText: userLogin,
-                participantsList: [{login, displayName: userPersonalDetail.displayName}],
+                participantsList: [{accountID, displayName: userPersonalDetail.displayName}],
             };
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
         .value();
 };
 
-const ReportParticipantsPage = (props) => {
+function ReportParticipantsPage(props) {
     const participants = getAllParticipants(props.report, props.personalDetails);
 
     return (
@@ -125,7 +125,7 @@ const ReportParticipantsPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 ReportParticipantsPage.propTypes = propTypes;
 ReportParticipantsPage.defaultProps = defaultProps;
@@ -136,7 +136,7 @@ export default compose(
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(ReportParticipantsPage);

@@ -94,7 +94,7 @@ const defaultProps = {
     },
 };
 
-const ReportPreview = (props) => {
+function ReportPreview(props) {
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
@@ -156,7 +156,7 @@ const ReportPreview = (props) => {
             )}
         </View>
     );
-};
+}
 
 ReportPreview.propTypes = propTypes;
 ReportPreview.defaultProps = defaultProps;

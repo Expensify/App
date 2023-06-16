@@ -20,18 +20,20 @@ const defaultProps = {
     displayAsGroup: false,
 };
 
-const MiniReportActionContextMenu = (props) => (
-    <View
-        style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}
-        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.isVisible}}
-    >
-        <BaseReportActionContextMenu
-            isMini
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        />
-    </View>
-);
+function MiniReportActionContextMenu(props) {
+    return (
+        <View
+            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.isVisible}}
+        >
+            <BaseReportActionContextMenu
+                isMini
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            />
+        </View>
+    );
+}
 
 MiniReportActionContextMenu.propTypes = propTypes;
 MiniReportActionContextMenu.defaultProps = defaultProps;

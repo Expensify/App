@@ -25,6 +25,10 @@ import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 
+function getTransparentColor(color, transparency = '') {
+    return `${color}${transparency}`;
+}
+
 const picker = {
     backgroundColor: themeColors.transparent,
     color: themeColors.text,
@@ -2772,7 +2776,7 @@ const styles = {
         width: 250,
     },
 
-    workspaceInviteWelcome: {
+    autoGrowHeightMultilineInput: {
         maxHeight: 115,
     },
 
@@ -3347,6 +3351,25 @@ const styles = {
         fontSize: variables.fontSizeSignInHeroBody,
         color: themeColors.textLight,
         textAlign: 'center',
+    },
+
+    linkPreviewWrapper: {
+        marginTop: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        paddingLeft: 12,
+    },
+
+    linkPreviewImage: {
+        flex: 1,
+        resizeMode: 'contain',
+        borderRadius: 8,
+        marginTop: 8,
+    },
+
+    linkPreviewLogoImage: {
+        height: 16,
+        width: 16,
     },
 
     validateCodeMessage: {
