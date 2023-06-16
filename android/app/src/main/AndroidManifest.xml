@@ -142,7 +142,13 @@
             android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
             android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />
 
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_launcher" />
 
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/bootsplash_background" />
 
     </application>
 </manifest>
