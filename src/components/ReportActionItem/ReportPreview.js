@@ -147,10 +147,6 @@ function ReportPreview(props) {
                             </View>
                         </View>
                     </View>
-                    <Icon
-                        src={Expensicons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-                    />
                 </Pressable>
             ))}
             {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
