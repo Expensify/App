@@ -72,7 +72,7 @@ function NewTaskDescriptionPage(props) {
             }}
         >
             <HeaderWithBackButton
-                title={props.translate('newTaskPage.description')}
+                title={props.translate('task.description')}
                 onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />

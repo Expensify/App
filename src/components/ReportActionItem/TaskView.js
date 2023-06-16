@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import participantPropTypes from '../participantPropTypes';
 import withWindowDimensions from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -13,10 +12,14 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Task from '../../libs/actions/Task';
+import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
+
+    /** Personal details of all users */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
     ...withLocalizePropTypes,
 };

@@ -80,7 +80,7 @@ function NewTaskPage(props) {
         if (props.task.assignee) {
             const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), props.task.assigneeAccountID);
             if (!assigneeDetails) {
-                return setErrorMessage(props.translate('task.assigneeError'));
+                return setErrorMessage(props.translate('newTaskPage.assigneeError'));
             }
             const displayDetails = Task.getAssignee(assigneeDetails);
             setAssignee(displayDetails);
@@ -159,7 +159,7 @@ function NewTaskPage(props) {
                         shouldShowRightIcon
                     />
                     <MenuItemWithTopDescription
-                        description={props.translate('newTaskPage.description')}
+                        description={props.translate('task.description')}
                         title={props.task.description || ''}
                         onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                         shouldShowRightIcon

@@ -321,6 +321,12 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
         }
     }
 
+    const editedReport = {
+        reportName,
+        description: reportDescription,
+        managerID: assigneeAccountID || report.managerID,
+    };
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -330,11 +336,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {
-                reportName,
-                description: reportDescription,
-                managerID: assigneeAccountID || report.managerID,
-            },
+            value: editedReport,
         },
     ];
     const successData = [];

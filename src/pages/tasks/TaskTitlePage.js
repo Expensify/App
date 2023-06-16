@@ -15,11 +15,8 @@ import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
-    /** Task Report Info */
-    task: PropTypes.shape({
-        /** Title of the Task */
-        report: reportPropTypes,
-    }),
+    /** The report currently being looked at */
+    report: reportPropTypes,
 
     /** Current user session */
     session: PropTypes.shape({
@@ -32,7 +29,7 @@ const propTypes = {
 
 const defaultProps = {
     session: {},
-    task: {},
+    report: {},
 };
 
 function TaskTitlePage(props) {
@@ -55,7 +52,7 @@ function TaskTitlePage(props) {
         (values) => {
             // Set the description of the report in the store and then call Task.editTaskReport
             // to update the description of the report on the server
-            Task.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {title: values.title});
+            Task.editTaskAndNavigate(props.report, props.session.email, props.session.accountID, {title: values.title});
         },
         [props],
     );
@@ -81,7 +78,7 @@ function TaskTitlePage(props) {
                         inputID="title"
                         name="title"
                         label={props.translate('task.title')}
-                        defaultValue={(props.task.report && props.task.report.reportName) || ''}
+                        defaultValue={(props.report && props.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />
                 </View>
@@ -99,8 +96,8 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        task: {
-            key: ONYXKEYS.TASK,
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
     }),
 )(TaskTitlePage);
