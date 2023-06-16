@@ -167,6 +167,7 @@ class AttachmentCarousel extends React.Component {
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
+                // eslint-disable-next-line react/no-unused-state
                 onLayout={({nativeEvent}) => this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width)})}
                 onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
