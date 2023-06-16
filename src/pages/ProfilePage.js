@@ -23,7 +23,7 @@ import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
-import PressableWithoutFocus from '../components/PressableWithoutFocus';
+import PressableWithoutFocus from '../components/Pressable/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
@@ -148,8 +148,10 @@ function ProfilePage(props) {
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus
-                                        style={styles.noOutline}
+                                        style={[styles.noOutline]}
                                         onPress={show}
+                                        accessibilityLabel={props.translate('common.profile')}
+                                        accessibilityRole="imagebutton"
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar

@@ -22,7 +22,7 @@ import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
-import PressableWithoutFocus from '../components/PressableWithoutFocus';
+import PressableWithoutFocus from '../components/Pressable/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
