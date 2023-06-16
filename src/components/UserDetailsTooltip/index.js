@@ -32,7 +32,7 @@ function UserDetailsTooltip(props) {
                 </Text>
             </View>
         ),
-        [userDetails.avatar, userDetails.displayName, userDetails.login],
+        [userDetails.avatar, userDetails.displayName, userDetails.login, userDetails.accountID],
     );
 
     if (!userDetails.displayName && !userDetails.login) {
