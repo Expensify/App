@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import PropTypes from 'prop-types';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import Pager from '../Lightbox';
@@ -8,6 +8,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     carouselState: PropTypes.object.isRequired,
 
+    updatePageByIndex: PropTypes.func.isRequired,
     toggleArrowsVisibility: PropTypes.func.isRequired,
     autoHideArrow: PropTypes.func.isRequired,
     cancelAutoHideArrow: PropTypes.func.isRequired,
@@ -16,22 +17,28 @@ const propTypes = {
 function AttachmentCarouselView(props) {
     const pagerRef = useRef(null);
 
+    const reversedAttachments = useMemo(() => props.carouselState.attachments.reverse(), [props.carouselState.attachments]);
+    const reversedPage = useMemo(() => props.carouselState.attachments.length - props.carouselState.page - 1, [props.carouselState.attachments, props.carouselState.page]);
+
     /**
      * Increments or decrements the index to get another selected item
      * @param {Number} deltaSlide
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide) => {
-            const nextIndex = props.carouselState.page - deltaSlide;
-            const nextItem = props.carouselState.attachments[nextIndex];
+            const nextCarouselPage = props.carouselState.page - deltaSlide;
+            const nextItem = reversedAttachments[nextCarouselPage];
+
+            const nextPagerIndex = reversedPage + deltaSlide;
 
             if (!nextItem) {
                 return;
             }
 
-            pagerRef.current.setPage(nextIndex);
+            pagerRef.current.setPage(nextPagerIndex);
+            props.updatePageByIndex(nextCarouselPage);
         },
-        [props.carouselState.attachments, props.carouselState.page],
+        [props, reversedAttachments, reversedPage],
     );
 
     return (
@@ -51,8 +58,8 @@ function AttachmentCarouselView(props) {
             />
 
             <Pager
-                items={props.carouselState.attachments}
-                initialIndex={props.carouselState.page}
+                items={reversedAttachments}
+                initialIndex={reversedPage}
                 onTap={props.toggleArrowsVisibility}
                 itemExtractor={({item}) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})}
                 ref={pagerRef}

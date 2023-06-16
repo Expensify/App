@@ -48,6 +48,7 @@ class AttachmentCarousel extends React.Component {
         this.autoHideArrow = this.autoHideArrow.bind(this);
         this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
         this.updatePage = this.updatePage.bind(this);
+        this.updatePageByIndex = this.updatePageByIndex.bind(this);
         this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
         this.createInitialState = this.createInitialState.bind(this);
 
@@ -82,10 +83,11 @@ class AttachmentCarousel extends React.Component {
     /**
      * Toggles the visibility of the arrows
      * @param {Boolean} shouldShowArrow
+     * @param {Boolean} isGestureInUse
      */
-    toggleArrowsVisibility(shouldShowArrow) {
+    toggleArrowsVisibility(shouldShowArrow, isGestureInUse = false) {
         // Don't toggle arrows in a zoomed state
-        if (this.state.isZoomed) {
+        if (isGestureInUse) {
             return;
         }
         this.setState(
@@ -105,7 +107,7 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Constructs the initial component state from report actions
-     * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
+     * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number}}
      */
     createInitialState() {
         const actions = [ReportActionsUtils.getParentReportAction(this.props.report), ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
@@ -142,7 +144,6 @@ class AttachmentCarousel extends React.Component {
             attachments,
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
-            isZoomed: false,
         };
     }
 
@@ -160,7 +161,17 @@ class AttachmentCarousel extends React.Component {
 
         const page = entry.index;
         this.props.onNavigate(entry.item);
-        this.setState({page, isZoomed: false});
+        // eslint-disable-next-line react/no-unused-state
+        this.setState({page});
+    }
+
+    /**
+     * Updates the page state by index when the user navigates between attachments
+     * @param {number} index
+     */
+    updatePageByIndex(index) {
+        // eslint-disable-next-line react/no-unused-state
+        this.setState({page: index});
     }
 
     render() {
@@ -175,6 +186,7 @@ class AttachmentCarousel extends React.Component {
                 <AttachmentCarouselView
                     carouselState={this.state}
                     updatePage={this.updatePage}
+                    updatePageByIndex={this.updatePageByIndex}
                     toggleArrowsVisibility={this.toggleArrowsVisibility}
                     autoHideArrow={this.autoHideArrow}
                     cancelAutoHideArrow={this.cancelAutoHideArrow}
