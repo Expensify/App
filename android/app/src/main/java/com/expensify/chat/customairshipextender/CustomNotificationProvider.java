@@ -9,11 +9,13 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -186,13 +188,18 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String avatar = messageData.get("avatar").getString();
             String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
             String message = messageData.get("message").getList().get(0).getMap().get("text").getString();
-
             String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
 
             // Retrieve or create the Person object who sent the latest report comment
             Person person = notificationCache.people.get(accountID);
+            Bitmap personIcon = notificationCache.bitmapIcons.get(accountID);
+
+            if (personIcon == null) {
+                personIcon = fetchIcon(context, avatar);
+            }
+
             if (person == null) {
-                IconCompat iconCompat = fetchIcon(context, avatar);
+                IconCompat iconCompat = IconCompat.createWithBitmap(personIcon);
                 person = new Person.Builder()
                     .setIcon(iconCompat)
                     .setKey(accountID)
@@ -200,6 +207,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                     .build();
 
                 notificationCache.people.put(accountID, person);
+                notificationCache.bitmapIcons.put(accountID, personIcon);
             }
 
             // Store the latest report comment in the local conversation history
@@ -290,7 +298,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
     }
 
-    private IconCompat fetchIcon(@NonNull Context context, String urlString) {
+    private Bitmap fetchIcon(@NonNull Context context, String urlString) {
         URL parsedUrl = null;
         try {
             parsedUrl = urlString == null ? null : new URL(urlString);
@@ -314,7 +322,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
         try {
             Bitmap bitmap = future.get(MAX_ICON_FETCH_WAIT_TIME_SECONDS, TimeUnit.SECONDS);
-            return IconCompat.createWithBitmap(getCroppedBitmap(bitmap));
+            return getCroppedBitmap(bitmap);
         } catch (InterruptedException e) {
             Log.e(TAG,"Failed to fetch icon", e);
             Thread.currentThread().interrupt();
@@ -329,6 +337,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     private static class NotificationCache {
         public Map<String, Person> people = new HashMap<>();
         public ArrayList<Message> messages = new ArrayList<>();
+
+        public Map<String, Bitmap> bitmapIcons = new HashMap<>();
         public int prevNotificationID = -1;
 
         public static class Message {
