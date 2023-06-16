@@ -303,7 +303,6 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} comment
  */
 function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment) {
-    console.log('part', participant)
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
