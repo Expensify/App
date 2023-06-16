@@ -70,12 +70,12 @@ function getValidMergedPRs(commits) {
         }
 
         const pr = match[1];
-        // if (mergedPRs.has(pr)) {
-        //     // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
-        //     // That also means that we don't want to include it in the current checklist, so we remove it now.
-        //     mergedPRs.delete(pr);
-        //     return;
-        // }
+        if (mergedPRs.has(pr)) {
+            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
+            // That also means that we don't want to include it in the current checklist, so we remove it now.
+            mergedPRs.delete(pr);
+            return;
+        }
 
         mergedPRs.add(pr);
     });
