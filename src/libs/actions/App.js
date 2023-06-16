@@ -44,13 +44,6 @@ Onyx.connect({
     },
 });
 
-let allPolicies = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (policies) => (allPolicies = policies),
-});
-
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -138,18 +131,30 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
+ * @param {boolean} [isReconnecting]
  */
-function openApp() {
+function openApp(isReconnecting = false) {
     isReadyToOpenApp.then(() => {
-        // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.POLICY,
             waitForCollectionCallback: true,
             callback: (policies) => {
+                // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+                // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+                //
+                // - Look through the local report actions and reports to find the most recently modified report action or report.
+                // - We send this to the server so that it can compute which chats are critical for the user to see and return only those as an optimization.
+                const params = {policyIDList: getNonOptimisticPolicyIDs(policies)};
+                if (isReconnecting) {
+                    params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+                }
                 Onyx.disconnect(connectionID);
-                API.read(
-                    'OpenApp',
-                    {policyIDList: getNonOptimisticPolicyIDs(policies)},
+
+                // eslint-disable-next-line rulesdir/no-multiple-api-calls
+                const apiMethod = isReconnecting ? API.write : API.read;
+                apiMethod(
+                    isReconnecting ? 'ReconnectApp' : 'OpenApp',
+                    params,
                     {
                         optimisticData: [
                             {
@@ -183,47 +188,7 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    isReadyToOpenApp.then(() => {
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.COLLECTION.POLICY,
-            waitForCollectionCallback: true,
-            callback: (policies) => {
-                Onyx.disconnect(connectionID);
-                // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-                // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-                //
-                // - Look through the local report actions and reports to find the most recently modified report action or report.
-                // - We send this to the server so that it can compute which chats are critical for the user to see and return only those as an optimization.
-                API.write(
-                    'ReconnectApp',
-                    {policyIDList: getNonOptimisticPolicyIDs(policies), mostRecentReportActionLastModified: ReportActionsUtils.getMostRecentReportActionLastModified()},
-                    {
-                        optimisticData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: true,
-                            },
-                        ],
-                        successData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: false,
-                            },
-                        ],
-                        failureData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: false,
-                            },
-                        ],
-                    },
-                );
-            },
-        });
-    });
+    openApp(true);
 }
 
 /**
