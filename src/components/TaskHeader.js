@@ -21,7 +21,7 @@ function TaskHeader(props) {
     return (
         <View style={styles.borderBottom}>
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
-                <View style={[styles.ph5, styles.pb5]}>
+                <View style={[styles.ph5, styles.pb3]}>
                     <TaskHeaderActionButton report={props.report} />
                 </View>
             </View>
