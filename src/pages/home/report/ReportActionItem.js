@@ -110,16 +110,19 @@ function ReportActionItem(props) {
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
 
-    useEffect(() => () => {
-        // ReportActionContextMenu is a global component, 
-        // we use ReportActionContextMenu.showContextMenu to show them, 
-        // so we should also hide them when the current component is destroyed
-        if (!ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
-            return;
-        }
-        ReportActionContextMenu.hideContextMenu();
-        ReportActionContextMenu.hideDeleteModal();
-    }, [props.action.reportActionID]);
+    useEffect(
+        () => () => {
+            // ReportActionContextMenu is a global component,
+            // we use ReportActionContextMenu.showContextMenu to show them,
+            // so we should also hide them when the current component is destroyed
+            if (!ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
+                return;
+            }
+            ReportActionContextMenu.hideContextMenu();
+            ReportActionContextMenu.hideDeleteModal();
+        },
+        [props.action.reportActionID],
+    );
 
     const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
