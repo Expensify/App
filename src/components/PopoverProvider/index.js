@@ -15,7 +15,7 @@ const PopoverContext = React.createContext({
     isOpen: false,
 });
 
-const PopoverContextProvider = (props) => {
+function PopoverContextProvider(props) {
     const [isOpen, setIsOpen] = React.useState(false);
     const activePopoverRef = React.useRef(null);
 
@@ -121,7 +121,7 @@ const PopoverContextProvider = (props) => {
             {props.children}
         </PopoverContext.Provider>
     );
-};
+}
 
 PopoverContextProvider.defaultProps = defaultProps;
 PopoverContextProvider.propTypes = propTypes;

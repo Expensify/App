@@ -9,7 +9,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import getModalStyles from '../../styles/getModalStyles';
 import withWindowDimensions from '../withWindowDimensions';
 
-const Popover = (props) => {
+function Popover(props) {
     const ref = React.useRef(null);
     const {onOpen, close} = React.useContext(PopoverContext);
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
@@ -86,7 +86,7 @@ const Popover = (props) => {
             </SafeAreaInsetsContext.Consumer>
         </Pressable>
     ) : null;
-};
+}
 
 Popover.propTypes = propTypes;
 Popover.defaultProps = defaultProps;
