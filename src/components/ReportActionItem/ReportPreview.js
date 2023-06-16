@@ -97,7 +97,8 @@ const defaultProps = {
 function ReportPreview(props) {
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
-    const managerName = (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true)) || managerEmail;
+    const managerName =
+        (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true)) || managerEmail;
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
@@ -118,13 +119,9 @@ function ReportPreview(props) {
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 {props.iouReport.hasOutstandingIOU ? (
-                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                        {props.translate('iou.payerOwes', {payer: managerName})}
-                                    </Text>
+                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('iou.payerOwes', {payer: managerName})}</Text>
                                 ) : (
-                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                        {props.translate('iou.payerPaid', {payer: managerName})}
-                                    </Text>
+                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('iou.payerPaid', {payer: managerName})}</Text>
                                 )}
                                 <Icon
                                     src={Expensicons.ArrowRight}
