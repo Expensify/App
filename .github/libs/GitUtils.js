@@ -52,28 +52,35 @@ function getCommitHistoryAsJSON(fromRef, toRef) {
  * @returns {Array<String>}
  */
 function getValidMergedPRs(commits) {
-    return _.reduce(
-        commits,
-        (mergedPRs, commit) => {
-            const author = commit.authorName;
-            if (author === 'OSBotify') {
-                return mergedPRs;
-            }
+    const mergedPRs = new Set();
+    _.each(commits, (commit) => {
+        const author = commit.authorName;
+        if (author === 'OSBotify') {
+            return;
+        }
 
-            const message = commit.subject;
-            if (!_.isString(message)) {
-                return mergedPRs;
-            }
+        const message = commit.subject;
+        if (!_.isString(message)) {
+            return;
+        }
 
-            const match = message.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
-            if (!_.isNull(match) && match[1] && !_.contains(mergedPRs, match[1])) {
-                mergedPRs.push(match[1]);
-            }
+        const match = message.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        if (!_.isArray(match) || match.length < 2) {
+            return;
+        }
 
-            return mergedPRs;
-        },
-        [],
-    );
+        const pr = match[1];
+        if (mergedPRs.has(pr)) {
+            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
+            // That also means that we don't want to include it in the current checklist, so we remove it now.
+            mergedPRs.delete(pr);
+            return;
+        }
+
+        mergedPRs.add(pr);
+    });
+
+    return Array.from(mergedPRs);
 }
 
 /**

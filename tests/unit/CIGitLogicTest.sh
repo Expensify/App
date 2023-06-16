@@ -235,7 +235,7 @@ success "Successfully tagged version $(print_version) on staging"
 # Verify output for new checklist and staging deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.0"
 output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.0')
-assert_equal "$output" "[ '$((PR_COUNT - 1))', '$((PR_COUNT - 2))' ]"
+assert_equal "$output" "[ '$((PR_COUNT - 2))' ]"
 
 success "Scenario #4B completed successfully!"
 
@@ -275,7 +275,7 @@ success "Successfully tagged version $(print_version) on staging"
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.1"
 output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.1')
-assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 2))', '$((PR_COUNT - 3))' ]"
+assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 3))' ]"
 
 # Verify output for deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.1.0 1.1.1"
