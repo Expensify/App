@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useEffect, useRef, useState, useMemo} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState, useMemo, useImperativeHandle} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View, useWindowDimensions} from 'react-native';
 import {Gesture, GestureDetector, createNativeWrapper} from 'react-native-gesture-handler';
 import Animated, {
@@ -744,7 +744,8 @@ const noopWorklet = () => {
     // noop
 };
 
-export default function Pager({items, initialIndex = 0, onTap, itemExtractor, onSwipe = noopWorklet, onSwipeSuccess = () => {}}) {
+// eslint-disable-next-line react/prop-types
+function Pager({items, initialIndex = 0, onTap, itemExtractor, onSwipe = noopWorklet, onSwipeSuccess = () => {}, forwardedRef}) {
     const windowDimensions = useWindowDimensions();
 
     const shouldPagerScroll = useSharedValue(true);
@@ -778,6 +779,14 @@ export default function Pager({items, initialIndex = 0, onTap, itemExtractor, on
 
             runOnJS(setActivePage)(activeIndex.value);
         },
+    );
+
+    useImperativeHandle(
+        forwardedRef,
+        () => ({
+            setPage: (...props) => pagerRef.current.setPage(...props),
+        }),
+        [],
     );
 
     const animatedProps = useAnimatedProps(() => ({
@@ -826,3 +835,11 @@ export default function Pager({items, initialIndex = 0, onTap, itemExtractor, on
         </View>
     );
 }
+
+export default React.forwardRef((props, ref) => (
+    <Pager
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
