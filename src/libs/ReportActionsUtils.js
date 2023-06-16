@@ -435,6 +435,10 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
 }
 
+function isWhisperAction(action) {
+    return (action.whisperedTo || []).length > 0;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -458,4 +462,5 @@ export {
     getFormattedAmount,
     isSentMoneyReportAction,
     isMessageDeleted,
+    isWhisperAction,
 };
