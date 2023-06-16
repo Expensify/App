@@ -183,7 +183,11 @@ function TaskAssigneeSelectorModal(props) {
             // This would cause the app to crash, so we need to make sure we have a DM thread
             Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             // Pass through the selected assignee
-            Task.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {assignee: option.login, assigneeAccountID: option.accountID, assigneeEmail: option.login});
+            Task.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {
+                assignee: option.login,
+                assigneeAccountID: option.accountID,
+                assigneeEmail: option.login,
+            });
         }
     };
 
@@ -193,7 +197,7 @@ function TaskAssigneeSelectorModal(props) {
                 <>
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
-                        onBackButtonPress={() => props.task.report.isExistingTaskReport ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK)}
+                        onBackButtonPress={() => (props.task.report.isExistingTaskReport ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector

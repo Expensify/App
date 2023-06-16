@@ -3,14 +3,16 @@ import {View} from 'react-native';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import * as UserUtils from '../../libs/UserUtils';
 import * as Task from '../../libs/actions/Task';
-import personalDetailsPropType from '../../pages/personalDetailsPropType';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -19,7 +21,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
-    personalDetails: personalDetailsPropType.isRequired,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 function TaskView(props) {
@@ -53,7 +55,10 @@ function TaskView(props) {
             <MenuItemWithTopDescription
                 label={props.translate('task.createdBy')}
                 title={ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID)}
-                icon={ReportUtils.getIconsForParticipants([props.report.ownerEmail], props.personalDetails)[0].source}
+                icon={UserUtils.getAvatar(
+                    PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.ownerAccountID], props.currentUserPersonalDetails.accountID)[0].avatar, 
+                    props.report.ownerAccountID,
+                )}
                 iconType={CONST.ICON_TYPE_AVATAR}
                 avatarSize={CONST.AVATAR_SIZE.SMALL}
                 titleStyle={styles.textStrong}
@@ -62,7 +67,10 @@ function TaskView(props) {
             <MenuItemWithTopDescription
                 label={props.translate('task.assignee')}
                 title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                icon={ReportUtils.getIconsForParticipants([props.report.managerEmail], props.personalDetails)[0].source}
+                icon={UserUtils.getAvatar(
+                    PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID)[0].avatar, 
+                    props.report.managerID,
+                )}
                 iconType={CONST.ICON_TYPE_AVATAR}
                 avatarSize={CONST.AVATAR_SIZE.SMALL}
                 titleStyle={styles.textStrong}
@@ -76,4 +84,4 @@ function TaskView(props) {
 TaskView.propTypes = propTypes;
 TaskView.displayName = 'TaskView';
 
-export default compose(withWindowDimensions, withLocalize)(TaskView);
+export default compose(withWindowDimensions, withLocalize, withCurrentUserPersonalDetails)(TaskView);
