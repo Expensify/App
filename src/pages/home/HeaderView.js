@@ -82,6 +82,7 @@ function HeaderView(props) {
     const reportHeaderData = !isTaskReport && !isThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
+    const subtitleLink = ReportUtils.getChatRoomSubtitleLink(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -177,24 +178,25 @@ function HeaderView(props) {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
+                                {(isChatRoom || isPolicyExpenseChat || isThread) && (
                                     <>
-                                        {isThread ? (
+                                        {!_.isEmpty(subtitleLink) && (
                                             <PressableWithoutFeedback
                                                 onPress={() => {
                                                     Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
                                                 }}
-                                                accessibilityLabel={subtitle}
+                                                accessibilityLabel={subtitleLink}
                                                 accessibilityRole="link"
                                             >
                                                 <Text
                                                     style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
                                                     numberOfLines={1}
                                                 >
-                                                    {subtitle}
+                                                    {subtitleLink}
                                                 </Text>
                                             </PressableWithoutFeedback>
-                                        ) : (
+                                        )}
+                                        {!_.isEmpty(subtitle) && (
                                             <Text
                                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
                                                 numberOfLines={1}
