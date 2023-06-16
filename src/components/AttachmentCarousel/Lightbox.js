@@ -17,6 +17,7 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 import PagerView from 'react-native-pager-view';
+import _ from 'underscore';
 import Image from '../Image';
 
 const Context = createContext(null);
@@ -386,9 +387,9 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
             stopAnimation();
         })
         .onFinalize((evt, success) => {
-            if (success && onTap) {
-                runOnJS(onTap)();
-            }
+            if (!success || !onTap) return;
+
+            runOnJS(onTap)();
         });
 
     const previousTouch = useSharedValue(null);
@@ -507,9 +508,9 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
     const pinchGesture = Gesture.Pinch()
         .onTouchesDown((evt, state) => {
             // we don't want to activate pinch gesture when we are scrolling pager
-            if (isScrolling.value) {
-                state.fail();
-            }
+            if (!isScrolling.value) return;
+
+            state.fail();
         })
         .simultaneousWithExternalGesture(panGesture, doubleTap)
         .onStart((evt) => {
@@ -783,7 +784,7 @@ export default function Pager({items, initialIndex = 0, onTap, itemExtractor, on
         scrollEnabled: shouldPagerScroll.value,
     }));
 
-    const processedItems = items.map((item, index) => itemExtractor({item, index}));
+    const processedItems = _.map(items, (item, index) => itemExtractor({item, index}));
 
     return (
         <View style={{flex: 1}}>
@@ -803,7 +804,7 @@ export default function Pager({items, initialIndex = 0, onTap, itemExtractor, on
                         style={{flex: 1}}
                         initialPage={initialIndex}
                     >
-                        {processedItems.map((item, index) => (
+                        {_.map(processedItems, (item, index) => (
                             <View
                                 key={item.key}
                                 style={{flex: 1}}
