@@ -29,7 +29,7 @@ const propTypes = {
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** All of the personalDetails */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** Styles for the outermost View */
     // eslint-disable-next-line react/forbid-prop-types
@@ -54,7 +54,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
+    personalDetailsList: {},
     wrapperStyles: [styles.chatItem],
     showHeader: true,
     shouldShowSubscriptAvatar: false,
@@ -66,10 +66,11 @@ const showUserDetails = (accountID) => {
     Navigation.navigate(ROUTES.getProfileRoute(accountID));
 };
 
-const ReportActionItemSingle = (props) => {
-    const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {accountID, avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
-    const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
+function ReportActionItemSingle(props) {
+    const actorEmail = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const actorAccountID = props.action.actorAccountID;
+    const {avatar, displayName, pendingFields} = props.personalDetailsList[actorAccountID] || {};
+    const avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -89,7 +90,7 @@ const ReportActionItemSingle = (props) => {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(accountID)}
+                onPress={() => showUserDetails(actorAccountID)}
                 accessibilityLabel={actorEmail}
                 accessibilityRole="button"
             >
@@ -103,7 +104,7 @@ const ReportActionItemSingle = (props) => {
                             noMargin
                         />
                     ) : (
-                        <UserDetailsTooltip accountID={accountID}>
+                        <UserDetailsTooltip accountID={actorAccountID}>
                             <View>
                                 <Avatar
                                     containerStyles={[styles.actionAvatar]}
@@ -121,14 +122,14 @@ const ReportActionItemSingle = (props) => {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(accountID)}
+                            onPress={() => showUserDetails(actorAccountID)}
                             accessibilityLabel={actorEmail}
                             accessibilityRole="button"
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.reportActionID}-${index}`}
-                                    accountID={accountID}
+                                    accountID={actorAccountID}
                                     fragment={fragment}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
@@ -143,7 +144,7 @@ const ReportActionItemSingle = (props) => {
             </View>
         </View>
     );
-};
+}
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;

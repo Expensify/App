@@ -10,22 +10,24 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const FailedKYC = (props) => (
-    <View style={[styles.flex1]}>
-        <View style={[styles.ph5]}>
-            <Text style={styles.mb3}>
-                {props.translate('additionalDetailsStep.failedKYCTextBefore')}
-                <TextLink
-                    href={`mailto:${CONST.EMAIL.CONCIERGE}`}
-                    style={[styles.link]}
-                >
-                    {CONST.EMAIL.CONCIERGE}
-                </TextLink>
-                {props.translate('additionalDetailsStep.failedKYCTextAfter')}
-            </Text>
+function FailedKYC(props) {
+    return (
+        <View style={[styles.flex1]}>
+            <View style={[styles.ph5]}>
+                <Text style={styles.mb3}>
+                    {props.translate('additionalDetailsStep.failedKYCTextBefore')}
+                    <TextLink
+                        href={`mailto:${CONST.EMAIL.CONCIERGE}`}
+                        style={[styles.link]}
+                    >
+                        {CONST.EMAIL.CONCIERGE}
+                    </TextLink>
+                    {props.translate('additionalDetailsStep.failedKYCTextAfter')}
+                </Text>
+            </View>
         </View>
-    </View>
-);
+    );
+}
 
 FailedKYC.propTypes = propTypes;
 FailedKYC.displayName = 'FailedKYC';
