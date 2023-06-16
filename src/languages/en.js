@@ -266,6 +266,7 @@ export default {
         copyURLToClipboard: 'Copy URL to clipboard',
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
+        markAsRead: 'Mark as read',
         editComment: 'Edit comment',
         deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
         deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
@@ -1399,6 +1400,7 @@ export default {
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
         prestyledText: 'Prestyled text',
+        viewAttachment: 'View attachment',
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
