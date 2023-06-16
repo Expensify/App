@@ -1062,10 +1062,13 @@ function getReportName(report) {
  * @param {Object} report
  * @returns {String|*}
  */
-function getRootReportName(report) {
+function getRootOrExpenseReportName(report) {
     if (isThread(report)) {
+        if (isExpenseReport(report)) {
+            return lodashGet(report, 'displayName', '');
+        }
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-        return getRootReportName(parentReport);
+        return getRootOrExpenseReportName(parentReport);
     }
 
     return getReportName(report);
@@ -1102,31 +1105,24 @@ function getChatRoomSubtitle(report) {
  * @returns {String}
  */
 function getChatRoomSubtitleLink(report) {
-    if (report.reportID == '3346402972554959') {
-        debugger;
-    }
-
     if (isThread(report)) {
         const from = Localize.translateLocal('threads.from');
+        const workspaceName = getPolicyName(report);
         if (isChatRoom(report)) {
             const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-            let roomName = '';
-            if (parentReport) {
-                roomName = lodashGet(parentReport, 'displayName', '');
-            } else {
-                roomName = lodashGet(report, 'displayName', '');
-            }
+            const roomName = parentReport
+                ? lodashGet(parentReport, 'displayName', '')
+                : lodashGet(report, 'displayName', '');
 
-            const workspaceName = getPolicyName(report);
             return `${from} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
         }
 
         if (isExpenseReport(report)) {
             const payeeEmail = getDisplayNameForParticipant(report.managerID);
-            const workspaceName = getPolicyName(report);
             return `${from} ${workspaceName ? [payeeEmail, workspaceName].join(' in ') : payeeEmail}`;
         }
-        return `${from} ${getRootReportName(report)}`;
+
+        return `${from} ${getRootOrExpenseReportName(report)}`;
     }
     return '';
 }
