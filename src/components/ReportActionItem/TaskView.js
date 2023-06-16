@@ -44,9 +44,6 @@ function TaskView(props) {
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
 
-    const titleTextStyle = StyleUtils.combineStyles([styles.pre, styles.ltr, styles.newKansasLarge, styles.flexWrap, styles.flex1, {maxWidth: '100%', wordBreak: 'break-word'}]);
-    const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.lineHeightNormal, styles.mb1, props.descriptionTextStyle]);
-
     return (
         <View style={[styles.borderBottom]}>
             <PressableWithSecondaryInteraction
@@ -63,7 +60,7 @@ function TaskView(props) {
             >
                 {({hovered, pressed}) => (
                     <>
-                        <Text style={descriptionTextStyle}>Title</Text>
+                        <Text style={styles.taskTitleDescription}>Title</Text>
                         <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
                             <Checkbox
                                 onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
@@ -73,7 +70,7 @@ function TaskView(props) {
                             <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
                                     numberOfLines={1}
-                                    style={titleTextStyle}
+                                    style={styles.taskTitleMenuItem}
                                 >
                                     {convertToLTR(taskTitle)}
                                 </Text>
