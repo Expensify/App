@@ -531,7 +531,17 @@ function isPolicyExpenseChatAdmin(report, policies) {
 }
 
 /**
- * Returns true if report has a parent and is therefore a Thread.
+ * Returns true if report has a parent
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isThread(report) {
+    return Boolean(report && report.parentReportID && report.parentReportActionID);
+}
+
+/**
+ * Returns true if report is of type chat and has a parent and is therefore a Thread.
  *
  * @param {Object} report
  * @returns {Boolean}
@@ -1099,6 +1109,33 @@ function getChatRoomSubtitle(report) {
         return report.oldPolicyName || '';
     }
     return getPolicyName(report);
+}
+
+/**
+ * Get either the policyName or domainName the chat is tied to
+ * @param {Object} report
+ * @returns {String}
+ */
+function getChatRoomSubtitleLink(report) {
+    if (isThread(report)) {
+        if (!getChatType(report)) {
+            return `${Localize.translateLocal('threads.from')} ${getDMRootReportName(report)}`;
+        }
+
+        let roomName = '';
+        if (isChatRoom(report)) {
+            const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+            if (parentReport) {
+                roomName = lodashGet(parentReport, 'displayName', '');
+            } else {
+                roomName = lodashGet(report, 'displayName', '');
+            }
+        }
+
+        const workspaceName = getPolicyName(report);
+        return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+    }
+    return '';
 }
 
 /**
@@ -2263,6 +2300,7 @@ export {
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
+    getChatRoomSubtitleLink,
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
@@ -2329,6 +2367,7 @@ export {
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
+    isThread,
     isChatThread,
     isThreadParent,
     isThreadFirstChat,
