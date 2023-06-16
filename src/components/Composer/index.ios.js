@@ -56,7 +56,7 @@ const defaultProps = {
         start: 0,
         end: 0,
     },
-    maxLines: -1,
+    maxLines: undefined,
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
@@ -103,14 +103,13 @@ class Composer extends React.Component {
             <RNTextInput
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
-                maxHeight={this.props.isComposerFullSize ? '100%' : undefined}
                 ref={(el) => (this.textInput = el)}
                 onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
                 smartInsertDelete={false}
+                maximumNumberOfLines={this.props.isComposerFullSize ? undefined : this.props.maxLines}
                 style={this.state.propStyles}
-                maximumNumberOfLines={!this.props.isComposerFullSize ? this.props.maxLines : undefined}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsToPass}
                 editable={!this.props.isDisabled}

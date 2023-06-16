@@ -8,16 +8,18 @@ import {propTypes, defaultProps} from './modalPropTypes';
 // Oh, how the turntables...
 // on the new arch the only non-flickering combination is useNativeDriverForBackdrop={false} and useNativeDriver={true}
 // will leave both .android and .ios files for now, as there is a high chance the situation will change again with 0.72
-const Modal = (props) => (
-    <BaseModal
-        useNativeDriver
-        useNativeDriverForBackdrop={false}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-    >
-        {props.children}
-    </BaseModal>
-);
+function Modal(props) {
+    return (
+        <BaseModal
+            useNativeDriver
+            useNativeDriverForBackdrop={false}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        >
+            {props.children}
+        </BaseModal>
+    );
+}
 
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;

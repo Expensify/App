@@ -9,30 +9,32 @@ import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
 
 const RootStack = createStackNavigator();
 
-const PublicScreens = () => (
-    <RootStack.Navigator>
-        <RootStack.Screen
-            name={SCREENS.HOME}
-            options={defaultScreenOptions}
-            component={SignInPage}
-        />
-        <RootStack.Screen
-            name={SCREENS.TRANSITION_FROM_OLD_DOT}
-            options={defaultScreenOptions}
-            component={LogInWithShortLivedAuthTokenPage}
-        />
-        <RootStack.Screen
-            name="ValidateLogin"
-            options={defaultScreenOptions}
-            component={ValidateLoginPage}
-        />
-        <RootStack.Screen
-            name="UnlinkLogin"
-            options={defaultScreenOptions}
-            component={UnlinkLoginPage}
-        />
-    </RootStack.Navigator>
-);
+function PublicScreens() {
+    return (
+        <RootStack.Navigator>
+            <RootStack.Screen
+                name={SCREENS.HOME}
+                options={defaultScreenOptions}
+                component={SignInPage}
+            />
+            <RootStack.Screen
+                name={SCREENS.TRANSITION_FROM_OLD_DOT}
+                options={defaultScreenOptions}
+                component={LogInWithShortLivedAuthTokenPage}
+            />
+            <RootStack.Screen
+                name="ValidateLogin"
+                options={defaultScreenOptions}
+                component={ValidateLoginPage}
+            />
+            <RootStack.Screen
+                name="UnlinkLogin"
+                options={defaultScreenOptions}
+                component={UnlinkLoginPage}
+            />
+        </RootStack.Navigator>
+    );
+}
 
 PublicScreens.displayName = 'PublicScreens';
 export default PublicScreens;
