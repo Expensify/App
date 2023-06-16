@@ -70,7 +70,7 @@ function SplitBillDetailsPage(props) {
     );
     const payeePersonalDetails = _.filter(participants, (participant) => participant.accountID === reportAction.actorAccountID)[0];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
-    
+
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
     const splitComment = lodashGet(reportAction, 'originalMessage.comment');
     const splitCurrency = lodashGet(reportAction, 'originalMessage.currency');
