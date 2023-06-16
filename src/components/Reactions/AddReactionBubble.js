@@ -65,7 +65,7 @@ function AddReactionBubble(props) {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
-                props.reportAction
+                props.reportAction,
             );
         };
 
