@@ -61,6 +61,7 @@ class MoneyRequestDescriptionPage extends Component {
         }
     }
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
         // ID in Onyx could change by initiating a new request in a separate browser tab
         if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || prevProps.iou.id !== this.props.iou.id) {
