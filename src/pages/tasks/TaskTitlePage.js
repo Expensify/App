@@ -77,6 +77,7 @@ function TaskTitlePage(props) {
                     <TextInput
                         inputID="title"
                         name="title"
+                        autoGrowHeight
                         label={props.translate('task.title')}
                         defaultValue={(props.report && props.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
