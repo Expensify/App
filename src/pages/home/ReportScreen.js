@@ -278,7 +278,7 @@ class ReportScreen extends React.Component {
                             />
                         )}
 
-                        {ReportUtils.isTaskReport(this.props.report) && (
+                        {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && (
                             <TaskHeader
                                 report={this.props.report}
                                 personalDetails={this.props.personalDetails}

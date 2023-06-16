@@ -23,8 +23,9 @@ const propTypes = {
 
 function TaskView(props) {
     const taskTitle = props.report.reportName;
+    const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     return (
-        <View>
+        <View style={[styles.borderBottom]}>
             <MenuItemWithTopDescription
                 label={props.translate('task.title')}
                 title={taskTitle}
@@ -34,14 +35,8 @@ function TaskView(props) {
                 shouldShowSelectedStateBeforeTitle
                 shouldUseSquareSelectedState
                 titleStyle={styles.newKansasLarge}
-                isSelected={ReportUtils.isCompletedTaskReport(props.report)}
-                onPressSelection={() => {
-                    if (ReportUtils.isCompletedTaskReport(props.report)) {
-                        Task.reopenTask(props.taskReportID, taskTitle);
-                    } else {
-                        Task.completeTask(props.taskReportID, taskTitle);
-                    }
-                }}
+                isSelected={isCompleted}
+                onPressSelection={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
             />
             <MenuItemWithTopDescription
                 label={props.translate('task.description')}

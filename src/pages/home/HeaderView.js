@@ -31,6 +31,7 @@ import PressableWithoutFeedback from '../../components/Pressable/PressableWithou
 import PinButton from '../../components/PinButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -150,9 +151,8 @@ function HeaderView(props) {
                 {Boolean(props.report && title) && (
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <PressableWithoutFeedback
-                            onPress={() => !isChildReport && ReportUtils.navigateToDetailsPage(props.report)}
+                            onPress={() => (isTaskReport ? Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID)) : ReportUtils.navigateToDetailsPage(props.report))}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            disabled={isTaskReport}
                             accessibilityLabel={title}
                             accessibilityRole="button"
                         >
@@ -216,6 +216,7 @@ function HeaderView(props) {
                             )}
                         </PressableWithoutFeedback>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                            {isTaskReport && !props.isSmallScreenWidth && <TaskHeaderActionButton report={props.report} />}
                             {shouldShowCallButton && (
                                 <VideoChatButtonAndMenu
                                     isConcierge={isConcierge}

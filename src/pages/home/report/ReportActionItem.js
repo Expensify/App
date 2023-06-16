@@ -538,6 +538,6 @@ export default compose(
             nextProps.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
             prevProps.report.reportName === nextProps.report.reportName &&
             prevProps.report.description === nextProps.report.description &&
-            ReportUtils.isCompletedTaskReport(prevProps.report) !== ReportUtils.isCompletedTaskReport(nextProps.report),
+            ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report),
     ),
 );
