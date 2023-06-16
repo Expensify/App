@@ -94,6 +94,19 @@ function getEmptyAvatarStyle(size) {
 }
 
 /**
+ * Return the width style from an avatar size constant
+ *
+ * @param {String} size
+ * @returns {Object}
+ */
+function getAvatarWidthStyle(size) {
+    const avatarSize = getAvatarSize(size);
+    return {
+        width: avatarSize,
+    };
+}
+
+/**
  * Return the style from an avatar size constant
  *
  * @param {String} size
@@ -1186,6 +1199,7 @@ function getOuterModalStyle(windowHeight, viewportOffsetTop) {
 
 export {
     getAvatarSize,
+    getAvatarWidthStyle,
     getAvatarStyle,
     getAvatarExtraFontSizeStyle,
     getAvatarBorderWidth,

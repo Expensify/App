@@ -1,6 +1,5 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -10,23 +9,27 @@ import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as Task from '../../libs/actions/Task';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
-    /** Personal details of all users */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
-
     ...withLocalizePropTypes,
+
+    personalDetails: personalDetailsPropType.isRequired,
 };
 
 function TaskView(props) {
+    useEffect(() => {
+        Task.setTaskReport(props.report);
+    }, [props.report]);
+
     const taskTitle = props.report.reportName;
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
+
     return (
         <View style={[styles.borderBottom]}>
             <MenuItemWithTopDescription
@@ -49,8 +52,21 @@ function TaskView(props) {
             />
             <MenuItemWithTopDescription
                 label={props.translate('task.createdBy')}
-                title={OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.managerID], props.personalDetails)}
-                onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
+                title={ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID)}
+                icon={ReportUtils.getIconsForParticipants([props.report.ownerEmail], props.personalDetails)[0].source}
+                iconType={CONST.ICON_TYPE_AVATAR}
+                avatarSize={CONST.AVATAR_SIZE.SMALL}
+                titleStyle={styles.textStrong}
+                interactive={false}
+            />
+            <MenuItemWithTopDescription
+                label={props.translate('task.assignee')}
+                title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
+                icon={ReportUtils.getIconsForParticipants([props.report.managerEmail], props.personalDetails)[0].source}
+                iconType={CONST.ICON_TYPE_AVATAR}
+                avatarSize={CONST.AVATAR_SIZE.SMALL}
+                titleStyle={styles.textStrong}
+                onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                 shouldShowRightIcon
             />
         </View>

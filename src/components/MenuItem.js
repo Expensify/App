@@ -163,7 +163,7 @@ function MenuItem(props) {
                                 />
                             )}
                             {Boolean(props.icon) && !_.isArray(props.icon) && (
-                                <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
+                                <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize || CONST.AVATAR_SIZE.DEFAULT)]}>
                                     {props.iconType === CONST.ICON_TYPE_ICON && (
                                         <Icon
                                             src={props.icon}
@@ -187,9 +187,10 @@ function MenuItem(props) {
                                     )}
                                     {props.iconType === CONST.ICON_TYPE_AVATAR && (
                                         <Avatar
-                                            imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                            imageStyles={[styles.alignSelfCenter]}
                                             source={props.icon}
                                             fallbackIcon={props.fallbackIcon}
+                                            size={props.avatarSize || CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     )}
                                 </View>

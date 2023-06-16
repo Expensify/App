@@ -57,6 +57,8 @@ const propTypes = {
         report: reportPropTypes,
     }),
 
+    onBackButtonPress: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -67,6 +69,7 @@ const defaultProps = {
     session: {},
     route: {},
     task: {},
+    onBackButtonPress: () => {},
 };
 
 function TaskAssigneeSelectorModal(props) {
