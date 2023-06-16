@@ -123,12 +123,14 @@ function ReportPreview(props) {
                                 {props.translate('iou.payerOwes', {payer: managerName})}
                             </Text>
                         ) : (
-                            <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.lh16]}>
                                     {props.translate('iou.payerPaid', {payer: managerName})}
                                 </Text>
-                            </View>
                         )}
+                                <Icon
+                                    src={Expensicons.ArrowRight}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                                />
                             </View>
                         </View>
                         <View style={[styles.flexRow]}>
