@@ -29,6 +29,7 @@ function print_version {
 function bump_version {
   info "Bumping version..."
   setup_git_as_osbotify
+  git switch main
   if [[ $1 == 'minor' ]]; then
     npm --no-git-tag-version version minor
   else
@@ -41,6 +42,7 @@ function bump_version {
 
 function update_staging_from_main {
   info "Recreating staging from main..."
+  git switch main
   git branch -D staging
   git switch -c staging
   success "Recreated staging from main!"
@@ -48,9 +50,18 @@ function update_staging_from_main {
 
 function update_production_from_staging {
   info "Recreating production from staging..."
+  git switch staging
   git branch -D production
   git switch -c production
   success "Recreated production from staging!"
+}
+
+function merge_pr {
+  info "Merging PR #$1 to main"
+  git switch main
+  git merge "pr-$1" --no-ff -m "Merge pull request #$1 from Expensify/pr-$1"
+  git branch -d "pr-$1"
+  success "Merged PR #$1 to main"
 }
 
 ### Phase 0: Verify necessary tools are installed (all tools should be pre-installed on all GitHub Actions runners)
@@ -113,19 +124,14 @@ success "Setup complete!"
 
 title "Scenario #1: Merge a pull request while the checklist is unlocked"
 
-info "Creating PR #1 and merging it into main..."
+info "Creating PR #1..."
 git switch -c pr-1
 echo "Changes from PR #1" >> PR1.txt
 git add PR1.txt
 git commit -m "Changes from PR #1"
 success "Created PR #1 in branch pr-1"
 
-info "Merging PR #1 to main"
-git switch main
-git merge pr-1 --no-ff -m "Merge pull request #1 from Expensify/pr-1"
-git branch -d pr-1
-success "Merged PR #1 to main"
-
+merge_pr 1
 bump_version patch
 update_staging_from_main
 
@@ -145,17 +151,13 @@ success "Scenario #1 completed successfully!"
 
 title "Scenario #2: Merge a pull request with the checklist locked, but don't CP it"
 
-info "Creating PR #2 and merging it into main..."
+info "Creating PR #2..."
 setup_git_as_human
 git switch -c pr-2
 echo "Changes from PR #2" >> PR2.txt
 git add PR2.txt
 git commit -m "Changes from PR #2"
-git switch main
-git merge pr-2 --no-ff -m "Merge pull request #2 from Expensify/pr-2"
-info "Merged PR #2 into main"
-git branch -d pr-2
-success "Created PR #2 and merged it to main!"
+merge_pr 2
 
 success "Scenario #2 completed successfully!"
 
@@ -168,12 +170,13 @@ git add PR3.txt
 git commit -m "Changes from PR #3"
 git switch main
 git merge pr-3 --no-ff -m "Merge pull request #3 from Expensify/pr-3"
-PR_MERGE_COMMIT="$(git log -1 --format='%H')"
+PR_MERGE_COMMIT="$(git rev-parse HEAD)"
 info "Merged PR #3 into main"
 git branch -d pr-3
 success "Created PR #3 and merged it to main!"
 
 bump_version patch
+VERSION_BUMP_COMMIT="$(git rev-parse HEAD)"
 
 info "Cherry picking PR #3 and the version bump to staging..."
 git switch staging
@@ -218,11 +221,7 @@ success "Scenario #4A completed successfully!"
 title "Scenario #4B: Run the staging deploy and create a new checklist"
 
 bump_version minor
-
-info "Re-creating staging from main..."
-git branch -D staging
-git switch -c staging
-success "Recreated staging from main!"
+update_staging_from_main
 
 info "Tagging new version on staging..."
 git tag "$(print_version)"
@@ -238,18 +237,14 @@ success "Scenario #4B completed successfully!"
 
 title "Scenario #5: Merging another pull request when the checklist is unlocked"
 
-info "Creating PR #5 and merging it to main..."
+info "Creating PR #5..."
 setup_git_as_human
 git switch main
 git switch -c pr-5
 echo "Changes from PR #5" >> PR5.txt
 git add PR5.txt
 git commit -m "Changes from PR #5"
-git switch main
-git merge pr-5 --no-ff -m "Merge pull request #5 from Expensify/pr-5"
-info "Merged PR #5 into main"
-git branch -d pr-5
-success "Created PR #5 and merged it into main!"
+merge_pr 5
 
 bump_version patch
 update_staging_from_main
