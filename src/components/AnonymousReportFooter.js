@@ -21,7 +21,7 @@ const defaultProps = {
     report: {},
 };
 
-function AnonymousReportFooter(props){
+function AnonymousReportFooter(props) {
     const [availableWidth, setAvailableWidth] = React.useState(null);
 
     const isSmallSizeLayout = availableWidth && availableWidth < variables.anonymousReportFooterBreakpoint;
@@ -32,7 +32,10 @@ function AnonymousReportFooter(props){
     };
 
     return (
-        <View onLayout={onLayout} style={styles.anonymousRoomFooter(isSmallSizeLayout)}>
+        <View
+            onLayout={onLayout}
+            style={styles.anonymousRoomFooter(isSmallSizeLayout)}
+        >
             <View style={[styles.flexRow]}>
                 <AvatarWithDisplayName
                     report={props.report}
@@ -58,7 +61,7 @@ function AnonymousReportFooter(props){
             </View>
         </View>
     );
-};
+}
 
 AnonymousReportFooter.propTypes = propTypes;
 AnonymousReportFooter.defaultProps = defaultProps;

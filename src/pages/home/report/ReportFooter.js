@@ -61,20 +61,21 @@ function ReportFooter(props) {
     const chatFooterStyles = {...styles.chatFooter, minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isAllowedToComment = ReportUtils.isAllowedToComment(props.report);
+    const isAnonymousUser = Session.isAnonymousUser();
     const hideComposer = isArchivedRoom || !_.isEmpty(props.errors) || !isAllowedToComment;
 
     return (
         <>
-            {(isArchivedRoom || hideComposer) && (
+            {(isArchivedRoom || hideComposer || isAnonymousUser) && (
                 <View style={[styles.chatFooter, props.isSmallScreenWidth ? styles.mb5 : null]}>
-                    {Session.isAnonymousUser() && <AnonymousReportFooter report={props.report}/>}
+                    {isAnonymousUser && <AnonymousReportFooter report={props.report} />}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
                     {!props.isSmallScreenWidth && (
                         <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
                     )}
                 </View>
             )}
-            {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
+            {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && !isAnonymousUser && (
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose

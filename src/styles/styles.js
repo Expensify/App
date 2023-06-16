@@ -2225,7 +2225,7 @@ const styles = {
         flexDirection: isSmallSizeLayout ? 'column' : 'row',
         ...(!isSmallSizeLayout && {
             alignItems: 'center',
-            justifyContent: 'space-between',    
+            justifyContent: 'space-between',
         }),
         padding: 20,
         backgroundColor: themeColors.activeComponentBG,
@@ -2239,7 +2239,7 @@ const styles = {
             // flex: 1,
             justifyContent: 'space-between',
             marginTop: 16,
-        })
+        }),
     }),
     anonymousRoomFooterLogo: {
         width: 88,
