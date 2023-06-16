@@ -402,9 +402,7 @@ function ReportActionItem(props) {
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         if (ReportUtils.isTaskReport(props.report)) {
-            return (
-                <TaskView report={props.report} />
-            );
+            return <TaskView report={props.report} />;
         }
         return <ReportActionItemCreated reportID={props.report.reportID} />;
     }

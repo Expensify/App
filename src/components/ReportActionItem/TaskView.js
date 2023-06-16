@@ -57,7 +57,7 @@ function TaskView(props) {
                 label={props.translate('task.assignee')}
                 title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
                 icon={UserUtils.getAvatar(
-                    PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID)[0].avatar, 
+                    PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID)[0].avatar,
                     props.report.managerID,
                 )}
                 iconType={CONST.ICON_TYPE_AVATAR}
