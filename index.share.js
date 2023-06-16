@@ -1,38 +1,57 @@
 // import { AppRegistry, View, Text } from "react-native";
-// 
+//
 // function MyShareComponent() {
 //   return <View><Text>Rendered share component!</Text></View>
 // }
-// 
+//
 // AppRegistry.registerComponent(
 //   "ShareMenuModuleComponent",
 //   () => MyShareComponent
 // );
+import {AppRegistry, ScrollView, Text, View} from 'react-native';
 import 'react-native-gesture-handler';
-import {AppRegistry, View, Text} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from './src/ONYXKEYS';
-
 
 const config = {
     keys: ONYXKEYS,
 };
 
 Onyx.init(config);
-Onyx.set(ONYXKEYS.ACCOUNT, {accountname: "myaccount"});
 
 function BasicOnyxComponent(props) {
-   return <View style={{flex: 1}}><Text>{JSON.stringify(props.account)}</Text><Text>Test string</Text></View>
+    return (
+        <ScrollView
+            contentContainerStyle={{padding: 24}}
+            style={{flex: 1}}
+        >
+            {Object.entries(props).map(([prop, json]) => (
+                <Text style={{color: '#E7ECE9', fontWeight: 'bold'}}>
+                    {prop.toUpperCase()}
+                    {'\n\n'}
+                    {Object.entries(json).map(([key, value]) => (
+                        <Text style={{color: '#E7ECE9', fontWeight: 'normal'}}>
+                            {key}: {JSON.stringify(value)}
+                            {'\n\n'}
+                        </Text>
+                    ))}
+                </Text>
+            ))}
+        </ScrollView>
+    );
 }
 
-const WithHOC = withOnyx({account: {key: ONYXKEYS.ACCOUNT}})(BasicOnyxComponent)
+const WithHOC = withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+    session: {key: ONYXKEYS.SESSION},
+})(BasicOnyxComponent);
 
 function TestEntry() {
-  return (
-    <View style={{flex: 1, backgroundColor: 'yellow'}}>
-      <WithHOC />
-    </View>
-  )
+    return (
+        <View style={{flex: 1, backgroundColor: '#07271F'}}>
+            <WithHOC />
+        </View>
+    );
 }
 
-AppRegistry.registerComponent("ShareMenuModuleComponent", () => TestEntry);
+AppRegistry.registerComponent('ShareMenuModuleComponent', () => TestEntry);
