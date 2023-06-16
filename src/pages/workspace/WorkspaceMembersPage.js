@@ -73,7 +73,7 @@ const defaultProps = {
 
 function WorkspaceMembersPage(props) {
     const [selectedEmployees, setSelectedEmployees] = useState([]);
-    const [removeMembersConfirmModalVisible, setConfirmModalVisible] = useState(false);
+    const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState('');
     const prevIsOffline = usePrevious(props.network.isOffline);
@@ -110,7 +110,13 @@ function WorkspaceMembersPage(props) {
     }, [props.preferredLocale, validateSelection]);
 
     useEffect(() => {
-        setSelectedEmployees((prevSelected) => _.intersection(prevSelected, _.map(_.values(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID))));
+        setSelectedEmployees((prevSelected) =>
+            _.intersection(
+                prevSelected,
+                _.map(_.values(PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails)), (accountID) => Number(accountID)),
+            ),
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.policyMembers]);
 
     useEffect(() => {
@@ -174,10 +180,10 @@ function WorkspaceMembersPage(props) {
 
         // Remove the admin from the list
         const accountIDsToRemove = _.without(selectedEmployees, props.session.accountID);
-        
+
         Policy.removeMembers(accountIDsToRemove, props.route.params.policyID);
         setSelectedEmployees([]);
-        setConfirmModalVisible(false);
+        setRemoveMembersConfirmModalVisible(false);
     };
 
     /**
@@ -187,7 +193,7 @@ function WorkspaceMembersPage(props) {
         if (!_.isEmpty(errors)) {
             return;
         }
-        setConfirmModalVisible(true);
+        setRemoveMembersConfirmModalVisible(true);
     };
 
     /**
@@ -196,7 +202,7 @@ function WorkspaceMembersPage(props) {
      */
     const toggleAllUsers = (memberList) => {
         const accountIDList = _.map(_.keys(memberList), (memberAccountID) => Number(memberAccountID));
-        setSelectedEmployees((prevSelected) => (!_.every(emailList, (memberAccountID) => _.contains(prevSelected, memberAccountID)) ? accountIDList : []));
+        setSelectedEmployees((prevSelected) => (!_.every(accountIDList, (memberAccountID) => _.contains(prevSelected, memberAccountID)) ? accountIDList : []));
         validateSelection();
     };
 
@@ -408,7 +414,7 @@ function WorkspaceMembersPage(props) {
                         title={props.translate('workspace.people.removeMembersTitle')}
                         isVisible={removeMembersConfirmModalVisible}
                         onConfirm={removeUsers}
-                        onCancel={() => setConfirmModalVisible(false)}
+                        onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                         prompt={props.translate('workspace.people.removeMembersPrompt')}
                         confirmText={props.translate('common.remove')}
                         cancelText={props.translate('common.cancel')}
@@ -441,7 +447,7 @@ function WorkspaceMembersPage(props) {
                             <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                 <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
                                     <Checkbox
-                                        isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (memberEmail) => _.contains(selectedEmployees, memberEmail))}
+                                        isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
                                         onPress={() => toggleAllUsers(removableMembers)}
                                     />
                                     <View style={[styles.flex1]}>
