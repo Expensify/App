@@ -2221,19 +2221,26 @@ const styles = {
         marginTop: 'auto',
     },
 
-    anonymousRoomFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+    anonymousRoomFooter: (isSmallSizeLayout) => ({
+        flexDirection: isSmallSizeLayout ? 'column' : 'row',
+        ...(!isSmallSizeLayout && {
+            alignItems: 'center',
+            justifyContent: 'space-between',    
+        }),
         padding: 20,
-        marginBottom: 20,
         backgroundColor: themeColors.activeComponentBG,
-        flexWrap: 'wrap',
-        gap: 8,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
-    },
-
+    }),
+    anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        ...(isSmallSizeLayout && {
+            // flex: 1,
+            justifyContent: 'space-between',
+            marginTop: 16,
+        })
+    }),
     anonymousRoomFooterLogo: {
         width: 88,
         marginLeft: 0,

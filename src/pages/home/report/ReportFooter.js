@@ -67,6 +67,7 @@ function ReportFooter(props) {
         <>
             {(isArchivedRoom || hideComposer) && (
                 <View style={[styles.chatFooter, props.isSmallScreenWidth ? styles.mb5 : null]}>
+                    {Session.isAnonymousUser() && <AnonymousReportFooter report={props.report}/>}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
                     {!props.isSmallScreenWidth && (
                         <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
@@ -76,19 +77,15 @@ function ReportFooter(props) {
             {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                        {Session.isAnonymousUser() ? (
-                            <AnonymousReportFooter report={props.report} />
-                        ) : (
-                            <ReportActionCompose
-                                onSubmit={props.onSubmitComment}
-                                reportID={props.report.reportID.toString()}
-                                reportActions={props.reportActions}
-                                report={props.report}
-                                pendingAction={props.pendingAction}
-                                isComposerFullSize={props.isComposerFullSize}
-                                disabled={props.shouldDisableCompose}
-                            />
-                        )}
+                        <ReportActionCompose
+                            onSubmit={props.onSubmitComment}
+                            reportID={props.report.reportID.toString()}
+                            reportActions={props.reportActions}
+                            report={props.report}
+                            pendingAction={props.pendingAction}
+                            isComposerFullSize={props.isComposerFullSize}
+                            disabled={props.shouldDisableCompose}
+                        />
                     </SwipeableView>
                 </View>
             )}
