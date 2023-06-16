@@ -25,7 +25,6 @@ import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
-import MultipleAvatars from "../MultipleAvatars";
 
 const propTypes = {
     /** All the data of the action */
@@ -118,15 +117,15 @@ function ReportPreview(props) {
                     <View style={[styles.iouPreviewBox]}>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                        {props.iouReport.hasOutstandingIOU ? (
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                {props.translate('iou.payerOwes', {payer: managerName})}
-                            </Text>
-                        ) : (
-                                <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                    {props.translate('iou.payerPaid', {payer: managerName})}
-                                </Text>
-                        )}
+                                {props.iouReport.hasOutstandingIOU ? (
+                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                                        {props.translate('iou.payerOwes', {payer: managerName})}
+                                    </Text>
+                                ) : (
+                                    <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                                        {props.translate('iou.payerPaid', {payer: managerName})}
+                                    </Text>
+                                )}
                                 <Icon
                                     src={Expensicons.ArrowRight}
                                     fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
