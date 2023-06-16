@@ -80,7 +80,8 @@ function keyExtractor(item) {
 function ReportActionsList(props) {
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
-        opacity: opacity.value,
+        // TODO: uncomment when Reanimated switches to using commit hooks for shadow tree operations
+        // opacity: opacity.value,
     }));
     useEffect(() => {
         opacity.value = withTiming(1, {duration: 100});
