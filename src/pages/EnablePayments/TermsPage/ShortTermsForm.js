@@ -5,6 +5,8 @@ import Text from '../../../components/Text';
 import * as Localize from '../../../libs/Localize';
 import CONST from '../../../CONST';
 import TextLink from '../../../components/TextLink';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import variables from '../../../styles/variables';
 
 function ShortTermsForm() {
     return (
@@ -18,7 +20,7 @@ function ShortTermsForm() {
                             <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.monthlyFee')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={[styles.textHeadline, styles.textXXXLargeWLineHeight]}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                            <Text style={[styles.textHeadline, styles.textXXXLarge, StyleUtils.getLineHeightStyle(variables.lineHeightXXXLarge)]}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
                         </View>
                     </View>
                     <View style={[styles.flex2]}>
@@ -27,7 +29,7 @@ function ShortTermsForm() {
                                 <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.shortTermsForm.perPurchase')}</Text>
                             </View>
                             <View style={styles.flexRow}>
-                                <Text style={[styles.textHeadline, styles.textXXXLargeWLineHeight]}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                                <Text style={[styles.textHeadline, styles.textXXXLarge, StyleUtils.getLineHeightStyle(variables.lineHeightXXXLarge)]}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
                             </View>
                         </View>
                     </View>
@@ -39,13 +41,13 @@ function ShortTermsForm() {
                             <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.shortTermsForm.atmWithdrawal')}</Text>
                         </View>
                         <View style={styles.flexRow}>
-                            <Text style={[styles.textHeadline, styles.textXXXLargeWLineHeight]}>{Localize.translateLocal('common.na')}</Text>
+                            <Text style={[styles.textHeadline, styles.textXXXLarge, StyleUtils.getLineHeightStyle(variables.lineHeightXXXLarge)]}>{Localize.translateLocal('common.na')}</Text>
                         </View>
                         <View style={styles.flexRow}>
                             <Text style={styles.textLabelSupporting}>{Localize.translateLocal('termsStep.shortTermsForm.inNetwork')}</Text>
                         </View>
                         <View style={[styles.flexRow, styles.mt1]}>
-                            <Text style={[styles.textHeadline, styles.textXXXLargeWLineHeight]}>{Localize.translateLocal('common.na')}</Text>
+                            <Text style={[styles.textHeadline, styles.textXXXLarge, StyleUtils.getLineHeightStyle(variables.lineHeightXXXLarge)]}>{Localize.translateLocal('common.na')}</Text>
                         </View>
                         <View style={styles.flexRow}>
                             <Text style={styles.textLabelSupporting}>{Localize.translateLocal('termsStep.shortTermsForm.outOfNetwork')}</Text>
@@ -57,7 +59,7 @@ function ShortTermsForm() {
                                 <Text style={styles.textLarge}>{Localize.translateLocal('termsStep.shortTermsForm.cashReload')}</Text>
                             </View>
                             <View style={styles.flexRow}>
-                                <Text style={[styles.textHeadline, styles.textXXXLargeWLineHeight]}>{Localize.translateLocal('common.na')}</Text>
+                                <Text style={[styles.textHeadline, styles.textXXXLarge, StyleUtils.getLineHeightStyle(variables.lineHeightXXXLarge)]}>{Localize.translateLocal('common.na')}</Text>
                             </View>
                         </View>
                     </View>
