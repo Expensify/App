@@ -44,14 +44,7 @@ function TaskView(props) {
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
 
-    const titleTextStyle = StyleUtils.combineStyles([
-        styles.pre,
-        styles.ltr,
-        styles.newKansasLarge,
-        styles.flexWrap,
-        styles.flex1,
-        {maxWidth: '100%', wordBreak: 'break-word'},
-    ]);
+    const titleTextStyle = StyleUtils.combineStyles([styles.pre, styles.ltr, styles.newKansasLarge, styles.flexWrap, styles.flex1, {maxWidth: '100%', wordBreak: 'break-word'}]);
     const descriptionTextStyle = StyleUtils.combineStyles([styles.textLabelSupporting, styles.lineHeightNormal, styles.mb1, props.descriptionTextStyle]);
 
     return (
@@ -64,11 +57,7 @@ function TaskView(props) {
 
                     Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
                 })}
-                style={({hovered, pressed}) => [
-                    styles.ph5,
-                    styles.pv2,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed), true),
-                ]}
+                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed), true)]}
                 ref={props.forwardedRef}
                 disabled={!isOpen}
             >
