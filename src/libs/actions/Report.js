@@ -1492,11 +1492,11 @@ function hasAccountIDReacted(accountID, users, skinTone) {
  */
 function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
     const message = originalReportAction.message[0];
-    let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.shortcode.en);
+    let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === _.get(emoji, ['shortcode', 'en'], ''));
     const needToInsertReactionObject = !reactionObject;
     if (needToInsertReactionObject) {
         reactionObject = {
-            emoji: emoji.shortcode.en,
+            emoji: _.get(emoji, ['shortcode', 'en'], ''),
             users: [],
         };
     } else {
@@ -1513,7 +1513,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
     if (needToInsertReactionObject) {
         updatedReactions = [...updatedReactions, reactionObject];
     } else {
-        updatedReactions = _.map(updatedReactions, (reaction) => (reaction.emoji === emoji.shortcode.en ? reactionObject : reaction));
+        updatedReactions = _.map(updatedReactions, (reaction) => (reaction.emoji === _.get(emoji, ['shortcode', 'en'], '') ? reactionObject : reaction));
     }
 
     const updatedMessage = {
@@ -1527,7 +1527,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
     const parameters = {
         reportID,
         skinTone,
-        emojiCode: emoji.shortcode.en,
+        emojiCode: _.get(emoji, ['shortcode', 'en'], ''),
         sequenceNumber: originalReportAction.sequenceNumber,
         reportActionID: originalReportAction.reportActionID,
     };
@@ -1542,7 +1542,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
  */
 function removeEmojiReaction(reportID, originalReportAction, emoji) {
     const message = originalReportAction.message[0];
-    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.shortcode.en);
+    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === _.get(emoji, ['shortcode', 'en'], ''));
     if (!reactionObject) {
         return;
     }
@@ -1554,7 +1554,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
     const updatedReactions = _.filter(
         // Replace the reaction object either with the updated one or null if there are no users
         _.map(message.reactions, (reaction) => {
-            if (reaction.emoji === emoji.shortcode.en) {
+            if (reaction.emoji === _.get(emoji, ['shortcode', 'en'], '')) {
                 if (updatedReactionObject.users.length === 0) {
                     return null;
                 }
@@ -1579,7 +1579,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
         reportID,
         sequenceNumber: originalReportAction.sequenceNumber,
         reportActionID: originalReportAction.reportActionID,
-        emojiCode: emoji.shortcode.en,
+        emojiCode: _.get(emoji, ['shortcode', 'en'], ''),
     };
     API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
