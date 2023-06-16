@@ -748,7 +748,6 @@ function getOptions(
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
-    console.log('NO OPTIONS', {noOptions, noOptionsMatchExactly})
 
     if (
         searchValue &&
