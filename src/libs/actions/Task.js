@@ -308,8 +308,9 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
     let assigneeChatReportID;
-    if (assigneeAccountID && assigneeAccountID !== report.managerID) {
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID) {
         assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID]).reportID;
+
         if (assigneeChatReportID !== report.parentReportID.toString()) {
             optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
                 report.reportID,
@@ -493,7 +494,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {assignee, newAssigneeAccountID});
+    Onyx.merge(ONYXKEYS.TASK, {assignee, assigneeAccountID: newAssigneeAccountID});
 }
 
 /**

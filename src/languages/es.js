@@ -265,6 +265,7 @@ export default {
         copyURLToClipboard: 'Copiar URL al portapapeles',
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
+        markAsRead: 'Marcar como leído',
         editComment: 'Editar comentario',
         deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
@@ -1872,6 +1873,7 @@ export default {
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         prestyledText: 'texto preestilizado',
+        viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
