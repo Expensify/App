@@ -263,6 +263,121 @@ assert_equal "$output" "[ '5' ]"
 
 success "Scenario #5 completed successfully!"
 
+title "Scenario #6: Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production."
+
+info "Creating myFile.txt in PR #6"
+setup_git_as_human
+git switch main
+git switch -c pr-6
+echo "Changes from PR #6" >> myFile.txt
+git add myFile.txt
+git commit -m "Add myFile.txt in PR #6"
+
+merge_pr 6
+bump_version patch
+update_staging_from_main
+tag_staging
+
+# Verify output for checklist
+info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.2"
+output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.2')
+assert_equal "$output" "[ '6', '5', '2' ]"
+
+# Verify output for deploy comment
+info "Checking output of getPullRequestsMergedBetween 1.1.1 1.1.2"
+output=$(node "$getPullRequestsMergedBetween" '1.1.1' '1.1.2')
+assert_equal "$output" "[ '6' ]"
+
+info "Appending and prepending content to myFile.txt in PR #7"
+setup_git_as_human
+git switch main
+git switch -c pr-7
+printf "[DEBUG] Before:\n\n%s" "$(cat myFile.txt)"
+printf "Prepended content\n%s" "$(cat myFile.txt)" > myFile.txt
+printf "\nAppended content\n" >> myFile.txt
+printf "\n\n[DEBUG] After:\n\n%s\n" "$(cat myFile.txt)"
+git add myFile.txt
+git commit -m "Append and prepend content in myFile.txt"
+
+merge_pr 7
+bump_version patch
+update_staging_from_main
+tag_staging
+
+# Verify output for checklist
+info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.3"
+output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.3')
+assert_equal "$output" "[ '7', '6', '5', '2' ]"
+
+# Verify output for deploy comment
+info "Checking output of getPullRequestsMergedBetween 1.1.2 1.1.3"
+output=$(node "$getPullRequestsMergedBetween" '1.1.2' '1.1.3')
+assert_equal "$output" "[ '7' ]"
+
+info "Making an unrelated change in PR #8"
+setup_git_as_human
+git switch main
+git switch -c pr-8
+echo "some content" >> anotherFile.txt
+git add anotherFile.txt
+git commit -m "Create another file"
+
+merge_pr 8
+
+info "Reverting the append + prepend on main in PR #9"
+setup_git_as_human
+git switch main
+git switch -c pr-9
+printf "Before:\n\n%s\n" "$(cat myFile.txt)"
+echo "some content" > myFile.txt
+printf "\nAfter:\n\n%s\n" "$(cat myFile.txt)"
+git add myFile.txt
+git commit -m "Revert append and prepend"
+
+cherry_pick_pr 9
+tag_staging
+
+info "Verifying that the revert is present on staging, but the unrelated change is not"
+if [[ "$(cat myFile.txt)" != "some content" ]]; then
+  error "Revert did not make it to staging"
+  exit 1
+else
+  success "Revert made it to staging"
+fi
+if [[ -f anotherFile.txt ]]; then
+  error "Unrelated change made it to staging"
+  exit 1
+else
+  success "Unrelated change not on staging yet"
+fi
+
+info "Repeating previously reverted append + prepend on main in PR #10"
+setup_git_as_human
+git switch main
+git switch -c pr-10
+printf "[DEBUG] Before:\n\n%s" "$(cat myFile.txt)"
+printf "Prepended content\n%s" "$(cat myFile.txt)" > myFile.txt
+printf "\nAppended content\n" >> myFile.txt
+printf "\n\n[DEBUG] After:\n\n%s\n" "$(cat myFile.txt)"
+git add myFile.txt
+git commit -m "Append and prepend content in myFile.txt"
+
+merge_pr 10
+update_production_from_staging
+bump_version minor
+update_staging_from_main
+tag_staging
+
+# Verify production release list
+info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.4"
+output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.4')
+assert_equal "$output" "[ '9', '7', '6', '5', '2' ]"
+
+# Verify PR list for the new checklist
+info "Checking output of getPullRequestsMergedBetween 1.1.4 1.2.0"
+output=$(node "$getPullRequestsMergedBetween" '1.1.4' '1.2.0')
+assert_equal "$output" "[ '10', '8' ]"
+
 ### Cleanup
 title "Cleaning up..."
 cd "$TEST_DIR" || exit 1
