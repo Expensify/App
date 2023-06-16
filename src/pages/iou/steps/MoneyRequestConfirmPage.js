@@ -33,6 +33,7 @@ const propTypes = {
         comment: PropTypes.string,
         participants: PropTypes.arrayOf(
             PropTypes.shape({
+                accountID: PropTypes.number,
                 login: PropTypes.string,
                 isPolicyExpenseChat: PropTypes.bool,
                 isOwnPolicyExpenseChat: PropTypes.bool,
@@ -64,6 +65,15 @@ function MoneyRequestConfirmPage(props) {
     const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const participants = useMemo(
+        () =>
+            lodashGet(props.iou, ['participants', 0, 'isPolicyExpenseChat'], false)
+                ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
+                : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
+        // The rule can't recognize that we are accessing participants from props.iou, so let's ignore the warning
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.iou.participants, props.personalDetails],
+    );
 
     useEffect(() => {
         const moneyRequestId = `${iouType.current}${reportID.current}`;
@@ -150,7 +160,7 @@ function MoneyRequestConfirmPage(props) {
         (paymentMethodType) => {
             const currency = props.iou.currency;
             const trimmedComment = props.iou.comment.trim();
-            const participant = props.iou.participants[0];
+            const participant = participants[0];
 
             if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 IOU.sendMoneyElsewhere(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
@@ -166,17 +176,7 @@ function MoneyRequestConfirmPage(props) {
                 IOU.sendMoneyWithWallet(props.report, props.iou.amount, currency, trimmedComment, props.currentUserPersonalDetails.accountID, participant);
             }
         },
-        [props.iou.amount, props.iou.comment, props.iou.participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
-    );
-
-    const participants = useMemo(
-        () =>
-            lodashGet(props.iou, ['participants', 0, 'isPolicyExpenseChat'], false)
-                ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
-                : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
-        // The rule can't recognize that we are accessing participants from props.iou, so let's ignore the warning
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.iou.participants, props.personalDetails],
+        [props.iou.amount, props.iou.comment, participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
     );
 
     return (
@@ -203,7 +203,7 @@ function MoneyRequestConfirmPage(props) {
                         }}
                         onSelectParticipant={(option) => {
                             const newParticipants = _.map(props.iou.participants, (participant) => {
-                                if (participant.login === option.login) {
+                                if (participant.accountID === option.accountID) {
                                     return {...participant, selected: !participant.selected};
                                 }
                                 return participant;

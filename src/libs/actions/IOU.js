@@ -46,19 +46,19 @@ Onyx.connect({
     },
 });
 
-let userEmail = '';
+let userAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        userEmail = lodashGet(val, 'email', '');
+        userAccountID = lodashGet(val, 'accountID', '');
     },
 });
 
 let currentUserPersonalDetails = {};
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        currentUserPersonalDetails = lodashGet(val, userEmail, {});
+        currentUserPersonalDetails = lodashGet(val, userAccountID, {});
     },
 });
 
@@ -303,6 +303,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} comment
  */
 function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment) {
+    console.log('part', participant)
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;

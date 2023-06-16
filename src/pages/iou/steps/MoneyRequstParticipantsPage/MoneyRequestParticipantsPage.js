@@ -24,6 +24,7 @@ const propTypes = {
         amount: PropTypes.number,
         participants: PropTypes.arrayOf(
             PropTypes.shape({
+                accountID: PropTypes.number,
                 login: PropTypes.string,
                 isPolicyExpenseChat: PropTypes.bool,
                 isOwnPolicyExpenseChat: PropTypes.bool,

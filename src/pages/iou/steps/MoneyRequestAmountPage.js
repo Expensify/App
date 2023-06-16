@@ -44,6 +44,7 @@ const propTypes = {
         currency: PropTypes.string,
         participants: PropTypes.arrayOf(
             PropTypes.shape({
+                accountID: PropTypes.number,
                 login: PropTypes.string,
                 isPolicyExpenseChat: PropTypes.bool,
                 isOwnPolicyExpenseChat: PropTypes.bool,
@@ -420,12 +421,12 @@ class MoneyRequestAmountPage extends React.Component {
         if (this.props.report.reportID) {
             // We want to reinitialize the participants when the ID changes
             if (_.isEmpty(this.props.iou.participants) || !isMoneyRequestIdMatch) {
-                const currentUserLogin = this.props.currentUserPersonalDetails.login;
+                const currentUserAccountID = this.props.currentUserPersonalDetails.accountID;
                 const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
                     ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
-                    : _.chain(this.props.report.participants)
-                          .filter((participant) => currentUserLogin !== participant.login)
-                          .map((participant) => ({login: participant, selected: true}))
+                    : _.chain(this.props.report.participantAccountIDs)
+                          .filter((accountID) => currentUserAccountID !== accountID)
+                          .map((accountID) => ({accountID, selected: true}))
                           .value();
                 IOU.setMoneyRequestParticipants(participants);
             }

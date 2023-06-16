@@ -28,6 +28,7 @@ const propTypes = {
     participants: PropTypes.arrayOf(
         PropTypes.shape({
             accountID: PropTypes.number,
+            login: PropTypes.string,
             isPolicyExpenseChat: PropTypes.bool,
             isOwnPolicyExpenseChat: PropTypes.bool,
             selected: PropTypes.bool,
@@ -172,7 +173,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
         if (isOptionInList) {
             newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
         } else {
-            newSelectedOptions = [...this.props.participants, {login: option.login, selected: true}];
+            newSelectedOptions = [...this.props.participants, {accountID: option.accountID, login: option.login, selected: true}];
         }
 
         this.props.onAddParticipants(newSelectedOptions);

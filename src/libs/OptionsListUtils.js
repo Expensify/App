@@ -207,9 +207,9 @@ function isPersonalDetailsReady(personalDetails) {
  * @returns {Array}
  */
 function getParticipantsOptions(participants, personalDetails) {
-    const details = getPersonalDetailsForAccountIDs(_.pluck(participants, 'participantAccountIDs'), personalDetails);
+    const details = getPersonalDetailsForAccountIDs(_.pluck(participants, 'accountID'), personalDetails);
     return _.map(participants, (participant) => {
-        const detail = details[participant.participantAccountIDs];
+        const detail = details[participant.accountID];
         return {
             keyForList: detail.login,
             login: detail.login,
