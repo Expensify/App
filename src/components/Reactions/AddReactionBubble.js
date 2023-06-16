@@ -38,7 +38,9 @@ const propTypes = {
     /**
      * ReportAction for EmojiPicker.
      */
-    reportAction: PropTypes.object,
+    reportAction: PropTypes.shape({
+        reportActionID: PropTypes.string.isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
