@@ -135,13 +135,13 @@ const sanitizeStringForJSONParse = __nccwpck_require__(9338);
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromRef, toRef) {
-    const command = `git log --format='{"commit": "%H", "authorName": "%an", "subject": "%s"},' ${fromRef}...${toRef}`;
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
-    console.log('Running command: ', command);
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
-        const spawnedProcess = spawn('git', ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromRef}...${toRef}`]);
+        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromRef}...${toRef}`];
+        console.log(`Running command: git ${args.join(' ')}`);
+        const spawnedProcess = spawn('git', args);
         spawnedProcess.on('message', console.log);
         spawnedProcess.stdout.on('data', (chunk) => {
             console.log(chunk.toString());
