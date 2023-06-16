@@ -63,8 +63,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     // Define notification channel
     public static final String CHANNEL_MESSAGES_ID = "CHANNEL_MESSAGES";
-    public static final String CHANNEL_MESSAGES_NAME = "Message Notifications";
-    public static final String CHANNEL_GROUP_ID = "CHANNEL_GROUP_CHATS";
+    public static final String CHANNEL_MESSAGES_NAME = "Messages";
+    public static final String NOTIFICATION_GROUP_CHATS = "NOTIFICATION_GROUP_CHATS";
     public static final String CHANNEL_GROUP_NAME = "Chats";
 
     // Conversation JSON keys
@@ -119,9 +119,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void createAndRegisterNotificationChannel(@NonNull Context context) {
-        NotificationChannelGroup channelGroup = new NotificationChannelGroup(CHANNEL_GROUP_ID, CHANNEL_GROUP_NAME);
+        NotificationChannelGroup channelGroup = new NotificationChannelGroup(NOTIFICATION_GROUP_CHATS, CHANNEL_GROUP_NAME);
         NotificationChannel channel = new NotificationChannel(CHANNEL_MESSAGES_ID, CHANNEL_MESSAGES_NAME, NotificationManager.IMPORTANCE_HIGH);
-        channel.setGroup(CHANNEL_GROUP_ID);
 
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannelGroup(channelGroup);
