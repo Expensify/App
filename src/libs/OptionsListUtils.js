@@ -472,7 +472,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
-        console.log('lastMessageTextFromReport', lastMessageTextFromReport);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
         let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
