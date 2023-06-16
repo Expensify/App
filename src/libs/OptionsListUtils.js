@@ -177,7 +177,6 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
         let personalDetail = personalDetails[accountID];
         if (!personalDetail) {
             personalDetail = {
-                accountID: cleanAccountID,
                 avatar: UserUtils.getDefaultAvatar(cleanAccountID),
             };
         }
@@ -186,6 +185,7 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
             personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
         }
 
+        personalDetail.accountID = cleanAccountID;
         personalDetailsForAccountIDs[cleanAccountID] = personalDetail;
     });
     return personalDetailsForAccountIDs;
@@ -475,7 +475,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     } else {
         reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
         result.keyForList = String(accountIDs[0]);
-        result.alternateText = '';
+        result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
