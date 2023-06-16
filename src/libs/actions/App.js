@@ -152,33 +152,29 @@ function openApp(isReconnecting = false) {
 
                 // eslint-disable-next-line rulesdir/no-multiple-api-calls
                 const apiMethod = isReconnecting ? API.write : API.read;
-                apiMethod(
-                    isReconnecting ? 'ReconnectApp' : 'OpenApp',
-                    params,
-                    {
-                        optimisticData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: true,
-                            },
-                        ],
-                        successData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: false,
-                            },
-                        ],
-                        failureData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: false,
-                            },
-                        ],
-                    },
-                );
+                apiMethod(isReconnecting ? 'ReconnectApp' : 'OpenApp', params, {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: true,
+                        },
+                    ],
+                    successData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                    failureData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                });
             },
         });
     });

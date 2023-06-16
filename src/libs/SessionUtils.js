@@ -54,12 +54,11 @@ function resetDidUserLogInDuringSession() {
     loggedInDuringSession = undefined;
 }
 
+/**
+ * @returns {boolean}
+ */
 function didUserLogInDuringSession() {
     return Boolean(loggedInDuringSession);
 }
 
-export {
-    isLoggingInAsNewUser,
-    didUserLogInDuringSession,
-    resetDidUserLogInDuringSession,
-};
+export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession};
