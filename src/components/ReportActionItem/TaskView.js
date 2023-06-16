@@ -8,6 +8,7 @@ import compose from '../../libs/compose';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
+import MenuItem from '../MenuItem';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
@@ -35,7 +36,7 @@ function TaskView(props) {
     return (
         <View style={[styles.borderBottom]}>
             <MenuItemWithTopDescription
-                label={props.translate('task.title')}
+                description={props.translate('task.title')}
                 title={taskTitle}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
                 shouldShowRightIcon
@@ -47,24 +48,12 @@ function TaskView(props) {
                 onPressSelection={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
             />
             <MenuItemWithTopDescription
-                label={props.translate('task.description')}
+                description={props.translate('task.description')}
                 title={props.report.description}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 shouldShowRightIcon
             />
-            <MenuItemWithTopDescription
-                label={props.translate('task.createdBy')}
-                title={ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID)}
-                icon={UserUtils.getAvatar(
-                    PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.ownerAccountID], props.currentUserPersonalDetails.accountID)[0].avatar, 
-                    props.report.ownerAccountID,
-                )}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                avatarSize={CONST.AVATAR_SIZE.SMALL}
-                titleStyle={styles.textStrong}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
+            <MenuItem
                 label={props.translate('task.assignee')}
                 title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
                 icon={UserUtils.getAvatar(
