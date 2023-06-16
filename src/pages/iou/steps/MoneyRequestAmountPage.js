@@ -109,7 +109,6 @@ class MoneyRequestAmountPage extends React.Component {
         if (this.isEditing) {
             const moneyRequestId = `${this.iouType}${this.reportID}`;
             const shouldReset = this.props.iou.id !== moneyRequestId;
-
             if (shouldReset) {
                 IOU.resetMoneyRequestInfo(moneyRequestId);
             }
@@ -128,10 +127,8 @@ class MoneyRequestAmountPage extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (this.isEditing) {
-            const isEmpty = _.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0;
             // ID in Onyx could change by initiating a new request in a separate browser tab
-            const isMoneyRequestIdChange = prevProps.iou.id !== this.props.iou.id;
-            if (isEmpty || isMoneyRequestIdChange) {
+            if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || prevProps.iou.id !== this.props.iou.id) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(this.iouType, this.reportID), true);
                 return;
             }
@@ -408,10 +405,10 @@ class MoneyRequestAmountPage extends React.Component {
         }
 
         const moneyRequestId = `${this.iouType}${this.reportID}`;
-        const isMoneyRequestIdMatch = this.props.iou.id === moneyRequestId;
+        const shouldReset = this.props.iou.id !== moneyRequestId;
         // If the money request ID in Onyx does not match the ID from params, we want to start a new request
         // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
-        if (!isMoneyRequestIdMatch) {
+        if (shouldReset) {
             IOU.setMoneyRequestId(moneyRequestId);
             IOU.setMoneyRequestDescription('');
             IOU.setMoneyRequestParticipants([]);
@@ -419,8 +416,8 @@ class MoneyRequestAmountPage extends React.Component {
 
         // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
         if (this.props.report.reportID) {
-            // We want to reinitialize the participants when the ID changes
-            if (_.isEmpty(this.props.iou.participants) || !isMoneyRequestIdMatch) {
+            // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
+            if (_.isEmpty(this.props.iou.participants) || shouldReset) {
                 const currentUserAccountID = this.props.currentUserPersonalDetails.accountID;
                 const participants = ReportUtils.isPolicyExpenseChat(this.props.report)
                     ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
