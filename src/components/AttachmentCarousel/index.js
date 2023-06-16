@@ -44,18 +44,12 @@ class AttachmentCarousel extends React.Component {
         super(props);
 
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-        this.viewabilityConfig = {
-            // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
-            // more than 90% visible. When that happens we update the page index in the state.
-            itemVisiblePercentThreshold: 95,
-        };
 
-        this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
         this.autoHideArrow = this.autoHideArrow.bind(this);
         this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
-        this.getItemLayout = this.getItemLayout.bind(this);
         this.updatePage = this.updatePage.bind(this);
         this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
+        this.createInitialState = this.createInitialState.bind(this);
 
         this.state = this.createInitialState();
     }
