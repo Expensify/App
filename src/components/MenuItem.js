@@ -232,7 +232,6 @@ function MenuItem(props) {
                             </View>
                         </View>
                     </View>
-
                     <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone]}>
                         {Boolean(props.badgeText) && (
                             <Badge
