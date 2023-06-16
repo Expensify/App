@@ -8,7 +8,7 @@ const withNavigationFocusPropTypes = {
 };
 
 export default function withNavigationFocus(WrappedComponent) {
-    const WithNavigationFocus = (props) => {
+    function WithNavigationFocus(props) {
         const isFocused = useIsFocused();
         return (
             <WrappedComponent
@@ -18,7 +18,7 @@ export default function withNavigationFocus(WrappedComponent) {
                 isFocused={isFocused}
             />
         );
-    };
+    }
 
     WithNavigationFocus.displayName = `withNavigationFocus(${getComponentDisplayName(WrappedComponent)})`;
     WithNavigationFocus.propTypes = {

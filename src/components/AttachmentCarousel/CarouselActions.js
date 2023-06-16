@@ -9,7 +9,7 @@ const propTypes = {
     onCycleThroughAttachments: PropTypes.func.isRequired,
 };
 
-const Carousel = (props) => {
+function Carousel(props) {
     useEffect(() => {
         const shortcutLeftConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT;
         const unsubscribeLeftKey = KeyboardShortcut.subscribe(
@@ -49,7 +49,7 @@ const Carousel = (props) => {
     }, []);
 
     return null;
-};
+}
 
 Carousel.propTypes = propTypes;
 

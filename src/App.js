@@ -34,30 +34,32 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-const App = () => (
-    <GestureHandlerRootView style={fill}>
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                SafeAreaProvider,
-                PortalProvider,
-                SafeArea,
-                LocaleContextProvider,
-                HTMLEngineProvider,
-                WindowDimensionsProvider,
-                KeyboardStateProvider,
-                PopoverContextProvider,
-                CurrentReportIdContextProvider,
-                PickerStateProvider,
-            ]}
-        >
-            <CustomStatusBar />
-            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                <Expensify />
-            </ErrorBoundary>
-        </ComposeProviders>
-    </GestureHandlerRootView>
-);
+function App() {
+    return (
+        <GestureHandlerRootView style={fill}>
+            <ComposeProviders
+                components={[
+                    OnyxProvider,
+                    SafeAreaProvider,
+                    PortalProvider,
+                    SafeArea,
+                    LocaleContextProvider,
+                    HTMLEngineProvider,
+                    WindowDimensionsProvider,
+                    KeyboardStateProvider,
+                    PopoverContextProvider,
+                    CurrentReportIdContextProvider,
+                    PickerStateProvider,
+                ]}
+            >
+                <CustomStatusBar />
+                <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                    <Expensify />
+                </ErrorBoundary>
+            </ComposeProviders>
+        </GestureHandlerRootView>
+    );
+}
 
 App.displayName = 'App';
 
