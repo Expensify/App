@@ -1184,6 +1184,11 @@ function getOuterModalStyle(windowHeight, viewportOffsetTop) {
     return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
+/**
+ * Returns style object for flexWrap depending on the screen size
+ * @param {Boolean} isExtraSmallScreenWidth
+ * @return {Object}
+ */
 function getWrappingStyle(isExtraSmallScreenWidth) {
     return {
         flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
