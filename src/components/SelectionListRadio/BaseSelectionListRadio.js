@@ -30,6 +30,7 @@ const propTypes = {
     shouldDelayFocus: PropTypes.bool,
     onScroll: PropTypes.func,
     onScrollBeginDrag: PropTypes.func,
+    headerMessage: PropTypes.string,
 };
 
 const defaultProps = {
@@ -43,6 +44,7 @@ const defaultProps = {
     shouldDelayFocus: false,
     onScroll: () => {},
     onScrollBeginDrag: () => {},
+    headerMessage: '',
 };
 
 const SelectionListRadio = (props) => {
@@ -297,6 +299,12 @@ const SelectionListRadio = (props) => {
                             placeholder={props.textInputPlaceholder}
                             selectTextOnFocus
                         />
+                    </View>
+                )}
+
+                {props.headerMessage && (
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
                     </View>
                 )}
 
