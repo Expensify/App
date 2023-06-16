@@ -16,7 +16,47 @@ import variables from '../../styles/variables';
 
 const propTypes = {
     /** Sections for the section list */
-    sections: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
+    sections: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** Title of the section */
+            title: PropTypes.string,
+
+            /** The initial index of this section given the total number of options in each section's data array */
+            indexOffset: PropTypes.number,
+
+            /** Array of options */
+            data: PropTypes.arrayOf(
+                PropTypes.shape({
+                    // Text to display
+                    text: PropTypes.string,
+
+                    /** Display the text of the option in bold font style */
+                    boldStyle: PropTypes.bool,
+
+                    // Alternate text to display
+                    alternateText: PropTypes.string,
+
+                    // Key used internally by React
+                    keyForList: PropTypes.string,
+
+                    // Custom icon to render on the right side of the option
+                    customIcon: PropTypes.shape({
+                        // The icon source
+                        src: PropTypes.func,
+
+                        // The color of the icon
+                        color: PropTypes.string,
+                    }),
+                }),
+            ),
+
+            /** Whether this section should show or not */
+            shouldShow: PropTypes.bool,
+
+            /** Whether this section items disabled for selection */
+            isDisabled: PropTypes.bool,
+        }),
+    ).isRequired,
 
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
@@ -171,16 +211,14 @@ const SelectionListRadio = (props) => {
 
         return {
             length: targetItem.length,
-            // length: 0,
             offset: targetItem.offset,
-            // offset: 0,
             index: flatDataArrayIndex,
         };
     };
 
     const renderItem = ({item, index, section}) => {
         const isSelected = Boolean(item.customIcon);
-        const isFocused = focusedIndex === index + section.indexOffset;
+        const isFocused = focusedIndex === index + lodashGet(section, 'indexOffset', 0);
 
         return (
             <PressableWithFeedback
@@ -193,9 +231,17 @@ const SelectionListRadio = (props) => {
                 focusStyle={styles.hoveredComponentBG}
             >
                 <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, styles.borderTop, isFocused && styles.sidebarLinkActive]}>
-                    <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.boldStyle && styles.sidebarLinkTextBold]}>
-                        {item.text}
-                    </Text>
+                    <View style={[styles.flex1, styles.alignItemsStart]}>
+                        <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.boldStyle && styles.sidebarLinkTextBold]}>
+                            {item.text}
+                        </Text>
+
+                        {Boolean(item.alternateText) && (
+                            <Text style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}>
+                                {item.alternateText}
+                            </Text>
+                        )}
+                    </View>
 
                     {isSelected && (
                         <View

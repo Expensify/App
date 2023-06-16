@@ -15,6 +15,7 @@ import * as User from '../../../libs/actions/User';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import SelectionListRadio from '../../../components/SelectionListRadio';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -53,19 +54,28 @@ function PriorityModePage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
-            <OptionsList
+
+            {/* TODO: ARROW KEY ERROR */}
+            <SelectionListRadio
                 sections={[{data: priorityModes}]}
                 onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
-                hideSectionHeaders
-                optionHoveredStyle={{
-                    ...styles.hoveredComponentBG,
-                    ...styles.mhn5,
-                    ...styles.ph5,
-                }}
-                shouldHaveOptionSeparator
-                shouldDisableRowInnerPadding
-                contentContainerStyles={[styles.ph5]}
+                initiallyFocusedOptionKey={_.find(priorityModes, (mode) => Boolean(mode.customIcon)).keyForList}
             />
+
+            {/* TODO: REMOVE */}
+            {/* <OptionsList */}
+            {/*     sections={[{data: priorityModes}]} */}
+            {/*     onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)} */}
+            {/*     hideSectionHeaders */}
+            {/*     optionHoveredStyle={{ */}
+            {/*         ...styles.hoveredComponentBG, */}
+            {/*         ...styles.mhn5, */}
+            {/*         ...styles.ph5, */}
+            {/*     }} */}
+            {/*     shouldHaveOptionSeparator */}
+            {/*     shouldDisableRowInnerPadding */}
+            {/*     contentContainerStyles={[styles.ph5]} */}
+            {/* /> */}
         </ScreenWrapper>
     );
 }
