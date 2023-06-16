@@ -29,6 +29,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
+import com.expensify.chat.R;
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonList;
 import com.urbanairship.json.JsonMap;
@@ -233,6 +234,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
             // Apply the messaging style to the notification builder
             builder.setStyle(messagingStyle);
+
+            // Set notification icon
+            builder.setLargeIcon(personIcon);
 
         } catch (Exception e) {
             e.printStackTrace();
