@@ -125,7 +125,9 @@ function ProfilePage(props) {
                 {props.user.hasLoungeAccess && (
                     <MenuItem
                         title={props.translate('loungeAccessPage.loungeAccess')}
-                        icon={Expensicons.Lock}
+                        icon={Expensicons.LoungeAccess}
+                        iconWidth={40}
+                        iconHeight={40}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_LOUNGE_ACCESS)}
                         shouldShowRightIcon
                     />

@@ -6,13 +6,14 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MenuItem from '../../components/MenuItem';
-import Logo from '../../../assets/images/new-expensify.svg';
 import compose from '../../libs/compose';
+import * as Illustrations from '../../components/Icon/Illustrations';
+import * as StyleUtils from '../../styles/StyleUtils';
+import Icon from '../../components/Icon';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -23,15 +24,15 @@ function LoungeAccessPage(props) {
     const menuItems = [
         {
             translationKey: 'loungeAccessPage.coffeePromo',
-            icon: Expensicons.Link,
+            icon: Illustrations.CoffeeMug,
         },
         {
             translationKey: 'loungeAccessPage.networkingPromo',
-            icon: Expensicons.Link,
+            icon: Illustrations.ChatBubbles,
         },
         {
             translationKey: 'loungeAccessPage.viewsPromo',
-            icon: Expensicons.Link,
+            icon: Illustrations.SanFrancisco,
         },
     ];
 
@@ -45,12 +46,9 @@ function LoungeAccessPage(props) {
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>
+                            <Illustrations.Lounge />
                             <View style={styles.pageWrapper}>
                                 <View style={[styles.settingsPageBody]}>
-                                    <Logo
-                                        height={80}
-                                        width={80}
-                                    />
                                     <Text
                                         style={[styles.textHeadline, styles.preWrap]}
                                         numberOfLines={2}
@@ -65,6 +63,8 @@ function LoungeAccessPage(props) {
                                     key={item.translationKey}
                                     title={props.translate(item.translationKey)}
                                     icon={item.icon}
+                                    iconWidth={60}
+                                    iconHeight={60}
                                 />
                             ))}
                         </View>

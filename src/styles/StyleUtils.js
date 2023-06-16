@@ -1184,6 +1184,28 @@ function getOuterModalStyle(windowHeight, viewportOffsetTop) {
     return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
+/**
+ * Gets the correct size for the empty state background image based on screen dimensions
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getLoungeIllustrationBackgroundImageStyle(isSmallScreenWidth) {
+    if (isSmallScreenWidth) {
+        return {
+            height: 80,
+            width: '100%',
+            // position: 'absolute',
+        };
+    }
+
+    return {
+        height: 80,
+        width: '100%',
+        // position: 'absolute',
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1250,4 +1272,5 @@ export {
     getMentionTextColor,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
+    getLoungeIllustrationBackgroundImageStyle,
 };
