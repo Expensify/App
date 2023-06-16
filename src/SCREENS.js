@@ -8,5 +8,4 @@ export default {
     REPORT: 'Report',
     NOT_FOUND: 'not-found',
     TRANSITION_FROM_OLD_DOT: 'TransitionFromOldDot',
-    SIGNIN: 'SignIn',
 };

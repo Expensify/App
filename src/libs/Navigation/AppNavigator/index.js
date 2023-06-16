@@ -6,10 +6,9 @@ const propTypes = {
     authenticated: PropTypes.bool.isRequired,
 };
 
-function AppNavigator() {
-        const AuthScreens = require('./AuthScreens').default;
-        // These are the protected screens and only accessible when an authToken is present
-        return <AuthScreens />;
+function AppNavigator(props) {
+    const AuthScreens = require('./AuthScreens').default;
+    return <AuthScreens authenticated={props.authenticated}/>;
 }
 
 AppNavigator.propTypes = propTypes;

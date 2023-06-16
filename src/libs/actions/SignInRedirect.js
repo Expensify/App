@@ -87,7 +87,6 @@ function redirectToSignIn(errorMessage) {
     NetworkConnection.clearReconnectionCallbacks();
     clearStorageAndRedirect(errorMessage);
     resetHomeRouteParams();
-    Navigation.navigate(SCREENS.SIGNIN);
 }
 
 export default redirectToSignIn;

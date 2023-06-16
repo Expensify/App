@@ -35,6 +35,7 @@ import styles from '../../../styles/styles';
 import SignInPage from '../../../pages/signin/SignInPage';
 import LogInWithShortLivedAuthTokenPage from '../../../pages/LogInWithShortLivedAuthTokenPage';
 import UnlinkLoginPage from '../../../pages/UnlinkLoginPage';
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 
 let currentUserEmail;
 Onyx.connect({
@@ -93,6 +94,9 @@ const propTypes = {
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: PropTypes.string,
 
+    /** If we have an authToken this is true */
+    authenticated: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -101,6 +105,7 @@ const defaultProps = {
         email: null,
     },
     lastOpenedPublicRoomID: null,
+    authenticated: false,
 };
 
 class AuthScreens extends React.Component {
@@ -169,7 +174,7 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.windowHeight !== this.props.windowHeight || nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
+        return nextProps.windowHeight !== this.props.windowHeight || nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth || nextProps.authenticated !== this.props.authenticated;
     }
 
     componentWillUnmount() {
@@ -211,6 +216,8 @@ class AuthScreens extends React.Component {
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 keyboardHandlingEnabled={false}
             >
+                {this.props.authenticated ? (
+                <>
                 <RootStack.Screen
                     name={SCREENS.HOME}
                     options={{
@@ -275,21 +282,31 @@ class AuthScreens extends React.Component {
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />
+                </>
+                ) : (
+                <>
                 <RootStack.Screen
-                name={SCREENS.SIGNIN}
-                options={defaultScreenOptions}
-                component={SignInPage}
+                    name={SCREENS.HOME}
+                    options={defaultScreenOptions}
+                    component={SignInPage}
                 />
                 <RootStack.Screen
-                    name="LogInWithShortLivedAuthToken"
+                    name={SCREENS.TRANSITION_FROM_OLD_DOT}
                     options={defaultScreenOptions}
                     component={LogInWithShortLivedAuthTokenPage}
+                />
+                <RootStack.Screen
+                    name="ValidateLogin"
+                    options={defaultScreenOptions}
+                    component={ValidateLoginPage}
                 />
                 <RootStack.Screen
                     name="UnlinkLogin"
                     options={defaultScreenOptions}
                     component={UnlinkLoginPage}
                 />
+                </>
+                )}
             </RootStack.Navigator>
         );
     }
