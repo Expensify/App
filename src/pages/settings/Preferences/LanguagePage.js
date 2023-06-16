@@ -11,6 +11,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as App from '../../../libs/actions/App';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import SelectionListRadio from '../../../components/SelectionListRadio';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -40,19 +41,27 @@ function LanguagePage(props) {
                 title={props.translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
-            <OptionsList
+
+            <SelectionListRadio
                 sections={[{data: localesToLanguages}]}
                 onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
-                hideSectionHeaders
-                optionHoveredStyle={{
-                    ...styles.hoveredComponentBG,
-                    ...styles.mhn5,
-                    ...styles.ph5,
-                }}
-                shouldHaveOptionSeparator
-                shouldDisableRowInnerPadding
-                contentContainerStyles={[styles.ph5]}
+                initiallyFocusedOptionKey={_.find(localesToLanguages, (locale) => Boolean(locale.customIcon)).keyForList}
             />
+
+            {/* TODO: REMOVE */}
+            {/* <OptionsList */}
+            {/*     sections={[{data: localesToLanguages}]} */}
+            {/*     onSelectRow={(language) => App.setLocaleAndNavigate(language.value)} */}
+            {/*     hideSectionHeaders */}
+            {/*     optionHoveredStyle={{ */}
+            {/*         ...styles.hoveredComponentBG, */}
+            {/*         ...styles.mhn5, */}
+            {/*         ...styles.ph5, */}
+            {/*     }} */}
+            {/*     shouldHaveOptionSeparator */}
+            {/*     shouldDisableRowInnerPadding */}
+            {/*     contentContainerStyles={[styles.ph5]} */}
+            {/* /> */}
         </ScreenWrapper>
     );
 }
