@@ -128,6 +128,9 @@ export default {
                             Settings_ContactMethodDetails: {
                                 path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS,
                             },
+                            Settings_Lounge_Access: {
+                                path: ROUTES.SETTINGS_LOUNGE_ACCESS,
+                            },
                             Settings_NewContactMethod: {
                                 path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,
                                 exact: true,

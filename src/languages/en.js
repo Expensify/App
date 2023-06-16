@@ -405,6 +405,15 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+        loungeAccess: 'Lounge access',
+    },
+    loungeAccessPage: {
+        loungeAccess: 'Lounge access',
+        headline: 'You qualify for access to our exclusive lounges.',
+        description: 'Talk to trees, look at the birds. Whatever it takes. Life is too short to be alone, too precious. Share it with a friend.',
+        coffeePromo: 'Great coffee and cocktails',
+        networkingPromo: 'Network with other members',
+        viewsPromo: 'Incredible views of San Francisco',
     },
     pronounsPage: {
         pronouns: 'Pronouns',
