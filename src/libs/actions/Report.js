@@ -428,8 +428,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         const optimisticPersonalDetails = {};
         _.map(participantLoginList, (login, index) => {
             const accountID = newReportObject.participantAccountIDs[index];
-            optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] ||
-            {
+            optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
