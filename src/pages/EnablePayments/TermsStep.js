@@ -63,7 +63,6 @@ function TermsStep(props) {
                 <LongTermsForm />
                 <CheckboxWithLabel
                     style={[styles.mb4, styles.mt4]}
-                    isChecked={hasAcceptedDisclosure}
                     onInputChange={toggleDisclosure}
                     LabelComponent={() => (
                         <Text>
@@ -73,7 +72,6 @@ function TermsStep(props) {
                     )}
                 />
                 <CheckboxWithLabel
-                    isChecked={hasAcceptedPrivacyPolicyAndWalletAgreement}
                     onInputChange={togglePrivacyPolicy}
                     LabelComponent={() => (
                         <Text>
