@@ -94,11 +94,11 @@ function BaseValidateCodeForm(props) {
             return;
         }
 
-        // Clear the code input if magic code valid or a new magic code was requested
-        if ((prevIsVisible && !props.isVisible) || (props.isVisible && timeRemaining === 30)) {
+        // Clear the code input if magic code valid
+        if (prevIsVisible && !props.isVisible) {
             setValidateCode('');
         }
-    }, [props.isVisible, prevIsVisible, timeRemaining, validateCode]);
+    }, [props.isVisible, prevIsVisible, validateCode]);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
@@ -164,6 +164,7 @@ function BaseValidateCodeForm(props) {
     const resendValidateCode = () => {
         setTwoFactorAuthCode('');
         setFormError({});
+        setValidateCode('');
         User.resendValidateCode(props.credentials.login, true);
 
         // Give feedback to the user to let them know the email was sent so they don't spam the button.
@@ -256,8 +257,8 @@ function BaseValidateCodeForm(props) {
                         autoFocus
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
-                    <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                        {timeRemaining > 0 && !props.network.isOffline ? (
+                    <View>
+                    {timeRemaining > 0 && !props.network.isOffline ? (
                             <Text style={[styles.mt2]}>
                                 {props.translate('validateCodeForm.requestNewCode')}
                                 <Text style={[styles.validateCodeTimer]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
