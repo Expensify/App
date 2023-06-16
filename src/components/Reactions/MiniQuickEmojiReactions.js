@@ -28,6 +28,11 @@ const propTypes = {
      */
     onEmojiPickerClosed: PropTypes.func,
 
+    /**
+     * ReportAction for EmojiPicker.
+     */
+    reportAction: PropTypes.object,
+
     ...withLocalizePropTypes,
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 };
@@ -56,6 +61,9 @@ function MiniQuickEmojiReactions(props) {
                 props.onEmojiSelected(emojiObject);
             },
             ref.current,
+            undefined,
+            () => {},
+            props.reportAction
         );
     };
 

@@ -29,6 +29,11 @@ const baseQuickEmojiReactionsPropTypes = {
      * to actually open the emoji picker.
      */
     onPressOpenPicker: PropTypes.func,
+
+    /**
+     * ReportAction for EmojiPicker.
+     */
+    reportAction: PropTypes.object,
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
@@ -68,6 +73,7 @@ function BaseQuickEmojiReactions(props) {
                 onPressOpenPicker={props.onPressOpenPicker}
                 onWillShowPicker={props.onWillShowPicker}
                 onSelectEmoji={props.onEmojiSelected}
+                reportAction={props.reportAction}
             />
         </View>
     );

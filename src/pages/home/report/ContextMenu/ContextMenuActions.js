@@ -69,6 +69,7 @@ export default [
                         onEmojiSelected={onEmojiSelected}
                         onPressOpenPicker={openContextMenu}
                         onEmojiPickerClosed={closeContextMenu}
+                        reportAction={reportAction}
                     />
                 );
             }
@@ -78,6 +79,7 @@ export default [
                     key="BaseQuickEmojiReactions"
                     closeContextMenu={closeContextMenu}
                     onEmojiSelected={onEmojiSelected}
+                    reportAction={reportAction}
                 />
             );
         },

@@ -35,6 +35,11 @@ const propTypes = {
      */
     onSelectEmoji: PropTypes.func.isRequired,
 
+    /**
+     * ReportAction for EmojiPicker.
+     */
+    reportAction: PropTypes.object,
+
     ...withLocalizePropTypes,
 };
 
@@ -57,6 +62,7 @@ function AddReactionBubble(props) {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
+                props.reportAction
             );
         };
 
