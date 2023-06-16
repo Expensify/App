@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Smiley from './images/emoji.svg';
-import PeopleAndBody from './images/emojiCategoryIcons/people.svg';
 import AnimalsAndNature from './images/emojiCategoryIcons/plant.svg';
 import FoodAndDrink from './images/emojiCategoryIcons/hamburger.svg';
 import TravelAndPlaces from './images/emojiCategoryIcons/plane.svg';
@@ -42,7 +41,7 @@ const emojis = [
         code: '😀',
         name: {
             en: 'Smileys & Emotions',
-            es: 'cara sonriendo',
+            es: 'Emoticonos y emociones',
         },
         icon: Smiley,
         header: true,
@@ -1751,15 +1750,6 @@ const emojis = [
             en: ['comic', 'good night', 'sleep', 'ZZZ'],
             es: ['cómic', 'dormir', 'sueño', 'zzz', 'símbolo de sueño'],
         },
-    },
-    {
-        code: '👋',
-        name: {
-            en: 'People & Body',
-            es: 'mano saludando',
-        },
-        icon: PeopleAndBody,
-        header: true,
     },
     {
         code: '👋',
@@ -5911,7 +5901,7 @@ const emojis = [
         code: '🐵',
         name: {
             en: 'Animals & Nature',
-            es: 'cara de mono',
+            es: 'Animales y naturaleza',
         },
         icon: AnimalsAndNature,
         header: true,
@@ -7460,7 +7450,7 @@ const emojis = [
         code: '🍄',
         name: {
             en: 'Food & Drink',
-            es: 'champiñón',
+            es: 'Alimentos y bebidas',
         },
         icon: FoodAndDrink,
         header: true,
@@ -8888,7 +8878,7 @@ const emojis = [
         code: '🌍',
         name: {
             en: 'Travel & Places',
-            es: 'globo terráqueo mostrando Europa y África',
+            es: 'Viajes y lugares',
         },
         icon: TravelAndPlaces,
         header: true,
@@ -11262,7 +11252,7 @@ const emojis = [
         code: '🎃',
         name: {
             en: 'Activities',
-            es: 'calabaza de Halloween',
+            es: 'Actividades',
         },
         icon: Activities,
         header: true,
@@ -12195,7 +12185,7 @@ const emojis = [
         code: '👓',
         name: {
             en: 'Objects',
-            es: 'gafas',
+            es: 'Objetos',
         },
         icon: Objects,
         header: true,
@@ -14964,8 +14954,8 @@ const emojis = [
     {
         code: '🏧',
         name: {
-            en: 'Symbols & Signs',
-            es: 'señal de cajero automático',
+            en: 'Symbols',
+            es: 'Símbolos',
         },
         icon: Symbols,
         header: true,
@@ -17394,7 +17384,7 @@ const emojis = [
         code: '🏁',
         name: {
             en: 'Flags',
-            es: 'bandera de cuadros',
+            es: 'Banderas',
         },
         icon: Flags,
         header: true,
