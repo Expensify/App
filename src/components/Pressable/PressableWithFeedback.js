@@ -7,7 +7,7 @@ import GenericPressablePropTypes from './GenericPressable/PropTypes';
 import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
 
-const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle'];
+const omittedProps = ['wrapperStyle'];
 
 const PressableWithFeedbackPropTypes = {
     ..._.omit(GenericPressablePropTypes.pressablePropTypes, omittedProps),
@@ -38,7 +38,7 @@ const PressableWithFeedbackDefaultProps = {
 };
 
 const PressableWithFeedback = forwardRef((props, ref) => {
-    const propsWithoutStyling = _.omit(props, omittedProps);
+    const propsWithoutWrapperStyles = _.omit(props, omittedProps);
     const [disabled, setDisabled] = useState(props.disabled);
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
@@ -55,9 +55,6 @@ const PressableWithFeedback = forwardRef((props, ref) => {
         >
             <GenericPressable
                 ref={ref}
-                style={props.style}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...propsWithoutStyling}
                 disabled={disabled}
                 onHoverIn={() => {
                     setIsHovered(true);
@@ -88,9 +85,8 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                         });
                     });
                 }}
-                hoverStyle={props.hoverStyle}
-                pressStyle={props.pressStyle}
-                focusStyle={props.focusStyle}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...propsWithoutWrapperStyles}
             >
                 {(state) => (_.isFunction(props.children) ? props.children(state) : props.children)}
             </GenericPressable>
