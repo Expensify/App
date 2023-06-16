@@ -979,7 +979,7 @@ function getTransactionReportName(reportAction) {
 }
 
 /**
- * Get money request message for a IOU report
+ * Get money request message for an IOU report
  *
  * @param {Object} report
  * @param {Object} reportAction
