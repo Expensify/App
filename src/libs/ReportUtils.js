@@ -1078,22 +1078,7 @@ function getRootReportName(report) {
  */
 function getChatRoomSubtitle(report) {
     if (isChatThread(report)) {
-        if (!getChatType(report)) {
-            return `${Localize.translateLocal('threads.from')} ${getRootReportName(report)}`;
-        }
-
-        let roomName = '';
-        if (isChatRoom(report)) {
-            const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-            if (parentReport) {
-                roomName = lodashGet(parentReport, 'displayName', '');
-            } else {
-                roomName = lodashGet(report, 'displayName', '');
-            }
-        }
-
-        const workspaceName = getPolicyName(report);
-        return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+        return '';
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -1117,10 +1102,15 @@ function getChatRoomSubtitle(report) {
  * @returns {String}
  */
 function getChatRoomSubtitleLink(report) {
+    if (report.reportID == '3346402972554959') {
+        debugger;
+    }
+
     if (isThread(report)) {
-        let roomName = '';
+        const from = Localize.translateLocal('threads.from');
         if (isChatRoom(report)) {
             const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+            let roomName = '';
             if (parentReport) {
                 roomName = lodashGet(parentReport, 'displayName', '');
             } else {
@@ -1128,10 +1118,15 @@ function getChatRoomSubtitleLink(report) {
             }
 
             const workspaceName = getPolicyName(report);
-            return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+            return `${from} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
         }
 
-        return `${Localize.translateLocal('threads.from')} ${getRootReportName(report)}`;
+        if (isExpenseReport(report)) {
+            const payeeEmail = getDisplayNameForParticipant(report.managerID);
+            const workspaceName = getPolicyName(report);
+            return `${from} ${workspaceName ? [payeeEmail, workspaceName].join(' in ') : payeeEmail}`;
+        }
+        return `${from} ${getRootReportName(report)}`;
     }
     return '';
 }
