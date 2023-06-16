@@ -360,7 +360,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
     ];
 
     API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**

@@ -66,7 +66,7 @@ const defaultProps = {
     session: {},
 };
 
-const NewTaskPage = (props) => {
+function NewTaskPage(props) {
     const [assignee, setAssignee] = React.useState({});
     const [shareDestination, setShareDestination] = React.useState({});
     const [errorMessage, setErrorMessage] = React.useState('');
@@ -84,6 +84,12 @@ const NewTaskPage = (props) => {
             }
             const displayDetails = TaskUtils.getAssignee(assigneeDetails);
             setAssignee(displayDetails);
+        }
+
+        // If we don't have an assignee and we are creating a task from a report
+        // this allows us to auto assign a participant of the report.
+        if (!props.task.assignee && props.task.parentReportID) {
+            TaskUtils.setAssigneeValueWithParentReportID(props.task.parentReportID);
         }
 
         // We only set the parentReportID if we are creating a task from a report
@@ -178,7 +184,7 @@ const NewTaskPage = (props) => {
             </View>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskPage.displayName = 'NewTaskPage';
 NewTaskPage.propTypes = propTypes;
