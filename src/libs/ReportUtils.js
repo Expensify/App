@@ -810,22 +810,22 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceIcon = getWorkspaceIcon(report);
         const memberIcon = {
-            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
-            name: report.ownerEmail,
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
+            name: report.ownerAccountID ? report.ownerAccountID.toString() : '',
             type: CONST.ICON_TYPE_AVATAR,
         };
         return isExpenseReport(report) ? [memberIcon, workspaceIcon] : [workspaceIcon, memberIcon];
     }
     if (isIOUReport(report)) {
         const managerIcon = {
-            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.managerEmail, 'avatar']), report.managerEmail),
-            name: report.managerEmail,
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.managerID, 'avatar']), report.managerID),
+            name: report.managerID ? report.managerID.toString() : '',
             type: CONST.ICON_TYPE_AVATAR,
         };
 
         const ownerIcon = {
-            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerEmail, 'avatar']), report.ownerEmail),
-            name: report.ownerEmail,
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
+            name: report.ownerAccountID ? report.ownerAccountID.toString() : '',
             type: CONST.ICON_TYPE_AVATAR,
         };
 
