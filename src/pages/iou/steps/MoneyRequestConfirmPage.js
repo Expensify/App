@@ -68,11 +68,9 @@ function MoneyRequestConfirmPage(props) {
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
         () =>
-            lodashGet(props.iou, ['participants', 0, 'isPolicyExpenseChat'], false)
+            lodashGet(props.iou.participants, [0, 'isPolicyExpenseChat'], false)
                 ? OptionsListUtils.getPolicyExpenseReportOptions(props.iou.participants[0])
                 : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
-        // The rule can't recognize that we are accessing participants from props.iou, so let's ignore the warning
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.iou.participants, props.personalDetails],
     );
 
