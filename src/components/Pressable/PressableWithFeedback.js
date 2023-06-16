@@ -78,7 +78,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                         ...(state.focused ? StyleUtils.parseStyleAsArray(props.focusStyle, state) : []),
                     ]}
                 >
-                    {props.children}
+                    {_.isFunction(props.children) ? props.children(state) : props.children}
                 </OpacityView>
             )}
         </GenericPressable>
