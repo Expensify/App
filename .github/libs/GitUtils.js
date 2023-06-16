@@ -7,16 +7,16 @@ const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
  *
  * @param {String} fromRef
  * @param {String} toRef
- * @returns {Promise<Object<{commit: String, subject: String}>>}
+ * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromRef, toRef) {
-    const command = `git log --format='{"commit": "%H", "subject": "%s"},' ${fromRef}...${toRef}`;
+    const command = `git log --format='{"commit": "%H", "authorName": "%an", "subject": "%s"},' ${fromRef}...${toRef}`;
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
-        const spawnedProcess = spawn('git', ['log', '--format={"commit": "%H", "subject": "%s"},', `${fromRef}...${toRef}`]);
+        const spawnedProcess = spawn('git', ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromRef}...${toRef}`]);
         spawnedProcess.on('message', console.log);
         spawnedProcess.stdout.on('data', (chunk) => {
             console.log(chunk.toString());
@@ -48,18 +48,24 @@ function getCommitHistoryAsJSON(fromRef, toRef) {
 /**
  * Parse merged PRs, excluding those from irrelevant branches.
  *
- * @param {Array<String>} commitMessages
+ * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
  * @returns {Array<String>}
  */
-function getValidMergedPRs(commitMessages) {
+function getValidMergedPRs(commits) {
     return _.reduce(
-        commitMessages,
-        (mergedPRs, commitMessage) => {
-            if (!_.isString(commitMessage)) {
+        commits,
+        (mergedPRs, commit) => {
+            const author = commit.authorName;
+            if (author === 'OSBotify') {
                 return mergedPRs;
             }
 
-            const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+            const message = commit.subject;
+            if (!_.isString(message)) {
+                return mergedPRs;
+            }
+
+            const match = message.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
             if (!_.isNull(match) && match[1] && !_.contains(mergedPRs, match[1])) {
                 mergedPRs.push(match[1]);
             }
@@ -82,7 +88,7 @@ function getPullRequestsMergedBetween(fromRef, toRef) {
         console.log(`Commits made between ${fromRef} and ${toRef}:`, commitList);
 
         // Find which commit messages correspond to merged PR's
-        const pullRequestNumbers = getValidMergedPRs(_.pluck(commitList, 'subject'));
+        const pullRequestNumbers = getValidMergedPRs(commitList);
         console.log(`List of pull requests merged between ${fromRef} and ${toRef}`, pullRequestNumbers);
         return pullRequestNumbers;
     });

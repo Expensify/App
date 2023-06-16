@@ -16,6 +16,18 @@ function print_version {
   < package.json jq -r .version
 }
 
+function setup_git_as_human {
+  info "Switching to human git user"
+  git config user.name test
+  git config user.email test@test.com
+}
+
+function setup_git_as_osbotify {
+  info "Switching to OSBotify git user"
+  git config user.name OSBotify
+  git config user.email infra+osbotify@expensify.com
+}
+
 ### Phase 0: Verify necessary tools are installed (all tools should be pre-installed on all GitHub Actions runners)
 
 if ! command -v jq &> /dev/null; then
@@ -55,8 +67,7 @@ fi
 
 info "Initializing Git repo..."
 git init -b main
-git config user.email "test@test.com"
-git config user.name "test"
+setup_git_as_human
 git add package.json package-lock.json
 git commit -m "Initial commit"
 
@@ -93,6 +104,7 @@ success "Merged PR #$PR_COUNT to main"
 
 # Bump the version to 1.0.1
 info "Bumping version to 1.0.1"
+setup_git_as_osbotify
 npm --no-git-tag-version version 1.0.1
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
@@ -122,6 +134,7 @@ title "Scenario #2: Merge a pull request with the checklist locked, but don't CP
 
 ((PR_COUNT++))
 info "Creating PR #$PR_COUNT and merging it into main..."
+setup_git_as_human
 git switch -c "pr-$PR_COUNT"
 echo "Changes from PR #$PR_COUNT" >> "PR$PR_COUNT.txt"
 git add "PR$PR_COUNT.txt"
@@ -150,6 +163,7 @@ git branch -d "pr-$PR_COUNT"
 success "Created PR #$PR_COUNT and merged it to main!"
 
 info "Bumping version to 1.0.2 on main..."
+setup_git_as_osbotify
 npm --no-git-tag-version version 1.0.2 -m "Update version to 1.0.2"
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
@@ -175,12 +189,12 @@ success "Created tag $(print_version)"
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
 output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.2')
-assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 1))', '$((PR_COUNT - 3))' ]"
+assert_equal "$output" "[ '$((PR_COUNT - 1))', '$((PR_COUNT - 3))' ]"
 
 # Verify output for deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
 output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.2')
-assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT -1))' ]"
+assert_equal "$output" "[ '$((PR_COUNT -1))' ]"
 
 success "Scenario #3 completed successfully!"
 
@@ -196,7 +210,7 @@ success "Recreated production from staging!"
 # Verify output for release body and production deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
 output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.2')
-assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 1))', '$((PR_COUNT - 3))' ]"
+assert_equal "$output" "[ '$((PR_COUNT - 1))', '$((PR_COUNT - 3))' ]"
 
 success "Scenario #4A completed successfully!"
 
@@ -221,7 +235,7 @@ success "Successfully tagged version $(print_version) on staging"
 # Verify output for new checklist and staging deploy comments
 info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.0"
 output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.0')
-assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 1))', '$((PR_COUNT - 2))' ]"
+assert_equal "$output" "[ '$((PR_COUNT - 1))', '$((PR_COUNT - 2))' ]"
 
 success "Scenario #4B completed successfully!"
 
@@ -230,6 +244,7 @@ title "Scenario #5: Merging another pull request when the checklist is unlocked"
 
 ((PR_COUNT++))
 info "Creating PR #$PR_COUNT and merging it to main..."
+setup_git_as_human
 git switch main
 git switch -c "pr-$PR_COUNT"
 echo "Changes from PR #$PR_COUNT" >> "PR$PR_COUNT.txt"
@@ -242,6 +257,7 @@ git branch -d "pr-$PR_COUNT"
 success "Created PR #$PR_COUNT and merged it into main!"
 
 info "Bumping version to 1.1.1 on main..."
+setup_git_as_osbotify
 npm --no-git-tag-version version 1.1.1 -m "Update version to 1.1.1"
 git add package.json package-lock.json
 git commit -m "Update version to $(print_version)"
@@ -259,7 +275,7 @@ success "Successfully tagged version $(print_version) on staging"
 # Verify output for checklist
 info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.1"
 output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.1')
-assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 1))', '$((PR_COUNT - 2))', '$((PR_COUNT - 3))' ]"
+assert_equal "$output" "[ '$PR_COUNT', '$((PR_COUNT - 2))', '$((PR_COUNT - 3))' ]"
 
 # Verify output for deploy comment
 info "Checking output of getPullRequestsMergedBetween 1.1.0 1.1.1"
