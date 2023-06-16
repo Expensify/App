@@ -98,9 +98,20 @@ function translateLocal(phrase, variables) {
  * @returns {String}
  */
 function translateIfPhraseKey(message) {
+    if (_.isEmpty(message)) {
+        return '';
+    }
+
     try {
         // check if error message has a variable parameter
         const [phrase, variables] = _.isArray(message) ? message : [message];
+
+        // This condition checks if the error is already translated. For example, if there are multiple errors per input, we handle translation in ErrorUtils.addErrorMessage due to the inability to concatenate error keys.
+
+        if (variables && variables.isTranslated) {
+            return phrase;
+        }
+
         return translateLocal(phrase, variables);
     } catch (error) {
         return message;

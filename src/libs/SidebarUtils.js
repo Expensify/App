@@ -90,6 +90,26 @@ Onyx.connect({
     callback: (val) => (preferredLocale = val || CONST.LOCALES.DEFAULT),
 });
 
+let resolveSidebarIsReadyPromise;
+
+let sidebarIsReadyPromise = new Promise((resolve) => {
+    resolveSidebarIsReadyPromise = resolve;
+});
+
+function resetIsSidebarLoadedReadyPromise() {
+    sidebarIsReadyPromise = new Promise((resolve) => {
+        resolveSidebarIsReadyPromise = resolve;
+    });
+}
+
+function isSidebarLoadedReady() {
+    return sidebarIsReadyPromise;
+}
+
+function setIsSidebarLoadedReady() {
+    resolveSidebarIsReadyPromise();
+}
+
 /**
  * @param {String} reportIDFromRoute
  * @returns {String[]} An array of reportIDs sorted in the proper order
@@ -256,7 +276,6 @@ function getOptionData(reportID) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participants || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
-    const parentReport = result.parentReportID ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${result.parentReportID}`] : null;
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -300,7 +319,13 @@ function getOptionData(reportID) {
     }
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
-        result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        const lastAction = visibleReportActionItems[report.reportID];
+        if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
+            const newName = lodashGet(lastAction, 'originalMessage.newName', '');
+            result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
+        } else {
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        }
     } else {
         if (!lastMessageText) {
             // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
@@ -340,7 +365,7 @@ function getOptionData(reportID) {
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(result.isTaskReport ? parentReport : report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login), true);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login), true);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     return result;
@@ -349,4 +374,7 @@ function getOptionData(reportID) {
 export default {
     getOptionData,
     getOrderedReportIDs,
+    setIsSidebarLoadedReady,
+    isSidebarLoadedReady,
+    resetIsSidebarLoadedReadyPromise,
 };

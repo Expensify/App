@@ -58,7 +58,7 @@ const defaultProps = {
     policyName: '',
 };
 
-const BankAccountStep = (props) => {
+function BankAccountStep(props) {
     let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
     const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
@@ -167,7 +167,7 @@ const BankAccountStep = (props) => {
             </View>
         </ScreenWrapper>
     );
-};
+}
 
 BankAccountStep.propTypes = propTypes;
 BankAccountStep.defaultProps = defaultProps;
