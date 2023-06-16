@@ -35,10 +35,11 @@ import withNavigationFocus from '../../components/withNavigationFocus';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
+import themeColors from '../../styles/themes/default';
+import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -279,10 +280,13 @@ class ReportScreen extends React.Component {
                         )}
 
                         {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && (
-                            <TaskHeader
-                                report={this.props.report}
-                                personalDetails={this.props.personalDetails}
-                            />
+                            <View style={styles.borderBottom}>
+                                <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
+                                    <View style={[styles.ph5, styles.pb3]}>
+                                        <TaskHeaderActionButton report={this.props.report} />
+                                    </View>
+                                </View>
+                            </View>
                         )}
                     </OfflineWithFeedback>
                     {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
