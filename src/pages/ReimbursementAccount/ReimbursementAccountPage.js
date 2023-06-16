@@ -361,7 +361,7 @@ class ReimbursementAccountPage extends React.Component {
         if (userHasPhonePrimaryEmail) {
             errorText = this.props.translate('bankAccount.hasPhoneLoginError');
         } else if (throttledDate) {
-            errorText = this.props.translate('bankAccount.hasPhoneLoginError');
+            errorText = this.props.translate('bankAccount.hasBeenThrottledError');
         } else if (hasUnsupportedCurrency) {
             errorText = this.props.translate('bankAccount.hasCurrencyError');
         }
