@@ -48,7 +48,7 @@ Onyx.connect({
 
 let timezone;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         if (!val || timezone) {
             return;

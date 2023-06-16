@@ -47,77 +47,67 @@ const defaultProps = {
     onMouseDown: undefined,
 };
 
-class Checkbox extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.handleSpaceKey = this.handleSpaceKey.bind(this);
-        this.firePressHandlerOnClick = this.firePressHandlerOnClick.bind(this);
-    }
-
-    handleSpaceKey(event) {
+function Checkbox(props) {
+    const handleSpaceKey = (event) => {
         if (event.code !== 'Space') {
             return;
         }
 
-        this.props.onPress();
-    }
+        props.onPress();
+    };
 
-    firePressHandlerOnClick(event) {
+    const firePressHandlerOnClick = (event) => {
         // Pressable can be triggered with Enter key and by a click. As this is a checkbox,
         // We do not want to toggle it, when Enter key is pressed.
         if (event.type && event.type !== 'click') {
             return;
         }
 
-        this.props.onPress();
-    }
+        props.onPress();
+    };
 
-    render() {
-        return (
-            <Pressable
-                disabled={this.props.disabled}
-                onPress={this.firePressHandlerOnClick}
-                onMouseDown={this.props.onMouseDown}
-                ref={this.props.forwardedRef}
-                style={this.props.style}
-                onKeyDown={this.handleSpaceKey}
-                accessibilityRole="checkbox"
-                accessibilityState={{
-                    checked: this.props.isChecked,
-                }}
-            >
-                {this.props.children ? (
-                    this.props.children
-                ) : (
-                    <View
-                        style={[
-                            styles.checkboxContainer,
-                            this.props.containerStyle,
-                            this.props.isChecked && styles.checkedContainer,
-                            this.props.hasError && styles.borderColorDanger,
-                            this.props.disabled && styles.cursorDisabled,
-                            this.props.isChecked && styles.borderColorFocus,
-                        ]}
-                        // Used as CSS selector to customize focus-visible style
-                        dataSet={{checkbox: true}}
-                    >
-                        {this.props.isChecked && (
-                            <Icon
-                                src={Expensicons.Checkmark}
-                                fill={themeColors.textLight}
-                                height={14}
-                                width={14}
-                            />
-                        )}
-                    </View>
-                )}
-            </Pressable>
-        );
-    }
+    return (
+        <Pressable
+            disabled={props.disabled}
+            onPress={firePressHandlerOnClick}
+            onMouseDown={props.onMouseDown}
+            ref={props.forwardedRef}
+            style={props.style}
+            onKeyDown={handleSpaceKey}
+            accessibilityRole="checkbox"
+            accessibilityState={{checked: props.isChecked}}
+        >
+            {props.children ? (
+                props.children
+            ) : (
+                <View
+                    style={[
+                        styles.checkboxContainer,
+                        props.containerStyle,
+                        props.isChecked && styles.checkedContainer,
+                        props.hasError && styles.borderColorDanger,
+                        props.disabled && styles.cursorDisabled,
+                        props.isChecked && styles.borderColorFocus,
+                    ]}
+                    // Used as CSS selector to customize focus-visible style
+                    dataSet={{checkbox: true}}
+                >
+                    {props.isChecked && (
+                        <Icon
+                            src={Expensicons.Checkmark}
+                            fill={themeColors.textLight}
+                            height={14}
+                            width={14}
+                        />
+                    )}
+                </View>
+            )}
+        </Pressable>
+    );
 }
 
 Checkbox.propTypes = propTypes;
 Checkbox.defaultProps = defaultProps;
+Checkbox.displayName = 'Checkbox';
 
 export default Checkbox;

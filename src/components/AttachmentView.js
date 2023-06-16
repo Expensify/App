@@ -116,6 +116,7 @@ function AttachmentView(props) {
             <ImageView
                 onScaleChanged={props.onScaleChanged}
                 url={props.source}
+                fileName={props.file.name}
                 isAuthTokenRequired={isImage && props.isAuthTokenRequired}
             />
         );
