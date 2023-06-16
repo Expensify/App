@@ -528,7 +528,7 @@ describe('actions/Report', () => {
             shortcode: {
                 en: EMOJI_NAME,
                 es: EMOJI_NAME,
-            }
+            },
         };
 
         let reportActions;
@@ -641,7 +641,7 @@ describe('actions/Report', () => {
             shortcode: {
                 en: EMOJI_NAME_EN,
                 es: EMOJI_NAME_ES,
-            }
+            },
         };
 
         let reportActions;

@@ -12,8 +12,8 @@ import CONST from '../../src/CONST';
 
 const convertFrequentlyUsedEmoji = (item) => ({
     ..._.omit(item, 'name'),
-    ..._.find(Emoji, emoji => !emoji.header && emoji.code === item.code)
-})
+    ..._.find(Emoji, (emoji) => !emoji.header && emoji.code === item.code),
+});
 
 describe('EmojiTest', () => {
     it('matches all the emojis in the list', () => {
@@ -135,8 +135,8 @@ describe('EmojiTest', () => {
                 shortcode: {
                     en: 'coffin',
                     es: 'ataúd',
-                }
-            }
+                },
+            },
         ]);
     });
 
@@ -227,7 +227,7 @@ describe('EmojiTest', () => {
                     keywords: {
                         en: ['eye', 'face', 'mouth', 'open', 'smile', 'grinning face with smiling eyes'],
                         es: ['abierta', 'cara', 'ojo', 'sonrisa', 'cara sonriendo con ojos sonrientes'],
-                    }
+                    },
                 };
                 const newEmoji = [smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
@@ -235,10 +235,7 @@ describe('EmojiTest', () => {
                 // Then the new emoji should be at the last item of the list
                 const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
 
-                const expectedFrequentlyEmojisList = [
-                    ..._.map(frequentlyEmojisList, convertFrequentlyUsedEmoji),
-                    expectedSmileEmoji
-                ];
+                const expectedFrequentlyEmojisList = [..._.map(frequentlyEmojisList, convertFrequentlyUsedEmoji), expectedSmileEmoji];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
         });
@@ -295,7 +292,7 @@ describe('EmojiTest', () => {
                 const expectedFrequentlyEmojisList = [
                     convertFrequentlyUsedEmoji(frequentlyEmojisList[0]),
                     {...smileEmoji, count: 2, lastUpdatedAt: currentTime},
-                    ..._.map(frequentlyEmojisList.slice(1, -1), convertFrequentlyUsedEmoji)
+                    ..._.map(frequentlyEmojisList.slice(1, -1), convertFrequentlyUsedEmoji),
                 ];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
