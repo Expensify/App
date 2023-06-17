@@ -74,7 +74,7 @@ function TaskView(props) {
                                     {convertToLTR(taskTitle)}
                                 </Text>
                             </View>
-                            <View style={[styles.mt2, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, {marginLeft: 'auto'}]}>
+                            <View style={styles.taskRightIconContainer}>
                                 <Icon
                                     src={Expensicons.ArrowRight}
                                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}

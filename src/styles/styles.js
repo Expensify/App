@@ -3409,6 +3409,13 @@ const styles = {
         ...spacing.mb1,
     },
 
+    taskRightIconContainer: {
+        width: variables.componentSizeNormal,
+        ...spacing.mt2,
+        ...pointerEventsAuto,
+        marginLeft: 'auto',
+    },
+
     shareCodePage: {
         paddingHorizontal: 38.5,
     },
