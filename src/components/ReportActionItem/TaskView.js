@@ -64,7 +64,7 @@ function TaskView(props) {
                             <Checkbox
                                 onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
                                 isChecked={isCompleted}
-                                style={[styles.mr3, styles.mt2, styles.alignItemsTop]}
+                                style={[styles.mr3, props.isSmallScreenWidth ? styles.mt1 : styles.mt2, styles.alignItemsTop]}
                             />
                             <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
