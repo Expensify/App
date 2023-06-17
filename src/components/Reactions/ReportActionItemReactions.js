@@ -61,12 +61,12 @@ function ReportActionItemReactions(props) {
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
                 const reactionUsers = _.map(reaction.users, (sender) => sender.accountID);
-                const emoji = _.find(emojis, (e) => _.get(e, ['shortcode', 'en'], '') === reaction.emoji);
+                const emoji = _.find(emojis, (e) => _.get(e, ['name', 'en'], '') === reaction.emoji);
                 const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
                 const onPress = () => {
-                    props.toggleReaction({code: emoji.code, name: _.get(emoji, ['shortcode', 'en'], '')});
+                    props.toggleReaction(emoji);
                 };
 
                 const onReactionListOpen = (event) => {

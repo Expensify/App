@@ -53,7 +53,7 @@ function MiniQuickEmojiReactions(props) {
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
-                props.onEmojiSelected({code: emojiCode, name: _.get(emojiObject, ['shortcode', 'en'])});
+                props.onEmojiSelected(emojiObject);
             },
             ref.current,
         );

@@ -44,7 +44,7 @@ const emojis = [
     },
     {
         code: '😀',
-        shortcode: {
+        name: {
             en: 'grinning',
             es: 'sonriendo',
         },
@@ -55,7 +55,7 @@ const emojis = [
     },
     {
         code: '😃',
-        shortcode: {
+        name: {
             en: 'smiley',
             es: 'sonriente',
         },
@@ -66,7 +66,7 @@ const emojis = [
     },
     {
         code: '😄',
-        shortcode: {
+        name: {
             en: 'smile',
             es: 'sonrisa',
         },
@@ -77,7 +77,7 @@ const emojis = [
     },
     {
         code: '😁',
-        shortcode: {
+        name: {
             en: 'grin',
             es: 'sonrisa_burlona',
         },
@@ -88,7 +88,7 @@ const emojis = [
     },
     {
         code: '😆',
-        shortcode: {
+        name: {
             en: 'laughing',
             es: 'risa',
         },
@@ -99,7 +99,7 @@ const emojis = [
     },
     {
         code: '😅',
-        shortcode: {
+        name: {
             en: 'sweat_smile',
             es: 'sonrisa_con_sudor',
         },
@@ -110,7 +110,7 @@ const emojis = [
     },
     {
         code: '🤣',
-        shortcode: {
+        name: {
             en: 'rolling_on_the_floor_laughing',
             es: 'muriéndose_de_risa',
         },
@@ -121,7 +121,7 @@ const emojis = [
     },
     {
         code: '😂',
-        shortcode: {
+        name: {
             en: 'joy',
             es: 'alegría',
         },
@@ -132,7 +132,7 @@ const emojis = [
     },
     {
         code: '🙂',
-        shortcode: {
+        name: {
             en: 'slightly_smiling_face',
             es: 'cara_ligeramente_sonriente',
         },
@@ -143,7 +143,7 @@ const emojis = [
     },
     {
         code: '🙃',
-        shortcode: {
+        name: {
             en: 'upside_down_face',
             es: 'cara_boca_arriba',
         },
@@ -154,7 +154,7 @@ const emojis = [
     },
     {
         code: '😉',
-        shortcode: {
+        name: {
             en: 'wink',
             es: 'guiño',
         },
@@ -165,7 +165,7 @@ const emojis = [
     },
     {
         code: '😊',
-        shortcode: {
+        name: {
             en: 'blush',
             es: 'sonrojo',
         },
@@ -176,7 +176,7 @@ const emojis = [
     },
     {
         code: '😇',
-        shortcode: {
+        name: {
             en: 'innocent',
             es: 'inocente',
         },
@@ -187,7 +187,7 @@ const emojis = [
     },
     {
         code: '🥰',
-        shortcode: {
+        name: {
             en: 'smiling_face_with_3_hearts',
             es: 'cara_sonriendo_con_corazones',
         },
@@ -198,7 +198,7 @@ const emojis = [
     },
     {
         code: '😍',
-        shortcode: {
+        name: {
             en: 'heart_eyes',
             es: 'ojos_de_corazón',
         },
@@ -209,7 +209,7 @@ const emojis = [
     },
     {
         code: '🤩',
-        shortcode: {
+        name: {
             en: 'star-struck',
             es: 'ojos_estrella',
         },
@@ -220,7 +220,7 @@ const emojis = [
     },
     {
         code: '😘',
-        shortcode: {
+        name: {
             en: 'kissing_heart',
             es: 'beso_de_corazón',
         },
@@ -231,7 +231,7 @@ const emojis = [
     },
     {
         code: '😗',
-        shortcode: {
+        name: {
             en: 'kissing',
             es: 'besos',
         },
@@ -242,7 +242,7 @@ const emojis = [
     },
     {
         code: '☺️',
-        shortcode: {
+        name: {
             en: 'relaxed',
             es: 'relajado',
         },
@@ -253,7 +253,7 @@ const emojis = [
     },
     {
         code: '😚',
-        shortcode: {
+        name: {
             en: 'kissing_closed_eyes',
             es: 'beso_con_ojos_cerrados',
         },
@@ -264,7 +264,7 @@ const emojis = [
     },
     {
         code: '😙',
-        shortcode: {
+        name: {
             en: 'kissing_smiling_eyes',
             es: 'besando_con_ojos_sonrientes',
         },
@@ -275,7 +275,7 @@ const emojis = [
     },
     {
         code: '🥲',
-        shortcode: {
+        name: {
             en: 'smiling_face_with_tear',
             es: 'cara_sonriente_con_lágrima',
         },
@@ -286,7 +286,7 @@ const emojis = [
     },
     {
         code: '😋',
-        shortcode: {
+        name: {
             en: 'yum',
             es: 'sabroso',
         },
@@ -297,7 +297,7 @@ const emojis = [
     },
     {
         code: '😛',
-        shortcode: {
+        name: {
             en: 'stuck_out_tongue',
             es: 'lengua_fuera',
         },
@@ -308,7 +308,7 @@ const emojis = [
     },
     {
         code: '😜',
-        shortcode: {
+        name: {
             en: 'stuck_out_tongue_winking_eye',
             es: 'lengua_fuera_con_guiño_de_ojos',
         },
@@ -319,7 +319,7 @@ const emojis = [
     },
     {
         code: '🤪',
-        shortcode: {
+        name: {
             en: 'zany_face',
             es: 'cara_loco',
         },
@@ -330,7 +330,7 @@ const emojis = [
     },
     {
         code: '😝',
-        shortcode: {
+        name: {
             en: 'stuck_out_tongue_closed_eyes',
             es: 'lengua_fuera_con_ojos_cerrados',
         },
@@ -341,7 +341,7 @@ const emojis = [
     },
     {
         code: '🤑',
-        shortcode: {
+        name: {
             en: 'money_mouth_face',
             es: 'cara_con_dinero_en_la_boca',
         },
@@ -352,7 +352,7 @@ const emojis = [
     },
     {
         code: '🤗',
-        shortcode: {
+        name: {
             en: 'hugging_face',
             es: 'cara_abrazando',
         },
@@ -363,7 +363,7 @@ const emojis = [
     },
     {
         code: '🤭',
-        shortcode: {
+        name: {
             en: 'face_with_hand_over_mouth',
             es: 'cara_con_mano_sobre_boca',
         },
@@ -374,7 +374,7 @@ const emojis = [
     },
     {
         code: '🤫',
-        shortcode: {
+        name: {
             en: 'shushing_face',
             es: 'calla',
         },
@@ -385,7 +385,7 @@ const emojis = [
     },
     {
         code: '🤔',
-        shortcode: {
+        name: {
             en: 'thinking_face',
             es: 'cara_pensativa',
         },
@@ -396,7 +396,7 @@ const emojis = [
     },
     {
         code: '🤐',
-        shortcode: {
+        name: {
             en: 'zipper_mouth_face',
             es: 'cara_con_boca_de_cremallera',
         },
@@ -407,7 +407,7 @@ const emojis = [
     },
     {
         code: '🤨',
-        shortcode: {
+        name: {
             en: 'face_with_raised_eyebrow',
             es: 'cara_con_ceja_levantada',
         },
@@ -418,7 +418,7 @@ const emojis = [
     },
     {
         code: '😐',
-        shortcode: {
+        name: {
             en: 'neutral_face',
             es: 'cara_neutra',
         },
@@ -429,7 +429,7 @@ const emojis = [
     },
     {
         code: '😑',
-        shortcode: {
+        name: {
             en: 'expressionless',
             es: 'inexpresivo',
         },
@@ -440,7 +440,7 @@ const emojis = [
     },
     {
         code: '😶',
-        shortcode: {
+        name: {
             en: 'no_mouth',
             es: 'prohibido_hablar',
         },
@@ -451,7 +451,7 @@ const emojis = [
     },
     {
         code: '😶‍🌫️',
-        shortcode: {
+        name: {
             en: 'face_in_clouds',
             es: 'prohibido_hablar‍niebla',
         },
@@ -462,7 +462,7 @@ const emojis = [
     },
     {
         code: '😏',
-        shortcode: {
+        name: {
             en: 'smirk',
             es: 'sonrisita',
         },
@@ -473,7 +473,7 @@ const emojis = [
     },
     {
         code: '😒',
-        shortcode: {
+        name: {
             en: 'unamused',
             es: 'no_interesado',
         },
@@ -484,7 +484,7 @@ const emojis = [
     },
     {
         code: '🙄',
-        shortcode: {
+        name: {
             en: 'face_with_rolling_eyes',
             es: 'cara_con_ojos_en_blanco',
         },
@@ -495,7 +495,7 @@ const emojis = [
     },
     {
         code: '😬',
-        shortcode: {
+        name: {
             en: 'grimacing',
             es: 'muecas',
         },
@@ -506,7 +506,7 @@ const emojis = [
     },
     {
         code: '😮‍💨',
-        shortcode: {
+        name: {
             en: 'face_exhaling',
             es: 'boca_abierta‍guión',
         },
@@ -517,7 +517,7 @@ const emojis = [
     },
     {
         code: '🤥',
-        shortcode: {
+        name: {
             en: 'lying_face',
             es: 'cara_de_mentiroso',
         },
@@ -528,7 +528,7 @@ const emojis = [
     },
     {
         code: '😌',
-        shortcode: {
+        name: {
             en: 'relieved',
             es: 'aliviado',
         },
@@ -539,7 +539,7 @@ const emojis = [
     },
     {
         code: '😔',
-        shortcode: {
+        name: {
             en: 'pensive',
             es: 'pensativo',
         },
@@ -550,7 +550,7 @@ const emojis = [
     },
     {
         code: '😪',
-        shortcode: {
+        name: {
             en: 'sleepy',
             es: 'soñoliento',
         },
@@ -561,7 +561,7 @@ const emojis = [
     },
     {
         code: '🤤',
-        shortcode: {
+        name: {
             en: 'drooling_face',
             es: 'cara-babeando',
         },
@@ -572,7 +572,7 @@ const emojis = [
     },
     {
         code: '😴',
-        shortcode: {
+        name: {
             en: 'sleeping',
             es: 'durmiendo',
         },
@@ -583,7 +583,7 @@ const emojis = [
     },
     {
         code: '😷',
-        shortcode: {
+        name: {
             en: 'mask',
             es: 'máscara',
         },
@@ -594,7 +594,7 @@ const emojis = [
     },
     {
         code: '🤒',
-        shortcode: {
+        name: {
             en: 'face_with_thermometer',
             es: 'cara_con_termómetro',
         },
@@ -605,7 +605,7 @@ const emojis = [
     },
     {
         code: '🤕',
-        shortcode: {
+        name: {
             en: 'face_with_head_bandage',
             es: 'cara_con_la_cabeza_vendada',
         },
@@ -616,7 +616,7 @@ const emojis = [
     },
     {
         code: '🤢',
-        shortcode: {
+        name: {
             en: 'nauseated_face',
             es: 'cara_de_asco',
         },
@@ -627,7 +627,7 @@ const emojis = [
     },
     {
         code: '🤮',
-        shortcode: {
+        name: {
             en: 'face_vomiting',
             es: 'cara_vomitando',
         },
@@ -638,7 +638,7 @@ const emojis = [
     },
     {
         code: '🤧',
-        shortcode: {
+        name: {
             en: 'sneezing_face',
             es: 'cara_estornudando',
         },
@@ -649,7 +649,7 @@ const emojis = [
     },
     {
         code: '🥵',
-        shortcode: {
+        name: {
             en: 'hot_face',
             es: 'cara_con_calor',
         },
@@ -660,7 +660,7 @@ const emojis = [
     },
     {
         code: '🥶',
-        shortcode: {
+        name: {
             en: 'cold_face',
             es: 'cara_con_frío',
         },
@@ -671,7 +671,7 @@ const emojis = [
     },
     {
         code: '🥴',
-        shortcode: {
+        name: {
             en: 'woozy_face',
             es: 'cara_de_grogui',
         },
@@ -682,7 +682,7 @@ const emojis = [
     },
     {
         code: '😵',
-        shortcode: {
+        name: {
             en: 'dizzy_face',
             es: 'cara_de_mareo',
         },
@@ -693,7 +693,7 @@ const emojis = [
     },
     {
         code: '😵‍💫',
-        shortcode: {
+        name: {
             en: 'face_with_spiral_eyes',
             es: 'cara_de_mareo‍mareado',
         },
@@ -704,7 +704,7 @@ const emojis = [
     },
     {
         code: '🤯',
-        shortcode: {
+        name: {
             en: 'exploding_head',
             es: 'cabeza_explotando',
         },
@@ -715,7 +715,7 @@ const emojis = [
     },
     {
         code: '🤠',
-        shortcode: {
+        name: {
             en: 'face_with_cowboy_hat',
             es: 'cara_con_sombrero_vaquero',
         },
@@ -726,7 +726,7 @@ const emojis = [
     },
     {
         code: '🥳',
-        shortcode: {
+        name: {
             en: 'partying_face',
             es: 'cara_de_fiesta',
         },
@@ -737,7 +737,7 @@ const emojis = [
     },
     {
         code: '🥸',
-        shortcode: {
+        name: {
             en: 'disguised_face',
             es: 'cara_disfrazada',
         },
@@ -748,7 +748,7 @@ const emojis = [
     },
     {
         code: '😎',
-        shortcode: {
+        name: {
             en: 'sunglasses',
             es: 'gafas_de_sol',
         },
@@ -759,7 +759,7 @@ const emojis = [
     },
     {
         code: '🤓',
-        shortcode: {
+        name: {
             en: 'nerd_face',
             es: 'cara_de_nerd',
         },
@@ -770,7 +770,7 @@ const emojis = [
     },
     {
         code: '🧐',
-        shortcode: {
+        name: {
             en: 'face_with_monocle',
             es: 'cara_con_monóculo',
         },
@@ -781,7 +781,7 @@ const emojis = [
     },
     {
         code: '😕',
-        shortcode: {
+        name: {
             en: 'confused',
             es: 'desconcertado',
         },
@@ -792,7 +792,7 @@ const emojis = [
     },
     {
         code: '😟',
-        shortcode: {
+        name: {
             en: 'worried',
             es: 'preocupado',
         },
@@ -803,7 +803,7 @@ const emojis = [
     },
     {
         code: '🙁',
-        shortcode: {
+        name: {
             en: 'slightly_frowning_face',
             es: 'cara_con_el_ceño_ligeramente_fruncido',
         },
@@ -814,7 +814,7 @@ const emojis = [
     },
     {
         code: '☹️',
-        shortcode: {
+        name: {
             en: 'white_frowning_face',
             es: 'cara_blanca_ceñuda',
         },
@@ -825,7 +825,7 @@ const emojis = [
     },
     {
         code: '😮',
-        shortcode: {
+        name: {
             en: 'open_mouth',
             es: 'boca_abierta',
         },
@@ -836,7 +836,7 @@ const emojis = [
     },
     {
         code: '😯',
-        shortcode: {
+        name: {
             en: 'hushed',
             es: 'silencioso',
         },
@@ -847,7 +847,7 @@ const emojis = [
     },
     {
         code: '😲',
-        shortcode: {
+        name: {
             en: 'astonished',
             es: 'asombrado',
         },
@@ -858,7 +858,7 @@ const emojis = [
     },
     {
         code: '😳',
-        shortcode: {
+        name: {
             en: 'flushed',
             es: 'sonrojado',
         },
@@ -869,7 +869,7 @@ const emojis = [
     },
     {
         code: '🥺',
-        shortcode: {
+        name: {
             en: 'pleading_face',
             es: 'cara_de_por_favor',
         },
@@ -880,7 +880,7 @@ const emojis = [
     },
     {
         code: '😦',
-        shortcode: {
+        name: {
             en: 'frowning',
             es: 'ceñudo',
         },
@@ -891,7 +891,7 @@ const emojis = [
     },
     {
         code: '😧',
-        shortcode: {
+        name: {
             en: 'anguished',
             es: 'angustiado',
         },
@@ -902,7 +902,7 @@ const emojis = [
     },
     {
         code: '😨',
-        shortcode: {
+        name: {
             en: 'fearful',
             es: 'temeroso',
         },
@@ -913,7 +913,7 @@ const emojis = [
     },
     {
         code: '😰',
-        shortcode: {
+        name: {
             en: 'cold_sweat',
             es: 'sudor_frío',
         },
@@ -924,7 +924,7 @@ const emojis = [
     },
     {
         code: '😥',
-        shortcode: {
+        name: {
             en: 'disappointed_relieved',
             es: 'decepcionado_aliviado',
         },
@@ -935,7 +935,7 @@ const emojis = [
     },
     {
         code: '😢',
-        shortcode: {
+        name: {
             en: 'cry',
             es: 'lloros',
         },
@@ -946,7 +946,7 @@ const emojis = [
     },
     {
         code: '😭',
-        shortcode: {
+        name: {
             en: 'sob',
             es: 'sollozo',
         },
@@ -957,7 +957,7 @@ const emojis = [
     },
     {
         code: '😱',
-        shortcode: {
+        name: {
             en: 'scream',
             es: 'grito',
         },
@@ -968,7 +968,7 @@ const emojis = [
     },
     {
         code: '😖',
-        shortcode: {
+        name: {
             en: 'confounded',
             es: 'aturdido',
         },
@@ -979,7 +979,7 @@ const emojis = [
     },
     {
         code: '😣',
-        shortcode: {
+        name: {
             en: 'persevere',
             es: 'tenacidad',
         },
@@ -990,7 +990,7 @@ const emojis = [
     },
     {
         code: '😞',
-        shortcode: {
+        name: {
             en: 'disappointed',
             es: 'decepcionado',
         },
@@ -1001,7 +1001,7 @@ const emojis = [
     },
     {
         code: '😓',
-        shortcode: {
+        name: {
             en: 'sweat',
             es: 'sudor',
         },
@@ -1012,7 +1012,7 @@ const emojis = [
     },
     {
         code: '😩',
-        shortcode: {
+        name: {
             en: 'weary',
             es: 'cansado',
         },
@@ -1023,7 +1023,7 @@ const emojis = [
     },
     {
         code: '😫',
-        shortcode: {
+        name: {
             en: 'tired_face',
             es: 'cara_cansada',
         },
@@ -1034,7 +1034,7 @@ const emojis = [
     },
     {
         code: '🥱',
-        shortcode: {
+        name: {
             en: 'yawning_face',
             es: 'cara_de_bostezo',
         },
@@ -1045,7 +1045,7 @@ const emojis = [
     },
     {
         code: '😤',
-        shortcode: {
+        name: {
             en: 'triumph',
             es: 'triunfo',
         },
@@ -1056,7 +1056,7 @@ const emojis = [
     },
     {
         code: '😡',
-        shortcode: {
+        name: {
             en: 'rage',
             es: 'rabia',
         },
@@ -1067,7 +1067,7 @@ const emojis = [
     },
     {
         code: '😠',
-        shortcode: {
+        name: {
             en: 'angry',
             es: 'enfado',
         },
@@ -1078,7 +1078,7 @@ const emojis = [
     },
     {
         code: '🤬',
-        shortcode: {
+        name: {
             en: 'face_with_symbols_on_mouth',
             es: 'cara_con_símbolos_en_boca',
         },
@@ -1089,7 +1089,7 @@ const emojis = [
     },
     {
         code: '😈',
-        shortcode: {
+        name: {
             en: 'smiling_imp',
             es: 'diablillo_sonriente',
         },
@@ -1100,7 +1100,7 @@ const emojis = [
     },
     {
         code: '👿',
-        shortcode: {
+        name: {
             en: 'imp',
             es: 'diablillo',
         },
@@ -1111,7 +1111,7 @@ const emojis = [
     },
     {
         code: '💀',
-        shortcode: {
+        name: {
             en: 'skull',
             es: 'calavera',
         },
@@ -1122,7 +1122,7 @@ const emojis = [
     },
     {
         code: '☠️',
-        shortcode: {
+        name: {
             en: 'skull_and_crossbones',
             es: 'calavera_y_tibias_cruzadas',
         },
@@ -1133,7 +1133,7 @@ const emojis = [
     },
     {
         code: '💩',
-        shortcode: {
+        name: {
             en: 'hankey',
             es: 'zurullo',
         },
@@ -1144,7 +1144,7 @@ const emojis = [
     },
     {
         code: '🤡',
-        shortcode: {
+        name: {
             en: 'clown_face',
             es: 'cara_payaso',
         },
@@ -1155,7 +1155,7 @@ const emojis = [
     },
     {
         code: '👹',
-        shortcode: {
+        name: {
             en: 'japanese_ogre',
             es: 'ogro_japonés',
         },
@@ -1166,7 +1166,7 @@ const emojis = [
     },
     {
         code: '👺',
-        shortcode: {
+        name: {
             en: 'japanese_goblin',
             es: 'duende_japonés',
         },
@@ -1177,7 +1177,7 @@ const emojis = [
     },
     {
         code: '👻',
-        shortcode: {
+        name: {
             en: 'ghost',
             es: 'fantasma',
         },
@@ -1188,7 +1188,7 @@ const emojis = [
     },
     {
         code: '👽',
-        shortcode: {
+        name: {
             en: 'alien',
             es: 'extraterrestre',
         },
@@ -1199,7 +1199,7 @@ const emojis = [
     },
     {
         code: '👾',
-        shortcode: {
+        name: {
             en: 'space_invader',
             es: 'invasor_del_espacio',
         },
@@ -1210,7 +1210,7 @@ const emojis = [
     },
     {
         code: '🤖',
-        shortcode: {
+        name: {
             en: 'robot_face',
             es: 'cara_de_robot',
         },
@@ -1221,7 +1221,7 @@ const emojis = [
     },
     {
         code: '😺',
-        shortcode: {
+        name: {
             en: 'smiley_cat',
             es: 'gato_sonriente',
         },
@@ -1232,7 +1232,7 @@ const emojis = [
     },
     {
         code: '😸',
-        shortcode: {
+        name: {
             en: 'smile_cat',
             es: 'gato_sonrisa',
         },
@@ -1243,7 +1243,7 @@ const emojis = [
     },
     {
         code: '😹',
-        shortcode: {
+        name: {
             en: 'joy_cat',
             es: 'gato_alegre',
         },
@@ -1254,7 +1254,7 @@ const emojis = [
     },
     {
         code: '😻',
-        shortcode: {
+        name: {
             en: 'heart_eyes_cat',
             es: 'gato_con_ojos_de_corazón',
         },
@@ -1265,7 +1265,7 @@ const emojis = [
     },
     {
         code: '😼',
-        shortcode: {
+        name: {
             en: 'smirk_cat',
             es: 'gato_con_sonrisa_de_satisfacción',
         },
@@ -1276,7 +1276,7 @@ const emojis = [
     },
     {
         code: '😽',
-        shortcode: {
+        name: {
             en: 'kissing_cat',
             es: 'gato_besando',
         },
@@ -1287,7 +1287,7 @@ const emojis = [
     },
     {
         code: '🙀',
-        shortcode: {
+        name: {
             en: 'scream_cat',
             es: 'gato_gritando',
         },
@@ -1298,7 +1298,7 @@ const emojis = [
     },
     {
         code: '😿',
-        shortcode: {
+        name: {
             en: 'crying_cat_face',
             es: 'cara_de_gato_lloroso',
         },
@@ -1309,7 +1309,7 @@ const emojis = [
     },
     {
         code: '😾',
-        shortcode: {
+        name: {
             en: 'pouting_cat',
             es: 'gato_enfadado',
         },
@@ -1320,7 +1320,7 @@ const emojis = [
     },
     {
         code: '🙈',
-        shortcode: {
+        name: {
             en: 'see_no_evil',
             es: 'mono_ojos_tapados',
         },
@@ -1331,7 +1331,7 @@ const emojis = [
     },
     {
         code: '🙉',
-        shortcode: {
+        name: {
             en: 'hear_no_evil',
             es: 'mono_sordo',
         },
@@ -1342,7 +1342,7 @@ const emojis = [
     },
     {
         code: '🙊',
-        shortcode: {
+        name: {
             en: 'speak_no_evil',
             es: 'no_decir_nada',
         },
@@ -1353,7 +1353,7 @@ const emojis = [
     },
     {
         code: '💌',
-        shortcode: {
+        name: {
             en: 'love_letter',
             es: 'carta_de_amor',
         },
@@ -1364,7 +1364,7 @@ const emojis = [
     },
     {
         code: '💘',
-        shortcode: {
+        name: {
             en: 'cupid',
             es: 'cupido',
         },
@@ -1375,7 +1375,7 @@ const emojis = [
     },
     {
         code: '💝',
-        shortcode: {
+        name: {
             en: 'gift_heart',
             es: 'corazón_de_regalo',
         },
@@ -1386,7 +1386,7 @@ const emojis = [
     },
     {
         code: '💖',
-        shortcode: {
+        name: {
             en: 'sparkling_heart',
             es: 'corazón_refulgente',
         },
@@ -1397,7 +1397,7 @@ const emojis = [
     },
     {
         code: '💗',
-        shortcode: {
+        name: {
             en: 'heartpulse',
             es: 'ritmo_cardíaco',
         },
@@ -1408,7 +1408,7 @@ const emojis = [
     },
     {
         code: '💓',
-        shortcode: {
+        name: {
             en: 'heartbeat',
             es: 'latido',
         },
@@ -1419,7 +1419,7 @@ const emojis = [
     },
     {
         code: '💞',
-        shortcode: {
+        name: {
             en: 'revolving_hearts',
             es: 'corazones_girando',
         },
@@ -1430,7 +1430,7 @@ const emojis = [
     },
     {
         code: '💕',
-        shortcode: {
+        name: {
             en: 'two_hearts',
             es: 'dos_corazones',
         },
@@ -1441,7 +1441,7 @@ const emojis = [
     },
     {
         code: '💟',
-        shortcode: {
+        name: {
             en: 'heart_decoration',
             es: 'corazón_decorativo',
         },
@@ -1452,7 +1452,7 @@ const emojis = [
     },
     {
         code: '❣️',
-        shortcode: {
+        name: {
             en: 'heavy_heart_exclamation_mark_ornament',
             es: 'signo_de_exclamación_en_forma_de_corazón_grueso',
         },
@@ -1463,7 +1463,7 @@ const emojis = [
     },
     {
         code: '💔',
-        shortcode: {
+        name: {
             en: 'broken_heart',
             es: 'corazón_partido',
         },
@@ -1474,7 +1474,7 @@ const emojis = [
     },
     {
         code: '❤️‍🔥',
-        shortcode: {
+        name: {
             en: 'heart_on_fire',
             es: 'corazón‍fuego',
         },
@@ -1485,7 +1485,7 @@ const emojis = [
     },
     {
         code: '❤️‍🩹',
-        shortcode: {
+        name: {
             en: 'mending_heart',
             es: 'corazón‍tirita',
         },
@@ -1496,7 +1496,7 @@ const emojis = [
     },
     {
         code: '❤️',
-        shortcode: {
+        name: {
             en: 'heart',
             es: 'corazón',
         },
@@ -1507,7 +1507,7 @@ const emojis = [
     },
     {
         code: '🧡',
-        shortcode: {
+        name: {
             en: 'orange_heart',
             es: 'corazón_naranja',
         },
@@ -1518,7 +1518,7 @@ const emojis = [
     },
     {
         code: '💛',
-        shortcode: {
+        name: {
             en: 'yellow_heart',
             es: 'corazón_amarillo',
         },
@@ -1529,7 +1529,7 @@ const emojis = [
     },
     {
         code: '💚',
-        shortcode: {
+        name: {
             en: 'green_heart',
             es: 'corazón_verde',
         },
@@ -1540,7 +1540,7 @@ const emojis = [
     },
     {
         code: '💙',
-        shortcode: {
+        name: {
             en: 'blue_heart',
             es: 'corazón_azul',
         },
@@ -1551,7 +1551,7 @@ const emojis = [
     },
     {
         code: '💜',
-        shortcode: {
+        name: {
             en: 'purple_heart',
             es: 'corazón_púrpura',
         },
@@ -1562,7 +1562,7 @@ const emojis = [
     },
     {
         code: '🤎',
-        shortcode: {
+        name: {
             en: 'brown_heart',
             es: 'corazón_marrón',
         },
@@ -1573,7 +1573,7 @@ const emojis = [
     },
     {
         code: '🖤',
-        shortcode: {
+        name: {
             en: 'black_heart',
             es: 'corazón_negro',
         },
@@ -1584,7 +1584,7 @@ const emojis = [
     },
     {
         code: '🤍',
-        shortcode: {
+        name: {
             en: 'white_heart',
             es: 'corazón_blanco',
         },
@@ -1595,7 +1595,7 @@ const emojis = [
     },
     {
         code: '💋',
-        shortcode: {
+        name: {
             en: 'kiss',
             es: 'beso',
         },
@@ -1606,7 +1606,7 @@ const emojis = [
     },
     {
         code: '💯',
-        shortcode: {
+        name: {
             en: '100',
             es: '100',
         },
@@ -1617,7 +1617,7 @@ const emojis = [
     },
     {
         code: '💢',
-        shortcode: {
+        name: {
             en: 'anger',
             es: 'ira',
         },
@@ -1628,7 +1628,7 @@ const emojis = [
     },
     {
         code: '💥',
-        shortcode: {
+        name: {
             en: 'boom',
             es: 'bum',
         },
@@ -1639,7 +1639,7 @@ const emojis = [
     },
     {
         code: '💫',
-        shortcode: {
+        name: {
             en: 'dizzy',
             es: 'mareado',
         },
@@ -1650,7 +1650,7 @@ const emojis = [
     },
     {
         code: '💦',
-        shortcode: {
+        name: {
             en: 'sweat_drops',
             es: 'gotas_de_sudor',
         },
@@ -1661,7 +1661,7 @@ const emojis = [
     },
     {
         code: '💨',
-        shortcode: {
+        name: {
             en: 'dash',
             es: 'guión',
         },
@@ -1672,7 +1672,7 @@ const emojis = [
     },
     {
         code: '🕳️',
-        shortcode: {
+        name: {
             en: 'hole',
             es: 'agujero',
         },
@@ -1683,7 +1683,7 @@ const emojis = [
     },
     {
         code: '💬',
-        shortcode: {
+        name: {
             en: 'speech_balloon',
             es: 'bocadillo_de_diálogo',
         },
@@ -1694,7 +1694,7 @@ const emojis = [
     },
     {
         code: '👁️‍🗨️',
-        shortcode: {
+        name: {
             en: 'eye-in-speech-bubble',
             es: 'ojo-en-globo-de-texto',
         },
@@ -1705,7 +1705,7 @@ const emojis = [
     },
     {
         code: '🗨️',
-        shortcode: {
+        name: {
             en: 'left_speech_bubble',
             es: 'bocadillo_a_la_izquierda',
         },
@@ -1716,7 +1716,7 @@ const emojis = [
     },
     {
         code: '🗯️',
-        shortcode: {
+        name: {
             en: 'right_anger_bubble',
             es: 'bocadillo_para_palabras_de_enfado',
         },
@@ -1727,7 +1727,7 @@ const emojis = [
     },
     {
         code: '💭',
-        shortcode: {
+        name: {
             en: 'thought_balloon',
             es: 'bocadillo_para_pensamientos',
         },
@@ -1738,7 +1738,7 @@ const emojis = [
     },
     {
         code: '💤',
-        shortcode: {
+        name: {
             en: 'zzz',
             es: 'zzz',
         },
@@ -1749,7 +1749,7 @@ const emojis = [
     },
     {
         code: '👋',
-        shortcode: {
+        name: {
             en: 'wave',
             es: 'hola',
         },
@@ -1761,7 +1761,7 @@ const emojis = [
     },
     {
         code: '🤚',
-        shortcode: {
+        name: {
             en: 'raised_back_of_hand',
             es: 'palma_de_mano_levantada',
         },
@@ -1773,7 +1773,7 @@ const emojis = [
     },
     {
         code: '🖐️',
-        shortcode: {
+        name: {
             en: 'raised_hand_with_fingers_splayed',
             es: 'mano_levantada_con_los_dedos_extendidos',
         },
@@ -1785,7 +1785,7 @@ const emojis = [
     },
     {
         code: '✋',
-        shortcode: {
+        name: {
             en: 'hand',
             es: 'mano',
         },
@@ -1797,7 +1797,7 @@ const emojis = [
     },
     {
         code: '🖖',
-        shortcode: {
+        name: {
             en: 'spock-hand',
             es: 'saludo_de_spock',
         },
@@ -1809,7 +1809,7 @@ const emojis = [
     },
     {
         code: '👌',
-        shortcode: {
+        name: {
             en: 'ok_hand',
             es: 'mano_con_signo_de_aprobación',
         },
@@ -1821,7 +1821,7 @@ const emojis = [
     },
     {
         code: '🤌',
-        shortcode: {
+        name: {
             en: 'pinched_fingers',
             es: 'dedos_juntos_apuntando_hacia_arriba',
         },
@@ -1833,7 +1833,7 @@ const emojis = [
     },
     {
         code: '🤏',
-        shortcode: {
+        name: {
             en: 'pinching_hand',
             es: 'mano_pellizcando',
         },
@@ -1845,7 +1845,7 @@ const emojis = [
     },
     {
         code: '✌️',
-        shortcode: {
+        name: {
             en: 'v',
             es: 'v',
         },
@@ -1857,7 +1857,7 @@ const emojis = [
     },
     {
         code: '🤞',
-        shortcode: {
+        name: {
             en: 'crossed_fingers',
             es: 'dedos_cruzados',
         },
@@ -1869,7 +1869,7 @@ const emojis = [
     },
     {
         code: '🤟',
-        shortcode: {
+        name: {
             en: 'i_love_you_hand_sign',
             es: 'te_amo_en_lenguaje_de_señas',
         },
@@ -1881,7 +1881,7 @@ const emojis = [
     },
     {
         code: '🤘',
-        shortcode: {
+        name: {
             en: 'the_horns',
             es: 'los_cuernos',
         },
@@ -1893,7 +1893,7 @@ const emojis = [
     },
     {
         code: '🤙',
-        shortcode: {
+        name: {
             en: 'call_me_hand',
             es: 'mano_llámame',
         },
@@ -1905,7 +1905,7 @@ const emojis = [
     },
     {
         code: '👈',
-        shortcode: {
+        name: {
             en: 'point_left',
             es: 'apuntando_hacia_la_izquierda',
         },
@@ -1917,7 +1917,7 @@ const emojis = [
     },
     {
         code: '👉',
-        shortcode: {
+        name: {
             en: 'point_right',
             es: 'apuntando_hacia_la_derecha',
         },
@@ -1929,7 +1929,7 @@ const emojis = [
     },
     {
         code: '👆',
-        shortcode: {
+        name: {
             en: 'point_up_2',
             es: 'apuntando_hacia_arriba_2',
         },
@@ -1941,7 +1941,7 @@ const emojis = [
     },
     {
         code: '🖕',
-        shortcode: {
+        name: {
             en: 'middle_finger',
             es: 'dedo_corazón',
         },
@@ -1953,7 +1953,7 @@ const emojis = [
     },
     {
         code: '👇',
-        shortcode: {
+        name: {
             en: 'point_down',
             es: 'apuntando_hacia_abajo',
         },
@@ -1965,7 +1965,7 @@ const emojis = [
     },
     {
         code: '☝️',
-        shortcode: {
+        name: {
             en: 'point_up',
             es: 'apuntando_hacia_arriba',
         },
@@ -1977,7 +1977,7 @@ const emojis = [
     },
     {
         code: '👍',
-        shortcode: {
+        name: {
             en: '+1',
             es: '+1',
         },
@@ -1989,7 +1989,7 @@ const emojis = [
     },
     {
         code: '👎',
-        shortcode: {
+        name: {
             en: '-1',
             es: '-1',
         },
@@ -2001,7 +2001,7 @@ const emojis = [
     },
     {
         code: '✊',
-        shortcode: {
+        name: {
             en: 'fist',
             es: 'puño',
         },
@@ -2013,7 +2013,7 @@ const emojis = [
     },
     {
         code: '👊',
-        shortcode: {
+        name: {
             en: 'facepunch',
             es: 'puñetazo',
         },
@@ -2025,7 +2025,7 @@ const emojis = [
     },
     {
         code: '🤛',
-        shortcode: {
+        name: {
             en: 'left-facing_fist',
             es: 'puño-hacia-izquierda',
         },
@@ -2037,7 +2037,7 @@ const emojis = [
     },
     {
         code: '🤜',
-        shortcode: {
+        name: {
             en: 'right-facing_fist',
             es: 'puño_hacia_la_derecha',
         },
@@ -2049,7 +2049,7 @@ const emojis = [
     },
     {
         code: '👏',
-        shortcode: {
+        name: {
             en: 'clap',
             es: 'aplauso',
         },
@@ -2061,7 +2061,7 @@ const emojis = [
     },
     {
         code: '🙌',
-        shortcode: {
+        name: {
             en: 'raised_hands',
             es: 'manos_levantadas',
         },
@@ -2073,7 +2073,7 @@ const emojis = [
     },
     {
         code: '👐',
-        shortcode: {
+        name: {
             en: 'open_hands',
             es: 'manos_abiertas',
         },
@@ -2085,7 +2085,7 @@ const emojis = [
     },
     {
         code: '🤲',
-        shortcode: {
+        name: {
             en: 'palms_up_together',
             es: 'palmas_hacia_arriba_juntas',
         },
@@ -2097,7 +2097,7 @@ const emojis = [
     },
     {
         code: '🤝',
-        shortcode: {
+        name: {
             en: 'handshake',
             es: 'apretón-manos',
         },
@@ -2135,7 +2135,7 @@ const emojis = [
     },
     {
         code: '🙏',
-        shortcode: {
+        name: {
             en: 'pray',
             es: 'rezo',
         },
@@ -2147,7 +2147,7 @@ const emojis = [
     },
     {
         code: '✍️',
-        shortcode: {
+        name: {
             en: 'writing_hand',
             es: 'mano_escribiendo',
         },
@@ -2159,7 +2159,7 @@ const emojis = [
     },
     {
         code: '💅',
-        shortcode: {
+        name: {
             en: 'nail_care',
             es: 'cuidado_de_las_uñas',
         },
@@ -2171,7 +2171,7 @@ const emojis = [
     },
     {
         code: '🤳',
-        shortcode: {
+        name: {
             en: 'selfie',
             es: 'selfi',
         },
@@ -2183,7 +2183,7 @@ const emojis = [
     },
     {
         code: '💪',
-        shortcode: {
+        name: {
             en: 'muscle',
             es: 'músculo',
         },
@@ -2195,7 +2195,7 @@ const emojis = [
     },
     {
         code: '🦾',
-        shortcode: {
+        name: {
             en: 'mechanical_arm',
             es: 'brazo_mecánico',
         },
@@ -2206,7 +2206,7 @@ const emojis = [
     },
     {
         code: '🦿',
-        shortcode: {
+        name: {
             en: 'mechanical_leg',
             es: 'pierna_mecánica',
         },
@@ -2217,7 +2217,7 @@ const emojis = [
     },
     {
         code: '🦵',
-        shortcode: {
+        name: {
             en: 'leg',
             es: 'pierna',
         },
@@ -2229,7 +2229,7 @@ const emojis = [
     },
     {
         code: '🦶',
-        shortcode: {
+        name: {
             en: 'foot',
             es: 'pie_humano',
         },
@@ -2241,7 +2241,7 @@ const emojis = [
     },
     {
         code: '👂',
-        shortcode: {
+        name: {
             en: 'ear',
             es: 'oreja',
         },
@@ -2253,7 +2253,7 @@ const emojis = [
     },
     {
         code: '🦻',
-        shortcode: {
+        name: {
             en: 'ear_with_hearing_aid',
             es: 'oreja_con_audifono',
         },
@@ -2265,7 +2265,7 @@ const emojis = [
     },
     {
         code: '👃',
-        shortcode: {
+        name: {
             en: 'nose',
             es: 'nariz',
         },
@@ -2277,7 +2277,7 @@ const emojis = [
     },
     {
         code: '🧠',
-        shortcode: {
+        name: {
             en: 'brain',
             es: 'cerebro',
         },
@@ -2288,7 +2288,7 @@ const emojis = [
     },
     {
         code: '🫀',
-        shortcode: {
+        name: {
             en: 'anatomical_heart',
             es: 'corazón_humano',
         },
@@ -2299,7 +2299,7 @@ const emojis = [
     },
     {
         code: '🫁',
-        shortcode: {
+        name: {
             en: 'lungs',
             es: 'pulmones',
         },
@@ -2310,7 +2310,7 @@ const emojis = [
     },
     {
         code: '🦷',
-        shortcode: {
+        name: {
             en: 'tooth',
             es: 'diente',
         },
@@ -2321,7 +2321,7 @@ const emojis = [
     },
     {
         code: '🦴',
-        shortcode: {
+        name: {
             en: 'bone',
             es: 'hueso',
         },
@@ -2332,7 +2332,7 @@ const emojis = [
     },
     {
         code: '👀',
-        shortcode: {
+        name: {
             en: 'eyes',
             es: 'ojos',
         },
@@ -2343,7 +2343,7 @@ const emojis = [
     },
     {
         code: '👁️',
-        shortcode: {
+        name: {
             en: 'eye',
             es: 'ojo',
         },
@@ -2354,7 +2354,7 @@ const emojis = [
     },
     {
         code: '👅',
-        shortcode: {
+        name: {
             en: 'tongue',
             es: 'lengua',
         },
@@ -2365,7 +2365,7 @@ const emojis = [
     },
     {
         code: '👄',
-        shortcode: {
+        name: {
             en: 'lips',
             es: 'labios',
         },
@@ -2376,7 +2376,7 @@ const emojis = [
     },
     {
         code: '👶',
-        shortcode: {
+        name: {
             en: 'baby',
             es: 'bebé',
         },
@@ -2388,7 +2388,7 @@ const emojis = [
     },
     {
         code: '🧒',
-        shortcode: {
+        name: {
             en: 'child',
             es: 'niño',
         },
@@ -2400,7 +2400,7 @@ const emojis = [
     },
     {
         code: '👦',
-        shortcode: {
+        name: {
             en: 'boy',
             es: 'chico',
         },
@@ -2412,7 +2412,7 @@ const emojis = [
     },
     {
         code: '👧',
-        shortcode: {
+        name: {
             en: 'girl',
             es: 'niña',
         },
@@ -2424,7 +2424,7 @@ const emojis = [
     },
     {
         code: '🧑',
-        shortcode: {
+        name: {
             en: 'adult',
             es: 'adulto',
         },
@@ -2436,7 +2436,7 @@ const emojis = [
     },
     {
         code: '👱',
-        shortcode: {
+        name: {
             en: 'person_with_blond_hair',
             es: 'persona_rubia',
         },
@@ -2448,7 +2448,7 @@ const emojis = [
     },
     {
         code: '👨',
-        shortcode: {
+        name: {
             en: 'man',
             es: 'hombre',
         },
@@ -2460,7 +2460,7 @@ const emojis = [
     },
     {
         code: '🧔',
-        shortcode: {
+        name: {
             en: 'bearded_person',
             es: 'persona_barba',
         },
@@ -2472,7 +2472,7 @@ const emojis = [
     },
     {
         code: '🧔‍♂️',
-        shortcode: {
+        name: {
             en: 'man_with_beard',
             es: 'persona_barba‍signo_masculino',
         },
@@ -2484,7 +2484,7 @@ const emojis = [
     },
     {
         code: '🧔‍♀️',
-        shortcode: {
+        name: {
             en: 'woman_with_beard',
             es: 'persona_barba‍signo_femenino',
         },
@@ -2496,7 +2496,7 @@ const emojis = [
     },
     {
         code: '👨‍🦰',
-        shortcode: {
+        name: {
             en: 'red_haired_man',
             es: 'hombre_pelirrojo',
         },
@@ -2508,7 +2508,7 @@ const emojis = [
     },
     {
         code: '👨‍🦱',
-        shortcode: {
+        name: {
             en: 'curly_haired_man',
             es: 'hombre_con_pelo_rizado',
         },
@@ -2520,7 +2520,7 @@ const emojis = [
     },
     {
         code: '👨‍🦳',
-        shortcode: {
+        name: {
             en: 'white_haired_man',
             es: 'hombre_con_pelo_blanco',
         },
@@ -2532,7 +2532,7 @@ const emojis = [
     },
     {
         code: '👨‍🦲',
-        shortcode: {
+        name: {
             en: 'bald_man',
             es: 'hombre_calvo',
         },
@@ -2544,7 +2544,7 @@ const emojis = [
     },
     {
         code: '👩',
-        shortcode: {
+        name: {
             en: 'woman',
             es: 'mujer',
         },
@@ -2556,7 +2556,7 @@ const emojis = [
     },
     {
         code: '👩‍🦰',
-        shortcode: {
+        name: {
             en: 'red_haired_woman',
             es: 'mujer_pelirroja',
         },
@@ -2568,7 +2568,7 @@ const emojis = [
     },
     {
         code: '🧑‍🦰',
-        shortcode: {
+        name: {
             en: 'red_haired_person',
             es: 'persona_pelirroja',
         },
@@ -2580,7 +2580,7 @@ const emojis = [
     },
     {
         code: '👩‍🦱',
-        shortcode: {
+        name: {
             en: 'curly_haired_woman',
             es: 'mujer_de_pelo_rizado',
         },
@@ -2592,7 +2592,7 @@ const emojis = [
     },
     {
         code: '🧑‍🦱',
-        shortcode: {
+        name: {
             en: 'curly_haired_person',
             es: 'persona_con_pelo_rizado',
         },
@@ -2604,7 +2604,7 @@ const emojis = [
     },
     {
         code: '👩‍🦳',
-        shortcode: {
+        name: {
             en: 'white_haired_woman',
             es: 'mujer_con_pelo_blanco',
         },
@@ -2616,7 +2616,7 @@ const emojis = [
     },
     {
         code: '🧑‍🦳',
-        shortcode: {
+        name: {
             en: 'white_haired_person',
             es: 'persona_con_pelo_blanco',
         },
@@ -2628,7 +2628,7 @@ const emojis = [
     },
     {
         code: '👩‍🦲',
-        shortcode: {
+        name: {
             en: 'bald_woman',
             es: 'mujer_calva',
         },
@@ -2640,7 +2640,7 @@ const emojis = [
     },
     {
         code: '🧑‍🦲',
-        shortcode: {
+        name: {
             en: 'bald_person',
             es: 'persona_calva',
         },
@@ -2652,7 +2652,7 @@ const emojis = [
     },
     {
         code: '👱‍♀️',
-        shortcode: {
+        name: {
             en: 'blond-haired-woman',
             es: 'mujer-pelo-rubio',
         },
@@ -2664,7 +2664,7 @@ const emojis = [
     },
     {
         code: '👱‍♂️',
-        shortcode: {
+        name: {
             en: 'blond-haired-man',
             es: 'hombre-pelo-rubio',
         },
@@ -2676,7 +2676,7 @@ const emojis = [
     },
     {
         code: '🧓',
-        shortcode: {
+        name: {
             en: 'older_adult',
             es: 'adulto_mayor',
         },
@@ -2688,7 +2688,7 @@ const emojis = [
     },
     {
         code: '👴',
-        shortcode: {
+        name: {
             en: 'older_man',
             es: 'hombre_mayor',
         },
@@ -2700,7 +2700,7 @@ const emojis = [
     },
     {
         code: '👵',
-        shortcode: {
+        name: {
             en: 'older_woman',
             es: 'mujer_mayor',
         },
@@ -2712,7 +2712,7 @@ const emojis = [
     },
     {
         code: '🙍',
-        shortcode: {
+        name: {
             en: 'person_frowning',
             es: 'persona_con_el_ceño_fruncido',
         },
@@ -2724,7 +2724,7 @@ const emojis = [
     },
     {
         code: '🙍‍♂️',
-        shortcode: {
+        name: {
             en: 'man-frowning',
             es: 'hombre_con_ceño_fruncido',
         },
@@ -2736,7 +2736,7 @@ const emojis = [
     },
     {
         code: '🙍‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-frowning',
             es: 'mujer_con_ceño_fruncido',
         },
@@ -2748,7 +2748,7 @@ const emojis = [
     },
     {
         code: '🙎',
-        shortcode: {
+        name: {
             en: 'person_with_pouting_face',
             es: 'persona_haciendo_pucheros',
         },
@@ -2760,7 +2760,7 @@ const emojis = [
     },
     {
         code: '🙎‍♂️',
-        shortcode: {
+        name: {
             en: 'man-pouting',
             es: 'hombre_enfadado',
         },
@@ -2772,7 +2772,7 @@ const emojis = [
     },
     {
         code: '🙎‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-pouting',
             es: 'mujer_enfadada',
         },
@@ -2784,7 +2784,7 @@ const emojis = [
     },
     {
         code: '🙅',
-        shortcode: {
+        name: {
             en: 'no_good',
             es: 'prohibido',
         },
@@ -2796,7 +2796,7 @@ const emojis = [
     },
     {
         code: '🙅‍♂️',
-        shortcode: {
+        name: {
             en: 'man-gesturing-no',
             es: 'hombre_gesticulando_no',
         },
@@ -2808,7 +2808,7 @@ const emojis = [
     },
     {
         code: '🙅‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-gesturing-no',
             es: 'mujer_gesticulando_no',
         },
@@ -2820,7 +2820,7 @@ const emojis = [
     },
     {
         code: '🙆',
-        shortcode: {
+        name: {
             en: 'ok_woman',
             es: 'mujer_con_signo_de_aprobación',
         },
@@ -2832,7 +2832,7 @@ const emojis = [
     },
     {
         code: '🙆‍♂️',
-        shortcode: {
+        name: {
             en: 'man-gesturing-ok',
             es: 'hombre_gesticulando_sí',
         },
@@ -2844,7 +2844,7 @@ const emojis = [
     },
     {
         code: '🙆‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-gesturing-ok',
             es: 'mujer_gesticulando_sí',
         },
@@ -2856,7 +2856,7 @@ const emojis = [
     },
     {
         code: '💁',
-        shortcode: {
+        name: {
             en: 'information_desk_person',
             es: 'recepcionista_de_información',
         },
@@ -2868,7 +2868,7 @@ const emojis = [
     },
     {
         code: '💁‍♂️',
-        shortcode: {
+        name: {
             en: 'man-tipping-hand',
             es: 'hombre_con_palma_hacia_arriba',
         },
@@ -2880,7 +2880,7 @@ const emojis = [
     },
     {
         code: '💁‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-tipping-hand',
             es: 'mujer_con_palma_hacia_arriba',
         },
@@ -2892,7 +2892,7 @@ const emojis = [
     },
     {
         code: '🙋',
-        shortcode: {
+        name: {
             en: 'raising_hand',
             es: 'levantando_la_mano',
         },
@@ -2904,7 +2904,7 @@ const emojis = [
     },
     {
         code: '🙋‍♂️',
-        shortcode: {
+        name: {
             en: 'man-raising-hand',
             es: 'hombre_levantando_mano',
         },
@@ -2916,7 +2916,7 @@ const emojis = [
     },
     {
         code: '🙋‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-raising-hand',
             es: 'mujer_levantando_mano',
         },
@@ -2928,7 +2928,7 @@ const emojis = [
     },
     {
         code: '🧏',
-        shortcode: {
+        name: {
             en: 'deaf_person',
             es: 'persona_sorda',
         },
@@ -2940,7 +2940,7 @@ const emojis = [
     },
     {
         code: '🧏‍♂️',
-        shortcode: {
+        name: {
             en: 'deaf_man',
             es: 'hombre_sordo',
         },
@@ -2952,7 +2952,7 @@ const emojis = [
     },
     {
         code: '🧏‍♀️',
-        shortcode: {
+        name: {
             en: 'deaf_woman',
             es: 'mujer_sorda',
         },
@@ -2964,7 +2964,7 @@ const emojis = [
     },
     {
         code: '🙇',
-        shortcode: {
+        name: {
             en: 'bow',
             es: 'reverencia',
         },
@@ -2976,7 +2976,7 @@ const emojis = [
     },
     {
         code: '🙇‍♂️',
-        shortcode: {
+        name: {
             en: 'man-bowing',
             es: 'hombre_reverencia',
         },
@@ -2988,7 +2988,7 @@ const emojis = [
     },
     {
         code: '🙇‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-bowing',
             es: 'mujer_reverencia',
         },
@@ -3000,7 +3000,7 @@ const emojis = [
     },
     {
         code: '🤦',
-        shortcode: {
+        name: {
             en: 'face_palm',
             es: 'mano_en_la_cara',
         },
@@ -3012,7 +3012,7 @@ const emojis = [
     },
     {
         code: '🤦‍♂️',
-        shortcode: {
+        name: {
             en: 'man-facepalming',
             es: 'hombre_mano_en_la_cara',
         },
@@ -3024,7 +3024,7 @@ const emojis = [
     },
     {
         code: '🤦‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-facepalming',
             es: 'mujer_mano_en_la_cara',
         },
@@ -3036,7 +3036,7 @@ const emojis = [
     },
     {
         code: '🤷',
-        shortcode: {
+        name: {
             en: 'shrug',
             es: 'encoger_los_hombros',
         },
@@ -3048,7 +3048,7 @@ const emojis = [
     },
     {
         code: '🤷‍♂️',
-        shortcode: {
+        name: {
             en: 'man-shrugging',
             es: 'hombre_encogiéndose_de_hombros',
         },
@@ -3060,7 +3060,7 @@ const emojis = [
     },
     {
         code: '🤷‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-shrugging',
             es: 'mujer_encogiéndose_de_hombros',
         },
@@ -3072,7 +3072,7 @@ const emojis = [
     },
     {
         code: '🧑‍⚕️',
-        shortcode: {
+        name: {
             en: 'health_worker',
             es: 'profesional_sanitario',
         },
@@ -3084,7 +3084,7 @@ const emojis = [
     },
     {
         code: '👨‍⚕️',
-        shortcode: {
+        name: {
             en: 'male-doctor',
             es: 'doctor',
         },
@@ -3096,7 +3096,7 @@ const emojis = [
     },
     {
         code: '👩‍⚕️',
-        shortcode: {
+        name: {
             en: 'female-doctor',
             es: 'doctora',
         },
@@ -3108,7 +3108,7 @@ const emojis = [
     },
     {
         code: '🧑‍🎓',
-        shortcode: {
+        name: {
             en: 'student',
             es: 'estudiante',
         },
@@ -3120,7 +3120,7 @@ const emojis = [
     },
     {
         code: '👨‍🎓',
-        shortcode: {
+        name: {
             en: 'male-student',
             es: 'alumno',
         },
@@ -3132,7 +3132,7 @@ const emojis = [
     },
     {
         code: '👩‍🎓',
-        shortcode: {
+        name: {
             en: 'female-student',
             es: 'alumna',
         },
@@ -3144,7 +3144,7 @@ const emojis = [
     },
     {
         code: '🧑‍🏫',
-        shortcode: {
+        name: {
             en: 'teacher',
             es: 'docente',
         },
@@ -3156,7 +3156,7 @@ const emojis = [
     },
     {
         code: '👨‍🏫',
-        shortcode: {
+        name: {
             en: 'male-teacher',
             es: 'profesor',
         },
@@ -3168,7 +3168,7 @@ const emojis = [
     },
     {
         code: '👩‍🏫',
-        shortcode: {
+        name: {
             en: 'female-teacher',
             es: 'profesora',
         },
@@ -3180,7 +3180,7 @@ const emojis = [
     },
     {
         code: '🧑‍⚖️',
-        shortcode: {
+        name: {
             en: 'judge',
             es: 'persona_juez',
         },
@@ -3192,7 +3192,7 @@ const emojis = [
     },
     {
         code: '👨‍⚖️',
-        shortcode: {
+        name: {
             en: 'male-judge',
             es: 'juez',
         },
@@ -3204,7 +3204,7 @@ const emojis = [
     },
     {
         code: '👩‍⚖️',
-        shortcode: {
+        name: {
             en: 'female-judge',
             es: 'jueza',
         },
@@ -3216,7 +3216,7 @@ const emojis = [
     },
     {
         code: '🧑‍🌾',
-        shortcode: {
+        name: {
             en: 'farmer',
             es: 'persona_agricultora',
         },
@@ -3228,7 +3228,7 @@ const emojis = [
     },
     {
         code: '👨‍🌾',
-        shortcode: {
+        name: {
             en: 'male-farmer',
             es: 'agricultor',
         },
@@ -3240,7 +3240,7 @@ const emojis = [
     },
     {
         code: '👩‍🌾',
-        shortcode: {
+        name: {
             en: 'female-farmer',
             es: 'agricultora',
         },
@@ -3252,7 +3252,7 @@ const emojis = [
     },
     {
         code: '🧑‍🍳',
-        shortcode: {
+        name: {
             en: 'cook',
             es: 'persona_cocinera',
         },
@@ -3264,7 +3264,7 @@ const emojis = [
     },
     {
         code: '👨‍🍳',
-        shortcode: {
+        name: {
             en: 'male-cook',
             es: 'cocinero',
         },
@@ -3276,7 +3276,7 @@ const emojis = [
     },
     {
         code: '👩‍🍳',
-        shortcode: {
+        name: {
             en: 'female-cook',
             es: 'cocinera',
         },
@@ -3288,7 +3288,7 @@ const emojis = [
     },
     {
         code: '🧑‍🔧',
-        shortcode: {
+        name: {
             en: 'mechanic',
             es: 'persona_mecánica',
         },
@@ -3300,7 +3300,7 @@ const emojis = [
     },
     {
         code: '👨‍🔧',
-        shortcode: {
+        name: {
             en: 'male-mechanic',
             es: 'mecánico',
         },
@@ -3312,7 +3312,7 @@ const emojis = [
     },
     {
         code: '👩‍🔧',
-        shortcode: {
+        name: {
             en: 'female-mechanic',
             es: 'mecánica',
         },
@@ -3324,7 +3324,7 @@ const emojis = [
     },
     {
         code: '🧑‍🏭',
-        shortcode: {
+        name: {
             en: 'factory_worker',
             es: 'profesional_industrial',
         },
@@ -3336,7 +3336,7 @@ const emojis = [
     },
     {
         code: '👨‍🏭',
-        shortcode: {
+        name: {
             en: 'male-factory-worker',
             es: 'trabajador',
         },
@@ -3348,7 +3348,7 @@ const emojis = [
     },
     {
         code: '👩‍🏭',
-        shortcode: {
+        name: {
             en: 'female-factory-worker',
             es: 'trabajadora',
         },
@@ -3360,7 +3360,7 @@ const emojis = [
     },
     {
         code: '🧑‍💼',
-        shortcode: {
+        name: {
             en: 'office_worker',
             es: 'oficinista',
         },
@@ -3372,7 +3372,7 @@ const emojis = [
     },
     {
         code: '👨‍💼',
-        shortcode: {
+        name: {
             en: 'male-office-worker',
             es: 'oficinista_hombre',
         },
@@ -3384,7 +3384,7 @@ const emojis = [
     },
     {
         code: '👩‍💼',
-        shortcode: {
+        name: {
             en: 'female-office-worker',
             es: 'oficinista_mujer',
         },
@@ -3396,7 +3396,7 @@ const emojis = [
     },
     {
         code: '🧑‍🔬',
-        shortcode: {
+        name: {
             en: 'scientist',
             es: 'persona_científica',
         },
@@ -3408,7 +3408,7 @@ const emojis = [
     },
     {
         code: '👨‍🔬',
-        shortcode: {
+        name: {
             en: 'male-scientist',
             es: 'científico',
         },
@@ -3420,7 +3420,7 @@ const emojis = [
     },
     {
         code: '👩‍🔬',
-        shortcode: {
+        name: {
             en: 'female-scientist',
             es: 'científica',
         },
@@ -3432,7 +3432,7 @@ const emojis = [
     },
     {
         code: '🧑‍💻',
-        shortcode: {
+        name: {
             en: 'technologist',
             es: 'persona_tecnóloga',
         },
@@ -3444,7 +3444,7 @@ const emojis = [
     },
     {
         code: '👨‍💻',
-        shortcode: {
+        name: {
             en: 'male-technologist',
             es: 'tecnólogo',
         },
@@ -3456,7 +3456,7 @@ const emojis = [
     },
     {
         code: '👩‍💻',
-        shortcode: {
+        name: {
             en: 'female-technologist',
             es: 'tecnóloga',
         },
@@ -3468,7 +3468,7 @@ const emojis = [
     },
     {
         code: '🧑‍🎤',
-        shortcode: {
+        name: {
             en: 'singer',
             es: 'cantante',
         },
@@ -3480,7 +3480,7 @@ const emojis = [
     },
     {
         code: '👨‍🎤',
-        shortcode: {
+        name: {
             en: 'male-singer',
             es: 'cantante_hombre',
         },
@@ -3492,7 +3492,7 @@ const emojis = [
     },
     {
         code: '👩‍🎤',
-        shortcode: {
+        name: {
             en: 'female-singer',
             es: 'cantante_mujer',
         },
@@ -3504,7 +3504,7 @@ const emojis = [
     },
     {
         code: '🧑‍🎨',
-        shortcode: {
+        name: {
             en: 'artist',
             es: 'artista',
         },
@@ -3516,7 +3516,7 @@ const emojis = [
     },
     {
         code: '👨‍🎨',
-        shortcode: {
+        name: {
             en: 'male-artist',
             es: 'artista_hombre',
         },
@@ -3528,7 +3528,7 @@ const emojis = [
     },
     {
         code: '👩‍🎨',
-        shortcode: {
+        name: {
             en: 'female-artist',
             es: 'artista_mujer',
         },
@@ -3540,7 +3540,7 @@ const emojis = [
     },
     {
         code: '🧑‍✈️',
-        shortcode: {
+        name: {
             en: 'pilot',
             es: 'piloto',
         },
@@ -3552,7 +3552,7 @@ const emojis = [
     },
     {
         code: '👨‍✈️',
-        shortcode: {
+        name: {
             en: 'male-pilot',
             es: 'piloto_hombre',
         },
@@ -3564,7 +3564,7 @@ const emojis = [
     },
     {
         code: '👩‍✈️',
-        shortcode: {
+        name: {
             en: 'female-pilot',
             es: 'piloto_mujer',
         },
@@ -3576,7 +3576,7 @@ const emojis = [
     },
     {
         code: '🧑‍🚀',
-        shortcode: {
+        name: {
             en: 'astronaut',
             es: 'astronauta',
         },
@@ -3588,7 +3588,7 @@ const emojis = [
     },
     {
         code: '👨‍🚀',
-        shortcode: {
+        name: {
             en: 'male-astronaut',
             es: 'astronauta_hombre',
         },
@@ -3600,7 +3600,7 @@ const emojis = [
     },
     {
         code: '👩‍🚀',
-        shortcode: {
+        name: {
             en: 'female-astronaut',
             es: 'astronauta_mujer',
         },
@@ -3612,7 +3612,7 @@ const emojis = [
     },
     {
         code: '🧑‍🚒',
-        shortcode: {
+        name: {
             en: 'firefighter',
             es: 'persona_bombero',
         },
@@ -3624,7 +3624,7 @@ const emojis = [
     },
     {
         code: '👨‍🚒',
-        shortcode: {
+        name: {
             en: 'male-firefighter',
             es: 'bombero',
         },
@@ -3636,7 +3636,7 @@ const emojis = [
     },
     {
         code: '👩‍🚒',
-        shortcode: {
+        name: {
             en: 'female-firefighter',
             es: 'bombera',
         },
@@ -3648,7 +3648,7 @@ const emojis = [
     },
     {
         code: '👮',
-        shortcode: {
+        name: {
             en: 'cop',
             es: 'policía',
         },
@@ -3660,7 +3660,7 @@ const emojis = [
     },
     {
         code: '👮‍♂️',
-        shortcode: {
+        name: {
             en: 'male-police-officer',
             es: 'policía_hombre',
         },
@@ -3672,7 +3672,7 @@ const emojis = [
     },
     {
         code: '👮‍♀️',
-        shortcode: {
+        name: {
             en: 'female-police-officer',
             es: 'policía_mujer',
         },
@@ -3684,7 +3684,7 @@ const emojis = [
     },
     {
         code: '🕵️',
-        shortcode: {
+        name: {
             en: 'sleuth_or_spy',
             es: 'sabueso_o_espía',
         },
@@ -3696,7 +3696,7 @@ const emojis = [
     },
     {
         code: '🕵️‍♂️',
-        shortcode: {
+        name: {
             en: 'male-detective',
             es: 'detective_hombre',
         },
@@ -3708,7 +3708,7 @@ const emojis = [
     },
     {
         code: '🕵️‍♀️',
-        shortcode: {
+        name: {
             en: 'female-detective',
             es: 'detective_mujer',
         },
@@ -3720,7 +3720,7 @@ const emojis = [
     },
     {
         code: '💂',
-        shortcode: {
+        name: {
             en: 'guardsman',
             es: 'guardia',
         },
@@ -3732,7 +3732,7 @@ const emojis = [
     },
     {
         code: '💂‍♂️',
-        shortcode: {
+        name: {
             en: 'male-guard',
             es: 'guardia_hombre',
         },
@@ -3744,7 +3744,7 @@ const emojis = [
     },
     {
         code: '💂‍♀️',
-        shortcode: {
+        name: {
             en: 'female-guard',
             es: 'guardia_mujer',
         },
@@ -3756,7 +3756,7 @@ const emojis = [
     },
     {
         code: '🥷',
-        shortcode: {
+        name: {
             en: 'ninja',
             es: 'ninja',
         },
@@ -3768,7 +3768,7 @@ const emojis = [
     },
     {
         code: '👷',
-        shortcode: {
+        name: {
             en: 'construction_worker',
             es: 'obrero_de_la_construcción',
         },
@@ -3780,7 +3780,7 @@ const emojis = [
     },
     {
         code: '👷‍♂️',
-        shortcode: {
+        name: {
             en: 'male-construction-worker',
             es: 'obrero',
         },
@@ -3792,7 +3792,7 @@ const emojis = [
     },
     {
         code: '👷‍♀️',
-        shortcode: {
+        name: {
             en: 'female-construction-worker',
             es: 'obrera',
         },
@@ -3804,7 +3804,7 @@ const emojis = [
     },
     {
         code: '🤴',
-        shortcode: {
+        name: {
             en: 'prince',
             es: 'príncipe',
         },
@@ -3816,7 +3816,7 @@ const emojis = [
     },
     {
         code: '👸',
-        shortcode: {
+        name: {
             en: 'princess',
             es: 'princesa',
         },
@@ -3828,7 +3828,7 @@ const emojis = [
     },
     {
         code: '👳',
-        shortcode: {
+        name: {
             en: 'man_with_turban',
             es: 'hombre_con_turbante',
         },
@@ -3840,7 +3840,7 @@ const emojis = [
     },
     {
         code: '👳‍♂️',
-        shortcode: {
+        name: {
             en: 'man-wearing-turban',
             es: 'hombre_que_lleva_turbante',
         },
@@ -3852,7 +3852,7 @@ const emojis = [
     },
     {
         code: '👳‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-wearing-turban',
             es: 'mujer_que_lleva_turbante',
         },
@@ -3864,7 +3864,7 @@ const emojis = [
     },
     {
         code: '👲',
-        shortcode: {
+        name: {
             en: 'man_with_gua_pi_mao',
             es: 'hombre_con_gorro_chino',
         },
@@ -3876,7 +3876,7 @@ const emojis = [
     },
     {
         code: '🧕',
-        shortcode: {
+        name: {
             en: 'person_with_headscarf',
             es: 'persona_con_velo',
         },
@@ -3888,7 +3888,7 @@ const emojis = [
     },
     {
         code: '🤵',
-        shortcode: {
+        name: {
             en: 'person_in_tuxedo',
             es: 'persona_en_esmoquin',
         },
@@ -3900,7 +3900,7 @@ const emojis = [
     },
     {
         code: '🤵‍♂️',
-        shortcode: {
+        name: {
             en: 'man_in_tuxedo',
             es: 'hombre_con_esmoquin',
         },
@@ -3912,7 +3912,7 @@ const emojis = [
     },
     {
         code: '🤵‍♀️',
-        shortcode: {
+        name: {
             en: 'woman_in_tuxedo',
             es: 'mujer_con_esmoquin',
         },
@@ -3924,7 +3924,7 @@ const emojis = [
     },
     {
         code: '👰',
-        shortcode: {
+        name: {
             en: 'bride_with_veil',
             es: 'novia_con_velo',
         },
@@ -3936,7 +3936,7 @@ const emojis = [
     },
     {
         code: '👰‍♂️',
-        shortcode: {
+        name: {
             en: 'man_with_veil',
             es: 'hombre_con_velo',
         },
@@ -3948,7 +3948,7 @@ const emojis = [
     },
     {
         code: '👰‍♀️',
-        shortcode: {
+        name: {
             en: 'woman_with_veil',
             es: 'mujer_con_velo',
         },
@@ -3960,7 +3960,7 @@ const emojis = [
     },
     {
         code: '🤰',
-        shortcode: {
+        name: {
             en: 'pregnant_woman',
             es: 'embarazada',
         },
@@ -3972,7 +3972,7 @@ const emojis = [
     },
     {
         code: '🤱',
-        shortcode: {
+        name: {
             en: 'breast-feeding',
             es: 'amamantar',
         },
@@ -3984,7 +3984,7 @@ const emojis = [
     },
     {
         code: '👩‍🍼',
-        shortcode: {
+        name: {
             en: 'woman_feeding_baby',
             es: 'mujer_alimentando_a_bebé',
         },
@@ -3996,7 +3996,7 @@ const emojis = [
     },
     {
         code: '👨‍🍼',
-        shortcode: {
+        name: {
             en: 'man_feeding_baby',
             es: 'hombre_alimentando_a_bebé',
         },
@@ -4008,7 +4008,7 @@ const emojis = [
     },
     {
         code: '🧑‍🍼',
-        shortcode: {
+        name: {
             en: 'person_feeding_baby',
             es: 'persona_alimentando_a_bebé',
         },
@@ -4020,7 +4020,7 @@ const emojis = [
     },
     {
         code: '👼',
-        shortcode: {
+        name: {
             en: 'angel',
             es: 'ángel',
         },
@@ -4032,7 +4032,7 @@ const emojis = [
     },
     {
         code: '🎅',
-        shortcode: {
+        name: {
             en: 'santa',
             es: 'santa_claus',
         },
@@ -4044,7 +4044,7 @@ const emojis = [
     },
     {
         code: '🤶',
-        shortcode: {
+        name: {
             en: 'mrs_claus',
             es: 'sra_claus',
         },
@@ -4056,7 +4056,7 @@ const emojis = [
     },
     {
         code: '🦸',
-        shortcode: {
+        name: {
             en: 'superhero',
             es: 'personaje_de_superhéroe',
         },
@@ -4068,7 +4068,7 @@ const emojis = [
     },
     {
         code: '🦸‍♂️',
-        shortcode: {
+        name: {
             en: 'male_superhero',
             es: 'superhéroe',
         },
@@ -4080,7 +4080,7 @@ const emojis = [
     },
     {
         code: '🦸‍♀️',
-        shortcode: {
+        name: {
             en: 'female_superhero',
             es: 'superheroína',
         },
@@ -4092,7 +4092,7 @@ const emojis = [
     },
     {
         code: '🦹',
-        shortcode: {
+        name: {
             en: 'supervillain',
             es: 'personaje_de_supervillano',
         },
@@ -4104,7 +4104,7 @@ const emojis = [
     },
     {
         code: '🦹‍♂️',
-        shortcode: {
+        name: {
             en: 'male_supervillain',
             es: 'supervillano',
         },
@@ -4116,7 +4116,7 @@ const emojis = [
     },
     {
         code: '🦹‍♀️',
-        shortcode: {
+        name: {
             en: 'female_supervillain',
             es: 'supervillana',
         },
@@ -4128,7 +4128,7 @@ const emojis = [
     },
     {
         code: '🧙',
-        shortcode: {
+        name: {
             en: 'mage',
             es: 'brujo',
         },
@@ -4140,7 +4140,7 @@ const emojis = [
     },
     {
         code: '🧙‍♂️',
-        shortcode: {
+        name: {
             en: 'male_mage',
             es: 'mago',
         },
@@ -4152,7 +4152,7 @@ const emojis = [
     },
     {
         code: '🧙‍♀️',
-        shortcode: {
+        name: {
             en: 'female_mage',
             es: 'maga',
         },
@@ -4164,7 +4164,7 @@ const emojis = [
     },
     {
         code: '🧚',
-        shortcode: {
+        name: {
             en: 'fairy',
             es: 'hada',
         },
@@ -4176,7 +4176,7 @@ const emojis = [
     },
     {
         code: '🧚‍♂️',
-        shortcode: {
+        name: {
             en: 'male_fairy',
             es: 'hada_macho',
         },
@@ -4188,7 +4188,7 @@ const emojis = [
     },
     {
         code: '🧚‍♀️',
-        shortcode: {
+        name: {
             en: 'female_fairy',
             es: 'hada_hembra',
         },
@@ -4200,7 +4200,7 @@ const emojis = [
     },
     {
         code: '🧛',
-        shortcode: {
+        name: {
             en: 'vampire',
             es: 'vampiro',
         },
@@ -4212,7 +4212,7 @@ const emojis = [
     },
     {
         code: '🧛‍♂️',
-        shortcode: {
+        name: {
             en: 'male_vampire',
             es: 'vampiro_macho',
         },
@@ -4224,7 +4224,7 @@ const emojis = [
     },
     {
         code: '🧛‍♀️',
-        shortcode: {
+        name: {
             en: 'female_vampire',
             es: 'vampira',
         },
@@ -4236,7 +4236,7 @@ const emojis = [
     },
     {
         code: '🧜',
-        shortcode: {
+        name: {
             en: 'merperson',
             es: 'sirena-tritón',
         },
@@ -4248,7 +4248,7 @@ const emojis = [
     },
     {
         code: '🧜‍♂️',
-        shortcode: {
+        name: {
             en: 'merman',
             es: 'tritón',
         },
@@ -4260,7 +4260,7 @@ const emojis = [
     },
     {
         code: '🧜‍♀️',
-        shortcode: {
+        name: {
             en: 'mermaid',
             es: 'sirena',
         },
@@ -4272,7 +4272,7 @@ const emojis = [
     },
     {
         code: '🧝',
-        shortcode: {
+        name: {
             en: 'elf',
             es: 'elfo',
         },
@@ -4284,7 +4284,7 @@ const emojis = [
     },
     {
         code: '🧝‍♂️',
-        shortcode: {
+        name: {
             en: 'male_elf',
             es: 'elfo_macho',
         },
@@ -4296,7 +4296,7 @@ const emojis = [
     },
     {
         code: '🧝‍♀️',
-        shortcode: {
+        name: {
             en: 'female_elf',
             es: 'elfa',
         },
@@ -4308,7 +4308,7 @@ const emojis = [
     },
     {
         code: '🧞',
-        shortcode: {
+        name: {
             en: 'genie',
             es: 'genio',
         },
@@ -4319,7 +4319,7 @@ const emojis = [
     },
     {
         code: '🧞‍♂️',
-        shortcode: {
+        name: {
             en: 'male_genie',
             es: 'genio_de_la_lámpara',
         },
@@ -4330,7 +4330,7 @@ const emojis = [
     },
     {
         code: '🧞‍♀️',
-        shortcode: {
+        name: {
             en: 'female_genie',
             es: 'genia_de_la_lámpara',
         },
@@ -4341,7 +4341,7 @@ const emojis = [
     },
     {
         code: '🧟',
-        shortcode: {
+        name: {
             en: 'zombie',
             es: 'zombi',
         },
@@ -4352,7 +4352,7 @@ const emojis = [
     },
     {
         code: '🧟‍♂️',
-        shortcode: {
+        name: {
             en: 'male_zombie',
             es: 'zombi_macho',
         },
@@ -4363,7 +4363,7 @@ const emojis = [
     },
     {
         code: '🧟‍♀️',
-        shortcode: {
+        name: {
             en: 'female_zombie',
             es: 'zombi_hembra',
         },
@@ -4374,7 +4374,7 @@ const emojis = [
     },
     {
         code: '💆',
-        shortcode: {
+        name: {
             en: 'massage',
             es: 'masaje',
         },
@@ -4386,7 +4386,7 @@ const emojis = [
     },
     {
         code: '💆‍♂️',
-        shortcode: {
+        name: {
             en: 'man-getting-massage',
             es: 'hombre_dándose_un_masaje',
         },
@@ -4398,7 +4398,7 @@ const emojis = [
     },
     {
         code: '💆‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-getting-massage',
             es: 'mujer_dándose_un_masaje',
         },
@@ -4410,7 +4410,7 @@ const emojis = [
     },
     {
         code: '💇',
-        shortcode: {
+        name: {
             en: 'haircut',
             es: 'corte_de_pelo',
         },
@@ -4422,7 +4422,7 @@ const emojis = [
     },
     {
         code: '💇‍♂️',
-        shortcode: {
+        name: {
             en: 'man-getting-haircut',
             es: 'hombre_cortándose_el_pelo',
         },
@@ -4434,7 +4434,7 @@ const emojis = [
     },
     {
         code: '💇‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-getting-haircut',
             es: 'mujer_cortándose_el_pelo',
         },
@@ -4446,7 +4446,7 @@ const emojis = [
     },
     {
         code: '🚶',
-        shortcode: {
+        name: {
             en: 'walking',
             es: 'caminando',
         },
@@ -4458,7 +4458,7 @@ const emojis = [
     },
     {
         code: '🚶‍♂️',
-        shortcode: {
+        name: {
             en: 'man-walking',
             es: 'hombre_caminando',
         },
@@ -4470,7 +4470,7 @@ const emojis = [
     },
     {
         code: '🚶‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-walking',
             es: 'mujer_caminando',
         },
@@ -4482,7 +4482,7 @@ const emojis = [
     },
     {
         code: '🧍',
-        shortcode: {
+        name: {
             en: 'standing_person',
             es: 'persona_de_pie',
         },
@@ -4494,7 +4494,7 @@ const emojis = [
     },
     {
         code: '🧍‍♂️',
-        shortcode: {
+        name: {
             en: 'man_standing',
             es: 'hombre_de_pie',
         },
@@ -4506,7 +4506,7 @@ const emojis = [
     },
     {
         code: '🧍‍♀️',
-        shortcode: {
+        name: {
             en: 'woman_standing',
             es: 'mujer_de_pie',
         },
@@ -4518,7 +4518,7 @@ const emojis = [
     },
     {
         code: '🧎',
-        shortcode: {
+        name: {
             en: 'kneeling_person',
             es: 'persona_de_rodillas',
         },
@@ -4530,7 +4530,7 @@ const emojis = [
     },
     {
         code: '🧎‍♂️',
-        shortcode: {
+        name: {
             en: 'man_kneeling',
             es: 'hombre_de_rodillas',
         },
@@ -4542,7 +4542,7 @@ const emojis = [
     },
     {
         code: '🧎‍♀️',
-        shortcode: {
+        name: {
             en: 'woman_kneeling',
             es: 'mujer_de_rodillas',
         },
@@ -4554,7 +4554,7 @@ const emojis = [
     },
     {
         code: '🧑‍🦯',
-        shortcode: {
+        name: {
             en: 'person_with_probing_cane',
             es: 'persona_con_bastón',
         },
@@ -4566,7 +4566,7 @@ const emojis = [
     },
     {
         code: '👨‍🦯',
-        shortcode: {
+        name: {
             en: 'man_with_probing_cane',
             es: 'hombre_con_bastón',
         },
@@ -4578,7 +4578,7 @@ const emojis = [
     },
     {
         code: '👩‍🦯',
-        shortcode: {
+        name: {
             en: 'woman_with_probing_cane',
             es: 'mujer_con_bastón',
         },
@@ -4590,7 +4590,7 @@ const emojis = [
     },
     {
         code: '🧑‍🦼',
-        shortcode: {
+        name: {
             en: 'person_in_motorized_wheelchair',
             es: 'persona_en_silla_de_ruedas_eléctrica',
         },
@@ -4602,7 +4602,7 @@ const emojis = [
     },
     {
         code: '👨‍🦼',
-        shortcode: {
+        name: {
             en: 'man_in_motorized_wheelchair',
             es: 'hombre_en_silla_de_ruedas_eléctrica',
         },
@@ -4614,7 +4614,7 @@ const emojis = [
     },
     {
         code: '👩‍🦼',
-        shortcode: {
+        name: {
             en: 'woman_in_motorized_wheelchair',
             es: 'mujer_en_silla_de_ruedas_eléctrica',
         },
@@ -4626,7 +4626,7 @@ const emojis = [
     },
     {
         code: '🧑‍🦽',
-        shortcode: {
+        name: {
             en: 'person_in_manual_wheelchair',
             es: 'persona_en_silla_de_ruedas_manual',
         },
@@ -4638,7 +4638,7 @@ const emojis = [
     },
     {
         code: '👨‍🦽',
-        shortcode: {
+        name: {
             en: 'man_in_manual_wheelchair',
             es: 'hombre_en_silla_de_ruedas_manual',
         },
@@ -4650,7 +4650,7 @@ const emojis = [
     },
     {
         code: '👩‍🦽',
-        shortcode: {
+        name: {
             en: 'woman_in_manual_wheelchair',
             es: 'mujer_en_silla_de_ruedas_manual',
         },
@@ -4662,7 +4662,7 @@ const emojis = [
     },
     {
         code: '🏃',
-        shortcode: {
+        name: {
             en: 'runner',
             es: 'corredor',
         },
@@ -4674,7 +4674,7 @@ const emojis = [
     },
     {
         code: '🏃‍♂️',
-        shortcode: {
+        name: {
             en: 'man-running',
             es: 'hombre_corriendo',
         },
@@ -4686,7 +4686,7 @@ const emojis = [
     },
     {
         code: '🏃‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-running',
             es: 'mujer_corriendo',
         },
@@ -4698,7 +4698,7 @@ const emojis = [
     },
     {
         code: '💃',
-        shortcode: {
+        name: {
             en: 'dancer',
             es: 'bailarín',
         },
@@ -4710,7 +4710,7 @@ const emojis = [
     },
     {
         code: '🕺',
-        shortcode: {
+        name: {
             en: 'man_dancing',
             es: 'hombre_bailando',
         },
@@ -4722,7 +4722,7 @@ const emojis = [
     },
     {
         code: '🕴️',
-        shortcode: {
+        name: {
             en: 'man_in_business_suit_levitating',
             es: 'hombre_de_negocios_levitando',
         },
@@ -4734,7 +4734,7 @@ const emojis = [
     },
     {
         code: '👯',
-        shortcode: {
+        name: {
             en: 'dancers',
             es: 'bailarines',
         },
@@ -4745,7 +4745,7 @@ const emojis = [
     },
     {
         code: '👯‍♂️',
-        shortcode: {
+        name: {
             en: 'man-with-bunny-ears-partying',
             es: 'hombre_con_orejas_de_conejo',
         },
@@ -4756,7 +4756,7 @@ const emojis = [
     },
     {
         code: '👯‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-with-bunny-ears-partying',
             es: 'mujer_con_orejas_de_conejo',
         },
@@ -4767,7 +4767,7 @@ const emojis = [
     },
     {
         code: '🧖',
-        shortcode: {
+        name: {
             en: 'person_in_steamy_room',
             es: 'persona_en_sauna',
         },
@@ -4779,7 +4779,7 @@ const emojis = [
     },
     {
         code: '🧖‍♂️',
-        shortcode: {
+        name: {
             en: 'man_in_steamy_room',
             es: 'hombre_en_sauna',
         },
@@ -4791,7 +4791,7 @@ const emojis = [
     },
     {
         code: '🧖‍♀️',
-        shortcode: {
+        name: {
             en: 'woman_in_steamy_room',
             es: 'mujer_en_sauna',
         },
@@ -4803,7 +4803,7 @@ const emojis = [
     },
     {
         code: '🧗',
-        shortcode: {
+        name: {
             en: 'person_climbing',
             es: 'persona_escalando',
         },
@@ -4815,7 +4815,7 @@ const emojis = [
     },
     {
         code: '🧗‍♂️',
-        shortcode: {
+        name: {
             en: 'man_climbing',
             es: 'hombre_escalando',
         },
@@ -4827,7 +4827,7 @@ const emojis = [
     },
     {
         code: '🧗‍♀️',
-        shortcode: {
+        name: {
             en: 'woman_climbing',
             es: 'mujer_escalando',
         },
@@ -4839,7 +4839,7 @@ const emojis = [
     },
     {
         code: '🤺',
-        shortcode: {
+        name: {
             en: 'fencer',
             es: 'esgrimista',
         },
@@ -4850,7 +4850,7 @@ const emojis = [
     },
     {
         code: '🏇',
-        shortcode: {
+        name: {
             en: 'horse_racing',
             es: 'carrera_de_caballos',
         },
@@ -4862,7 +4862,7 @@ const emojis = [
     },
     {
         code: '⛷️',
-        shortcode: {
+        name: {
             en: 'skier',
             es: 'esquiador',
         },
@@ -4873,7 +4873,7 @@ const emojis = [
     },
     {
         code: '🏂',
-        shortcode: {
+        name: {
             en: 'snowboarder',
             es: 'practicante_de_snowboard',
         },
@@ -4885,7 +4885,7 @@ const emojis = [
     },
     {
         code: '🏌️',
-        shortcode: {
+        name: {
             en: 'golfer',
             es: 'golfista',
         },
@@ -4897,7 +4897,7 @@ const emojis = [
     },
     {
         code: '🏌️‍♂️',
-        shortcode: {
+        name: {
             en: 'man-golfing',
             es: 'hombre_jugando_golf',
         },
@@ -4909,7 +4909,7 @@ const emojis = [
     },
     {
         code: '🏌️‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-golfing',
             es: 'mujer_jugando_golf',
         },
@@ -4921,7 +4921,7 @@ const emojis = [
     },
     {
         code: '🏄',
-        shortcode: {
+        name: {
             en: 'surfer',
             es: 'surfista',
         },
@@ -4933,7 +4933,7 @@ const emojis = [
     },
     {
         code: '🏄‍♂️',
-        shortcode: {
+        name: {
             en: 'man-surfing',
             es: 'hombre_surfeando',
         },
@@ -4945,7 +4945,7 @@ const emojis = [
     },
     {
         code: '🏄‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-surfing',
             es: 'mujer_haciendo_surf',
         },
@@ -4957,7 +4957,7 @@ const emojis = [
     },
     {
         code: '🚣',
-        shortcode: {
+        name: {
             en: 'rowboat',
             es: 'bote_de_remos',
         },
@@ -4969,7 +4969,7 @@ const emojis = [
     },
     {
         code: '🚣‍♂️',
-        shortcode: {
+        name: {
             en: 'man-rowing-boat',
             es: 'hombre_remando_barca',
         },
@@ -4981,7 +4981,7 @@ const emojis = [
     },
     {
         code: '🚣‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-rowing-boat',
             es: 'mujer_remando_barca',
         },
@@ -4993,7 +4993,7 @@ const emojis = [
     },
     {
         code: '🏊',
-        shortcode: {
+        name: {
             en: 'swimmer',
             es: 'nadador',
         },
@@ -5005,7 +5005,7 @@ const emojis = [
     },
     {
         code: '🏊‍♂️',
-        shortcode: {
+        name: {
             en: 'man-swimming',
             es: 'hombre_nadando',
         },
@@ -5017,7 +5017,7 @@ const emojis = [
     },
     {
         code: '🏊‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-swimming',
             es: 'mujer_nadando',
         },
@@ -5029,7 +5029,7 @@ const emojis = [
     },
     {
         code: '⛹️',
-        shortcode: {
+        name: {
             en: 'person_with_ball',
             es: 'persona_con_una_pelota',
         },
@@ -5041,7 +5041,7 @@ const emojis = [
     },
     {
         code: '⛹️‍♂️',
-        shortcode: {
+        name: {
             en: 'man-bouncing-ball',
             es: 'hombre_botando_balón',
         },
@@ -5053,7 +5053,7 @@ const emojis = [
     },
     {
         code: '⛹️‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-bouncing-ball',
             es: 'mujer_botando_balón',
         },
@@ -5065,7 +5065,7 @@ const emojis = [
     },
     {
         code: '🏋️',
-        shortcode: {
+        name: {
             en: 'weight_lifter',
             es: 'levantador_de_peso',
         },
@@ -5077,7 +5077,7 @@ const emojis = [
     },
     {
         code: '🏋️‍♂️',
-        shortcode: {
+        name: {
             en: 'man-lifting-weights',
             es: 'hombre_levantando_pesas',
         },
@@ -5089,7 +5089,7 @@ const emojis = [
     },
     {
         code: '🏋️‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-lifting-weights',
             es: 'mujer_levantando_pesas',
         },
@@ -5101,7 +5101,7 @@ const emojis = [
     },
     {
         code: '🚴',
-        shortcode: {
+        name: {
             en: 'bicyclist',
             es: 'ciclista',
         },
@@ -5113,7 +5113,7 @@ const emojis = [
     },
     {
         code: '🚴‍♂️',
-        shortcode: {
+        name: {
             en: 'man-biking',
             es: 'hombre_en_bici',
         },
@@ -5125,7 +5125,7 @@ const emojis = [
     },
     {
         code: '🚴‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-biking',
             es: 'mujer_en_bici',
         },
@@ -5137,7 +5137,7 @@ const emojis = [
     },
     {
         code: '🚵',
-        shortcode: {
+        name: {
             en: 'mountain_bicyclist',
             es: 'ciclista_de_montaña',
         },
@@ -5149,7 +5149,7 @@ const emojis = [
     },
     {
         code: '🚵‍♂️',
-        shortcode: {
+        name: {
             en: 'man-mountain-biking',
             es: 'hombre_bici_montaña',
         },
@@ -5161,7 +5161,7 @@ const emojis = [
     },
     {
         code: '🚵‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-mountain-biking',
             es: 'mujer_bici_montaña',
         },
@@ -5173,7 +5173,7 @@ const emojis = [
     },
     {
         code: '🤸',
-        shortcode: {
+        name: {
             en: 'person_doing_cartwheel',
             es: 'persona_dando_volteretas',
         },
@@ -5185,7 +5185,7 @@ const emojis = [
     },
     {
         code: '🤸‍♂️',
-        shortcode: {
+        name: {
             en: 'man-cartwheeling',
             es: 'hombre_dando_volteretas',
         },
@@ -5197,7 +5197,7 @@ const emojis = [
     },
     {
         code: '🤸‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-cartwheeling',
             es: 'mujer_dando_volteretas',
         },
@@ -5209,7 +5209,7 @@ const emojis = [
     },
     {
         code: '🤼',
-        shortcode: {
+        name: {
             en: 'wrestlers',
             es: 'luchadores',
         },
@@ -5220,7 +5220,7 @@ const emojis = [
     },
     {
         code: '🤼‍♂️',
-        shortcode: {
+        name: {
             en: 'man-wrestling',
             es: 'hombre_lucha_libre',
         },
@@ -5231,7 +5231,7 @@ const emojis = [
     },
     {
         code: '🤼‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-wrestling',
             es: 'mujer_lucha_libre',
         },
@@ -5242,7 +5242,7 @@ const emojis = [
     },
     {
         code: '🤽',
-        shortcode: {
+        name: {
             en: 'water_polo',
             es: 'waterpolo',
         },
@@ -5254,7 +5254,7 @@ const emojis = [
     },
     {
         code: '🤽‍♂️',
-        shortcode: {
+        name: {
             en: 'man-playing-water-polo',
             es: 'hombre_jugando_waterpolo',
         },
@@ -5266,7 +5266,7 @@ const emojis = [
     },
     {
         code: '🤽‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-playing-water-polo',
             es: 'mujer_jugando_waterpolo',
         },
@@ -5278,7 +5278,7 @@ const emojis = [
     },
     {
         code: '🤾',
-        shortcode: {
+        name: {
             en: 'handball',
             es: 'balonmano',
         },
@@ -5290,7 +5290,7 @@ const emojis = [
     },
     {
         code: '🤾‍♂️',
-        shortcode: {
+        name: {
             en: 'man-playing-handball',
             es: 'hombre_jugando_balonmano',
         },
@@ -5302,7 +5302,7 @@ const emojis = [
     },
     {
         code: '🤾‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-playing-handball',
             es: 'mujer_jugando_balonmano',
         },
@@ -5314,7 +5314,7 @@ const emojis = [
     },
     {
         code: '🤹',
-        shortcode: {
+        name: {
             en: 'juggling',
             es: 'malabarismo',
         },
@@ -5326,7 +5326,7 @@ const emojis = [
     },
     {
         code: '🤹‍♂️',
-        shortcode: {
+        name: {
             en: 'man-juggling',
             es: 'malabarista_hombre',
         },
@@ -5338,7 +5338,7 @@ const emojis = [
     },
     {
         code: '🤹‍♀️',
-        shortcode: {
+        name: {
             en: 'woman-juggling',
             es: 'malabarista_mujer',
         },
@@ -5350,7 +5350,7 @@ const emojis = [
     },
     {
         code: '🧘',
-        shortcode: {
+        name: {
             en: 'person_in_lotus_position',
             es: 'persona_en_postura_loto',
         },
@@ -5362,7 +5362,7 @@ const emojis = [
     },
     {
         code: '🧘‍♂️',
-        shortcode: {
+        name: {
             en: 'man_in_lotus_position',
             es: 'hombre_en_postura_loto',
         },
@@ -5374,7 +5374,7 @@ const emojis = [
     },
     {
         code: '🧘‍♀️',
-        shortcode: {
+        name: {
             en: 'woman_in_lotus_position',
             es: 'mujer_en_postura_loto',
         },
@@ -5386,7 +5386,7 @@ const emojis = [
     },
     {
         code: '🛀',
-        shortcode: {
+        name: {
             en: 'bath',
             es: 'bañera',
         },
@@ -5398,7 +5398,7 @@ const emojis = [
     },
     {
         code: '🛌',
-        shortcode: {
+        name: {
             en: 'sleeping_accommodation',
             es: 'lugar_para_dormir',
         },
@@ -5410,7 +5410,7 @@ const emojis = [
     },
     {
         code: '🧑‍🤝‍🧑',
-        shortcode: {
+        name: {
             en: 'people_holding_hands',
             es: 'dos_personas_dándose_la_mano',
         },
@@ -5422,7 +5422,7 @@ const emojis = [
     },
     {
         code: '👭',
-        shortcode: {
+        name: {
             en: 'two_women_holding_hands',
             es: 'dos_mujeres_de_la_mano',
         },
@@ -5434,7 +5434,7 @@ const emojis = [
     },
     {
         code: '👫',
-        shortcode: {
+        name: {
             en: 'man_and_woman_holding_hands',
             es: 'hombre_y_mujer_de_la_mano',
         },
@@ -5446,7 +5446,7 @@ const emojis = [
     },
     {
         code: '👬',
-        shortcode: {
+        name: {
             en: 'two_men_holding_hands',
             es: 'dos_hombres_de_la_mano',
         },
@@ -5458,7 +5458,7 @@ const emojis = [
     },
     {
         code: '💏',
-        shortcode: {
+        name: {
             en: 'couplekiss',
             es: 'pareja_besándose',
         },
@@ -5470,7 +5470,7 @@ const emojis = [
     },
     {
         code: '👩‍❤️‍💋‍👨',
-        shortcode: {
+        name: {
             en: 'woman-kiss-man',
             es: 'mujer_beso_hombre',
         },
@@ -5482,7 +5482,7 @@ const emojis = [
     },
     {
         code: '👨‍❤️‍💋‍👨',
-        shortcode: {
+        name: {
             en: 'man-kiss-man',
             es: 'hombre_beso_hombre',
         },
@@ -5494,7 +5494,7 @@ const emojis = [
     },
     {
         code: '👩‍❤️‍💋‍👩',
-        shortcode: {
+        name: {
             en: 'woman-kiss-woman',
             es: 'mujer_beso_mujer',
         },
@@ -5506,7 +5506,7 @@ const emojis = [
     },
     {
         code: '💑',
-        shortcode: {
+        name: {
             en: 'couple_with_heart',
             es: 'pareja_con_corazón',
         },
@@ -5518,7 +5518,7 @@ const emojis = [
     },
     {
         code: '👩‍❤️‍👨',
-        shortcode: {
+        name: {
             en: 'woman-heart-man',
             es: 'mujer_corazón_hombre',
         },
@@ -5530,7 +5530,7 @@ const emojis = [
     },
     {
         code: '👨‍❤️‍👨',
-        shortcode: {
+        name: {
             en: 'man-heart-man',
             es: 'hombre_corazón_hombre',
         },
@@ -5542,7 +5542,7 @@ const emojis = [
     },
     {
         code: '👩‍❤️‍👩',
-        shortcode: {
+        name: {
             en: 'woman-heart-woman',
             es: 'mujer_corazón_mujer',
         },
@@ -5554,7 +5554,7 @@ const emojis = [
     },
     {
         code: '👪',
-        shortcode: {
+        name: {
             en: 'family',
             es: 'familia',
         },
@@ -5565,7 +5565,7 @@ const emojis = [
     },
     {
         code: '👨‍👩‍👦',
-        shortcode: {
+        name: {
             en: 'man-woman-boy',
             es: 'hombre_mujer_niño',
         },
@@ -5576,7 +5576,7 @@ const emojis = [
     },
     {
         code: '👨‍👩‍👧',
-        shortcode: {
+        name: {
             en: 'man-woman-girl',
             es: 'hombre_mujer_niña',
         },
@@ -5587,7 +5587,7 @@ const emojis = [
     },
     {
         code: '👨‍👩‍👧‍👦',
-        shortcode: {
+        name: {
             en: 'man-woman-girl-boy',
             es: 'hombre_mujer_niña_niño',
         },
@@ -5598,7 +5598,7 @@ const emojis = [
     },
     {
         code: '👨‍👩‍👦‍👦',
-        shortcode: {
+        name: {
             en: 'man-woman-boy-boy',
             es: 'hombre_mujer_niño_niño',
         },
@@ -5609,7 +5609,7 @@ const emojis = [
     },
     {
         code: '👨‍👩‍👧‍👧',
-        shortcode: {
+        name: {
             en: 'man-woman-girl-girl',
             es: 'hombre_mujer_niña_niña',
         },
@@ -5620,7 +5620,7 @@ const emojis = [
     },
     {
         code: '👨‍👨‍👦',
-        shortcode: {
+        name: {
             en: 'man-man-boy',
             es: 'hombre_hombre_niño',
         },
@@ -5631,7 +5631,7 @@ const emojis = [
     },
     {
         code: '👨‍👨‍👧',
-        shortcode: {
+        name: {
             en: 'man-man-girl',
             es: 'hombre_hombre_niña',
         },
@@ -5642,7 +5642,7 @@ const emojis = [
     },
     {
         code: '👨‍👨‍👧‍👦',
-        shortcode: {
+        name: {
             en: 'man-man-girl-boy',
             es: 'hombre_hombre_niña_niño',
         },
@@ -5653,7 +5653,7 @@ const emojis = [
     },
     {
         code: '👨‍👨‍👦‍👦',
-        shortcode: {
+        name: {
             en: 'man-man-boy-boy',
             es: 'hombre_hombre_niño_niño',
         },
@@ -5664,7 +5664,7 @@ const emojis = [
     },
     {
         code: '👨‍👨‍👧‍👧',
-        shortcode: {
+        name: {
             en: 'man-man-girl-girl',
             es: 'hombre_hombre_niña_niña',
         },
@@ -5675,7 +5675,7 @@ const emojis = [
     },
     {
         code: '👩‍👩‍👦',
-        shortcode: {
+        name: {
             en: 'woman-woman-boy',
             es: 'mujer_mujer_niño',
         },
@@ -5686,7 +5686,7 @@ const emojis = [
     },
     {
         code: '👩‍👩‍👧',
-        shortcode: {
+        name: {
             en: 'woman-woman-girl',
             es: 'mujer_mujer_niña',
         },
@@ -5697,7 +5697,7 @@ const emojis = [
     },
     {
         code: '👩‍👩‍👧‍👦',
-        shortcode: {
+        name: {
             en: 'woman-woman-girl-boy',
             es: 'mujer_mujer_niña_niño',
         },
@@ -5708,7 +5708,7 @@ const emojis = [
     },
     {
         code: '👩‍👩‍👦‍👦',
-        shortcode: {
+        name: {
             en: 'woman-woman-boy-boy',
             es: 'mujer_mujer_niño_niño',
         },
@@ -5719,7 +5719,7 @@ const emojis = [
     },
     {
         code: '👩‍👩‍👧‍👧',
-        shortcode: {
+        name: {
             en: 'woman-woman-girl-girl',
             es: 'mujer_mujer_niña_niña',
         },
@@ -5730,7 +5730,7 @@ const emojis = [
     },
     {
         code: '👨‍👦',
-        shortcode: {
+        name: {
             en: 'man-boy',
             es: 'hombre_niño',
         },
@@ -5741,7 +5741,7 @@ const emojis = [
     },
     {
         code: '👨‍👦‍👦',
-        shortcode: {
+        name: {
             en: 'man-boy-boy',
             es: 'hombre_niño_niño',
         },
@@ -5752,7 +5752,7 @@ const emojis = [
     },
     {
         code: '👨‍👧',
-        shortcode: {
+        name: {
             en: 'man-girl',
             es: 'hombre_niña',
         },
@@ -5763,7 +5763,7 @@ const emojis = [
     },
     {
         code: '👨‍👧‍👦',
-        shortcode: {
+        name: {
             en: 'man-girl-boy',
             es: 'hombre_niño_niña',
         },
@@ -5774,7 +5774,7 @@ const emojis = [
     },
     {
         code: '👨‍👧‍👧',
-        shortcode: {
+        name: {
             en: 'man-girl-girl',
             es: 'hombre_niña_niña',
         },
@@ -5785,7 +5785,7 @@ const emojis = [
     },
     {
         code: '👩‍👦',
-        shortcode: {
+        name: {
             en: 'woman-boy',
             es: 'mujer_niño',
         },
@@ -5796,7 +5796,7 @@ const emojis = [
     },
     {
         code: '👩‍👦‍👦',
-        shortcode: {
+        name: {
             en: 'woman-boy-boy',
             es: 'mujer_niño_niño',
         },
@@ -5807,7 +5807,7 @@ const emojis = [
     },
     {
         code: '👩‍👧',
-        shortcode: {
+        name: {
             en: 'woman-girl',
             es: 'mujer_niña',
         },
@@ -5818,7 +5818,7 @@ const emojis = [
     },
     {
         code: '👩‍👧‍👦',
-        shortcode: {
+        name: {
             en: 'woman-girl-boy',
             es: 'mujer_niña_niño',
         },
@@ -5829,7 +5829,7 @@ const emojis = [
     },
     {
         code: '👩‍👧‍👧',
-        shortcode: {
+        name: {
             en: 'woman-girl-girl',
             es: 'mujer_niña_niña',
         },
@@ -5840,7 +5840,7 @@ const emojis = [
     },
     {
         code: '🗣️',
-        shortcode: {
+        name: {
             en: 'speaking_head_in_silhouette',
             es: 'silueta_de_cabeza_parlante',
         },
@@ -5851,7 +5851,7 @@ const emojis = [
     },
     {
         code: '👤',
-        shortcode: {
+        name: {
             en: 'bust_in_silhouette',
             es: 'silueta_de_busto',
         },
@@ -5862,7 +5862,7 @@ const emojis = [
     },
     {
         code: '👥',
-        shortcode: {
+        name: {
             en: 'busts_in_silhouette',
             es: 'siluetas_de_bustos',
         },
@@ -5873,7 +5873,7 @@ const emojis = [
     },
     {
         code: '🫂',
-        shortcode: {
+        name: {
             en: 'people_hugging',
             es: 'personas_abrazándose',
         },
@@ -5884,7 +5884,7 @@ const emojis = [
     },
     {
         code: '👣',
-        shortcode: {
+        name: {
             en: 'footprints',
             es: 'huellas',
         },
@@ -5900,7 +5900,7 @@ const emojis = [
     },
     {
         code: '🐵',
-        shortcode: {
+        name: {
             en: 'monkey_face',
             es: 'cara_de_mono',
         },
@@ -5911,7 +5911,7 @@ const emojis = [
     },
     {
         code: '🐒',
-        shortcode: {
+        name: {
             en: 'monkey',
             es: 'mono',
         },
@@ -5922,7 +5922,7 @@ const emojis = [
     },
     {
         code: '🦍',
-        shortcode: {
+        name: {
             en: 'gorilla',
             es: 'gorila',
         },
@@ -5933,7 +5933,7 @@ const emojis = [
     },
     {
         code: '🦧',
-        shortcode: {
+        name: {
             en: 'orangutan',
             es: 'orangután',
         },
@@ -5944,7 +5944,7 @@ const emojis = [
     },
     {
         code: '🐶',
-        shortcode: {
+        name: {
             en: 'dog',
             es: 'perro',
         },
@@ -5955,7 +5955,7 @@ const emojis = [
     },
     {
         code: '🐕',
-        shortcode: {
+        name: {
             en: 'dog2',
             es: 'perro2',
         },
@@ -5966,7 +5966,7 @@ const emojis = [
     },
     {
         code: '🦮',
-        shortcode: {
+        name: {
             en: 'guide_dog',
             es: 'perro_guía',
         },
@@ -5977,7 +5977,7 @@ const emojis = [
     },
     {
         code: '🐕‍🦺',
-        shortcode: {
+        name: {
             en: 'service_dog',
             es: 'perro_de_servicio',
         },
@@ -5988,7 +5988,7 @@ const emojis = [
     },
     {
         code: '🐩',
-        shortcode: {
+        name: {
             en: 'poodle',
             es: 'caniche',
         },
@@ -5999,7 +5999,7 @@ const emojis = [
     },
     {
         code: '🐺',
-        shortcode: {
+        name: {
             en: 'wolf',
             es: 'lobo',
         },
@@ -6010,7 +6010,7 @@ const emojis = [
     },
     {
         code: '🦊',
-        shortcode: {
+        name: {
             en: 'fox_face',
             es: 'cara_zorro',
         },
@@ -6021,7 +6021,7 @@ const emojis = [
     },
     {
         code: '🦝',
-        shortcode: {
+        name: {
             en: 'raccoon',
             es: 'mapache',
         },
@@ -6032,7 +6032,7 @@ const emojis = [
     },
     {
         code: '🐱',
-        shortcode: {
+        name: {
             en: 'cat',
             es: 'gato',
         },
@@ -6043,7 +6043,7 @@ const emojis = [
     },
     {
         code: '🐈',
-        shortcode: {
+        name: {
             en: 'cat2',
             es: 'gato2',
         },
@@ -6054,7 +6054,7 @@ const emojis = [
     },
     {
         code: '🐈‍⬛',
-        shortcode: {
+        name: {
             en: 'black_cat',
             es: 'gato_negro',
         },
@@ -6065,7 +6065,7 @@ const emojis = [
     },
     {
         code: '🦁',
-        shortcode: {
+        name: {
             en: 'lion_face',
             es: 'cara_de_león',
         },
@@ -6076,7 +6076,7 @@ const emojis = [
     },
     {
         code: '🐯',
-        shortcode: {
+        name: {
             en: 'tiger',
             es: 'tigre',
         },
@@ -6087,7 +6087,7 @@ const emojis = [
     },
     {
         code: '🐅',
-        shortcode: {
+        name: {
             en: 'tiger2',
             es: 'tigre2',
         },
@@ -6098,7 +6098,7 @@ const emojis = [
     },
     {
         code: '🐆',
-        shortcode: {
+        name: {
             en: 'leopard',
             es: 'leopardo',
         },
@@ -6109,7 +6109,7 @@ const emojis = [
     },
     {
         code: '🐴',
-        shortcode: {
+        name: {
             en: 'horse',
             es: 'caballo',
         },
@@ -6120,7 +6120,7 @@ const emojis = [
     },
     {
         code: '🐎',
-        shortcode: {
+        name: {
             en: 'racehorse',
             es: 'caballo_de_carreras',
         },
@@ -6131,7 +6131,7 @@ const emojis = [
     },
     {
         code: '🦄',
-        shortcode: {
+        name: {
             en: 'unicorn_face',
             es: 'cara_de_unicornio',
         },
@@ -6142,7 +6142,7 @@ const emojis = [
     },
     {
         code: '🦓',
-        shortcode: {
+        name: {
             en: 'zebra_face',
             es: 'cara_zebra',
         },
@@ -6153,7 +6153,7 @@ const emojis = [
     },
     {
         code: '🦌',
-        shortcode: {
+        name: {
             en: 'deer',
             es: 'ciervo',
         },
@@ -6164,7 +6164,7 @@ const emojis = [
     },
     {
         code: '🦬',
-        shortcode: {
+        name: {
             en: 'bison',
             es: 'bisonte',
         },
@@ -6175,7 +6175,7 @@ const emojis = [
     },
     {
         code: '🐮',
-        shortcode: {
+        name: {
             en: 'cow',
             es: 'vaca',
         },
@@ -6186,7 +6186,7 @@ const emojis = [
     },
     {
         code: '🐂',
-        shortcode: {
+        name: {
             en: 'ox',
             es: 'buey',
         },
@@ -6197,7 +6197,7 @@ const emojis = [
     },
     {
         code: '🐃',
-        shortcode: {
+        name: {
             en: 'water_buffalo',
             es: 'búfalo_de_agua',
         },
@@ -6208,7 +6208,7 @@ const emojis = [
     },
     {
         code: '🐄',
-        shortcode: {
+        name: {
             en: 'cow2',
             es: 'vaca2',
         },
@@ -6219,7 +6219,7 @@ const emojis = [
     },
     {
         code: '🐷',
-        shortcode: {
+        name: {
             en: 'pig',
             es: 'cerdo',
         },
@@ -6230,7 +6230,7 @@ const emojis = [
     },
     {
         code: '🐖',
-        shortcode: {
+        name: {
             en: 'pig2',
             es: 'cerdo2',
         },
@@ -6241,7 +6241,7 @@ const emojis = [
     },
     {
         code: '🐗',
-        shortcode: {
+        name: {
             en: 'boar',
             es: 'jabalí',
         },
@@ -6252,7 +6252,7 @@ const emojis = [
     },
     {
         code: '🐽',
-        shortcode: {
+        name: {
             en: 'pig_nose',
             es: 'hocico_de_cerdo',
         },
@@ -6263,7 +6263,7 @@ const emojis = [
     },
     {
         code: '🐏',
-        shortcode: {
+        name: {
             en: 'ram',
             es: 'carnero',
         },
@@ -6274,7 +6274,7 @@ const emojis = [
     },
     {
         code: '🐑',
-        shortcode: {
+        name: {
             en: 'sheep',
             es: 'oveja',
         },
@@ -6285,7 +6285,7 @@ const emojis = [
     },
     {
         code: '🐐',
-        shortcode: {
+        name: {
             en: 'goat',
             es: 'cabra',
         },
@@ -6296,7 +6296,7 @@ const emojis = [
     },
     {
         code: '🐪',
-        shortcode: {
+        name: {
             en: 'dromedary_camel',
             es: 'dromedario_camello',
         },
@@ -6307,7 +6307,7 @@ const emojis = [
     },
     {
         code: '🐫',
-        shortcode: {
+        name: {
             en: 'camel',
             es: 'camello',
         },
@@ -6318,7 +6318,7 @@ const emojis = [
     },
     {
         code: '🦙',
-        shortcode: {
+        name: {
             en: 'llama',
             es: 'llama',
         },
@@ -6329,7 +6329,7 @@ const emojis = [
     },
     {
         code: '🦒',
-        shortcode: {
+        name: {
             en: 'giraffe_face',
             es: 'cara_jirafa',
         },
@@ -6340,7 +6340,7 @@ const emojis = [
     },
     {
         code: '🐘',
-        shortcode: {
+        name: {
             en: 'elephant',
             es: 'elefante',
         },
@@ -6351,7 +6351,7 @@ const emojis = [
     },
     {
         code: '🦣',
-        shortcode: {
+        name: {
             en: 'mammoth',
             es: 'mamut',
         },
@@ -6362,7 +6362,7 @@ const emojis = [
     },
     {
         code: '🦏',
-        shortcode: {
+        name: {
             en: 'rhinoceros',
             es: 'rinoceronte',
         },
@@ -6373,7 +6373,7 @@ const emojis = [
     },
     {
         code: '🦛',
-        shortcode: {
+        name: {
             en: 'hippopotamus',
             es: 'hipopótamo',
         },
@@ -6384,7 +6384,7 @@ const emojis = [
     },
     {
         code: '🐭',
-        shortcode: {
+        name: {
             en: 'mouse',
             es: 'ratón',
         },
@@ -6395,7 +6395,7 @@ const emojis = [
     },
     {
         code: '🐁',
-        shortcode: {
+        name: {
             en: 'mouse2',
             es: 'mouse2',
         },
@@ -6406,7 +6406,7 @@ const emojis = [
     },
     {
         code: '🐀',
-        shortcode: {
+        name: {
             en: 'rat',
             es: 'rata',
         },
@@ -6417,7 +6417,7 @@ const emojis = [
     },
     {
         code: '🐹',
-        shortcode: {
+        name: {
             en: 'hamster',
             es: 'hámster',
         },
@@ -6428,7 +6428,7 @@ const emojis = [
     },
     {
         code: '🐰',
-        shortcode: {
+        name: {
             en: 'rabbit',
             es: 'conejo',
         },
@@ -6439,7 +6439,7 @@ const emojis = [
     },
     {
         code: '🐇',
-        shortcode: {
+        name: {
             en: 'rabbit2',
             es: 'conejo2',
         },
@@ -6450,7 +6450,7 @@ const emojis = [
     },
     {
         code: '🐿️',
-        shortcode: {
+        name: {
             en: 'chipmunk',
             es: 'ardilla',
         },
@@ -6461,7 +6461,7 @@ const emojis = [
     },
     {
         code: '🦫',
-        shortcode: {
+        name: {
             en: 'beaver',
             es: 'castor',
         },
@@ -6472,7 +6472,7 @@ const emojis = [
     },
     {
         code: '🦔',
-        shortcode: {
+        name: {
             en: 'hedgehog',
             es: 'erizo',
         },
@@ -6483,7 +6483,7 @@ const emojis = [
     },
     {
         code: '🦇',
-        shortcode: {
+        name: {
             en: 'bat',
             es: 'murciélago',
         },
@@ -6494,7 +6494,7 @@ const emojis = [
     },
     {
         code: '🐻',
-        shortcode: {
+        name: {
             en: 'bear',
             es: 'oso',
         },
@@ -6505,7 +6505,7 @@ const emojis = [
     },
     {
         code: '🐻‍❄️',
-        shortcode: {
+        name: {
             en: 'polar_bear',
             es: 'oso_polar',
         },
@@ -6516,7 +6516,7 @@ const emojis = [
     },
     {
         code: '🐨',
-        shortcode: {
+        name: {
             en: 'koala',
             es: 'coala',
         },
@@ -6527,7 +6527,7 @@ const emojis = [
     },
     {
         code: '🐼',
-        shortcode: {
+        name: {
             en: 'panda_face',
             es: 'cara_de_panda',
         },
@@ -6538,7 +6538,7 @@ const emojis = [
     },
     {
         code: '🦥',
-        shortcode: {
+        name: {
             en: 'sloth',
             es: 'perezoso',
         },
@@ -6549,7 +6549,7 @@ const emojis = [
     },
     {
         code: '🦦',
-        shortcode: {
+        name: {
             en: 'otter',
             es: 'nutria',
         },
@@ -6560,7 +6560,7 @@ const emojis = [
     },
     {
         code: '🦨',
-        shortcode: {
+        name: {
             en: 'skunk',
             es: 'mofeta',
         },
@@ -6571,7 +6571,7 @@ const emojis = [
     },
     {
         code: '🦘',
-        shortcode: {
+        name: {
             en: 'kangaroo',
             es: 'canguro',
         },
@@ -6582,7 +6582,7 @@ const emojis = [
     },
     {
         code: '🦡',
-        shortcode: {
+        name: {
             en: 'badger',
             es: 'tejón',
         },
@@ -6593,7 +6593,7 @@ const emojis = [
     },
     {
         code: '🐾',
-        shortcode: {
+        name: {
             en: 'feet',
             es: 'pies',
         },
@@ -6604,7 +6604,7 @@ const emojis = [
     },
     {
         code: '🦃',
-        shortcode: {
+        name: {
             en: 'turkey',
             es: 'pavo',
         },
@@ -6615,7 +6615,7 @@ const emojis = [
     },
     {
         code: '🐔',
-        shortcode: {
+        name: {
             en: 'chicken',
             es: 'pollo',
         },
@@ -6626,7 +6626,7 @@ const emojis = [
     },
     {
         code: '🐓',
-        shortcode: {
+        name: {
             en: 'rooster',
             es: 'gallo',
         },
@@ -6637,7 +6637,7 @@ const emojis = [
     },
     {
         code: '🐣',
-        shortcode: {
+        name: {
             en: 'hatching_chick',
             es: 'pollito_saliendo_del_cascarón',
         },
@@ -6648,7 +6648,7 @@ const emojis = [
     },
     {
         code: '🐤',
-        shortcode: {
+        name: {
             en: 'baby_chick',
             es: 'pollito',
         },
@@ -6659,7 +6659,7 @@ const emojis = [
     },
     {
         code: '🐥',
-        shortcode: {
+        name: {
             en: 'hatched_chick',
             es: 'pollito_recién_nacido',
         },
@@ -6670,7 +6670,7 @@ const emojis = [
     },
     {
         code: '🐦',
-        shortcode: {
+        name: {
             en: 'bird',
             es: 'pájaro',
         },
@@ -6681,7 +6681,7 @@ const emojis = [
     },
     {
         code: '🐧',
-        shortcode: {
+        name: {
             en: 'penguin',
             es: 'pingüino',
         },
@@ -6692,7 +6692,7 @@ const emojis = [
     },
     {
         code: '🕊️',
-        shortcode: {
+        name: {
             en: 'dove_of_peace',
             es: 'paloma_de_la_paz',
         },
@@ -6703,7 +6703,7 @@ const emojis = [
     },
     {
         code: '🦅',
-        shortcode: {
+        name: {
             en: 'eagle',
             es: 'águila',
         },
@@ -6714,7 +6714,7 @@ const emojis = [
     },
     {
         code: '🦆',
-        shortcode: {
+        name: {
             en: 'duck',
             es: 'pato',
         },
@@ -6725,7 +6725,7 @@ const emojis = [
     },
     {
         code: '🦢',
-        shortcode: {
+        name: {
             en: 'swan',
             es: 'cisne',
         },
@@ -6736,7 +6736,7 @@ const emojis = [
     },
     {
         code: '🦉',
-        shortcode: {
+        name: {
             en: 'owl',
             es: 'búho',
         },
@@ -6747,7 +6747,7 @@ const emojis = [
     },
     {
         code: '🦤',
-        shortcode: {
+        name: {
             en: 'dodo',
             es: 'dodo',
         },
@@ -6758,7 +6758,7 @@ const emojis = [
     },
     {
         code: '🪶',
-        shortcode: {
+        name: {
             en: 'feather',
             es: 'pluma',
         },
@@ -6769,7 +6769,7 @@ const emojis = [
     },
     {
         code: '🦩',
-        shortcode: {
+        name: {
             en: 'flamingo',
             es: 'flamenco',
         },
@@ -6780,7 +6780,7 @@ const emojis = [
     },
     {
         code: '🦚',
-        shortcode: {
+        name: {
             en: 'peacock',
             es: 'pavo_real',
         },
@@ -6791,7 +6791,7 @@ const emojis = [
     },
     {
         code: '🦜',
-        shortcode: {
+        name: {
             en: 'parrot',
             es: 'loro',
         },
@@ -6802,7 +6802,7 @@ const emojis = [
     },
     {
         code: '🐸',
-        shortcode: {
+        name: {
             en: 'frog',
             es: 'rana',
         },
@@ -6813,7 +6813,7 @@ const emojis = [
     },
     {
         code: '🐊',
-        shortcode: {
+        name: {
             en: 'crocodile',
             es: 'cocodrilo',
         },
@@ -6824,7 +6824,7 @@ const emojis = [
     },
     {
         code: '🐢',
-        shortcode: {
+        name: {
             en: 'turtle',
             es: 'tortuga',
         },
@@ -6835,7 +6835,7 @@ const emojis = [
     },
     {
         code: '🦎',
-        shortcode: {
+        name: {
             en: 'lizard',
             es: 'lagarto',
         },
@@ -6846,7 +6846,7 @@ const emojis = [
     },
     {
         code: '🐍',
-        shortcode: {
+        name: {
             en: 'snake',
             es: 'serpiente',
         },
@@ -6857,7 +6857,7 @@ const emojis = [
     },
     {
         code: '🐲',
-        shortcode: {
+        name: {
             en: 'dragon_face',
             es: 'cara_de_dragón',
         },
@@ -6868,7 +6868,7 @@ const emojis = [
     },
     {
         code: '🐉',
-        shortcode: {
+        name: {
             en: 'dragon',
             es: 'dragón',
         },
@@ -6879,7 +6879,7 @@ const emojis = [
     },
     {
         code: '🦕',
-        shortcode: {
+        name: {
             en: 'sauropod',
             es: 'saurópodo',
         },
@@ -6890,7 +6890,7 @@ const emojis = [
     },
     {
         code: '🦖',
-        shortcode: {
+        name: {
             en: 't-rex',
             es: 't-rex',
         },
@@ -6901,7 +6901,7 @@ const emojis = [
     },
     {
         code: '🐳',
-        shortcode: {
+        name: {
             en: 'whale',
             es: 'ballena',
         },
@@ -6912,7 +6912,7 @@ const emojis = [
     },
     {
         code: '🐋',
-        shortcode: {
+        name: {
             en: 'whale2',
             es: 'ballena2',
         },
@@ -6923,7 +6923,7 @@ const emojis = [
     },
     {
         code: '🐬',
-        shortcode: {
+        name: {
             en: 'dolphin',
             es: 'delfín',
         },
@@ -6934,7 +6934,7 @@ const emojis = [
     },
     {
         code: '🦭',
-        shortcode: {
+        name: {
             en: 'seal',
             es: 'foca',
         },
@@ -6945,7 +6945,7 @@ const emojis = [
     },
     {
         code: '🐟',
-        shortcode: {
+        name: {
             en: 'fish',
             es: 'pez',
         },
@@ -6956,7 +6956,7 @@ const emojis = [
     },
     {
         code: '🐠',
-        shortcode: {
+        name: {
             en: 'tropical_fish',
             es: 'pez_tropical',
         },
@@ -6967,7 +6967,7 @@ const emojis = [
     },
     {
         code: '🐡',
-        shortcode: {
+        name: {
             en: 'blowfish',
             es: 'pez_globo',
         },
@@ -6978,7 +6978,7 @@ const emojis = [
     },
     {
         code: '🦈',
-        shortcode: {
+        name: {
             en: 'shark',
             es: 'tiburón',
         },
@@ -6989,7 +6989,7 @@ const emojis = [
     },
     {
         code: '🐙',
-        shortcode: {
+        name: {
             en: 'octopus',
             es: 'pulpo',
         },
@@ -7000,7 +7000,7 @@ const emojis = [
     },
     {
         code: '🐚',
-        shortcode: {
+        name: {
             en: 'shell',
             es: 'caracola',
         },
@@ -7011,7 +7011,7 @@ const emojis = [
     },
     {
         code: '🐌',
-        shortcode: {
+        name: {
             en: 'snail',
             es: 'caracol',
         },
@@ -7022,7 +7022,7 @@ const emojis = [
     },
     {
         code: '🦋',
-        shortcode: {
+        name: {
             en: 'butterfly',
             es: 'mariposa',
         },
@@ -7033,7 +7033,7 @@ const emojis = [
     },
     {
         code: '🐛',
-        shortcode: {
+        name: {
             en: 'bug',
             es: 'bicho',
         },
@@ -7044,7 +7044,7 @@ const emojis = [
     },
     {
         code: '🐜',
-        shortcode: {
+        name: {
             en: 'ant',
             es: 'hormiga',
         },
@@ -7055,7 +7055,7 @@ const emojis = [
     },
     {
         code: '🐝',
-        shortcode: {
+        name: {
             en: 'bee',
             es: 'abeja',
         },
@@ -7066,7 +7066,7 @@ const emojis = [
     },
     {
         code: '🪲',
-        shortcode: {
+        name: {
             en: 'beetle',
             es: 'escarabajo',
         },
@@ -7077,7 +7077,7 @@ const emojis = [
     },
     {
         code: '🐞',
-        shortcode: {
+        name: {
             en: 'ladybug',
             es: 'mariquita',
         },
@@ -7088,7 +7088,7 @@ const emojis = [
     },
     {
         code: '🦗',
-        shortcode: {
+        name: {
             en: 'cricket',
             es: 'grillo',
         },
@@ -7099,7 +7099,7 @@ const emojis = [
     },
     {
         code: '🪳',
-        shortcode: {
+        name: {
             en: 'cockroach',
             es: 'cucaracha',
         },
@@ -7110,7 +7110,7 @@ const emojis = [
     },
     {
         code: '🕷️',
-        shortcode: {
+        name: {
             en: 'spider',
             es: 'araña',
         },
@@ -7121,7 +7121,7 @@ const emojis = [
     },
     {
         code: '🕸️',
-        shortcode: {
+        name: {
             en: 'spider_web',
             es: 'telaraña',
         },
@@ -7132,7 +7132,7 @@ const emojis = [
     },
     {
         code: '🦂',
-        shortcode: {
+        name: {
             en: 'scorpion',
             es: 'escorpión',
         },
@@ -7143,7 +7143,7 @@ const emojis = [
     },
     {
         code: '🦟',
-        shortcode: {
+        name: {
             en: 'mosquito',
             es: 'mosquito',
         },
@@ -7154,7 +7154,7 @@ const emojis = [
     },
     {
         code: '🪰',
-        shortcode: {
+        name: {
             en: 'fly',
             es: 'mosca',
         },
@@ -7165,7 +7165,7 @@ const emojis = [
     },
     {
         code: '🪱',
-        shortcode: {
+        name: {
             en: 'worm',
             es: 'gusano',
         },
@@ -7176,7 +7176,7 @@ const emojis = [
     },
     {
         code: '🦠',
-        shortcode: {
+        name: {
             en: 'microbe',
             es: 'microbio',
         },
@@ -7187,7 +7187,7 @@ const emojis = [
     },
     {
         code: '💐',
-        shortcode: {
+        name: {
             en: 'bouquet',
             es: 'ramo',
         },
@@ -7198,7 +7198,7 @@ const emojis = [
     },
     {
         code: '🌸',
-        shortcode: {
+        name: {
             en: 'cherry_blossom',
             es: 'flor_de_cerezo',
         },
@@ -7209,7 +7209,7 @@ const emojis = [
     },
     {
         code: '💮',
-        shortcode: {
+        name: {
             en: 'white_flower',
             es: 'flor_blanca',
         },
@@ -7220,7 +7220,7 @@ const emojis = [
     },
     {
         code: '🏵️',
-        shortcode: {
+        name: {
             en: 'rosette',
             es: 'roseta',
         },
@@ -7231,7 +7231,7 @@ const emojis = [
     },
     {
         code: '🌹',
-        shortcode: {
+        name: {
             en: 'rose',
             es: 'rosa',
         },
@@ -7242,7 +7242,7 @@ const emojis = [
     },
     {
         code: '🥀',
-        shortcode: {
+        name: {
             en: 'wilted_flower',
             es: 'flor_marchita',
         },
@@ -7253,7 +7253,7 @@ const emojis = [
     },
     {
         code: '🌺',
-        shortcode: {
+        name: {
             en: 'hibiscus',
             es: 'hibisco',
         },
@@ -7264,7 +7264,7 @@ const emojis = [
     },
     {
         code: '🌻',
-        shortcode: {
+        name: {
             en: 'sunflower',
             es: 'girasol',
         },
@@ -7275,7 +7275,7 @@ const emojis = [
     },
     {
         code: '🌼',
-        shortcode: {
+        name: {
             en: 'blossom',
             es: 'flor',
         },
@@ -7286,7 +7286,7 @@ const emojis = [
     },
     {
         code: '🌷',
-        shortcode: {
+        name: {
             en: 'tulip',
             es: 'tulipán',
         },
@@ -7297,7 +7297,7 @@ const emojis = [
     },
     {
         code: '🌱',
-        shortcode: {
+        name: {
             en: 'seedling',
             es: 'plántula',
         },
@@ -7308,7 +7308,7 @@ const emojis = [
     },
     {
         code: '🪴',
-        shortcode: {
+        name: {
             en: 'potted_plant',
             es: 'planta_de_maceta',
         },
@@ -7319,7 +7319,7 @@ const emojis = [
     },
     {
         code: '🌲',
-        shortcode: {
+        name: {
             en: 'evergreen_tree',
             es: 'árbol_de_hoja_perenne',
         },
@@ -7330,7 +7330,7 @@ const emojis = [
     },
     {
         code: '🌳',
-        shortcode: {
+        name: {
             en: 'deciduous_tree',
             es: 'árbol_caduco',
         },
@@ -7341,7 +7341,7 @@ const emojis = [
     },
     {
         code: '🌴',
-        shortcode: {
+        name: {
             en: 'palm_tree',
             es: 'palmera',
         },
@@ -7352,7 +7352,7 @@ const emojis = [
     },
     {
         code: '🌵',
-        shortcode: {
+        name: {
             en: 'cactus',
             es: 'cactus',
         },
@@ -7363,7 +7363,7 @@ const emojis = [
     },
     {
         code: '🌾',
-        shortcode: {
+        name: {
             en: 'ear_of_rice',
             es: 'planta_de_arroz',
         },
@@ -7374,7 +7374,7 @@ const emojis = [
     },
     {
         code: '🌿',
-        shortcode: {
+        name: {
             en: 'herb',
             es: 'hierba',
         },
@@ -7385,7 +7385,7 @@ const emojis = [
     },
     {
         code: '☘️',
-        shortcode: {
+        name: {
             en: 'shamrock',
             es: 'trébol',
         },
@@ -7396,7 +7396,7 @@ const emojis = [
     },
     {
         code: '🍀',
-        shortcode: {
+        name: {
             en: 'four_leaf_clover',
             es: 'trébol_de_cuatro_hojas',
         },
@@ -7407,7 +7407,7 @@ const emojis = [
     },
     {
         code: '🍁',
-        shortcode: {
+        name: {
             en: 'maple_leaf',
             es: 'hoja_de_arce',
         },
@@ -7418,7 +7418,7 @@ const emojis = [
     },
     {
         code: '🍂',
-        shortcode: {
+        name: {
             en: 'fallen_leaf',
             es: 'hoja_caída',
         },
@@ -7429,7 +7429,7 @@ const emojis = [
     },
     {
         code: '🍃',
-        shortcode: {
+        name: {
             en: 'leaves',
             es: 'hojas',
         },
@@ -7445,7 +7445,7 @@ const emojis = [
     },
     {
         code: '🍄',
-        shortcode: {
+        name: {
             en: 'mushroom',
             es: 'seta',
         },
@@ -7456,7 +7456,7 @@ const emojis = [
     },
     {
         code: '🍇',
-        shortcode: {
+        name: {
             en: 'grapes',
             es: 'uvas',
         },
@@ -7467,7 +7467,7 @@ const emojis = [
     },
     {
         code: '🍈',
-        shortcode: {
+        name: {
             en: 'melon',
             es: 'melón',
         },
@@ -7478,7 +7478,7 @@ const emojis = [
     },
     {
         code: '🍉',
-        shortcode: {
+        name: {
             en: 'watermelon',
             es: 'sandía',
         },
@@ -7489,7 +7489,7 @@ const emojis = [
     },
     {
         code: '🍊',
-        shortcode: {
+        name: {
             en: 'tangerine',
             es: 'mandarina',
         },
@@ -7500,7 +7500,7 @@ const emojis = [
     },
     {
         code: '🍋',
-        shortcode: {
+        name: {
             en: 'lemon',
             es: 'limón',
         },
@@ -7511,7 +7511,7 @@ const emojis = [
     },
     {
         code: '🍌',
-        shortcode: {
+        name: {
             en: 'banana',
             es: 'plátano',
         },
@@ -7522,7 +7522,7 @@ const emojis = [
     },
     {
         code: '🍍',
-        shortcode: {
+        name: {
             en: 'pineapple',
             es: 'piña',
         },
@@ -7533,7 +7533,7 @@ const emojis = [
     },
     {
         code: '🥭',
-        shortcode: {
+        name: {
             en: 'mango',
             es: 'mango',
         },
@@ -7544,7 +7544,7 @@ const emojis = [
     },
     {
         code: '🍎',
-        shortcode: {
+        name: {
             en: 'apple',
             es: 'manzana',
         },
@@ -7555,7 +7555,7 @@ const emojis = [
     },
     {
         code: '🍏',
-        shortcode: {
+        name: {
             en: 'green_apple',
             es: 'manzana_verde',
         },
@@ -7566,7 +7566,7 @@ const emojis = [
     },
     {
         code: '🍐',
-        shortcode: {
+        name: {
             en: 'pear',
             es: 'pera',
         },
@@ -7577,7 +7577,7 @@ const emojis = [
     },
     {
         code: '🍑',
-        shortcode: {
+        name: {
             en: 'peach',
             es: 'melocotón',
         },
@@ -7588,7 +7588,7 @@ const emojis = [
     },
     {
         code: '🍒',
-        shortcode: {
+        name: {
             en: 'cherries',
             es: 'cerezas',
         },
@@ -7599,7 +7599,7 @@ const emojis = [
     },
     {
         code: '🍓',
-        shortcode: {
+        name: {
             en: 'strawberry',
             es: 'fresa',
         },
@@ -7610,7 +7610,7 @@ const emojis = [
     },
     {
         code: '🫐',
-        shortcode: {
+        name: {
             en: 'blueberries',
             es: 'arándanos',
         },
@@ -7621,7 +7621,7 @@ const emojis = [
     },
     {
         code: '🥝',
-        shortcode: {
+        name: {
             en: 'kiwifruit',
             es: 'kiwi',
         },
@@ -7632,7 +7632,7 @@ const emojis = [
     },
     {
         code: '🍅',
-        shortcode: {
+        name: {
             en: 'tomato',
             es: 'tomate',
         },
@@ -7643,7 +7643,7 @@ const emojis = [
     },
     {
         code: '🫒',
-        shortcode: {
+        name: {
             en: 'olive',
             es: 'aceituna',
         },
@@ -7654,7 +7654,7 @@ const emojis = [
     },
     {
         code: '🥥',
-        shortcode: {
+        name: {
             en: 'coconut',
             es: 'coco',
         },
@@ -7665,7 +7665,7 @@ const emojis = [
     },
     {
         code: '🥑',
-        shortcode: {
+        name: {
             en: 'avocado',
             es: 'aguacate',
         },
@@ -7676,7 +7676,7 @@ const emojis = [
     },
     {
         code: '🍆',
-        shortcode: {
+        name: {
             en: 'eggplant',
             es: 'berenjena',
         },
@@ -7687,7 +7687,7 @@ const emojis = [
     },
     {
         code: '🥔',
-        shortcode: {
+        name: {
             en: 'potato',
             es: 'patata',
         },
@@ -7698,7 +7698,7 @@ const emojis = [
     },
     {
         code: '🥕',
-        shortcode: {
+        name: {
             en: 'carrot',
             es: 'zanahoria',
         },
@@ -7709,7 +7709,7 @@ const emojis = [
     },
     {
         code: '🌽',
-        shortcode: {
+        name: {
             en: 'corn',
             es: 'maíz',
         },
@@ -7720,7 +7720,7 @@ const emojis = [
     },
     {
         code: '🌶️',
-        shortcode: {
+        name: {
             en: 'hot_pepper',
             es: 'guindilla',
         },
@@ -7731,7 +7731,7 @@ const emojis = [
     },
     {
         code: '🫑',
-        shortcode: {
+        name: {
             en: 'bell_pepper',
             es: 'pimiento',
         },
@@ -7742,7 +7742,7 @@ const emojis = [
     },
     {
         code: '🥒',
-        shortcode: {
+        name: {
             en: 'cucumber',
             es: 'pepino',
         },
@@ -7753,7 +7753,7 @@ const emojis = [
     },
     {
         code: '🥬',
-        shortcode: {
+        name: {
             en: 'leafy_green',
             es: 'verdura_de_hoja_verde',
         },
@@ -7764,7 +7764,7 @@ const emojis = [
     },
     {
         code: '🥦',
-        shortcode: {
+        name: {
             en: 'broccoli',
             es: 'brócoli',
         },
@@ -7775,7 +7775,7 @@ const emojis = [
     },
     {
         code: '🧄',
-        shortcode: {
+        name: {
             en: 'garlic',
             es: 'ajo',
         },
@@ -7786,7 +7786,7 @@ const emojis = [
     },
     {
         code: '🧅',
-        shortcode: {
+        name: {
             en: 'onion',
             es: 'cebolla',
         },
@@ -7797,7 +7797,7 @@ const emojis = [
     },
     {
         code: '🥜',
-        shortcode: {
+        name: {
             en: 'peanuts',
             es: 'cacahuetes',
         },
@@ -7808,7 +7808,7 @@ const emojis = [
     },
     {
         code: '🌰',
-        shortcode: {
+        name: {
             en: 'chestnut',
             es: 'castaña',
         },
@@ -7819,7 +7819,7 @@ const emojis = [
     },
     {
         code: '🍞',
-        shortcode: {
+        name: {
             en: 'bread',
             es: 'pan',
         },
@@ -7830,7 +7830,7 @@ const emojis = [
     },
     {
         code: '🥐',
-        shortcode: {
+        name: {
             en: 'croissant',
             es: 'cruasán',
         },
@@ -7841,7 +7841,7 @@ const emojis = [
     },
     {
         code: '🥖',
-        shortcode: {
+        name: {
             en: 'baguette_bread',
             es: 'baguete',
         },
@@ -7852,7 +7852,7 @@ const emojis = [
     },
     {
         code: '🫓',
-        shortcode: {
+        name: {
             en: 'flatbread',
             es: 'pan_sin_levadura',
         },
@@ -7863,7 +7863,7 @@ const emojis = [
     },
     {
         code: '🥨',
-        shortcode: {
+        name: {
             en: 'pretzel',
             es: 'galleta_salada',
         },
@@ -7874,7 +7874,7 @@ const emojis = [
     },
     {
         code: '🥯',
-        shortcode: {
+        name: {
             en: 'bagel',
             es: 'bagel',
         },
@@ -7885,7 +7885,7 @@ const emojis = [
     },
     {
         code: '🥞',
-        shortcode: {
+        name: {
             en: 'pancakes',
             es: 'crepes',
         },
@@ -7896,7 +7896,7 @@ const emojis = [
     },
     {
         code: '🧇',
-        shortcode: {
+        name: {
             en: 'waffle',
             es: 'gofre',
         },
@@ -7907,7 +7907,7 @@ const emojis = [
     },
     {
         code: '🧀',
-        shortcode: {
+        name: {
             en: 'cheese_wedge',
             es: 'cuña_de_queso',
         },
@@ -7918,7 +7918,7 @@ const emojis = [
     },
     {
         code: '🍖',
-        shortcode: {
+        name: {
             en: 'meat_on_bone',
             es: 'hueso_con_carne',
         },
@@ -7929,7 +7929,7 @@ const emojis = [
     },
     {
         code: '🍗',
-        shortcode: {
+        name: {
             en: 'poultry_leg',
             es: 'muslo_de_pollo',
         },
@@ -7940,7 +7940,7 @@ const emojis = [
     },
     {
         code: '🥩',
-        shortcode: {
+        name: {
             en: 'cut_of_meat',
             es: 'chuleta',
         },
@@ -7951,7 +7951,7 @@ const emojis = [
     },
     {
         code: '🥓',
-        shortcode: {
+        name: {
             en: 'bacon',
             es: 'beicon',
         },
@@ -7962,7 +7962,7 @@ const emojis = [
     },
     {
         code: '🍔',
-        shortcode: {
+        name: {
             en: 'hamburger',
             es: 'hamburguesa',
         },
@@ -7973,7 +7973,7 @@ const emojis = [
     },
     {
         code: '🍟',
-        shortcode: {
+        name: {
             en: 'fries',
             es: 'patatas_fritas',
         },
@@ -7984,7 +7984,7 @@ const emojis = [
     },
     {
         code: '🍕',
-        shortcode: {
+        name: {
             en: 'pizza',
             es: 'pizza',
         },
@@ -7995,7 +7995,7 @@ const emojis = [
     },
     {
         code: '🌭',
-        shortcode: {
+        name: {
             en: 'hotdog',
             es: 'perrito_caliente',
         },
@@ -8006,7 +8006,7 @@ const emojis = [
     },
     {
         code: '🥪',
-        shortcode: {
+        name: {
             en: 'sandwich',
             es: 'sándwich',
         },
@@ -8017,7 +8017,7 @@ const emojis = [
     },
     {
         code: '🌮',
-        shortcode: {
+        name: {
             en: 'taco',
             es: 'taco',
         },
@@ -8028,7 +8028,7 @@ const emojis = [
     },
     {
         code: '🌯',
-        shortcode: {
+        name: {
             en: 'burrito',
             es: 'burrito',
         },
@@ -8039,7 +8039,7 @@ const emojis = [
     },
     {
         code: '🫔',
-        shortcode: {
+        name: {
             en: 'tamale',
             es: 'tamal',
         },
@@ -8050,7 +8050,7 @@ const emojis = [
     },
     {
         code: '🥙',
-        shortcode: {
+        name: {
             en: 'stuffed_flatbread',
             es: 'kebab',
         },
@@ -8061,7 +8061,7 @@ const emojis = [
     },
     {
         code: '🧆',
-        shortcode: {
+        name: {
             en: 'falafel',
             es: 'falafel',
         },
@@ -8072,7 +8072,7 @@ const emojis = [
     },
     {
         code: '🥚',
-        shortcode: {
+        name: {
             en: 'egg',
             es: 'huevo',
         },
@@ -8083,7 +8083,7 @@ const emojis = [
     },
     {
         code: '🍳',
-        shortcode: {
+        name: {
             en: 'fried_egg',
             es: 'huevo_frito',
         },
@@ -8094,7 +8094,7 @@ const emojis = [
     },
     {
         code: '🥘',
-        shortcode: {
+        name: {
             en: 'shallow_pan_of_food',
             es: 'paella',
         },
@@ -8105,7 +8105,7 @@ const emojis = [
     },
     {
         code: '🍲',
-        shortcode: {
+        name: {
             en: 'stew',
             es: 'estofado',
         },
@@ -8116,7 +8116,7 @@ const emojis = [
     },
     {
         code: '🫕',
-        shortcode: {
+        name: {
             en: 'fondue',
             es: 'fondue',
         },
@@ -8127,7 +8127,7 @@ const emojis = [
     },
     {
         code: '🥣',
-        shortcode: {
+        name: {
             en: 'bowl_with_spoon',
             es: 'cuenco_con_cuchara',
         },
@@ -8138,7 +8138,7 @@ const emojis = [
     },
     {
         code: '🥗',
-        shortcode: {
+        name: {
             en: 'green_salad',
             es: 'ensalada_verde',
         },
@@ -8149,7 +8149,7 @@ const emojis = [
     },
     {
         code: '🍿',
-        shortcode: {
+        name: {
             en: 'popcorn',
             es: 'palomitas_de_maíz',
         },
@@ -8160,7 +8160,7 @@ const emojis = [
     },
     {
         code: '🧈',
-        shortcode: {
+        name: {
             en: 'butter',
             es: 'mantequilla',
         },
@@ -8171,7 +8171,7 @@ const emojis = [
     },
     {
         code: '🧂',
-        shortcode: {
+        name: {
             en: 'salt',
             es: 'sal',
         },
@@ -8182,7 +8182,7 @@ const emojis = [
     },
     {
         code: '🥫',
-        shortcode: {
+        name: {
             en: 'canned_food',
             es: 'comida_enlatada',
         },
@@ -8193,7 +8193,7 @@ const emojis = [
     },
     {
         code: '🍱',
-        shortcode: {
+        name: {
             en: 'bento',
             es: 'bento',
         },
@@ -8204,7 +8204,7 @@ const emojis = [
     },
     {
         code: '🍘',
-        shortcode: {
+        name: {
             en: 'rice_cracker',
             es: 'galleta_de_arroz',
         },
@@ -8215,7 +8215,7 @@ const emojis = [
     },
     {
         code: '🍙',
-        shortcode: {
+        name: {
             en: 'rice_ball',
             es: 'bola_de_arroz',
         },
@@ -8226,7 +8226,7 @@ const emojis = [
     },
     {
         code: '🍚',
-        shortcode: {
+        name: {
             en: 'rice',
             es: 'arroz',
         },
@@ -8237,7 +8237,7 @@ const emojis = [
     },
     {
         code: '🍛',
-        shortcode: {
+        name: {
             en: 'curry',
             es: 'curry',
         },
@@ -8248,7 +8248,7 @@ const emojis = [
     },
     {
         code: '🍜',
-        shortcode: {
+        name: {
             en: 'ramen',
             es: 'ramen',
         },
@@ -8259,7 +8259,7 @@ const emojis = [
     },
     {
         code: '🍝',
-        shortcode: {
+        name: {
             en: 'spaghetti',
             es: 'espaguetis',
         },
@@ -8270,7 +8270,7 @@ const emojis = [
     },
     {
         code: '🍠',
-        shortcode: {
+        name: {
             en: 'sweet_potato',
             es: 'batata',
         },
@@ -8281,7 +8281,7 @@ const emojis = [
     },
     {
         code: '🍢',
-        shortcode: {
+        name: {
             en: 'oden',
             es: 'oden',
         },
@@ -8292,7 +8292,7 @@ const emojis = [
     },
     {
         code: '🍣',
-        shortcode: {
+        name: {
             en: 'sushi',
             es: 'sushi',
         },
@@ -8303,7 +8303,7 @@ const emojis = [
     },
     {
         code: '🍤',
-        shortcode: {
+        name: {
             en: 'fried_shrimp',
             es: 'camarón_frito',
         },
@@ -8314,7 +8314,7 @@ const emojis = [
     },
     {
         code: '🍥',
-        shortcode: {
+        name: {
             en: 'fish_cake',
             es: 'pastel_de_pescado',
         },
@@ -8325,7 +8325,7 @@ const emojis = [
     },
     {
         code: '🥮',
-        shortcode: {
+        name: {
             en: 'moon_cake',
             es: 'pastel_de_luna',
         },
@@ -8336,7 +8336,7 @@ const emojis = [
     },
     {
         code: '🍡',
-        shortcode: {
+        name: {
             en: 'dango',
             es: 'dango',
         },
@@ -8347,7 +8347,7 @@ const emojis = [
     },
     {
         code: '🥟',
-        shortcode: {
+        name: {
             en: 'dumpling',
             es: 'empanadilla',
         },
@@ -8358,7 +8358,7 @@ const emojis = [
     },
     {
         code: '🥠',
-        shortcode: {
+        name: {
             en: 'fortune_cookie',
             es: 'galletita_fortuna',
         },
@@ -8369,7 +8369,7 @@ const emojis = [
     },
     {
         code: '🥡',
-        shortcode: {
+        name: {
             en: 'takeout_box',
             es: 'caja_comida_rápida',
         },
@@ -8380,7 +8380,7 @@ const emojis = [
     },
     {
         code: '🦀',
-        shortcode: {
+        name: {
             en: 'crab',
             es: 'cangrejo',
         },
@@ -8391,7 +8391,7 @@ const emojis = [
     },
     {
         code: '🦞',
-        shortcode: {
+        name: {
             en: 'lobster',
             es: 'langosta',
         },
@@ -8402,7 +8402,7 @@ const emojis = [
     },
     {
         code: '🦐',
-        shortcode: {
+        name: {
             en: 'shrimp',
             es: 'camarón',
         },
@@ -8413,7 +8413,7 @@ const emojis = [
     },
     {
         code: '🦑',
-        shortcode: {
+        name: {
             en: 'squid',
             es: 'calamar',
         },
@@ -8424,7 +8424,7 @@ const emojis = [
     },
     {
         code: '🦪',
-        shortcode: {
+        name: {
             en: 'oyster',
             es: 'ostra',
         },
@@ -8435,7 +8435,7 @@ const emojis = [
     },
     {
         code: '🍦',
-        shortcode: {
+        name: {
             en: 'icecream',
             es: 'helado',
         },
@@ -8446,7 +8446,7 @@ const emojis = [
     },
     {
         code: '🍧',
-        shortcode: {
+        name: {
             en: 'shaved_ice',
             es: 'hielo_picado',
         },
@@ -8457,7 +8457,7 @@ const emojis = [
     },
     {
         code: '🍨',
-        shortcode: {
+        name: {
             en: 'ice_cream',
             es: 'postre_helado',
         },
@@ -8468,7 +8468,7 @@ const emojis = [
     },
     {
         code: '🍩',
-        shortcode: {
+        name: {
             en: 'doughnut',
             es: 'rosquilla',
         },
@@ -8479,7 +8479,7 @@ const emojis = [
     },
     {
         code: '🍪',
-        shortcode: {
+        name: {
             en: 'cookie',
             es: 'galleta',
         },
@@ -8490,7 +8490,7 @@ const emojis = [
     },
     {
         code: '🎂',
-        shortcode: {
+        name: {
             en: 'birthday',
             es: 'cumpleaños',
         },
@@ -8501,7 +8501,7 @@ const emojis = [
     },
     {
         code: '🍰',
-        shortcode: {
+        name: {
             en: 'cake',
             es: 'pastel',
         },
@@ -8512,7 +8512,7 @@ const emojis = [
     },
     {
         code: '🧁',
-        shortcode: {
+        name: {
             en: 'cupcake',
             es: 'magdalena',
         },
@@ -8523,7 +8523,7 @@ const emojis = [
     },
     {
         code: '🥧',
-        shortcode: {
+        name: {
             en: 'pie',
             es: 'tarta',
         },
@@ -8534,7 +8534,7 @@ const emojis = [
     },
     {
         code: '🍫',
-        shortcode: {
+        name: {
             en: 'chocolate_bar',
             es: 'chocolatina',
         },
@@ -8545,7 +8545,7 @@ const emojis = [
     },
     {
         code: '🍬',
-        shortcode: {
+        name: {
             en: 'candy',
             es: 'caramelo',
         },
@@ -8556,7 +8556,7 @@ const emojis = [
     },
     {
         code: '🍭',
-        shortcode: {
+        name: {
             en: 'lollipop',
             es: 'piruleta',
         },
@@ -8567,7 +8567,7 @@ const emojis = [
     },
     {
         code: '🍮',
-        shortcode: {
+        name: {
             en: 'custard',
             es: 'natillas',
         },
@@ -8578,7 +8578,7 @@ const emojis = [
     },
     {
         code: '🍯',
-        shortcode: {
+        name: {
             en: 'honey_pot',
             es: 'tarro_de_miel',
         },
@@ -8589,7 +8589,7 @@ const emojis = [
     },
     {
         code: '🍼',
-        shortcode: {
+        name: {
             en: 'baby_bottle',
             es: 'biberón',
         },
@@ -8600,7 +8600,7 @@ const emojis = [
     },
     {
         code: '🥛',
-        shortcode: {
+        name: {
             en: 'glass_of_milk',
             es: 'vaso_de_leche',
         },
@@ -8611,7 +8611,7 @@ const emojis = [
     },
     {
         code: '☕',
-        shortcode: {
+        name: {
             en: 'coffee',
             es: 'café',
         },
@@ -8622,7 +8622,7 @@ const emojis = [
     },
     {
         code: '🫖',
-        shortcode: {
+        name: {
             en: 'teapot',
             es: 'tetera',
         },
@@ -8633,7 +8633,7 @@ const emojis = [
     },
     {
         code: '🍵',
-        shortcode: {
+        name: {
             en: 'tea',
             es: 'té',
         },
@@ -8644,7 +8644,7 @@ const emojis = [
     },
     {
         code: '🍶',
-        shortcode: {
+        name: {
             en: 'sake',
             es: 'sake',
         },
@@ -8655,7 +8655,7 @@ const emojis = [
     },
     {
         code: '🍾',
-        shortcode: {
+        name: {
             en: 'champagne',
             es: 'champán',
         },
@@ -8666,7 +8666,7 @@ const emojis = [
     },
     {
         code: '🍷',
-        shortcode: {
+        name: {
             en: 'wine_glass',
             es: 'copa_de_vino',
         },
@@ -8677,7 +8677,7 @@ const emojis = [
     },
     {
         code: '🍸',
-        shortcode: {
+        name: {
             en: 'cocktail',
             es: 'cóctel',
         },
@@ -8688,7 +8688,7 @@ const emojis = [
     },
     {
         code: '🍹',
-        shortcode: {
+        name: {
             en: 'tropical_drink',
             es: 'bebida_tropical',
         },
@@ -8699,7 +8699,7 @@ const emojis = [
     },
     {
         code: '🍺',
-        shortcode: {
+        name: {
             en: 'beer',
             es: 'cerveza',
         },
@@ -8710,7 +8710,7 @@ const emojis = [
     },
     {
         code: '🍻',
-        shortcode: {
+        name: {
             en: 'beers',
             es: 'cervezas',
         },
@@ -8721,7 +8721,7 @@ const emojis = [
     },
     {
         code: '🥂',
-        shortcode: {
+        name: {
             en: 'clinking_glasses',
             es: 'copas_brindis',
         },
@@ -8732,7 +8732,7 @@ const emojis = [
     },
     {
         code: '🥃',
-        shortcode: {
+        name: {
             en: 'tumbler_glass',
             es: 'vaso_corto',
         },
@@ -8743,7 +8743,7 @@ const emojis = [
     },
     {
         code: '🥤',
-        shortcode: {
+        name: {
             en: 'cup_with_straw',
             es: 'vaso_con_pajita',
         },
@@ -8754,7 +8754,7 @@ const emojis = [
     },
     {
         code: '🧋',
-        shortcode: {
+        name: {
             en: 'bubble_tea',
             es: 'té_de_burbujas',
         },
@@ -8765,7 +8765,7 @@ const emojis = [
     },
     {
         code: '🧃',
-        shortcode: {
+        name: {
             en: 'beverage_box',
             es: 'tetrabrik',
         },
@@ -8776,7 +8776,7 @@ const emojis = [
     },
     {
         code: '🧉',
-        shortcode: {
+        name: {
             en: 'mate_drink',
             es: 'bebida_de_mate',
         },
@@ -8787,7 +8787,7 @@ const emojis = [
     },
     {
         code: '🧊',
-        shortcode: {
+        name: {
             en: 'ice_cube',
             es: 'cubito_de_hielo',
         },
@@ -8798,7 +8798,7 @@ const emojis = [
     },
     {
         code: '🥢',
-        shortcode: {
+        name: {
             en: 'chopsticks',
             es: 'palillos',
         },
@@ -8809,7 +8809,7 @@ const emojis = [
     },
     {
         code: '🍽️',
-        shortcode: {
+        name: {
             en: 'knife_fork_plate',
             es: 'cuchillo_tenedor_plato',
         },
@@ -8820,7 +8820,7 @@ const emojis = [
     },
     {
         code: '🍴',
-        shortcode: {
+        name: {
             en: 'fork_and_knife',
             es: 'cuchilo_y_tenedor',
         },
@@ -8831,7 +8831,7 @@ const emojis = [
     },
     {
         code: '🥄',
-        shortcode: {
+        name: {
             en: 'spoon',
             es: 'cuchara',
         },
@@ -8842,7 +8842,7 @@ const emojis = [
     },
     {
         code: '🔪',
-        shortcode: {
+        name: {
             en: 'hocho',
             es: 'cuchillo_japonés',
         },
@@ -8853,7 +8853,7 @@ const emojis = [
     },
     {
         code: '🏺',
-        shortcode: {
+        name: {
             en: 'amphora',
             es: 'ánfora',
         },
@@ -8869,7 +8869,7 @@ const emojis = [
     },
     {
         code: '🌍',
-        shortcode: {
+        name: {
             en: 'earth_africa',
             es: 'tierra_áfrica',
         },
@@ -8880,7 +8880,7 @@ const emojis = [
     },
     {
         code: '🌎',
-        shortcode: {
+        name: {
             en: 'earth_americas',
             es: 'tierra_américa',
         },
@@ -8891,7 +8891,7 @@ const emojis = [
     },
     {
         code: '🌏',
-        shortcode: {
+        name: {
             en: 'earth_asia',
             es: 'tierra_asia',
         },
@@ -8902,7 +8902,7 @@ const emojis = [
     },
     {
         code: '🌐',
-        shortcode: {
+        name: {
             en: 'globe_with_meridians',
             es: 'globo_terráqueo_con_meridianos',
         },
@@ -8913,7 +8913,7 @@ const emojis = [
     },
     {
         code: '🗺️',
-        shortcode: {
+        name: {
             en: 'world_map',
             es: 'mapamundi',
         },
@@ -8924,7 +8924,7 @@ const emojis = [
     },
     {
         code: '🗾',
-        shortcode: {
+        name: {
             en: 'japan',
             es: 'japón',
         },
@@ -8935,7 +8935,7 @@ const emojis = [
     },
     {
         code: '🧭',
-        shortcode: {
+        name: {
             en: 'compass',
             es: 'brújula',
         },
@@ -8946,7 +8946,7 @@ const emojis = [
     },
     {
         code: '🏔️',
-        shortcode: {
+        name: {
             en: 'snow_capped_mountain',
             es: 'montaña_con_cima_nevada',
         },
@@ -8957,7 +8957,7 @@ const emojis = [
     },
     {
         code: '⛰️',
-        shortcode: {
+        name: {
             en: 'mountain',
             es: 'montaña',
         },
@@ -8968,7 +8968,7 @@ const emojis = [
     },
     {
         code: '🌋',
-        shortcode: {
+        name: {
             en: 'volcano',
             es: 'volcán',
         },
@@ -8979,7 +8979,7 @@ const emojis = [
     },
     {
         code: '🗻',
-        shortcode: {
+        name: {
             en: 'mount_fuji',
             es: 'monte_fuji',
         },
@@ -8990,7 +8990,7 @@ const emojis = [
     },
     {
         code: '🏕️',
-        shortcode: {
+        name: {
             en: 'camping',
             es: 'campin',
         },
@@ -9001,7 +9001,7 @@ const emojis = [
     },
     {
         code: '🏖️',
-        shortcode: {
+        name: {
             en: 'beach_with_umbrella',
             es: 'playa_con_sombrilla',
         },
@@ -9012,7 +9012,7 @@ const emojis = [
     },
     {
         code: '🏜️',
-        shortcode: {
+        name: {
             en: 'desert',
             es: 'desierto',
         },
@@ -9023,7 +9023,7 @@ const emojis = [
     },
     {
         code: '🏝️',
-        shortcode: {
+        name: {
             en: 'desert_island',
             es: 'isla_desierta',
         },
@@ -9034,7 +9034,7 @@ const emojis = [
     },
     {
         code: '🏞️',
-        shortcode: {
+        name: {
             en: 'national_park',
             es: 'parque_nacional',
         },
@@ -9045,7 +9045,7 @@ const emojis = [
     },
     {
         code: '🏟️',
-        shortcode: {
+        name: {
             en: 'stadium',
             es: 'estadio',
         },
@@ -9056,7 +9056,7 @@ const emojis = [
     },
     {
         code: '🏛️',
-        shortcode: {
+        name: {
             en: 'classical_building',
             es: 'edificio_clásico',
         },
@@ -9067,7 +9067,7 @@ const emojis = [
     },
     {
         code: '🏗️',
-        shortcode: {
+        name: {
             en: 'building_construction',
             es: 'edificio_en_construcción',
         },
@@ -9078,7 +9078,7 @@ const emojis = [
     },
     {
         code: '🧱',
-        shortcode: {
+        name: {
             en: 'bricks',
             es: 'ladrillos',
         },
@@ -9089,7 +9089,7 @@ const emojis = [
     },
     {
         code: '🪨',
-        shortcode: {
+        name: {
             en: 'rock',
             es: 'roca',
         },
@@ -9100,7 +9100,7 @@ const emojis = [
     },
     {
         code: '🪵',
-        shortcode: {
+        name: {
             en: 'wood',
             es: 'madera',
         },
@@ -9111,7 +9111,7 @@ const emojis = [
     },
     {
         code: '🛖',
-        shortcode: {
+        name: {
             en: 'hut',
             es: 'cabaña',
         },
@@ -9122,7 +9122,7 @@ const emojis = [
     },
     {
         code: '🏘️',
-        shortcode: {
+        name: {
             en: 'house_buildings',
             es: 'edificios_de_viviendas',
         },
@@ -9133,7 +9133,7 @@ const emojis = [
     },
     {
         code: '🏚️',
-        shortcode: {
+        name: {
             en: 'derelict_house_building',
             es: 'edificio_de_viviendas_en_ruinas',
         },
@@ -9144,7 +9144,7 @@ const emojis = [
     },
     {
         code: '🏠',
-        shortcode: {
+        name: {
             en: 'house',
             es: 'casa',
         },
@@ -9155,7 +9155,7 @@ const emojis = [
     },
     {
         code: '🏡',
-        shortcode: {
+        name: {
             en: 'house_with_garden',
             es: 'casa_con_jardín',
         },
@@ -9166,7 +9166,7 @@ const emojis = [
     },
     {
         code: '🏢',
-        shortcode: {
+        name: {
             en: 'office',
             es: 'oficina',
         },
@@ -9177,7 +9177,7 @@ const emojis = [
     },
     {
         code: '🏣',
-        shortcode: {
+        name: {
             en: 'post_office',
             es: 'oficina_postal',
         },
@@ -9188,7 +9188,7 @@ const emojis = [
     },
     {
         code: '🏤',
-        shortcode: {
+        name: {
             en: 'european_post_office',
             es: 'oficina_de_correos_europea',
         },
@@ -9199,7 +9199,7 @@ const emojis = [
     },
     {
         code: '🏥',
-        shortcode: {
+        name: {
             en: 'hospital',
             es: 'hospital',
         },
@@ -9210,7 +9210,7 @@ const emojis = [
     },
     {
         code: '🏦',
-        shortcode: {
+        name: {
             en: 'bank',
             es: 'banco',
         },
@@ -9221,7 +9221,7 @@ const emojis = [
     },
     {
         code: '🏨',
-        shortcode: {
+        name: {
             en: 'hotel',
             es: 'hotel',
         },
@@ -9232,7 +9232,7 @@ const emojis = [
     },
     {
         code: '🏩',
-        shortcode: {
+        name: {
             en: 'love_hotel',
             es: 'motel_para_parejas',
         },
@@ -9243,7 +9243,7 @@ const emojis = [
     },
     {
         code: '🏪',
-        shortcode: {
+        name: {
             en: 'convenience_store',
             es: 'tienda_de_barrio',
         },
@@ -9254,7 +9254,7 @@ const emojis = [
     },
     {
         code: '🏫',
-        shortcode: {
+        name: {
             en: 'school',
             es: 'colegio',
         },
@@ -9265,7 +9265,7 @@ const emojis = [
     },
     {
         code: '🏬',
-        shortcode: {
+        name: {
             en: 'department_store',
             es: 'grandes_almacenes',
         },
@@ -9276,7 +9276,7 @@ const emojis = [
     },
     {
         code: '🏭',
-        shortcode: {
+        name: {
             en: 'factory',
             es: 'fábrica',
         },
@@ -9287,7 +9287,7 @@ const emojis = [
     },
     {
         code: '🏯',
-        shortcode: {
+        name: {
             en: 'japanese_castle',
             es: 'castillo_japonés',
         },
@@ -9298,7 +9298,7 @@ const emojis = [
     },
     {
         code: '🏰',
-        shortcode: {
+        name: {
             en: 'european_castle',
             es: 'castillo_europeo',
         },
@@ -9309,7 +9309,7 @@ const emojis = [
     },
     {
         code: '💒',
-        shortcode: {
+        name: {
             en: 'wedding',
             es: 'boda',
         },
@@ -9320,7 +9320,7 @@ const emojis = [
     },
     {
         code: '🗼',
-        shortcode: {
+        name: {
             en: 'tokyo_tower',
             es: 'torre_de_tokio',
         },
@@ -9331,7 +9331,7 @@ const emojis = [
     },
     {
         code: '🗽',
-        shortcode: {
+        name: {
             en: 'statue_of_liberty',
             es: 'estatua_de_la_libertad',
         },
@@ -9342,7 +9342,7 @@ const emojis = [
     },
     {
         code: '⛪',
-        shortcode: {
+        name: {
             en: 'church',
             es: 'iglesia',
         },
@@ -9353,7 +9353,7 @@ const emojis = [
     },
     {
         code: '🕌',
-        shortcode: {
+        name: {
             en: 'mosque',
             es: 'mezquita',
         },
@@ -9364,7 +9364,7 @@ const emojis = [
     },
     {
         code: '🛕',
-        shortcode: {
+        name: {
             en: 'hindu_temple',
             es: 'templo_hindú',
         },
@@ -9375,7 +9375,7 @@ const emojis = [
     },
     {
         code: '🕍',
-        shortcode: {
+        name: {
             en: 'synagogue',
             es: 'sinagoga',
         },
@@ -9386,7 +9386,7 @@ const emojis = [
     },
     {
         code: '⛩️',
-        shortcode: {
+        name: {
             en: 'shinto_shrine',
             es: 'santuario_sintoísta',
         },
@@ -9397,7 +9397,7 @@ const emojis = [
     },
     {
         code: '🕋',
-        shortcode: {
+        name: {
             en: 'kaaba',
             es: 'kaaba',
         },
@@ -9408,7 +9408,7 @@ const emojis = [
     },
     {
         code: '⛲',
-        shortcode: {
+        name: {
             en: 'fountain',
             es: 'fuente',
         },
@@ -9419,7 +9419,7 @@ const emojis = [
     },
     {
         code: '⛺',
-        shortcode: {
+        name: {
             en: 'tent',
             es: 'tienda_de_campaña',
         },
@@ -9430,7 +9430,7 @@ const emojis = [
     },
     {
         code: '🌁',
-        shortcode: {
+        name: {
             en: 'foggy',
             es: 'brumoso',
         },
@@ -9441,7 +9441,7 @@ const emojis = [
     },
     {
         code: '🌃',
-        shortcode: {
+        name: {
             en: 'night_with_stars',
             es: 'noche_estrellada',
         },
@@ -9452,7 +9452,7 @@ const emojis = [
     },
     {
         code: '🏙️',
-        shortcode: {
+        name: {
             en: 'cityscape',
             es: 'paisaje_urbano',
         },
@@ -9463,7 +9463,7 @@ const emojis = [
     },
     {
         code: '🌄',
-        shortcode: {
+        name: {
             en: 'sunrise_over_mountains',
             es: 'amanecer_sobre_las_montañas',
         },
@@ -9474,7 +9474,7 @@ const emojis = [
     },
     {
         code: '🌅',
-        shortcode: {
+        name: {
             en: 'sunrise',
             es: 'amanecer',
         },
@@ -9485,7 +9485,7 @@ const emojis = [
     },
     {
         code: '🌆',
-        shortcode: {
+        name: {
             en: 'city_sunset',
             es: 'puesta_de_sol_urbana',
         },
@@ -9496,7 +9496,7 @@ const emojis = [
     },
     {
         code: '🌇',
-        shortcode: {
+        name: {
             en: 'city_sunrise',
             es: 'amanecer_urbano',
         },
@@ -9507,7 +9507,7 @@ const emojis = [
     },
     {
         code: '🌉',
-        shortcode: {
+        name: {
             en: 'bridge_at_night',
             es: 'puente_de_noche',
         },
@@ -9518,7 +9518,7 @@ const emojis = [
     },
     {
         code: '♨️',
-        shortcode: {
+        name: {
             en: 'hotsprings',
             es: 'aguas_termales',
         },
@@ -9529,7 +9529,7 @@ const emojis = [
     },
     {
         code: '🎠',
-        shortcode: {
+        name: {
             en: 'carousel_horse',
             es: 'caballito_de_carrusel',
         },
@@ -9540,7 +9540,7 @@ const emojis = [
     },
     {
         code: '🎡',
-        shortcode: {
+        name: {
             en: 'ferris_wheel',
             es: 'noria',
         },
@@ -9551,7 +9551,7 @@ const emojis = [
     },
     {
         code: '🎢',
-        shortcode: {
+        name: {
             en: 'roller_coaster',
             es: 'montaña_rusa',
         },
@@ -9562,7 +9562,7 @@ const emojis = [
     },
     {
         code: '💈',
-        shortcode: {
+        name: {
             en: 'barber',
             es: 'barbero',
         },
@@ -9573,7 +9573,7 @@ const emojis = [
     },
     {
         code: '🎪',
-        shortcode: {
+        name: {
             en: 'circus_tent',
             es: 'carpa_de_circo',
         },
@@ -9584,7 +9584,7 @@ const emojis = [
     },
     {
         code: '🚂',
-        shortcode: {
+        name: {
             en: 'steam_locomotive',
             es: 'locomotora_de_vapor',
         },
@@ -9595,7 +9595,7 @@ const emojis = [
     },
     {
         code: '🚃',
-        shortcode: {
+        name: {
             en: 'railway_car',
             es: 'vagón',
         },
@@ -9606,7 +9606,7 @@ const emojis = [
     },
     {
         code: '🚄',
-        shortcode: {
+        name: {
             en: 'bullettrain_side',
             es: 'tren_bala_de_lado',
         },
@@ -9617,7 +9617,7 @@ const emojis = [
     },
     {
         code: '🚅',
-        shortcode: {
+        name: {
             en: 'bullettrain_front',
             es: 'tren_bala_de_frente',
         },
@@ -9628,7 +9628,7 @@ const emojis = [
     },
     {
         code: '🚆',
-        shortcode: {
+        name: {
             en: 'train2',
             es: 'tren2',
         },
@@ -9639,7 +9639,7 @@ const emojis = [
     },
     {
         code: '🚇',
-        shortcode: {
+        name: {
             en: 'metro',
             es: 'metro',
         },
@@ -9650,7 +9650,7 @@ const emojis = [
     },
     {
         code: '🚈',
-        shortcode: {
+        name: {
             en: 'light_rail',
             es: 'tren_ligero',
         },
@@ -9661,7 +9661,7 @@ const emojis = [
     },
     {
         code: '🚉',
-        shortcode: {
+        name: {
             en: 'station',
             es: 'estación',
         },
@@ -9672,7 +9672,7 @@ const emojis = [
     },
     {
         code: '🚊',
-        shortcode: {
+        name: {
             en: 'tram',
             es: 'tranvía',
         },
@@ -9683,7 +9683,7 @@ const emojis = [
     },
     {
         code: '🚝',
-        shortcode: {
+        name: {
             en: 'monorail',
             es: 'monorraíl',
         },
@@ -9694,7 +9694,7 @@ const emojis = [
     },
     {
         code: '🚞',
-        shortcode: {
+        name: {
             en: 'mountain_railway',
             es: 'tren_de_montaña',
         },
@@ -9705,7 +9705,7 @@ const emojis = [
     },
     {
         code: '🚋',
-        shortcode: {
+        name: {
             en: 'train',
             es: 'tren',
         },
@@ -9716,7 +9716,7 @@ const emojis = [
     },
     {
         code: '🚌',
-        shortcode: {
+        name: {
             en: 'bus',
             es: 'autobús',
         },
@@ -9727,7 +9727,7 @@ const emojis = [
     },
     {
         code: '🚍',
-        shortcode: {
+        name: {
             en: 'oncoming_bus',
             es: 'bus_en_sentido_contrario',
         },
@@ -9738,7 +9738,7 @@ const emojis = [
     },
     {
         code: '🚎',
-        shortcode: {
+        name: {
             en: 'trolleybus',
             es: 'trolebús',
         },
@@ -9749,7 +9749,7 @@ const emojis = [
     },
     {
         code: '🚐',
-        shortcode: {
+        name: {
             en: 'minibus',
             es: 'microbús',
         },
@@ -9760,7 +9760,7 @@ const emojis = [
     },
     {
         code: '🚑',
-        shortcode: {
+        name: {
             en: 'ambulance',
             es: 'ambulancia',
         },
@@ -9771,7 +9771,7 @@ const emojis = [
     },
     {
         code: '🚒',
-        shortcode: {
+        name: {
             en: 'fire_engine',
             es: 'camión_de_bomberos',
         },
@@ -9782,7 +9782,7 @@ const emojis = [
     },
     {
         code: '🚓',
-        shortcode: {
+        name: {
             en: 'police_car',
             es: 'coche_patrulla',
         },
@@ -9793,7 +9793,7 @@ const emojis = [
     },
     {
         code: '🚔',
-        shortcode: {
+        name: {
             en: 'oncoming_police_car',
             es: 'coche_de_policía_en_sentido_contrario',
         },
@@ -9804,7 +9804,7 @@ const emojis = [
     },
     {
         code: '🚕',
-        shortcode: {
+        name: {
             en: 'taxi',
             es: 'taxi',
         },
@@ -9815,7 +9815,7 @@ const emojis = [
     },
     {
         code: '🚖',
-        shortcode: {
+        name: {
             en: 'oncoming_taxi',
             es: 'taxi_en_sentido_contrario',
         },
@@ -9826,7 +9826,7 @@ const emojis = [
     },
     {
         code: '🚗',
-        shortcode: {
+        name: {
             en: 'car',
             es: 'coche',
         },
@@ -9837,7 +9837,7 @@ const emojis = [
     },
     {
         code: '🚘',
-        shortcode: {
+        name: {
             en: 'oncoming_automobile',
             es: 'automóvil_en_sentido_contrario',
         },
@@ -9848,7 +9848,7 @@ const emojis = [
     },
     {
         code: '🚙',
-        shortcode: {
+        name: {
             en: 'blue_car',
             es: 'coche_azul',
         },
@@ -9859,7 +9859,7 @@ const emojis = [
     },
     {
         code: '🛻',
-        shortcode: {
+        name: {
             en: 'pickup_truck',
             es: 'camioneta',
         },
@@ -9870,7 +9870,7 @@ const emojis = [
     },
     {
         code: '🚚',
-        shortcode: {
+        name: {
             en: 'truck',
             es: 'camión',
         },
@@ -9881,7 +9881,7 @@ const emojis = [
     },
     {
         code: '🚛',
-        shortcode: {
+        name: {
             en: 'articulated_lorry',
             es: 'camión_articulado',
         },
@@ -9892,7 +9892,7 @@ const emojis = [
     },
     {
         code: '🚜',
-        shortcode: {
+        name: {
             en: 'tractor',
             es: 'tractor',
         },
@@ -9903,7 +9903,7 @@ const emojis = [
     },
     {
         code: '🏎️',
-        shortcode: {
+        name: {
             en: 'racing_car',
             es: 'coche_de_carreras',
         },
@@ -9914,7 +9914,7 @@ const emojis = [
     },
     {
         code: '🏍️',
-        shortcode: {
+        name: {
             en: 'racing_motorcycle',
             es: 'moto_de_carreras',
         },
@@ -9925,7 +9925,7 @@ const emojis = [
     },
     {
         code: '🛵',
-        shortcode: {
+        name: {
             en: 'motor_scooter',
             es: 'vespa',
         },
@@ -9936,7 +9936,7 @@ const emojis = [
     },
     {
         code: '🦽',
-        shortcode: {
+        name: {
             en: 'manual_wheelchair',
             es: 'silla_de_ruedas_manual',
         },
@@ -9947,7 +9947,7 @@ const emojis = [
     },
     {
         code: '🦼',
-        shortcode: {
+        name: {
             en: 'motorized_wheelchair',
             es: 'silla_de_ruedas_eléctrica',
         },
@@ -9958,7 +9958,7 @@ const emojis = [
     },
     {
         code: '🛺',
-        shortcode: {
+        name: {
             en: 'auto_rickshaw',
             es: 'mototaxi',
         },
@@ -9969,7 +9969,7 @@ const emojis = [
     },
     {
         code: '🚲',
-        shortcode: {
+        name: {
             en: 'bike',
             es: 'bicicleta',
         },
@@ -9980,7 +9980,7 @@ const emojis = [
     },
     {
         code: '🛴',
-        shortcode: {
+        name: {
             en: 'scooter',
             es: 'patinete',
         },
@@ -9991,7 +9991,7 @@ const emojis = [
     },
     {
         code: '🛹',
-        shortcode: {
+        name: {
             en: 'skateboard',
             es: 'monopatín',
         },
@@ -10002,7 +10002,7 @@ const emojis = [
     },
     {
         code: '🛼',
-        shortcode: {
+        name: {
             en: 'roller_skate',
             es: 'patines',
         },
@@ -10013,7 +10013,7 @@ const emojis = [
     },
     {
         code: '🚏',
-        shortcode: {
+        name: {
             en: 'busstop',
             es: 'parada_de_autobús',
         },
@@ -10024,7 +10024,7 @@ const emojis = [
     },
     {
         code: '🛣️',
-        shortcode: {
+        name: {
             en: 'motorway',
             es: 'autopista',
         },
@@ -10035,7 +10035,7 @@ const emojis = [
     },
     {
         code: '🛤️',
-        shortcode: {
+        name: {
             en: 'railway_track',
             es: 'vía_de_tren',
         },
@@ -10046,7 +10046,7 @@ const emojis = [
     },
     {
         code: '🛢️',
-        shortcode: {
+        name: {
             en: 'oil_drum',
             es: 'barril_de_petróleo',
         },
@@ -10057,7 +10057,7 @@ const emojis = [
     },
     {
         code: '⛽',
-        shortcode: {
+        name: {
             en: 'fuelpump',
             es: 'surtidor_de_gasolina',
         },
@@ -10068,7 +10068,7 @@ const emojis = [
     },
     {
         code: '🚨',
-        shortcode: {
+        name: {
             en: 'rotating_light',
             es: 'luz_giratoria',
         },
@@ -10079,7 +10079,7 @@ const emojis = [
     },
     {
         code: '🚥',
-        shortcode: {
+        name: {
             en: 'traffic_light',
             es: 'semáforo',
         },
@@ -10090,7 +10090,7 @@ const emojis = [
     },
     {
         code: '🚦',
-        shortcode: {
+        name: {
             en: 'vertical_traffic_light',
             es: 'semáforo_vertical',
         },
@@ -10101,7 +10101,7 @@ const emojis = [
     },
     {
         code: '🛑',
-        shortcode: {
+        name: {
             en: 'octagonal_sign',
             es: 'señal_octogonal',
         },
@@ -10112,7 +10112,7 @@ const emojis = [
     },
     {
         code: '🚧',
-        shortcode: {
+        name: {
             en: 'construction',
             es: 'construcción',
         },
@@ -10123,7 +10123,7 @@ const emojis = [
     },
     {
         code: '⚓',
-        shortcode: {
+        name: {
             en: 'anchor',
             es: 'ancla',
         },
@@ -10134,7 +10134,7 @@ const emojis = [
     },
     {
         code: '⛵',
-        shortcode: {
+        name: {
             en: 'boat',
             es: 'barco_de_vela',
         },
@@ -10145,7 +10145,7 @@ const emojis = [
     },
     {
         code: '🛶',
-        shortcode: {
+        name: {
             en: 'canoe',
             es: 'canoa',
         },
@@ -10156,7 +10156,7 @@ const emojis = [
     },
     {
         code: '🚤',
-        shortcode: {
+        name: {
             en: 'speedboat',
             es: 'lancha_rápida',
         },
@@ -10167,7 +10167,7 @@ const emojis = [
     },
     {
         code: '🛳️',
-        shortcode: {
+        name: {
             en: 'passenger_ship',
             es: 'barco_de_pasajeros',
         },
@@ -10178,7 +10178,7 @@ const emojis = [
     },
     {
         code: '⛴️',
-        shortcode: {
+        name: {
             en: 'ferry',
             es: 'ferri',
         },
@@ -10189,7 +10189,7 @@ const emojis = [
     },
     {
         code: '🛥️',
-        shortcode: {
+        name: {
             en: 'motor_boat',
             es: 'motora',
         },
@@ -10200,7 +10200,7 @@ const emojis = [
     },
     {
         code: '🚢',
-        shortcode: {
+        name: {
             en: 'ship',
             es: 'barco',
         },
@@ -10211,7 +10211,7 @@ const emojis = [
     },
     {
         code: '✈️',
-        shortcode: {
+        name: {
             en: 'airplane',
             es: 'avión',
         },
@@ -10222,7 +10222,7 @@ const emojis = [
     },
     {
         code: '🛩️',
-        shortcode: {
+        name: {
             en: 'small_airplane',
             es: 'avioneta',
         },
@@ -10233,7 +10233,7 @@ const emojis = [
     },
     {
         code: '🛫',
-        shortcode: {
+        name: {
             en: 'airplane_departure',
             es: 'avión_despegando',
         },
@@ -10244,7 +10244,7 @@ const emojis = [
     },
     {
         code: '🛬',
-        shortcode: {
+        name: {
             en: 'airplane_arriving',
             es: 'avión_aterrizando',
         },
@@ -10255,7 +10255,7 @@ const emojis = [
     },
     {
         code: '🪂',
-        shortcode: {
+        name: {
             en: 'parachute',
             es: 'paracaídas',
         },
@@ -10266,7 +10266,7 @@ const emojis = [
     },
     {
         code: '💺',
-        shortcode: {
+        name: {
             en: 'seat',
             es: 'asiento',
         },
@@ -10277,7 +10277,7 @@ const emojis = [
     },
     {
         code: '🚁',
-        shortcode: {
+        name: {
             en: 'helicopter',
             es: 'helicóptero',
         },
@@ -10288,7 +10288,7 @@ const emojis = [
     },
     {
         code: '🚟',
-        shortcode: {
+        name: {
             en: 'suspension_railway',
             es: 'tren_colgante',
         },
@@ -10299,7 +10299,7 @@ const emojis = [
     },
     {
         code: '🚠',
-        shortcode: {
+        name: {
             en: 'mountain_cableway',
             es: 'funicular_de_montaña',
         },
@@ -10310,7 +10310,7 @@ const emojis = [
     },
     {
         code: '🚡',
-        shortcode: {
+        name: {
             en: 'aerial_tramway',
             es: 'teleférico',
         },
@@ -10321,7 +10321,7 @@ const emojis = [
     },
     {
         code: '🛰️',
-        shortcode: {
+        name: {
             en: 'satellite',
             es: 'satélite',
         },
@@ -10332,7 +10332,7 @@ const emojis = [
     },
     {
         code: '🚀',
-        shortcode: {
+        name: {
             en: 'rocket',
             es: 'cohete',
         },
@@ -10343,7 +10343,7 @@ const emojis = [
     },
     {
         code: '🛸',
-        shortcode: {
+        name: {
             en: 'flying_saucer',
             es: 'platillo_volante',
         },
@@ -10354,7 +10354,7 @@ const emojis = [
     },
     {
         code: '🛎️',
-        shortcode: {
+        name: {
             en: 'bellhop_bell',
             es: 'timbre_de_hotel',
         },
@@ -10365,7 +10365,7 @@ const emojis = [
     },
     {
         code: '🧳',
-        shortcode: {
+        name: {
             en: 'luggage',
             es: 'equipaje',
         },
@@ -10376,7 +10376,7 @@ const emojis = [
     },
     {
         code: '⌛',
-        shortcode: {
+        name: {
             en: 'hourglass',
             es: 'reloj_de_arena',
         },
@@ -10387,7 +10387,7 @@ const emojis = [
     },
     {
         code: '⏳',
-        shortcode: {
+        name: {
             en: 'hourglass_flowing_sand',
             es: 'reloj_de_arena_en_marcha',
         },
@@ -10398,7 +10398,7 @@ const emojis = [
     },
     {
         code: '⌚',
-        shortcode: {
+        name: {
             en: 'watch',
             es: 'reloj',
         },
@@ -10409,7 +10409,7 @@ const emojis = [
     },
     {
         code: '⏰',
-        shortcode: {
+        name: {
             en: 'alarm_clock',
             es: 'reloj_de_alarma',
         },
@@ -10420,7 +10420,7 @@ const emojis = [
     },
     {
         code: '⏱️',
-        shortcode: {
+        name: {
             en: 'stopwatch',
             es: 'cronómetro',
         },
@@ -10431,7 +10431,7 @@ const emojis = [
     },
     {
         code: '⏲️',
-        shortcode: {
+        name: {
             en: 'timer_clock',
             es: 'temporizador',
         },
@@ -10442,7 +10442,7 @@ const emojis = [
     },
     {
         code: '🕰️',
-        shortcode: {
+        name: {
             en: 'mantelpiece_clock',
             es: 'reloj_de_repisa',
         },
@@ -10453,7 +10453,7 @@ const emojis = [
     },
     {
         code: '🕛',
-        shortcode: {
+        name: {
             en: 'clock12',
             es: 'reloj12',
         },
@@ -10464,7 +10464,7 @@ const emojis = [
     },
     {
         code: '🕧',
-        shortcode: {
+        name: {
             en: 'clock1230',
             es: 'reloj1230',
         },
@@ -10475,7 +10475,7 @@ const emojis = [
     },
     {
         code: '🕐',
-        shortcode: {
+        name: {
             en: 'clock1',
             es: 'reloj1',
         },
@@ -10486,7 +10486,7 @@ const emojis = [
     },
     {
         code: '🕜',
-        shortcode: {
+        name: {
             en: 'clock130',
             es: 'reloj130',
         },
@@ -10497,7 +10497,7 @@ const emojis = [
     },
     {
         code: '🕑',
-        shortcode: {
+        name: {
             en: 'clock2',
             es: 'reloj2',
         },
@@ -10508,7 +10508,7 @@ const emojis = [
     },
     {
         code: '🕝',
-        shortcode: {
+        name: {
             en: 'clock230',
             es: 'reloj230',
         },
@@ -10519,7 +10519,7 @@ const emojis = [
     },
     {
         code: '🕒',
-        shortcode: {
+        name: {
             en: 'clock3',
             es: 'reloj3',
         },
@@ -10530,7 +10530,7 @@ const emojis = [
     },
     {
         code: '🕞',
-        shortcode: {
+        name: {
             en: 'clock330',
             es: 'reloj330',
         },
@@ -10541,7 +10541,7 @@ const emojis = [
     },
     {
         code: '🕓',
-        shortcode: {
+        name: {
             en: 'clock4',
             es: 'reloj4',
         },
@@ -10552,7 +10552,7 @@ const emojis = [
     },
     {
         code: '🕟',
-        shortcode: {
+        name: {
             en: 'clock430',
             es: 'reloj430',
         },
@@ -10563,7 +10563,7 @@ const emojis = [
     },
     {
         code: '🕔',
-        shortcode: {
+        name: {
             en: 'clock5',
             es: 'reloj5',
         },
@@ -10574,7 +10574,7 @@ const emojis = [
     },
     {
         code: '🕠',
-        shortcode: {
+        name: {
             en: 'clock530',
             es: 'reloj530',
         },
@@ -10585,7 +10585,7 @@ const emojis = [
     },
     {
         code: '🕕',
-        shortcode: {
+        name: {
             en: 'clock6',
             es: 'reloj6',
         },
@@ -10596,7 +10596,7 @@ const emojis = [
     },
     {
         code: '🕡',
-        shortcode: {
+        name: {
             en: 'clock630',
             es: 'reloj630',
         },
@@ -10607,7 +10607,7 @@ const emojis = [
     },
     {
         code: '🕖',
-        shortcode: {
+        name: {
             en: 'clock7',
             es: 'reloj7',
         },
@@ -10618,7 +10618,7 @@ const emojis = [
     },
     {
         code: '🕢',
-        shortcode: {
+        name: {
             en: 'clock730',
             es: 'reloj730',
         },
@@ -10629,7 +10629,7 @@ const emojis = [
     },
     {
         code: '🕗',
-        shortcode: {
+        name: {
             en: 'clock8',
             es: 'reloj8',
         },
@@ -10640,7 +10640,7 @@ const emojis = [
     },
     {
         code: '🕣',
-        shortcode: {
+        name: {
             en: 'clock830',
             es: 'reloj830',
         },
@@ -10651,7 +10651,7 @@ const emojis = [
     },
     {
         code: '🕘',
-        shortcode: {
+        name: {
             en: 'clock9',
             es: 'reloj9',
         },
@@ -10662,7 +10662,7 @@ const emojis = [
     },
     {
         code: '🕤',
-        shortcode: {
+        name: {
             en: 'clock930',
             es: 'reloj930',
         },
@@ -10673,7 +10673,7 @@ const emojis = [
     },
     {
         code: '🕙',
-        shortcode: {
+        name: {
             en: 'clock10',
             es: 'reloj10',
         },
@@ -10684,7 +10684,7 @@ const emojis = [
     },
     {
         code: '🕥',
-        shortcode: {
+        name: {
             en: 'clock1030',
             es: 'reloj1030',
         },
@@ -10695,7 +10695,7 @@ const emojis = [
     },
     {
         code: '🕚',
-        shortcode: {
+        name: {
             en: 'clock11',
             es: 'reloj11',
         },
@@ -10706,7 +10706,7 @@ const emojis = [
     },
     {
         code: '🕦',
-        shortcode: {
+        name: {
             en: 'clock1130',
             es: 'reloj1130',
         },
@@ -10717,7 +10717,7 @@ const emojis = [
     },
     {
         code: '🌑',
-        shortcode: {
+        name: {
             en: 'new_moon',
             es: 'luna_nueva',
         },
@@ -10728,7 +10728,7 @@ const emojis = [
     },
     {
         code: '🌒',
-        shortcode: {
+        name: {
             en: 'waxing_crescent_moon',
             es: 'luna_nueva_visible',
         },
@@ -10739,7 +10739,7 @@ const emojis = [
     },
     {
         code: '🌓',
-        shortcode: {
+        name: {
             en: 'first_quarter_moon',
             es: 'luna_en_cuarto_creciente',
         },
@@ -10750,7 +10750,7 @@ const emojis = [
     },
     {
         code: '🌔',
-        shortcode: {
+        name: {
             en: 'moon',
             es: 'luna',
         },
@@ -10761,7 +10761,7 @@ const emojis = [
     },
     {
         code: '🌕',
-        shortcode: {
+        name: {
             en: 'full_moon',
             es: 'luna_llena',
         },
@@ -10772,7 +10772,7 @@ const emojis = [
     },
     {
         code: '🌖',
-        shortcode: {
+        name: {
             en: 'waning_gibbous_moon',
             es: 'luna_gibosa_menguante',
         },
@@ -10783,7 +10783,7 @@ const emojis = [
     },
     {
         code: '🌗',
-        shortcode: {
+        name: {
             en: 'last_quarter_moon',
             es: 'luna_en_cuarto_menguante',
         },
@@ -10794,7 +10794,7 @@ const emojis = [
     },
     {
         code: '🌘',
-        shortcode: {
+        name: {
             en: 'waning_crescent_moon',
             es: 'luna_menguante',
         },
@@ -10805,7 +10805,7 @@ const emojis = [
     },
     {
         code: '🌙',
-        shortcode: {
+        name: {
             en: 'crescent_moon',
             es: 'luna_creciente',
         },
@@ -10816,7 +10816,7 @@ const emojis = [
     },
     {
         code: '🌚',
-        shortcode: {
+        name: {
             en: 'new_moon_with_face',
             es: 'luna_nueva_con_cara',
         },
@@ -10827,7 +10827,7 @@ const emojis = [
     },
     {
         code: '🌛',
-        shortcode: {
+        name: {
             en: 'first_quarter_moon_with_face',
             es: 'luna_en_cuarto_creciente_con_cara',
         },
@@ -10838,7 +10838,7 @@ const emojis = [
     },
     {
         code: '🌜',
-        shortcode: {
+        name: {
             en: 'last_quarter_moon_with_face',
             es: 'luna_en_cuarto_menguante_con_cara',
         },
@@ -10849,7 +10849,7 @@ const emojis = [
     },
     {
         code: '🌡️',
-        shortcode: {
+        name: {
             en: 'thermometer',
             es: 'termómetro',
         },
@@ -10860,7 +10860,7 @@ const emojis = [
     },
     {
         code: '☀️',
-        shortcode: {
+        name: {
             en: 'sunny',
             es: 'soleado',
         },
@@ -10871,7 +10871,7 @@ const emojis = [
     },
     {
         code: '🌝',
-        shortcode: {
+        name: {
             en: 'full_moon_with_face',
             es: 'luna_llena_con_cara',
         },
@@ -10882,7 +10882,7 @@ const emojis = [
     },
     {
         code: '🌞',
-        shortcode: {
+        name: {
             en: 'sun_with_face',
             es: 'sol_con_cara',
         },
@@ -10893,7 +10893,7 @@ const emojis = [
     },
     {
         code: '🪐',
-        shortcode: {
+        name: {
             en: 'ringed_planet',
             es: 'planeta_con_anillos',
         },
@@ -10904,7 +10904,7 @@ const emojis = [
     },
     {
         code: '⭐',
-        shortcode: {
+        name: {
             en: 'star',
             es: 'estrella',
         },
@@ -10915,7 +10915,7 @@ const emojis = [
     },
     {
         code: '🌟',
-        shortcode: {
+        name: {
             en: 'star2',
             es: 'estrella2',
         },
@@ -10926,7 +10926,7 @@ const emojis = [
     },
     {
         code: '🌠',
-        shortcode: {
+        name: {
             en: 'stars',
             es: 'estrellas',
         },
@@ -10937,7 +10937,7 @@ const emojis = [
     },
     {
         code: '🌌',
-        shortcode: {
+        name: {
             en: 'milky_way',
             es: 'vía_láctea',
         },
@@ -10948,7 +10948,7 @@ const emojis = [
     },
     {
         code: '☁️',
-        shortcode: {
+        name: {
             en: 'cloud',
             es: 'nube',
         },
@@ -10959,7 +10959,7 @@ const emojis = [
     },
     {
         code: '⛅',
-        shortcode: {
+        name: {
             en: 'partly_sunny',
             es: 'parcialmente_soleado',
         },
@@ -10970,7 +10970,7 @@ const emojis = [
     },
     {
         code: '⛈️',
-        shortcode: {
+        name: {
             en: 'thunder_cloud_and_rain',
             es: 'nube_de_truenos_y_lluvia',
         },
@@ -10981,7 +10981,7 @@ const emojis = [
     },
     {
         code: '🌤️',
-        shortcode: {
+        name: {
             en: 'mostly_sunny',
             es: 'casi_todo_soleado',
         },
@@ -10992,7 +10992,7 @@ const emojis = [
     },
     {
         code: '🌥️',
-        shortcode: {
+        name: {
             en: 'barely_sunny',
             es: 'sol_con_nubes',
         },
@@ -11003,7 +11003,7 @@ const emojis = [
     },
     {
         code: '🌦️',
-        shortcode: {
+        name: {
             en: 'partly_sunny_rain',
             es: 'parcialmente_soleado_lluvioso',
         },
@@ -11014,7 +11014,7 @@ const emojis = [
     },
     {
         code: '🌧️',
-        shortcode: {
+        name: {
             en: 'rain_cloud',
             es: 'nube_de_lluvia',
         },
@@ -11025,7 +11025,7 @@ const emojis = [
     },
     {
         code: '🌨️',
-        shortcode: {
+        name: {
             en: 'snow_cloud',
             es: 'nube_de_nieve',
         },
@@ -11036,7 +11036,7 @@ const emojis = [
     },
     {
         code: '🌩️',
-        shortcode: {
+        name: {
             en: 'lightning',
             es: 'relámpago',
         },
@@ -11047,7 +11047,7 @@ const emojis = [
     },
     {
         code: '🌪️',
-        shortcode: {
+        name: {
             en: 'tornado',
             es: 'tornado',
         },
@@ -11058,7 +11058,7 @@ const emojis = [
     },
     {
         code: '🌫️',
-        shortcode: {
+        name: {
             en: 'fog',
             es: 'niebla',
         },
@@ -11069,7 +11069,7 @@ const emojis = [
     },
     {
         code: '🌬️',
-        shortcode: {
+        name: {
             en: 'wind_blowing_face',
             es: 'cara_soplando_viento',
         },
@@ -11080,7 +11080,7 @@ const emojis = [
     },
     {
         code: '🌀',
-        shortcode: {
+        name: {
             en: 'cyclone',
             es: 'ciclón',
         },
@@ -11091,7 +11091,7 @@ const emojis = [
     },
     {
         code: '🌈',
-        shortcode: {
+        name: {
             en: 'rainbow',
             es: 'arco_iris',
         },
@@ -11102,7 +11102,7 @@ const emojis = [
     },
     {
         code: '🌂',
-        shortcode: {
+        name: {
             en: 'closed_umbrella',
             es: 'paraguas_cerrado',
         },
@@ -11113,7 +11113,7 @@ const emojis = [
     },
     {
         code: '☂️',
-        shortcode: {
+        name: {
             en: 'umbrella',
             es: 'paraguas',
         },
@@ -11124,7 +11124,7 @@ const emojis = [
     },
     {
         code: '☔',
-        shortcode: {
+        name: {
             en: 'umbrella_with_rain_drops',
             es: 'paraguas_con_gotas_de_lluvia',
         },
@@ -11135,7 +11135,7 @@ const emojis = [
     },
     {
         code: '⛱️',
-        shortcode: {
+        name: {
             en: 'umbrella_on_ground',
             es: 'paraguas_en_el_suelo',
         },
@@ -11146,7 +11146,7 @@ const emojis = [
     },
     {
         code: '⚡',
-        shortcode: {
+        name: {
             en: 'zap',
             es: 'alto_voltaje',
         },
@@ -11157,7 +11157,7 @@ const emojis = [
     },
     {
         code: '❄️',
-        shortcode: {
+        name: {
             en: 'snowflake',
             es: 'copo_de_nieve',
         },
@@ -11168,7 +11168,7 @@ const emojis = [
     },
     {
         code: '☃️',
-        shortcode: {
+        name: {
             en: 'snowman',
             es: 'muñeco_de_nieve',
         },
@@ -11179,7 +11179,7 @@ const emojis = [
     },
     {
         code: '⛄',
-        shortcode: {
+        name: {
             en: 'snowman_without_snow',
             es: 'muñeco_de_nieve_sin_nieve',
         },
@@ -11190,7 +11190,7 @@ const emojis = [
     },
     {
         code: '☄️',
-        shortcode: {
+        name: {
             en: 'comet',
             es: 'astro_cometa',
         },
@@ -11201,7 +11201,7 @@ const emojis = [
     },
     {
         code: '🔥',
-        shortcode: {
+        name: {
             en: 'fire',
             es: 'fuego',
         },
@@ -11212,7 +11212,7 @@ const emojis = [
     },
     {
         code: '💧',
-        shortcode: {
+        name: {
             en: 'droplet',
             es: 'gota',
         },
@@ -11223,7 +11223,7 @@ const emojis = [
     },
     {
         code: '🌊',
-        shortcode: {
+        name: {
             en: 'ocean',
             es: 'océano',
         },
@@ -11239,7 +11239,7 @@ const emojis = [
     },
     {
         code: '🎃',
-        shortcode: {
+        name: {
             en: 'jack_o_lantern',
             es: 'calabaza_iluminada',
         },
@@ -11250,7 +11250,7 @@ const emojis = [
     },
     {
         code: '🎄',
-        shortcode: {
+        name: {
             en: 'christmas_tree',
             es: 'árbol_de_navidad',
         },
@@ -11261,7 +11261,7 @@ const emojis = [
     },
     {
         code: '🎆',
-        shortcode: {
+        name: {
             en: 'fireworks',
             es: 'fuegos_artificiales',
         },
@@ -11272,7 +11272,7 @@ const emojis = [
     },
     {
         code: '🎇',
-        shortcode: {
+        name: {
             en: 'sparkler',
             es: 'bengala',
         },
@@ -11283,7 +11283,7 @@ const emojis = [
     },
     {
         code: '🧨',
-        shortcode: {
+        name: {
             en: 'firecracker',
             es: 'petardo',
         },
@@ -11294,7 +11294,7 @@ const emojis = [
     },
     {
         code: '✨',
-        shortcode: {
+        name: {
             en: 'sparkles',
             es: 'destellos',
         },
@@ -11305,7 +11305,7 @@ const emojis = [
     },
     {
         code: '🎈',
-        shortcode: {
+        name: {
             en: 'balloon',
             es: 'globo',
         },
@@ -11316,7 +11316,7 @@ const emojis = [
     },
     {
         code: '🎉',
-        shortcode: {
+        name: {
             en: 'tada',
             es: 'gorro_de_fiesta',
         },
@@ -11327,7 +11327,7 @@ const emojis = [
     },
     {
         code: '🎊',
-        shortcode: {
+        name: {
             en: 'confetti_ball',
             es: 'bola_de_confeti',
         },
@@ -11338,7 +11338,7 @@ const emojis = [
     },
     {
         code: '🎋',
-        shortcode: {
+        name: {
             en: 'tanabata_tree',
             es: 'árbol_de_los_deseos',
         },
@@ -11349,7 +11349,7 @@ const emojis = [
     },
     {
         code: '🎍',
-        shortcode: {
+        name: {
             en: 'bamboo',
             es: 'bambú',
         },
@@ -11360,7 +11360,7 @@ const emojis = [
     },
     {
         code: '🎎',
-        shortcode: {
+        name: {
             en: 'dolls',
             es: 'muñecas',
         },
@@ -11371,7 +11371,7 @@ const emojis = [
     },
     {
         code: '🎏',
-        shortcode: {
+        name: {
             en: 'flags',
             es: 'banderas',
         },
@@ -11382,7 +11382,7 @@ const emojis = [
     },
     {
         code: '🎐',
-        shortcode: {
+        name: {
             en: 'wind_chime',
             es: 'campanilla_de_viento',
         },
@@ -11393,7 +11393,7 @@ const emojis = [
     },
     {
         code: '🎑',
-        shortcode: {
+        name: {
             en: 'rice_scene',
             es: 'espiga_de_arroz',
         },
@@ -11404,7 +11404,7 @@ const emojis = [
     },
     {
         code: '🧧',
-        shortcode: {
+        name: {
             en: 'red_envelope',
             es: 'sobre_rojo',
         },
@@ -11415,7 +11415,7 @@ const emojis = [
     },
     {
         code: '🎀',
-        shortcode: {
+        name: {
             en: 'ribbon',
             es: 'cinta',
         },
@@ -11426,7 +11426,7 @@ const emojis = [
     },
     {
         code: '🎁',
-        shortcode: {
+        name: {
             en: 'gift',
             es: 'regalo',
         },
@@ -11437,7 +11437,7 @@ const emojis = [
     },
     {
         code: '🎗️',
-        shortcode: {
+        name: {
             en: 'reminder_ribbon',
             es: 'lazo_de_apoyo',
         },
@@ -11448,7 +11448,7 @@ const emojis = [
     },
     {
         code: '🎟️',
-        shortcode: {
+        name: {
             en: 'admission_tickets',
             es: 'boletos_de_entrada',
         },
@@ -11459,7 +11459,7 @@ const emojis = [
     },
     {
         code: '🎫',
-        shortcode: {
+        name: {
             en: 'ticket',
             es: 'tique',
         },
@@ -11470,7 +11470,7 @@ const emojis = [
     },
     {
         code: '🎖️',
-        shortcode: {
+        name: {
             en: 'medal',
             es: 'medalla',
         },
@@ -11481,7 +11481,7 @@ const emojis = [
     },
     {
         code: '🏆',
-        shortcode: {
+        name: {
             en: 'trophy',
             es: 'trofeo',
         },
@@ -11492,7 +11492,7 @@ const emojis = [
     },
     {
         code: '🏅',
-        shortcode: {
+        name: {
             en: 'sports_medal',
             es: 'medalla_deportiva',
         },
@@ -11503,7 +11503,7 @@ const emojis = [
     },
     {
         code: '🥇',
-        shortcode: {
+        name: {
             en: 'first_place_medal',
             es: 'medalla_de_oro',
         },
@@ -11514,7 +11514,7 @@ const emojis = [
     },
     {
         code: '🥈',
-        shortcode: {
+        name: {
             en: 'second_place_medal',
             es: 'medalla_de_plata',
         },
@@ -11525,7 +11525,7 @@ const emojis = [
     },
     {
         code: '🥉',
-        shortcode: {
+        name: {
             en: 'third_place_medal',
             es: 'medalla_de_bronce',
         },
@@ -11536,7 +11536,7 @@ const emojis = [
     },
     {
         code: '⚽',
-        shortcode: {
+        name: {
             en: 'soccer',
             es: 'fútbol',
         },
@@ -11547,7 +11547,7 @@ const emojis = [
     },
     {
         code: '⚾',
-        shortcode: {
+        name: {
             en: 'baseball',
             es: 'béisbol',
         },
@@ -11558,7 +11558,7 @@ const emojis = [
     },
     {
         code: '🥎',
-        shortcode: {
+        name: {
             en: 'softball',
             es: 'pelota_de_softball',
         },
@@ -11569,7 +11569,7 @@ const emojis = [
     },
     {
         code: '🏀',
-        shortcode: {
+        name: {
             en: 'basketball',
             es: 'baloncesto',
         },
@@ -11580,7 +11580,7 @@ const emojis = [
     },
     {
         code: '🏐',
-        shortcode: {
+        name: {
             en: 'volleyball',
             es: 'voleibol',
         },
@@ -11591,7 +11591,7 @@ const emojis = [
     },
     {
         code: '🏈',
-        shortcode: {
+        name: {
             en: 'football',
             es: 'balón_de_fútbol_americano',
         },
@@ -11602,7 +11602,7 @@ const emojis = [
     },
     {
         code: '🏉',
-        shortcode: {
+        name: {
             en: 'rugby_football',
             es: 'pelota_de_rugby',
         },
@@ -11613,7 +11613,7 @@ const emojis = [
     },
     {
         code: '🎾',
-        shortcode: {
+        name: {
             en: 'tennis',
             es: 'tenis',
         },
@@ -11624,7 +11624,7 @@ const emojis = [
     },
     {
         code: '🥏',
-        shortcode: {
+        name: {
             en: 'flying_disc',
             es: 'disco_volador',
         },
@@ -11635,7 +11635,7 @@ const emojis = [
     },
     {
         code: '🎳',
-        shortcode: {
+        name: {
             en: 'bowling',
             es: 'bolos',
         },
@@ -11646,7 +11646,7 @@ const emojis = [
     },
     {
         code: '🏏',
-        shortcode: {
+        name: {
             en: 'cricket_bat_and_ball',
             es: 'pelota_y_bate_de_cricket',
         },
@@ -11657,7 +11657,7 @@ const emojis = [
     },
     {
         code: '🏑',
-        shortcode: {
+        name: {
             en: 'field_hockey_stick_and_ball',
             es: 'palo_y_pelota_de_hockey',
         },
@@ -11668,7 +11668,7 @@ const emojis = [
     },
     {
         code: '🏒',
-        shortcode: {
+        name: {
             en: 'ice_hockey_stick_and_puck',
             es: 'palo_y_disco_de_hockey_sobre_hielo',
         },
@@ -11679,7 +11679,7 @@ const emojis = [
     },
     {
         code: '🥍',
-        shortcode: {
+        name: {
             en: 'lacrosse',
             es: 'lacrosse',
         },
@@ -11690,7 +11690,7 @@ const emojis = [
     },
     {
         code: '🏓',
-        shortcode: {
+        name: {
             en: 'table_tennis_paddle_and_ball',
             es: 'raqueta_y_pelota_de_tenis_de_mesa',
         },
@@ -11701,7 +11701,7 @@ const emojis = [
     },
     {
         code: '🏸',
-        shortcode: {
+        name: {
             en: 'badminton_racquet_and_shuttlecock',
             es: 'raqueta_y_pluma_de_bádminton',
         },
@@ -11712,7 +11712,7 @@ const emojis = [
     },
     {
         code: '🥊',
-        shortcode: {
+        name: {
             en: 'boxing_glove',
             es: 'guante-boxeo',
         },
@@ -11723,7 +11723,7 @@ const emojis = [
     },
     {
         code: '🥋',
-        shortcode: {
+        name: {
             en: 'martial_arts_uniform',
             es: 'uniforme_artes_marciales',
         },
@@ -11734,7 +11734,7 @@ const emojis = [
     },
     {
         code: '🥅',
-        shortcode: {
+        name: {
             en: 'goal_net',
             es: 'portería',
         },
@@ -11745,7 +11745,7 @@ const emojis = [
     },
     {
         code: '⛳',
-        shortcode: {
+        name: {
             en: 'golf',
             es: 'golf',
         },
@@ -11756,7 +11756,7 @@ const emojis = [
     },
     {
         code: '⛸️',
-        shortcode: {
+        name: {
             en: 'ice_skate',
             es: 'patinaje_sobre_hielo',
         },
@@ -11767,7 +11767,7 @@ const emojis = [
     },
     {
         code: '🎣',
-        shortcode: {
+        name: {
             en: 'fishing_pole_and_fish',
             es: 'caña_de_pescar_y_pez',
         },
@@ -11778,7 +11778,7 @@ const emojis = [
     },
     {
         code: '🤿',
-        shortcode: {
+        name: {
             en: 'diving_mask',
             es: 'máscara_de_buceo',
         },
@@ -11789,7 +11789,7 @@ const emojis = [
     },
     {
         code: '🎽',
-        shortcode: {
+        name: {
             en: 'running_shirt_with_sash',
             es: 'camiseta_de_correr_con_franja',
         },
@@ -11800,7 +11800,7 @@ const emojis = [
     },
     {
         code: '🎿',
-        shortcode: {
+        name: {
             en: 'ski',
             es: 'esquí',
         },
@@ -11811,7 +11811,7 @@ const emojis = [
     },
     {
         code: '🛷',
-        shortcode: {
+        name: {
             en: 'sled',
             es: 'trineo',
         },
@@ -11822,7 +11822,7 @@ const emojis = [
     },
     {
         code: '🥌',
-        shortcode: {
+        name: {
             en: 'curling_stone',
             es: 'piedra_curling',
         },
@@ -11833,7 +11833,7 @@ const emojis = [
     },
     {
         code: '🎯',
-        shortcode: {
+        name: {
             en: 'dart',
             es: 'dardo',
         },
@@ -11844,7 +11844,7 @@ const emojis = [
     },
     {
         code: '🪀',
-        shortcode: {
+        name: {
             en: 'yo-yo',
             es: 'yoyó',
         },
@@ -11855,7 +11855,7 @@ const emojis = [
     },
     {
         code: '🪁',
-        shortcode: {
+        name: {
             en: 'kite',
             es: 'cometa',
         },
@@ -11866,7 +11866,7 @@ const emojis = [
     },
     {
         code: '🔫',
-        shortcode: {
+        name: {
             en: 'gun',
             es: 'pistola',
         },
@@ -11877,7 +11877,7 @@ const emojis = [
     },
     {
         code: '🎱',
-        shortcode: {
+        name: {
             en: '8ball',
             es: 'bola_ocho',
         },
@@ -11888,7 +11888,7 @@ const emojis = [
     },
     {
         code: '🔮',
-        shortcode: {
+        name: {
             en: 'crystal_ball',
             es: 'bola_de_cristal',
         },
@@ -11899,7 +11899,7 @@ const emojis = [
     },
     {
         code: '🪄',
-        shortcode: {
+        name: {
             en: 'magic_wand',
             es: 'varita_mágica',
         },
@@ -11910,7 +11910,7 @@ const emojis = [
     },
     {
         code: '🎮',
-        shortcode: {
+        name: {
             en: 'video_game',
             es: 'videojuego',
         },
@@ -11921,7 +11921,7 @@ const emojis = [
     },
     {
         code: '🕹️',
-        shortcode: {
+        name: {
             en: 'joystick',
             es: 'palanca_de_mando',
         },
@@ -11932,7 +11932,7 @@ const emojis = [
     },
     {
         code: '🎰',
-        shortcode: {
+        name: {
             en: 'slot_machine',
             es: 'tragaperras',
         },
@@ -11943,7 +11943,7 @@ const emojis = [
     },
     {
         code: '🎲',
-        shortcode: {
+        name: {
             en: 'game_die',
             es: 'dado',
         },
@@ -11954,7 +11954,7 @@ const emojis = [
     },
     {
         code: '🧩',
-        shortcode: {
+        name: {
             en: 'jigsaw',
             es: 'pieza_de_puzle',
         },
@@ -11965,7 +11965,7 @@ const emojis = [
     },
     {
         code: '🧸',
-        shortcode: {
+        name: {
             en: 'teddy_bear',
             es: 'osito_de_peluche',
         },
@@ -11976,7 +11976,7 @@ const emojis = [
     },
     {
         code: '🪅',
-        shortcode: {
+        name: {
             en: 'pinata',
             es: 'piñata',
         },
@@ -11987,7 +11987,7 @@ const emojis = [
     },
     {
         code: '🪆',
-        shortcode: {
+        name: {
             en: 'nesting_dolls',
             es: 'muñeca_rusa',
         },
@@ -11998,7 +11998,7 @@ const emojis = [
     },
     {
         code: '♠️',
-        shortcode: {
+        name: {
             en: 'spades',
             es: 'picas',
         },
@@ -12009,7 +12009,7 @@ const emojis = [
     },
     {
         code: '♥️',
-        shortcode: {
+        name: {
             en: 'hearts',
             es: 'corazones',
         },
@@ -12020,7 +12020,7 @@ const emojis = [
     },
     {
         code: '♦️',
-        shortcode: {
+        name: {
             en: 'diamonds',
             es: 'diamantes',
         },
@@ -12031,7 +12031,7 @@ const emojis = [
     },
     {
         code: '♣️',
-        shortcode: {
+        name: {
             en: 'clubs',
             es: 'tréboles',
         },
@@ -12042,7 +12042,7 @@ const emojis = [
     },
     {
         code: '♟️',
-        shortcode: {
+        name: {
             en: 'chess_pawn',
             es: 'peón_de_ajedrez',
         },
@@ -12053,7 +12053,7 @@ const emojis = [
     },
     {
         code: '🃏',
-        shortcode: {
+        name: {
             en: 'black_joker',
             es: 'comodín_negro',
         },
@@ -12064,7 +12064,7 @@ const emojis = [
     },
     {
         code: '🀄',
-        shortcode: {
+        name: {
             en: 'mahjong',
             es: 'dragón_rojo',
         },
@@ -12075,7 +12075,7 @@ const emojis = [
     },
     {
         code: '🎴',
-        shortcode: {
+        name: {
             en: 'flower_playing_cards',
             es: 'cartas-de_juegos_de_asociación',
         },
@@ -12086,7 +12086,7 @@ const emojis = [
     },
     {
         code: '🎭',
-        shortcode: {
+        name: {
             en: 'performing_arts',
             es: 'artes_escénicas',
         },
@@ -12097,7 +12097,7 @@ const emojis = [
     },
     {
         code: '🖼️',
-        shortcode: {
+        name: {
             en: 'frame_with_picture',
             es: 'marco_con_foto',
         },
@@ -12108,7 +12108,7 @@ const emojis = [
     },
     {
         code: '🎨',
-        shortcode: {
+        name: {
             en: 'art',
             es: 'arte',
         },
@@ -12119,7 +12119,7 @@ const emojis = [
     },
     {
         code: '🧵',
-        shortcode: {
+        name: {
             en: 'thread',
             es: 'hilo',
         },
@@ -12130,7 +12130,7 @@ const emojis = [
     },
     {
         code: '🪡',
-        shortcode: {
+        name: {
             en: 'sewing_needle',
             es: 'aguja_de_coser',
         },
@@ -12141,7 +12141,7 @@ const emojis = [
     },
     {
         code: '🧶',
-        shortcode: {
+        name: {
             en: 'yarn',
             es: 'ovillo',
         },
@@ -12152,7 +12152,7 @@ const emojis = [
     },
     {
         code: '🪢',
-        shortcode: {
+        name: {
             en: 'knot',
             es: 'nudo',
         },
@@ -12168,7 +12168,7 @@ const emojis = [
     },
     {
         code: '👓',
-        shortcode: {
+        name: {
             en: 'eyeglasses',
             es: 'gafas',
         },
@@ -12179,7 +12179,7 @@ const emojis = [
     },
     {
         code: '🕶️',
-        shortcode: {
+        name: {
             en: 'dark_sunglasses',
             es: 'gafas_de_sol_oscuras',
         },
@@ -12190,7 +12190,7 @@ const emojis = [
     },
     {
         code: '🥽',
-        shortcode: {
+        name: {
             en: 'goggles',
             es: 'gafas_de_protección',
         },
@@ -12201,7 +12201,7 @@ const emojis = [
     },
     {
         code: '🥼',
-        shortcode: {
+        name: {
             en: 'lab_coat',
             es: 'bata_de_laboratorio',
         },
@@ -12212,7 +12212,7 @@ const emojis = [
     },
     {
         code: '🦺',
-        shortcode: {
+        name: {
             en: 'safety_vest',
             es: 'chaleco_de_seguridad',
         },
@@ -12223,7 +12223,7 @@ const emojis = [
     },
     {
         code: '👔',
-        shortcode: {
+        name: {
             en: 'necktie',
             es: 'corbata',
         },
@@ -12234,7 +12234,7 @@ const emojis = [
     },
     {
         code: '👕',
-        shortcode: {
+        name: {
             en: 'shirt',
             es: 'camiseta',
         },
@@ -12245,7 +12245,7 @@ const emojis = [
     },
     {
         code: '👖',
-        shortcode: {
+        name: {
             en: 'jeans',
             es: 'vaqueros',
         },
@@ -12256,7 +12256,7 @@ const emojis = [
     },
     {
         code: '🧣',
-        shortcode: {
+        name: {
             en: 'scarf',
             es: 'bufanda',
         },
@@ -12267,7 +12267,7 @@ const emojis = [
     },
     {
         code: '🧤',
-        shortcode: {
+        name: {
             en: 'gloves',
             es: 'guantes',
         },
@@ -12278,7 +12278,7 @@ const emojis = [
     },
     {
         code: '🧥',
-        shortcode: {
+        name: {
             en: 'coat',
             es: 'abrigo',
         },
@@ -12289,7 +12289,7 @@ const emojis = [
     },
     {
         code: '🧦',
-        shortcode: {
+        name: {
             en: 'socks',
             es: 'calcetines',
         },
@@ -12300,7 +12300,7 @@ const emojis = [
     },
     {
         code: '👗',
-        shortcode: {
+        name: {
             en: 'dress',
             es: 'vestido',
         },
@@ -12311,7 +12311,7 @@ const emojis = [
     },
     {
         code: '👘',
-        shortcode: {
+        name: {
             en: 'kimono',
             es: 'kimono',
         },
@@ -12322,7 +12322,7 @@ const emojis = [
     },
     {
         code: '🥻',
-        shortcode: {
+        name: {
             en: 'sari',
             es: 'sari',
         },
@@ -12333,7 +12333,7 @@ const emojis = [
     },
     {
         code: '🩱',
-        shortcode: {
+        name: {
             en: 'one-piece_swimsuit',
             es: 'traje_de_baño_de_una_pieza',
         },
@@ -12344,7 +12344,7 @@ const emojis = [
     },
     {
         code: '🩲',
-        shortcode: {
+        name: {
             en: 'briefs',
             es: 'ropa_interior',
         },
@@ -12355,7 +12355,7 @@ const emojis = [
     },
     {
         code: '🩳',
-        shortcode: {
+        name: {
             en: 'shorts',
             es: 'pantalones_cortos',
         },
@@ -12366,7 +12366,7 @@ const emojis = [
     },
     {
         code: '👙',
-        shortcode: {
+        name: {
             en: 'bikini',
             es: 'bikini',
         },
@@ -12377,7 +12377,7 @@ const emojis = [
     },
     {
         code: '👚',
-        shortcode: {
+        name: {
             en: 'womans_clothes',
             es: 'ropa_de_mujer',
         },
@@ -12388,7 +12388,7 @@ const emojis = [
     },
     {
         code: '👛',
-        shortcode: {
+        name: {
             en: 'purse',
             es: 'cartera_de_mano',
         },
@@ -12399,7 +12399,7 @@ const emojis = [
     },
     {
         code: '👜',
-        shortcode: {
+        name: {
             en: 'handbag',
             es: 'bolso',
         },
@@ -12410,7 +12410,7 @@ const emojis = [
     },
     {
         code: '👝',
-        shortcode: {
+        name: {
             en: 'pouch',
             es: 'cartera',
         },
@@ -12421,7 +12421,7 @@ const emojis = [
     },
     {
         code: '🛍️',
-        shortcode: {
+        name: {
             en: 'shopping_bags',
             es: 'bolsas_de_la_compra',
         },
@@ -12432,7 +12432,7 @@ const emojis = [
     },
     {
         code: '🎒',
-        shortcode: {
+        name: {
             en: 'school_satchel',
             es: 'mochila',
         },
@@ -12443,7 +12443,7 @@ const emojis = [
     },
     {
         code: '🩴',
-        shortcode: {
+        name: {
             en: 'thong_sandal',
             es: 'chancla',
         },
@@ -12454,7 +12454,7 @@ const emojis = [
     },
     {
         code: '👞',
-        shortcode: {
+        name: {
             en: 'mans_shoe',
             es: 'zapatos_de_hombre',
         },
@@ -12465,7 +12465,7 @@ const emojis = [
     },
     {
         code: '👟',
-        shortcode: {
+        name: {
             en: 'athletic_shoe',
             es: 'zapatilla_de_atletismo',
         },
@@ -12476,7 +12476,7 @@ const emojis = [
     },
     {
         code: '🥾',
-        shortcode: {
+        name: {
             en: 'hiking_boot',
             es: 'bota_de_senderismo',
         },
@@ -12487,7 +12487,7 @@ const emojis = [
     },
     {
         code: '🥿',
-        shortcode: {
+        name: {
             en: 'womans_flat_shoe',
             es: 'bailarina',
         },
@@ -12498,7 +12498,7 @@ const emojis = [
     },
     {
         code: '👠',
-        shortcode: {
+        name: {
             en: 'high_heel',
             es: 'tacón_de_aguja',
         },
@@ -12509,7 +12509,7 @@ const emojis = [
     },
     {
         code: '👡',
-        shortcode: {
+        name: {
             en: 'sandal',
             es: 'sandalia',
         },
@@ -12520,7 +12520,7 @@ const emojis = [
     },
     {
         code: '🩰',
-        shortcode: {
+        name: {
             en: 'ballet_shoes',
             es: 'zapatillas_de_ballet',
         },
@@ -12531,7 +12531,7 @@ const emojis = [
     },
     {
         code: '👢',
-        shortcode: {
+        name: {
             en: 'boot',
             es: 'bota',
         },
@@ -12542,7 +12542,7 @@ const emojis = [
     },
     {
         code: '👑',
-        shortcode: {
+        name: {
             en: 'crown',
             es: 'corona',
         },
@@ -12553,7 +12553,7 @@ const emojis = [
     },
     {
         code: '👒',
-        shortcode: {
+        name: {
             en: 'womans_hat',
             es: 'sombrero_de_mujer',
         },
@@ -12564,7 +12564,7 @@ const emojis = [
     },
     {
         code: '🎩',
-        shortcode: {
+        name: {
             en: 'tophat',
             es: 'sombrero_de_copa',
         },
@@ -12575,7 +12575,7 @@ const emojis = [
     },
     {
         code: '🎓',
-        shortcode: {
+        name: {
             en: 'mortar_board',
             es: 'birrete',
         },
@@ -12586,7 +12586,7 @@ const emojis = [
     },
     {
         code: '🧢',
-        shortcode: {
+        name: {
             en: 'billed_cap',
             es: 'gorra',
         },
@@ -12597,7 +12597,7 @@ const emojis = [
     },
     {
         code: '🪖',
-        shortcode: {
+        name: {
             en: 'military_helmet',
             es: 'casco_militar',
         },
@@ -12608,7 +12608,7 @@ const emojis = [
     },
     {
         code: '⛑️',
-        shortcode: {
+        name: {
             en: 'helmet_with_white_cross',
             es: 'casco_con_cruz_blanca',
         },
@@ -12619,7 +12619,7 @@ const emojis = [
     },
     {
         code: '📿',
-        shortcode: {
+        name: {
             en: 'prayer_beads',
             es: 'rosario',
         },
@@ -12630,7 +12630,7 @@ const emojis = [
     },
     {
         code: '💄',
-        shortcode: {
+        name: {
             en: 'lipstick',
             es: 'lápiz_labial',
         },
@@ -12641,7 +12641,7 @@ const emojis = [
     },
     {
         code: '💍',
-        shortcode: {
+        name: {
             en: 'ring',
             es: 'anillo',
         },
@@ -12652,7 +12652,7 @@ const emojis = [
     },
     {
         code: '💎',
-        shortcode: {
+        name: {
             en: 'gem',
             es: 'joya',
         },
@@ -12663,7 +12663,7 @@ const emojis = [
     },
     {
         code: '🔇',
-        shortcode: {
+        name: {
             en: 'mute',
             es: 'mudo',
         },
@@ -12674,7 +12674,7 @@ const emojis = [
     },
     {
         code: '🔈',
-        shortcode: {
+        name: {
             en: 'speaker',
             es: 'altavoz',
         },
@@ -12685,7 +12685,7 @@ const emojis = [
     },
     {
         code: '🔉',
-        shortcode: {
+        name: {
             en: 'sound',
             es: 'sonido',
         },
@@ -12696,7 +12696,7 @@ const emojis = [
     },
     {
         code: '🔊',
-        shortcode: {
+        name: {
             en: 'loud_sound',
             es: 'sonido_agudo',
         },
@@ -12707,7 +12707,7 @@ const emojis = [
     },
     {
         code: '📢',
-        shortcode: {
+        name: {
             en: 'loudspeaker',
             es: 'altavoz_sonando',
         },
@@ -12718,7 +12718,7 @@ const emojis = [
     },
     {
         code: '📣',
-        shortcode: {
+        name: {
             en: 'mega',
             es: 'mega',
         },
@@ -12729,7 +12729,7 @@ const emojis = [
     },
     {
         code: '📯',
-        shortcode: {
+        name: {
             en: 'postal_horn',
             es: 'corneta',
         },
@@ -12740,7 +12740,7 @@ const emojis = [
     },
     {
         code: '🔔',
-        shortcode: {
+        name: {
             en: 'bell',
             es: 'campana',
         },
@@ -12751,7 +12751,7 @@ const emojis = [
     },
     {
         code: '🔕',
-        shortcode: {
+        name: {
             en: 'no_bell',
             es: 'prohibido_claxon',
         },
@@ -12762,7 +12762,7 @@ const emojis = [
     },
     {
         code: '🎼',
-        shortcode: {
+        name: {
             en: 'musical_score',
             es: 'partitura',
         },
@@ -12773,7 +12773,7 @@ const emojis = [
     },
     {
         code: '🎵',
-        shortcode: {
+        name: {
             en: 'musical_note',
             es: 'nota_musical',
         },
@@ -12784,7 +12784,7 @@ const emojis = [
     },
     {
         code: '🎶',
-        shortcode: {
+        name: {
             en: 'notes',
             es: 'notas',
         },
@@ -12795,7 +12795,7 @@ const emojis = [
     },
     {
         code: '🎙️',
-        shortcode: {
+        name: {
             en: 'studio_microphone',
             es: 'micrófono_de_estudio',
         },
@@ -12806,7 +12806,7 @@ const emojis = [
     },
     {
         code: '🎚️',
-        shortcode: {
+        name: {
             en: 'level_slider',
             es: 'indicador_de_nivel',
         },
@@ -12817,7 +12817,7 @@ const emojis = [
     },
     {
         code: '🎛️',
-        shortcode: {
+        name: {
             en: 'control_knobs',
             es: 'mandos_de_control',
         },
@@ -12828,7 +12828,7 @@ const emojis = [
     },
     {
         code: '🎤',
-        shortcode: {
+        name: {
             en: 'microphone',
             es: 'micrófono',
         },
@@ -12839,7 +12839,7 @@ const emojis = [
     },
     {
         code: '🎧',
-        shortcode: {
+        name: {
             en: 'headphones',
             es: 'auriculares',
         },
@@ -12850,7 +12850,7 @@ const emojis = [
     },
     {
         code: '📻',
-        shortcode: {
+        name: {
             en: 'radio',
             es: 'radio',
         },
@@ -12861,7 +12861,7 @@ const emojis = [
     },
     {
         code: '🎷',
-        shortcode: {
+        name: {
             en: 'saxophone',
             es: 'saxofón',
         },
@@ -12872,7 +12872,7 @@ const emojis = [
     },
     {
         code: '🪗',
-        shortcode: {
+        name: {
             en: 'accordion',
             es: 'acordeón',
         },
@@ -12883,7 +12883,7 @@ const emojis = [
     },
     {
         code: '🎸',
-        shortcode: {
+        name: {
             en: 'guitar',
             es: 'guitarra',
         },
@@ -12894,7 +12894,7 @@ const emojis = [
     },
     {
         code: '🎹',
-        shortcode: {
+        name: {
             en: 'musical_keyboard',
             es: 'teclado_musical',
         },
@@ -12905,7 +12905,7 @@ const emojis = [
     },
     {
         code: '🎺',
-        shortcode: {
+        name: {
             en: 'trumpet',
             es: 'trompeta',
         },
@@ -12916,7 +12916,7 @@ const emojis = [
     },
     {
         code: '🎻',
-        shortcode: {
+        name: {
             en: 'violin',
             es: 'violín',
         },
@@ -12927,7 +12927,7 @@ const emojis = [
     },
     {
         code: '🪕',
-        shortcode: {
+        name: {
             en: 'banjo',
             es: 'banjo',
         },
@@ -12938,7 +12938,7 @@ const emojis = [
     },
     {
         code: '🥁',
-        shortcode: {
+        name: {
             en: 'drum_with_drumsticks',
             es: 'tambor_con_baquetas',
         },
@@ -12949,7 +12949,7 @@ const emojis = [
     },
     {
         code: '🪘',
-        shortcode: {
+        name: {
             en: 'long_drum',
             es: 'tamboril',
         },
@@ -12960,7 +12960,7 @@ const emojis = [
     },
     {
         code: '📱',
-        shortcode: {
+        name: {
             en: 'iphone',
             es: 'iphone',
         },
@@ -12971,7 +12971,7 @@ const emojis = [
     },
     {
         code: '📲',
-        shortcode: {
+        name: {
             en: 'calling',
             es: 'llamando',
         },
@@ -12982,7 +12982,7 @@ const emojis = [
     },
     {
         code: '☎️',
-        shortcode: {
+        name: {
             en: 'phone',
             es: 'teléfono',
         },
@@ -12993,7 +12993,7 @@ const emojis = [
     },
     {
         code: '📞',
-        shortcode: {
+        name: {
             en: 'telephone_receiver',
             es: 'receptor_de_teléfono',
         },
@@ -13004,7 +13004,7 @@ const emojis = [
     },
     {
         code: '📟',
-        shortcode: {
+        name: {
             en: 'pager',
             es: 'buscapersonas',
         },
@@ -13015,7 +13015,7 @@ const emojis = [
     },
     {
         code: '📠',
-        shortcode: {
+        name: {
             en: 'fax',
             es: 'fax',
         },
@@ -13026,7 +13026,7 @@ const emojis = [
     },
     {
         code: '🔋',
-        shortcode: {
+        name: {
             en: 'battery',
             es: 'batería',
         },
@@ -13037,7 +13037,7 @@ const emojis = [
     },
     {
         code: '🔌',
-        shortcode: {
+        name: {
             en: 'electric_plug',
             es: 'enchufe_eléctrico',
         },
@@ -13048,7 +13048,7 @@ const emojis = [
     },
     {
         code: '💻',
-        shortcode: {
+        name: {
             en: 'computer',
             es: 'ordenador',
         },
@@ -13059,7 +13059,7 @@ const emojis = [
     },
     {
         code: '🖥️',
-        shortcode: {
+        name: {
             en: 'desktop_computer',
             es: 'ordenador_de_sobremesa',
         },
@@ -13070,7 +13070,7 @@ const emojis = [
     },
     {
         code: '🖨️',
-        shortcode: {
+        name: {
             en: 'printer',
             es: 'impresora',
         },
@@ -13081,7 +13081,7 @@ const emojis = [
     },
     {
         code: '⌨️',
-        shortcode: {
+        name: {
             en: 'keyboard',
             es: 'teclado',
         },
@@ -13092,7 +13092,7 @@ const emojis = [
     },
     {
         code: '🖱️',
-        shortcode: {
+        name: {
             en: 'three_button_mouse',
             es: 'mouse_de_tres_botones',
         },
@@ -13103,7 +13103,7 @@ const emojis = [
     },
     {
         code: '🖲️',
-        shortcode: {
+        name: {
             en: 'trackball',
             es: 'bola_de_seguimiento',
         },
@@ -13114,7 +13114,7 @@ const emojis = [
     },
     {
         code: '💽',
-        shortcode: {
+        name: {
             en: 'minidisc',
             es: 'minidisc',
         },
@@ -13125,7 +13125,7 @@ const emojis = [
     },
     {
         code: '💾',
-        shortcode: {
+        name: {
             en: 'floppy_disk',
             es: 'disquete',
         },
@@ -13136,7 +13136,7 @@ const emojis = [
     },
     {
         code: '💿',
-        shortcode: {
+        name: {
             en: 'cd',
             es: 'cd',
         },
@@ -13147,7 +13147,7 @@ const emojis = [
     },
     {
         code: '📀',
-        shortcode: {
+        name: {
             en: 'dvd',
             es: 'dvd',
         },
@@ -13158,7 +13158,7 @@ const emojis = [
     },
     {
         code: '🧮',
-        shortcode: {
+        name: {
             en: 'abacus',
             es: 'ábaco',
         },
@@ -13169,7 +13169,7 @@ const emojis = [
     },
     {
         code: '🎥',
-        shortcode: {
+        name: {
             en: 'movie_camera',
             es: 'cámara_de_cine',
         },
@@ -13180,7 +13180,7 @@ const emojis = [
     },
     {
         code: '🎞️',
-        shortcode: {
+        name: {
             en: 'film_frames',
             es: 'fotogramas_de_película',
         },
@@ -13191,7 +13191,7 @@ const emojis = [
     },
     {
         code: '📽️',
-        shortcode: {
+        name: {
             en: 'film_projector',
             es: 'proyector_de_cine',
         },
@@ -13202,7 +13202,7 @@ const emojis = [
     },
     {
         code: '🎬',
-        shortcode: {
+        name: {
             en: 'clapper',
             es: 'claqueta',
         },
@@ -13213,7 +13213,7 @@ const emojis = [
     },
     {
         code: '📺',
-        shortcode: {
+        name: {
             en: 'tv',
             es: 'televisión',
         },
@@ -13224,7 +13224,7 @@ const emojis = [
     },
     {
         code: '📷',
-        shortcode: {
+        name: {
             en: 'camera',
             es: 'cámara',
         },
@@ -13235,7 +13235,7 @@ const emojis = [
     },
     {
         code: '📸',
-        shortcode: {
+        name: {
             en: 'camera_with_flash',
             es: 'cámara_con_flash',
         },
@@ -13246,7 +13246,7 @@ const emojis = [
     },
     {
         code: '📹',
-        shortcode: {
+        name: {
             en: 'video_camera',
             es: 'videocámara',
         },
@@ -13257,7 +13257,7 @@ const emojis = [
     },
     {
         code: '📼',
-        shortcode: {
+        name: {
             en: 'vhs',
             es: 'vhs',
         },
@@ -13268,7 +13268,7 @@ const emojis = [
     },
     {
         code: '🔍',
-        shortcode: {
+        name: {
             en: 'mag',
             es: 'lupa',
         },
@@ -13279,7 +13279,7 @@ const emojis = [
     },
     {
         code: '🔎',
-        shortcode: {
+        name: {
             en: 'mag_right',
             es: 'lupa_derecha',
         },
@@ -13290,7 +13290,7 @@ const emojis = [
     },
     {
         code: '🕯️',
-        shortcode: {
+        name: {
             en: 'candle',
             es: 'vela',
         },
@@ -13301,7 +13301,7 @@ const emojis = [
     },
     {
         code: '💡',
-        shortcode: {
+        name: {
             en: 'bulb',
             es: 'bombilla',
         },
@@ -13312,7 +13312,7 @@ const emojis = [
     },
     {
         code: '🔦',
-        shortcode: {
+        name: {
             en: 'flashlight',
             es: 'linterna',
         },
@@ -13323,7 +13323,7 @@ const emojis = [
     },
     {
         code: '🏮',
-        shortcode: {
+        name: {
             en: 'izakaya_lantern',
             es: 'farolillo_de_papel',
         },
@@ -13334,7 +13334,7 @@ const emojis = [
     },
     {
         code: '🪔',
-        shortcode: {
+        name: {
             en: 'diya_lamp',
             es: 'lámpara_de_aceite',
         },
@@ -13345,7 +13345,7 @@ const emojis = [
     },
     {
         code: '📔',
-        shortcode: {
+        name: {
             en: 'notebook_with_decorative_cover',
             es: 'cuaderno_con_tapa_decorada',
         },
@@ -13356,7 +13356,7 @@ const emojis = [
     },
     {
         code: '📕',
-        shortcode: {
+        name: {
             en: 'closed_book',
             es: 'libro_cerrado',
         },
@@ -13367,7 +13367,7 @@ const emojis = [
     },
     {
         code: '📖',
-        shortcode: {
+        name: {
             en: 'book',
             es: 'libro',
         },
@@ -13378,7 +13378,7 @@ const emojis = [
     },
     {
         code: '📗',
-        shortcode: {
+        name: {
             en: 'green_book',
             es: 'libro_verde',
         },
@@ -13389,7 +13389,7 @@ const emojis = [
     },
     {
         code: '📘',
-        shortcode: {
+        name: {
             en: 'blue_book',
             es: 'libro_azul',
         },
@@ -13400,7 +13400,7 @@ const emojis = [
     },
     {
         code: '📙',
-        shortcode: {
+        name: {
             en: 'orange_book',
             es: 'libro_naranja',
         },
@@ -13411,7 +13411,7 @@ const emojis = [
     },
     {
         code: '📚',
-        shortcode: {
+        name: {
             en: 'books',
             es: 'libros',
         },
@@ -13422,7 +13422,7 @@ const emojis = [
     },
     {
         code: '📓',
-        shortcode: {
+        name: {
             en: 'notebook',
             es: 'cuaderno',
         },
@@ -13433,7 +13433,7 @@ const emojis = [
     },
     {
         code: '📒',
-        shortcode: {
+        name: {
             en: 'ledger',
             es: 'registro',
         },
@@ -13444,7 +13444,7 @@ const emojis = [
     },
     {
         code: '📃',
-        shortcode: {
+        name: {
             en: 'page_with_curl',
             es: 'página_doblada_por_abajo',
         },
@@ -13455,7 +13455,7 @@ const emojis = [
     },
     {
         code: '📜',
-        shortcode: {
+        name: {
             en: 'scroll',
             es: 'pergamino',
         },
@@ -13466,7 +13466,7 @@ const emojis = [
     },
     {
         code: '📄',
-        shortcode: {
+        name: {
             en: 'page_facing_up',
             es: 'página_boca_arriba',
         },
@@ -13477,7 +13477,7 @@ const emojis = [
     },
     {
         code: '📰',
-        shortcode: {
+        name: {
             en: 'newspaper',
             es: 'periódico',
         },
@@ -13488,7 +13488,7 @@ const emojis = [
     },
     {
         code: '🗞️',
-        shortcode: {
+        name: {
             en: 'rolled_up_newspaper',
             es: 'periódico_enrollado',
         },
@@ -13499,7 +13499,7 @@ const emojis = [
     },
     {
         code: '📑',
-        shortcode: {
+        name: {
             en: 'bookmark_tabs',
             es: 'pestañas_de_marcadores',
         },
@@ -13510,7 +13510,7 @@ const emojis = [
     },
     {
         code: '🔖',
-        shortcode: {
+        name: {
             en: 'bookmark',
             es: 'marcador',
         },
@@ -13521,7 +13521,7 @@ const emojis = [
     },
     {
         code: '🏷️',
-        shortcode: {
+        name: {
             en: 'label',
             es: 'etiqueta',
         },
@@ -13532,7 +13532,7 @@ const emojis = [
     },
     {
         code: '💰',
-        shortcode: {
+        name: {
             en: 'moneybag',
             es: 'bolsa_de_dinero',
         },
@@ -13543,7 +13543,7 @@ const emojis = [
     },
     {
         code: '🪙',
-        shortcode: {
+        name: {
             en: 'coin',
             es: 'moneda',
         },
@@ -13554,7 +13554,7 @@ const emojis = [
     },
     {
         code: '💴',
-        shortcode: {
+        name: {
             en: 'yen',
             es: 'yen',
         },
@@ -13565,7 +13565,7 @@ const emojis = [
     },
     {
         code: '💵',
-        shortcode: {
+        name: {
             en: 'dollar',
             es: 'dólar',
         },
@@ -13576,7 +13576,7 @@ const emojis = [
     },
     {
         code: '💶',
-        shortcode: {
+        name: {
             en: 'euro',
             es: 'euro',
         },
@@ -13587,7 +13587,7 @@ const emojis = [
     },
     {
         code: '💷',
-        shortcode: {
+        name: {
             en: 'pound',
             es: 'libra_esterlina',
         },
@@ -13598,7 +13598,7 @@ const emojis = [
     },
     {
         code: '💸',
-        shortcode: {
+        name: {
             en: 'money_with_wings',
             es: 'dinero_con_alas',
         },
@@ -13609,7 +13609,7 @@ const emojis = [
     },
     {
         code: '💳',
-        shortcode: {
+        name: {
             en: 'credit_card',
             es: 'tarjeta_de_crédito',
         },
@@ -13620,7 +13620,7 @@ const emojis = [
     },
     {
         code: '🧾',
-        shortcode: {
+        name: {
             en: 'receipt',
             es: 'recibo',
         },
@@ -13631,7 +13631,7 @@ const emojis = [
     },
     {
         code: '💹',
-        shortcode: {
+        name: {
             en: 'chart',
             es: 'gráfico',
         },
@@ -13642,7 +13642,7 @@ const emojis = [
     },
     {
         code: '✉️',
-        shortcode: {
+        name: {
             en: 'email',
             es: 'correo',
         },
@@ -13653,7 +13653,7 @@ const emojis = [
     },
     {
         code: '📧',
-        shortcode: {
+        name: {
             en: 'e-mail',
             es: 'correo_electrónico',
         },
@@ -13664,7 +13664,7 @@ const emojis = [
     },
     {
         code: '📨',
-        shortcode: {
+        name: {
             en: 'incoming_envelope',
             es: 'correo_entrante',
         },
@@ -13675,7 +13675,7 @@ const emojis = [
     },
     {
         code: '📩',
-        shortcode: {
+        name: {
             en: 'envelope_with_arrow',
             es: 'sobre_con_flecha',
         },
@@ -13686,7 +13686,7 @@ const emojis = [
     },
     {
         code: '📤',
-        shortcode: {
+        name: {
             en: 'outbox_tray',
             es: 'bandeja_de_salida',
         },
@@ -13697,7 +13697,7 @@ const emojis = [
     },
     {
         code: '📥',
-        shortcode: {
+        name: {
             en: 'inbox_tray',
             es: 'bandeja_de_entrada',
         },
@@ -13708,7 +13708,7 @@ const emojis = [
     },
     {
         code: '📦',
-        shortcode: {
+        name: {
             en: 'package',
             es: 'paquete',
         },
@@ -13719,7 +13719,7 @@ const emojis = [
     },
     {
         code: '📫',
-        shortcode: {
+        name: {
             en: 'mailbox',
             es: 'buzón',
         },
@@ -13730,7 +13730,7 @@ const emojis = [
     },
     {
         code: '📪',
-        shortcode: {
+        name: {
             en: 'mailbox_closed',
             es: 'buzón_cerrado',
         },
@@ -13741,7 +13741,7 @@ const emojis = [
     },
     {
         code: '📬',
-        shortcode: {
+        name: {
             en: 'mailbox_with_mail',
             es: 'buzón_con_cartas',
         },
@@ -13752,7 +13752,7 @@ const emojis = [
     },
     {
         code: '📭',
-        shortcode: {
+        name: {
             en: 'mailbox_with_no_mail',
             es: 'buzón_sin_cartas',
         },
@@ -13763,7 +13763,7 @@ const emojis = [
     },
     {
         code: '📮',
-        shortcode: {
+        name: {
             en: 'postbox',
             es: 'carta_al_buzón',
         },
@@ -13774,7 +13774,7 @@ const emojis = [
     },
     {
         code: '🗳️',
-        shortcode: {
+        name: {
             en: 'ballot_box_with_ballot',
             es: 'urna_con_papeleta',
         },
@@ -13785,7 +13785,7 @@ const emojis = [
     },
     {
         code: '✏️',
-        shortcode: {
+        name: {
             en: 'pencil2',
             es: 'lápiz2',
         },
@@ -13796,7 +13796,7 @@ const emojis = [
     },
     {
         code: '✒️',
-        shortcode: {
+        name: {
             en: 'black_nib',
             es: 'plumín_negro',
         },
@@ -13807,7 +13807,7 @@ const emojis = [
     },
     {
         code: '🖋️',
-        shortcode: {
+        name: {
             en: 'lower_left_fountain_pen',
             es: 'pluma_estilográfica_abajo_a_la_izquierda',
         },
@@ -13818,7 +13818,7 @@ const emojis = [
     },
     {
         code: '🖊️',
-        shortcode: {
+        name: {
             en: 'lower_left_ballpoint_pen',
             es: 'bolígrafo_abajo_a_la_izquierda',
         },
@@ -13829,7 +13829,7 @@ const emojis = [
     },
     {
         code: '🖌️',
-        shortcode: {
+        name: {
             en: 'lower_left_paintbrush',
             es: 'pincel_abajo_a_la_izquierda',
         },
@@ -13840,7 +13840,7 @@ const emojis = [
     },
     {
         code: '🖍️',
-        shortcode: {
+        name: {
             en: 'lower_left_crayon',
             es: 'lápiz_abajo_a_la_izquierda',
         },
@@ -13851,7 +13851,7 @@ const emojis = [
     },
     {
         code: '📝',
-        shortcode: {
+        name: {
             en: 'memo',
             es: 'nota',
         },
@@ -13862,7 +13862,7 @@ const emojis = [
     },
     {
         code: '💼',
-        shortcode: {
+        name: {
             en: 'briefcase',
             es: 'maletín',
         },
@@ -13873,7 +13873,7 @@ const emojis = [
     },
     {
         code: '📁',
-        shortcode: {
+        name: {
             en: 'file_folder',
             es: 'carpeta_de_archivos',
         },
@@ -13884,7 +13884,7 @@ const emojis = [
     },
     {
         code: '📂',
-        shortcode: {
+        name: {
             en: 'open_file_folder',
             es: 'carpeta_abierta',
         },
@@ -13895,7 +13895,7 @@ const emojis = [
     },
     {
         code: '🗂️',
-        shortcode: {
+        name: {
             en: 'card_index_dividers',
             es: 'separadores_de_índice_de_tarjetas',
         },
@@ -13906,7 +13906,7 @@ const emojis = [
     },
     {
         code: '📅',
-        shortcode: {
+        name: {
             en: 'date',
             es: 'fecha',
         },
@@ -13917,7 +13917,7 @@ const emojis = [
     },
     {
         code: '📆',
-        shortcode: {
+        name: {
             en: 'calendar',
             es: 'calendario',
         },
@@ -13928,7 +13928,7 @@ const emojis = [
     },
     {
         code: '🗒️',
-        shortcode: {
+        name: {
             en: 'spiral_note_pad',
             es: 'cuaderno_de_espiral',
         },
@@ -13939,7 +13939,7 @@ const emojis = [
     },
     {
         code: '🗓️',
-        shortcode: {
+        name: {
             en: 'spiral_calendar_pad',
             es: 'calendario_de_sobremesa',
         },
@@ -13950,7 +13950,7 @@ const emojis = [
     },
     {
         code: '📇',
-        shortcode: {
+        name: {
             en: 'card_index',
             es: 'índice_de_tarjetas',
         },
@@ -13961,7 +13961,7 @@ const emojis = [
     },
     {
         code: '📈',
-        shortcode: {
+        name: {
             en: 'chart_with_upwards_trend',
             es: 'gráfico_con_tendencia_ascendente',
         },
@@ -13972,7 +13972,7 @@ const emojis = [
     },
     {
         code: '📉',
-        shortcode: {
+        name: {
             en: 'chart_with_downwards_trend',
             es: 'gráfico_con_tendencia_descendente',
         },
@@ -13983,7 +13983,7 @@ const emojis = [
     },
     {
         code: '📊',
-        shortcode: {
+        name: {
             en: 'bar_chart',
             es: 'gráfico_de_barras',
         },
@@ -13994,7 +13994,7 @@ const emojis = [
     },
     {
         code: '📋',
-        shortcode: {
+        name: {
             en: 'clipboard',
             es: 'portapapeles',
         },
@@ -14005,7 +14005,7 @@ const emojis = [
     },
     {
         code: '📌',
-        shortcode: {
+        name: {
             en: 'pushpin',
             es: 'chincheta',
         },
@@ -14016,7 +14016,7 @@ const emojis = [
     },
     {
         code: '📍',
-        shortcode: {
+        name: {
             en: 'round_pushpin',
             es: 'tachuela_redonda',
         },
@@ -14027,7 +14027,7 @@ const emojis = [
     },
     {
         code: '📎',
-        shortcode: {
+        name: {
             en: 'paperclip',
             es: 'clip',
         },
@@ -14038,7 +14038,7 @@ const emojis = [
     },
     {
         code: '🖇️',
-        shortcode: {
+        name: {
             en: 'linked_paperclips',
             es: 'clips_unidos',
         },
@@ -14049,7 +14049,7 @@ const emojis = [
     },
     {
         code: '📏',
-        shortcode: {
+        name: {
             en: 'straight_ruler',
             es: 'regla',
         },
@@ -14060,7 +14060,7 @@ const emojis = [
     },
     {
         code: '📐',
-        shortcode: {
+        name: {
             en: 'triangular_ruler',
             es: 'escuadra',
         },
@@ -14071,7 +14071,7 @@ const emojis = [
     },
     {
         code: '✂️',
-        shortcode: {
+        name: {
             en: 'scissors',
             es: 'tijeras',
         },
@@ -14082,7 +14082,7 @@ const emojis = [
     },
     {
         code: '🗃️',
-        shortcode: {
+        name: {
             en: 'card_file_box',
             es: 'fichero_de_tarjetas',
         },
@@ -14093,7 +14093,7 @@ const emojis = [
     },
     {
         code: '🗄️',
-        shortcode: {
+        name: {
             en: 'file_cabinet',
             es: 'archivador',
         },
@@ -14104,7 +14104,7 @@ const emojis = [
     },
     {
         code: '🗑️',
-        shortcode: {
+        name: {
             en: 'wastebasket',
             es: 'papelera',
         },
@@ -14115,7 +14115,7 @@ const emojis = [
     },
     {
         code: '🔒',
-        shortcode: {
+        name: {
             en: 'lock',
             es: 'candado',
         },
@@ -14126,7 +14126,7 @@ const emojis = [
     },
     {
         code: '🔓',
-        shortcode: {
+        name: {
             en: 'unlock',
             es: 'activar',
         },
@@ -14137,7 +14137,7 @@ const emojis = [
     },
     {
         code: '🔏',
-        shortcode: {
+        name: {
             en: 'lock_with_ink_pen',
             es: 'candado_con_pluma_de_tinta',
         },
@@ -14148,7 +14148,7 @@ const emojis = [
     },
     {
         code: '🔐',
-        shortcode: {
+        name: {
             en: 'closed_lock_with_key',
             es: 'candado_cerrado_con_llave',
         },
@@ -14159,7 +14159,7 @@ const emojis = [
     },
     {
         code: '🔑',
-        shortcode: {
+        name: {
             en: 'key',
             es: 'llave',
         },
@@ -14170,7 +14170,7 @@ const emojis = [
     },
     {
         code: '🗝️',
-        shortcode: {
+        name: {
             en: 'old_key',
             es: 'llave_vieja',
         },
@@ -14181,7 +14181,7 @@ const emojis = [
     },
     {
         code: '🔨',
-        shortcode: {
+        name: {
             en: 'hammer',
             es: 'martillo',
         },
@@ -14192,7 +14192,7 @@ const emojis = [
     },
     {
         code: '🪓',
-        shortcode: {
+        name: {
             en: 'axe',
             es: 'hacha',
         },
@@ -14203,7 +14203,7 @@ const emojis = [
     },
     {
         code: '⛏️',
-        shortcode: {
+        name: {
             en: 'pick',
             es: 'pico',
         },
@@ -14214,7 +14214,7 @@ const emojis = [
     },
     {
         code: '⚒️',
-        shortcode: {
+        name: {
             en: 'hammer_and_pick',
             es: 'martillo_y_pico',
         },
@@ -14225,7 +14225,7 @@ const emojis = [
     },
     {
         code: '🛠️',
-        shortcode: {
+        name: {
             en: 'hammer_and_wrench',
             es: 'martillo_y_llave_inglesa',
         },
@@ -14236,7 +14236,7 @@ const emojis = [
     },
     {
         code: '🗡️',
-        shortcode: {
+        name: {
             en: 'dagger_knife',
             es: 'daga',
         },
@@ -14247,7 +14247,7 @@ const emojis = [
     },
     {
         code: '⚔️',
-        shortcode: {
+        name: {
             en: 'crossed_swords',
             es: 'espadas_cruzadas',
         },
@@ -14258,7 +14258,7 @@ const emojis = [
     },
     {
         code: '💣',
-        shortcode: {
+        name: {
             en: 'bomb',
             es: 'bomba',
         },
@@ -14269,7 +14269,7 @@ const emojis = [
     },
     {
         code: '🪃',
-        shortcode: {
+        name: {
             en: 'boomerang',
             es: 'bumerán',
         },
@@ -14280,7 +14280,7 @@ const emojis = [
     },
     {
         code: '🏹',
-        shortcode: {
+        name: {
             en: 'bow_and_arrow',
             es: 'arco_y_flecha',
         },
@@ -14291,7 +14291,7 @@ const emojis = [
     },
     {
         code: '🛡️',
-        shortcode: {
+        name: {
             en: 'shield',
             es: 'escudo',
         },
@@ -14302,7 +14302,7 @@ const emojis = [
     },
     {
         code: '🪚',
-        shortcode: {
+        name: {
             en: 'carpentry_saw',
             es: 'sierra_de_carpintería',
         },
@@ -14313,7 +14313,7 @@ const emojis = [
     },
     {
         code: '🔧',
-        shortcode: {
+        name: {
             en: 'wrench',
             es: 'llave_de_tuerca',
         },
@@ -14324,7 +14324,7 @@ const emojis = [
     },
     {
         code: '🪛',
-        shortcode: {
+        name: {
             en: 'screwdriver',
             es: 'destornillador',
         },
@@ -14335,7 +14335,7 @@ const emojis = [
     },
     {
         code: '🔩',
-        shortcode: {
+        name: {
             en: 'nut_and_bolt',
             es: 'tuerca_y_perno',
         },
@@ -14346,7 +14346,7 @@ const emojis = [
     },
     {
         code: '⚙️',
-        shortcode: {
+        name: {
             en: 'gear',
             es: 'engranaje',
         },
@@ -14357,7 +14357,7 @@ const emojis = [
     },
     {
         code: '🗜️',
-        shortcode: {
+        name: {
             en: 'compression',
             es: 'compresión',
         },
@@ -14368,7 +14368,7 @@ const emojis = [
     },
     {
         code: '⚖️',
-        shortcode: {
+        name: {
             en: 'scales',
             es: 'balanza',
         },
@@ -14379,7 +14379,7 @@ const emojis = [
     },
     {
         code: '🦯',
-        shortcode: {
+        name: {
             en: 'probing_cane',
             es: 'bastón',
         },
@@ -14390,7 +14390,7 @@ const emojis = [
     },
     {
         code: '🔗',
-        shortcode: {
+        name: {
             en: 'link',
             es: 'eslabón',
         },
@@ -14401,7 +14401,7 @@ const emojis = [
     },
     {
         code: '⛓️',
-        shortcode: {
+        name: {
             en: 'chains',
             es: 'cadenas',
         },
@@ -14412,7 +14412,7 @@ const emojis = [
     },
     {
         code: '🪝',
-        shortcode: {
+        name: {
             en: 'hook',
             es: 'gancho',
         },
@@ -14423,7 +14423,7 @@ const emojis = [
     },
     {
         code: '🧰',
-        shortcode: {
+        name: {
             en: 'toolbox',
             es: 'caja_de_herramientas',
         },
@@ -14434,7 +14434,7 @@ const emojis = [
     },
     {
         code: '🧲',
-        shortcode: {
+        name: {
             en: 'magnet',
             es: 'imán',
         },
@@ -14445,7 +14445,7 @@ const emojis = [
     },
     {
         code: '🪜',
-        shortcode: {
+        name: {
             en: 'ladder',
             es: 'escalera',
         },
@@ -14456,7 +14456,7 @@ const emojis = [
     },
     {
         code: '⚗️',
-        shortcode: {
+        name: {
             en: 'alembic',
             es: 'alambique',
         },
@@ -14467,7 +14467,7 @@ const emojis = [
     },
     {
         code: '🧪',
-        shortcode: {
+        name: {
             en: 'test_tube',
             es: 'tubo_de_ensayo',
         },
@@ -14478,7 +14478,7 @@ const emojis = [
     },
     {
         code: '🧫',
-        shortcode: {
+        name: {
             en: 'petri_dish',
             es: 'placa_de_petri',
         },
@@ -14489,7 +14489,7 @@ const emojis = [
     },
     {
         code: '🧬',
-        shortcode: {
+        name: {
             en: 'dna',
             es: 'adn',
         },
@@ -14500,7 +14500,7 @@ const emojis = [
     },
     {
         code: '🔬',
-        shortcode: {
+        name: {
             en: 'microscope',
             es: 'microscopio',
         },
@@ -14511,7 +14511,7 @@ const emojis = [
     },
     {
         code: '🔭',
-        shortcode: {
+        name: {
             en: 'telescope',
             es: 'telescopio',
         },
@@ -14522,7 +14522,7 @@ const emojis = [
     },
     {
         code: '📡',
-        shortcode: {
+        name: {
             en: 'satellite_antenna',
             es: 'antena_de_satélite',
         },
@@ -14533,7 +14533,7 @@ const emojis = [
     },
     {
         code: '💉',
-        shortcode: {
+        name: {
             en: 'syringe',
             es: 'jeringuilla',
         },
@@ -14544,7 +14544,7 @@ const emojis = [
     },
     {
         code: '🩸',
-        shortcode: {
+        name: {
             en: 'drop_of_blood',
             es: 'gota_de_sangre',
         },
@@ -14555,7 +14555,7 @@ const emojis = [
     },
     {
         code: '💊',
-        shortcode: {
+        name: {
             en: 'pill',
             es: 'píldora',
         },
@@ -14566,7 +14566,7 @@ const emojis = [
     },
     {
         code: '🩹',
-        shortcode: {
+        name: {
             en: 'adhesive_bandage',
             es: 'tirita',
         },
@@ -14577,7 +14577,7 @@ const emojis = [
     },
     {
         code: '🩺',
-        shortcode: {
+        name: {
             en: 'stethoscope',
             es: 'estetoscopio',
         },
@@ -14588,7 +14588,7 @@ const emojis = [
     },
     {
         code: '🚪',
-        shortcode: {
+        name: {
             en: 'door',
             es: 'puerta',
         },
@@ -14599,7 +14599,7 @@ const emojis = [
     },
     {
         code: '🛗',
-        shortcode: {
+        name: {
             en: 'elevator',
             es: 'ascensor',
         },
@@ -14610,7 +14610,7 @@ const emojis = [
     },
     {
         code: '🪞',
-        shortcode: {
+        name: {
             en: 'mirror',
             es: 'espejo',
         },
@@ -14621,7 +14621,7 @@ const emojis = [
     },
     {
         code: '🪟',
-        shortcode: {
+        name: {
             en: 'window',
             es: 'ventana',
         },
@@ -14632,7 +14632,7 @@ const emojis = [
     },
     {
         code: '🛏️',
-        shortcode: {
+        name: {
             en: 'bed',
             es: 'cama',
         },
@@ -14643,7 +14643,7 @@ const emojis = [
     },
     {
         code: '🛋️',
-        shortcode: {
+        name: {
             en: 'couch_and_lamp',
             es: 'sofá_y_lámpara',
         },
@@ -14654,7 +14654,7 @@ const emojis = [
     },
     {
         code: '🪑',
-        shortcode: {
+        name: {
             en: 'chair',
             es: 'silla',
         },
@@ -14665,7 +14665,7 @@ const emojis = [
     },
     {
         code: '🚽',
-        shortcode: {
+        name: {
             en: 'toilet',
             es: 'baño',
         },
@@ -14676,7 +14676,7 @@ const emojis = [
     },
     {
         code: '🪠',
-        shortcode: {
+        name: {
             en: 'plunger',
             es: 'desatascador',
         },
@@ -14687,7 +14687,7 @@ const emojis = [
     },
     {
         code: '🚿',
-        shortcode: {
+        name: {
             en: 'shower',
             es: 'ducha',
         },
@@ -14698,7 +14698,7 @@ const emojis = [
     },
     {
         code: '🛁',
-        shortcode: {
+        name: {
             en: 'bathtub',
             es: 'bañera',
         },
@@ -14709,7 +14709,7 @@ const emojis = [
     },
     {
         code: '🪤',
-        shortcode: {
+        name: {
             en: 'mouse_trap',
             es: 'ratonera',
         },
@@ -14720,7 +14720,7 @@ const emojis = [
     },
     {
         code: '🪒',
-        shortcode: {
+        name: {
             en: 'razor',
             es: 'cuchilla_de_afeitar',
         },
@@ -14731,7 +14731,7 @@ const emojis = [
     },
     {
         code: '🧴',
-        shortcode: {
+        name: {
             en: 'lotion_bottle',
             es: 'bote_de_crema',
         },
@@ -14742,7 +14742,7 @@ const emojis = [
     },
     {
         code: '🧷',
-        shortcode: {
+        name: {
             en: 'safety_pin',
             es: 'imperdible',
         },
@@ -14753,7 +14753,7 @@ const emojis = [
     },
     {
         code: '🧹',
-        shortcode: {
+        name: {
             en: 'broom',
             es: 'escoba',
         },
@@ -14764,7 +14764,7 @@ const emojis = [
     },
     {
         code: '🧺',
-        shortcode: {
+        name: {
             en: 'basket',
             es: 'cesta',
         },
@@ -14775,7 +14775,7 @@ const emojis = [
     },
     {
         code: '🧻',
-        shortcode: {
+        name: {
             en: 'roll_of_paper',
             es: 'rollo_de_papel',
         },
@@ -14786,7 +14786,7 @@ const emojis = [
     },
     {
         code: '🪣',
-        shortcode: {
+        name: {
             en: 'bucket',
             es: 'cubo',
         },
@@ -14797,7 +14797,7 @@ const emojis = [
     },
     {
         code: '🧼',
-        shortcode: {
+        name: {
             en: 'soap',
             es: 'jabón',
         },
@@ -14808,7 +14808,7 @@ const emojis = [
     },
     {
         code: '🪥',
-        shortcode: {
+        name: {
             en: 'toothbrush',
             es: 'cepillo_de_dientes',
         },
@@ -14819,7 +14819,7 @@ const emojis = [
     },
     {
         code: '🧽',
-        shortcode: {
+        name: {
             en: 'sponge',
             es: 'esponja',
         },
@@ -14830,7 +14830,7 @@ const emojis = [
     },
     {
         code: '🧯',
-        shortcode: {
+        name: {
             en: 'fire_extinguisher',
             es: 'extintor',
         },
@@ -14841,7 +14841,7 @@ const emojis = [
     },
     {
         code: '🛒',
-        shortcode: {
+        name: {
             en: 'shopping_trolley',
             es: 'carrito_de_compras',
         },
@@ -14852,7 +14852,7 @@ const emojis = [
     },
     {
         code: '🚬',
-        shortcode: {
+        name: {
             en: 'smoking',
             es: 'fumando',
         },
@@ -14863,7 +14863,7 @@ const emojis = [
     },
     {
         code: '⚰️',
-        shortcode: {
+        name: {
             en: 'coffin',
             es: 'ataúd',
         },
@@ -14874,7 +14874,7 @@ const emojis = [
     },
     {
         code: '🪦',
-        shortcode: {
+        name: {
             en: 'headstone',
             es: 'lápida',
         },
@@ -14885,7 +14885,7 @@ const emojis = [
     },
     {
         code: '⚱️',
-        shortcode: {
+        name: {
             en: 'funeral_urn',
             es: 'urna_funeraria',
         },
@@ -14896,7 +14896,7 @@ const emojis = [
     },
     {
         code: '🧿',
-        shortcode: {
+        name: {
             en: 'nazar_amulet',
             es: 'ojo_turco',
         },
@@ -14907,7 +14907,7 @@ const emojis = [
     },
     {
         code: '🗿',
-        shortcode: {
+        name: {
             en: 'moyai',
             es: 'moái',
         },
@@ -14918,7 +14918,7 @@ const emojis = [
     },
     {
         code: '🪧',
-        shortcode: {
+        name: {
             en: 'placard',
             es: 'letrero',
         },
@@ -14934,7 +14934,7 @@ const emojis = [
     },
     {
         code: '🏧',
-        shortcode: {
+        name: {
             en: 'atm',
             es: 'cajero_automático',
         },
@@ -14945,7 +14945,7 @@ const emojis = [
     },
     {
         code: '🚮',
-        shortcode: {
+        name: {
             en: 'put_litter_in_its_place',
             es: 'la_basura_en_su_lugar',
         },
@@ -14956,7 +14956,7 @@ const emojis = [
     },
     {
         code: '🚰',
-        shortcode: {
+        name: {
             en: 'potable_water',
             es: 'agua_potable',
         },
@@ -14967,7 +14967,7 @@ const emojis = [
     },
     {
         code: '♿',
-        shortcode: {
+        name: {
             en: 'wheelchair',
             es: 'silla_de_ruedas',
         },
@@ -14978,7 +14978,7 @@ const emojis = [
     },
     {
         code: '🚹',
-        shortcode: {
+        name: {
             en: 'mens',
             es: 'baño_de_hombres',
         },
@@ -14989,7 +14989,7 @@ const emojis = [
     },
     {
         code: '🚺',
-        shortcode: {
+        name: {
             en: 'womens',
             es: 'baño_de_mujeres',
         },
@@ -15000,7 +15000,7 @@ const emojis = [
     },
     {
         code: '🚻',
-        shortcode: {
+        name: {
             en: 'restroom',
             es: 'signo_de_baño',
         },
@@ -15011,7 +15011,7 @@ const emojis = [
     },
     {
         code: '🚼',
-        shortcode: {
+        name: {
             en: 'baby_symbol',
             es: 'símbolo_de_bebé',
         },
@@ -15022,7 +15022,7 @@ const emojis = [
     },
     {
         code: '🚾',
-        shortcode: {
+        name: {
             en: 'wc',
             es: 'wc',
         },
@@ -15033,7 +15033,7 @@ const emojis = [
     },
     {
         code: '🛂',
-        shortcode: {
+        name: {
             en: 'passport_control',
             es: 'control_de_pasaportes',
         },
@@ -15044,7 +15044,7 @@ const emojis = [
     },
     {
         code: '🛃',
-        shortcode: {
+        name: {
             en: 'customs',
             es: 'aduana',
         },
@@ -15055,7 +15055,7 @@ const emojis = [
     },
     {
         code: '🛄',
-        shortcode: {
+        name: {
             en: 'baggage_claim',
             es: 'recogida_de_equipaje',
         },
@@ -15066,7 +15066,7 @@ const emojis = [
     },
     {
         code: '🛅',
-        shortcode: {
+        name: {
             en: 'left_luggage',
             es: 'consigna',
         },
@@ -15077,7 +15077,7 @@ const emojis = [
     },
     {
         code: '⚠️',
-        shortcode: {
+        name: {
             en: 'warning',
             es: 'advertencia',
         },
@@ -15088,7 +15088,7 @@ const emojis = [
     },
     {
         code: '🚸',
-        shortcode: {
+        name: {
             en: 'children_crossing',
             es: 'niños_cruzando',
         },
@@ -15099,7 +15099,7 @@ const emojis = [
     },
     {
         code: '⛔',
-        shortcode: {
+        name: {
             en: 'no_entry',
             es: 'prohibido_el_paso',
         },
@@ -15110,7 +15110,7 @@ const emojis = [
     },
     {
         code: '🚫',
-        shortcode: {
+        name: {
             en: 'no_entry_sign',
             es: 'señal_de_prohibido_el_paso',
         },
@@ -15121,7 +15121,7 @@ const emojis = [
     },
     {
         code: '🚳',
-        shortcode: {
+        name: {
             en: 'no_bicycles',
             es: 'prohibidas_bicicletas',
         },
@@ -15132,7 +15132,7 @@ const emojis = [
     },
     {
         code: '🚭',
-        shortcode: {
+        name: {
             en: 'no_smoking',
             es: 'prohibido_fumar',
         },
@@ -15143,7 +15143,7 @@ const emojis = [
     },
     {
         code: '🚯',
-        shortcode: {
+        name: {
             en: 'do_not_litter',
             es: 'no_tirar_basura',
         },
@@ -15154,7 +15154,7 @@ const emojis = [
     },
     {
         code: '🚱',
-        shortcode: {
+        name: {
             en: 'non-potable_water',
             es: 'agua_no_potable',
         },
@@ -15165,7 +15165,7 @@ const emojis = [
     },
     {
         code: '🚷',
-        shortcode: {
+        name: {
             en: 'no_pedestrians',
             es: 'prohibido_el_paso_a_peatones',
         },
@@ -15176,7 +15176,7 @@ const emojis = [
     },
     {
         code: '📵',
-        shortcode: {
+        name: {
             en: 'no_mobile_phones',
             es: 'prohibidos_teléfonos_móviles',
         },
@@ -15187,7 +15187,7 @@ const emojis = [
     },
     {
         code: '🔞',
-        shortcode: {
+        name: {
             en: 'underage',
             es: 'menor_de_edad',
         },
@@ -15198,7 +15198,7 @@ const emojis = [
     },
     {
         code: '☢️',
-        shortcode: {
+        name: {
             en: 'radioactive_sign',
             es: 'señal_de_radioactividad',
         },
@@ -15209,7 +15209,7 @@ const emojis = [
     },
     {
         code: '☣️',
-        shortcode: {
+        name: {
             en: 'biohazard_sign',
             es: 'símbolo_de_riesgo_biológico',
         },
@@ -15220,7 +15220,7 @@ const emojis = [
     },
     {
         code: '⬆️',
-        shortcode: {
+        name: {
             en: 'arrow_up',
             es: 'flecha_hacia_arriba',
         },
@@ -15231,7 +15231,7 @@ const emojis = [
     },
     {
         code: '↗️',
-        shortcode: {
+        name: {
             en: 'arrow_upper_right',
             es: 'flecha_hacia_arriba_a_la_derecha',
         },
@@ -15242,7 +15242,7 @@ const emojis = [
     },
     {
         code: '➡️',
-        shortcode: {
+        name: {
             en: 'arrow_right',
             es: 'flecha_a_la_derecha',
         },
@@ -15253,7 +15253,7 @@ const emojis = [
     },
     {
         code: '↘️',
-        shortcode: {
+        name: {
             en: 'arrow_lower_right',
             es: 'flecha_abajo_a_la_derecha',
         },
@@ -15264,7 +15264,7 @@ const emojis = [
     },
     {
         code: '⬇️',
-        shortcode: {
+        name: {
             en: 'arrow_down',
             es: 'flecha_hacia_abajo',
         },
@@ -15275,7 +15275,7 @@ const emojis = [
     },
     {
         code: '↙️',
-        shortcode: {
+        name: {
             en: 'arrow_lower_left',
             es: 'flecha_abajo_a_la_iquierda',
         },
@@ -15286,7 +15286,7 @@ const emojis = [
     },
     {
         code: '⬅️',
-        shortcode: {
+        name: {
             en: 'arrow_left',
             es: 'flecha_a_la_izquierda',
         },
@@ -15297,7 +15297,7 @@ const emojis = [
     },
     {
         code: '↖️',
-        shortcode: {
+        name: {
             en: 'arrow_upper_left',
             es: 'flecha_hacia_arriba_a_la_izquierda',
         },
@@ -15308,7 +15308,7 @@ const emojis = [
     },
     {
         code: '↕️',
-        shortcode: {
+        name: {
             en: 'arrow_up_down',
             es: 'flecha_hacia_arriba_y_hacia_abajo',
         },
@@ -15319,7 +15319,7 @@ const emojis = [
     },
     {
         code: '↔️',
-        shortcode: {
+        name: {
             en: 'left_right_arrow',
             es: 'flecha_izquierda_derecha',
         },
@@ -15330,7 +15330,7 @@ const emojis = [
     },
     {
         code: '↩️',
-        shortcode: {
+        name: {
             en: 'leftwards_arrow_with_hook',
             es: 'flecha_curvada_a_la_izquierda',
         },
@@ -15341,7 +15341,7 @@ const emojis = [
     },
     {
         code: '↪️',
-        shortcode: {
+        name: {
             en: 'arrow_right_hook',
             es: 'flecha_en_curva_a_la_derecha',
         },
@@ -15352,7 +15352,7 @@ const emojis = [
     },
     {
         code: '⤴️',
-        shortcode: {
+        name: {
             en: 'arrow_heading_up',
             es: 'flecha_en_dirección_ascendente',
         },
@@ -15363,7 +15363,7 @@ const emojis = [
     },
     {
         code: '⤵️',
-        shortcode: {
+        name: {
             en: 'arrow_heading_down',
             es: 'flecha_en_dirección_descendente',
         },
@@ -15374,7 +15374,7 @@ const emojis = [
     },
     {
         code: '🔃',
-        shortcode: {
+        name: {
             en: 'arrows_clockwise',
             es: 'flechas_en_sentido_horario',
         },
@@ -15385,7 +15385,7 @@ const emojis = [
     },
     {
         code: '🔄',
-        shortcode: {
+        name: {
             en: 'arrows_counterclockwise',
             es: 'flechas_en_sentido_antihorario',
         },
@@ -15396,7 +15396,7 @@ const emojis = [
     },
     {
         code: '🔙',
-        shortcode: {
+        name: {
             en: 'back',
             es: 'atrás',
         },
@@ -15407,7 +15407,7 @@ const emojis = [
     },
     {
         code: '🔚',
-        shortcode: {
+        name: {
             en: 'end',
             es: 'fin',
         },
@@ -15418,7 +15418,7 @@ const emojis = [
     },
     {
         code: '🔛',
-        shortcode: {
+        name: {
             en: 'on',
             es: 'encendido',
         },
@@ -15429,7 +15429,7 @@ const emojis = [
     },
     {
         code: '🔜',
-        shortcode: {
+        name: {
             en: 'soon',
             es: 'pronto',
         },
@@ -15440,7 +15440,7 @@ const emojis = [
     },
     {
         code: '🔝',
-        shortcode: {
+        name: {
             en: 'top',
             es: 'parte_superior',
         },
@@ -15451,7 +15451,7 @@ const emojis = [
     },
     {
         code: '🛐',
-        shortcode: {
+        name: {
             en: 'place_of_worship',
             es: 'lugar_de_culto',
         },
@@ -15462,7 +15462,7 @@ const emojis = [
     },
     {
         code: '⚛️',
-        shortcode: {
+        name: {
             en: 'atom_symbol',
             es: 'símbolo_del_átomo',
         },
@@ -15473,7 +15473,7 @@ const emojis = [
     },
     {
         code: '🕉️',
-        shortcode: {
+        name: {
             en: 'om_symbol',
             es: 'símbolo_de_om',
         },
@@ -15484,7 +15484,7 @@ const emojis = [
     },
     {
         code: '✡️',
-        shortcode: {
+        name: {
             en: 'star_of_david',
             es: 'estrella_de_david',
         },
@@ -15495,7 +15495,7 @@ const emojis = [
     },
     {
         code: '☸️',
-        shortcode: {
+        name: {
             en: 'wheel_of_dharma',
             es: 'rueda_del_dharma',
         },
@@ -15506,7 +15506,7 @@ const emojis = [
     },
     {
         code: '☯️',
-        shortcode: {
+        name: {
             en: 'yin_yang',
             es: 'yin_yang',
         },
@@ -15517,7 +15517,7 @@ const emojis = [
     },
     {
         code: '✝️',
-        shortcode: {
+        name: {
             en: 'latin_cross',
             es: 'cruz_latina',
         },
@@ -15528,7 +15528,7 @@ const emojis = [
     },
     {
         code: '☦️',
-        shortcode: {
+        name: {
             en: 'orthodox_cross',
             es: 'cruz_ortodoxa',
         },
@@ -15539,7 +15539,7 @@ const emojis = [
     },
     {
         code: '☪️',
-        shortcode: {
+        name: {
             en: 'star_and_crescent',
             es: 'estrella_y_luna_creciente',
         },
@@ -15550,7 +15550,7 @@ const emojis = [
     },
     {
         code: '☮️',
-        shortcode: {
+        name: {
             en: 'peace_symbol',
             es: 'símbolo_de_la_paz',
         },
@@ -15561,7 +15561,7 @@ const emojis = [
     },
     {
         code: '🕎',
-        shortcode: {
+        name: {
             en: 'menorah_with_nine_branches',
             es: 'candelabro_de_nueve_brazos',
         },
@@ -15572,7 +15572,7 @@ const emojis = [
     },
     {
         code: '🔯',
-        shortcode: {
+        name: {
             en: 'six_pointed_star',
             es: 'estrella_de_seis_puntas',
         },
@@ -15583,7 +15583,7 @@ const emojis = [
     },
     {
         code: '♈',
-        shortcode: {
+        name: {
             en: 'aries',
             es: 'aries',
         },
@@ -15594,7 +15594,7 @@ const emojis = [
     },
     {
         code: '♉',
-        shortcode: {
+        name: {
             en: 'taurus',
             es: 'tauro',
         },
@@ -15605,7 +15605,7 @@ const emojis = [
     },
     {
         code: '♊',
-        shortcode: {
+        name: {
             en: 'gemini',
             es: 'géminis',
         },
@@ -15616,7 +15616,7 @@ const emojis = [
     },
     {
         code: '♋',
-        shortcode: {
+        name: {
             en: 'cancer',
             es: 'cáncer',
         },
@@ -15627,7 +15627,7 @@ const emojis = [
     },
     {
         code: '♌',
-        shortcode: {
+        name: {
             en: 'leo',
             es: 'leo',
         },
@@ -15638,7 +15638,7 @@ const emojis = [
     },
     {
         code: '♍',
-        shortcode: {
+        name: {
             en: 'virgo',
             es: 'virgo',
         },
@@ -15649,7 +15649,7 @@ const emojis = [
     },
     {
         code: '♎',
-        shortcode: {
+        name: {
             en: 'libra',
             es: 'libra',
         },
@@ -15660,7 +15660,7 @@ const emojis = [
     },
     {
         code: '♏',
-        shortcode: {
+        name: {
             en: 'scorpius',
             es: 'escorpio',
         },
@@ -15671,7 +15671,7 @@ const emojis = [
     },
     {
         code: '♐',
-        shortcode: {
+        name: {
             en: 'sagittarius',
             es: 'sagitario',
         },
@@ -15682,7 +15682,7 @@ const emojis = [
     },
     {
         code: '♑',
-        shortcode: {
+        name: {
             en: 'capricorn',
             es: 'capricornio',
         },
@@ -15693,7 +15693,7 @@ const emojis = [
     },
     {
         code: '♒',
-        shortcode: {
+        name: {
             en: 'aquarius',
             es: 'acuario',
         },
@@ -15704,7 +15704,7 @@ const emojis = [
     },
     {
         code: '♓',
-        shortcode: {
+        name: {
             en: 'pisces',
             es: 'piscis',
         },
@@ -15715,7 +15715,7 @@ const emojis = [
     },
     {
         code: '⛎',
-        shortcode: {
+        name: {
             en: 'ophiuchus',
             es: 'ofiuco',
         },
@@ -15726,7 +15726,7 @@ const emojis = [
     },
     {
         code: '🔀',
-        shortcode: {
+        name: {
             en: 'twisted_rightwards_arrows',
             es: 'flechas_cruzadas_hacia_la_derecha',
         },
@@ -15737,7 +15737,7 @@ const emojis = [
     },
     {
         code: '🔁',
-        shortcode: {
+        name: {
             en: 'repeat',
             es: 'repetir',
         },
@@ -15748,7 +15748,7 @@ const emojis = [
     },
     {
         code: '🔂',
-        shortcode: {
+        name: {
             en: 'repeat_one',
             es: 'repetir_una_vez',
         },
@@ -15759,7 +15759,7 @@ const emojis = [
     },
     {
         code: '▶️',
-        shortcode: {
+        name: {
             en: 'arrow_forward',
             es: 'flecha_hacia_delante',
         },
@@ -15770,7 +15770,7 @@ const emojis = [
     },
     {
         code: '⏩',
-        shortcode: {
+        name: {
             en: 'fast_forward',
             es: 'avance_rápido',
         },
@@ -15781,7 +15781,7 @@ const emojis = [
     },
     {
         code: '⏭️',
-        shortcode: {
+        name: {
             en: 'black_right_pointing_double_triangle_with_vertical_bar',
             es: 'triángulo_doble_negro_en_dirección_derecha_con_barra_vertical',
         },
@@ -15792,7 +15792,7 @@ const emojis = [
     },
     {
         code: '⏯️',
-        shortcode: {
+        name: {
             en: 'black_right_pointing_triangle_with_double_vertical_bar',
             es: 'triángulo_negro_en_dirección_derecha_con_doble_barra_vertical',
         },
@@ -15803,7 +15803,7 @@ const emojis = [
     },
     {
         code: '◀️',
-        shortcode: {
+        name: {
             en: 'arrow_backward',
             es: 'flecha_hacia_atrás',
         },
@@ -15814,7 +15814,7 @@ const emojis = [
     },
     {
         code: '⏪',
-        shortcode: {
+        name: {
             en: 'rewind',
             es: 'rebobinar',
         },
@@ -15825,7 +15825,7 @@ const emojis = [
     },
     {
         code: '⏮️',
-        shortcode: {
+        name: {
             en: 'black_left_pointing_double_triangle_with_vertical_bar',
             es: 'triángulo_doble_negro_en_dirección_izquierda_con_barra_vertical',
         },
@@ -15836,7 +15836,7 @@ const emojis = [
     },
     {
         code: '🔼',
-        shortcode: {
+        name: {
             en: 'arrow_up_small',
             es: 'flecha_pequeña_hacia_arriba',
         },
@@ -15847,7 +15847,7 @@ const emojis = [
     },
     {
         code: '⏫',
-        shortcode: {
+        name: {
             en: 'arrow_double_up',
             es: 'flecha_doble_hacia_arriba',
         },
@@ -15858,7 +15858,7 @@ const emojis = [
     },
     {
         code: '🔽',
-        shortcode: {
+        name: {
             en: 'arrow_down_small',
             es: 'flecha_pequeña_hacia_abajo',
         },
@@ -15869,7 +15869,7 @@ const emojis = [
     },
     {
         code: '⏬',
-        shortcode: {
+        name: {
             en: 'arrow_double_down',
             es: 'flecha_doble_hacia_abajo',
         },
@@ -15880,7 +15880,7 @@ const emojis = [
     },
     {
         code: '⏸️',
-        shortcode: {
+        name: {
             en: 'double_vertical_bar',
             es: 'doble_barra_vertical',
         },
@@ -15891,7 +15891,7 @@ const emojis = [
     },
     {
         code: '⏹️',
-        shortcode: {
+        name: {
             en: 'black_square_for_stop',
             es: 'cuadrado_negro_para_detener',
         },
@@ -15902,7 +15902,7 @@ const emojis = [
     },
     {
         code: '⏺️',
-        shortcode: {
+        name: {
             en: 'black_circle_for_record',
             es: 'círculo_negro_de_grabación',
         },
@@ -15913,7 +15913,7 @@ const emojis = [
     },
     {
         code: '⏏️',
-        shortcode: {
+        name: {
             en: 'eject',
             es: 'expulsar',
         },
@@ -15924,7 +15924,7 @@ const emojis = [
     },
     {
         code: '🎦',
-        shortcode: {
+        name: {
             en: 'cinema',
             es: 'cine',
         },
@@ -15935,7 +15935,7 @@ const emojis = [
     },
     {
         code: '🔅',
-        shortcode: {
+        name: {
             en: 'low_brightness',
             es: 'poco_brillo',
         },
@@ -15946,7 +15946,7 @@ const emojis = [
     },
     {
         code: '🔆',
-        shortcode: {
+        name: {
             en: 'high_brightness',
             es: 'mucho_brillo',
         },
@@ -15957,7 +15957,7 @@ const emojis = [
     },
     {
         code: '📶',
-        shortcode: {
+        name: {
             en: 'signal_strength',
             es: 'barras_de_recepción_de_señal',
         },
@@ -15968,7 +15968,7 @@ const emojis = [
     },
     {
         code: '📳',
-        shortcode: {
+        name: {
             en: 'vibration_mode',
             es: 'modo_vibración',
         },
@@ -15979,7 +15979,7 @@ const emojis = [
     },
     {
         code: '📴',
-        shortcode: {
+        name: {
             en: 'mobile_phone_off',
             es: 'móvil_desconectado',
         },
@@ -15990,7 +15990,7 @@ const emojis = [
     },
     {
         code: '♀️',
-        shortcode: {
+        name: {
             en: 'female_sign',
             es: 'signo_femenino',
         },
@@ -16001,7 +16001,7 @@ const emojis = [
     },
     {
         code: '♂️',
-        shortcode: {
+        name: {
             en: 'male_sign',
             es: 'signo_masculino',
         },
@@ -16012,7 +16012,7 @@ const emojis = [
     },
     {
         code: '⚧️',
-        shortcode: {
+        name: {
             en: 'transgender_symbol',
             es: 'símbolo_de_transgénero',
         },
@@ -16023,7 +16023,7 @@ const emojis = [
     },
     {
         code: '✖️',
-        shortcode: {
+        name: {
             en: 'heavy_multiplication_x',
             es: 'signo_de_multiplicación_grueso',
         },
@@ -16034,7 +16034,7 @@ const emojis = [
     },
     {
         code: '➕',
-        shortcode: {
+        name: {
             en: 'heavy_plus_sign',
             es: 'signo_de_suma_grueso',
         },
@@ -16045,7 +16045,7 @@ const emojis = [
     },
     {
         code: '➖',
-        shortcode: {
+        name: {
             en: 'heavy_minus_sign',
             es: 'signo_de_resta_grueso',
         },
@@ -16056,7 +16056,7 @@ const emojis = [
     },
     {
         code: '➗',
-        shortcode: {
+        name: {
             en: 'heavy_division_sign',
             es: 'signo_de_división_grueso',
         },
@@ -16067,7 +16067,7 @@ const emojis = [
     },
     {
         code: '♾️',
-        shortcode: {
+        name: {
             en: 'infinity',
             es: 'infinito',
         },
@@ -16078,7 +16078,7 @@ const emojis = [
     },
     {
         code: '‼️',
-        shortcode: {
+        name: {
             en: 'bangbang',
             es: 'bangbang',
         },
@@ -16089,7 +16089,7 @@ const emojis = [
     },
     {
         code: '⁉️',
-        shortcode: {
+        name: {
             en: 'interrobang',
             es: 'signos_de_interrogación_y_exclamación',
         },
@@ -16100,7 +16100,7 @@ const emojis = [
     },
     {
         code: '❓',
-        shortcode: {
+        name: {
             en: 'question',
             es: 'signo_de_interrogación_rojo',
         },
@@ -16111,7 +16111,7 @@ const emojis = [
     },
     {
         code: '❔',
-        shortcode: {
+        name: {
             en: 'grey_question',
             es: 'signo_de_interrogación_gris',
         },
@@ -16122,7 +16122,7 @@ const emojis = [
     },
     {
         code: '❕',
-        shortcode: {
+        name: {
             en: 'grey_exclamation',
             es: 'signo_de_exclamación_gris',
         },
@@ -16133,7 +16133,7 @@ const emojis = [
     },
     {
         code: '❗',
-        shortcode: {
+        name: {
             en: 'exclamation',
             es: 'exclamación',
         },
@@ -16144,7 +16144,7 @@ const emojis = [
     },
     {
         code: '〰️',
-        shortcode: {
+        name: {
             en: 'wavy_dash',
             es: 'guion_ondulante',
         },
@@ -16155,7 +16155,7 @@ const emojis = [
     },
     {
         code: '💱',
-        shortcode: {
+        name: {
             en: 'currency_exchange',
             es: 'cambio_de_divisas',
         },
@@ -16166,7 +16166,7 @@ const emojis = [
     },
     {
         code: '💲',
-        shortcode: {
+        name: {
             en: 'heavy_dollar_sign',
             es: 'símbolo_de_dólar_grueso',
         },
@@ -16177,7 +16177,7 @@ const emojis = [
     },
     {
         code: '⚕️',
-        shortcode: {
+        name: {
             en: 'medical_symbol',
             es: 'símbolo_médico',
         },
@@ -16188,7 +16188,7 @@ const emojis = [
     },
     {
         code: '♻️',
-        shortcode: {
+        name: {
             en: 'recycle',
             es: 'reciclar',
         },
@@ -16199,7 +16199,7 @@ const emojis = [
     },
     {
         code: '⚜️',
-        shortcode: {
+        name: {
             en: 'fleur_de_lis',
             es: 'flor_de_lis',
         },
@@ -16210,7 +16210,7 @@ const emojis = [
     },
     {
         code: '🔱',
-        shortcode: {
+        name: {
             en: 'trident',
             es: 'tridente',
         },
@@ -16221,7 +16221,7 @@ const emojis = [
     },
     {
         code: '📛',
-        shortcode: {
+        name: {
             en: 'name_badge',
             es: 'chapa_identificativa',
         },
@@ -16232,7 +16232,7 @@ const emojis = [
     },
     {
         code: '🔰',
-        shortcode: {
+        name: {
             en: 'beginner',
             es: 'principiante',
         },
@@ -16243,7 +16243,7 @@ const emojis = [
     },
     {
         code: '⭕',
-        shortcode: {
+        name: {
             en: 'o',
             es: 'o',
         },
@@ -16254,7 +16254,7 @@ const emojis = [
     },
     {
         code: '✅',
-        shortcode: {
+        name: {
             en: 'white_check_mark',
             es: 'marca_de_verificación_blanca',
         },
@@ -16265,7 +16265,7 @@ const emojis = [
     },
     {
         code: '☑️',
-        shortcode: {
+        name: {
             en: 'ballot_box_with_check',
             es: 'casilla_con_marca_de_verificación',
         },
@@ -16276,7 +16276,7 @@ const emojis = [
     },
     {
         code: '✔️',
-        shortcode: {
+        name: {
             en: 'heavy_check_mark',
             es: 'marca_de_verificación_gruesa',
         },
@@ -16287,7 +16287,7 @@ const emojis = [
     },
     {
         code: '❌',
-        shortcode: {
+        name: {
             en: 'x',
             es: 'x',
         },
@@ -16298,7 +16298,7 @@ const emojis = [
     },
     {
         code: '❎',
-        shortcode: {
+        name: {
             en: 'negative_squared_cross_mark',
             es: 'cruz_negativa_enmarcada',
         },
@@ -16309,7 +16309,7 @@ const emojis = [
     },
     {
         code: '➰',
-        shortcode: {
+        name: {
             en: 'curly_loop',
             es: 'lazada',
         },
@@ -16320,7 +16320,7 @@ const emojis = [
     },
     {
         code: '➿',
-        shortcode: {
+        name: {
             en: 'loop',
             es: 'lazo',
         },
@@ -16331,7 +16331,7 @@ const emojis = [
     },
     {
         code: '〽️',
-        shortcode: {
+        name: {
             en: 'part_alternation_mark',
             es: 'signo_de_inicio_de_canción',
         },
@@ -16342,7 +16342,7 @@ const emojis = [
     },
     {
         code: '✳️',
-        shortcode: {
+        name: {
             en: 'eight_spoked_asterisk',
             es: 'asterisco_de_ocho_puntas',
         },
@@ -16353,7 +16353,7 @@ const emojis = [
     },
     {
         code: '✴️',
-        shortcode: {
+        name: {
             en: 'eight_pointed_black_star',
             es: 'estrella_negra_de_ocho_puntas',
         },
@@ -16364,7 +16364,7 @@ const emojis = [
     },
     {
         code: '❇️',
-        shortcode: {
+        name: {
             en: 'sparkle',
             es: 'destello',
         },
@@ -16375,7 +16375,7 @@ const emojis = [
     },
     {
         code: '©️',
-        shortcode: {
+        name: {
             en: 'copyright',
             es: 'derechos_de_autor',
         },
@@ -16386,7 +16386,7 @@ const emojis = [
     },
     {
         code: '®️',
-        shortcode: {
+        name: {
             en: 'registered',
             es: 'registrado',
         },
@@ -16397,7 +16397,7 @@ const emojis = [
     },
     {
         code: '™️',
-        shortcode: {
+        name: {
             en: 'tm',
             es: 'tm',
         },
@@ -16408,7 +16408,7 @@ const emojis = [
     },
     {
         code: '#️⃣',
-        shortcode: {
+        name: {
             en: 'hash',
             es: 'almohadilla',
         },
@@ -16419,7 +16419,7 @@ const emojis = [
     },
     {
         code: '*️⃣',
-        shortcode: {
+        name: {
             en: 'keycap_star',
             es: 'asterisco_enmarcado',
         },
@@ -16430,7 +16430,7 @@ const emojis = [
     },
     {
         code: '0️⃣',
-        shortcode: {
+        name: {
             en: 'zero',
             es: 'cero',
         },
@@ -16441,7 +16441,7 @@ const emojis = [
     },
     {
         code: '1️⃣',
-        shortcode: {
+        name: {
             en: 'one',
             es: 'uno',
         },
@@ -16452,7 +16452,7 @@ const emojis = [
     },
     {
         code: '2️⃣',
-        shortcode: {
+        name: {
             en: 'two',
             es: 'dos',
         },
@@ -16463,7 +16463,7 @@ const emojis = [
     },
     {
         code: '3️⃣',
-        shortcode: {
+        name: {
             en: 'three',
             es: 'tres',
         },
@@ -16474,7 +16474,7 @@ const emojis = [
     },
     {
         code: '4️⃣',
-        shortcode: {
+        name: {
             en: 'four',
             es: 'cuatro',
         },
@@ -16485,7 +16485,7 @@ const emojis = [
     },
     {
         code: '5️⃣',
-        shortcode: {
+        name: {
             en: 'five',
             es: 'cinco',
         },
@@ -16496,7 +16496,7 @@ const emojis = [
     },
     {
         code: '6️⃣',
-        shortcode: {
+        name: {
             en: 'six',
             es: 'seis',
         },
@@ -16507,7 +16507,7 @@ const emojis = [
     },
     {
         code: '7️⃣',
-        shortcode: {
+        name: {
             en: 'seven',
             es: 'siete',
         },
@@ -16518,7 +16518,7 @@ const emojis = [
     },
     {
         code: '8️⃣',
-        shortcode: {
+        name: {
             en: 'eight',
             es: 'ocho',
         },
@@ -16529,7 +16529,7 @@ const emojis = [
     },
     {
         code: '9️⃣',
-        shortcode: {
+        name: {
             en: 'nine',
             es: 'nueve',
         },
@@ -16540,7 +16540,7 @@ const emojis = [
     },
     {
         code: '🔟',
-        shortcode: {
+        name: {
             en: 'keycap_ten',
             es: 'diez_enmarcado',
         },
@@ -16551,7 +16551,7 @@ const emojis = [
     },
     {
         code: '🔠',
-        shortcode: {
+        name: {
             en: 'capital_abcd',
             es: 'abcd_en_mayúsculas',
         },
@@ -16562,7 +16562,7 @@ const emojis = [
     },
     {
         code: '🔡',
-        shortcode: {
+        name: {
             en: 'abcd',
             es: 'abcd',
         },
@@ -16573,7 +16573,7 @@ const emojis = [
     },
     {
         code: '🔢',
-        shortcode: {
+        name: {
             en: '1234',
             es: '1234',
         },
@@ -16584,7 +16584,7 @@ const emojis = [
     },
     {
         code: '🔣',
-        shortcode: {
+        name: {
             en: 'symbols',
             es: 'símbolos',
         },
@@ -16595,7 +16595,7 @@ const emojis = [
     },
     {
         code: '🔤',
-        shortcode: {
+        name: {
             en: 'abc',
             es: 'abc',
         },
@@ -16606,7 +16606,7 @@ const emojis = [
     },
     {
         code: '🅰️',
-        shortcode: {
+        name: {
             en: 'a',
             es: 'a',
         },
@@ -16617,7 +16617,7 @@ const emojis = [
     },
     {
         code: '🆎',
-        shortcode: {
+        name: {
             en: 'ab',
             es: 'ab',
         },
@@ -16628,7 +16628,7 @@ const emojis = [
     },
     {
         code: '🅱️',
-        shortcode: {
+        name: {
             en: 'b',
             es: 'b',
         },
@@ -16639,7 +16639,7 @@ const emojis = [
     },
     {
         code: '🆑',
-        shortcode: {
+        name: {
             en: 'cl',
             es: 'cl',
         },
@@ -16650,7 +16650,7 @@ const emojis = [
     },
     {
         code: '🆒',
-        shortcode: {
+        name: {
             en: 'cool',
             es: 'guay',
         },
@@ -16661,7 +16661,7 @@ const emojis = [
     },
     {
         code: '🆓',
-        shortcode: {
+        name: {
             en: 'free',
             es: 'gratis',
         },
@@ -16672,7 +16672,7 @@ const emojis = [
     },
     {
         code: 'ℹ️',
-        shortcode: {
+        name: {
             en: 'information_source',
             es: 'fuente_de_información',
         },
@@ -16683,7 +16683,7 @@ const emojis = [
     },
     {
         code: '🆔',
-        shortcode: {
+        name: {
             en: 'id',
             es: 'carné_de_identidad',
         },
@@ -16694,7 +16694,7 @@ const emojis = [
     },
     {
         code: 'Ⓜ️',
-        shortcode: {
+        name: {
             en: 'm',
             es: 'm',
         },
@@ -16705,7 +16705,7 @@ const emojis = [
     },
     {
         code: '🆕',
-        shortcode: {
+        name: {
             en: 'new',
             es: 'nuevo',
         },
@@ -16716,7 +16716,7 @@ const emojis = [
     },
     {
         code: '🆖',
-        shortcode: {
+        name: {
             en: 'ng',
             es: 'nada_guay',
         },
@@ -16727,7 +16727,7 @@ const emojis = [
     },
     {
         code: '🅾️',
-        shortcode: {
+        name: {
             en: 'o2',
             es: 'o2',
         },
@@ -16738,7 +16738,7 @@ const emojis = [
     },
     {
         code: '🆗',
-        shortcode: {
+        name: {
             en: 'ok',
             es: 'vale',
         },
@@ -16749,7 +16749,7 @@ const emojis = [
     },
     {
         code: '🅿️',
-        shortcode: {
+        name: {
             en: 'parking',
             es: 'aparcamiento',
         },
@@ -16760,7 +16760,7 @@ const emojis = [
     },
     {
         code: '🆘',
-        shortcode: {
+        name: {
             en: 'sos',
             es: 'llamada_de_socorro',
         },
@@ -16771,7 +16771,7 @@ const emojis = [
     },
     {
         code: '🆙',
-        shortcode: {
+        name: {
             en: 'up',
             es: 'arriba',
         },
@@ -16782,7 +16782,7 @@ const emojis = [
     },
     {
         code: '🆚',
-        shortcode: {
+        name: {
             en: 'vs',
             es: 'vs',
         },
@@ -16793,7 +16793,7 @@ const emojis = [
     },
     {
         code: '🈁',
-        shortcode: {
+        name: {
             en: 'koko',
             es: 'koko',
         },
@@ -16804,7 +16804,7 @@ const emojis = [
     },
     {
         code: '🈂️',
-        shortcode: {
+        name: {
             en: 'sa',
             es: 'sa',
         },
@@ -16815,7 +16815,7 @@ const emojis = [
     },
     {
         code: '🈷️',
-        shortcode: {
+        name: {
             en: 'u6708',
             es: 'u6708',
         },
@@ -16826,7 +16826,7 @@ const emojis = [
     },
     {
         code: '🈶',
-        shortcode: {
+        name: {
             en: 'u6709',
             es: 'u6709',
         },
@@ -16837,7 +16837,7 @@ const emojis = [
     },
     {
         code: '🈯',
-        shortcode: {
+        name: {
             en: 'u6307',
             es: 'u6307',
         },
@@ -16848,7 +16848,7 @@ const emojis = [
     },
     {
         code: '🉐',
-        shortcode: {
+        name: {
             en: 'ideograph_advantage',
             es: 'símbolo_de_ganga',
         },
@@ -16859,7 +16859,7 @@ const emojis = [
     },
     {
         code: '🈹',
-        shortcode: {
+        name: {
             en: 'u5272',
             es: 'u5272',
         },
@@ -16870,7 +16870,7 @@ const emojis = [
     },
     {
         code: '🈚',
-        shortcode: {
+        name: {
             en: 'u7121',
             es: 'u7121',
         },
@@ -16881,7 +16881,7 @@ const emojis = [
     },
     {
         code: '🈲',
-        shortcode: {
+        name: {
             en: 'u7981',
             es: 'u7981',
         },
@@ -16892,7 +16892,7 @@ const emojis = [
     },
     {
         code: '🉑',
-        shortcode: {
+        name: {
             en: 'accept',
             es: 'aceptar',
         },
@@ -16903,7 +16903,7 @@ const emojis = [
     },
     {
         code: '🈸',
-        shortcode: {
+        name: {
             en: 'u7533',
             es: 'u7533',
         },
@@ -16914,7 +16914,7 @@ const emojis = [
     },
     {
         code: '🈴',
-        shortcode: {
+        name: {
             en: 'u5408',
             es: 'u5408',
         },
@@ -16925,7 +16925,7 @@ const emojis = [
     },
     {
         code: '🈳',
-        shortcode: {
+        name: {
             en: 'u7a7a',
             es: 'u7a7a',
         },
@@ -16936,7 +16936,7 @@ const emojis = [
     },
     {
         code: '㊗️',
-        shortcode: {
+        name: {
             en: 'congratulations',
             es: 'felicitaciones',
         },
@@ -16947,7 +16947,7 @@ const emojis = [
     },
     {
         code: '㊙️',
-        shortcode: {
+        name: {
             en: 'secret',
             es: 'secreto',
         },
@@ -16958,7 +16958,7 @@ const emojis = [
     },
     {
         code: '🈺',
-        shortcode: {
+        name: {
             en: 'u55b6',
             es: 'u55b6',
         },
@@ -16969,7 +16969,7 @@ const emojis = [
     },
     {
         code: '🈵',
-        shortcode: {
+        name: {
             en: 'u6e80',
             es: 'u6e80',
         },
@@ -16980,7 +16980,7 @@ const emojis = [
     },
     {
         code: '🔴',
-        shortcode: {
+        name: {
             en: 'red_circle',
             es: 'círculo_rojo',
         },
@@ -16991,7 +16991,7 @@ const emojis = [
     },
     {
         code: '🟠',
-        shortcode: {
+        name: {
             en: 'large_orange_circle',
             es: 'círculo_naranja_grande',
         },
@@ -17002,7 +17002,7 @@ const emojis = [
     },
     {
         code: '🟡',
-        shortcode: {
+        name: {
             en: 'large_yellow_circle',
             es: 'círculo_amarillo_grande',
         },
@@ -17013,7 +17013,7 @@ const emojis = [
     },
     {
         code: '🟢',
-        shortcode: {
+        name: {
             en: 'large_green_circle',
             es: 'círculo_verde_grande',
         },
@@ -17024,7 +17024,7 @@ const emojis = [
     },
     {
         code: '🔵',
-        shortcode: {
+        name: {
             en: 'large_blue_circle',
             es: 'círculo_azul_grande',
         },
@@ -17035,7 +17035,7 @@ const emojis = [
     },
     {
         code: '🟣',
-        shortcode: {
+        name: {
             en: 'large_purple_circle',
             es: 'círculo_morado_grande',
         },
@@ -17046,7 +17046,7 @@ const emojis = [
     },
     {
         code: '🟤',
-        shortcode: {
+        name: {
             en: 'large_brown_circle',
             es: 'círculo_marrón_grande',
         },
@@ -17057,7 +17057,7 @@ const emojis = [
     },
     {
         code: '⚫',
-        shortcode: {
+        name: {
             en: 'black_circle',
             es: 'círculo_negro',
         },
@@ -17068,7 +17068,7 @@ const emojis = [
     },
     {
         code: '⚪',
-        shortcode: {
+        name: {
             en: 'white_circle',
             es: 'círculo_blanco',
         },
@@ -17079,7 +17079,7 @@ const emojis = [
     },
     {
         code: '🟥',
-        shortcode: {
+        name: {
             en: 'large_red_square',
             es: 'cuadrado_rojo_grande',
         },
@@ -17090,7 +17090,7 @@ const emojis = [
     },
     {
         code: '🟧',
-        shortcode: {
+        name: {
             en: 'large_orange_square',
             es: 'cuadrado_naranja_grande',
         },
@@ -17101,7 +17101,7 @@ const emojis = [
     },
     {
         code: '🟨',
-        shortcode: {
+        name: {
             en: 'large_yellow_square',
             es: 'cuadrado_amarillo_grande',
         },
@@ -17112,7 +17112,7 @@ const emojis = [
     },
     {
         code: '🟩',
-        shortcode: {
+        name: {
             en: 'large_green_square',
             es: 'cuadrado_verde_grande',
         },
@@ -17123,7 +17123,7 @@ const emojis = [
     },
     {
         code: '🟦',
-        shortcode: {
+        name: {
             en: 'large_blue_square',
             es: 'cuadrado_azul_grande',
         },
@@ -17134,7 +17134,7 @@ const emojis = [
     },
     {
         code: '🟪',
-        shortcode: {
+        name: {
             en: 'large_purple_square',
             es: 'cuadrado_morado_grande',
         },
@@ -17145,7 +17145,7 @@ const emojis = [
     },
     {
         code: '🟫',
-        shortcode: {
+        name: {
             en: 'large_brown_square',
             es: 'cuadrado_marrón_grande',
         },
@@ -17156,7 +17156,7 @@ const emojis = [
     },
     {
         code: '⬛',
-        shortcode: {
+        name: {
             en: 'black_large_square',
             es: 'gran_cuadrado_negro',
         },
@@ -17167,7 +17167,7 @@ const emojis = [
     },
     {
         code: '⬜',
-        shortcode: {
+        name: {
             en: 'white_large_square',
             es: 'cuadrado_blanco_grande',
         },
@@ -17178,7 +17178,7 @@ const emojis = [
     },
     {
         code: '◼️',
-        shortcode: {
+        name: {
             en: 'black_medium_square',
             es: 'cuadrado_mediano_negro',
         },
@@ -17189,7 +17189,7 @@ const emojis = [
     },
     {
         code: '◻️',
-        shortcode: {
+        name: {
             en: 'white_medium_square',
             es: 'cuadrado_blanco_mediano',
         },
@@ -17200,7 +17200,7 @@ const emojis = [
     },
     {
         code: '◾',
-        shortcode: {
+        name: {
             en: 'black_medium_small_square',
             es: 'cuadrado_mediano_pequeño_negro',
         },
@@ -17211,7 +17211,7 @@ const emojis = [
     },
     {
         code: '◽',
-        shortcode: {
+        name: {
             en: 'white_medium_small_square',
             es: 'cuadrado_blanco_mediano_pequeño',
         },
@@ -17222,7 +17222,7 @@ const emojis = [
     },
     {
         code: '▪️',
-        shortcode: {
+        name: {
             en: 'black_small_square',
             es: 'cuadrado_pequeño_negro',
         },
@@ -17233,7 +17233,7 @@ const emojis = [
     },
     {
         code: '▫️',
-        shortcode: {
+        name: {
             en: 'white_small_square',
             es: 'cuadrado_blanco_pequeño',
         },
@@ -17244,7 +17244,7 @@ const emojis = [
     },
     {
         code: '🔶',
-        shortcode: {
+        name: {
             en: 'large_orange_diamond',
             es: 'diamante_naranja_grande',
         },
@@ -17255,7 +17255,7 @@ const emojis = [
     },
     {
         code: '🔷',
-        shortcode: {
+        name: {
             en: 'large_blue_diamond',
             es: 'diamante_azul_grande',
         },
@@ -17266,7 +17266,7 @@ const emojis = [
     },
     {
         code: '🔸',
-        shortcode: {
+        name: {
             en: 'small_orange_diamond',
             es: 'diamante_naranja_pequeño',
         },
@@ -17277,7 +17277,7 @@ const emojis = [
     },
     {
         code: '🔹',
-        shortcode: {
+        name: {
             en: 'small_blue_diamond',
             es: 'diamante_azul_pequeño',
         },
@@ -17288,7 +17288,7 @@ const emojis = [
     },
     {
         code: '🔺',
-        shortcode: {
+        name: {
             en: 'small_red_triangle',
             es: 'triángulo_rojo_pequeño',
         },
@@ -17299,7 +17299,7 @@ const emojis = [
     },
     {
         code: '🔻',
-        shortcode: {
+        name: {
             en: 'small_red_triangle_down',
             es: 'triángulo_rojo_pequeño_hacia_abajo',
         },
@@ -17310,7 +17310,7 @@ const emojis = [
     },
     {
         code: '💠',
-        shortcode: {
+        name: {
             en: 'diamond_shape_with_a_dot_inside',
             es: 'forma_de_diamante_con_un_punto_dentro',
         },
@@ -17321,7 +17321,7 @@ const emojis = [
     },
     {
         code: '🔘',
-        shortcode: {
+        name: {
             en: 'radio_button',
             es: 'botón_de_radio',
         },
@@ -17332,7 +17332,7 @@ const emojis = [
     },
     {
         code: '🔳',
-        shortcode: {
+        name: {
             en: 'white_square_button',
             es: 'botón_cuadrado_blanco',
         },
@@ -17343,7 +17343,7 @@ const emojis = [
     },
     {
         code: '🔲',
-        shortcode: {
+        name: {
             en: 'black_square_button',
             es: 'botón_cuadrado_negro',
         },
@@ -17359,7 +17359,7 @@ const emojis = [
     },
     {
         code: '🏁',
-        shortcode: {
+        name: {
             en: 'checkered_flag',
             es: 'bandera_de_cuadros',
         },
@@ -17370,7 +17370,7 @@ const emojis = [
     },
     {
         code: '🚩',
-        shortcode: {
+        name: {
             en: 'triangular_flag_on_post',
             es: 'mastil_con_bandera_triangular',
         },
@@ -17381,7 +17381,7 @@ const emojis = [
     },
     {
         code: '🎌',
-        shortcode: {
+        name: {
             en: 'crossed_flags',
             es: 'banderas_cruzadas',
         },
@@ -17392,7 +17392,7 @@ const emojis = [
     },
     {
         code: '🏴',
-        shortcode: {
+        name: {
             en: 'waving_black_flag',
             es: 'ondeando_bandera_negra',
         },
@@ -17403,7 +17403,7 @@ const emojis = [
     },
     {
         code: '🏳️',
-        shortcode: {
+        name: {
             en: 'waving_white_flag',
             es: 'ondeando_bandera_blanca',
         },
@@ -17414,7 +17414,7 @@ const emojis = [
     },
     {
         code: '🏳️‍🌈',
-        shortcode: {
+        name: {
             en: 'rainbow-flag',
             es: 'bandera-arcoíris',
         },
@@ -17425,7 +17425,7 @@ const emojis = [
     },
     {
         code: '🏳️‍⚧️',
-        shortcode: {
+        name: {
             en: 'transgender_flag',
             es: 'bandera_transgénero',
         },
@@ -17436,7 +17436,7 @@ const emojis = [
     },
     {
         code: '🏴‍☠️',
-        shortcode: {
+        name: {
             en: 'pirate_flag',
             es: 'bandera_pirata',
         },
@@ -17447,7 +17447,7 @@ const emojis = [
     },
     {
         code: '🇦🇨',
-        shortcode: {
+        name: {
             en: 'flag-ac',
             es: 'bandera-ac',
         },
@@ -17458,7 +17458,7 @@ const emojis = [
     },
     {
         code: '🇦🇩',
-        shortcode: {
+        name: {
             en: 'flag-ad',
             es: 'bandera-ad',
         },
@@ -17469,7 +17469,7 @@ const emojis = [
     },
     {
         code: '🇦🇪',
-        shortcode: {
+        name: {
             en: 'flag-ae',
             es: 'bandera-ae',
         },
@@ -17480,7 +17480,7 @@ const emojis = [
     },
     {
         code: '🇦🇫',
-        shortcode: {
+        name: {
             en: 'flag-af',
             es: 'bandera-af',
         },
@@ -17491,7 +17491,7 @@ const emojis = [
     },
     {
         code: '🇦🇬',
-        shortcode: {
+        name: {
             en: 'flag-ag',
             es: 'bandera-ag',
         },
@@ -17502,7 +17502,7 @@ const emojis = [
     },
     {
         code: '🇦🇮',
-        shortcode: {
+        name: {
             en: 'flag-ai',
             es: 'bandera-ai',
         },
@@ -17513,7 +17513,7 @@ const emojis = [
     },
     {
         code: '🇦🇱',
-        shortcode: {
+        name: {
             en: 'flag-al',
             es: 'bandera-al',
         },
@@ -17524,7 +17524,7 @@ const emojis = [
     },
     {
         code: '🇦🇲',
-        shortcode: {
+        name: {
             en: 'flag-am',
             es: 'bandera-am',
         },
@@ -17535,7 +17535,7 @@ const emojis = [
     },
     {
         code: '🇦🇴',
-        shortcode: {
+        name: {
             en: 'flag-ao',
             es: 'bandera-ao',
         },
@@ -17546,7 +17546,7 @@ const emojis = [
     },
     {
         code: '🇦🇶',
-        shortcode: {
+        name: {
             en: 'flag-aq',
             es: 'bandera-aq',
         },
@@ -17557,7 +17557,7 @@ const emojis = [
     },
     {
         code: '🇦🇷',
-        shortcode: {
+        name: {
             en: 'flag-ar',
             es: 'bandera-ar',
         },
@@ -17568,7 +17568,7 @@ const emojis = [
     },
     {
         code: '🇦🇸',
-        shortcode: {
+        name: {
             en: 'flag-as',
             es: 'bandera-as',
         },
@@ -17579,7 +17579,7 @@ const emojis = [
     },
     {
         code: '🇦🇹',
-        shortcode: {
+        name: {
             en: 'flag-at',
             es: 'bandera-at',
         },
@@ -17590,7 +17590,7 @@ const emojis = [
     },
     {
         code: '🇦🇺',
-        shortcode: {
+        name: {
             en: 'flag-au',
             es: 'bandera-au',
         },
@@ -17601,7 +17601,7 @@ const emojis = [
     },
     {
         code: '🇦🇼',
-        shortcode: {
+        name: {
             en: 'flag-aw',
             es: 'bandera-aw',
         },
@@ -17612,7 +17612,7 @@ const emojis = [
     },
     {
         code: '🇦🇽',
-        shortcode: {
+        name: {
             en: 'flag-ax',
             es: 'bandera-ax',
         },
@@ -17623,7 +17623,7 @@ const emojis = [
     },
     {
         code: '🇦🇿',
-        shortcode: {
+        name: {
             en: 'flag-az',
             es: 'bandera-az',
         },
@@ -17634,7 +17634,7 @@ const emojis = [
     },
     {
         code: '🇧🇦',
-        shortcode: {
+        name: {
             en: 'flag-ba',
             es: 'bandera-ba',
         },
@@ -17645,7 +17645,7 @@ const emojis = [
     },
     {
         code: '🇧🇧',
-        shortcode: {
+        name: {
             en: 'flag-bb',
             es: 'bandera-bb',
         },
@@ -17656,7 +17656,7 @@ const emojis = [
     },
     {
         code: '🇧🇩',
-        shortcode: {
+        name: {
             en: 'flag-bd',
             es: 'bandera-bd',
         },
@@ -17667,7 +17667,7 @@ const emojis = [
     },
     {
         code: '🇧🇪',
-        shortcode: {
+        name: {
             en: 'flag-be',
             es: 'bandera-be',
         },
@@ -17678,7 +17678,7 @@ const emojis = [
     },
     {
         code: '🇧🇫',
-        shortcode: {
+        name: {
             en: 'flag-bf',
             es: 'bandera-bf',
         },
@@ -17689,7 +17689,7 @@ const emojis = [
     },
     {
         code: '🇧🇬',
-        shortcode: {
+        name: {
             en: 'flag-bg',
             es: 'bandera-bg',
         },
@@ -17700,7 +17700,7 @@ const emojis = [
     },
     {
         code: '🇧🇭',
-        shortcode: {
+        name: {
             en: 'flag-bh',
             es: 'bandera-bh',
         },
@@ -17711,7 +17711,7 @@ const emojis = [
     },
     {
         code: '🇧🇮',
-        shortcode: {
+        name: {
             en: 'flag-bi',
             es: 'bandera-bi',
         },
@@ -17722,7 +17722,7 @@ const emojis = [
     },
     {
         code: '🇧🇯',
-        shortcode: {
+        name: {
             en: 'flag-bj',
             es: 'bandera-bj',
         },
@@ -17733,7 +17733,7 @@ const emojis = [
     },
     {
         code: '🇧🇱',
-        shortcode: {
+        name: {
             en: 'flag-bl',
             es: 'bandera-bl',
         },
@@ -17744,7 +17744,7 @@ const emojis = [
     },
     {
         code: '🇧🇲',
-        shortcode: {
+        name: {
             en: 'flag-bm',
             es: 'bandera-bm',
         },
@@ -17755,7 +17755,7 @@ const emojis = [
     },
     {
         code: '🇧🇳',
-        shortcode: {
+        name: {
             en: 'flag-bn',
             es: 'bandera-bn',
         },
@@ -17766,7 +17766,7 @@ const emojis = [
     },
     {
         code: '🇧🇴',
-        shortcode: {
+        name: {
             en: 'flag-bo',
             es: 'bandera-bo',
         },
@@ -17777,7 +17777,7 @@ const emojis = [
     },
     {
         code: '🇧🇶',
-        shortcode: {
+        name: {
             en: 'flag-bq',
             es: 'bandera-bq',
         },
@@ -17788,7 +17788,7 @@ const emojis = [
     },
     {
         code: '🇧🇷',
-        shortcode: {
+        name: {
             en: 'flag-br',
             es: 'bandera-br',
         },
@@ -17799,7 +17799,7 @@ const emojis = [
     },
     {
         code: '🇧🇸',
-        shortcode: {
+        name: {
             en: 'flag-bs',
             es: 'bandera-bs',
         },
@@ -17810,7 +17810,7 @@ const emojis = [
     },
     {
         code: '🇧🇹',
-        shortcode: {
+        name: {
             en: 'flag-bt',
             es: 'bandera-bt',
         },
@@ -17821,7 +17821,7 @@ const emojis = [
     },
     {
         code: '🇧🇻',
-        shortcode: {
+        name: {
             en: 'flag-bv',
             es: 'bandera-bv',
         },
@@ -17832,7 +17832,7 @@ const emojis = [
     },
     {
         code: '🇧🇼',
-        shortcode: {
+        name: {
             en: 'flag-bw',
             es: 'bandera-bw',
         },
@@ -17843,7 +17843,7 @@ const emojis = [
     },
     {
         code: '🇧🇾',
-        shortcode: {
+        name: {
             en: 'flag-by',
             es: 'bandera-by',
         },
@@ -17854,7 +17854,7 @@ const emojis = [
     },
     {
         code: '🇧🇿',
-        shortcode: {
+        name: {
             en: 'flag-bz',
             es: 'bandera-bz',
         },
@@ -17865,7 +17865,7 @@ const emojis = [
     },
     {
         code: '🇨🇦',
-        shortcode: {
+        name: {
             en: 'flag-ca',
             es: 'bandera-ca',
         },
@@ -17876,7 +17876,7 @@ const emojis = [
     },
     {
         code: '🇨🇨',
-        shortcode: {
+        name: {
             en: 'flag-cc',
             es: 'bandera-cc',
         },
@@ -17887,7 +17887,7 @@ const emojis = [
     },
     {
         code: '🇨🇩',
-        shortcode: {
+        name: {
             en: 'flag-cd',
             es: 'bandera-cd',
         },
@@ -17898,7 +17898,7 @@ const emojis = [
     },
     {
         code: '🇨🇫',
-        shortcode: {
+        name: {
             en: 'flag-cf',
             es: 'bandera-cf',
         },
@@ -17909,7 +17909,7 @@ const emojis = [
     },
     {
         code: '🇨🇬',
-        shortcode: {
+        name: {
             en: 'flag-cg',
             es: 'bandera-cg',
         },
@@ -17920,7 +17920,7 @@ const emojis = [
     },
     {
         code: '🇨🇭',
-        shortcode: {
+        name: {
             en: 'flag-ch',
             es: 'bandera-ch',
         },
@@ -17931,7 +17931,7 @@ const emojis = [
     },
     {
         code: '🇨🇮',
-        shortcode: {
+        name: {
             en: 'flag-ci',
             es: 'bandera-ci',
         },
@@ -17942,7 +17942,7 @@ const emojis = [
     },
     {
         code: '🇨🇰',
-        shortcode: {
+        name: {
             en: 'flag-ck',
             es: 'bandera-ck',
         },
@@ -17953,7 +17953,7 @@ const emojis = [
     },
     {
         code: '🇨🇱',
-        shortcode: {
+        name: {
             en: 'flag-cl',
             es: 'bandera-cl',
         },
@@ -17964,7 +17964,7 @@ const emojis = [
     },
     {
         code: '🇨🇲',
-        shortcode: {
+        name: {
             en: 'flag-cm',
             es: 'bandera-cm',
         },
@@ -17975,7 +17975,7 @@ const emojis = [
     },
     {
         code: '🇨🇳',
-        shortcode: {
+        name: {
             en: 'cn',
             es: 'cn',
         },
@@ -17986,7 +17986,7 @@ const emojis = [
     },
     {
         code: '🇨🇴',
-        shortcode: {
+        name: {
             en: 'flag-co',
             es: 'bandera-co',
         },
@@ -17997,7 +17997,7 @@ const emojis = [
     },
     {
         code: '🇨🇵',
-        shortcode: {
+        name: {
             en: 'flag-cp',
             es: 'bandera-cp',
         },
@@ -18008,7 +18008,7 @@ const emojis = [
     },
     {
         code: '🇨🇷',
-        shortcode: {
+        name: {
             en: 'flag-cr',
             es: 'bandera-cr',
         },
@@ -18019,7 +18019,7 @@ const emojis = [
     },
     {
         code: '🇨🇺',
-        shortcode: {
+        name: {
             en: 'flag-cu',
             es: 'bandera-cu',
         },
@@ -18030,7 +18030,7 @@ const emojis = [
     },
     {
         code: '🇨🇻',
-        shortcode: {
+        name: {
             en: 'flag-cv',
             es: 'bandera-cv',
         },
@@ -18041,7 +18041,7 @@ const emojis = [
     },
     {
         code: '🇨🇼',
-        shortcode: {
+        name: {
             en: 'flag-cw',
             es: 'bandera-cw',
         },
@@ -18052,7 +18052,7 @@ const emojis = [
     },
     {
         code: '🇨🇽',
-        shortcode: {
+        name: {
             en: 'flag-cx',
             es: 'bandera-cx',
         },
@@ -18063,7 +18063,7 @@ const emojis = [
     },
     {
         code: '🇨🇾',
-        shortcode: {
+        name: {
             en: 'flag-cy',
             es: 'bandera-cy',
         },
@@ -18074,7 +18074,7 @@ const emojis = [
     },
     {
         code: '🇨🇿',
-        shortcode: {
+        name: {
             en: 'flag-cz',
             es: 'bandera-cz',
         },
@@ -18085,7 +18085,7 @@ const emojis = [
     },
     {
         code: '🇩🇪',
-        shortcode: {
+        name: {
             en: 'de',
             es: 'de',
         },
@@ -18096,7 +18096,7 @@ const emojis = [
     },
     {
         code: '🇩🇬',
-        shortcode: {
+        name: {
             en: 'flag-dg',
             es: 'bandera-dg',
         },
@@ -18107,7 +18107,7 @@ const emojis = [
     },
     {
         code: '🇩🇯',
-        shortcode: {
+        name: {
             en: 'flag-dj',
             es: 'bandera-dj',
         },
@@ -18118,7 +18118,7 @@ const emojis = [
     },
     {
         code: '🇩🇰',
-        shortcode: {
+        name: {
             en: 'flag-dk',
             es: 'bandera-dk',
         },
@@ -18129,7 +18129,7 @@ const emojis = [
     },
     {
         code: '🇩🇲',
-        shortcode: {
+        name: {
             en: 'flag-dm',
             es: 'bandera-dm',
         },
@@ -18140,7 +18140,7 @@ const emojis = [
     },
     {
         code: '🇩🇴',
-        shortcode: {
+        name: {
             en: 'flag-do',
             es: 'bandera-do',
         },
@@ -18151,7 +18151,7 @@ const emojis = [
     },
     {
         code: '🇩🇿',
-        shortcode: {
+        name: {
             en: 'flag-dz',
             es: 'bandera-dz',
         },
@@ -18162,7 +18162,7 @@ const emojis = [
     },
     {
         code: '🇪🇦',
-        shortcode: {
+        name: {
             en: 'flag-ea',
             es: 'bandera-ea',
         },
@@ -18173,7 +18173,7 @@ const emojis = [
     },
     {
         code: '🇪🇨',
-        shortcode: {
+        name: {
             en: 'flag-ec',
             es: 'bandera-ec',
         },
@@ -18184,7 +18184,7 @@ const emojis = [
     },
     {
         code: '🇪🇪',
-        shortcode: {
+        name: {
             en: 'flag-ee',
             es: 'bandera-ee',
         },
@@ -18195,7 +18195,7 @@ const emojis = [
     },
     {
         code: '🇪🇬',
-        shortcode: {
+        name: {
             en: 'flag-eg',
             es: 'bandera-eg',
         },
@@ -18206,7 +18206,7 @@ const emojis = [
     },
     {
         code: '🇪🇭',
-        shortcode: {
+        name: {
             en: 'flag-eh',
             es: 'bandera-eh',
         },
@@ -18217,7 +18217,7 @@ const emojis = [
     },
     {
         code: '🇪🇷',
-        shortcode: {
+        name: {
             en: 'flag-er',
             es: 'bandera-er',
         },
@@ -18228,7 +18228,7 @@ const emojis = [
     },
     {
         code: '🇪🇸',
-        shortcode: {
+        name: {
             en: 'es',
             es: 'es',
         },
@@ -18239,7 +18239,7 @@ const emojis = [
     },
     {
         code: '🇪🇹',
-        shortcode: {
+        name: {
             en: 'flag-et',
             es: 'bandera-et',
         },
@@ -18250,7 +18250,7 @@ const emojis = [
     },
     {
         code: '🇪🇺',
-        shortcode: {
+        name: {
             en: 'flag-eu',
             es: 'bandera-eu',
         },
@@ -18261,7 +18261,7 @@ const emojis = [
     },
     {
         code: '🇫🇮',
-        shortcode: {
+        name: {
             en: 'flag-fi',
             es: 'bandera-fi',
         },
@@ -18272,7 +18272,7 @@ const emojis = [
     },
     {
         code: '🇫🇯',
-        shortcode: {
+        name: {
             en: 'flag-fj',
             es: 'bandera-fj',
         },
@@ -18283,7 +18283,7 @@ const emojis = [
     },
     {
         code: '🇫🇰',
-        shortcode: {
+        name: {
             en: 'flag-fk',
             es: 'bandera-fk',
         },
@@ -18294,7 +18294,7 @@ const emojis = [
     },
     {
         code: '🇫🇲',
-        shortcode: {
+        name: {
             en: 'flag-fm',
             es: 'bandera-fm',
         },
@@ -18305,7 +18305,7 @@ const emojis = [
     },
     {
         code: '🇫🇴',
-        shortcode: {
+        name: {
             en: 'flag-fo',
             es: 'bandera-fo',
         },
@@ -18316,7 +18316,7 @@ const emojis = [
     },
     {
         code: '🇫🇷',
-        shortcode: {
+        name: {
             en: 'fr',
             es: 'fr',
         },
@@ -18327,7 +18327,7 @@ const emojis = [
     },
     {
         code: '🇬🇦',
-        shortcode: {
+        name: {
             en: 'flag-ga',
             es: 'bandera-ga',
         },
@@ -18338,7 +18338,7 @@ const emojis = [
     },
     {
         code: '🇬🇧',
-        shortcode: {
+        name: {
             en: 'gb',
             es: 'gb',
         },
@@ -18349,7 +18349,7 @@ const emojis = [
     },
     {
         code: '🇬🇩',
-        shortcode: {
+        name: {
             en: 'flag-gd',
             es: 'bandera-gd',
         },
@@ -18360,7 +18360,7 @@ const emojis = [
     },
     {
         code: '🇬🇪',
-        shortcode: {
+        name: {
             en: 'flag-ge',
             es: 'bandera-ge',
         },
@@ -18371,7 +18371,7 @@ const emojis = [
     },
     {
         code: '🇬🇫',
-        shortcode: {
+        name: {
             en: 'flag-gf',
             es: 'bandera-gf',
         },
@@ -18382,7 +18382,7 @@ const emojis = [
     },
     {
         code: '🇬🇬',
-        shortcode: {
+        name: {
             en: 'flag-gg',
             es: 'bandera-gg',
         },
@@ -18393,7 +18393,7 @@ const emojis = [
     },
     {
         code: '🇬🇭',
-        shortcode: {
+        name: {
             en: 'flag-gh',
             es: 'bandera-gh',
         },
@@ -18404,7 +18404,7 @@ const emojis = [
     },
     {
         code: '🇬🇮',
-        shortcode: {
+        name: {
             en: 'flag-gi',
             es: 'bandera-gi',
         },
@@ -18415,7 +18415,7 @@ const emojis = [
     },
     {
         code: '🇬🇱',
-        shortcode: {
+        name: {
             en: 'flag-gl',
             es: 'bandera-gl',
         },
@@ -18426,7 +18426,7 @@ const emojis = [
     },
     {
         code: '🇬🇲',
-        shortcode: {
+        name: {
             en: 'flag-gm',
             es: 'bandera-gm',
         },
@@ -18437,7 +18437,7 @@ const emojis = [
     },
     {
         code: '🇬🇳',
-        shortcode: {
+        name: {
             en: 'flag-gn',
             es: 'bandera-gn',
         },
@@ -18448,7 +18448,7 @@ const emojis = [
     },
     {
         code: '🇬🇵',
-        shortcode: {
+        name: {
             en: 'flag-gp',
             es: 'bandera-gp',
         },
@@ -18459,7 +18459,7 @@ const emojis = [
     },
     {
         code: '🇬🇶',
-        shortcode: {
+        name: {
             en: 'flag-gq',
             es: 'bandera-gq',
         },
@@ -18470,7 +18470,7 @@ const emojis = [
     },
     {
         code: '🇬🇷',
-        shortcode: {
+        name: {
             en: 'flag-gr',
             es: 'bandera-gr',
         },
@@ -18481,7 +18481,7 @@ const emojis = [
     },
     {
         code: '🇬🇸',
-        shortcode: {
+        name: {
             en: 'flag-gs',
             es: 'bandera-gs',
         },
@@ -18492,7 +18492,7 @@ const emojis = [
     },
     {
         code: '🇬🇹',
-        shortcode: {
+        name: {
             en: 'flag-gt',
             es: 'bandera-gt',
         },
@@ -18503,7 +18503,7 @@ const emojis = [
     },
     {
         code: '🇬🇺',
-        shortcode: {
+        name: {
             en: 'flag-gu',
             es: 'bandera-gu',
         },
@@ -18514,7 +18514,7 @@ const emojis = [
     },
     {
         code: '🇬🇼',
-        shortcode: {
+        name: {
             en: 'flag-gw',
             es: 'bandera-gw',
         },
@@ -18525,7 +18525,7 @@ const emojis = [
     },
     {
         code: '🇬🇾',
-        shortcode: {
+        name: {
             en: 'flag-gy',
             es: 'bandera-gy',
         },
@@ -18536,7 +18536,7 @@ const emojis = [
     },
     {
         code: '🇭🇰',
-        shortcode: {
+        name: {
             en: 'flag-hk',
             es: 'bandera-hk',
         },
@@ -18547,7 +18547,7 @@ const emojis = [
     },
     {
         code: '🇭🇲',
-        shortcode: {
+        name: {
             en: 'flag-hm',
             es: 'bandera-hm',
         },
@@ -18558,7 +18558,7 @@ const emojis = [
     },
     {
         code: '🇭🇳',
-        shortcode: {
+        name: {
             en: 'flag-hn',
             es: 'bandera-hn',
         },
@@ -18569,7 +18569,7 @@ const emojis = [
     },
     {
         code: '🇭🇷',
-        shortcode: {
+        name: {
             en: 'flag-hr',
             es: 'bandera-hr',
         },
@@ -18580,7 +18580,7 @@ const emojis = [
     },
     {
         code: '🇭🇹',
-        shortcode: {
+        name: {
             en: 'flag-ht',
             es: 'bandera-ht',
         },
@@ -18591,7 +18591,7 @@ const emojis = [
     },
     {
         code: '🇭🇺',
-        shortcode: {
+        name: {
             en: 'flag-hu',
             es: 'bandera-hu',
         },
@@ -18602,7 +18602,7 @@ const emojis = [
     },
     {
         code: '🇮🇨',
-        shortcode: {
+        name: {
             en: 'flag-ic',
             es: 'bandera-ic',
         },
@@ -18613,7 +18613,7 @@ const emojis = [
     },
     {
         code: '🇮🇩',
-        shortcode: {
+        name: {
             en: 'flag-id',
             es: 'bandera-id',
         },
@@ -18624,7 +18624,7 @@ const emojis = [
     },
     {
         code: '🇮🇪',
-        shortcode: {
+        name: {
             en: 'flag-ie',
             es: 'bandera-ie',
         },
@@ -18635,7 +18635,7 @@ const emojis = [
     },
     {
         code: '🇮🇱',
-        shortcode: {
+        name: {
             en: 'flag-il',
             es: 'bandera-il',
         },
@@ -18646,7 +18646,7 @@ const emojis = [
     },
     {
         code: '🇮🇲',
-        shortcode: {
+        name: {
             en: 'flag-im',
             es: 'bandera-im',
         },
@@ -18657,7 +18657,7 @@ const emojis = [
     },
     {
         code: '🇮🇳',
-        shortcode: {
+        name: {
             en: 'flag-in',
             es: 'bandera-in',
         },
@@ -18668,7 +18668,7 @@ const emojis = [
     },
     {
         code: '🇮🇴',
-        shortcode: {
+        name: {
             en: 'flag-io',
             es: 'bandera-io',
         },
@@ -18679,7 +18679,7 @@ const emojis = [
     },
     {
         code: '🇮🇶',
-        shortcode: {
+        name: {
             en: 'flag-iq',
             es: 'bandera-iq',
         },
@@ -18690,7 +18690,7 @@ const emojis = [
     },
     {
         code: '🇮🇷',
-        shortcode: {
+        name: {
             en: 'flag-ir',
             es: 'bandera-ir',
         },
@@ -18701,7 +18701,7 @@ const emojis = [
     },
     {
         code: '🇮🇸',
-        shortcode: {
+        name: {
             en: 'flag-is',
             es: 'bandera-is',
         },
@@ -18712,7 +18712,7 @@ const emojis = [
     },
     {
         code: '🇮🇹',
-        shortcode: {
+        name: {
             en: 'it',
             es: 'it',
         },
@@ -18723,7 +18723,7 @@ const emojis = [
     },
     {
         code: '🇯🇪',
-        shortcode: {
+        name: {
             en: 'flag-je',
             es: 'bandera-je',
         },
@@ -18734,7 +18734,7 @@ const emojis = [
     },
     {
         code: '🇯🇲',
-        shortcode: {
+        name: {
             en: 'flag-jm',
             es: 'bandera-jm',
         },
@@ -18745,7 +18745,7 @@ const emojis = [
     },
     {
         code: '🇯🇴',
-        shortcode: {
+        name: {
             en: 'flag-jo',
             es: 'bandera-jo',
         },
@@ -18756,7 +18756,7 @@ const emojis = [
     },
     {
         code: '🇯🇵',
-        shortcode: {
+        name: {
             en: 'jp',
             es: 'jp',
         },
@@ -18767,7 +18767,7 @@ const emojis = [
     },
     {
         code: '🇰🇪',
-        shortcode: {
+        name: {
             en: 'flag-ke',
             es: 'bandera-ke',
         },
@@ -18778,7 +18778,7 @@ const emojis = [
     },
     {
         code: '🇰🇬',
-        shortcode: {
+        name: {
             en: 'flag-kg',
             es: 'bandera-kg',
         },
@@ -18789,7 +18789,7 @@ const emojis = [
     },
     {
         code: '🇰🇭',
-        shortcode: {
+        name: {
             en: 'flag-kh',
             es: 'bandera-kh',
         },
@@ -18800,7 +18800,7 @@ const emojis = [
     },
     {
         code: '🇰🇮',
-        shortcode: {
+        name: {
             en: 'flag-ki',
             es: 'bandera-kl',
         },
@@ -18811,7 +18811,7 @@ const emojis = [
     },
     {
         code: '🇰🇲',
-        shortcode: {
+        name: {
             en: 'flag-km',
             es: 'bandera-km',
         },
@@ -18822,7 +18822,7 @@ const emojis = [
     },
     {
         code: '🇰🇳',
-        shortcode: {
+        name: {
             en: 'flag-kn',
             es: 'bandera-kn',
         },
@@ -18833,7 +18833,7 @@ const emojis = [
     },
     {
         code: '🇰🇵',
-        shortcode: {
+        name: {
             en: 'flag-kp',
             es: 'bandera-kp',
         },
@@ -18844,7 +18844,7 @@ const emojis = [
     },
     {
         code: '🇰🇷',
-        shortcode: {
+        name: {
             en: 'kr',
             es: 'kr',
         },
@@ -18855,7 +18855,7 @@ const emojis = [
     },
     {
         code: '🇰🇼',
-        shortcode: {
+        name: {
             en: 'flag-kw',
             es: 'bandera-kw',
         },
@@ -18866,7 +18866,7 @@ const emojis = [
     },
     {
         code: '🇰🇾',
-        shortcode: {
+        name: {
             en: 'flag-ky',
             es: 'bandera-ky',
         },
@@ -18877,7 +18877,7 @@ const emojis = [
     },
     {
         code: '🇰🇿',
-        shortcode: {
+        name: {
             en: 'flag-kz',
             es: 'bandera-kz',
         },
@@ -18888,7 +18888,7 @@ const emojis = [
     },
     {
         code: '🇱🇦',
-        shortcode: {
+        name: {
             en: 'flag-la',
             es: 'bandera-la',
         },
@@ -18899,7 +18899,7 @@ const emojis = [
     },
     {
         code: '🇱🇧',
-        shortcode: {
+        name: {
             en: 'flag-lb',
             es: 'bandera-lb',
         },
@@ -18910,7 +18910,7 @@ const emojis = [
     },
     {
         code: '🇱🇨',
-        shortcode: {
+        name: {
             en: 'flag-lc',
             es: 'bandera-lc',
         },
@@ -18921,7 +18921,7 @@ const emojis = [
     },
     {
         code: '🇱🇮',
-        shortcode: {
+        name: {
             en: 'flag-li',
             es: 'bandera-li',
         },
@@ -18932,7 +18932,7 @@ const emojis = [
     },
     {
         code: '🇱🇰',
-        shortcode: {
+        name: {
             en: 'flag-lk',
             es: 'bandera-lk',
         },
@@ -18943,7 +18943,7 @@ const emojis = [
     },
     {
         code: '🇱🇷',
-        shortcode: {
+        name: {
             en: 'flag-lr',
             es: 'bandera-lr',
         },
@@ -18954,7 +18954,7 @@ const emojis = [
     },
     {
         code: '🇱🇸',
-        shortcode: {
+        name: {
             en: 'flag-ls',
             es: 'bandera-ls',
         },
@@ -18965,7 +18965,7 @@ const emojis = [
     },
     {
         code: '🇱🇹',
-        shortcode: {
+        name: {
             en: 'flag-lt',
             es: 'bandera-lt',
         },
@@ -18976,7 +18976,7 @@ const emojis = [
     },
     {
         code: '🇱🇺',
-        shortcode: {
+        name: {
             en: 'flag-lu',
             es: 'bandera-lu',
         },
@@ -18987,7 +18987,7 @@ const emojis = [
     },
     {
         code: '🇱🇻',
-        shortcode: {
+        name: {
             en: 'flag-lv',
             es: 'bandera-lv',
         },
@@ -18998,7 +18998,7 @@ const emojis = [
     },
     {
         code: '🇱🇾',
-        shortcode: {
+        name: {
             en: 'flag-ly',
             es: 'bandera-ly',
         },
@@ -19009,7 +19009,7 @@ const emojis = [
     },
     {
         code: '🇲🇦',
-        shortcode: {
+        name: {
             en: 'flag-ma',
             es: 'bandera-ma',
         },
@@ -19020,7 +19020,7 @@ const emojis = [
     },
     {
         code: '🇲🇨',
-        shortcode: {
+        name: {
             en: 'flag-mc',
             es: 'bandera-mc',
         },
@@ -19031,7 +19031,7 @@ const emojis = [
     },
     {
         code: '🇲🇩',
-        shortcode: {
+        name: {
             en: 'flag-md',
             es: 'bandera-md',
         },
@@ -19042,7 +19042,7 @@ const emojis = [
     },
     {
         code: '🇲🇪',
-        shortcode: {
+        name: {
             en: 'flag-me',
             es: 'bandera-me',
         },
@@ -19053,7 +19053,7 @@ const emojis = [
     },
     {
         code: '🇲🇫',
-        shortcode: {
+        name: {
             en: 'flag-mf',
             es: 'bandera-mf',
         },
@@ -19064,7 +19064,7 @@ const emojis = [
     },
     {
         code: '🇲🇬',
-        shortcode: {
+        name: {
             en: 'flag-mg',
             es: 'bandera-mg',
         },
@@ -19075,7 +19075,7 @@ const emojis = [
     },
     {
         code: '🇲🇭',
-        shortcode: {
+        name: {
             en: 'flag-mh',
             es: 'bandera-mh',
         },
@@ -19086,7 +19086,7 @@ const emojis = [
     },
     {
         code: '🇲🇰',
-        shortcode: {
+        name: {
             en: 'flag-mk',
             es: 'bandera-mk',
         },
@@ -19097,7 +19097,7 @@ const emojis = [
     },
     {
         code: '🇲🇱',
-        shortcode: {
+        name: {
             en: 'flag-ml',
             es: 'bandera-ml',
         },
@@ -19108,7 +19108,7 @@ const emojis = [
     },
     {
         code: '🇲🇲',
-        shortcode: {
+        name: {
             en: 'flag-mm',
             es: 'bandera-mm',
         },
@@ -19119,7 +19119,7 @@ const emojis = [
     },
     {
         code: '🇲🇳',
-        shortcode: {
+        name: {
             en: 'flag-mn',
             es: 'bandera-mn',
         },
@@ -19130,7 +19130,7 @@ const emojis = [
     },
     {
         code: '🇲🇴',
-        shortcode: {
+        name: {
             en: 'flag-mo',
             es: 'bandera-mo',
         },
@@ -19141,7 +19141,7 @@ const emojis = [
     },
     {
         code: '🇲🇵',
-        shortcode: {
+        name: {
             en: 'flag-mp',
             es: 'bandera-mp',
         },
@@ -19152,7 +19152,7 @@ const emojis = [
     },
     {
         code: '🇲🇶',
-        shortcode: {
+        name: {
             en: 'flag-mq',
             es: 'bandera-mq',
         },
@@ -19163,7 +19163,7 @@ const emojis = [
     },
     {
         code: '🇲🇷',
-        shortcode: {
+        name: {
             en: 'flag-mr',
             es: 'bandera-mr',
         },
@@ -19174,7 +19174,7 @@ const emojis = [
     },
     {
         code: '🇲🇸',
-        shortcode: {
+        name: {
             en: 'flag-ms',
             es: 'bandera-ms',
         },
@@ -19185,7 +19185,7 @@ const emojis = [
     },
     {
         code: '🇲🇹',
-        shortcode: {
+        name: {
             en: 'flag-mt',
             es: 'bandera-mt',
         },
@@ -19196,7 +19196,7 @@ const emojis = [
     },
     {
         code: '🇲🇺',
-        shortcode: {
+        name: {
             en: 'flag-mu',
             es: 'bandera-mu',
         },
@@ -19207,7 +19207,7 @@ const emojis = [
     },
     {
         code: '🇲🇻',
-        shortcode: {
+        name: {
             en: 'flag-mv',
             es: 'bandera-mv',
         },
@@ -19218,7 +19218,7 @@ const emojis = [
     },
     {
         code: '🇲🇼',
-        shortcode: {
+        name: {
             en: 'flag-mw',
             es: 'bandera-mw',
         },
@@ -19229,7 +19229,7 @@ const emojis = [
     },
     {
         code: '🇲🇽',
-        shortcode: {
+        name: {
             en: 'flag-mx',
             es: 'bandera-mx',
         },
@@ -19240,7 +19240,7 @@ const emojis = [
     },
     {
         code: '🇲🇾',
-        shortcode: {
+        name: {
             en: 'flag-my',
             es: 'bandera-my',
         },
@@ -19251,7 +19251,7 @@ const emojis = [
     },
     {
         code: '🇲🇿',
-        shortcode: {
+        name: {
             en: 'flag-mz',
             es: 'bandera-mz',
         },
@@ -19262,7 +19262,7 @@ const emojis = [
     },
     {
         code: '🇳🇦',
-        shortcode: {
+        name: {
             en: 'flag-na',
             es: 'bandera-na',
         },
@@ -19273,7 +19273,7 @@ const emojis = [
     },
     {
         code: '🇳🇨',
-        shortcode: {
+        name: {
             en: 'flag-nc',
             es: 'bandera-nc',
         },
@@ -19284,7 +19284,7 @@ const emojis = [
     },
     {
         code: '🇳🇪',
-        shortcode: {
+        name: {
             en: 'flag-ne',
             es: 'bandera-ne',
         },
@@ -19295,7 +19295,7 @@ const emojis = [
     },
     {
         code: '🇳🇫',
-        shortcode: {
+        name: {
             en: 'flag-nf',
             es: 'bandera-nf',
         },
@@ -19306,7 +19306,7 @@ const emojis = [
     },
     {
         code: '🇳🇬',
-        shortcode: {
+        name: {
             en: 'flag-ng',
             es: 'bandera-ng',
         },
@@ -19317,7 +19317,7 @@ const emojis = [
     },
     {
         code: '🇳🇮',
-        shortcode: {
+        name: {
             en: 'flag-ni',
             es: 'bandera-ni',
         },
@@ -19328,7 +19328,7 @@ const emojis = [
     },
     {
         code: '🇳🇱',
-        shortcode: {
+        name: {
             en: 'flag-nl',
             es: 'bandera-nl',
         },
@@ -19339,7 +19339,7 @@ const emojis = [
     },
     {
         code: '🇳🇴',
-        shortcode: {
+        name: {
             en: 'flag-no',
             es: 'bandera-no',
         },
@@ -19350,7 +19350,7 @@ const emojis = [
     },
     {
         code: '🇳🇵',
-        shortcode: {
+        name: {
             en: 'flag-np',
             es: 'bandera-np',
         },
@@ -19361,7 +19361,7 @@ const emojis = [
     },
     {
         code: '🇳🇷',
-        shortcode: {
+        name: {
             en: 'flag-nr',
             es: 'bandera-nr',
         },
@@ -19372,7 +19372,7 @@ const emojis = [
     },
     {
         code: '🇳🇺',
-        shortcode: {
+        name: {
             en: 'flag-nu',
             es: 'bandera-nu',
         },
@@ -19383,7 +19383,7 @@ const emojis = [
     },
     {
         code: '🇳🇿',
-        shortcode: {
+        name: {
             en: 'flag-nz',
             es: 'bandera-nz',
         },
@@ -19394,7 +19394,7 @@ const emojis = [
     },
     {
         code: '🇴🇲',
-        shortcode: {
+        name: {
             en: 'flag-om',
             es: 'bandera-om',
         },
@@ -19405,7 +19405,7 @@ const emojis = [
     },
     {
         code: '🇵🇦',
-        shortcode: {
+        name: {
             en: 'flag-pa',
             es: 'bandera-pa',
         },
@@ -19416,7 +19416,7 @@ const emojis = [
     },
     {
         code: '🇵🇪',
-        shortcode: {
+        name: {
             en: 'flag-pe',
             es: 'bandera-pe',
         },
@@ -19427,7 +19427,7 @@ const emojis = [
     },
     {
         code: '🇵🇫',
-        shortcode: {
+        name: {
             en: 'flag-pf',
             es: 'bandera-pf',
         },
@@ -19438,7 +19438,7 @@ const emojis = [
     },
     {
         code: '🇵🇬',
-        shortcode: {
+        name: {
             en: 'flag-pg',
             es: 'bandera-pg',
         },
@@ -19449,7 +19449,7 @@ const emojis = [
     },
     {
         code: '🇵🇭',
-        shortcode: {
+        name: {
             en: 'flag-ph',
             es: 'bandera-ph',
         },
@@ -19460,7 +19460,7 @@ const emojis = [
     },
     {
         code: '🇵🇰',
-        shortcode: {
+        name: {
             en: 'flag-pk',
             es: 'bandera-pk',
         },
@@ -19471,7 +19471,7 @@ const emojis = [
     },
     {
         code: '🇵🇱',
-        shortcode: {
+        name: {
             en: 'flag-pl',
             es: 'bandera-pl',
         },
@@ -19482,7 +19482,7 @@ const emojis = [
     },
     {
         code: '🇵🇲',
-        shortcode: {
+        name: {
             en: 'flag-pm',
             es: 'bandera-pm',
         },
@@ -19493,7 +19493,7 @@ const emojis = [
     },
     {
         code: '🇵🇳',
-        shortcode: {
+        name: {
             en: 'flag-pn',
             es: 'bandera-pn',
         },
@@ -19504,7 +19504,7 @@ const emojis = [
     },
     {
         code: '🇵🇷',
-        shortcode: {
+        name: {
             en: 'flag-pr',
             es: 'bandera-pr',
         },
@@ -19515,7 +19515,7 @@ const emojis = [
     },
     {
         code: '🇵🇸',
-        shortcode: {
+        name: {
             en: 'flag-ps',
             es: 'bandera-ps',
         },
@@ -19526,7 +19526,7 @@ const emojis = [
     },
     {
         code: '🇵🇹',
-        shortcode: {
+        name: {
             en: 'flag-pt',
             es: 'bandera-pt',
         },
@@ -19537,7 +19537,7 @@ const emojis = [
     },
     {
         code: '🇵🇼',
-        shortcode: {
+        name: {
             en: 'flag-pw',
             es: 'bandera-pw',
         },
@@ -19548,7 +19548,7 @@ const emojis = [
     },
     {
         code: '🇵🇾',
-        shortcode: {
+        name: {
             en: 'flag-py',
             es: 'bandera-py',
         },
@@ -19559,7 +19559,7 @@ const emojis = [
     },
     {
         code: '🇶🇦',
-        shortcode: {
+        name: {
             en: 'flag-qa',
             es: 'bandera-qa',
         },
@@ -19570,7 +19570,7 @@ const emojis = [
     },
     {
         code: '🇷🇪',
-        shortcode: {
+        name: {
             en: 'flag-re',
             es: 'bandera-re',
         },
@@ -19581,7 +19581,7 @@ const emojis = [
     },
     {
         code: '🇷🇴',
-        shortcode: {
+        name: {
             en: 'flag-ro',
             es: 'bandera-ro',
         },
@@ -19592,7 +19592,7 @@ const emojis = [
     },
     {
         code: '🇷🇸',
-        shortcode: {
+        name: {
             en: 'flag-rs',
             es: 'bandera-rs',
         },
@@ -19603,7 +19603,7 @@ const emojis = [
     },
     {
         code: '🇷🇺',
-        shortcode: {
+        name: {
             en: 'ru',
             es: 'ru',
         },
@@ -19614,7 +19614,7 @@ const emojis = [
     },
     {
         code: '🇷🇼',
-        shortcode: {
+        name: {
             en: 'flag-rw',
             es: 'bandera-rw',
         },
@@ -19625,7 +19625,7 @@ const emojis = [
     },
     {
         code: '🇸🇦',
-        shortcode: {
+        name: {
             en: 'flag-sa',
             es: 'bandera-sa',
         },
@@ -19636,7 +19636,7 @@ const emojis = [
     },
     {
         code: '🇸🇧',
-        shortcode: {
+        name: {
             en: 'flag-sb',
             es: 'bandera-sb',
         },
@@ -19647,7 +19647,7 @@ const emojis = [
     },
     {
         code: '🇸🇨',
-        shortcode: {
+        name: {
             en: 'flag-sc',
             es: 'bandera-sc',
         },
@@ -19658,7 +19658,7 @@ const emojis = [
     },
     {
         code: '🇸🇩',
-        shortcode: {
+        name: {
             en: 'flag-sd',
             es: 'bandera-sd',
         },
@@ -19669,7 +19669,7 @@ const emojis = [
     },
     {
         code: '🇸🇪',
-        shortcode: {
+        name: {
             en: 'flag-se',
             es: 'bandera-se',
         },
@@ -19680,7 +19680,7 @@ const emojis = [
     },
     {
         code: '🇸🇬',
-        shortcode: {
+        name: {
             en: 'flag-sg',
             es: 'bandera-sg',
         },
@@ -19691,7 +19691,7 @@ const emojis = [
     },
     {
         code: '🇸🇭',
-        shortcode: {
+        name: {
             en: 'flag-sh',
             es: 'bandera-sh',
         },
@@ -19702,7 +19702,7 @@ const emojis = [
     },
     {
         code: '🇸🇮',
-        shortcode: {
+        name: {
             en: 'flag-si',
             es: 'bandera-si',
         },
@@ -19713,7 +19713,7 @@ const emojis = [
     },
     {
         code: '🇸🇯',
-        shortcode: {
+        name: {
             en: 'flag-sj',
             es: 'bandera-sj',
         },
@@ -19724,7 +19724,7 @@ const emojis = [
     },
     {
         code: '🇸🇰',
-        shortcode: {
+        name: {
             en: 'flag-sk',
             es: 'bandera-sk',
         },
@@ -19735,7 +19735,7 @@ const emojis = [
     },
     {
         code: '🇸🇱',
-        shortcode: {
+        name: {
             en: 'flag-sl',
             es: 'bandera-sl',
         },
@@ -19746,7 +19746,7 @@ const emojis = [
     },
     {
         code: '🇸🇲',
-        shortcode: {
+        name: {
             en: 'flag-sm',
             es: 'bandera-sm',
         },
@@ -19757,7 +19757,7 @@ const emojis = [
     },
     {
         code: '🇸🇳',
-        shortcode: {
+        name: {
             en: 'flag-sn',
             es: 'bandera-sn',
         },
@@ -19768,7 +19768,7 @@ const emojis = [
     },
     {
         code: '🇸🇴',
-        shortcode: {
+        name: {
             en: 'flag-so',
             es: 'bandera-so',
         },
@@ -19779,7 +19779,7 @@ const emojis = [
     },
     {
         code: '🇸🇷',
-        shortcode: {
+        name: {
             en: 'flag-sr',
             es: 'bandera-sr',
         },
@@ -19790,7 +19790,7 @@ const emojis = [
     },
     {
         code: '🇸🇸',
-        shortcode: {
+        name: {
             en: 'flag-ss',
             es: 'bandera-ss',
         },
@@ -19801,7 +19801,7 @@ const emojis = [
     },
     {
         code: '🇸🇹',
-        shortcode: {
+        name: {
             en: 'flag-st',
             es: 'bandera-st',
         },
@@ -19812,7 +19812,7 @@ const emojis = [
     },
     {
         code: '🇸🇻',
-        shortcode: {
+        name: {
             en: 'flag-sv',
             es: 'bandera-sv',
         },
@@ -19823,7 +19823,7 @@ const emojis = [
     },
     {
         code: '🇸🇽',
-        shortcode: {
+        name: {
             en: 'flag-sx',
             es: 'bandera-sx',
         },
@@ -19834,7 +19834,7 @@ const emojis = [
     },
     {
         code: '🇸🇾',
-        shortcode: {
+        name: {
             en: 'flag-sy',
             es: 'bandera-sy',
         },
@@ -19845,7 +19845,7 @@ const emojis = [
     },
     {
         code: '🇸🇿',
-        shortcode: {
+        name: {
             en: 'flag-sz',
             es: 'bandera-sz',
         },
@@ -19856,7 +19856,7 @@ const emojis = [
     },
     {
         code: '🇹🇦',
-        shortcode: {
+        name: {
             en: 'flag-ta',
             es: 'bandera-ta',
         },
@@ -19867,7 +19867,7 @@ const emojis = [
     },
     {
         code: '🇹🇨',
-        shortcode: {
+        name: {
             en: 'flag-tc',
             es: 'bandera-tc',
         },
@@ -19878,7 +19878,7 @@ const emojis = [
     },
     {
         code: '🇹🇩',
-        shortcode: {
+        name: {
             en: 'flag-td',
             es: 'bandera-td',
         },
@@ -19889,7 +19889,7 @@ const emojis = [
     },
     {
         code: '🇹🇫',
-        shortcode: {
+        name: {
             en: 'flag-tf',
             es: 'bandera-tf',
         },
@@ -19900,7 +19900,7 @@ const emojis = [
     },
     {
         code: '🇹🇬',
-        shortcode: {
+        name: {
             en: 'flag-tg',
             es: 'bandera-tg',
         },
@@ -19911,7 +19911,7 @@ const emojis = [
     },
     {
         code: '🇹🇭',
-        shortcode: {
+        name: {
             en: 'flag-th',
             es: 'bandera-th',
         },
@@ -19922,7 +19922,7 @@ const emojis = [
     },
     {
         code: '🇹🇯',
-        shortcode: {
+        name: {
             en: 'flag-tj',
             es: 'bandera-tj',
         },
@@ -19933,7 +19933,7 @@ const emojis = [
     },
     {
         code: '🇹🇰',
-        shortcode: {
+        name: {
             en: 'flag-tk',
             es: 'bandera-tk',
         },
@@ -19944,7 +19944,7 @@ const emojis = [
     },
     {
         code: '🇹🇱',
-        shortcode: {
+        name: {
             en: 'flag-tl',
             es: 'bandera-tl',
         },
@@ -19955,7 +19955,7 @@ const emojis = [
     },
     {
         code: '🇹🇲',
-        shortcode: {
+        name: {
             en: 'flag-tm',
             es: 'bandera-tm',
         },
@@ -19966,7 +19966,7 @@ const emojis = [
     },
     {
         code: '🇹🇳',
-        shortcode: {
+        name: {
             en: 'flag-tn',
             es: 'bandera-tn',
         },
@@ -19977,7 +19977,7 @@ const emojis = [
     },
     {
         code: '🇹🇴',
-        shortcode: {
+        name: {
             en: 'flag-to',
             es: 'bandera-to',
         },
@@ -19988,7 +19988,7 @@ const emojis = [
     },
     {
         code: '🇹🇷',
-        shortcode: {
+        name: {
             en: 'flag-tr',
             es: 'bandera-tr',
         },
@@ -19999,7 +19999,7 @@ const emojis = [
     },
     {
         code: '🇹🇹',
-        shortcode: {
+        name: {
             en: 'flag-tt',
             es: 'bandera-tt',
         },
@@ -20010,7 +20010,7 @@ const emojis = [
     },
     {
         code: '🇹🇻',
-        shortcode: {
+        name: {
             en: 'flag-tv',
             es: 'bandera-tv',
         },
@@ -20021,7 +20021,7 @@ const emojis = [
     },
     {
         code: '🇹🇼',
-        shortcode: {
+        name: {
             en: 'flag-tw',
             es: 'bandera-tw',
         },
@@ -20032,7 +20032,7 @@ const emojis = [
     },
     {
         code: '🇹🇿',
-        shortcode: {
+        name: {
             en: 'flag-tz',
             es: 'bandera-tz',
         },
@@ -20043,7 +20043,7 @@ const emojis = [
     },
     {
         code: '🇺🇦',
-        shortcode: {
+        name: {
             en: 'flag-ua',
             es: 'bandera-ua',
         },
@@ -20054,7 +20054,7 @@ const emojis = [
     },
     {
         code: '🇺🇬',
-        shortcode: {
+        name: {
             en: 'flag-ug',
             es: 'bandera-ug',
         },
@@ -20065,7 +20065,7 @@ const emojis = [
     },
     {
         code: '🇺🇲',
-        shortcode: {
+        name: {
             en: 'flag-um',
             es: 'bandera-um',
         },
@@ -20076,7 +20076,7 @@ const emojis = [
     },
     {
         code: '🇺🇳',
-        shortcode: {
+        name: {
             en: 'flag-un',
             es: 'bandera-onu',
         },
@@ -20087,7 +20087,7 @@ const emojis = [
     },
     {
         code: '🇺🇸',
-        shortcode: {
+        name: {
             en: 'us',
             es: 'us',
         },
@@ -20098,7 +20098,7 @@ const emojis = [
     },
     {
         code: '🇺🇾',
-        shortcode: {
+        name: {
             en: 'flag-uy',
             es: 'bandera-uy',
         },
@@ -20109,7 +20109,7 @@ const emojis = [
     },
     {
         code: '🇺🇿',
-        shortcode: {
+        name: {
             en: 'flag-uz',
             es: 'bandera-uz',
         },
@@ -20120,7 +20120,7 @@ const emojis = [
     },
     {
         code: '🇻🇦',
-        shortcode: {
+        name: {
             en: 'flag-va',
             es: 'bandera-va',
         },
@@ -20131,7 +20131,7 @@ const emojis = [
     },
     {
         code: '🇻🇨',
-        shortcode: {
+        name: {
             en: 'flag-vc',
             es: 'bandera-vc',
         },
@@ -20142,7 +20142,7 @@ const emojis = [
     },
     {
         code: '🇻🇪',
-        shortcode: {
+        name: {
             en: 'flag-ve',
             es: 'bandera-ve',
         },
@@ -20153,7 +20153,7 @@ const emojis = [
     },
     {
         code: '🇻🇬',
-        shortcode: {
+        name: {
             en: 'flag-vg',
             es: 'bandera-vg',
         },
@@ -20164,7 +20164,7 @@ const emojis = [
     },
     {
         code: '🇻🇮',
-        shortcode: {
+        name: {
             en: 'flag-vi',
             es: 'bandera-vi',
         },
@@ -20175,7 +20175,7 @@ const emojis = [
     },
     {
         code: '🇻🇳',
-        shortcode: {
+        name: {
             en: 'flag-vn',
             es: 'bandera-vn',
         },
@@ -20186,7 +20186,7 @@ const emojis = [
     },
     {
         code: '🇻🇺',
-        shortcode: {
+        name: {
             en: 'flag-vu',
             es: 'bandera-vu',
         },
@@ -20197,7 +20197,7 @@ const emojis = [
     },
     {
         code: '🇼🇫',
-        shortcode: {
+        name: {
             en: 'flag-wf',
             es: 'bandera-wf',
         },
@@ -20208,7 +20208,7 @@ const emojis = [
     },
     {
         code: '🇼🇸',
-        shortcode: {
+        name: {
             en: 'flag-ws',
             es: 'bandera-ws',
         },
@@ -20219,7 +20219,7 @@ const emojis = [
     },
     {
         code: '🇽🇰',
-        shortcode: {
+        name: {
             en: 'flag-xk',
             es: 'bandera-xk',
         },
@@ -20230,7 +20230,7 @@ const emojis = [
     },
     {
         code: '🇾🇪',
-        shortcode: {
+        name: {
             en: 'flag-ye',
             es: 'bandera-ye',
         },
@@ -20241,7 +20241,7 @@ const emojis = [
     },
     {
         code: '🇾🇹',
-        shortcode: {
+        name: {
             en: 'flag-yt',
             es: 'bandera-yt',
         },
@@ -20252,7 +20252,7 @@ const emojis = [
     },
     {
         code: '🇿🇦',
-        shortcode: {
+        name: {
             en: 'flag-za',
             es: 'bandera-za',
         },
@@ -20263,7 +20263,7 @@ const emojis = [
     },
     {
         code: '🇿🇲',
-        shortcode: {
+        name: {
             en: 'flag-zm',
             es: 'bandera-zm',
         },
@@ -20274,7 +20274,7 @@ const emojis = [
     },
     {
         code: '🇿🇼',
-        shortcode: {
+        name: {
             en: 'flag-zw',
             es: 'bandera-zw',
         },
@@ -20285,7 +20285,7 @@ const emojis = [
     },
     {
         code: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-        shortcode: {
+        name: {
             en: 'flag-england',
             es: 'bandera-inglaterra',
         },
@@ -20296,7 +20296,7 @@ const emojis = [
     },
     {
         code: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-        shortcode: {
+        name: {
             en: 'flag-scotland',
             es: 'bandera-escocia',
         },
@@ -20307,7 +20307,7 @@ const emojis = [
     },
     {
         code: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
-        shortcode: {
+        name: {
             en: 'flag-wales',
             es: 'bandera-gales',
         },
@@ -20323,7 +20323,7 @@ const localizedEmojiNames = _.reduce(
     (prev, cur) => {
         const newValue = prev;
         if (!cur.header) {
-            newValue[cur.shortcode.en] = cur.shortcode;
+            newValue[cur.name.en] = cur.name;
         }
         return newValue;
     },

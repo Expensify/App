@@ -17,27 +17,27 @@ function createTrie(lang = 'en') {
             return;
         }
 
-        const shortcode = item.shortcode[lang];
-        if (!shortcode) {
+        const name = item.name[lang];
+        if (!name) {
             return;
         }
 
-        const node = trie.search(shortcode);
+        const node = trie.search(name);
         if (!node) {
-            trie.add(shortcode, {code: item.code, types: item.types, shortcode: item.shortcode, suggestions: []});
+            trie.add(name, {code: item.code, types: item.types, name: item.name, suggestions: []});
         } else {
-            trie.update(shortcode, {code: item.code, types: item.types, shortcode: item.shortcode, suggestions: node.metaData.suggestions});
+            trie.update(name, {code: item.code, types: item.types, name: item.name, suggestions: node.metaData.suggestions});
         }
 
         const keywords = item.keywords[lang];
         for (let j = 0; j < keywords.length; j++) {
             const keywordNode = trie.search(keywords[j]);
             if (!keywordNode) {
-                trie.add(keywords[j], {suggestions: [{code: item.code, types: item.types, name: shortcode, shortcode: item.shortcode}]});
+                trie.add(keywords[j], {suggestions: [{code: item.code, types: item.types, name: item.name}]});
             } else {
                 trie.update(keywords[j], {
                     ...keywordNode.metaData,
-                    suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name: shortcode, shortcode: item.shortcode}],
+                    suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name: item.name}],
                 });
             }
         }

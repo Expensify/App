@@ -284,15 +284,17 @@ function suggestEmojis(text, lang, limit = 5) {
             if (matching.length === limit) {
                 return matching;
             }
-            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, shortcode: nodes[j].metaData.shortcode, types: nodes[j].metaData.types});
+            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
         }
         const suggestions = nodes[j].metaData.suggestions;
         for (let i = 0; i < suggestions.length; i++) {
             if (matching.length === limit) {
                 return matching;
             }
-            if (!_.find(matching, (obj) => obj.name === suggestions[i].name)) {
-                matching.push(suggestions[i]);
+
+            const suggestion = suggestions[i];
+            if (!_.find(matching, (obj) => obj.name === suggestion.name[lang])) {
+                matching.push({...suggestion, name: suggestion.name[lang]});
             }
         }
     }

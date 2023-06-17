@@ -53,7 +53,7 @@ function AddReactionBubble(props) {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
                 (emojiCode, emojiObject) => {
-                    props.onSelectEmoji({code: emojiCode, name: _.get(emojiObject, ['shortcode', 'en'])});
+                    props.onSelectEmoji(emojiObject);
                 },
                 refParam || ref.current,
                 anchorOrigin,
