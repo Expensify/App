@@ -3411,7 +3411,7 @@ const styles = {
 
     taskRightIconContainer: {
         width: variables.componentSizeNormal,
-        ...spacing.mt2,
+        ...spacing.mt1,
         ...pointerEventsAuto,
         marginLeft: 'auto',
     },
