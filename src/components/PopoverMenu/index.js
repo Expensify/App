@@ -12,6 +12,7 @@ import CONST from '../../CONST';
 import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
+import * as SessionUtils from '../../libs/SessionUtils';
 
 const propTypes = {
     ...createMenuPropTypes,
@@ -43,6 +44,10 @@ function PopoverMenu(props) {
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
 
     const selectItem = (index) => {
+        if (!SessionUtils.checkIfActionIsAllowed()) {
+            return;
+        }
+
         const selectedItem = props.menuItems[index];
         props.onItemSelected(selectedItem);
         setSelectedItemIndex(index);
