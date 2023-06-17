@@ -1,5 +1,5 @@
 import React from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
@@ -10,9 +10,6 @@ import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import {withBetas} from '../../../../components/OnyxProvider';
-import * as Session from '../../../../libs/actions/Session';
-import * as SessionUtils from '../../../../libs/SessionUtils';
-import {hideContextMenu} from './ReportActionContextMenu';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */

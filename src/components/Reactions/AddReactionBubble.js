@@ -11,7 +11,6 @@ import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import * as Session from '../../libs/actions/Session';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 const propTypes = {

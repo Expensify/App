@@ -10,7 +10,6 @@ import styles from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Tooltip from '../../Tooltip';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
-import * as Session from '../../../libs/actions/Session';
 
 const baseQuickEmojiReactionsPropTypes = {
     /**

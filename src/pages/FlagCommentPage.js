@@ -19,7 +19,6 @@ import * as Report from '../libs/actions/Report';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     /** Array of report actions for this report */

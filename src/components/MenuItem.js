@@ -22,7 +22,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import ControlSelection from '../libs/ControlSelection';
 import variables from '../styles/variables';
-import * as Session from '../libs/actions/Session';
 
 const propTypes = {
     ...menuItemPropTypes,

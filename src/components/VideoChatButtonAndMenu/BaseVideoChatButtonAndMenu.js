@@ -16,7 +16,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
-import * as Session from '../../libs/actions/Session';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
