@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Pressable, Text} from 'react-native';
+import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import * as Report from '../../../libs/actions/Report';
@@ -9,6 +9,7 @@ import CONST from '../../../CONST';
 import avatarPropTypes from '../../../components/avatarPropTypes';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import compose from '../../../libs/compose';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** List of participant icons for the thread */
@@ -30,7 +31,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const ReportActionItemThread = (props) => {
+function ReportActionItemThread(props) {
     const numberOfRepliesText = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 
@@ -38,10 +39,12 @@ const ReportActionItemThread = (props) => {
 
     return (
         <View style={[styles.chatItemMessage]}>
-            <Pressable
+            <PressableWithoutFeedback
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(props.childReportID);
                 }}
+                accessibilityRole="button"
+                accessibilityLabel={`${props.numberOfReplies} ${replyText}`}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                     <MultipleAvatars
@@ -65,10 +68,10 @@ const ReportActionItemThread = (props) => {
                         >{`${props.translate('threads.lastReply')} ${timeStamp}`}</Text>
                     </View>
                 </View>
-            </Pressable>
+            </PressableWithoutFeedback>
         </View>
     );
-};
+}
 
 ReportActionItemThread.propTypes = propTypes;
 ReportActionItemThread.displayName = 'ReportActionItemThread';
