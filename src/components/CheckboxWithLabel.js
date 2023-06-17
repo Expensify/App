@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
@@ -88,10 +88,6 @@ function CheckboxWithLabel(props) {
         props.onInputChange(newState);
         setIsChecked(newState);
     };
-
-    useEffect(() => {
-        setIsChecked(props.isChecked);
-    }, [props.isChecked]);
 
     const LabelComponent = props.LabelComponent;
 

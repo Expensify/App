@@ -9,6 +9,7 @@ import Tooltip from '../Tooltip';
 import {propTypes, defaultProps} from './userDetailsTooltipPropTypes';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as UserUtils from '../../libs/UserUtils';
 
 function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
@@ -18,7 +19,7 @@ function UserDetailsTooltip(props) {
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={userDetails.avatar}
+                        source={UserUtils.getAvatar(userDetails.avatar, userDetails.accountID)}
                     />
                 </View>
 
@@ -27,11 +28,11 @@ function UserDetailsTooltip(props) {
                 </Text>
 
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
-                    {String(userDetails.login).trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : ''}
+                    {String(userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : ''}
                 </Text>
             </View>
         ),
-        [userDetails.avatar, userDetails.displayName, userDetails.login],
+        [userDetails.avatar, userDetails.displayName, userDetails.login, userDetails.accountID],
     );
 
     if (!userDetails.displayName && !userDetails.login) {
