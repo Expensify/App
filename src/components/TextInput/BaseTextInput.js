@@ -320,6 +320,7 @@ function BaseTextInput(props) {
                                 value={props.value}
                                 selection={props.selection}
                                 editable={isEditable}
+                                defaultValue={props.defaultValue}
                                 // FormSubmit Enter key handler does not have access to direct props.
                                 // `dataset.submitOnEnter` is used to indicate that pressing Enter on this input should call the submit callback.
                                 dataSet={{submitOnEnter: isMultiline && props.submitOnEnter}}
