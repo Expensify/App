@@ -8,14 +8,7 @@ Onyx.connect({
     callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
 });
 
-const allowedCommands = [
-    'AuthenticatePusher',
-    'ExpandURLPreview',
-    'LogOut',
-    'OpenApp',
-    'OpenReport',
-    'UpdateAutomaticTimezone',
-];
+const allowedCommands = ['AuthenticatePusher', 'ExpandURLPreview', 'LogOut', 'OpenApp', 'OpenReport', 'UpdateAutomaticTimezone'];
 
 /**
  * Checks if the account is an anonymous account.
