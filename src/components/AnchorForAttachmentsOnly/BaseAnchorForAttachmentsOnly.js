@@ -34,7 +34,7 @@ const defaultProps = {
     ...anchorForAttachmentsOnlyDefaultProps,
 };
 
-const BaseAnchorForAttachmentsOnly = (props) => {
+function BaseAnchorForAttachmentsOnly(props) {
     const sourceURL = props.source;
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
     const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
@@ -70,7 +70,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
             )}
         </ShowContextMenuContext.Consumer>
     );
-};
+}
 
 BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
 BaseAnchorForAttachmentsOnly.propTypes = propTypes;

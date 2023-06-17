@@ -12,7 +12,7 @@ const propTypes = {
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
-const RenderHTML = (props) => {
+function RenderHTML(props) {
     const {windowWidth} = useWindowDimensions();
     return (
         <RenderHTMLSource
@@ -20,7 +20,7 @@ const RenderHTML = (props) => {
             source={{html: props.html}}
         />
     );
-};
+}
 
 RenderHTML.displayName = 'RenderHTML';
 RenderHTML.propTypes = propTypes;

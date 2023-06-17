@@ -16,34 +16,36 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const DeeplinkRedirectLoadingIndicator = (props) => (
-    <View style={styles.deeplinkWrapperContainer}>
-        <View style={styles.deeplinkWrapperMessage}>
-            <View style={styles.mb2}>
+function DeeplinkRedirectLoadingIndicator(props) {
+    return (
+        <View style={styles.deeplinkWrapperContainer}>
+            <View style={styles.deeplinkWrapperMessage}>
+                <View style={styles.mb2}>
+                    <Icon
+                        width={200}
+                        height={164}
+                        src={Illustrations.RocketBlue}
+                    />
+                </View>
+                <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
+                <View style={[styles.mt2, styles.fontSizeNormal, styles.textAlignCenter]}>
+                    <Text>{props.translate('deeplinkWrapper.redirectedToDesktopApp')}</Text>
+                    <Text>
+                        {props.translate('deeplinkWrapper.youCanAlso')} <TextLink onPress={props.openLinkInBrowser}>{props.translate('deeplinkWrapper.openLinkInBrowser')}</TextLink>.
+                    </Text>
+                </View>
+            </View>
+            <View style={styles.deeplinkWrapperFooter}>
                 <Icon
-                    width={200}
-                    height={164}
-                    src={Illustrations.RocketBlue}
+                    width={154}
+                    height={34}
+                    fill={colors.green}
+                    src={Expensicons.ExpensifyWordmark}
                 />
             </View>
-            <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
-            <View style={[styles.mt2, styles.fontSizeNormal, styles.textAlignCenter]}>
-                <Text>{props.translate('deeplinkWrapper.redirectedToDesktopApp')}</Text>
-                <Text>
-                    {props.translate('deeplinkWrapper.youCanAlso')} <TextLink onPress={props.openLinkInBrowser}>{props.translate('deeplinkWrapper.openLinkInBrowser')}</TextLink>.
-                </Text>
-            </View>
         </View>
-        <View style={styles.deeplinkWrapperFooter}>
-            <Icon
-                width={154}
-                height={34}
-                fill={colors.green}
-                src={Expensicons.ExpensifyWordmark}
-            />
-        </View>
-    </View>
-);
+    );
+}
 
 DeeplinkRedirectLoadingIndicator.propTypes = propTypes;
 DeeplinkRedirectLoadingIndicator.displayName = 'DeeplinkRedirectLoadingIndicator';

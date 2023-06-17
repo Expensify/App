@@ -17,13 +17,13 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
-import Tooltip from '../components/Tooltip';
+import UserDetailsTooltip from '../components/UserDetailsTooltip';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
-import PressableWithoutFocus from '../components/PressableWithoutFocus';
+import PressableWithoutFocus from '../components/Pressable/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
@@ -108,7 +108,7 @@ function ProfilePage(props) {
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyEmails([login]) && !_.isEmpty(timezone);
+    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([accountID]) && !_.isEmpty(timezone);
 
     let pronouns = lodashGet(details, 'pronouns', '');
     if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -142,20 +142,22 @@ function ProfilePage(props) {
                         <View style={styles.avatarSectionWrapper}>
                             <AttachmentModal
                                 headerTitle={displayName}
-                                source={UserUtils.getFullSizeAvatar(avatar, login || accountID)}
+                                source={UserUtils.getFullSizeAvatar(avatar, accountID)}
                                 isAuthTokenRequired
                                 originalFileName={originalFileName}
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus
-                                        style={styles.noOutline}
+                                        style={[styles.noOutline]}
                                         onPress={show}
+                                        accessibilityLabel={props.translate('common.profile')}
+                                        accessibilityRole="imagebutton"
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar
                                                 containerStyles={[styles.avatarLarge, styles.mb3]}
                                                 imageStyles={[styles.avatarLarge]}
-                                                source={UserUtils.getAvatar(avatar, login || accountID)}
+                                                source={UserUtils.getAvatar(avatar, accountID)}
                                                 size={CONST.AVATAR_SIZE.LARGE}
                                             />
                                         </OfflineWithFeedback>
@@ -179,9 +181,9 @@ function ProfilePage(props) {
                                         {props.translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                     </Text>
                                     <CommunicationsLink value={phoneOrEmail}>
-                                        <Tooltip text={phoneOrEmail}>
+                                        <UserDetailsTooltip accountID={details.accountID}>
                                             <Text numberOfLines={1}>{isSMSLogin ? props.formatPhoneNumber(phoneNumber) : login}</Text>
-                                        </Tooltip>
+                                        </UserDetailsTooltip>
                                     </CommunicationsLink>
                                 </View>
                             ) : null}

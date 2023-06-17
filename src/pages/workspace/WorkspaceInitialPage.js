@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useState} from 'react';
-import {View, ScrollView, Pressable} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -30,6 +30,7 @@ import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import withWindowDimensions from '../../components/withWindowDimensions';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     ...policyPropTypes,
@@ -63,7 +64,7 @@ function dismissError(policyID) {
     Policy.removeWorkspace(policyID);
 }
 
-const WorkspaceInitialPage = (props) => {
+function WorkspaceInitialPage(props) {
     const policy = props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
@@ -91,7 +92,7 @@ const WorkspaceInitialPage = (props) => {
     );
 
     const policyName = lodashGet(policy, 'name', '');
-    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
+    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMembers);
     const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
     const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
     const menuItems = [
@@ -187,10 +188,12 @@ const WorkspaceInitialPage = (props) => {
                                 <View style={styles.avatarSectionWrapper}>
                                     <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                                         <Tooltip text={props.translate('workspace.common.settings')}>
-                                            <Pressable
+                                            <PressableWithoutFeedback
                                                 disabled={hasPolicyCreationError}
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={() => openEditor(policy.id)}
+                                                accessibilityLabel={props.translate('workspace.common.settings')}
+                                                accessibilityRole="button"
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
@@ -201,14 +204,16 @@ const WorkspaceInitialPage = (props) => {
                                                     name={policyName}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
                                                 />
-                                            </Pressable>
+                                            </PressableWithoutFeedback>
                                         </Tooltip>
                                         {!_.isEmpty(policy.name) && (
                                             <Tooltip text={props.translate('workspace.common.settings')}>
-                                                <Pressable
+                                                <PressableWithoutFeedback
                                                     disabled={hasPolicyCreationError}
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
                                                     onPress={() => openEditor(policy.id)}
+                                                    accessibilityLabel={props.translate('workspace.common.settings')}
+                                                    accessibilityRole="button"
                                                 >
                                                     <Text
                                                         numberOfLines={1}
@@ -216,7 +221,7 @@ const WorkspaceInitialPage = (props) => {
                                                     >
                                                         {policy.name}
                                                     </Text>
-                                                </Pressable>
+                                                </PressableWithoutFeedback>
                                             </Tooltip>
                                         )}
                                     </View>
@@ -251,7 +256,7 @@ const WorkspaceInitialPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 WorkspaceInitialPage.propTypes = propTypes;
 WorkspaceInitialPage.defaultProps = defaultProps;
