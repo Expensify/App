@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import {useFocusEffect} from '@react-navigation/native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -46,54 +47,17 @@ const propTypes = {
 const defaultProps = {
     iou: {},
 };
-class MoneyRequestAmountPage extends React.Component {
-    constructor(props) {
-        super(props);
+function MoneyRequestAmountPage(props) {
+    const amountViewID = 'amountView';
+    const numPadContainerViewID = 'numPadContainerView';
+    const numPadViewID = 'numPadView';
+    const selectedAmountAsString = props.selectedAmount ? props.selectedAmount.toString() : '';
+    const textInput = useRef(null);
 
-        this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
-        this.updateLongPressHandlerState = this.updateLongPressHandlerState.bind(this);
-        this.updateAmount = this.updateAmount.bind(this);
-        this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
-        this.stripSpacesFromAmount = this.stripSpacesFromAmount.bind(this);
-        this.focusTextInput = this.focusTextInput.bind(this);
-        this.navigateToCurrencySelectionPage = this.navigateToCurrencySelectionPage.bind(this);
-        this.amountViewID = 'amountView';
-        this.numPadContainerViewID = 'numPadContainerView';
-        this.numPadViewID = 'numPadView';
-
-        const selectedAmountAsString = props.selectedAmount ? props.selectedAmount.toString() : '';
-        this.state = {
-            amount: selectedAmountAsString,
-            selectedCurrencyCode: _.isUndefined(props.iou.selectedCurrencyCode) ? CONST.CURRENCY.USD : props.iou.selectedCurrencyCode,
-            shouldUpdateSelection: true,
-            selection: {
-                start: selectedAmountAsString.length,
-                end: selectedAmountAsString.length,
-            },
-        };
-    }
-
-    componentDidMount() {
-        this.focusTextInput();
-
-        // Focus automatically after navigating back from currency selector
-        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
-            this.focusTextInput();
-            this.getCurrencyFromRouteParams();
-        });
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.iou.selectedCurrencyCode === this.props.iou.selectedCurrencyCode) {
-            return;
-        }
-
-        this.setState({selectedCurrencyCode: this.props.iou.selectedCurrencyCode});
-    }
-
-    componentWillUnmount() {
-        this.unsubscribeNavFocus();
-    }
+    const [amount, setAmount] = useState(selectedAmountAsString);
+    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(() => (_.isUndefined(props.iou.selectedCurrencyCode) ? CONST.CURRENCY.USD : props.iou.selectedCurrencyCode));
+    const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
+    const [selection, setSelection] = useState({start: selectedAmountAsString.length, end: selectedAmountAsString.length});
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -101,23 +65,26 @@ class MoneyRequestAmountPage extends React.Component {
      * @param {Event} event
      * @param {Array<string>} nativeIds
      */
-    onMouseDown(event, nativeIds) {
+    const onMouseDown = (event, nativeIds) => {
         const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
         if (!_.contains(nativeIds, relatedTargetId)) {
             return;
         }
         event.preventDefault();
-        if (!this.textInput.isFocused()) {
-            this.textInput.focus();
+        if (!textInput.current.isFocused()) {
+            textInput.current.focus();
         }
-    }
+    };
 
-    getCurrencyFromRouteParams() {
-        const selectedCurrencyCode = lodashGet(this.props.route.params, 'currency', '');
-        if (selectedCurrencyCode !== '') {
-            this.setState({selectedCurrencyCode});
+    const getCurrencyFromRouteParams = () => {
+        if (props.iou.selectedCurrencyCode === lodashGet(props.route.params, 'currency', '')) {
+            return;
         }
-    }
+        const newSelectedCurrencyCode = lodashGet(props.route.params, 'currency', '');
+        if (newSelectedCurrencyCode !== '') {
+            setSelectedCurrencyCode(newSelectedCurrencyCode);
+        }
+    };
 
     /**
      * Returns the new selection object based on the updated amount's length
@@ -127,55 +94,68 @@ class MoneyRequestAmountPage extends React.Component {
      * @param {Number} newLength
      * @returns {Object}
      */
-    getNewSelection(oldSelection, prevLength, newLength) {
+    const getNewSelection = (oldSelection, prevLength, newLength) => {
         const cursorPosition = oldSelection.end + (newLength - prevLength);
         return {start: cursorPosition, end: cursorPosition};
-    }
-
-    /**
-     * Returns new state object if the updated amount is valid
-     *
-     * @param {Object} prevState
-     * @param {String} newAmount - Changed amount from user input
-     * @returns {Object}
-     */
-    getNewState(prevState, newAmount) {
-        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-        // More info: https://github.com/Expensify/App/issues/16974
-        const newAmountWithoutSpaces = this.stripSpacesFromAmount(newAmount);
-        if (!this.validateAmount(newAmountWithoutSpaces)) {
-            // Use a shallow copy of selection to trigger setSelection
-            // More info: https://github.com/Expensify/App/issues/16385
-            return {amount: prevState.amount, selection: {...prevState.selection}};
-        }
-        const selection = this.getNewSelection(prevState.selection, prevState.amount.length, newAmountWithoutSpaces.length);
-        return {amount: this.stripCommaFromAmount(newAmountWithoutSpaces), selection};
-    }
+    };
 
     /**
      * Focus text input
      */
-    focusTextInput() {
+    const focusTextInput = () => {
         // Component may not initialized due to navigation transitions
         // Wait until interactions are complete before trying to focus
         InteractionManager.runAfterInteractions(() => {
             // Focus text input
-            if (!this.textInput) {
+            if (!textInput.current) {
                 return;
             }
 
-            this.textInput.focus();
+            textInput.current.focus();
         });
-    }
+    };
+
+    useEffect(() => {
+        focusTextInput();
+    }, []);
+
+    useFocusEffect(() => {
+        focusTextInput();
+        getCurrencyFromRouteParams();
+    });
 
     /**
-     * @param {String} amount
+     * Strip comma from the amount
+     *
+     * @param {String} newAmount
+     * @returns {String}
+     */
+    const stripCommaFromAmount = (newAmount) => newAmount.replace(/,/g, '');
+
+    /**
+     * Strip spaces from the amount
+     *
+     * @param {String} newAmount
+     * @returns {String}
+     */
+    const stripSpacesFromAmount = (newAmount) => newAmount.replace(/\s+/g, '');
+
+    /**
+     * Adds a leading zero to the amount if user entered just the decimal separator
+     *
+     * @param {String} newAmount - Changed amount from user input
+     * @returns {String}
+     */
+    const addLeadingZero = (newAmount) => (newAmount === '.' ? '0.' : newAmount);
+
+    /**
+     * @param {String} newAmount
      * @returns {Number}
      */
-    calculateAmountLength(amount) {
-        const leadingZeroes = amount.match(/^0+/);
+    const calculateAmountLength = (newAmount) => {
+        const leadingZeroes = newAmount.match(/^0+/);
         const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
-        const absAmount = parseFloat((this.stripCommaFromAmount(amount) * 100).toFixed(2)).toString();
+        const absAmount = parseFloat((stripCommaFromAmount(newAmount) * 100).toFixed(2)).toString();
 
         // The following logic will prevent users from pasting an amount that is excessively long in length,
         // which would result in the 'absAmount' value being expressed in scientific notation or becoming infinity.
@@ -184,52 +164,43 @@ class MoneyRequestAmountPage extends React.Component {
         }
 
         /*
-        Return the sum of leading zeroes length and absolute amount length(including fraction digits).
-        When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
-        */
+  Return the sum of leading zeroes length and absolute amount length(including fraction digits).
+  When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
+  */
         return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
-    }
+    };
 
     /**
      * Check if amount is a decimal up to 3 digits
      *
-     * @param {String} amount
+     * @param {String} newAmount
      * @returns {Boolean}
      */
-    validateAmount(amount) {
+    const validateAmount = (newAmount) => {
         const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
-        return amount === '' || (decimalNumberRegex.test(amount) && this.calculateAmountLength(amount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
-    }
+        return newAmount === '' || (decimalNumberRegex.test(newAmount) && calculateAmountLength(newAmount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
+    };
 
     /**
-     * Strip comma from the amount
-     *
-     * @param {String} amount
-     * @returns {String}
+     * Returns new state object if the updated amount is valid
+     * @param {String} newAmount - Changed amount from user input
      */
-    stripCommaFromAmount(amount) {
-        return amount.replace(/,/g, '');
-    }
-
-    /**
-     * Strip spaces from the amount
-     *
-     * @param {String} amount
-     * @returns {String}
-     */
-    stripSpacesFromAmount(amount) {
-        return amount.replace(/\s+/g, '');
-    }
-
-    /**
-     * Adds a leading zero to the amount if user entered just the decimal separator
-     *
-     * @param {String} amount - Changed amount from user input
-     * @returns {String}
-     */
-    addLeadingZero(amount) {
-        return amount === '.' ? '0.' : amount;
-    }
+    const setNewState = (newAmount) => {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
+        if (!validateAmount(newAmountWithoutSpaces)) {
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            setAmount(amount);
+            setSelection(selection);
+            // return {amount: prevState.amount, selection: {...prevState.selection}};
+        }
+        const newSelection = getNewSelection(selection, amount.length, newAmountWithoutSpaces.length);
+        setAmount(stripCommaFromAmount(newAmountWithoutSpaces));
+        setSelection(newSelection);
+        // return {amount: stripCommaFromAmount(newAmountWithoutSpaces), selection};
+    };
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
@@ -237,64 +208,45 @@ class MoneyRequestAmountPage extends React.Component {
      *
      * @param {String} key
      */
-    updateAmountNumberPad(key) {
-        if (this.state.shouldUpdateSelection && !this.textInput.isFocused()) {
-            this.textInput.focus();
+    const updateAmountNumberPad = (key) => {
+        if (shouldUpdateSelection && !textInput.current.isFocused()) {
+            textInput.current.focus();
         }
-
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
-            if (this.state.amount.length > 0) {
-                this.setState((prevState) => {
-                    const selectionStart = prevState.selection.start === prevState.selection.end ? prevState.selection.start - 1 : prevState.selection.start;
-                    const amount = `${prevState.amount.substring(0, selectionStart)}${prevState.amount.substring(prevState.selection.end)}`;
-                    return this.getNewState(prevState, amount);
-                });
+            if (amount.length > 0) {
+                const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
+                const newAmount = `${amount.substring(0, selectionStart)}${amount.substring(selection.end)}`;
+                setNewState(newAmount);
             }
             return;
         }
-
-        this.setState((prevState) => {
-            const amount = this.addLeadingZero(`${prevState.amount.substring(0, prevState.selection.start)}${key}${prevState.amount.substring(prevState.selection.end)}`);
-            return this.getNewState(prevState, amount);
-        });
-    }
+        const newAmount = addLeadingZero(`${amount.substring(0, selection.start)}${key}${amount.substring(selection.end)}`);
+        setNewState(newAmount);
+    };
 
     /**
      * Update long press value, to remove items pressing on <
      *
      * @param {Boolean} value - Changed text from user input
      */
-    updateLongPressHandlerState(value) {
-        this.setState({shouldUpdateSelection: !value});
-        if (!value && !this.textInput.isFocused()) {
-            this.textInput.focus();
+    const updateLongPressHandlerState = (value) => {
+        setShouldUpdateSelection(!value);
+        if (!value && !textInput.current.isFocused()) {
+            textInput.current.focus();
         }
-    }
-
-    /**
-     * Update amount on amount change
-     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
-     *
-     * @param {String} text - Changed text from user input
-     */
-    updateAmount(text) {
-        this.setState((prevState) => {
-            const amount = this.addLeadingZero(this.replaceAllDigits(text, this.props.fromLocaleDigit));
-            return this.getNewState(prevState, amount);
-        });
-    }
+    };
 
     /**
      * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
      * the original character will be preserved.
      *
      * @param {String} text
-     * @param {Function} convertFn - `this.props.fromLocaleDigit` or `this.props.toLocaleDigit`
+     * @param {Function} convertFn - `props.fromLocaleDigit` or `props.toLocaleDigit`
      * @returns {String}
      */
-    replaceAllDigits(text, convertFn) {
-        return _.chain([...text])
+    const replaceAllDigits = (text, convertFn) =>
+        _.chain([...text])
             .map((char) => {
                 try {
                     return convertFn(char);
@@ -304,73 +256,81 @@ class MoneyRequestAmountPage extends React.Component {
             })
             .join('')
             .value();
-    }
 
-    navigateToCurrencySelectionPage() {
+    /**
+     * Update amount on amount change
+     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
+     *
+     * @param {String} text - Changed text from user input
+     */
+    const updateAmount = (text) => {
+        const newAmount = addLeadingZero(replaceAllDigits(text, props.fromLocaleDigit));
+        setNewState(newAmount);
+    };
+
+    const navigateToCurrencySelectionPage = () => {
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        if (this.props.hasMultipleParticipants) {
-            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
+        if (props.hasMultipleParticipants) {
+            return Navigation.navigate(ROUTES.getIouBillCurrencyRoute(props.reportID, selectedCurrencyCode, activeRoute));
         }
-        if (this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
-            return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
+        if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+            return Navigation.navigate(ROUTES.getIouSendCurrencyRoute(props.reportID, selectedCurrencyCode, activeRoute));
         }
-        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(this.props.reportID, this.state.selectedCurrencyCode, activeRoute));
-    }
+        return Navigation.navigate(ROUTES.getIouRequestCurrencyRoute(props.reportID, selectedCurrencyCode, activeRoute));
+    };
 
-    render() {
-        const formattedAmount = this.replaceAllDigits(this.state.amount, this.props.toLocaleDigit);
+    const formattedAmount = replaceAllDigits(amount, props.toLocaleDigit);
 
-        return (
-            <>
-                <View
-                    nativeID={this.amountViewID}
-                    onMouseDown={(event) => this.onMouseDown(event, [this.amountViewID])}
-                    style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-                >
-                    <TextInputWithCurrencySymbol
-                        formattedAmount={formattedAmount}
-                        onChangeAmount={this.updateAmount}
-                        onCurrencyButtonPress={this.navigateToCurrencySelectionPage}
-                        placeholder={this.props.numberFormat(0)}
-                        ref={(el) => (this.textInput = el)}
-                        selectedCurrencyCode={this.state.selectedCurrencyCode}
-                        selection={this.state.selection}
-                        onSelectionChange={(e) => {
-                            if (!this.state.shouldUpdateSelection) {
-                                return;
-                            }
-                            this.setState({selection: e.nativeEvent.selection});
-                        }}
+    return (
+        <>
+            <View
+                nativeID={amountViewID}
+                onMouseDown={(event) => onMouseDown(event, [amountViewID])}
+                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+            >
+                <TextInputWithCurrencySymbol
+                    formattedAmount={formattedAmount}
+                    onChangeAmount={updateAmount}
+                    onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                    placeholder={props.numberFormat(0)}
+                    ref={(el) => (textInput.current = el)}
+                    selectedCurrencyCode={selectedCurrencyCode}
+                    selection={selection}
+                    onSelectionChange={(e) => {
+                        if (!shouldUpdateSelection) {
+                            return;
+                        }
+                        setSelection(e.nativeEvent.selection);
+                    }}
+                />
+            </View>
+            <View
+                onMouseDown={(event) => onMouseDown(event, [numPadContainerViewID, numPadViewID])}
+                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                nativeID={numPadContainerViewID}
+            >
+                {DeviceCapabilities.canUseTouchScreen() ? (
+                    <BigNumberPad
+                        nativeID={numPadViewID}
+                        numberPressed={updateAmountNumberPad}
+                        longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
-                </View>
-                <View
-                    onMouseDown={(event) => this.onMouseDown(event, [this.numPadContainerViewID, this.numPadViewID])}
-                    style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
-                    nativeID={this.numPadContainerViewID}
-                >
-                    {DeviceCapabilities.canUseTouchScreen() ? (
-                        <BigNumberPad
-                            nativeID={this.numPadViewID}
-                            numberPressed={this.updateAmountNumberPad}
-                            longPressHandlerStateChanged={this.updateLongPressHandlerState}
-                        />
-                    ) : (
-                        <View />
-                    )}
+                ) : (
+                    <View />
+                )}
 
-                    <Button
-                        success
-                        style={[styles.w100, styles.mt5]}
-                        onPress={() => this.props.onStepComplete(this.state.amount, this.state.selectedCurrencyCode)}
-                        pressOnEnter
-                        isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
-                        text={this.props.buttonText}
-                    />
-                </View>
-            </>
-        );
-    }
+                <Button
+                    success
+                    style={[styles.w100, styles.mt5]}
+                    onPress={() => props.onStepComplete(amount, selectedCurrencyCode)}
+                    pressOnEnter
+                    isDisabled={!amount.length || parseFloat(amount) < 0.01}
+                    text={props.buttonText}
+                />
+            </View>
+        </>
+    );
 }
 
 MoneyRequestAmountPage.propTypes = propTypes;
