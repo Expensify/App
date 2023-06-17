@@ -231,11 +231,15 @@ function buildOnyxDataForMoneyRequest(
                           [chatCreatedAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                           },
+                          [reportPreviewAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
+                          },
                       }
-                    : {}),
-                [reportPreviewAction.reportActionID]: {
-                    created: reportPreviewAction.created,
-                },
+                    : {
+                          [reportPreviewAction.reportActionID]: {
+                              created: reportPreviewAction.created,
+                          },
+                      }),
             },
         },
         {
@@ -246,6 +250,9 @@ function buildOnyxDataForMoneyRequest(
                     ? {
                           [iouCreatedAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                          },
+                          [iouAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
                           },
                       }
                     : {
@@ -496,15 +503,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
-            value: {
-                [groupIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
@@ -512,16 +510,37 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         },
     ];
 
-    if (!existingGroupChatReport) {
+    if (existingGroupChatReport) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
-                errorFields: {
-                    createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                [groupIOUReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                 },
             },
         });
+    } else {
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
+                value: {
+                    errorFields: {
+                        createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
+                value: {
+                    [groupIOUReportAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError(null),
+                    },
+                },
+            },
+        );
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
@@ -953,15 +972,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
@@ -986,15 +996,26 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: optimisticChatReportData.key,
             value: {pendingFields: null},
         });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: optimisticChatReportData.key,
-            value: {
-                errorFields: {
-                    createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: optimisticChatReportData.key,
+                value: {
+                    errorFields: {
+                        createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                    },
                 },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
+                value: {
+                    [optimisticIOUReportAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError(null),
+                    },
+                },
+            },
+        );
 
         // Add optimistic personal details for recipient
         optimisticPersonalDetailListData = {
@@ -1012,9 +1033,16 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
         // Add an optimistic created action to the optimistic reportActions data
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
-
-        // If we're going to fail to create the report itself, let's not have redundant error messages for the IOU
-        failureData[0].value[optimisticIOUReportAction.reportActionID] = {pendingAction: null};
+    } else {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                },
+            },
+        });
     }
 
     const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
