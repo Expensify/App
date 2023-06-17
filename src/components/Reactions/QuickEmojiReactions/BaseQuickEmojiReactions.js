@@ -51,7 +51,7 @@ function BaseQuickEmojiReactions(props) {
         <View style={styles.quickReactionsContainer}>
             {_.map(CONST.QUICK_REACTIONS, (emoji) => (
                 <Tooltip
-                    text={`:${EmojiUtils.getEmojiName(emoji.name, props.preferredLocale)}:`}
+                    text={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, props.preferredLocale)}:`}
                     key={emoji.name}
                 >
                     <View>

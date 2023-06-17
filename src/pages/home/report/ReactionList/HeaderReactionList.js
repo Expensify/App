@@ -33,7 +33,7 @@ function HeaderReactionList(props) {
                     <Text style={[styles.miniQuickEmojiReactionText, StyleUtils.getEmojiReactionBubbleTextStyle(true)]}>{props.emojiCodes.join('')}</Text>
                     <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.emojiCount}</Text>
                 </View>
-                <Text style={styles.reactionListHeaderText}>{`:${EmojiUtils.getEmojiName(props.emojiName, props.preferredLocale)}:`}</Text>
+                <Text style={styles.reactionListHeaderText}>{`:${EmojiUtils.getLocalizedEmojiName(props.emojiName, props.preferredLocale)}:`}</Text>
             </View>
         </View>
     );

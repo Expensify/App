@@ -20318,7 +20318,7 @@ const emojis = [
     },
 ];
 
-const emojiNames = _.reduce(
+const localizedEmojiNames = _.reduce(
     emojis,
     (prev, cur) => {
         const newValue = prev;
@@ -20336,5 +20336,5 @@ const categoryFrequentlyUsed = {
     icon: FrequentlyUsed,
 };
 
-export {skinTones, emojiNames, categoryFrequentlyUsed};
+export {skinTones, localizedEmojiNames, categoryFrequentlyUsed};
 export default emojis;

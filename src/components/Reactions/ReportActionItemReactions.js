@@ -77,7 +77,7 @@ function ReportActionItemReactions(props) {
                     <Tooltip
                         renderTooltipContent={() => (
                             <ReactionTooltipContent
-                                emojiName={EmojiUtils.getEmojiName(reaction.emoji, props.preferredLocale)}
+                                emojiName={EmojiUtils.getLocalizedEmojiName(reaction.emoji, props.preferredLocale)}
                                 emojiCodes={emojiCodes}
                                 accountIDs={reactionUsers}
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}

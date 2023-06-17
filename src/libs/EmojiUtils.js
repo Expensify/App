@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
-import allEmojis, {emojiNames, categoryFrequentlyUsed} from '../../assets/emojis';
+import allEmojis, {localizedEmojiNames, categoryFrequentlyUsed} from '../../assets/emojis';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
@@ -361,7 +361,7 @@ const getUniqueEmojiCodes = (emoji, users) => {
  * @param {String} lang
  * @returns {String}
  */
-const getEmojiName = (enName, lang) => _.get(emojiNames, [enName, lang], '');
+const getLocalizedEmojiName = (enName, lang) => _.get(localizedEmojiNames, [enName, lang], '');
 
 export {
     getHeaderEmojis,
@@ -375,5 +375,5 @@ export {
     getPreferredSkinToneIndex,
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
-    getEmojiName,
+    getLocalizedEmojiName,
 };
