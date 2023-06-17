@@ -1487,16 +1487,16 @@ function hasAccountIDReacted(accountID, users, skinTone) {
  * Adds a reaction to the report action.
  * @param {String} reportID
  * @param {Object} originalReportAction
- * @param {{ shortcode: {en: string, es: string}, code: string, types: string[] }} emoji
+ * @param {{ name: string, code: string, types: string[] }} emoji
  * @param {number} [skinTone] Optional.
  */
 function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
     const message = originalReportAction.message[0];
-    let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === _.get(emoji, ['shortcode', 'en'], ''));
+    let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const needToInsertReactionObject = !reactionObject;
     if (needToInsertReactionObject) {
         reactionObject = {
-            emoji: _.get(emoji, ['shortcode', 'en'], ''),
+            emoji: emoji.name,
             users: [],
         };
     } else {
@@ -1513,7 +1513,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
     if (needToInsertReactionObject) {
         updatedReactions = [...updatedReactions, reactionObject];
     } else {
-        updatedReactions = _.map(updatedReactions, (reaction) => (reaction.emoji === _.get(emoji, ['shortcode', 'en'], '') ? reactionObject : reaction));
+        updatedReactions = _.map(updatedReactions, (reaction) => (reaction.emoji === emoji.name ? reactionObject : reaction));
     }
 
     const updatedMessage = {
@@ -1527,7 +1527,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
     const parameters = {
         reportID,
         skinTone,
-        emojiCode: _.get(emoji, ['shortcode', 'en'], ''),
+        emojiCode: emoji.name,
         sequenceNumber: originalReportAction.sequenceNumber,
         reportActionID: originalReportAction.reportActionID,
     };
@@ -1538,11 +1538,11 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
  * Removes a reaction to the report action.
  * @param {String} reportID
  * @param {Object} originalReportAction
- * @param {{ shortcode: {en: string, es: string}, code: string, types: string[] }} emoji
+ * @param {{ name: string, code: string, types: string[] }} emoji
  */
 function removeEmojiReaction(reportID, originalReportAction, emoji) {
     const message = originalReportAction.message[0];
-    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === _.get(emoji, ['shortcode', 'en'], ''));
+    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     if (!reactionObject) {
         return;
     }
@@ -1554,7 +1554,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
     const updatedReactions = _.filter(
         // Replace the reaction object either with the updated one or null if there are no users
         _.map(message.reactions, (reaction) => {
-            if (reaction.emoji === _.get(emoji, ['shortcode', 'en'], '')) {
+            if (reaction.emoji === emoji.name) {
                 if (updatedReactionObject.users.length === 0) {
                     return null;
                 }
@@ -1579,7 +1579,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
         reportID,
         sequenceNumber: originalReportAction.sequenceNumber,
         reportActionID: originalReportAction.reportActionID,
-        emojiCode: _.get(emoji, ['shortcode', 'en'], ''),
+        emojiCode: emoji.name,
     };
     API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
@@ -1594,7 +1594,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
  */
 function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
     const message = reportAction.message[0];
-    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === _.get(emoji, ['shortcode', 'en'], ''));
+    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {

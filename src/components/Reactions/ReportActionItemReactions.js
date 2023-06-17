@@ -66,7 +66,7 @@ function ReportActionItemReactions(props) {
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
                 const onPress = () => {
-                    props.toggleReaction(emoji);
+                    props.toggleReaction({code: emoji.code, name: _.get(emoji, ['shortcode', 'en'], '')});
                 };
 
                 const onReactionListOpen = (event) => {

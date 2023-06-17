@@ -150,7 +150,7 @@ class EmojiPickerMenu extends Component {
      * @returns {String}
      */
     keyExtractor(item, index) {
-        return `emoji_picker_${item.code}_${index}`;
+        return `${index}${item.code}`;
     }
 
     /**

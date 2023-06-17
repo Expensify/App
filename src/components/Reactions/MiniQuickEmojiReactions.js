@@ -53,7 +53,7 @@ function MiniQuickEmojiReactions(props) {
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
-                props.onEmojiSelected(emojiObject);
+                props.onEmojiSelected({code: emojiCode, name: _.get(emojiObject, ['shortcode', 'en'])});
             },
             ref.current,
         );
@@ -63,9 +63,9 @@ function MiniQuickEmojiReactions(props) {
         <View style={styles.flexRow}>
             {_.map(CONST.QUICK_REACTIONS, (emoji) => (
                 <BaseMiniContextMenuItem
-                    key={emoji.code}
+                    key={emoji.name}
                     isDelayButtonStateComplete={false}
-                    tooltipText={`:${emoji.shortcode[props.preferredLocale]}:`}
+                    tooltipText={`:${EmojiUtils.getEmojiName(emoji.name, props.preferredLocale)}:`}
                     onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
                 >
                     <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
