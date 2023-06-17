@@ -100,9 +100,8 @@ function containsOnlyEmojis(message) {
 }
 
 /**
- * Get the header emojis with their name, icon and index
+ * Get the header emojis with their code, icon and index
  * @param {Object[]} emojis
- * @param {String} lang
  * @returns {Object[]}
  */
 function getHeaderEmojis(emojis) {
@@ -113,7 +112,6 @@ function getHeaderEmojis(emojis) {
         }
         headerIndices.push({code: emoji.code, index, icon: emoji.icon});
     });
-
     return headerIndices;
 }
 
