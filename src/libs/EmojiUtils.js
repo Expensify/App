@@ -105,13 +105,13 @@ function containsOnlyEmojis(message) {
  * @param {String} lang
  * @returns {Object[]}
  */
-function getHeaderEmojis(emojis, lang) {
+function getHeaderEmojis(emojis) {
     const headerIndices = [];
     _.each(emojis, (emoji, index) => {
         if (!emoji.header) {
             return;
         }
-        headerIndices.push({name: emoji.name[lang], index, icon: emoji.icon});
+        headerIndices.push({code: emoji.code, index, icon: emoji.icon});
     });
 
     return headerIndices;

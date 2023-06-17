@@ -12,7 +12,7 @@ const propTypes = {
     /** The emojis consisting emoji code and indices that the icons should link to */
     headerEmojis: PropTypes.arrayOf(
         PropTypes.shape({
-            name: PropTypes.string.isRequired,
+            code: PropTypes.string.isRequired,
             index: PropTypes.number.isRequired,
             icon: PropTypes.func.isRequired,
         }),
@@ -27,7 +27,7 @@ function CategoryShortcutBar(props) {
                     icon={headerEmoji.icon}
                     onPress={() => props.onPress(headerEmoji.index)}
                     key={`categoryShortcut${i}`}
-                    name={headerEmoji.name}
+                    code={headerEmoji.code}
                 />
             ))}
         </View>

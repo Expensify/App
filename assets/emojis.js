@@ -38,11 +38,7 @@ const skinTones = [
 
 const emojis = [
     {
-        code: '😀',
-        name: {
-            en: 'Smileys & Emotions',
-            es: 'Emoticonos y emociones',
-        },
+        code: 'smileysAndEmotion',
         icon: Smiley,
         header: true,
     },
@@ -5898,11 +5894,7 @@ const emojis = [
         },
     },
     {
-        code: '🐵',
-        name: {
-            en: 'Animals & Nature',
-            es: 'Animales y naturaleza',
-        },
+        code: 'animalsAndNature',
         icon: AnimalsAndNature,
         header: true,
     },
@@ -7447,11 +7439,7 @@ const emojis = [
         },
     },
     {
-        code: '🍄',
-        name: {
-            en: 'Food & Drink',
-            es: 'Alimentos y bebidas',
-        },
+        code: 'foodAndDrink',
         icon: FoodAndDrink,
         header: true,
     },
@@ -8875,11 +8863,7 @@ const emojis = [
         },
     },
     {
-        code: '🌍',
-        name: {
-            en: 'Travel & Places',
-            es: 'Viajes y lugares',
-        },
+        code: 'travelAndPlaces',
         icon: TravelAndPlaces,
         header: true,
     },
@@ -11249,11 +11233,7 @@ const emojis = [
         },
     },
     {
-        code: '🎃',
-        name: {
-            en: 'Activities',
-            es: 'Actividades',
-        },
+        code: 'activities',
         icon: Activities,
         header: true,
     },
@@ -12182,11 +12162,7 @@ const emojis = [
         },
     },
     {
-        code: '👓',
-        name: {
-            en: 'Objects',
-            es: 'Objetos',
-        },
+        code: 'objects',
         icon: Objects,
         header: true,
     },
@@ -14952,11 +14928,7 @@ const emojis = [
         },
     },
     {
-        code: '🏧',
-        name: {
-            en: 'Symbols',
-            es: 'Símbolos',
-        },
+        code: 'symbols',
         icon: Symbols,
         header: true,
     },
@@ -17381,11 +17353,7 @@ const emojis = [
         },
     },
     {
-        code: '🏁',
-        name: {
-            en: 'Flags',
-            es: 'Banderas',
-        },
+        code: 'flags',
         icon: Flags,
         header: true,
     },
@@ -20364,10 +20332,7 @@ const emojiNames = _.reduce(
 
 const categoryFrequentlyUsed = {
     header: true,
-    name: {
-        en: 'Frequently Used',
-        es: 'Usado frecuentemente',
-    },
+    code: 'frequentlyUsed',
     icon: FrequentlyUsed,
 };
 
