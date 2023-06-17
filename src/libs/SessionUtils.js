@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
+import * as Permissions from './actions/Permissions';
 
 let authTokenType = '';
 Onyx.connect({
@@ -8,7 +9,7 @@ Onyx.connect({
     callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
 });
 
-const allowedCommands = ['AuthenticatePusher', 'ExpandURLPreview', 'LogOut', 'OpenApp', 'OpenReport', 'UpdateAutomaticTimezone'];
+const allowedCommandsForAnonymousUsers = ['AuthenticatePusher', 'ExpandURLPreview', 'LogOut', 'OpenApp', 'OpenReport', 'UpdateAutomaticTimezone'];
 
 /**
  * Checks if the account is an anonymous account.
@@ -20,16 +21,25 @@ function isAnonymousUser() {
 }
 
 /**
+ * @returns {Boolean}
+ */
+function checkIfActionIsAllowed() {
+    if (isAnonymousUser()) {
+        Permissions.setActionAsForbidden();
+        return false;
+    }
+    return true;
+}
+
+/**
  * Checks if the account is an anonymous account.
  * @param {String} command
  *
- * @return {boolean}
+ * @return {Boolean}
  */
 function checkIfCommandIsAllowed(command) {
-    if (isAnonymousUser() && !allowedCommands.includes(command)) {
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.set(ONYXKEYS.IS_ACTION_FORBIDDEN, true);
-        return false;
+    if (!allowedCommandsForAnonymousUsers.includes(command)) {
+        return checkIfActionIsAllowed();
     }
     return true;
 }
@@ -64,7 +74,8 @@ function isLoggingInAsNewUser(transitionURL, sessionEmail) {
 
 export {
     // eslint-disable-next-line import/prefer-default-export
+    checkIfActionIsAllowed,
+    checkIfCommandIsAllowed,
     isAnonymousUser,
     isLoggingInAsNewUser,
-    checkIfCommandIsAllowed,
 };
