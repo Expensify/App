@@ -66,7 +66,7 @@ function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
     const personalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(reportAction.originalMessage.participantAccountIDs, props.personalDetails);
     const participants = OptionsListUtils.getParticipantsOptions(reportAction.originalMessage, personalDetails);
-    const payeePersonalDetails = _.filter(participants, (participant) => participant.accountID === reportAction.actorAccountID)[0];
+    const payeePersonalDetails = personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
     const splitComment = lodashGet(reportAction, 'originalMessage.comment');

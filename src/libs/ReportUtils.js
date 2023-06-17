@@ -144,6 +144,26 @@ function isTaskReport(report) {
 }
 
 /**
+ * Checks if a task is completed
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskCompleted(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
+}
+
+/**
+ * Checks if the current user is assigned to the task report
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskAssignee(report) {
+    return lodashGet(report, 'managerEmail') === currentUserEmail;
+}
+
+/**
  * Checks if a report is an IOU or expense report.
  *
  * @param {Object} report
@@ -663,7 +683,11 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
-        participantDetails.push([lodashGet(personalDetails, [accountID, 'login'], ''), lodashGet(personalDetails, [accountID, 'firstName'], ''), avatarSource]);
+        participantDetails.push([
+            lodashGet(personalDetails, [accountID, 'login'], lodashGet(personalDetails, [accountID, 'displayName'], '')),
+            lodashGet(personalDetails, [accountID, 'firstName'], ''),
+            avatarSource,
+        ]);
     }
 
     // Sort all logins by first name (which is the second element in the array)
@@ -2296,6 +2320,8 @@ export {
     isExpenseReport,
     isIOUReport,
     isTaskReport,
+    isTaskCompleted,
+    isTaskAssignee,
     isMoneyRequestReport,
     chatIncludesChronos,
     getNewMarkerReportActionID,

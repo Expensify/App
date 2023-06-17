@@ -2,7 +2,6 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import reportPropTypes from '../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -53,7 +52,7 @@ function TaskHeader(props) {
     const assigneeName = ReportUtils.getDisplayNameForParticipant(assigneeEmail);
     const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [assigneeEmail, 'avatar']), assigneeEmail);
     const isOpen = props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN;
-    const isCompleted = props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED;
+    const isCompleted = ReportUtils.isTaskCompleted(props.report);
 
     useEffect(() => {
         TaskUtils.setTaskReport(props.report);
@@ -74,7 +73,7 @@ function TaskHeader(props) {
                     >
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                {!_.isEmpty(assigneeEmail) && (
+                                {assigneeEmail && assigneeEmail > 0 && (
                                     <>
                                         <Avatar
                                             source={assigneeAvatar}
