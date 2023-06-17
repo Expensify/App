@@ -10,6 +10,7 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 
 /**
@@ -629,12 +630,12 @@ function dismissModalAndClearOutTaskInfo() {
 }
 
 /**
- * Returns Task assignee email
+ * Returns Task assignee accountID
  *
  * @param {Object} taskReport
- * @returns {String|null}
+ * @returns {Number|null}
  */
-function getTaskAssigneeEmail(taskReport) {
+function getTaskAssigneeAccountID(taskReport) {
     if (!taskReport) {
         return null;
     }
@@ -644,28 +645,29 @@ function getTaskAssigneeEmail(taskReport) {
     }
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
-    return lodashGet(reportAction, 'childManagerEmail', null);
+    const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
+    return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
 }
 
 /**
- * Returns Task owner email
+ * Returns Task owner accountID
  *
  * @param {Object} taskReport
- * @returns {String|null}
+ * @returns {Number|null}
  */
-function getTaskOwnerEmail(taskReport) {
-    return lodashGet(taskReport, 'ownerEmail', null);
+function getTaskOwnerAccountID(taskReport) {
+    return lodashGet(taskReport, 'ownerAccountID', null);
 }
 
 /**
  * Check if current user is either task assignee or task owner
  *
  * @param {Object} taskReport
- * @param {String} sessionEmail
+ * @param {Number} sessionAccountID
  * @returns {Boolean}
  */
-function isTaskAssigneeOrTaskOwner(taskReport, sessionEmail) {
-    return sessionEmail === getTaskOwnerEmail(taskReport) || sessionEmail === getTaskAssigneeEmail(taskReport);
+function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
+    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
 }
 
 export {
@@ -687,6 +689,6 @@ export {
     cancelTask,
     isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
-    getTaskAssigneeEmail,
+    getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,
 };

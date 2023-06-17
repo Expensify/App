@@ -53,7 +53,7 @@ const propTypes = {
 
     /** Current user session */
     session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
+        accountID: PropTypes.number,
     }),
 
     /** The report actions from the parent report */
@@ -74,7 +74,7 @@ const defaultProps = {
     },
     parentReport: {},
     session: {
-        email: null,
+        accountID: 0,
     },
 };
 
@@ -99,7 +99,7 @@ function HeaderView(props) {
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
     if (isTaskReport) {
-        const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.email);
+        const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID);
         if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
