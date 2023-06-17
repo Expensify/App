@@ -8,8 +8,8 @@ import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import themeColors from '../../styles/themes/default';
 import Log from '../Log';
-import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../components/withCurrentReportId';
 import StatusBar from '../StatusBar';
+import useCurrentReportID from '../../hooks/useCurrentReportID';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 // https://reactnavigation.org/docs/themes
@@ -27,8 +27,6 @@ const propTypes = {
 
     /** Fired when react-navigation is ready */
     onReady: PropTypes.func.isRequired,
-
-    ...withCurrentReportIdPropTypes,
 };
 
 /**
@@ -53,9 +51,11 @@ function parseAndLogRoute(state) {
 }
 
 function NavigationRoot(props) {
-    const {isSmallScreenWidth} = useWindowDimensions();
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
+
+    const {updateCurrentReportId} = useCurrentReportID();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarBackgroundColor = useRef(themeColors.appBG);
@@ -91,7 +91,7 @@ function NavigationRoot(props) {
 
     const updateSavedNavigationStateAndLogRoute = (state) => {
         navigationStateRef.current = state;
-        props.updateCurrentReportId(state);
+        updateCurrentReportId(state);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
     };
@@ -116,4 +116,4 @@ function NavigationRoot(props) {
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;
-export default withCurrentReportId(NavigationRoot);
+export default NavigationRoot;

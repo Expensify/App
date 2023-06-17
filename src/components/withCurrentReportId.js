@@ -71,4 +71,4 @@ export default function withCurrentReportId(WrappedComponent) {
     return WithCurrentReportId;
 }
 
-export {withCurrentReportIdPropTypes, CurrentReportIdContextProvider};
+export {withCurrentReportIdPropTypes, CurrentReportIdContextProvider, CurrentReportIdContext};
