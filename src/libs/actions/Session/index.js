@@ -89,17 +89,6 @@ function signOutAndRedirectToSignIn() {
 }
 
 /**
- * @param {Function} callback The callback to execute if the action is allowed
- * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
- */
-function checkIfActionIsAllowed(callback) {
-    if (SessionUtils.isAnonymousUser()) {
-        return () => signOutAndRedirectToSignIn();
-    }
-    return callback;
-}
-
-/**
  * Resend the validation link to the user that is validating their account
  *
  * @param {String} [login]
@@ -874,7 +863,6 @@ Onyx.connect({
 
 export {
     beginSignIn,
-    checkIfActionIsAllowed,
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,

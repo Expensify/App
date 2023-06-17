@@ -130,7 +130,7 @@ function FlagCommentPage(props) {
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={Session.checkIfActionIsAllowed(() => flagComment(item.severity))}
+            onPress={() => flagComment(item.severity)}
             style={[styles.pt2, styles.pb4, styles.mh5, styles.ph0, styles.flexRow, styles.borderBottom]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}

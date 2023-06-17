@@ -99,7 +99,7 @@ function MenuItem(props) {
 
     return (
         <PressableWithSecondaryInteraction
-            onPress={Session.checkIfActionIsAllowed((e) => {
+            onPress={(e) => {
                 if (props.disabled || !props.interactive) {
                     return;
                 }
@@ -109,7 +109,7 @@ function MenuItem(props) {
                 }
 
                 props.onPress(e);
-            })}
+            }}
             onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={ControlSelection.unblock}
             onSecondaryInteraction={props.onSecondaryInteraction}

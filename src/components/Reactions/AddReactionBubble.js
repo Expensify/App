@@ -72,7 +72,7 @@ function AddReactionBubble(props) {
             <PressableWithFeedback
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
-                onPress={Session.checkIfActionIsAllowed(onPress)}
+                onPress={onPress}
                 // Prevent text input blur when Add reaction is clicked
                 onMouseDown={(e) => e.preventDefault()}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}

@@ -187,7 +187,7 @@ class SidebarLinks extends React.Component {
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
-                            onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
+                            onPress={this.showSearchPage}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
                         </PressableWithoutFeedback>
@@ -195,7 +195,7 @@ class SidebarLinks extends React.Component {
                     <PressableWithoutFeedback
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
-                        onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
+                        onPress={this.showSettingsPage}
                     >
                         {SessionUtils.isAnonymousUser() ? (
                             <View style={styles.signInButtonAvatar}>

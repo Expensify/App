@@ -105,7 +105,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
                         <PressableWithoutFeedback
                             ref={(el) => (this.videoChatButton = el)}
-                            onPress={Session.checkIfActionIsAllowed(() => {
+                            onPress={() => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
 
@@ -115,7 +115,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                                     return;
                                 }
                                 this.setMenuVisibility(true);
-                            })}
+                            }}
                             style={styles.touchableButtonImage}
                             accessibilityLabel={this.props.translate('videoChatButtonAndMenu.tooltip')}
                             accessibilityRole="button"

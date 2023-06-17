@@ -66,14 +66,14 @@ function MiniQuickEmojiReactions(props) {
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${emoji.name}:`}
-                    onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
+                    onPress={() => props.onEmojiSelected(emoji)}
                 >
                     <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
             ))}
             <BaseMiniContextMenuItem
                 ref={ref}
-                onPress={Session.checkIfActionIsAllowed(openEmojiPicker)}
+                onPress={openEmojiPicker}
                 isDelayButtonStateComplete={false}
                 tooltipText={props.translate('emojiReactions.addReactionTooltip')}
             >

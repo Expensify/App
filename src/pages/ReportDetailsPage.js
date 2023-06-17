@@ -179,7 +179,7 @@ function ReportDetailsPage(props) {
                                 title={props.translate(item.translationKey)}
                                 subtitle={item.subtitle}
                                 icon={item.icon}
-                                onPress={Session.checkIfActionIsAllowed(item.action)}
+                                onPress={item.action}
                                 shouldShowRightIcon
                                 brickRoadIndicator={brickRoadIndicator}
                             />
