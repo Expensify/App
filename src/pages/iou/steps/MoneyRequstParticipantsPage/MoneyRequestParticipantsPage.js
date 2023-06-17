@@ -16,7 +16,6 @@ import compose from '../../../../libs/compose';
 import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import * as IOU from '../../../../libs/actions/IOU';
-import usePrevious from '../../../../hooks/usePrevious';
 
 const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
@@ -46,7 +45,7 @@ const defaultProps = {
 };
 
 function MoneyRequestParticipantsPage(props) {
-    const prevMoneyRequestId = usePrevious(props.iou.id);
+    const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
@@ -59,9 +58,12 @@ function MoneyRequestParticipantsPage(props) {
     };
 
     useEffect(() => {
-        // ID in Onyx could change by initiating a new request in a separate browser tab
-        if (prevMoneyRequestId && prevMoneyRequestId !== props.iou.id) {
-            navigateBack(true);
+        // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
+        if (prevMoneyRequestId.current !== props.iou.id) {
+            // The ID is cleared on completing a request. In that case, we will do nothing
+            if (props.iou.id) {
+                navigateBack(true);
+            }
             return;
         }
 
@@ -75,7 +77,11 @@ function MoneyRequestParticipantsPage(props) {
         if (props.iou.amount === 0 || shouldReset) {
             navigateBack(true);
         }
-    }, [props.iou.amount, props.iou.id, prevMoneyRequestId]);
+
+        return () => {
+            prevMoneyRequestId.current = props.iou.id;
+        };
+    }, [props.iou.amount, props.iou.id]);
 
     return (
         <ScreenWrapper

@@ -21,7 +21,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
-import usePrevious from '../../../hooks/usePrevious';
 
 const propTypes = {
     report: reportPropTypes,
@@ -63,7 +62,7 @@ const defaultProps = {
 };
 
 function MoneyRequestConfirmPage(props) {
-    const prevMoneyRequestId = usePrevious(props.iou.id);
+    const prevMoneyRequestId = useRef(props.iou.id);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const participants = useMemo(
@@ -75,9 +74,12 @@ function MoneyRequestConfirmPage(props) {
     );
 
     useEffect(() => {
-        // ID in Onyx could change by initiating a new request in a separate browser tab
-        if (prevMoneyRequestId && prevMoneyRequestId !== props.iou.id) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+        // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
+        if (prevMoneyRequestId.current !== props.iou.id) {
+            // The ID is cleared on completing a request. In that case, we will do nothing.
+            if (props.iou.id) {
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+            }
             return;
         }
 
@@ -91,7 +93,11 @@ function MoneyRequestConfirmPage(props) {
         if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
-    }, [props.iou.participants, props.iou.amount, props.iou.id, prevMoneyRequestId]);
+
+        return () => {
+            prevMoneyRequestId.current = props.iou.id;
+        };
+    }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
     const navigateBack = () => {
         let fallback;
