@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
 import styles from '../../styles/styles';
