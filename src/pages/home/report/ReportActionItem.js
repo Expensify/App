@@ -400,7 +400,12 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        return <ReportActionItemCreated reportID={props.report.reportID} />;
+        return (
+            <ReportActionItemCreated
+                policyID={props.report.policyID}
+                reportID={props.report.reportID}
+            />
+        );
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return <RenameAction action={props.action} />;
