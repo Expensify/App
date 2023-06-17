@@ -9,6 +9,7 @@ import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
+import cursor from '../../../styles/utilities/cursor';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
@@ -75,7 +76,7 @@ function AddPayPalMePage(props) {
                             accessibilityLabel={props.translate('addPayPalMePage.supportedCurrencies')}
                             onPress={() => Linking.openURL('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
                         >
-                            <View style={[styles.flexRow, styles.cursorPointer]}>
+                            <View style={[styles.flexRow, cursor.cursorPointer]}>
                                 <TextLink
                                     // eslint-disable-next-line max-len
                                     href="https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies"

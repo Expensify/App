@@ -14,6 +14,7 @@ import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
+import cursor from '../../styles/utilities/cursor';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
@@ -154,7 +155,7 @@ function MoneyRequestAction(props) {
                 checkIfContextMenuActive={props.checkIfContextMenuActive}
                 shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
                 onPreviewPressed={onIOUPreviewPressed}
-                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
+                containerStyles={[cursor.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
                 isHovered={props.isHovered}
             />
         </>

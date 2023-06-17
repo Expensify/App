@@ -2680,10 +2680,6 @@ const styles = {
         outline: 'none',
     },
 
-    cursorPointer: {
-        cursor: 'pointer',
-    },
-
     cardStyleNavigator: {
         overflow: 'hidden',
         height: '100%',

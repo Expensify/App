@@ -5,6 +5,7 @@ import Accessibility from '../../../libs/Accessibility';
 import HapticFeedback from '../../../libs/HapticFeedback';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import styles from '../../../styles/styles';
+import cursor from '../../../styles/utilities/cursor';
 import genericPressablePropTypes from './PropTypes';
 import CONST from '../../../CONST';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -24,7 +25,7 @@ const getCursorStyle = (isDisabled, isText) => {
         return styles.cursorText;
     }
 
-    return styles.cursorPointer;
+    return cursor.cursorPointer;
 };
 
 const GenericPressable = forwardRef((props, ref) => {

@@ -7,6 +7,7 @@ import TextInputLabel from './TextInputLabel';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
+import cursor from '../../styles/utilities/cursor';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
@@ -354,7 +355,7 @@ class BaseTextInput extends Component {
                                     </Checkbox>
                                 )}
                                 {!this.props.secureTextEntry && Boolean(this.props.icon) && (
-                                    <View style={[styles.textInputIconContainer, isEditable ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                    <View style={[styles.textInputIconContainer, isEditable ? cursor.cursorPointer : styles.pointerEventsNone]}>
                                         <Icon
                                             src={this.props.icon}
                                             fill={themeColors.icon}
