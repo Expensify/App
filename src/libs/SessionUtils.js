@@ -10,6 +10,7 @@ Onyx.connect({
 
 const allowedCommands = [
     'AuthenticatePusher',
+    'ExpandURLPreview',
     'LogOut',
     'OpenApp',
     'OpenReport',
