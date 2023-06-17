@@ -38,7 +38,7 @@ Request.use(Middleware.SaveResponseInOnyx);
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function write(command, apiCommandParameters = {}, onyxData = {}) {
-    if (!SessionUtils.checkIfActionIsAllowed(command)) {
+    if (!SessionUtils.checkIfCommandIsAllowed(command)) {
         return;
     }
 
@@ -96,7 +96,7 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  * @returns {Promise}
  */
 function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
-    if (!SessionUtils.checkIfActionIsAllowed(command)) {
+    if (!SessionUtils.checkIfCommandIsAllowed(command)) {
         return Promise.reject();
     }
 
@@ -136,7 +136,7 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function read(command, apiCommandParameters, onyxData) {
-    if (!SessionUtils.checkIfActionIsAllowed(command)) {
+    if (!SessionUtils.checkIfCommandIsAllowed(command)) {
         return;
     }
 

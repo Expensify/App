@@ -31,7 +31,7 @@ function isAnonymousUser() {
  *
  * @return {boolean}
  */
-function checkIfActionIsAllowed(command) {
+function checkIfCommandIsAllowed(command) {
     if (isAnonymousUser() && !allowedCommands.includes(command)) {
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.set(ONYXKEYS.IS_ACTION_FORBIDDEN, true);
@@ -72,5 +72,5 @@ export {
     // eslint-disable-next-line import/prefer-default-export
     isAnonymousUser,
     isLoggingInAsNewUser,
-    checkIfActionIsAllowed,
+    checkIfCommandIsAllowed,
 };
