@@ -11,6 +11,7 @@ import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
 import Checkbox from '../Checkbox';
 import * as StyleUtils from '../../styles/StyleUtils';
+import variables from '../../styles/variables';
 import getButtonState from '../../libs/getButtonState';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -68,9 +69,9 @@ function TaskPreview(props) {
             accessibilityRole="button"
             accessibilityLabel={props.translate('newTaskPage.task')}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
                 <Checkbox
-                    style={[styles.mr2]}
+                    style={[styles.mr2, StyleUtils.getMarginTop(variables.taskCheckboxTopMargin)]}
                     containerStyle={[styles.taskCheckbox]}
                     isChecked={isTaskCompleted}
                     disabled={TaskUtils.isTaskCanceled(props.taskReport)}
