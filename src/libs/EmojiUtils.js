@@ -20,6 +20,24 @@ Onyx.connect({
     },
 });
 
+
+/**
+ * 
+ * @param {Object} emoji 
+ * @param {String} lang 
+ * @returns {String}
+ */
+const getEmojiName = (emoji, lang = CONST.LOCALES.DEFAULT) => _.get(emoji, ['name', lang], '');
+
+/**
+ * Given an English emoji name, get its localized version
+ *
+ * @param {String} enName
+ * @param {String} lang
+ * @returns {String}
+ */
+const getLocalizedEmojiName = (enName, lang) => lang === CONST.LOCALES.DEFAULT ? enName : _.get(localizedEmojiNames, [enName, lang], '');
+
 /**
  * Get the unicode code of an emoji in base 16.
  * @param {String} input
@@ -224,7 +242,7 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * @param {String} lang
  * @returns {Object}
  */
-function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = 'en') {
+function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
     const trie = emojisTrie[lang];
     if (!trie) {
         return {text, emojis: []};
@@ -291,7 +309,7 @@ function suggestEmojis(text, lang, limit = 5) {
             if (matching.length === limit) {
                 return matching;
             }
-            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types, enName: _.get(nodes[j], ['metaData', 'name', 'en'])});
+            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types, enName: getEmojiName(nodes[j].metaData)});
         }
         const suggestions = nodes[j].metaData.suggestions;
         for (let i = 0; i < suggestions.length; i++) {
@@ -301,7 +319,7 @@ function suggestEmojis(text, lang, limit = 5) {
 
             const suggestion = suggestions[i];
             if (!_.find(matching, (obj) => obj.name === suggestion.name[lang])) {
-                matching.push({...suggestion, name: _.get(suggestion, ['name', lang]), enName: _.get(suggestion, ['name', 'en'])});
+                matching.push({...suggestion, name: getEmojiName(suggestion, lang), enName: getEmojiName(suggestion)});
             }
         }
     }
@@ -363,16 +381,9 @@ const getUniqueEmojiCodes = (emoji, users) => {
     return emojiCodes;
 };
 
-/**
- * Given an English emoji name, get its localized version
- *
- * @param {String} enName
- * @param {String} lang
- * @returns {String}
- */
-const getLocalizedEmojiName = (enName, lang) => _.get(localizedEmojiNames, [enName, lang], '');
-
 export {
+    getEmojiName,
+    getLocalizedEmojiName,
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
     getFrequentlyUsedEmojis,
@@ -384,5 +395,4 @@ export {
     getPreferredSkinToneIndex,
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
-    getLocalizedEmojiName,
 };

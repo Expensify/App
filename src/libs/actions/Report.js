@@ -1598,7 +1598,7 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
 function toggleEmojiReaction(reportID, reportAction, emojiToReact, paramSkinTone = preferredSkinTone) {
     const emoji = {
         ...emojiToReact,
-        name: _.isObject(emojiToReact.name) ? _.get(emojiToReact, ['name', 'en'], '') : emojiToReact.enName || emojiToReact.name,
+        name: _.isObject(emojiToReact.name) ? EmojiUtils.getEmojiName(emojiToReact) : emojiToReact.enName || emojiToReact.name,
     };
 
     const message = reportAction.message[0];

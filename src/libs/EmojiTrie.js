@@ -6,9 +6,9 @@ import CONST from '../CONST';
 
 Timing.start(CONST.TIMING.TRIE_INITIALIZATION);
 
-const supportedLanguages = ['en', 'es'];
+const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES];
 
-function createTrie(lang = 'en') {
+function createTrie(lang = CONST.LOCALES.DEFAULT) {
     const trie = new Trie();
 
     // Inserting all emojis into the Trie object
