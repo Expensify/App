@@ -2546,7 +2546,7 @@ const styles = {
         marginBottom: 0,
     },
 
-    iouPreviewBoxCheckmark: {
+    defaultCheckmarkWrapper: {
         marginLeft: 8,
         alignSelf: 'center',
     },
@@ -3339,11 +3339,6 @@ const styles = {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
         lineHeight: variables.lineHeightXXLarge,
-    },
-
-    moneyRequestHeaderCheckmark: {
-        marginLeft: 8,
-        alignSelf: 'center',
     },
 
     loginHeroBody: {

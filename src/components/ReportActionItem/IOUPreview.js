@@ -207,7 +207,7 @@ function IOUPreview(props) {
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
                             {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
-                                <View style={styles.iouPreviewBoxCheckmark}>
+                                <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={themeColors.iconSuccessFill}

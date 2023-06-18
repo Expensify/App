@@ -141,7 +141,7 @@ function MoneyRequestHeader(props) {
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
                         {!props.isSingleTransactionView && isSettled && (
-                            <View style={styles.moneyRequestHeaderCheckmark}>
+                            <View style={styles.defaultCheckmarkWrapper}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     fill={themeColors.iconSuccessFill}
