@@ -231,17 +231,7 @@ describe('EmojiTest', () => {
             return waitForPromisesToResolve().then(() => {
                 // When add a new emoji
                 const currentTime = moment().unix();
-                const smileEmoji = {
-                    code: '😄',
-                    name: {
-                        en: 'smile',
-                        es: 'sonrisa',
-                    },
-                    keywords: {
-                        en: ['eye', 'face', 'mouth', 'open', 'smile', 'grinning face with smiling eyes'],
-                        es: ['abierta', 'cara', 'ojo', 'sonrisa', 'cara sonriendo con ojos sonrientes'],
-                    },
-                };
+                const smileEmoji = {code: '😄', name: 'smile'};
                 const newEmoji = [smileEmoji];
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
@@ -255,17 +245,7 @@ describe('EmojiTest', () => {
 
         it('should put more frequent and recent used emoji to the front', () => {
             // Given an existing frequently used emojis list
-            const smileEmoji = {
-                code: '😄',
-                name: {
-                    en: 'smile',
-                    es: 'sonrisa',
-                },
-                keywords: {
-                    en: ['eye', 'face', 'mouth', 'open', 'smile', 'grinning face with smiling eyes'],
-                    es: ['abierta', 'cara', 'ojo', 'sonrisa', 'cara sonriendo con ojos sonrientes'],
-                },
-            };
+            const smileEmoji = {code: '😄', name: 'smile'};
             const frequentlyEmojisList = [
                 {
                     code: '😠',
@@ -361,50 +341,10 @@ describe('EmojiTest', () => {
 
         it('make sure the most recent new emoji is added to the list even it is full with count > 1', () => {
             // Given an existing full (24 items) frequently used emojis list
-            const smileEmoji = {
-                code: '😄',
-                name: {
-                    en: 'smile',
-                    es: 'sonrisa',
-                },
-                keywords: {
-                    en: ['eye', 'face', 'mouth', 'open', 'smile', 'grinning face with smiling eyes'],
-                    es: ['abierta', 'cara', 'ojo', 'sonrisa', 'cara sonriendo con ojos sonrientes'],
-                },
-            };
-            const zzzEmoji = {
-                code: '💤',
-                name: {
-                    en: 'zzz',
-                    es: 'zzz',
-                },
-                keywords: {
-                    en: ['comic', 'good night', 'sleep', 'ZZZ'],
-                    es: ['cómic', 'dormir', 'sueño', 'zzz', 'símbolo de sueño'],
-                },
-            };
-            const impEmoji = {
-                code: '👿',
-                name: {
-                    en: 'imp',
-                    es: 'diablillo',
-                },
-                keywords: {
-                    en: ['demon', 'devil', 'face', 'fantasy', 'imp', 'angry face with horns'],
-                    es: ['cara', 'cuernos', 'demonio', 'diablo', 'cara enfadada con cuernos'],
-                },
-            };
-            const bookEmoji = {
-                code: '📚',
-                name: {
-                    en: 'books',
-                    es: 'libros',
-                },
-                keywords: {
-                    en: ['book', 'books'],
-                    es: ['libro', 'libros'],
-                },
-            };
+            const smileEmoji = {code: '😄', name: 'smile'};
+            const zzzEmoji = {code: '💤', name: 'zzz'};
+            const impEmoji = {code: '👿', name: 'imp'};
+            const bookEmoji = {code: '📚', name: 'books'};
             const frequentlyEmojisList = [
                 {
                     code: '😠',

@@ -629,11 +629,10 @@ describe('actions/Report', () => {
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = 1;
         const EMOJI_CODE = '😄';
-        const EMOJI_NAME_EN = 'smile';
-        const EMOJI_NAME_ES = 'sonrisa';
+        const EMOJI_NAME = 'smile';
         const EMOJI = {
             code: EMOJI_CODE,
-            name: EMOJI_NAME_EN,
+            name: EMOJI_NAME,
         };
 
         let reportActions;
