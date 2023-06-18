@@ -10,6 +10,8 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 /**
  * Clears out the task info from the store
@@ -627,6 +629,47 @@ function dismissModalAndClearOutTaskInfo() {
     clearOutTaskInfo();
 }
 
+/**
+ * Returns Task assignee accountID
+ *
+ * @param {Object} taskReport
+ * @returns {Number|null}
+ */
+function getTaskAssigneeAccountID(taskReport) {
+    if (!taskReport) {
+        return null;
+    }
+
+    if (taskReport.managerID) {
+        return taskReport.managerID;
+    }
+
+    const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
+    return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
+}
+
+/**
+ * Returns Task owner accountID
+ *
+ * @param {Object} taskReport
+ * @returns {Number|null}
+ */
+function getTaskOwnerAccountID(taskReport) {
+    return lodashGet(taskReport, 'ownerAccountID', null);
+}
+
+/**
+ * Check if current user is either task assignee or task owner
+ *
+ * @param {Object} taskReport
+ * @param {Number} sessionAccountID
+ * @returns {Boolean}
+ */
+function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
+    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -646,4 +689,6 @@ export {
     cancelTask,
     isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
+    getTaskAssigneeAccountID,
+    isTaskAssigneeOrTaskOwner,
 };
