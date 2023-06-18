@@ -1,7 +1,7 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View, InteractionManager} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {PortalHost} from '@gorhom/portal';
@@ -39,9 +39,6 @@ import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
-import * as Browser from '../../libs/Browser';
-import StatusBar from '../../libs/StatusBar';
-import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -131,7 +128,7 @@ class ReportScreen extends React.Component {
         this.onSubmitComment = this.onSubmitComment.bind(this);
         this.chatWithAccountManager = this.chatWithAccountManager.bind(this);
         this.dismissBanner = this.dismissBanner.bind(this);
-        this.isMobileBrowser = Browser.isMobile();
+
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
@@ -140,10 +137,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidMount() {
-        if (this.isMobileBrowser) {
-            InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(themeColors.appBG));
-        }
-
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
             // we don't need to call openReport

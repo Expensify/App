@@ -1,21 +1,12 @@
-import React, {useEffect} from 'react';
-import {InteractionManager} from 'react-native';
+import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 
 import * as ModalStackNavigators from '../ModalStackNavigators';
 import defaultModalScreenOptions from '../defaultModalScreenOptions';
-import StatusBar from '../../../StatusBar';
-import * as Browser from '../../../Browser';
-import themeColors from '../../../../styles/themes/default';
 
 const Stack = createStackNavigator();
 
 function RigthModalNavigator() {
-    useEffect(() => {
-        if (!Browser.isMobile()) return;
-        InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(themeColors.appBG));
-    }, []);
-
     return (
         <Stack.Navigator>
             <Stack.Screen
@@ -42,11 +33,6 @@ function RigthModalNavigator() {
                 name="Details"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.DetailsModalStackNavigator}
-            />
-            <Stack.Screen
-                name="Profile"
-                options={defaultModalScreenOptions}
-                component={ModalStackNavigators.ProfileModalStackNavigator}
             />
             <Stack.Screen
                 name="Report_Details"
@@ -112,16 +98,6 @@ function RigthModalNavigator() {
                 name="Wallet_Statement"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.WalletStatementStackNavigator}
-            />
-            <Stack.Screen
-                name="Select_Year"
-                options={defaultModalScreenOptions}
-                component={ModalStackNavigators.YearPickerStackNavigator}
-            />
-            <Stack.Screen
-                name="Flag_Comment"
-                options={defaultModalScreenOptions}
-                component={ModalStackNavigators.FlagCommentStackNavigator}
             />
         </Stack.Navigator>
     );
