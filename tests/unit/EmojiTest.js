@@ -132,10 +132,7 @@ describe('EmojiTest', () => {
             {
                 code: '⚰️',
                 name: 'coffin',
-                shortcode: {
-                    en: 'coffin',
-                    es: 'ataúd',
-                },
+                enName: 'coffin',
             },
         ]);
     });
@@ -147,24 +144,40 @@ describe('EmojiTest', () => {
     });
 
     it('correct suggests emojis accounting for keywords', () => {
-        const text = ':thumb';
-        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([
+        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual([
             {
                 code: '👍',
                 name: '+1',
-                shortcode: {
-                    en: '+1',
-                    es: '+1',
-                },
+                enName: '+1',
                 types: ['👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿'],
             },
             {
                 code: '👎',
                 name: '-1',
-                shortcode: {
-                    en: '-1',
-                    es: '-1',
-                },
+                enName: '-1',
+                types: ['👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿'],
+            },
+        ]);
+
+        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual([]);
+
+        expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
+            {
+                code: '🤙',
+                name: 'mano_llámame',
+                enName: 'call_me_hand',
+                types: ['🤙🏻', '🤙🏼', '🤙🏽', '🤙🏾', '🤙🏿'],
+            },
+            {
+                code: '👍',
+                name: '+1',
+                enName: '+1',
+                types: ['👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿'],
+            },
+            {
+                code: '👎',
+                name: '-1',
+                enName: '-1',
                 types: ['👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿'],
             },
         ]);
