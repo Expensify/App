@@ -111,7 +111,7 @@ const emojis = [
     {
         code: '🤣',
         name: {
-            en: 'rolling_on_the_floor_laughing',
+            en: 'rofl',
             es: 'muriéndose_de_risa',
         },
         keywords: {
@@ -188,7 +188,7 @@ const emojis = [
     {
         code: '🥰',
         name: {
-            en: 'smiling_face_with_3_hearts',
+            en: 'smiling_face_with_three_hearts',
             es: 'cara_sonriendo_con_corazones',
         },
         keywords: {
@@ -210,7 +210,7 @@ const emojis = [
     {
         code: '🤩',
         name: {
-            en: 'star-struck',
+            en: 'star_struck',
             es: 'ojos_estrella',
         },
         keywords: {
@@ -353,7 +353,7 @@ const emojis = [
     {
         code: '🤗',
         name: {
-            en: 'hugging_face',
+            en: 'hugs',
             es: 'cara_abrazando',
         },
         keywords: {
@@ -364,7 +364,7 @@ const emojis = [
     {
         code: '🤭',
         name: {
-            en: 'face_with_hand_over_mouth',
+            en: 'hand_over_mouth',
             es: 'cara_con_mano_sobre_boca',
         },
         keywords: {
@@ -386,7 +386,7 @@ const emojis = [
     {
         code: '🤔',
         name: {
-            en: 'thinking_face',
+            en: 'thinking',
             es: 'cara_pensativa',
         },
         keywords: {
@@ -408,7 +408,7 @@ const emojis = [
     {
         code: '🤨',
         name: {
-            en: 'face_with_raised_eyebrow',
+            en: 'raised_eyebrow',
             es: 'cara_con_ceja_levantada',
         },
         keywords: {
@@ -485,7 +485,7 @@ const emojis = [
     {
         code: '🙄',
         name: {
-            en: 'face_with_rolling_eyes',
+            en: 'roll_eyes',
             es: 'cara_con_ojos_en_blanco',
         },
         keywords: {
@@ -628,7 +628,7 @@ const emojis = [
     {
         code: '🤮',
         name: {
-            en: 'face_vomiting',
+            en: 'vomiting_face',
             es: 'cara_vomitando',
         },
         keywords: {
@@ -716,7 +716,7 @@ const emojis = [
     {
         code: '🤠',
         name: {
-            en: 'face_with_cowboy_hat',
+            en: 'cowboy_hat_face',
             es: 'cara_con_sombrero_vaquero',
         },
         keywords: {
@@ -771,7 +771,7 @@ const emojis = [
     {
         code: '🧐',
         name: {
-            en: 'face_with_monocle',
+            en: 'monocle_face',
             es: 'cara_con_monóculo',
         },
         keywords: {
@@ -815,7 +815,7 @@ const emojis = [
     {
         code: '☹️',
         name: {
-            en: 'white_frowning_face',
+            en: 'frowning_face',
             es: 'cara_blanca_ceñuda',
         },
         keywords: {
@@ -1079,7 +1079,7 @@ const emojis = [
     {
         code: '🤬',
         name: {
-            en: 'face_with_symbols_on_mouth',
+            en: 'cursing_face',
             es: 'cara_con_símbolos_en_boca',
         },
         keywords: {
@@ -1211,7 +1211,7 @@ const emojis = [
     {
         code: '🤖',
         name: {
-            en: 'robot_face',
+            en: 'robot',
             es: 'cara_de_robot',
         },
         keywords: {
@@ -1453,7 +1453,7 @@ const emojis = [
     {
         code: '❣️',
         name: {
-            en: 'heavy_heart_exclamation_mark_ornament',
+            en: 'heavy_heart_exclamation',
             es: 'signo_de_exclamación_en_forma_de_corazón_grueso',
         },
         keywords: {
@@ -1695,7 +1695,7 @@ const emojis = [
     {
         code: '👁️‍🗨️',
         name: {
-            en: 'eye-in-speech-bubble',
+            en: 'eye_speech_bubble',
             es: 'ojo-en-globo-de-texto',
         },
         keywords: {
@@ -1798,7 +1798,7 @@ const emojis = [
     {
         code: '🖖',
         name: {
-            en: 'spock-hand',
+            en: 'vulcan_salute',
             es: 'saludo_de_spock',
         },
         keywords: {
@@ -1870,7 +1870,7 @@ const emojis = [
     {
         code: '🤟',
         name: {
-            en: 'i_love_you_hand_sign',
+            en: 'love_you_gesture',
             es: 'te_amo_en_lenguaje_de_señas',
         },
         keywords: {
@@ -1882,7 +1882,7 @@ const emojis = [
     {
         code: '🤘',
         name: {
-            en: 'the_horns',
+            en: 'metal',
             es: 'los_cuernos',
         },
         keywords: {
@@ -2002,7 +2002,7 @@ const emojis = [
     {
         code: '✊',
         name: {
-            en: 'fist',
+            en: 'fist_raised',
             es: 'puño',
         },
         keywords: {
@@ -2014,7 +2014,7 @@ const emojis = [
     {
         code: '👊',
         name: {
-            en: 'facepunch',
+            en: 'fist_oncoming',
             es: 'puñetazo',
         },
         keywords: {
@@ -2026,7 +2026,7 @@ const emojis = [
     {
         code: '🤛',
         name: {
-            en: 'left-facing_fist',
+            en: 'fist_left',
             es: 'puño-hacia-izquierda',
         },
         keywords: {
@@ -2038,7 +2038,7 @@ const emojis = [
     {
         code: '🤜',
         name: {
-            en: 'right-facing_fist',
+            en: 'fist_right',
             es: 'puño_hacia_la_derecha',
         },
         keywords: {
@@ -2437,7 +2437,7 @@ const emojis = [
     {
         code: '👱',
         name: {
-            en: 'person_with_blond_hair',
+            en: 'blond_haired_person',
             es: 'persona_rubia',
         },
         keywords: {
@@ -2473,7 +2473,7 @@ const emojis = [
     {
         code: '🧔‍♂️',
         name: {
-            en: 'man_with_beard',
+            en: 'man_beard',
             es: 'persona_barba',
         },
         keywords: {
@@ -2485,7 +2485,7 @@ const emojis = [
     {
         code: '🧔‍♀️',
         name: {
-            en: 'woman_with_beard',
+            en: 'woman_beard',
             es: 'persona_barba',
         },
         keywords: {
@@ -2569,7 +2569,7 @@ const emojis = [
     {
         code: '🧑‍🦰',
         name: {
-            en: 'red_haired_person',
+            en: 'person_red_hair',
             es: 'persona_pelirroja',
         },
         keywords: {
@@ -2593,7 +2593,7 @@ const emojis = [
     {
         code: '🧑‍🦱',
         name: {
-            en: 'curly_haired_person',
+            en: 'person_curly_hair',
             es: 'persona_con_pelo_rizado',
         },
         keywords: {
@@ -2617,7 +2617,7 @@ const emojis = [
     {
         code: '🧑‍🦳',
         name: {
-            en: 'white_haired_person',
+            en: 'person_white_hair',
             es: 'persona_con_pelo_blanco',
         },
         keywords: {
@@ -2641,7 +2641,7 @@ const emojis = [
     {
         code: '🧑‍🦲',
         name: {
-            en: 'bald_person',
+            en: 'person_bald',
             es: 'persona_calva',
         },
         keywords: {
@@ -2653,7 +2653,7 @@ const emojis = [
     {
         code: '👱‍♀️',
         name: {
-            en: 'blond-haired-woman',
+            en: 'blond_haired_woman',
             es: 'mujer-pelo-rubio',
         },
         keywords: {
@@ -2665,7 +2665,7 @@ const emojis = [
     {
         code: '👱‍♂️',
         name: {
-            en: 'blond-haired-man',
+            en: 'blond_haired_man',
             es: 'hombre-pelo-rubio',
         },
         keywords: {
@@ -2713,7 +2713,7 @@ const emojis = [
     {
         code: '🙍',
         name: {
-            en: 'person_frowning',
+            en: 'frowning_person',
             es: 'persona_con_el_ceño_fruncido',
         },
         keywords: {
@@ -2725,7 +2725,7 @@ const emojis = [
     {
         code: '🙍‍♂️',
         name: {
-            en: 'man-frowning',
+            en: 'frowning_man',
             es: 'hombre_con_ceño_fruncido',
         },
         keywords: {
@@ -2737,7 +2737,7 @@ const emojis = [
     {
         code: '🙍‍♀️',
         name: {
-            en: 'woman-frowning',
+            en: 'frowning_woman',
             es: 'mujer_con_ceño_fruncido',
         },
         keywords: {
@@ -2749,7 +2749,7 @@ const emojis = [
     {
         code: '🙎',
         name: {
-            en: 'person_with_pouting_face',
+            en: 'pouting_face',
             es: 'persona_haciendo_pucheros',
         },
         keywords: {
@@ -2761,7 +2761,7 @@ const emojis = [
     {
         code: '🙎‍♂️',
         name: {
-            en: 'man-pouting',
+            en: 'pouting_man',
             es: 'hombre_enfadado',
         },
         keywords: {
@@ -2773,7 +2773,7 @@ const emojis = [
     {
         code: '🙎‍♀️',
         name: {
-            en: 'woman-pouting',
+            en: 'pouting_woman',
             es: 'mujer_enfadada',
         },
         keywords: {
@@ -2797,7 +2797,7 @@ const emojis = [
     {
         code: '🙅‍♂️',
         name: {
-            en: 'man-gesturing-no',
+            en: 'no_good_man',
             es: 'hombre_gesticulando_no',
         },
         keywords: {
@@ -2809,7 +2809,7 @@ const emojis = [
     {
         code: '🙅‍♀️',
         name: {
-            en: 'woman-gesturing-no',
+            en: 'no_good_woman',
             es: 'mujer_gesticulando_no',
         },
         keywords: {
@@ -2821,7 +2821,7 @@ const emojis = [
     {
         code: '🙆',
         name: {
-            en: 'ok_woman',
+            en: 'ok_person',
             es: 'mujer_con_signo_de_aprobación',
         },
         keywords: {
@@ -2833,7 +2833,7 @@ const emojis = [
     {
         code: '🙆‍♂️',
         name: {
-            en: 'man-gesturing-ok',
+            en: 'ok_man',
             es: 'hombre_gesticulando_sí',
         },
         keywords: {
@@ -2845,7 +2845,7 @@ const emojis = [
     {
         code: '🙆‍♀️',
         name: {
-            en: 'woman-gesturing-ok',
+            en: 'ok_woman',
             es: 'mujer_gesticulando_sí',
         },
         keywords: {
@@ -2857,7 +2857,7 @@ const emojis = [
     {
         code: '💁',
         name: {
-            en: 'information_desk_person',
+            en: 'tipping_hand_person',
             es: 'recepcionista_de_información',
         },
         keywords: {
@@ -2869,7 +2869,7 @@ const emojis = [
     {
         code: '💁‍♂️',
         name: {
-            en: 'man-tipping-hand',
+            en: 'tipping_hand_man',
             es: 'hombre_con_palma_hacia_arriba',
         },
         keywords: {
@@ -2881,7 +2881,7 @@ const emojis = [
     {
         code: '💁‍♀️',
         name: {
-            en: 'woman-tipping-hand',
+            en: 'tipping_hand_woman',
             es: 'mujer_con_palma_hacia_arriba',
         },
         keywords: {
@@ -2905,7 +2905,7 @@ const emojis = [
     {
         code: '🙋‍♂️',
         name: {
-            en: 'man-raising-hand',
+            en: 'raising_hand_man',
             es: 'hombre_levantando_mano',
         },
         keywords: {
@@ -2917,7 +2917,7 @@ const emojis = [
     {
         code: '🙋‍♀️',
         name: {
-            en: 'woman-raising-hand',
+            en: 'raising_hand_woman',
             es: 'mujer_levantando_mano',
         },
         keywords: {
@@ -2977,7 +2977,7 @@ const emojis = [
     {
         code: '🙇‍♂️',
         name: {
-            en: 'man-bowing',
+            en: 'bowing_man',
             es: 'hombre_reverencia',
         },
         keywords: {
@@ -2989,7 +2989,7 @@ const emojis = [
     {
         code: '🙇‍♀️',
         name: {
-            en: 'woman-bowing',
+            en: 'bowing_woman',
             es: 'mujer_reverencia',
         },
         keywords: {
@@ -3001,7 +3001,7 @@ const emojis = [
     {
         code: '🤦',
         name: {
-            en: 'face_palm',
+            en: 'facepalm',
             es: 'mano_en_la_cara',
         },
         keywords: {
@@ -3013,7 +3013,7 @@ const emojis = [
     {
         code: '🤦‍♂️',
         name: {
-            en: 'man-facepalming',
+            en: 'man_facepalming',
             es: 'hombre_mano_en_la_cara',
         },
         keywords: {
@@ -3025,7 +3025,7 @@ const emojis = [
     {
         code: '🤦‍♀️',
         name: {
-            en: 'woman-facepalming',
+            en: 'woman_facepalming',
             es: 'mujer_mano_en_la_cara',
         },
         keywords: {
@@ -3049,7 +3049,7 @@ const emojis = [
     {
         code: '🤷‍♂️',
         name: {
-            en: 'man-shrugging',
+            en: 'man_shrugging',
             es: 'hombre_encogiéndose_de_hombros',
         },
         keywords: {
@@ -3061,7 +3061,7 @@ const emojis = [
     {
         code: '🤷‍♀️',
         name: {
-            en: 'woman-shrugging',
+            en: 'woman_shrugging',
             es: 'mujer_encogiéndose_de_hombros',
         },
         keywords: {
@@ -3085,7 +3085,7 @@ const emojis = [
     {
         code: '👨‍⚕️',
         name: {
-            en: 'male-doctor',
+            en: 'man_health_worker',
             es: 'doctor',
         },
         keywords: {
@@ -3097,7 +3097,7 @@ const emojis = [
     {
         code: '👩‍⚕️',
         name: {
-            en: 'female-doctor',
+            en: 'woman_health_worker',
             es: 'doctora',
         },
         keywords: {
@@ -3121,7 +3121,7 @@ const emojis = [
     {
         code: '👨‍🎓',
         name: {
-            en: 'male-student',
+            en: 'man_student',
             es: 'alumno',
         },
         keywords: {
@@ -3133,7 +3133,7 @@ const emojis = [
     {
         code: '👩‍🎓',
         name: {
-            en: 'female-student',
+            en: 'woman_student',
             es: 'alumna',
         },
         keywords: {
@@ -3157,7 +3157,7 @@ const emojis = [
     {
         code: '👨‍🏫',
         name: {
-            en: 'male-teacher',
+            en: 'man_teacher',
             es: 'profesor',
         },
         keywords: {
@@ -3169,7 +3169,7 @@ const emojis = [
     {
         code: '👩‍🏫',
         name: {
-            en: 'female-teacher',
+            en: 'woman_teacher',
             es: 'profesora',
         },
         keywords: {
@@ -3193,7 +3193,7 @@ const emojis = [
     {
         code: '👨‍⚖️',
         name: {
-            en: 'male-judge',
+            en: 'man_judge',
             es: 'juez',
         },
         keywords: {
@@ -3205,7 +3205,7 @@ const emojis = [
     {
         code: '👩‍⚖️',
         name: {
-            en: 'female-judge',
+            en: 'woman_judge',
             es: 'jueza',
         },
         keywords: {
@@ -3229,7 +3229,7 @@ const emojis = [
     {
         code: '👨‍🌾',
         name: {
-            en: 'male-farmer',
+            en: 'man_farmer',
             es: 'agricultor',
         },
         keywords: {
@@ -3241,7 +3241,7 @@ const emojis = [
     {
         code: '👩‍🌾',
         name: {
-            en: 'female-farmer',
+            en: 'woman_farmer',
             es: 'agricultora',
         },
         keywords: {
@@ -3265,7 +3265,7 @@ const emojis = [
     {
         code: '👨‍🍳',
         name: {
-            en: 'male-cook',
+            en: 'man_cook',
             es: 'cocinero',
         },
         keywords: {
@@ -3277,7 +3277,7 @@ const emojis = [
     {
         code: '👩‍🍳',
         name: {
-            en: 'female-cook',
+            en: 'woman_cook',
             es: 'cocinera',
         },
         keywords: {
@@ -3301,7 +3301,7 @@ const emojis = [
     {
         code: '👨‍🔧',
         name: {
-            en: 'male-mechanic',
+            en: 'man_mechanic',
             es: 'mecánico',
         },
         keywords: {
@@ -3313,7 +3313,7 @@ const emojis = [
     {
         code: '👩‍🔧',
         name: {
-            en: 'female-mechanic',
+            en: 'woman_mechanic',
             es: 'mecánica',
         },
         keywords: {
@@ -3337,7 +3337,7 @@ const emojis = [
     {
         code: '👨‍🏭',
         name: {
-            en: 'male-factory-worker',
+            en: 'man_factory_worker',
             es: 'trabajador',
         },
         keywords: {
@@ -3349,7 +3349,7 @@ const emojis = [
     {
         code: '👩‍🏭',
         name: {
-            en: 'female-factory-worker',
+            en: 'woman_factory_worker',
             es: 'trabajadora',
         },
         keywords: {
@@ -3373,7 +3373,7 @@ const emojis = [
     {
         code: '👨‍💼',
         name: {
-            en: 'male-office-worker',
+            en: 'man_office_worker',
             es: 'oficinista_hombre',
         },
         keywords: {
@@ -3385,7 +3385,7 @@ const emojis = [
     {
         code: '👩‍💼',
         name: {
-            en: 'female-office-worker',
+            en: 'woman_office_worker',
             es: 'oficinista_mujer',
         },
         keywords: {
@@ -3409,7 +3409,7 @@ const emojis = [
     {
         code: '👨‍🔬',
         name: {
-            en: 'male-scientist',
+            en: 'man_scientist',
             es: 'científico',
         },
         keywords: {
@@ -3421,7 +3421,7 @@ const emojis = [
     {
         code: '👩‍🔬',
         name: {
-            en: 'female-scientist',
+            en: 'woman_scientist',
             es: 'científica',
         },
         keywords: {
@@ -3445,7 +3445,7 @@ const emojis = [
     {
         code: '👨‍💻',
         name: {
-            en: 'male-technologist',
+            en: 'man_technologist',
             es: 'tecnólogo',
         },
         keywords: {
@@ -3457,7 +3457,7 @@ const emojis = [
     {
         code: '👩‍💻',
         name: {
-            en: 'female-technologist',
+            en: 'woman_technologist',
             es: 'tecnóloga',
         },
         keywords: {
@@ -3481,7 +3481,7 @@ const emojis = [
     {
         code: '👨‍🎤',
         name: {
-            en: 'male-singer',
+            en: 'man_singer',
             es: 'cantante_hombre',
         },
         keywords: {
@@ -3493,7 +3493,7 @@ const emojis = [
     {
         code: '👩‍🎤',
         name: {
-            en: 'female-singer',
+            en: 'woman_singer',
             es: 'cantante_mujer',
         },
         keywords: {
@@ -3517,7 +3517,7 @@ const emojis = [
     {
         code: '👨‍🎨',
         name: {
-            en: 'male-artist',
+            en: 'man_artist',
             es: 'artista_hombre',
         },
         keywords: {
@@ -3529,7 +3529,7 @@ const emojis = [
     {
         code: '👩‍🎨',
         name: {
-            en: 'female-artist',
+            en: 'woman_artist',
             es: 'artista_mujer',
         },
         keywords: {
@@ -3553,7 +3553,7 @@ const emojis = [
     {
         code: '👨‍✈️',
         name: {
-            en: 'male-pilot',
+            en: 'man_pilot',
             es: 'piloto_hombre',
         },
         keywords: {
@@ -3565,7 +3565,7 @@ const emojis = [
     {
         code: '👩‍✈️',
         name: {
-            en: 'female-pilot',
+            en: 'woman_pilot',
             es: 'piloto_mujer',
         },
         keywords: {
@@ -3589,7 +3589,7 @@ const emojis = [
     {
         code: '👨‍🚀',
         name: {
-            en: 'male-astronaut',
+            en: 'man_astronaut',
             es: 'astronauta_hombre',
         },
         keywords: {
@@ -3601,7 +3601,7 @@ const emojis = [
     {
         code: '👩‍🚀',
         name: {
-            en: 'female-astronaut',
+            en: 'woman_astronaut',
             es: 'astronauta_mujer',
         },
         keywords: {
@@ -3625,7 +3625,7 @@ const emojis = [
     {
         code: '👨‍🚒',
         name: {
-            en: 'male-firefighter',
+            en: 'man_firefighter',
             es: 'bombero',
         },
         keywords: {
@@ -3637,7 +3637,7 @@ const emojis = [
     {
         code: '👩‍🚒',
         name: {
-            en: 'female-firefighter',
+            en: 'woman_firefighter',
             es: 'bombera',
         },
         keywords: {
@@ -3649,7 +3649,7 @@ const emojis = [
     {
         code: '👮',
         name: {
-            en: 'cop',
+            en: 'police_officer',
             es: 'policía',
         },
         keywords: {
@@ -3661,7 +3661,7 @@ const emojis = [
     {
         code: '👮‍♂️',
         name: {
-            en: 'male-police-officer',
+            en: 'policeman',
             es: 'policía_hombre',
         },
         keywords: {
@@ -3673,7 +3673,7 @@ const emojis = [
     {
         code: '👮‍♀️',
         name: {
-            en: 'female-police-officer',
+            en: 'policewoman',
             es: 'policía_mujer',
         },
         keywords: {
@@ -3685,7 +3685,7 @@ const emojis = [
     {
         code: '🕵️',
         name: {
-            en: 'sleuth_or_spy',
+            en: 'detective',
             es: 'sabueso_o_espía',
         },
         keywords: {
@@ -3697,7 +3697,7 @@ const emojis = [
     {
         code: '🕵️‍♂️',
         name: {
-            en: 'male-detective',
+            en: 'male_detective',
             es: 'detective_hombre',
         },
         keywords: {
@@ -3709,7 +3709,7 @@ const emojis = [
     {
         code: '🕵️‍♀️',
         name: {
-            en: 'female-detective',
+            en: 'female_detective',
             es: 'detective_mujer',
         },
         keywords: {
@@ -3721,7 +3721,7 @@ const emojis = [
     {
         code: '💂',
         name: {
-            en: 'guardsman',
+            en: 'guard',
             es: 'guardia',
         },
         keywords: {
@@ -3733,7 +3733,7 @@ const emojis = [
     {
         code: '💂‍♂️',
         name: {
-            en: 'male-guard',
+            en: 'guardsman',
             es: 'guardia_hombre',
         },
         keywords: {
@@ -3745,7 +3745,7 @@ const emojis = [
     {
         code: '💂‍♀️',
         name: {
-            en: 'female-guard',
+            en: 'guardswoman',
             es: 'guardia_mujer',
         },
         keywords: {
@@ -3781,7 +3781,7 @@ const emojis = [
     {
         code: '👷‍♂️',
         name: {
-            en: 'male-construction-worker',
+            en: 'construction_worker_man',
             es: 'obrero',
         },
         keywords: {
@@ -3793,7 +3793,7 @@ const emojis = [
     {
         code: '👷‍♀️',
         name: {
-            en: 'female-construction-worker',
+            en: 'construction_worker_woman',
             es: 'obrera',
         },
         keywords: {
@@ -3829,7 +3829,7 @@ const emojis = [
     {
         code: '👳',
         name: {
-            en: 'man_with_turban',
+            en: 'person_with_turban',
             es: 'hombre_con_turbante',
         },
         keywords: {
@@ -3841,7 +3841,7 @@ const emojis = [
     {
         code: '👳‍♂️',
         name: {
-            en: 'man-wearing-turban',
+            en: 'man_with_turban',
             es: 'hombre_que_lleva_turbante',
         },
         keywords: {
@@ -3853,7 +3853,7 @@ const emojis = [
     {
         code: '👳‍♀️',
         name: {
-            en: 'woman-wearing-turban',
+            en: 'woman_with_turban',
             es: 'mujer_que_lleva_turbante',
         },
         keywords: {
@@ -3877,7 +3877,7 @@ const emojis = [
     {
         code: '🧕',
         name: {
-            en: 'person_with_headscarf',
+            en: 'woman_with_headscarf',
             es: 'persona_con_velo',
         },
         keywords: {
@@ -3925,7 +3925,7 @@ const emojis = [
     {
         code: '👰',
         name: {
-            en: 'bride_with_veil',
+            en: 'person_with_veil',
             es: 'novia_con_velo',
         },
         keywords: {
@@ -3973,7 +3973,7 @@ const emojis = [
     {
         code: '🤱',
         name: {
-            en: 'breast-feeding',
+            en: 'breast_feeding',
             es: 'amamantar',
         },
         keywords: {
@@ -4080,7 +4080,7 @@ const emojis = [
     {
         code: '🦸‍♂️',
         name: {
-            en: 'male_superhero',
+            en: 'superhero_man',
             es: 'superhéroe',
         },
         keywords: {
@@ -4092,7 +4092,7 @@ const emojis = [
     {
         code: '🦸‍♀️',
         name: {
-            en: 'female_superhero',
+            en: 'superhero_woman',
             es: 'superheroína',
         },
         keywords: {
@@ -4116,7 +4116,7 @@ const emojis = [
     {
         code: '🦹‍♂️',
         name: {
-            en: 'male_supervillain',
+            en: 'supervillain_man',
             es: 'supervillano',
         },
         keywords: {
@@ -4128,7 +4128,7 @@ const emojis = [
     {
         code: '🦹‍♀️',
         name: {
-            en: 'female_supervillain',
+            en: 'supervillain_woman',
             es: 'supervillana',
         },
         keywords: {
@@ -4152,7 +4152,7 @@ const emojis = [
     {
         code: '🧙‍♂️',
         name: {
-            en: 'male_mage',
+            en: 'mage_man',
             es: 'mago',
         },
         keywords: {
@@ -4164,7 +4164,7 @@ const emojis = [
     {
         code: '🧙‍♀️',
         name: {
-            en: 'female_mage',
+            en: 'mage_woman',
             es: 'maga',
         },
         keywords: {
@@ -4188,7 +4188,7 @@ const emojis = [
     {
         code: '🧚‍♂️',
         name: {
-            en: 'male_fairy',
+            en: 'fairy_man',
             es: 'hada_macho',
         },
         keywords: {
@@ -4200,7 +4200,7 @@ const emojis = [
     {
         code: '🧚‍♀️',
         name: {
-            en: 'female_fairy',
+            en: 'fairy_woman',
             es: 'hada_hembra',
         },
         keywords: {
@@ -4224,7 +4224,7 @@ const emojis = [
     {
         code: '🧛‍♂️',
         name: {
-            en: 'male_vampire',
+            en: 'vampire_man',
             es: 'vampiro_macho',
         },
         keywords: {
@@ -4236,7 +4236,7 @@ const emojis = [
     {
         code: '🧛‍♀️',
         name: {
-            en: 'female_vampire',
+            en: 'vampire_woman',
             es: 'vampira',
         },
         keywords: {
@@ -4296,7 +4296,7 @@ const emojis = [
     {
         code: '🧝‍♂️',
         name: {
-            en: 'male_elf',
+            en: 'elf_man',
             es: 'elfo_macho',
         },
         keywords: {
@@ -4308,7 +4308,7 @@ const emojis = [
     {
         code: '🧝‍♀️',
         name: {
-            en: 'female_elf',
+            en: 'elf_woman',
             es: 'elfa',
         },
         keywords: {
@@ -4331,7 +4331,7 @@ const emojis = [
     {
         code: '🧞‍♂️',
         name: {
-            en: 'male_genie',
+            en: 'genie_man',
             es: 'genio_de_la_lámpara',
         },
         keywords: {
@@ -4342,7 +4342,7 @@ const emojis = [
     {
         code: '🧞‍♀️',
         name: {
-            en: 'female_genie',
+            en: 'genie_woman',
             es: 'genia_de_la_lámpara',
         },
         keywords: {
@@ -4364,7 +4364,7 @@ const emojis = [
     {
         code: '🧟‍♂️',
         name: {
-            en: 'male_zombie',
+            en: 'zombie_man',
             es: 'zombi_macho',
         },
         keywords: {
@@ -4375,7 +4375,7 @@ const emojis = [
     {
         code: '🧟‍♀️',
         name: {
-            en: 'female_zombie',
+            en: 'zombie_woman',
             es: 'zombi_hembra',
         },
         keywords: {
@@ -4398,7 +4398,7 @@ const emojis = [
     {
         code: '💆‍♂️',
         name: {
-            en: 'man-getting-massage',
+            en: 'massage_man',
             es: 'hombre_dándose_un_masaje',
         },
         keywords: {
@@ -4410,7 +4410,7 @@ const emojis = [
     {
         code: '💆‍♀️',
         name: {
-            en: 'woman-getting-massage',
+            en: 'massage_woman',
             es: 'mujer_dándose_un_masaje',
         },
         keywords: {
@@ -4434,7 +4434,7 @@ const emojis = [
     {
         code: '💇‍♂️',
         name: {
-            en: 'man-getting-haircut',
+            en: 'haircut_man',
             es: 'hombre_cortándose_el_pelo',
         },
         keywords: {
@@ -4446,7 +4446,7 @@ const emojis = [
     {
         code: '💇‍♀️',
         name: {
-            en: 'woman-getting-haircut',
+            en: 'haircut_woman',
             es: 'mujer_cortándose_el_pelo',
         },
         keywords: {
@@ -4470,7 +4470,7 @@ const emojis = [
     {
         code: '🚶‍♂️',
         name: {
-            en: 'man-walking',
+            en: 'walking_man',
             es: 'hombre_caminando',
         },
         keywords: {
@@ -4482,7 +4482,7 @@ const emojis = [
     {
         code: '🚶‍♀️',
         name: {
-            en: 'woman-walking',
+            en: 'walking_woman',
             es: 'mujer_caminando',
         },
         keywords: {
@@ -4506,7 +4506,7 @@ const emojis = [
     {
         code: '🧍‍♂️',
         name: {
-            en: 'man_standing',
+            en: 'standing_man',
             es: 'hombre_de_pie',
         },
         keywords: {
@@ -4518,7 +4518,7 @@ const emojis = [
     {
         code: '🧍‍♀️',
         name: {
-            en: 'woman_standing',
+            en: 'standing_woman',
             es: 'mujer_de_pie',
         },
         keywords: {
@@ -4542,7 +4542,7 @@ const emojis = [
     {
         code: '🧎‍♂️',
         name: {
-            en: 'man_kneeling',
+            en: 'kneeling_man',
             es: 'hombre_de_rodillas',
         },
         keywords: {
@@ -4554,7 +4554,7 @@ const emojis = [
     {
         code: '🧎‍♀️',
         name: {
-            en: 'woman_kneeling',
+            en: 'kneeling_woman',
             es: 'mujer_de_rodillas',
         },
         keywords: {
@@ -4686,7 +4686,7 @@ const emojis = [
     {
         code: '🏃‍♂️',
         name: {
-            en: 'man-running',
+            en: 'running_man',
             es: 'hombre_corriendo',
         },
         keywords: {
@@ -4698,7 +4698,7 @@ const emojis = [
     {
         code: '🏃‍♀️',
         name: {
-            en: 'woman-running',
+            en: 'running_woman',
             es: 'mujer_corriendo',
         },
         keywords: {
@@ -4710,7 +4710,7 @@ const emojis = [
     {
         code: '💃',
         name: {
-            en: 'dancer',
+            en: 'woman_dancing',
             es: 'bailarín',
         },
         keywords: {
@@ -4734,7 +4734,7 @@ const emojis = [
     {
         code: '🕴️',
         name: {
-            en: 'man_in_business_suit_levitating',
+            en: 'business_suit_levitating',
             es: 'hombre_de_negocios_levitando',
         },
         keywords: {
@@ -4757,7 +4757,7 @@ const emojis = [
     {
         code: '👯‍♂️',
         name: {
-            en: 'man-with-bunny-ears-partying',
+            en: 'dancing_men',
             es: 'hombre_con_orejas_de_conejo',
         },
         keywords: {
@@ -4768,7 +4768,7 @@ const emojis = [
     {
         code: '👯‍♀️',
         name: {
-            en: 'woman-with-bunny-ears-partying',
+            en: 'dancing_women',
             es: 'mujer_con_orejas_de_conejo',
         },
         keywords: {
@@ -4779,7 +4779,7 @@ const emojis = [
     {
         code: '🧖',
         name: {
-            en: 'person_in_steamy_room',
+            en: 'sauna_person',
             es: 'persona_en_sauna',
         },
         keywords: {
@@ -4791,7 +4791,7 @@ const emojis = [
     {
         code: '🧖‍♂️',
         name: {
-            en: 'man_in_steamy_room',
+            en: 'sauna_man',
             es: 'hombre_en_sauna',
         },
         keywords: {
@@ -4803,7 +4803,7 @@ const emojis = [
     {
         code: '🧖‍♀️',
         name: {
-            en: 'woman_in_steamy_room',
+            en: 'sauna_woman',
             es: 'mujer_en_sauna',
         },
         keywords: {
@@ -4815,7 +4815,7 @@ const emojis = [
     {
         code: '🧗',
         name: {
-            en: 'person_climbing',
+            en: 'climbing',
             es: 'persona_escalando',
         },
         keywords: {
@@ -4827,7 +4827,7 @@ const emojis = [
     {
         code: '🧗‍♂️',
         name: {
-            en: 'man_climbing',
+            en: 'climbing_man',
             es: 'hombre_escalando',
         },
         keywords: {
@@ -4839,7 +4839,7 @@ const emojis = [
     {
         code: '🧗‍♀️',
         name: {
-            en: 'woman_climbing',
+            en: 'climbing_woman',
             es: 'mujer_escalando',
         },
         keywords: {
@@ -4851,7 +4851,7 @@ const emojis = [
     {
         code: '🤺',
         name: {
-            en: 'fencer',
+            en: 'person_fencing',
             es: 'esgrimista',
         },
         keywords: {
@@ -4897,7 +4897,7 @@ const emojis = [
     {
         code: '🏌️',
         name: {
-            en: 'golfer',
+            en: 'golfing',
             es: 'golfista',
         },
         keywords: {
@@ -4909,7 +4909,7 @@ const emojis = [
     {
         code: '🏌️‍♂️',
         name: {
-            en: 'man-golfing',
+            en: 'golfing_man',
             es: 'hombre_jugando_golf',
         },
         keywords: {
@@ -4921,7 +4921,7 @@ const emojis = [
     {
         code: '🏌️‍♀️',
         name: {
-            en: 'woman-golfing',
+            en: 'golfing_woman',
             es: 'mujer_jugando_golf',
         },
         keywords: {
@@ -4945,7 +4945,7 @@ const emojis = [
     {
         code: '🏄‍♂️',
         name: {
-            en: 'man-surfing',
+            en: 'surfing_man',
             es: 'hombre_surfeando',
         },
         keywords: {
@@ -4957,7 +4957,7 @@ const emojis = [
     {
         code: '🏄‍♀️',
         name: {
-            en: 'woman-surfing',
+            en: 'surfing_woman',
             es: 'mujer_haciendo_surf',
         },
         keywords: {
@@ -4981,7 +4981,7 @@ const emojis = [
     {
         code: '🚣‍♂️',
         name: {
-            en: 'man-rowing-boat',
+            en: 'rowing_man',
             es: 'hombre_remando_barca',
         },
         keywords: {
@@ -4993,7 +4993,7 @@ const emojis = [
     {
         code: '🚣‍♀️',
         name: {
-            en: 'woman-rowing-boat',
+            en: 'rowing_woman',
             es: 'mujer_remando_barca',
         },
         keywords: {
@@ -5017,7 +5017,7 @@ const emojis = [
     {
         code: '🏊‍♂️',
         name: {
-            en: 'man-swimming',
+            en: 'swimming_man',
             es: 'hombre_nadando',
         },
         keywords: {
@@ -5029,7 +5029,7 @@ const emojis = [
     {
         code: '🏊‍♀️',
         name: {
-            en: 'woman-swimming',
+            en: 'swimming_woman',
             es: 'mujer_nadando',
         },
         keywords: {
@@ -5041,7 +5041,7 @@ const emojis = [
     {
         code: '⛹️',
         name: {
-            en: 'person_with_ball',
+            en: 'bouncing_ball_person',
             es: 'persona_con_una_pelota',
         },
         keywords: {
@@ -5053,7 +5053,7 @@ const emojis = [
     {
         code: '⛹️‍♂️',
         name: {
-            en: 'man-bouncing-ball',
+            en: 'bouncing_ball_man',
             es: 'hombre_botando_balón',
         },
         keywords: {
@@ -5065,7 +5065,7 @@ const emojis = [
     {
         code: '⛹️‍♀️',
         name: {
-            en: 'woman-bouncing-ball',
+            en: 'bouncing_ball_woman',
             es: 'mujer_botando_balón',
         },
         keywords: {
@@ -5077,7 +5077,7 @@ const emojis = [
     {
         code: '🏋️',
         name: {
-            en: 'weight_lifter',
+            en: 'weight_lifting',
             es: 'levantador_de_peso',
         },
         keywords: {
@@ -5089,7 +5089,7 @@ const emojis = [
     {
         code: '🏋️‍♂️',
         name: {
-            en: 'man-lifting-weights',
+            en: 'weight_lifting_man',
             es: 'hombre_levantando_pesas',
         },
         keywords: {
@@ -5101,7 +5101,7 @@ const emojis = [
     {
         code: '🏋️‍♀️',
         name: {
-            en: 'woman-lifting-weights',
+            en: 'weight_lifting_woman',
             es: 'mujer_levantando_pesas',
         },
         keywords: {
@@ -5125,7 +5125,7 @@ const emojis = [
     {
         code: '🚴‍♂️',
         name: {
-            en: 'man-biking',
+            en: 'biking_man',
             es: 'hombre_en_bici',
         },
         keywords: {
@@ -5137,7 +5137,7 @@ const emojis = [
     {
         code: '🚴‍♀️',
         name: {
-            en: 'woman-biking',
+            en: 'biking_woman',
             es: 'mujer_en_bici',
         },
         keywords: {
@@ -5161,7 +5161,7 @@ const emojis = [
     {
         code: '🚵‍♂️',
         name: {
-            en: 'man-mountain-biking',
+            en: 'mountain_biking_man',
             es: 'hombre_bici_montaña',
         },
         keywords: {
@@ -5173,7 +5173,7 @@ const emojis = [
     {
         code: '🚵‍♀️',
         name: {
-            en: 'woman-mountain-biking',
+            en: 'mountain_biking_woman',
             es: 'mujer_bici_montaña',
         },
         keywords: {
@@ -5185,7 +5185,7 @@ const emojis = [
     {
         code: '🤸',
         name: {
-            en: 'person_doing_cartwheel',
+            en: 'cartwheeling',
             es: 'persona_dando_volteretas',
         },
         keywords: {
@@ -5197,7 +5197,7 @@ const emojis = [
     {
         code: '🤸‍♂️',
         name: {
-            en: 'man-cartwheeling',
+            en: 'man_cartwheeling',
             es: 'hombre_dando_volteretas',
         },
         keywords: {
@@ -5209,7 +5209,7 @@ const emojis = [
     {
         code: '🤸‍♀️',
         name: {
-            en: 'woman-cartwheeling',
+            en: 'woman_cartwheeling',
             es: 'mujer_dando_volteretas',
         },
         keywords: {
@@ -5221,7 +5221,7 @@ const emojis = [
     {
         code: '🤼',
         name: {
-            en: 'wrestlers',
+            en: 'wrestling',
             es: 'luchadores',
         },
         keywords: {
@@ -5232,7 +5232,7 @@ const emojis = [
     {
         code: '🤼‍♂️',
         name: {
-            en: 'man-wrestling',
+            en: 'men_wrestling',
             es: 'hombre_lucha_libre',
         },
         keywords: {
@@ -5243,7 +5243,7 @@ const emojis = [
     {
         code: '🤼‍♀️',
         name: {
-            en: 'woman-wrestling',
+            en: 'women_wrestling',
             es: 'mujer_lucha_libre',
         },
         keywords: {
@@ -5266,7 +5266,7 @@ const emojis = [
     {
         code: '🤽‍♂️',
         name: {
-            en: 'man-playing-water-polo',
+            en: 'man_playing_water_polo',
             es: 'hombre_jugando_waterpolo',
         },
         keywords: {
@@ -5278,7 +5278,7 @@ const emojis = [
     {
         code: '🤽‍♀️',
         name: {
-            en: 'woman-playing-water-polo',
+            en: 'woman_playing_water_polo',
             es: 'mujer_jugando_waterpolo',
         },
         keywords: {
@@ -5290,7 +5290,7 @@ const emojis = [
     {
         code: '🤾',
         name: {
-            en: 'handball',
+            en: 'handball_person',
             es: 'balonmano',
         },
         keywords: {
@@ -5302,7 +5302,7 @@ const emojis = [
     {
         code: '🤾‍♂️',
         name: {
-            en: 'man-playing-handball',
+            en: 'man_playing_handball',
             es: 'hombre_jugando_balonmano',
         },
         keywords: {
@@ -5314,7 +5314,7 @@ const emojis = [
     {
         code: '🤾‍♀️',
         name: {
-            en: 'woman-playing-handball',
+            en: 'woman_playing_handball',
             es: 'mujer_jugando_balonmano',
         },
         keywords: {
@@ -5326,7 +5326,7 @@ const emojis = [
     {
         code: '🤹',
         name: {
-            en: 'juggling',
+            en: 'juggling_person',
             es: 'malabarismo',
         },
         keywords: {
@@ -5338,7 +5338,7 @@ const emojis = [
     {
         code: '🤹‍♂️',
         name: {
-            en: 'man-juggling',
+            en: 'man_juggling',
             es: 'malabarista_hombre',
         },
         keywords: {
@@ -5350,7 +5350,7 @@ const emojis = [
     {
         code: '🤹‍♀️',
         name: {
-            en: 'woman-juggling',
+            en: 'woman_juggling',
             es: 'malabarista_mujer',
         },
         keywords: {
@@ -5362,7 +5362,7 @@ const emojis = [
     {
         code: '🧘',
         name: {
-            en: 'person_in_lotus_position',
+            en: 'lotus_position',
             es: 'persona_en_postura_loto',
         },
         keywords: {
@@ -5374,7 +5374,7 @@ const emojis = [
     {
         code: '🧘‍♂️',
         name: {
-            en: 'man_in_lotus_position',
+            en: 'lotus_position_man',
             es: 'hombre_en_postura_loto',
         },
         keywords: {
@@ -5386,7 +5386,7 @@ const emojis = [
     {
         code: '🧘‍♀️',
         name: {
-            en: 'woman_in_lotus_position',
+            en: 'lotus_position_woman',
             es: 'mujer_en_postura_loto',
         },
         keywords: {
@@ -5410,7 +5410,7 @@ const emojis = [
     {
         code: '🛌',
         name: {
-            en: 'sleeping_accommodation',
+            en: 'sleeping_bed',
             es: 'lugar_para_dormir',
         },
         keywords: {
@@ -5446,7 +5446,7 @@ const emojis = [
     {
         code: '👫',
         name: {
-            en: 'man_and_woman_holding_hands',
+            en: 'couple',
             es: 'hombre_y_mujer_de_la_mano',
         },
         keywords: {
@@ -5482,7 +5482,7 @@ const emojis = [
     {
         code: '👩‍❤️‍💋‍👨',
         name: {
-            en: 'woman-kiss-man',
+            en: 'couplekiss_man_woman',
             es: 'mujer_beso_hombre',
         },
         keywords: {
@@ -5494,7 +5494,7 @@ const emojis = [
     {
         code: '👨‍❤️‍💋‍👨',
         name: {
-            en: 'man-kiss-man',
+            en: 'couplekiss_man_man',
             es: 'hombre_beso_hombre',
         },
         keywords: {
@@ -5506,7 +5506,7 @@ const emojis = [
     {
         code: '👩‍❤️‍💋‍👩',
         name: {
-            en: 'woman-kiss-woman',
+            en: 'couplekiss_woman_woman',
             es: 'mujer_beso_mujer',
         },
         keywords: {
@@ -5530,7 +5530,7 @@ const emojis = [
     {
         code: '👩‍❤️‍👨',
         name: {
-            en: 'woman-heart-man',
+            en: 'couple_with_heart_woman_man',
             es: 'mujer_corazón_hombre',
         },
         keywords: {
@@ -5542,7 +5542,7 @@ const emojis = [
     {
         code: '👨‍❤️‍👨',
         name: {
-            en: 'man-heart-man',
+            en: 'couple_with_heart_man_man',
             es: 'hombre_corazón_hombre',
         },
         keywords: {
@@ -5554,7 +5554,7 @@ const emojis = [
     {
         code: '👩‍❤️‍👩',
         name: {
-            en: 'woman-heart-woman',
+            en: 'couple_with_heart_woman_woman',
             es: 'mujer_corazón_mujer',
         },
         keywords: {
@@ -5577,7 +5577,7 @@ const emojis = [
     {
         code: '👨‍👩‍👦',
         name: {
-            en: 'man-woman-boy',
+            en: 'family_man_woman_boy',
             es: 'hombre_mujer_niño',
         },
         keywords: {
@@ -5588,7 +5588,7 @@ const emojis = [
     {
         code: '👨‍👩‍👧',
         name: {
-            en: 'man-woman-girl',
+            en: 'family_man_woman_girl',
             es: 'hombre_mujer_niña',
         },
         keywords: {
@@ -5599,7 +5599,7 @@ const emojis = [
     {
         code: '👨‍👩‍👧‍👦',
         name: {
-            en: 'man-woman-girl-boy',
+            en: 'family_man_woman_girl_boy',
             es: 'hombre_mujer_niña_niño',
         },
         keywords: {
@@ -5610,7 +5610,7 @@ const emojis = [
     {
         code: '👨‍👩‍👦‍👦',
         name: {
-            en: 'man-woman-boy-boy',
+            en: 'family_man_woman_boy_boy',
             es: 'hombre_mujer_niño_niño',
         },
         keywords: {
@@ -5621,7 +5621,7 @@ const emojis = [
     {
         code: '👨‍👩‍👧‍👧',
         name: {
-            en: 'man-woman-girl-girl',
+            en: 'family_man_woman_girl_girl',
             es: 'hombre_mujer_niña_niña',
         },
         keywords: {
@@ -5632,7 +5632,7 @@ const emojis = [
     {
         code: '👨‍👨‍👦',
         name: {
-            en: 'man-man-boy',
+            en: 'family_man_man_boy',
             es: 'hombre_hombre_niño',
         },
         keywords: {
@@ -5643,7 +5643,7 @@ const emojis = [
     {
         code: '👨‍👨‍👧',
         name: {
-            en: 'man-man-girl',
+            en: 'family_man_man_girl',
             es: 'hombre_hombre_niña',
         },
         keywords: {
@@ -5654,7 +5654,7 @@ const emojis = [
     {
         code: '👨‍👨‍👧‍👦',
         name: {
-            en: 'man-man-girl-boy',
+            en: 'family_man_man_girl_boy',
             es: 'hombre_hombre_niña_niño',
         },
         keywords: {
@@ -5665,7 +5665,7 @@ const emojis = [
     {
         code: '👨‍👨‍👦‍👦',
         name: {
-            en: 'man-man-boy-boy',
+            en: 'family_man_man_boy_boy',
             es: 'hombre_hombre_niño_niño',
         },
         keywords: {
@@ -5676,7 +5676,7 @@ const emojis = [
     {
         code: '👨‍👨‍👧‍👧',
         name: {
-            en: 'man-man-girl-girl',
+            en: 'family_man_man_girl_girl',
             es: 'hombre_hombre_niña_niña',
         },
         keywords: {
@@ -5687,7 +5687,7 @@ const emojis = [
     {
         code: '👩‍👩‍👦',
         name: {
-            en: 'woman-woman-boy',
+            en: 'family_woman_woman_boy',
             es: 'mujer_mujer_niño',
         },
         keywords: {
@@ -5698,7 +5698,7 @@ const emojis = [
     {
         code: '👩‍👩‍👧',
         name: {
-            en: 'woman-woman-girl',
+            en: 'family_woman_woman_girl',
             es: 'mujer_mujer_niña',
         },
         keywords: {
@@ -5709,7 +5709,7 @@ const emojis = [
     {
         code: '👩‍👩‍👧‍👦',
         name: {
-            en: 'woman-woman-girl-boy',
+            en: 'family_woman_woman_girl_boy',
             es: 'mujer_mujer_niña_niño',
         },
         keywords: {
@@ -5720,7 +5720,7 @@ const emojis = [
     {
         code: '👩‍👩‍👦‍👦',
         name: {
-            en: 'woman-woman-boy-boy',
+            en: 'family_woman_woman_boy_boy',
             es: 'mujer_mujer_niño_niño',
         },
         keywords: {
@@ -5731,7 +5731,7 @@ const emojis = [
     {
         code: '👩‍👩‍👧‍👧',
         name: {
-            en: 'woman-woman-girl-girl',
+            en: 'family_woman_woman_girl_girl',
             es: 'mujer_mujer_niña_niña',
         },
         keywords: {
@@ -5742,7 +5742,7 @@ const emojis = [
     {
         code: '👨‍👦',
         name: {
-            en: 'man-boy',
+            en: 'family_man_boy',
             es: 'hombre_niño',
         },
         keywords: {
@@ -5753,7 +5753,7 @@ const emojis = [
     {
         code: '👨‍👦‍👦',
         name: {
-            en: 'man-boy-boy',
+            en: 'family_man_boy_boy',
             es: 'hombre_niño_niño',
         },
         keywords: {
@@ -5764,7 +5764,7 @@ const emojis = [
     {
         code: '👨‍👧',
         name: {
-            en: 'man-girl',
+            en: 'family_man_girl',
             es: 'hombre_niña',
         },
         keywords: {
@@ -5775,7 +5775,7 @@ const emojis = [
     {
         code: '👨‍👧‍👦',
         name: {
-            en: 'man-girl-boy',
+            en: 'family_man_girl_boy',
             es: 'hombre_niño_niña',
         },
         keywords: {
@@ -5786,7 +5786,7 @@ const emojis = [
     {
         code: '👨‍👧‍👧',
         name: {
-            en: 'man-girl-girl',
+            en: 'family_man_girl_girl',
             es: 'hombre_niña_niña',
         },
         keywords: {
@@ -5797,7 +5797,7 @@ const emojis = [
     {
         code: '👩‍👦',
         name: {
-            en: 'woman-boy',
+            en: 'family_woman_boy',
             es: 'mujer_niño',
         },
         keywords: {
@@ -5808,7 +5808,7 @@ const emojis = [
     {
         code: '👩‍👦‍👦',
         name: {
-            en: 'woman-boy-boy',
+            en: 'family_woman_boy_boy',
             es: 'mujer_niño_niño',
         },
         keywords: {
@@ -5819,7 +5819,7 @@ const emojis = [
     {
         code: '👩‍👧',
         name: {
-            en: 'woman-girl',
+            en: 'family_woman_girl',
             es: 'mujer_niña',
         },
         keywords: {
@@ -5830,7 +5830,7 @@ const emojis = [
     {
         code: '👩‍👧‍👦',
         name: {
-            en: 'woman-girl-boy',
+            en: 'family_woman_girl_boy',
             es: 'mujer_niña_niño',
         },
         keywords: {
@@ -5841,7 +5841,7 @@ const emojis = [
     {
         code: '👩‍👧‍👧',
         name: {
-            en: 'woman-girl-girl',
+            en: 'family_woman_girl_girl',
             es: 'mujer_niña_niña',
         },
         keywords: {
@@ -5852,7 +5852,7 @@ const emojis = [
     {
         code: '🗣️',
         name: {
-            en: 'speaking_head_in_silhouette',
+            en: 'speaking_head',
             es: 'silueta_de_cabeza_parlante',
         },
         keywords: {
@@ -6077,7 +6077,7 @@ const emojis = [
     {
         code: '🦁',
         name: {
-            en: 'lion_face',
+            en: 'lion',
             es: 'cara_de_león',
         },
         keywords: {
@@ -6143,7 +6143,7 @@ const emojis = [
     {
         code: '🦄',
         name: {
-            en: 'unicorn_face',
+            en: 'unicorn',
             es: 'cara_de_unicornio',
         },
         keywords: {
@@ -6154,7 +6154,7 @@ const emojis = [
     {
         code: '🦓',
         name: {
-            en: 'zebra_face',
+            en: 'zebra',
             es: 'cara_zebra',
         },
         keywords: {
@@ -6341,7 +6341,7 @@ const emojis = [
     {
         code: '🦒',
         name: {
-            en: 'giraffe_face',
+            en: 'giraffe',
             es: 'cara_jirafa',
         },
         keywords: {
@@ -6704,7 +6704,7 @@ const emojis = [
     {
         code: '🕊️',
         name: {
-            en: 'dove_of_peace',
+            en: 'dove',
             es: 'paloma_de_la_paz',
         },
         keywords: {
@@ -7089,7 +7089,7 @@ const emojis = [
     {
         code: '🐞',
         name: {
-            en: 'ladybug',
+            en: 'lady_beetle',
             es: 'mariquita',
         },
         keywords: {
@@ -7633,7 +7633,7 @@ const emojis = [
     {
         code: '🥝',
         name: {
-            en: 'kiwifruit',
+            en: 'kiwi_fruit',
             es: 'kiwi',
         },
         keywords: {
@@ -7919,7 +7919,7 @@ const emojis = [
     {
         code: '🧀',
         name: {
-            en: 'cheese_wedge',
+            en: 'cheese',
             es: 'cuña_de_queso',
         },
         keywords: {
@@ -8612,7 +8612,7 @@ const emojis = [
     {
         code: '🥛',
         name: {
-            en: 'glass_of_milk',
+            en: 'milk_glass',
             es: 'vaso_de_leche',
         },
         keywords: {
@@ -8788,7 +8788,7 @@ const emojis = [
     {
         code: '🧉',
         name: {
-            en: 'mate_drink',
+            en: 'mate',
             es: 'bebida_de_mate',
         },
         keywords: {
@@ -8821,7 +8821,7 @@ const emojis = [
     {
         code: '🍽️',
         name: {
-            en: 'knife_fork_plate',
+            en: 'plate_with_cutlery',
             es: 'cuchillo_tenedor_plato',
         },
         keywords: {
@@ -8958,7 +8958,7 @@ const emojis = [
     {
         code: '🏔️',
         name: {
-            en: 'snow_capped_mountain',
+            en: 'mountain_snow',
             es: 'montaña_con_cima_nevada',
         },
         keywords: {
@@ -9013,7 +9013,7 @@ const emojis = [
     {
         code: '🏖️',
         name: {
-            en: 'beach_with_umbrella',
+            en: 'beach_umbrella',
             es: 'playa_con_sombrilla',
         },
         keywords: {
@@ -9134,7 +9134,7 @@ const emojis = [
     {
         code: '🏘️',
         name: {
-            en: 'house_buildings',
+            en: 'houses',
             es: 'edificios_de_viviendas',
         },
         keywords: {
@@ -9145,7 +9145,7 @@ const emojis = [
     {
         code: '🏚️',
         name: {
-            en: 'derelict_house_building',
+            en: 'derelict_house',
             es: 'edificio_de_viviendas_en_ruinas',
         },
         keywords: {
@@ -9926,7 +9926,7 @@ const emojis = [
     {
         code: '🏍️',
         name: {
-            en: 'racing_motorcycle',
+            en: 'motorcycle',
             es: 'moto_de_carreras',
         },
         keywords: {
@@ -9992,7 +9992,7 @@ const emojis = [
     {
         code: '🛴',
         name: {
-            en: 'scooter',
+            en: 'kick_scooter',
             es: 'patinete',
         },
         keywords: {
@@ -10113,7 +10113,7 @@ const emojis = [
     {
         code: '🛑',
         name: {
-            en: 'octagonal_sign',
+            en: 'stop_sign',
             es: 'señal_octogonal',
         },
         keywords: {
@@ -10245,7 +10245,7 @@ const emojis = [
     {
         code: '🛫',
         name: {
-            en: 'airplane_departure',
+            en: 'flight_departure',
             es: 'avión_despegando',
         },
         keywords: {
@@ -10256,7 +10256,7 @@ const emojis = [
     {
         code: '🛬',
         name: {
-            en: 'airplane_arriving',
+            en: 'flight_arrival',
             es: 'avión_aterrizando',
         },
         keywords: {
@@ -10333,7 +10333,7 @@ const emojis = [
     {
         code: '🛰️',
         name: {
-            en: 'satellite',
+            en: 'artificial_satellite',
             es: 'satélite',
         },
         keywords: {
@@ -10982,7 +10982,7 @@ const emojis = [
     {
         code: '⛈️',
         name: {
-            en: 'thunder_cloud_and_rain',
+            en: 'cloud_with_lightning_and_rain',
             es: 'nube_de_truenos_y_lluvia',
         },
         keywords: {
@@ -10993,7 +10993,7 @@ const emojis = [
     {
         code: '🌤️',
         name: {
-            en: 'mostly_sunny',
+            en: 'sun_behind_small_cloud',
             es: 'casi_todo_soleado',
         },
         keywords: {
@@ -11004,7 +11004,7 @@ const emojis = [
     {
         code: '🌥️',
         name: {
-            en: 'barely_sunny',
+            en: 'sun_behind_large_cloud',
             es: 'sol_con_nubes',
         },
         keywords: {
@@ -11015,7 +11015,7 @@ const emojis = [
     {
         code: '🌦️',
         name: {
-            en: 'partly_sunny_rain',
+            en: 'sun_behind_rain_cloud',
             es: 'parcialmente_soleado_lluvioso',
         },
         keywords: {
@@ -11026,7 +11026,7 @@ const emojis = [
     {
         code: '🌧️',
         name: {
-            en: 'rain_cloud',
+            en: 'cloud_with_rain',
             es: 'nube_de_lluvia',
         },
         keywords: {
@@ -11037,7 +11037,7 @@ const emojis = [
     {
         code: '🌨️',
         name: {
-            en: 'snow_cloud',
+            en: 'cloud_with_snow',
             es: 'nube_de_nieve',
         },
         keywords: {
@@ -11048,7 +11048,7 @@ const emojis = [
     {
         code: '🌩️',
         name: {
-            en: 'lightning',
+            en: 'cloud_with_lightning',
             es: 'relámpago',
         },
         keywords: {
@@ -11081,7 +11081,7 @@ const emojis = [
     {
         code: '🌬️',
         name: {
-            en: 'wind_blowing_face',
+            en: 'wind_face',
             es: 'cara_soplando_viento',
         },
         keywords: {
@@ -11125,7 +11125,7 @@ const emojis = [
     {
         code: '☂️',
         name: {
-            en: 'umbrella',
+            en: 'open_umbrella',
             es: 'paraguas',
         },
         keywords: {
@@ -11136,7 +11136,7 @@ const emojis = [
     {
         code: '☔',
         name: {
-            en: 'umbrella_with_rain_drops',
+            en: 'umbrella',
             es: 'paraguas_con_gotas_de_lluvia',
         },
         keywords: {
@@ -11147,7 +11147,7 @@ const emojis = [
     {
         code: '⛱️',
         name: {
-            en: 'umbrella_on_ground',
+            en: 'parasol_on_ground',
             es: 'paraguas_en_el_suelo',
         },
         keywords: {
@@ -11180,7 +11180,7 @@ const emojis = [
     {
         code: '☃️',
         name: {
-            en: 'snowman',
+            en: 'snowman_with_snow',
             es: 'muñeco_de_nieve',
         },
         keywords: {
@@ -11191,7 +11191,7 @@ const emojis = [
     {
         code: '⛄',
         name: {
-            en: 'snowman_without_snow',
+            en: 'snowman',
             es: 'muñeco_de_nieve_sin_nieve',
         },
         keywords: {
@@ -11460,7 +11460,7 @@ const emojis = [
     {
         code: '🎟️',
         name: {
-            en: 'admission_tickets',
+            en: 'tickets',
             es: 'boletos_de_entrada',
         },
         keywords: {
@@ -11482,7 +11482,7 @@ const emojis = [
     {
         code: '🎖️',
         name: {
-            en: 'medal',
+            en: 'medal_military',
             es: 'medalla',
         },
         keywords: {
@@ -11504,7 +11504,7 @@ const emojis = [
     {
         code: '🏅',
         name: {
-            en: 'sports_medal',
+            en: 'medal_sports',
             es: 'medalla_deportiva',
         },
         keywords: {
@@ -11515,7 +11515,7 @@ const emojis = [
     {
         code: '🥇',
         name: {
-            en: 'first_place_medal',
+            en: '1st_place_medal',
             es: 'medalla_de_oro',
         },
         keywords: {
@@ -11526,7 +11526,7 @@ const emojis = [
     {
         code: '🥈',
         name: {
-            en: 'second_place_medal',
+            en: '2nd_place_medal',
             es: 'medalla_de_plata',
         },
         keywords: {
@@ -11537,7 +11537,7 @@ const emojis = [
     {
         code: '🥉',
         name: {
-            en: 'third_place_medal',
+            en: '3rd_place_medal',
             es: 'medalla_de_bronce',
         },
         keywords: {
@@ -11658,7 +11658,7 @@ const emojis = [
     {
         code: '🏏',
         name: {
-            en: 'cricket_bat_and_ball',
+            en: 'cricket_game',
             es: 'pelota_y_bate_de_cricket',
         },
         keywords: {
@@ -11669,7 +11669,7 @@ const emojis = [
     {
         code: '🏑',
         name: {
-            en: 'field_hockey_stick_and_ball',
+            en: 'field_hockey',
             es: 'palo_y_pelota_de_hockey',
         },
         keywords: {
@@ -11680,7 +11680,7 @@ const emojis = [
     {
         code: '🏒',
         name: {
-            en: 'ice_hockey_stick_and_puck',
+            en: 'ice_hockey',
             es: 'palo_y_disco_de_hockey_sobre_hielo',
         },
         keywords: {
@@ -11702,7 +11702,7 @@ const emojis = [
     {
         code: '🏓',
         name: {
-            en: 'table_tennis_paddle_and_ball',
+            en: 'ping_pong',
             es: 'raqueta_y_pelota_de_tenis_de_mesa',
         },
         keywords: {
@@ -11713,7 +11713,7 @@ const emojis = [
     {
         code: '🏸',
         name: {
-            en: 'badminton_racquet_and_shuttlecock',
+            en: 'badminton',
             es: 'raqueta_y_pluma_de_bádminton',
         },
         keywords: {
@@ -11856,7 +11856,7 @@ const emojis = [
     {
         code: '🪀',
         name: {
-            en: 'yo-yo',
+            en: 'yo_yo',
             es: 'yoyó',
         },
         keywords: {
@@ -12109,7 +12109,7 @@ const emojis = [
     {
         code: '🖼️',
         name: {
-            en: 'frame_with_picture',
+            en: 'framed_picture',
             es: 'marco_con_foto',
         },
         keywords: {
@@ -12345,7 +12345,7 @@ const emojis = [
     {
         code: '🩱',
         name: {
-            en: 'one-piece_swimsuit',
+            en: 'one_piece_swimsuit',
             es: 'traje_de_baño_de_una_pieza',
         },
         keywords: {
@@ -12356,7 +12356,7 @@ const emojis = [
     {
         code: '🩲',
         name: {
-            en: 'briefs',
+            en: 'swim_brief',
             es: 'ropa_interior',
         },
         keywords: {
@@ -12433,7 +12433,7 @@ const emojis = [
     {
         code: '🛍️',
         name: {
-            en: 'shopping_bags',
+            en: 'shopping',
             es: 'bolsas_de_la_compra',
         },
         keywords: {
@@ -12499,7 +12499,7 @@ const emojis = [
     {
         code: '🥿',
         name: {
-            en: 'womans_flat_shoe',
+            en: 'flat_shoe',
             es: 'bailarina',
         },
         keywords: {
@@ -12620,7 +12620,7 @@ const emojis = [
     {
         code: '⛑️',
         name: {
-            en: 'helmet_with_white_cross',
+            en: 'rescue_worker_helmet',
             es: 'casco_con_cruz_blanca',
         },
         keywords: {
@@ -12950,7 +12950,7 @@ const emojis = [
     {
         code: '🥁',
         name: {
-            en: 'drum_with_drumsticks',
+            en: 'drum',
             es: 'tambor_con_baquetas',
         },
         keywords: {
@@ -13104,7 +13104,7 @@ const emojis = [
     {
         code: '🖱️',
         name: {
-            en: 'three_button_mouse',
+            en: 'computer_mouse',
             es: 'mouse_de_tres_botones',
         },
         keywords: {
@@ -13192,7 +13192,7 @@ const emojis = [
     {
         code: '🎞️',
         name: {
-            en: 'film_frames',
+            en: 'film_strip',
             es: 'fotogramas_de_película',
         },
         keywords: {
@@ -13247,7 +13247,7 @@ const emojis = [
     {
         code: '📸',
         name: {
-            en: 'camera_with_flash',
+            en: 'camera_flash',
             es: 'cámara_con_flash',
         },
         keywords: {
@@ -13500,7 +13500,7 @@ const emojis = [
     {
         code: '🗞️',
         name: {
-            en: 'rolled_up_newspaper',
+            en: 'newspaper_roll',
             es: 'periódico_enrollado',
         },
         keywords: {
@@ -13654,7 +13654,7 @@ const emojis = [
     {
         code: '✉️',
         name: {
-            en: 'email',
+            en: 'envelope',
             es: 'correo',
         },
         keywords: {
@@ -13665,7 +13665,7 @@ const emojis = [
     {
         code: '📧',
         name: {
-            en: 'e-mail',
+            en: 'email',
             es: 'correo_electrónico',
         },
         keywords: {
@@ -13786,7 +13786,7 @@ const emojis = [
     {
         code: '🗳️',
         name: {
-            en: 'ballot_box_with_ballot',
+            en: 'ballot_box',
             es: 'urna_con_papeleta',
         },
         keywords: {
@@ -13819,7 +13819,7 @@ const emojis = [
     {
         code: '🖋️',
         name: {
-            en: 'lower_left_fountain_pen',
+            en: 'fountain_pen',
             es: 'pluma_estilográfica_abajo_a_la_izquierda',
         },
         keywords: {
@@ -13830,7 +13830,7 @@ const emojis = [
     {
         code: '🖊️',
         name: {
-            en: 'lower_left_ballpoint_pen',
+            en: 'pen',
             es: 'bolígrafo_abajo_a_la_izquierda',
         },
         keywords: {
@@ -13841,7 +13841,7 @@ const emojis = [
     {
         code: '🖌️',
         name: {
-            en: 'lower_left_paintbrush',
+            en: 'paintbrush',
             es: 'pincel_abajo_a_la_izquierda',
         },
         keywords: {
@@ -13852,7 +13852,7 @@ const emojis = [
     {
         code: '🖍️',
         name: {
-            en: 'lower_left_crayon',
+            en: 'crayon',
             es: 'lápiz_abajo_a_la_izquierda',
         },
         keywords: {
@@ -13940,7 +13940,7 @@ const emojis = [
     {
         code: '🗒️',
         name: {
-            en: 'spiral_note_pad',
+            en: 'spiral_notepad',
             es: 'cuaderno_de_espiral',
         },
         keywords: {
@@ -13951,7 +13951,7 @@ const emojis = [
     {
         code: '🗓️',
         name: {
-            en: 'spiral_calendar_pad',
+            en: 'spiral_calendar',
             es: 'calendario_de_sobremesa',
         },
         keywords: {
@@ -14050,7 +14050,7 @@ const emojis = [
     {
         code: '🖇️',
         name: {
-            en: 'linked_paperclips',
+            en: 'paperclips',
             es: 'clips_unidos',
         },
         keywords: {
@@ -14248,7 +14248,7 @@ const emojis = [
     {
         code: '🗡️',
         name: {
-            en: 'dagger_knife',
+            en: 'dagger',
             es: 'daga',
         },
         keywords: {
@@ -14369,7 +14369,7 @@ const emojis = [
     {
         code: '🗜️',
         name: {
-            en: 'compression',
+            en: 'clamp',
             es: 'compresión',
         },
         keywords: {
@@ -14380,7 +14380,7 @@ const emojis = [
     {
         code: '⚖️',
         name: {
-            en: 'scales',
+            en: 'balance_scale',
             es: 'balanza',
         },
         keywords: {
@@ -14534,7 +14534,7 @@ const emojis = [
     {
         code: '📡',
         name: {
-            en: 'satellite_antenna',
+            en: 'satellite',
             es: 'antena_de_satélite',
         },
         keywords: {
@@ -14853,7 +14853,7 @@ const emojis = [
     {
         code: '🛒',
         name: {
-            en: 'shopping_trolley',
+            en: 'shopping_cart',
             es: 'carrito_de_compras',
         },
         keywords: {
@@ -15210,7 +15210,7 @@ const emojis = [
     {
         code: '☢️',
         name: {
-            en: 'radioactive_sign',
+            en: 'radioactive',
             es: 'señal_de_radioactividad',
         },
         keywords: {
@@ -15221,7 +15221,7 @@ const emojis = [
     {
         code: '☣️',
         name: {
-            en: 'biohazard_sign',
+            en: 'biohazard',
             es: 'símbolo_de_riesgo_biológico',
         },
         keywords: {
@@ -15485,7 +15485,7 @@ const emojis = [
     {
         code: '🕉️',
         name: {
-            en: 'om_symbol',
+            en: 'om',
             es: 'símbolo_de_om',
         },
         keywords: {
@@ -15573,7 +15573,7 @@ const emojis = [
     {
         code: '🕎',
         name: {
-            en: 'menorah_with_nine_branches',
+            en: 'menorah',
             es: 'candelabro_de_nueve_brazos',
         },
         keywords: {
@@ -15793,7 +15793,7 @@ const emojis = [
     {
         code: '⏭️',
         name: {
-            en: 'black_right_pointing_double_triangle_with_vertical_bar',
+            en: 'next_track_button',
             es: 'triángulo_doble_negro_en_dirección_derecha_con_barra_vertical',
         },
         keywords: {
@@ -15804,7 +15804,7 @@ const emojis = [
     {
         code: '⏯️',
         name: {
-            en: 'black_right_pointing_triangle_with_double_vertical_bar',
+            en: 'play_or_pause_button',
             es: 'triángulo_negro_en_dirección_derecha_con_doble_barra_vertical',
         },
         keywords: {
@@ -15837,7 +15837,7 @@ const emojis = [
     {
         code: '⏮️',
         name: {
-            en: 'black_left_pointing_double_triangle_with_vertical_bar',
+            en: 'previous_track_button',
             es: 'triángulo_doble_negro_en_dirección_izquierda_con_barra_vertical',
         },
         keywords: {
@@ -15892,7 +15892,7 @@ const emojis = [
     {
         code: '⏸️',
         name: {
-            en: 'double_vertical_bar',
+            en: 'pause_button',
             es: 'doble_barra_vertical',
         },
         keywords: {
@@ -15903,7 +15903,7 @@ const emojis = [
     {
         code: '⏹️',
         name: {
-            en: 'black_square_for_stop',
+            en: 'stop_button',
             es: 'cuadrado_negro_para_detener',
         },
         keywords: {
@@ -15914,7 +15914,7 @@ const emojis = [
     {
         code: '⏺️',
         name: {
-            en: 'black_circle_for_record',
+            en: 'record_button',
             es: 'círculo_negro_de_grabación',
         },
         keywords: {
@@ -15925,7 +15925,7 @@ const emojis = [
     {
         code: '⏏️',
         name: {
-            en: 'eject',
+            en: 'eject_button',
             es: 'expulsar',
         },
         keywords: {
@@ -16431,7 +16431,7 @@ const emojis = [
     {
         code: '*️⃣',
         name: {
-            en: 'keycap_star',
+            en: 'asterisk',
             es: 'asterisco_enmarcado',
         },
         keywords: {
@@ -17003,7 +17003,7 @@ const emojis = [
     {
         code: '🟠',
         name: {
-            en: 'large_orange_circle',
+            en: 'orange_circle',
             es: 'círculo_naranja_grande',
         },
         keywords: {
@@ -17014,7 +17014,7 @@ const emojis = [
     {
         code: '🟡',
         name: {
-            en: 'large_yellow_circle',
+            en: 'yellow_circle',
             es: 'círculo_amarillo_grande',
         },
         keywords: {
@@ -17025,7 +17025,7 @@ const emojis = [
     {
         code: '🟢',
         name: {
-            en: 'large_green_circle',
+            en: 'green_circle',
             es: 'círculo_verde_grande',
         },
         keywords: {
@@ -17047,7 +17047,7 @@ const emojis = [
     {
         code: '🟣',
         name: {
-            en: 'large_purple_circle',
+            en: 'purple_circle',
             es: 'círculo_morado_grande',
         },
         keywords: {
@@ -17058,7 +17058,7 @@ const emojis = [
     {
         code: '🟤',
         name: {
-            en: 'large_brown_circle',
+            en: 'brown_circle',
             es: 'círculo_marrón_grande',
         },
         keywords: {
@@ -17091,7 +17091,7 @@ const emojis = [
     {
         code: '🟥',
         name: {
-            en: 'large_red_square',
+            en: 'red_square',
             es: 'cuadrado_rojo_grande',
         },
         keywords: {
@@ -17102,7 +17102,7 @@ const emojis = [
     {
         code: '🟧',
         name: {
-            en: 'large_orange_square',
+            en: 'orange_square',
             es: 'cuadrado_naranja_grande',
         },
         keywords: {
@@ -17113,7 +17113,7 @@ const emojis = [
     {
         code: '🟨',
         name: {
-            en: 'large_yellow_square',
+            en: 'yellow_square',
             es: 'cuadrado_amarillo_grande',
         },
         keywords: {
@@ -17124,7 +17124,7 @@ const emojis = [
     {
         code: '🟩',
         name: {
-            en: 'large_green_square',
+            en: 'green_square',
             es: 'cuadrado_verde_grande',
         },
         keywords: {
@@ -17135,7 +17135,7 @@ const emojis = [
     {
         code: '🟦',
         name: {
-            en: 'large_blue_square',
+            en: 'blue_square',
             es: 'cuadrado_azul_grande',
         },
         keywords: {
@@ -17146,7 +17146,7 @@ const emojis = [
     {
         code: '🟪',
         name: {
-            en: 'large_purple_square',
+            en: 'purple_square',
             es: 'cuadrado_morado_grande',
         },
         keywords: {
@@ -17157,7 +17157,7 @@ const emojis = [
     {
         code: '🟫',
         name: {
-            en: 'large_brown_square',
+            en: 'brown_square',
             es: 'cuadrado_marrón_grande',
         },
         keywords: {
@@ -17404,7 +17404,7 @@ const emojis = [
     {
         code: '🏴',
         name: {
-            en: 'waving_black_flag',
+            en: 'black_flag',
             es: 'ondeando_bandera_negra',
         },
         keywords: {
@@ -17415,7 +17415,7 @@ const emojis = [
     {
         code: '🏳️',
         name: {
-            en: 'waving_white_flag',
+            en: 'white_flag',
             es: 'ondeando_bandera_blanca',
         },
         keywords: {
@@ -17426,7 +17426,7 @@ const emojis = [
     {
         code: '🏳️‍🌈',
         name: {
-            en: 'rainbow-flag',
+            en: 'rainbow_flag',
             es: 'bandera-arcoíris',
         },
         keywords: {
@@ -17459,7 +17459,7 @@ const emojis = [
     {
         code: '🇦🇨',
         name: {
-            en: 'flag-ac',
+            en: 'ascension_island',
             es: 'bandera-ac',
         },
         keywords: {
@@ -17470,7 +17470,7 @@ const emojis = [
     {
         code: '🇦🇩',
         name: {
-            en: 'flag-ad',
+            en: 'andorra',
             es: 'bandera-ad',
         },
         keywords: {
@@ -17481,7 +17481,7 @@ const emojis = [
     {
         code: '🇦🇪',
         name: {
-            en: 'flag-ae',
+            en: 'united_arab_emirates',
             es: 'bandera-ae',
         },
         keywords: {
@@ -17492,7 +17492,7 @@ const emojis = [
     {
         code: '🇦🇫',
         name: {
-            en: 'flag-af',
+            en: 'afghanistan',
             es: 'bandera-af',
         },
         keywords: {
@@ -17503,7 +17503,7 @@ const emojis = [
     {
         code: '🇦🇬',
         name: {
-            en: 'flag-ag',
+            en: 'antigua_barbuda',
             es: 'bandera-ag',
         },
         keywords: {
@@ -17514,7 +17514,7 @@ const emojis = [
     {
         code: '🇦🇮',
         name: {
-            en: 'flag-ai',
+            en: 'anguilla',
             es: 'bandera-ai',
         },
         keywords: {
@@ -17525,7 +17525,7 @@ const emojis = [
     {
         code: '🇦🇱',
         name: {
-            en: 'flag-al',
+            en: 'albania',
             es: 'bandera-al',
         },
         keywords: {
@@ -17536,7 +17536,7 @@ const emojis = [
     {
         code: '🇦🇲',
         name: {
-            en: 'flag-am',
+            en: 'armenia',
             es: 'bandera-am',
         },
         keywords: {
@@ -17547,7 +17547,7 @@ const emojis = [
     {
         code: '🇦🇴',
         name: {
-            en: 'flag-ao',
+            en: 'angola',
             es: 'bandera-ao',
         },
         keywords: {
@@ -17558,7 +17558,7 @@ const emojis = [
     {
         code: '🇦🇶',
         name: {
-            en: 'flag-aq',
+            en: 'antarctica',
             es: 'bandera-aq',
         },
         keywords: {
@@ -17569,7 +17569,7 @@ const emojis = [
     {
         code: '🇦🇷',
         name: {
-            en: 'flag-ar',
+            en: 'argentina',
             es: 'bandera-ar',
         },
         keywords: {
@@ -17580,7 +17580,7 @@ const emojis = [
     {
         code: '🇦🇸',
         name: {
-            en: 'flag-as',
+            en: 'american_samoa',
             es: 'bandera-as',
         },
         keywords: {
@@ -17591,7 +17591,7 @@ const emojis = [
     {
         code: '🇦🇹',
         name: {
-            en: 'flag-at',
+            en: 'austria',
             es: 'bandera-at',
         },
         keywords: {
@@ -17602,7 +17602,7 @@ const emojis = [
     {
         code: '🇦🇺',
         name: {
-            en: 'flag-au',
+            en: 'australia',
             es: 'bandera-au',
         },
         keywords: {
@@ -17613,7 +17613,7 @@ const emojis = [
     {
         code: '🇦🇼',
         name: {
-            en: 'flag-aw',
+            en: 'aruba',
             es: 'bandera-aw',
         },
         keywords: {
@@ -17624,7 +17624,7 @@ const emojis = [
     {
         code: '🇦🇽',
         name: {
-            en: 'flag-ax',
+            en: 'aland_islands',
             es: 'bandera-ax',
         },
         keywords: {
@@ -17635,7 +17635,7 @@ const emojis = [
     {
         code: '🇦🇿',
         name: {
-            en: 'flag-az',
+            en: 'azerbaijan',
             es: 'bandera-az',
         },
         keywords: {
@@ -17646,7 +17646,7 @@ const emojis = [
     {
         code: '🇧🇦',
         name: {
-            en: 'flag-ba',
+            en: 'bosnia_herzegovina',
             es: 'bandera-ba',
         },
         keywords: {
@@ -17657,7 +17657,7 @@ const emojis = [
     {
         code: '🇧🇧',
         name: {
-            en: 'flag-bb',
+            en: 'barbados',
             es: 'bandera-bb',
         },
         keywords: {
@@ -17668,7 +17668,7 @@ const emojis = [
     {
         code: '🇧🇩',
         name: {
-            en: 'flag-bd',
+            en: 'bangladesh',
             es: 'bandera-bd',
         },
         keywords: {
@@ -17679,7 +17679,7 @@ const emojis = [
     {
         code: '🇧🇪',
         name: {
-            en: 'flag-be',
+            en: 'belgium',
             es: 'bandera-be',
         },
         keywords: {
@@ -17690,7 +17690,7 @@ const emojis = [
     {
         code: '🇧🇫',
         name: {
-            en: 'flag-bf',
+            en: 'burkina_faso',
             es: 'bandera-bf',
         },
         keywords: {
@@ -17701,7 +17701,7 @@ const emojis = [
     {
         code: '🇧🇬',
         name: {
-            en: 'flag-bg',
+            en: 'bulgaria',
             es: 'bandera-bg',
         },
         keywords: {
@@ -17712,7 +17712,7 @@ const emojis = [
     {
         code: '🇧🇭',
         name: {
-            en: 'flag-bh',
+            en: 'bahrain',
             es: 'bandera-bh',
         },
         keywords: {
@@ -17723,7 +17723,7 @@ const emojis = [
     {
         code: '🇧🇮',
         name: {
-            en: 'flag-bi',
+            en: 'burundi',
             es: 'bandera-bi',
         },
         keywords: {
@@ -17734,7 +17734,7 @@ const emojis = [
     {
         code: '🇧🇯',
         name: {
-            en: 'flag-bj',
+            en: 'benin',
             es: 'bandera-bj',
         },
         keywords: {
@@ -17745,7 +17745,7 @@ const emojis = [
     {
         code: '🇧🇱',
         name: {
-            en: 'flag-bl',
+            en: 'st_barthelemy',
             es: 'bandera-bl',
         },
         keywords: {
@@ -17756,7 +17756,7 @@ const emojis = [
     {
         code: '🇧🇲',
         name: {
-            en: 'flag-bm',
+            en: 'bermuda',
             es: 'bandera-bm',
         },
         keywords: {
@@ -17767,7 +17767,7 @@ const emojis = [
     {
         code: '🇧🇳',
         name: {
-            en: 'flag-bn',
+            en: 'brunei',
             es: 'bandera-bn',
         },
         keywords: {
@@ -17778,7 +17778,7 @@ const emojis = [
     {
         code: '🇧🇴',
         name: {
-            en: 'flag-bo',
+            en: 'bolivia',
             es: 'bandera-bo',
         },
         keywords: {
@@ -17789,7 +17789,7 @@ const emojis = [
     {
         code: '🇧🇶',
         name: {
-            en: 'flag-bq',
+            en: 'caribbean_netherlands',
             es: 'bandera-bq',
         },
         keywords: {
@@ -17800,7 +17800,7 @@ const emojis = [
     {
         code: '🇧🇷',
         name: {
-            en: 'flag-br',
+            en: 'brazil',
             es: 'bandera-br',
         },
         keywords: {
@@ -17811,7 +17811,7 @@ const emojis = [
     {
         code: '🇧🇸',
         name: {
-            en: 'flag-bs',
+            en: 'bahamas',
             es: 'bandera-bs',
         },
         keywords: {
@@ -17822,7 +17822,7 @@ const emojis = [
     {
         code: '🇧🇹',
         name: {
-            en: 'flag-bt',
+            en: 'bhutan',
             es: 'bandera-bt',
         },
         keywords: {
@@ -17833,7 +17833,7 @@ const emojis = [
     {
         code: '🇧🇻',
         name: {
-            en: 'flag-bv',
+            en: 'bouvet_island',
             es: 'bandera-bv',
         },
         keywords: {
@@ -17844,7 +17844,7 @@ const emojis = [
     {
         code: '🇧🇼',
         name: {
-            en: 'flag-bw',
+            en: 'botswana',
             es: 'bandera-bw',
         },
         keywords: {
@@ -17855,7 +17855,7 @@ const emojis = [
     {
         code: '🇧🇾',
         name: {
-            en: 'flag-by',
+            en: 'belarus',
             es: 'bandera-by',
         },
         keywords: {
@@ -17866,7 +17866,7 @@ const emojis = [
     {
         code: '🇧🇿',
         name: {
-            en: 'flag-bz',
+            en: 'belize',
             es: 'bandera-bz',
         },
         keywords: {
@@ -17877,7 +17877,7 @@ const emojis = [
     {
         code: '🇨🇦',
         name: {
-            en: 'flag-ca',
+            en: 'canada',
             es: 'bandera-ca',
         },
         keywords: {
@@ -17888,7 +17888,7 @@ const emojis = [
     {
         code: '🇨🇨',
         name: {
-            en: 'flag-cc',
+            en: 'cocos_islands',
             es: 'bandera-cc',
         },
         keywords: {
@@ -17899,7 +17899,7 @@ const emojis = [
     {
         code: '🇨🇩',
         name: {
-            en: 'flag-cd',
+            en: 'congo_kinshasa',
             es: 'bandera-cd',
         },
         keywords: {
@@ -17910,7 +17910,7 @@ const emojis = [
     {
         code: '🇨🇫',
         name: {
-            en: 'flag-cf',
+            en: 'central_african_republic',
             es: 'bandera-cf',
         },
         keywords: {
@@ -17921,7 +17921,7 @@ const emojis = [
     {
         code: '🇨🇬',
         name: {
-            en: 'flag-cg',
+            en: 'congo_brazzaville',
             es: 'bandera-cg',
         },
         keywords: {
@@ -17932,7 +17932,7 @@ const emojis = [
     {
         code: '🇨🇭',
         name: {
-            en: 'flag-ch',
+            en: 'switzerland',
             es: 'bandera-ch',
         },
         keywords: {
@@ -17943,7 +17943,7 @@ const emojis = [
     {
         code: '🇨🇮',
         name: {
-            en: 'flag-ci',
+            en: 'cote_divoire',
             es: 'bandera-ci',
         },
         keywords: {
@@ -17954,7 +17954,7 @@ const emojis = [
     {
         code: '🇨🇰',
         name: {
-            en: 'flag-ck',
+            en: 'cook_islands',
             es: 'bandera-ck',
         },
         keywords: {
@@ -17965,7 +17965,7 @@ const emojis = [
     {
         code: '🇨🇱',
         name: {
-            en: 'flag-cl',
+            en: 'chile',
             es: 'bandera-cl',
         },
         keywords: {
@@ -17976,7 +17976,7 @@ const emojis = [
     {
         code: '🇨🇲',
         name: {
-            en: 'flag-cm',
+            en: 'cameroon',
             es: 'bandera-cm',
         },
         keywords: {
@@ -17998,7 +17998,7 @@ const emojis = [
     {
         code: '🇨🇴',
         name: {
-            en: 'flag-co',
+            en: 'colombia',
             es: 'bandera-co',
         },
         keywords: {
@@ -18009,7 +18009,7 @@ const emojis = [
     {
         code: '🇨🇵',
         name: {
-            en: 'flag-cp',
+            en: 'clipperton_island',
             es: 'bandera-cp',
         },
         keywords: {
@@ -18020,7 +18020,7 @@ const emojis = [
     {
         code: '🇨🇷',
         name: {
-            en: 'flag-cr',
+            en: 'costa_rica',
             es: 'bandera-cr',
         },
         keywords: {
@@ -18031,7 +18031,7 @@ const emojis = [
     {
         code: '🇨🇺',
         name: {
-            en: 'flag-cu',
+            en: 'cuba',
             es: 'bandera-cu',
         },
         keywords: {
@@ -18042,7 +18042,7 @@ const emojis = [
     {
         code: '🇨🇻',
         name: {
-            en: 'flag-cv',
+            en: 'cape_verde',
             es: 'bandera-cv',
         },
         keywords: {
@@ -18053,7 +18053,7 @@ const emojis = [
     {
         code: '🇨🇼',
         name: {
-            en: 'flag-cw',
+            en: 'curacao',
             es: 'bandera-cw',
         },
         keywords: {
@@ -18064,7 +18064,7 @@ const emojis = [
     {
         code: '🇨🇽',
         name: {
-            en: 'flag-cx',
+            en: 'christmas_island',
             es: 'bandera-cx',
         },
         keywords: {
@@ -18075,7 +18075,7 @@ const emojis = [
     {
         code: '🇨🇾',
         name: {
-            en: 'flag-cy',
+            en: 'cyprus',
             es: 'bandera-cy',
         },
         keywords: {
@@ -18086,7 +18086,7 @@ const emojis = [
     {
         code: '🇨🇿',
         name: {
-            en: 'flag-cz',
+            en: 'czech_republic',
             es: 'bandera-cz',
         },
         keywords: {
@@ -18108,7 +18108,7 @@ const emojis = [
     {
         code: '🇩🇬',
         name: {
-            en: 'flag-dg',
+            en: 'diego_garcia',
             es: 'bandera-dg',
         },
         keywords: {
@@ -18119,7 +18119,7 @@ const emojis = [
     {
         code: '🇩🇯',
         name: {
-            en: 'flag-dj',
+            en: 'djibouti',
             es: 'bandera-dj',
         },
         keywords: {
@@ -18130,7 +18130,7 @@ const emojis = [
     {
         code: '🇩🇰',
         name: {
-            en: 'flag-dk',
+            en: 'denmark',
             es: 'bandera-dk',
         },
         keywords: {
@@ -18141,7 +18141,7 @@ const emojis = [
     {
         code: '🇩🇲',
         name: {
-            en: 'flag-dm',
+            en: 'dominica',
             es: 'bandera-dm',
         },
         keywords: {
@@ -18152,7 +18152,7 @@ const emojis = [
     {
         code: '🇩🇴',
         name: {
-            en: 'flag-do',
+            en: 'dominican_republic',
             es: 'bandera-do',
         },
         keywords: {
@@ -18163,7 +18163,7 @@ const emojis = [
     {
         code: '🇩🇿',
         name: {
-            en: 'flag-dz',
+            en: 'algeria',
             es: 'bandera-dz',
         },
         keywords: {
@@ -18174,7 +18174,7 @@ const emojis = [
     {
         code: '🇪🇦',
         name: {
-            en: 'flag-ea',
+            en: 'ceuta_melilla',
             es: 'bandera-ea',
         },
         keywords: {
@@ -18185,7 +18185,7 @@ const emojis = [
     {
         code: '🇪🇨',
         name: {
-            en: 'flag-ec',
+            en: 'ecuador',
             es: 'bandera-ec',
         },
         keywords: {
@@ -18196,7 +18196,7 @@ const emojis = [
     {
         code: '🇪🇪',
         name: {
-            en: 'flag-ee',
+            en: 'estonia',
             es: 'bandera-ee',
         },
         keywords: {
@@ -18207,7 +18207,7 @@ const emojis = [
     {
         code: '🇪🇬',
         name: {
-            en: 'flag-eg',
+            en: 'egypt',
             es: 'bandera-eg',
         },
         keywords: {
@@ -18218,7 +18218,7 @@ const emojis = [
     {
         code: '🇪🇭',
         name: {
-            en: 'flag-eh',
+            en: 'western_sahara',
             es: 'bandera-eh',
         },
         keywords: {
@@ -18229,7 +18229,7 @@ const emojis = [
     {
         code: '🇪🇷',
         name: {
-            en: 'flag-er',
+            en: 'eritrea',
             es: 'bandera-er',
         },
         keywords: {
@@ -18251,7 +18251,7 @@ const emojis = [
     {
         code: '🇪🇹',
         name: {
-            en: 'flag-et',
+            en: 'ethiopia',
             es: 'bandera-et',
         },
         keywords: {
@@ -18262,7 +18262,7 @@ const emojis = [
     {
         code: '🇪🇺',
         name: {
-            en: 'flag-eu',
+            en: 'eu',
             es: 'bandera-eu',
         },
         keywords: {
@@ -18273,7 +18273,7 @@ const emojis = [
     {
         code: '🇫🇮',
         name: {
-            en: 'flag-fi',
+            en: 'finland',
             es: 'bandera-fi',
         },
         keywords: {
@@ -18284,7 +18284,7 @@ const emojis = [
     {
         code: '🇫🇯',
         name: {
-            en: 'flag-fj',
+            en: 'fiji',
             es: 'bandera-fj',
         },
         keywords: {
@@ -18295,7 +18295,7 @@ const emojis = [
     {
         code: '🇫🇰',
         name: {
-            en: 'flag-fk',
+            en: 'falkland_islands',
             es: 'bandera-fk',
         },
         keywords: {
@@ -18306,7 +18306,7 @@ const emojis = [
     {
         code: '🇫🇲',
         name: {
-            en: 'flag-fm',
+            en: 'micronesia',
             es: 'bandera-fm',
         },
         keywords: {
@@ -18317,7 +18317,7 @@ const emojis = [
     {
         code: '🇫🇴',
         name: {
-            en: 'flag-fo',
+            en: 'faroe_islands',
             es: 'bandera-fo',
         },
         keywords: {
@@ -18339,7 +18339,7 @@ const emojis = [
     {
         code: '🇬🇦',
         name: {
-            en: 'flag-ga',
+            en: 'gabon',
             es: 'bandera-ga',
         },
         keywords: {
@@ -18361,7 +18361,7 @@ const emojis = [
     {
         code: '🇬🇩',
         name: {
-            en: 'flag-gd',
+            en: 'grenada',
             es: 'bandera-gd',
         },
         keywords: {
@@ -18372,7 +18372,7 @@ const emojis = [
     {
         code: '🇬🇪',
         name: {
-            en: 'flag-ge',
+            en: 'georgia',
             es: 'bandera-ge',
         },
         keywords: {
@@ -18383,7 +18383,7 @@ const emojis = [
     {
         code: '🇬🇫',
         name: {
-            en: 'flag-gf',
+            en: 'french_guiana',
             es: 'bandera-gf',
         },
         keywords: {
@@ -18394,7 +18394,7 @@ const emojis = [
     {
         code: '🇬🇬',
         name: {
-            en: 'flag-gg',
+            en: 'guernsey',
             es: 'bandera-gg',
         },
         keywords: {
@@ -18405,7 +18405,7 @@ const emojis = [
     {
         code: '🇬🇭',
         name: {
-            en: 'flag-gh',
+            en: 'ghana',
             es: 'bandera-gh',
         },
         keywords: {
@@ -18416,7 +18416,7 @@ const emojis = [
     {
         code: '🇬🇮',
         name: {
-            en: 'flag-gi',
+            en: 'gibraltar',
             es: 'bandera-gi',
         },
         keywords: {
@@ -18427,7 +18427,7 @@ const emojis = [
     {
         code: '🇬🇱',
         name: {
-            en: 'flag-gl',
+            en: 'greenland',
             es: 'bandera-gl',
         },
         keywords: {
@@ -18438,7 +18438,7 @@ const emojis = [
     {
         code: '🇬🇲',
         name: {
-            en: 'flag-gm',
+            en: 'gambia',
             es: 'bandera-gm',
         },
         keywords: {
@@ -18449,7 +18449,7 @@ const emojis = [
     {
         code: '🇬🇳',
         name: {
-            en: 'flag-gn',
+            en: 'guinea',
             es: 'bandera-gn',
         },
         keywords: {
@@ -18460,7 +18460,7 @@ const emojis = [
     {
         code: '🇬🇵',
         name: {
-            en: 'flag-gp',
+            en: 'guadeloupe',
             es: 'bandera-gp',
         },
         keywords: {
@@ -18471,7 +18471,7 @@ const emojis = [
     {
         code: '🇬🇶',
         name: {
-            en: 'flag-gq',
+            en: 'equatorial_guinea',
             es: 'bandera-gq',
         },
         keywords: {
@@ -18482,7 +18482,7 @@ const emojis = [
     {
         code: '🇬🇷',
         name: {
-            en: 'flag-gr',
+            en: 'greece',
             es: 'bandera-gr',
         },
         keywords: {
@@ -18493,7 +18493,7 @@ const emojis = [
     {
         code: '🇬🇸',
         name: {
-            en: 'flag-gs',
+            en: 'south_georgia_south_sandwich_islands',
             es: 'bandera-gs',
         },
         keywords: {
@@ -18504,7 +18504,7 @@ const emojis = [
     {
         code: '🇬🇹',
         name: {
-            en: 'flag-gt',
+            en: 'guatemala',
             es: 'bandera-gt',
         },
         keywords: {
@@ -18515,7 +18515,7 @@ const emojis = [
     {
         code: '🇬🇺',
         name: {
-            en: 'flag-gu',
+            en: 'guam',
             es: 'bandera-gu',
         },
         keywords: {
@@ -18526,7 +18526,7 @@ const emojis = [
     {
         code: '🇬🇼',
         name: {
-            en: 'flag-gw',
+            en: 'guinea_bissau',
             es: 'bandera-gw',
         },
         keywords: {
@@ -18537,7 +18537,7 @@ const emojis = [
     {
         code: '🇬🇾',
         name: {
-            en: 'flag-gy',
+            en: 'guyana',
             es: 'bandera-gy',
         },
         keywords: {
@@ -18548,7 +18548,7 @@ const emojis = [
     {
         code: '🇭🇰',
         name: {
-            en: 'flag-hk',
+            en: 'hong_kong',
             es: 'bandera-hk',
         },
         keywords: {
@@ -18559,7 +18559,7 @@ const emojis = [
     {
         code: '🇭🇲',
         name: {
-            en: 'flag-hm',
+            en: 'heard_mcdonald_islands',
             es: 'bandera-hm',
         },
         keywords: {
@@ -18570,7 +18570,7 @@ const emojis = [
     {
         code: '🇭🇳',
         name: {
-            en: 'flag-hn',
+            en: 'honduras',
             es: 'bandera-hn',
         },
         keywords: {
@@ -18581,7 +18581,7 @@ const emojis = [
     {
         code: '🇭🇷',
         name: {
-            en: 'flag-hr',
+            en: 'croatia',
             es: 'bandera-hr',
         },
         keywords: {
@@ -18592,7 +18592,7 @@ const emojis = [
     {
         code: '🇭🇹',
         name: {
-            en: 'flag-ht',
+            en: 'haiti',
             es: 'bandera-ht',
         },
         keywords: {
@@ -18603,7 +18603,7 @@ const emojis = [
     {
         code: '🇭🇺',
         name: {
-            en: 'flag-hu',
+            en: 'hungary',
             es: 'bandera-hu',
         },
         keywords: {
@@ -18614,7 +18614,7 @@ const emojis = [
     {
         code: '🇮🇨',
         name: {
-            en: 'flag-ic',
+            en: 'canary_islands',
             es: 'bandera-ic',
         },
         keywords: {
@@ -18625,7 +18625,7 @@ const emojis = [
     {
         code: '🇮🇩',
         name: {
-            en: 'flag-id',
+            en: 'indonesia',
             es: 'bandera-id',
         },
         keywords: {
@@ -18636,7 +18636,7 @@ const emojis = [
     {
         code: '🇮🇪',
         name: {
-            en: 'flag-ie',
+            en: 'ireland',
             es: 'bandera-ie',
         },
         keywords: {
@@ -18647,7 +18647,7 @@ const emojis = [
     {
         code: '🇮🇱',
         name: {
-            en: 'flag-il',
+            en: 'israel',
             es: 'bandera-il',
         },
         keywords: {
@@ -18658,7 +18658,7 @@ const emojis = [
     {
         code: '🇮🇲',
         name: {
-            en: 'flag-im',
+            en: 'isle_of_man',
             es: 'bandera-im',
         },
         keywords: {
@@ -18669,7 +18669,7 @@ const emojis = [
     {
         code: '🇮🇳',
         name: {
-            en: 'flag-in',
+            en: 'india',
             es: 'bandera-in',
         },
         keywords: {
@@ -18680,7 +18680,7 @@ const emojis = [
     {
         code: '🇮🇴',
         name: {
-            en: 'flag-io',
+            en: 'british_indian_ocean_territory',
             es: 'bandera-io',
         },
         keywords: {
@@ -18691,7 +18691,7 @@ const emojis = [
     {
         code: '🇮🇶',
         name: {
-            en: 'flag-iq',
+            en: 'iraq',
             es: 'bandera-iq',
         },
         keywords: {
@@ -18702,7 +18702,7 @@ const emojis = [
     {
         code: '🇮🇷',
         name: {
-            en: 'flag-ir',
+            en: 'iran',
             es: 'bandera-ir',
         },
         keywords: {
@@ -18713,7 +18713,7 @@ const emojis = [
     {
         code: '🇮🇸',
         name: {
-            en: 'flag-is',
+            en: 'iceland',
             es: 'bandera-is',
         },
         keywords: {
@@ -18735,7 +18735,7 @@ const emojis = [
     {
         code: '🇯🇪',
         name: {
-            en: 'flag-je',
+            en: 'jersey',
             es: 'bandera-je',
         },
         keywords: {
@@ -18746,7 +18746,7 @@ const emojis = [
     {
         code: '🇯🇲',
         name: {
-            en: 'flag-jm',
+            en: 'jamaica',
             es: 'bandera-jm',
         },
         keywords: {
@@ -18757,7 +18757,7 @@ const emojis = [
     {
         code: '🇯🇴',
         name: {
-            en: 'flag-jo',
+            en: 'jordan',
             es: 'bandera-jo',
         },
         keywords: {
@@ -18779,7 +18779,7 @@ const emojis = [
     {
         code: '🇰🇪',
         name: {
-            en: 'flag-ke',
+            en: 'kenya',
             es: 'bandera-ke',
         },
         keywords: {
@@ -18790,7 +18790,7 @@ const emojis = [
     {
         code: '🇰🇬',
         name: {
-            en: 'flag-kg',
+            en: 'kyrgyzstan',
             es: 'bandera-kg',
         },
         keywords: {
@@ -18801,7 +18801,7 @@ const emojis = [
     {
         code: '🇰🇭',
         name: {
-            en: 'flag-kh',
+            en: 'cambodia',
             es: 'bandera-kh',
         },
         keywords: {
@@ -18812,7 +18812,7 @@ const emojis = [
     {
         code: '🇰🇮',
         name: {
-            en: 'flag-ki',
+            en: 'kiribati',
             es: 'bandera-kl',
         },
         keywords: {
@@ -18823,7 +18823,7 @@ const emojis = [
     {
         code: '🇰🇲',
         name: {
-            en: 'flag-km',
+            en: 'comoros',
             es: 'bandera-km',
         },
         keywords: {
@@ -18834,7 +18834,7 @@ const emojis = [
     {
         code: '🇰🇳',
         name: {
-            en: 'flag-kn',
+            en: 'st_kitts_nevis',
             es: 'bandera-kn',
         },
         keywords: {
@@ -18845,7 +18845,7 @@ const emojis = [
     {
         code: '🇰🇵',
         name: {
-            en: 'flag-kp',
+            en: 'north_korea',
             es: 'bandera-kp',
         },
         keywords: {
@@ -18867,7 +18867,7 @@ const emojis = [
     {
         code: '🇰🇼',
         name: {
-            en: 'flag-kw',
+            en: 'kuwait',
             es: 'bandera-kw',
         },
         keywords: {
@@ -18878,7 +18878,7 @@ const emojis = [
     {
         code: '🇰🇾',
         name: {
-            en: 'flag-ky',
+            en: 'cayman_islands',
             es: 'bandera-ky',
         },
         keywords: {
@@ -18889,7 +18889,7 @@ const emojis = [
     {
         code: '🇰🇿',
         name: {
-            en: 'flag-kz',
+            en: 'kazakhstan',
             es: 'bandera-kz',
         },
         keywords: {
@@ -18900,7 +18900,7 @@ const emojis = [
     {
         code: '🇱🇦',
         name: {
-            en: 'flag-la',
+            en: 'laos',
             es: 'bandera-la',
         },
         keywords: {
@@ -18911,7 +18911,7 @@ const emojis = [
     {
         code: '🇱🇧',
         name: {
-            en: 'flag-lb',
+            en: 'lebanon',
             es: 'bandera-lb',
         },
         keywords: {
@@ -18922,7 +18922,7 @@ const emojis = [
     {
         code: '🇱🇨',
         name: {
-            en: 'flag-lc',
+            en: 'st_lucia',
             es: 'bandera-lc',
         },
         keywords: {
@@ -18933,7 +18933,7 @@ const emojis = [
     {
         code: '🇱🇮',
         name: {
-            en: 'flag-li',
+            en: 'liechtenstein',
             es: 'bandera-li',
         },
         keywords: {
@@ -18944,7 +18944,7 @@ const emojis = [
     {
         code: '🇱🇰',
         name: {
-            en: 'flag-lk',
+            en: 'sri_lanka',
             es: 'bandera-lk',
         },
         keywords: {
@@ -18955,7 +18955,7 @@ const emojis = [
     {
         code: '🇱🇷',
         name: {
-            en: 'flag-lr',
+            en: 'liberia',
             es: 'bandera-lr',
         },
         keywords: {
@@ -18966,7 +18966,7 @@ const emojis = [
     {
         code: '🇱🇸',
         name: {
-            en: 'flag-ls',
+            en: 'lesotho',
             es: 'bandera-ls',
         },
         keywords: {
@@ -18977,7 +18977,7 @@ const emojis = [
     {
         code: '🇱🇹',
         name: {
-            en: 'flag-lt',
+            en: 'lithuania',
             es: 'bandera-lt',
         },
         keywords: {
@@ -18988,7 +18988,7 @@ const emojis = [
     {
         code: '🇱🇺',
         name: {
-            en: 'flag-lu',
+            en: 'luxembourg',
             es: 'bandera-lu',
         },
         keywords: {
@@ -18999,7 +18999,7 @@ const emojis = [
     {
         code: '🇱🇻',
         name: {
-            en: 'flag-lv',
+            en: 'latvia',
             es: 'bandera-lv',
         },
         keywords: {
@@ -19010,7 +19010,7 @@ const emojis = [
     {
         code: '🇱🇾',
         name: {
-            en: 'flag-ly',
+            en: 'libya',
             es: 'bandera-ly',
         },
         keywords: {
@@ -19021,7 +19021,7 @@ const emojis = [
     {
         code: '🇲🇦',
         name: {
-            en: 'flag-ma',
+            en: 'morocco',
             es: 'bandera-ma',
         },
         keywords: {
@@ -19032,7 +19032,7 @@ const emojis = [
     {
         code: '🇲🇨',
         name: {
-            en: 'flag-mc',
+            en: 'monaco',
             es: 'bandera-mc',
         },
         keywords: {
@@ -19043,7 +19043,7 @@ const emojis = [
     {
         code: '🇲🇩',
         name: {
-            en: 'flag-md',
+            en: 'moldova',
             es: 'bandera-md',
         },
         keywords: {
@@ -19054,7 +19054,7 @@ const emojis = [
     {
         code: '🇲🇪',
         name: {
-            en: 'flag-me',
+            en: 'montenegro',
             es: 'bandera-me',
         },
         keywords: {
@@ -19065,7 +19065,7 @@ const emojis = [
     {
         code: '🇲🇫',
         name: {
-            en: 'flag-mf',
+            en: 'st_martin',
             es: 'bandera-mf',
         },
         keywords: {
@@ -19076,7 +19076,7 @@ const emojis = [
     {
         code: '🇲🇬',
         name: {
-            en: 'flag-mg',
+            en: 'madagascar',
             es: 'bandera-mg',
         },
         keywords: {
@@ -19087,7 +19087,7 @@ const emojis = [
     {
         code: '🇲🇭',
         name: {
-            en: 'flag-mh',
+            en: 'marshall_islands',
             es: 'bandera-mh',
         },
         keywords: {
@@ -19098,7 +19098,7 @@ const emojis = [
     {
         code: '🇲🇰',
         name: {
-            en: 'flag-mk',
+            en: 'macedonia',
             es: 'bandera-mk',
         },
         keywords: {
@@ -19109,7 +19109,7 @@ const emojis = [
     {
         code: '🇲🇱',
         name: {
-            en: 'flag-ml',
+            en: 'mali',
             es: 'bandera-ml',
         },
         keywords: {
@@ -19120,7 +19120,7 @@ const emojis = [
     {
         code: '🇲🇲',
         name: {
-            en: 'flag-mm',
+            en: 'myanmar',
             es: 'bandera-mm',
         },
         keywords: {
@@ -19131,7 +19131,7 @@ const emojis = [
     {
         code: '🇲🇳',
         name: {
-            en: 'flag-mn',
+            en: 'mongolia',
             es: 'bandera-mn',
         },
         keywords: {
@@ -19142,7 +19142,7 @@ const emojis = [
     {
         code: '🇲🇴',
         name: {
-            en: 'flag-mo',
+            en: 'macau',
             es: 'bandera-mo',
         },
         keywords: {
@@ -19153,7 +19153,7 @@ const emojis = [
     {
         code: '🇲🇵',
         name: {
-            en: 'flag-mp',
+            en: 'northern_mariana_islands',
             es: 'bandera-mp',
         },
         keywords: {
@@ -19164,7 +19164,7 @@ const emojis = [
     {
         code: '🇲🇶',
         name: {
-            en: 'flag-mq',
+            en: 'martinique',
             es: 'bandera-mq',
         },
         keywords: {
@@ -19175,7 +19175,7 @@ const emojis = [
     {
         code: '🇲🇷',
         name: {
-            en: 'flag-mr',
+            en: 'mauritania',
             es: 'bandera-mr',
         },
         keywords: {
@@ -19186,7 +19186,7 @@ const emojis = [
     {
         code: '🇲🇸',
         name: {
-            en: 'flag-ms',
+            en: 'montserrat',
             es: 'bandera-ms',
         },
         keywords: {
@@ -19197,7 +19197,7 @@ const emojis = [
     {
         code: '🇲🇹',
         name: {
-            en: 'flag-mt',
+            en: 'malta',
             es: 'bandera-mt',
         },
         keywords: {
@@ -19208,7 +19208,7 @@ const emojis = [
     {
         code: '🇲🇺',
         name: {
-            en: 'flag-mu',
+            en: 'mauritius',
             es: 'bandera-mu',
         },
         keywords: {
@@ -19219,7 +19219,7 @@ const emojis = [
     {
         code: '🇲🇻',
         name: {
-            en: 'flag-mv',
+            en: 'maldives',
             es: 'bandera-mv',
         },
         keywords: {
@@ -19230,7 +19230,7 @@ const emojis = [
     {
         code: '🇲🇼',
         name: {
-            en: 'flag-mw',
+            en: 'malawi',
             es: 'bandera-mw',
         },
         keywords: {
@@ -19241,7 +19241,7 @@ const emojis = [
     {
         code: '🇲🇽',
         name: {
-            en: 'flag-mx',
+            en: 'mexico',
             es: 'bandera-mx',
         },
         keywords: {
@@ -19252,7 +19252,7 @@ const emojis = [
     {
         code: '🇲🇾',
         name: {
-            en: 'flag-my',
+            en: 'malaysia',
             es: 'bandera-my',
         },
         keywords: {
@@ -19263,7 +19263,7 @@ const emojis = [
     {
         code: '🇲🇿',
         name: {
-            en: 'flag-mz',
+            en: 'mozambique',
             es: 'bandera-mz',
         },
         keywords: {
@@ -19274,7 +19274,7 @@ const emojis = [
     {
         code: '🇳🇦',
         name: {
-            en: 'flag-na',
+            en: 'namibia',
             es: 'bandera-na',
         },
         keywords: {
@@ -19285,7 +19285,7 @@ const emojis = [
     {
         code: '🇳🇨',
         name: {
-            en: 'flag-nc',
+            en: 'new_caledonia',
             es: 'bandera-nc',
         },
         keywords: {
@@ -19296,7 +19296,7 @@ const emojis = [
     {
         code: '🇳🇪',
         name: {
-            en: 'flag-ne',
+            en: 'niger',
             es: 'bandera-ne',
         },
         keywords: {
@@ -19307,7 +19307,7 @@ const emojis = [
     {
         code: '🇳🇫',
         name: {
-            en: 'flag-nf',
+            en: 'norfolk_island',
             es: 'bandera-nf',
         },
         keywords: {
@@ -19318,7 +19318,7 @@ const emojis = [
     {
         code: '🇳🇬',
         name: {
-            en: 'flag-ng',
+            en: 'nigeria',
             es: 'bandera-ng',
         },
         keywords: {
@@ -19329,7 +19329,7 @@ const emojis = [
     {
         code: '🇳🇮',
         name: {
-            en: 'flag-ni',
+            en: 'nicaragua',
             es: 'bandera-ni',
         },
         keywords: {
@@ -19340,7 +19340,7 @@ const emojis = [
     {
         code: '🇳🇱',
         name: {
-            en: 'flag-nl',
+            en: 'netherlands',
             es: 'bandera-nl',
         },
         keywords: {
@@ -19351,7 +19351,7 @@ const emojis = [
     {
         code: '🇳🇴',
         name: {
-            en: 'flag-no',
+            en: 'norway',
             es: 'bandera-no',
         },
         keywords: {
@@ -19362,7 +19362,7 @@ const emojis = [
     {
         code: '🇳🇵',
         name: {
-            en: 'flag-np',
+            en: 'nepal',
             es: 'bandera-np',
         },
         keywords: {
@@ -19373,7 +19373,7 @@ const emojis = [
     {
         code: '🇳🇷',
         name: {
-            en: 'flag-nr',
+            en: 'nauru',
             es: 'bandera-nr',
         },
         keywords: {
@@ -19384,7 +19384,7 @@ const emojis = [
     {
         code: '🇳🇺',
         name: {
-            en: 'flag-nu',
+            en: 'niue',
             es: 'bandera-nu',
         },
         keywords: {
@@ -19395,7 +19395,7 @@ const emojis = [
     {
         code: '🇳🇿',
         name: {
-            en: 'flag-nz',
+            en: 'new_zealand',
             es: 'bandera-nz',
         },
         keywords: {
@@ -19406,7 +19406,7 @@ const emojis = [
     {
         code: '🇴🇲',
         name: {
-            en: 'flag-om',
+            en: 'oman',
             es: 'bandera-om',
         },
         keywords: {
@@ -19417,7 +19417,7 @@ const emojis = [
     {
         code: '🇵🇦',
         name: {
-            en: 'flag-pa',
+            en: 'panama',
             es: 'bandera-pa',
         },
         keywords: {
@@ -19428,7 +19428,7 @@ const emojis = [
     {
         code: '🇵🇪',
         name: {
-            en: 'flag-pe',
+            en: 'peru',
             es: 'bandera-pe',
         },
         keywords: {
@@ -19439,7 +19439,7 @@ const emojis = [
     {
         code: '🇵🇫',
         name: {
-            en: 'flag-pf',
+            en: 'french_polynesia',
             es: 'bandera-pf',
         },
         keywords: {
@@ -19450,7 +19450,7 @@ const emojis = [
     {
         code: '🇵🇬',
         name: {
-            en: 'flag-pg',
+            en: 'papua_new_guinea',
             es: 'bandera-pg',
         },
         keywords: {
@@ -19461,7 +19461,7 @@ const emojis = [
     {
         code: '🇵🇭',
         name: {
-            en: 'flag-ph',
+            en: 'philippines',
             es: 'bandera-ph',
         },
         keywords: {
@@ -19472,7 +19472,7 @@ const emojis = [
     {
         code: '🇵🇰',
         name: {
-            en: 'flag-pk',
+            en: 'pakistan',
             es: 'bandera-pk',
         },
         keywords: {
@@ -19483,7 +19483,7 @@ const emojis = [
     {
         code: '🇵🇱',
         name: {
-            en: 'flag-pl',
+            en: 'poland',
             es: 'bandera-pl',
         },
         keywords: {
@@ -19494,7 +19494,7 @@ const emojis = [
     {
         code: '🇵🇲',
         name: {
-            en: 'flag-pm',
+            en: 'st_pierre_miquelon',
             es: 'bandera-pm',
         },
         keywords: {
@@ -19505,7 +19505,7 @@ const emojis = [
     {
         code: '🇵🇳',
         name: {
-            en: 'flag-pn',
+            en: 'pitcairn_islands',
             es: 'bandera-pn',
         },
         keywords: {
@@ -19516,7 +19516,7 @@ const emojis = [
     {
         code: '🇵🇷',
         name: {
-            en: 'flag-pr',
+            en: 'puerto_rico',
             es: 'bandera-pr',
         },
         keywords: {
@@ -19527,7 +19527,7 @@ const emojis = [
     {
         code: '🇵🇸',
         name: {
-            en: 'flag-ps',
+            en: 'palestinian_territories',
             es: 'bandera-ps',
         },
         keywords: {
@@ -19538,7 +19538,7 @@ const emojis = [
     {
         code: '🇵🇹',
         name: {
-            en: 'flag-pt',
+            en: 'portugal',
             es: 'bandera-pt',
         },
         keywords: {
@@ -19549,7 +19549,7 @@ const emojis = [
     {
         code: '🇵🇼',
         name: {
-            en: 'flag-pw',
+            en: 'palau',
             es: 'bandera-pw',
         },
         keywords: {
@@ -19560,7 +19560,7 @@ const emojis = [
     {
         code: '🇵🇾',
         name: {
-            en: 'flag-py',
+            en: 'paraguay',
             es: 'bandera-py',
         },
         keywords: {
@@ -19571,7 +19571,7 @@ const emojis = [
     {
         code: '🇶🇦',
         name: {
-            en: 'flag-qa',
+            en: 'qatar',
             es: 'bandera-qa',
         },
         keywords: {
@@ -19582,7 +19582,7 @@ const emojis = [
     {
         code: '🇷🇪',
         name: {
-            en: 'flag-re',
+            en: 'reunion',
             es: 'bandera-re',
         },
         keywords: {
@@ -19593,7 +19593,7 @@ const emojis = [
     {
         code: '🇷🇴',
         name: {
-            en: 'flag-ro',
+            en: 'romania',
             es: 'bandera-ro',
         },
         keywords: {
@@ -19604,7 +19604,7 @@ const emojis = [
     {
         code: '🇷🇸',
         name: {
-            en: 'flag-rs',
+            en: 'serbia',
             es: 'bandera-rs',
         },
         keywords: {
@@ -19626,7 +19626,7 @@ const emojis = [
     {
         code: '🇷🇼',
         name: {
-            en: 'flag-rw',
+            en: 'rwanda',
             es: 'bandera-rw',
         },
         keywords: {
@@ -19637,7 +19637,7 @@ const emojis = [
     {
         code: '🇸🇦',
         name: {
-            en: 'flag-sa',
+            en: 'saudi_arabia',
             es: 'bandera-sa',
         },
         keywords: {
@@ -19648,7 +19648,7 @@ const emojis = [
     {
         code: '🇸🇧',
         name: {
-            en: 'flag-sb',
+            en: 'solomon_islands',
             es: 'bandera-sb',
         },
         keywords: {
@@ -19659,7 +19659,7 @@ const emojis = [
     {
         code: '🇸🇨',
         name: {
-            en: 'flag-sc',
+            en: 'seychelles',
             es: 'bandera-sc',
         },
         keywords: {
@@ -19670,7 +19670,7 @@ const emojis = [
     {
         code: '🇸🇩',
         name: {
-            en: 'flag-sd',
+            en: 'sudan',
             es: 'bandera-sd',
         },
         keywords: {
@@ -19681,7 +19681,7 @@ const emojis = [
     {
         code: '🇸🇪',
         name: {
-            en: 'flag-se',
+            en: 'sweden',
             es: 'bandera-se',
         },
         keywords: {
@@ -19692,7 +19692,7 @@ const emojis = [
     {
         code: '🇸🇬',
         name: {
-            en: 'flag-sg',
+            en: 'singapore',
             es: 'bandera-sg',
         },
         keywords: {
@@ -19703,7 +19703,7 @@ const emojis = [
     {
         code: '🇸🇭',
         name: {
-            en: 'flag-sh',
+            en: 'st_helena',
             es: 'bandera-sh',
         },
         keywords: {
@@ -19714,7 +19714,7 @@ const emojis = [
     {
         code: '🇸🇮',
         name: {
-            en: 'flag-si',
+            en: 'slovenia',
             es: 'bandera-si',
         },
         keywords: {
@@ -19725,7 +19725,7 @@ const emojis = [
     {
         code: '🇸🇯',
         name: {
-            en: 'flag-sj',
+            en: 'svalbard_jan_mayen',
             es: 'bandera-sj',
         },
         keywords: {
@@ -19736,7 +19736,7 @@ const emojis = [
     {
         code: '🇸🇰',
         name: {
-            en: 'flag-sk',
+            en: 'slovakia',
             es: 'bandera-sk',
         },
         keywords: {
@@ -19747,7 +19747,7 @@ const emojis = [
     {
         code: '🇸🇱',
         name: {
-            en: 'flag-sl',
+            en: 'sierra_leone',
             es: 'bandera-sl',
         },
         keywords: {
@@ -19758,7 +19758,7 @@ const emojis = [
     {
         code: '🇸🇲',
         name: {
-            en: 'flag-sm',
+            en: 'san_marino',
             es: 'bandera-sm',
         },
         keywords: {
@@ -19769,7 +19769,7 @@ const emojis = [
     {
         code: '🇸🇳',
         name: {
-            en: 'flag-sn',
+            en: 'senegal',
             es: 'bandera-sn',
         },
         keywords: {
@@ -19780,7 +19780,7 @@ const emojis = [
     {
         code: '🇸🇴',
         name: {
-            en: 'flag-so',
+            en: 'somalia',
             es: 'bandera-so',
         },
         keywords: {
@@ -19791,7 +19791,7 @@ const emojis = [
     {
         code: '🇸🇷',
         name: {
-            en: 'flag-sr',
+            en: 'suriname',
             es: 'bandera-sr',
         },
         keywords: {
@@ -19802,7 +19802,7 @@ const emojis = [
     {
         code: '🇸🇸',
         name: {
-            en: 'flag-ss',
+            en: 'south_sudan',
             es: 'bandera-ss',
         },
         keywords: {
@@ -19813,7 +19813,7 @@ const emojis = [
     {
         code: '🇸🇹',
         name: {
-            en: 'flag-st',
+            en: 'sao_tome_principe',
             es: 'bandera-st',
         },
         keywords: {
@@ -19824,7 +19824,7 @@ const emojis = [
     {
         code: '🇸🇻',
         name: {
-            en: 'flag-sv',
+            en: 'el_salvador',
             es: 'bandera-sv',
         },
         keywords: {
@@ -19835,7 +19835,7 @@ const emojis = [
     {
         code: '🇸🇽',
         name: {
-            en: 'flag-sx',
+            en: 'sint_maarten',
             es: 'bandera-sx',
         },
         keywords: {
@@ -19846,7 +19846,7 @@ const emojis = [
     {
         code: '🇸🇾',
         name: {
-            en: 'flag-sy',
+            en: 'syria',
             es: 'bandera-sy',
         },
         keywords: {
@@ -19857,7 +19857,7 @@ const emojis = [
     {
         code: '🇸🇿',
         name: {
-            en: 'flag-sz',
+            en: 'swaziland',
             es: 'bandera-sz',
         },
         keywords: {
@@ -19868,7 +19868,7 @@ const emojis = [
     {
         code: '🇹🇦',
         name: {
-            en: 'flag-ta',
+            en: 'tristan_da_cunha',
             es: 'bandera-ta',
         },
         keywords: {
@@ -19879,7 +19879,7 @@ const emojis = [
     {
         code: '🇹🇨',
         name: {
-            en: 'flag-tc',
+            en: 'turks_caicos_islands',
             es: 'bandera-tc',
         },
         keywords: {
@@ -19890,7 +19890,7 @@ const emojis = [
     {
         code: '🇹🇩',
         name: {
-            en: 'flag-td',
+            en: 'chad',
             es: 'bandera-td',
         },
         keywords: {
@@ -19901,7 +19901,7 @@ const emojis = [
     {
         code: '🇹🇫',
         name: {
-            en: 'flag-tf',
+            en: 'french_southern_territories',
             es: 'bandera-tf',
         },
         keywords: {
@@ -19912,7 +19912,7 @@ const emojis = [
     {
         code: '🇹🇬',
         name: {
-            en: 'flag-tg',
+            en: 'togo',
             es: 'bandera-tg',
         },
         keywords: {
@@ -19923,7 +19923,7 @@ const emojis = [
     {
         code: '🇹🇭',
         name: {
-            en: 'flag-th',
+            en: 'thailand',
             es: 'bandera-th',
         },
         keywords: {
@@ -19934,7 +19934,7 @@ const emojis = [
     {
         code: '🇹🇯',
         name: {
-            en: 'flag-tj',
+            en: 'tajikistan',
             es: 'bandera-tj',
         },
         keywords: {
@@ -19945,7 +19945,7 @@ const emojis = [
     {
         code: '🇹🇰',
         name: {
-            en: 'flag-tk',
+            en: 'tokelau',
             es: 'bandera-tk',
         },
         keywords: {
@@ -19956,7 +19956,7 @@ const emojis = [
     {
         code: '🇹🇱',
         name: {
-            en: 'flag-tl',
+            en: 'timor_leste',
             es: 'bandera-tl',
         },
         keywords: {
@@ -19967,7 +19967,7 @@ const emojis = [
     {
         code: '🇹🇲',
         name: {
-            en: 'flag-tm',
+            en: 'turkmenistan',
             es: 'bandera-tm',
         },
         keywords: {
@@ -19978,7 +19978,7 @@ const emojis = [
     {
         code: '🇹🇳',
         name: {
-            en: 'flag-tn',
+            en: 'tunisia',
             es: 'bandera-tn',
         },
         keywords: {
@@ -19989,7 +19989,7 @@ const emojis = [
     {
         code: '🇹🇴',
         name: {
-            en: 'flag-to',
+            en: 'tonga',
             es: 'bandera-to',
         },
         keywords: {
@@ -20000,7 +20000,7 @@ const emojis = [
     {
         code: '🇹🇷',
         name: {
-            en: 'flag-tr',
+            en: 'tr',
             es: 'bandera-tr',
         },
         keywords: {
@@ -20011,7 +20011,7 @@ const emojis = [
     {
         code: '🇹🇹',
         name: {
-            en: 'flag-tt',
+            en: 'trinidad_tobago',
             es: 'bandera-tt',
         },
         keywords: {
@@ -20022,7 +20022,7 @@ const emojis = [
     {
         code: '🇹🇻',
         name: {
-            en: 'flag-tv',
+            en: 'tuvalu',
             es: 'bandera-tv',
         },
         keywords: {
@@ -20033,7 +20033,7 @@ const emojis = [
     {
         code: '🇹🇼',
         name: {
-            en: 'flag-tw',
+            en: 'taiwan',
             es: 'bandera-tw',
         },
         keywords: {
@@ -20044,7 +20044,7 @@ const emojis = [
     {
         code: '🇹🇿',
         name: {
-            en: 'flag-tz',
+            en: 'tanzania',
             es: 'bandera-tz',
         },
         keywords: {
@@ -20055,7 +20055,7 @@ const emojis = [
     {
         code: '🇺🇦',
         name: {
-            en: 'flag-ua',
+            en: 'ukraine',
             es: 'bandera-ua',
         },
         keywords: {
@@ -20066,7 +20066,7 @@ const emojis = [
     {
         code: '🇺🇬',
         name: {
-            en: 'flag-ug',
+            en: 'uganda',
             es: 'bandera-ug',
         },
         keywords: {
@@ -20077,7 +20077,7 @@ const emojis = [
     {
         code: '🇺🇲',
         name: {
-            en: 'flag-um',
+            en: 'us_outlying_islands',
             es: 'bandera-um',
         },
         keywords: {
@@ -20088,7 +20088,7 @@ const emojis = [
     {
         code: '🇺🇳',
         name: {
-            en: 'flag-un',
+            en: 'united_nations',
             es: 'bandera-onu',
         },
         keywords: {
@@ -20110,7 +20110,7 @@ const emojis = [
     {
         code: '🇺🇾',
         name: {
-            en: 'flag-uy',
+            en: 'uruguay',
             es: 'bandera-uy',
         },
         keywords: {
@@ -20121,7 +20121,7 @@ const emojis = [
     {
         code: '🇺🇿',
         name: {
-            en: 'flag-uz',
+            en: 'uzbekistan',
             es: 'bandera-uz',
         },
         keywords: {
@@ -20132,7 +20132,7 @@ const emojis = [
     {
         code: '🇻🇦',
         name: {
-            en: 'flag-va',
+            en: 'vatican_city',
             es: 'bandera-va',
         },
         keywords: {
@@ -20143,7 +20143,7 @@ const emojis = [
     {
         code: '🇻🇨',
         name: {
-            en: 'flag-vc',
+            en: 'st_vincent_grenadines',
             es: 'bandera-vc',
         },
         keywords: {
@@ -20154,7 +20154,7 @@ const emojis = [
     {
         code: '🇻🇪',
         name: {
-            en: 'flag-ve',
+            en: 'venezuela',
             es: 'bandera-ve',
         },
         keywords: {
@@ -20165,7 +20165,7 @@ const emojis = [
     {
         code: '🇻🇬',
         name: {
-            en: 'flag-vg',
+            en: 'british_virgin_islands',
             es: 'bandera-vg',
         },
         keywords: {
@@ -20176,7 +20176,7 @@ const emojis = [
     {
         code: '🇻🇮',
         name: {
-            en: 'flag-vi',
+            en: 'us_virgin_islands',
             es: 'bandera-vi',
         },
         keywords: {
@@ -20187,7 +20187,7 @@ const emojis = [
     {
         code: '🇻🇳',
         name: {
-            en: 'flag-vn',
+            en: 'vietnam',
             es: 'bandera-vn',
         },
         keywords: {
@@ -20198,7 +20198,7 @@ const emojis = [
     {
         code: '🇻🇺',
         name: {
-            en: 'flag-vu',
+            en: 'vanuatu',
             es: 'bandera-vu',
         },
         keywords: {
@@ -20209,7 +20209,7 @@ const emojis = [
     {
         code: '🇼🇫',
         name: {
-            en: 'flag-wf',
+            en: 'wallis_futuna',
             es: 'bandera-wf',
         },
         keywords: {
@@ -20220,7 +20220,7 @@ const emojis = [
     {
         code: '🇼🇸',
         name: {
-            en: 'flag-ws',
+            en: 'samoa',
             es: 'bandera-ws',
         },
         keywords: {
@@ -20231,7 +20231,7 @@ const emojis = [
     {
         code: '🇽🇰',
         name: {
-            en: 'flag-xk',
+            en: 'kosovo',
             es: 'bandera-xk',
         },
         keywords: {
@@ -20242,7 +20242,7 @@ const emojis = [
     {
         code: '🇾🇪',
         name: {
-            en: 'flag-ye',
+            en: 'yemen',
             es: 'bandera-ye',
         },
         keywords: {
@@ -20253,7 +20253,7 @@ const emojis = [
     {
         code: '🇾🇹',
         name: {
-            en: 'flag-yt',
+            en: 'mayotte',
             es: 'bandera-yt',
         },
         keywords: {
@@ -20264,7 +20264,7 @@ const emojis = [
     {
         code: '🇿🇦',
         name: {
-            en: 'flag-za',
+            en: 'south_africa',
             es: 'bandera-za',
         },
         keywords: {
@@ -20275,7 +20275,7 @@ const emojis = [
     {
         code: '🇿🇲',
         name: {
-            en: 'flag-zm',
+            en: 'zambia',
             es: 'bandera-zm',
         },
         keywords: {
@@ -20286,7 +20286,7 @@ const emojis = [
     {
         code: '🇿🇼',
         name: {
-            en: 'flag-zw',
+            en: 'zimbabwe',
             es: 'bandera-zw',
         },
         keywords: {
@@ -20297,7 +20297,7 @@ const emojis = [
     {
         code: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
         name: {
-            en: 'flag-england',
+            en: 'england',
             es: 'bandera-inglaterra',
         },
         keywords: {
@@ -20308,7 +20308,7 @@ const emojis = [
     {
         code: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
         name: {
-            en: 'flag-scotland',
+            en: 'scotland',
             es: 'bandera-escocia',
         },
         keywords: {
@@ -20319,7 +20319,7 @@ const emojis = [
     {
         code: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
         name: {
-            en: 'flag-wales',
+            en: 'wales',
             es: 'bandera-gales',
         },
         keywords: {
