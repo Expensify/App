@@ -453,7 +453,7 @@ const emojis = [
         code: '😶‍🌫️',
         name: {
             en: 'face_in_clouds',
-            es: 'prohibido_hablar‍niebla',
+            es: 'prohibido_hablar',
         },
         keywords: {
             en: ['absentminded', 'face in the fog', 'head in clouds', 'face in clouds'],
@@ -508,7 +508,7 @@ const emojis = [
         code: '😮‍💨',
         name: {
             en: 'face_exhaling',
-            es: 'boca_abierta‍guión',
+            es: 'boca_abierta',
         },
         keywords: {
             en: ['exhale', 'gasp', 'groan', 'relief', 'whisper', 'whistle', 'face exhaling'],
@@ -695,7 +695,7 @@ const emojis = [
         code: '😵‍💫',
         name: {
             en: 'face_with_spiral_eyes',
-            es: 'cara_de_mareo‍mareado',
+            es: 'cara_de_mareo',
         },
         keywords: {
             en: ['dizzy', 'hypnotized', 'spiral', 'trouble', 'whoa', 'face with spiral eyes'],
@@ -1476,7 +1476,7 @@ const emojis = [
         code: '❤️‍🔥',
         name: {
             en: 'heart_on_fire',
-            es: 'corazón‍fuego',
+            es: 'corazón',
         },
         keywords: {
             en: ['burn', 'heart', 'love', 'lust', 'sacred heart', 'heart on fire'],
@@ -1487,7 +1487,7 @@ const emojis = [
         code: '❤️‍🩹',
         name: {
             en: 'mending_heart',
-            es: 'corazón‍tirita',
+            es: 'corazón',
         },
         keywords: {
             en: ['healthier', 'improving', 'mending', 'recovering', 'recuperating', 'well', 'mending heart'],
@@ -2474,7 +2474,7 @@ const emojis = [
         code: '🧔‍♂️',
         name: {
             en: 'man_with_beard',
-            es: 'persona_barba‍signo_masculino',
+            es: 'persona_barba',
         },
         keywords: {
             en: ['beard', 'man', 'man: beard'],
@@ -2486,7 +2486,7 @@ const emojis = [
         code: '🧔‍♀️',
         name: {
             en: 'woman_with_beard',
-            es: 'persona_barba‍signo_femenino',
+            es: 'persona_barba',
         },
         keywords: {
             en: ['beard', 'woman', 'woman: beard'],
@@ -4053,6 +4053,17 @@ const emojis = [
             es: ['abuela', 'mamá', 'Navidad', 'noel', 'Mamá Noel'],
         },
         types: ['🤶🏻', '🤶🏼', '🤶🏽', '🤶🏾', '🤶🏿'],
+    },
+    {
+        code: '🧑‍🎄',
+        name: {
+            en: 'mx_claus',
+            es: 'mx_claus',
+        },
+        keywords: {
+            en: ['claus', 'christmas', 'mx claus'],
+            es: ['claus', 'christmas', 'mx claus'],
+        },
     },
     {
         code: '🦸',
