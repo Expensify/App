@@ -233,7 +233,7 @@ describe('EmojiTest', () => {
                 const currentTime = moment().unix();
                 const smileEmoji = {
                     code: '😄',
-                    shortcode: {
+                    name: {
                         en: 'smile',
                         es: 'sonrisa',
                     },
@@ -257,7 +257,7 @@ describe('EmojiTest', () => {
             // Given an existing frequently used emojis list
             const smileEmoji = {
                 code: '😄',
-                shortcode: {
+                name: {
                     en: 'smile',
                     es: 'sonrisa',
                 },
@@ -363,7 +363,7 @@ describe('EmojiTest', () => {
             // Given an existing full (24 items) frequently used emojis list
             const smileEmoji = {
                 code: '😄',
-                shortcode: {
+                name: {
                     en: 'smile',
                     es: 'sonrisa',
                 },
@@ -374,7 +374,7 @@ describe('EmojiTest', () => {
             };
             const zzzEmoji = {
                 code: '💤',
-                shortcode: {
+                name: {
                     en: 'zzz',
                     es: 'zzz',
                 },
@@ -385,7 +385,7 @@ describe('EmojiTest', () => {
             };
             const impEmoji = {
                 code: '👿',
-                shortcode: {
+                name: {
                     en: 'imp',
                     es: 'diablillo',
                 },
@@ -396,7 +396,7 @@ describe('EmojiTest', () => {
             };
             const bookEmoji = {
                 code: '📚',
-                shortcode: {
+                name: {
                     en: 'books',
                     es: 'libros',
                 },

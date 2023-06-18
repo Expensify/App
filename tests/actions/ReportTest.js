@@ -525,10 +525,6 @@ describe('actions/Report', () => {
         const EMOJI = {
             code: EMOJI_CODE,
             name: EMOJI_NAME,
-            shortcode: {
-                en: EMOJI_NAME,
-                es: EMOJI_NAME,
-            },
         };
 
         let reportActions;
@@ -638,10 +634,6 @@ describe('actions/Report', () => {
         const EMOJI = {
             code: EMOJI_CODE,
             name: EMOJI_NAME_EN,
-            shortcode: {
-                en: EMOJI_NAME_EN,
-                es: EMOJI_NAME_ES,
-            },
         };
 
         let reportActions;
