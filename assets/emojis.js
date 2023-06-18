@@ -16,11 +16,11 @@ const skinTones = [
     },
     {
         code: '🖐🏻',
-        skinTone: 0,
+        skinTone: 4,
     },
     {
         code: '🖐🏼',
-        skinTone: 1,
+        skinTone: 3,
     },
     {
         code: '🖐🏽',
@@ -28,11 +28,11 @@ const skinTones = [
     },
     {
         code: '🖐🏾',
-        skinTone: 3,
+        skinTone: 1,
     },
     {
         code: '🖐🏿',
-        skinTone: 4,
+        skinTone: 0,
     },
 ];
 
@@ -1757,7 +1757,7 @@ const emojis = [
             en: ['hand', 'wave', 'waving'],
             es: ['agitar', 'mano', 'saludar', 'saludo', 'mano saludando'],
         },
-        types: ['👋🏻', '👋🏼', '👋🏽', '👋🏾', '👋🏿'],
+        types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
     },
     {
         code: '🤚',
@@ -1769,7 +1769,7 @@ const emojis = [
             en: ['backhand', 'raised', 'raised back of hand'],
             es: ['dorso', 'levantado', 'mano', 'dorso de la mano'],
         },
-        types: ['🤚🏻', '🤚🏼', '🤚🏽', '🤚🏾', '🤚🏿'],
+        types: ['🤚🏿', '🤚🏾', '🤚🏽', '🤚🏼', '🤚🏻'],
     },
     {
         code: '🖐️',
@@ -1781,7 +1781,7 @@ const emojis = [
             en: ['finger', 'hand', 'splayed', 'hand with fingers splayed'],
             es: ['abierta', 'dedo', 'mano'],
         },
-        types: ['🖐🏻', '🖐🏼', '🖐🏽', '🖐🏾', '🖐🏿'],
+        types: ['🖐🏿', '🖐🏾', '🖐🏽', '🖐🏼', '🖐🏻'],
     },
     {
         code: '✋',
@@ -1793,7 +1793,7 @@ const emojis = [
             en: ['hand', 'high 5', 'high five', 'raised hand'],
             es: ['choca esos cinco', 'levantada', 'mano'],
         },
-        types: ['✋🏻', '✋🏼', '✋🏽', '✋🏾', '✋🏿'],
+        types: ['✋🏿', '✋🏾', '✋🏽', '✋🏼', '✋🏻'],
     },
     {
         code: '🖖',
@@ -1805,7 +1805,7 @@ const emojis = [
             en: ['finger', 'hand', 'spock', 'vulcan', 'vulcan salute'],
             es: ['mano', 'saludo', 'spock', 'vulcano'],
         },
-        types: ['🖖🏻', '🖖🏼', '🖖🏽', '🖖🏾', '🖖🏿'],
+        types: ['🖖🏿', '🖖🏾', '🖖🏽', '🖖🏼', '🖖🏻'],
     },
     {
         code: '👌',
@@ -1817,7 +1817,7 @@ const emojis = [
             en: ['hand', 'OK'],
             es: ['aprobación', 'mano', 'ok', 'señal de aprobación con la mano'],
         },
-        types: ['👌🏻', '👌🏼', '👌🏽', '👌🏾', '👌🏿'],
+        types: ['👌🏿', '👌🏾', '👌🏽', '👌🏼', '👌🏻'],
     },
     {
         code: '🤌',
@@ -1829,7 +1829,7 @@ const emojis = [
             en: ['fingers', 'hand gesture', 'interrogation', 'pinched', 'sarcastic'],
             es: ['dedos', 'gesto', 'italia', 'italiano', 'mano', 'sarcasmo', 'dedos juntos apuntando hacia arriba'],
         },
-        types: ['🤌🏻', '🤌🏼', '🤌🏽', '🤌🏾', '🤌🏿'],
+        types: ['🤌🏿', '🤌🏾', '🤌🏽', '🤌🏼', '🤌🏻'],
     },
     {
         code: '🤏',
@@ -1841,7 +1841,7 @@ const emojis = [
             en: ['small amount', 'pinching hand'],
             es: ['pellizco', 'poco', 'poquito', 'mano pellizcando'],
         },
-        types: ['🤏🏻', '🤏🏼', '🤏🏽', '🤏🏾', '🤏🏿'],
+        types: ['🤏🏿', '🤏🏾', '🤏🏽', '🤏🏼', '🤏🏻'],
     },
     {
         code: '✌️',
@@ -1853,7 +1853,7 @@ const emojis = [
             en: ['hand', 'v', 'victory'],
             es: ['mano', 'señal de victoria', 'victoria', 'mano con señal de victoria'],
         },
-        types: ['✌🏻', '✌🏼', '✌🏽', '✌🏾', '✌🏿'],
+        types: ['✌🏿', '✌🏾', '✌🏽', '✌🏼', '✌🏻'],
     },
     {
         code: '🤞',
@@ -1865,7 +1865,7 @@ const emojis = [
             en: ['cross', 'finger', 'hand', 'luck', 'crossed fingers'],
             es: ['cruzar', 'dedos', 'mano', 'suerte', 'dedos cruzados'],
         },
-        types: ['🤞🏻', '🤞🏼', '🤞🏽', '🤞🏾', '🤞🏿'],
+        types: ['🤞🏿', '🤞🏾', '🤞🏽', '🤞🏼', '🤞🏻'],
     },
     {
         code: '🤟',
@@ -1877,7 +1877,7 @@ const emojis = [
             en: ['hand', 'ILY', 'love-you gesture'],
             es: ['mano', 'quiero', 'gesto de te quiero'],
         },
-        types: ['🤟🏻', '🤟🏼', '🤟🏽', '🤟🏾', '🤟🏿'],
+        types: ['🤟🏿', '🤟🏾', '🤟🏽', '🤟🏼', '🤟🏻'],
     },
     {
         code: '🤘',
@@ -1889,7 +1889,7 @@ const emojis = [
             en: ['finger', 'hand', 'horns', 'rock-on', 'sign of the horns'],
             es: ['cuernos', 'dedo', 'mano', 'rock', 'mano haciendo el signo de cuernos'],
         },
-        types: ['🤘🏻', '🤘🏼', '🤘🏽', '🤘🏾', '🤘🏿'],
+        types: ['🤘🏿', '🤘🏾', '🤘🏽', '🤘🏼', '🤘🏻'],
     },
     {
         code: '🤙',
@@ -1901,7 +1901,7 @@ const emojis = [
             en: ['call', 'hand', 'hang loose', 'Shaka', 'call me hand'],
             es: ['llamar', 'mano', 'meñique', 'pulgar', 'mano haciendo el gesto de llamar'],
         },
-        types: ['🤙🏻', '🤙🏼', '🤙🏽', '🤙🏾', '🤙🏿'],
+        types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
     },
     {
         code: '👈',
@@ -1913,7 +1913,7 @@ const emojis = [
             en: ['backhand', 'finger', 'hand', 'index', 'point', 'backhand index pointing left'],
             es: ['dedo', 'índice', 'izquierda', 'mano', 'dorso de mano con índice a la izquierda'],
         },
-        types: ['👈🏻', '👈🏼', '👈🏽', '👈🏾', '👈🏿'],
+        types: ['👈🏿', '👈🏾', '👈🏽', '👈🏼', '👈🏻'],
     },
     {
         code: '👉',
@@ -1925,7 +1925,7 @@ const emojis = [
             en: ['backhand', 'finger', 'hand', 'index', 'point', 'backhand index pointing right'],
             es: ['dedo', 'derecha', 'índice', 'mano', 'dorso de mano con índice a la derecha'],
         },
-        types: ['👉🏻', '👉🏼', '👉🏽', '👉🏾', '👉🏿'],
+        types: ['👉🏿', '👉🏾', '👉🏽', '👉🏼', '👉🏻'],
     },
     {
         code: '👆',
@@ -1937,7 +1937,7 @@ const emojis = [
             en: ['backhand', 'finger', 'hand', 'point', 'up', 'backhand index pointing up'],
             es: ['apuntar', 'arriba', 'dedo', 'mano', 'dorso de mano con índice hacia arriba'],
         },
-        types: ['👆🏻', '👆🏼', '👆🏽', '👆🏾', '👆🏿'],
+        types: ['👆🏿', '👆🏾', '👆🏽', '👆🏼', '👆🏻'],
     },
     {
         code: '🖕',
@@ -1949,7 +1949,7 @@ const emojis = [
             en: ['finger', 'hand', 'middle finger'],
             es: ['corazón', 'dedo', 'mano', 'peineta', 'dedo corazón hacia arriba'],
         },
-        types: ['🖕🏻', '🖕🏼', '🖕🏽', '🖕🏾', '🖕🏿'],
+        types: ['🖕🏿', '🖕🏾', '🖕🏽', '🖕🏼', '🖕🏻'],
     },
     {
         code: '👇',
@@ -1961,7 +1961,7 @@ const emojis = [
             en: ['backhand', 'down', 'finger', 'hand', 'point', 'backhand index pointing down'],
             es: ['abajo', 'apuntar', 'dedo', 'mano', 'dorso de mano con índice hacia abajo'],
         },
-        types: ['👇🏻', '👇🏼', '👇🏽', '👇🏾', '👇🏿'],
+        types: ['👇🏿', '👇🏾', '👇🏽', '👇🏼', '👇🏻'],
     },
     {
         code: '☝️',
@@ -1973,7 +1973,7 @@ const emojis = [
             en: ['finger', 'hand', 'index', 'point', 'up', 'index pointing up'],
             es: ['apuntar', 'arriba', 'dedo', 'mano', 'dedo índice hacia arriba'],
         },
-        types: ['☝🏻', '☝🏼', '☝🏽', '☝🏾', '☝🏿'],
+        types: ['☝🏿', '☝🏾', '☝🏽', '☝🏼', '☝🏻'],
     },
     {
         code: '👍',
@@ -1985,7 +1985,7 @@ const emojis = [
             en: ['hand', 'thumb', 'up', '+1', 'thumbs up'],
             es: ['arriba', 'mano', 'pulgar', 'señal', 'pulgar hacia arriba'],
         },
-        types: ['👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿'],
+        types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
     },
     {
         code: '👎',
@@ -1997,7 +1997,7 @@ const emojis = [
             en: ['down', 'hand', 'thumb', '-1', 'thumbs down'],
             es: ['abajo', 'mano', 'pulgar', 'señal', 'pulgar hacia abajo'],
         },
-        types: ['👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿'],
+        types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
     },
     {
         code: '✊',
@@ -2009,7 +2009,7 @@ const emojis = [
             en: ['clenched', 'fist', 'hand', 'punch', 'raised fist'],
             es: ['cerrado', 'mano', 'puñetazo', 'puño', 'puño en alto'],
         },
-        types: ['✊🏻', '✊🏼', '✊🏽', '✊🏾', '✊🏿'],
+        types: ['✊🏿', '✊🏾', '✊🏽', '✊🏼', '✊🏻'],
     },
     {
         code: '👊',
@@ -2021,7 +2021,7 @@ const emojis = [
             en: ['clenched', 'fist', 'hand', 'punch', 'oncoming fist'],
             es: ['puñetazo', 'puño', 'puño cerrado'],
         },
-        types: ['👊🏻', '👊🏼', '👊🏽', '👊🏾', '👊🏿'],
+        types: ['👊🏿', '👊🏾', '👊🏽', '👊🏼', '👊🏻'],
     },
     {
         code: '🤛',
@@ -2033,7 +2033,7 @@ const emojis = [
             en: ['fist', 'leftwards', 'left-facing fist'],
             es: ['izquierda', 'puño', 'puño hacia la izquierda'],
         },
-        types: ['🤛🏻', '🤛🏼', '🤛🏽', '🤛🏾', '🤛🏿'],
+        types: ['🤛🏿', '🤛🏾', '🤛🏽', '🤛🏼', '🤛🏻'],
     },
     {
         code: '🤜',
@@ -2045,7 +2045,7 @@ const emojis = [
             en: ['fist', 'rightwards', 'right-facing fist'],
             es: ['derecha', 'puño', 'puño hacia la derecha'],
         },
-        types: ['🤜🏻', '🤜🏼', '🤜🏽', '🤜🏾', '🤜🏿'],
+        types: ['🤜🏿', '🤜🏾', '🤜🏽', '🤜🏼', '🤜🏻'],
     },
     {
         code: '👏',
@@ -2057,7 +2057,7 @@ const emojis = [
             en: ['clap', 'hand', 'clapping hands'],
             es: ['aplaudir', 'manos', 'palmas', 'señal', 'manos aplaudiendo'],
         },
-        types: ['👏🏻', '👏🏼', '👏🏽', '👏🏾', '👏🏿'],
+        types: ['👏🏿', '👏🏾', '👏🏽', '👏🏼', '👏🏻'],
     },
     {
         code: '🙌',
@@ -2069,7 +2069,7 @@ const emojis = [
             en: ['celebration', 'gesture', 'hand', 'hooray', 'raised', 'raising hands'],
             es: ['celebración', 'gesto', 'hurra', 'mano', 'manos levantadas celebrando'],
         },
-        types: ['🙌🏻', '🙌🏼', '🙌🏽', '🙌🏾', '🙌🏿'],
+        types: ['🙌🏿', '🙌🏾', '🙌🏽', '🙌🏼', '🙌🏻'],
     },
     {
         code: '👐',
@@ -2081,7 +2081,7 @@ const emojis = [
             en: ['hand', 'open', 'open hands'],
             es: ['abiertas', 'manos'],
         },
-        types: ['👐🏻', '👐🏼', '👐🏽', '👐🏾', '👐🏿'],
+        types: ['👐🏿', '👐🏾', '👐🏽', '👐🏼', '👐🏻'],
     },
     {
         code: '🤲',
@@ -2093,7 +2093,7 @@ const emojis = [
             en: ['prayer', 'palms up together'],
             es: ['oración', 'palmas hacia arriba juntas'],
         },
-        types: ['🤲🏻', '🤲🏼', '🤲🏽', '🤲🏾', '🤲🏿'],
+        types: ['🤲🏿', '🤲🏾', '🤲🏽', '🤲🏼', '🤲🏻'],
     },
     {
         code: '🤝',
@@ -2106,31 +2106,31 @@ const emojis = [
             es: ['acuerdo', 'apretón', 'manos', 'apretón de manos'],
         },
         types: [
-            '🤝🏻',
-            '🤝🏼',
-            '🤝🏽',
-            '🤝🏾',
-            '🤝🏿',
-            '🫱🏻‍🫲🏼',
-            '🫱🏻‍🫲🏽',
-            '🫱🏻‍🫲🏾',
-            '🫱🏻‍🫲🏿',
-            '🫱🏼‍🫲🏻',
-            '🫱🏼‍🫲🏽',
-            '🫱🏼‍🫲🏾',
-            '🫱🏼‍🫲🏿',
-            '🫱🏽‍🫲🏻',
-            '🫱🏽‍🫲🏼',
-            '🫱🏽‍🫲🏾',
-            '🫱🏽‍🫲🏿',
-            '🫱🏾‍🫲🏻',
-            '🫱🏾‍🫲🏼',
-            '🫱🏾‍🫲🏽',
-            '🫱🏾‍🫲🏿',
-            '🫱🏿‍🫲🏻',
-            '🫱🏿‍🫲🏼',
-            '🫱🏿‍🫲🏽',
             '🫱🏿‍🫲🏾',
+            '🫱🏿‍🫲🏽',
+            '🫱🏿‍🫲🏼',
+            '🫱🏿‍🫲🏻',
+            '🫱🏾‍🫲🏿',
+            '🫱🏾‍🫲🏽',
+            '🫱🏾‍🫲🏼',
+            '🫱🏾‍🫲🏻',
+            '🫱🏽‍🫲🏿',
+            '🫱🏽‍🫲🏾',
+            '🫱🏽‍🫲🏼',
+            '🫱🏽‍🫲🏻',
+            '🫱🏼‍🫲🏿',
+            '🫱🏼‍🫲🏾',
+            '🫱🏼‍🫲🏽',
+            '🫱🏼‍🫲🏻',
+            '🫱🏻‍🫲🏿',
+            '🫱🏻‍🫲🏾',
+            '🫱🏻‍🫲🏽',
+            '🫱🏻‍🫲🏼',
+            '🤝🏿',
+            '🤝🏾',
+            '🤝🏽',
+            '🤝🏼',
+            '🤝🏻',
         ],
     },
     {
@@ -2143,7 +2143,7 @@ const emojis = [
             en: ['ask', 'hand', 'high 5', 'high five', 'please', 'pray', 'thanks', 'folded hands'],
             es: ['gracias', 'mano', 'oración', 'orar', 'por favor', 'rezar', 'manos en oración'],
         },
-        types: ['🙏🏻', '🙏🏼', '🙏🏽', '🙏🏾', '🙏🏿'],
+        types: ['🙏🏿', '🙏🏾', '🙏🏽', '🙏🏼', '🙏🏻'],
     },
     {
         code: '✍️',
@@ -2155,7 +2155,7 @@ const emojis = [
             en: ['hand', 'write', 'writing hand'],
             es: ['escribir', 'lápiz', 'mano', 'mano escribiendo'],
         },
-        types: ['✍🏻', '✍🏼', '✍🏽', '✍🏾', '✍🏿'],
+        types: ['✍🏿', '✍🏾', '✍🏽', '✍🏼', '✍🏻'],
     },
     {
         code: '💅',
@@ -2167,7 +2167,7 @@ const emojis = [
             en: ['care', 'cosmetics', 'manicure', 'nail', 'polish'],
             es: ['cosmética', 'esmalte', 'manicura', 'uñas', 'pintarse las uñas'],
         },
-        types: ['💅🏻', '💅🏼', '💅🏽', '💅🏾', '💅🏿'],
+        types: ['💅🏿', '💅🏾', '💅🏽', '💅🏼', '💅🏻'],
     },
     {
         code: '🤳',
@@ -2179,7 +2179,7 @@ const emojis = [
             en: ['camera', 'phone', 'selfie'],
             es: ['autofoto', 'cámara', 'selfie', 'teléfono', 'selfi'],
         },
-        types: ['🤳🏻', '🤳🏼', '🤳🏽', '🤳🏾', '🤳🏿'],
+        types: ['🤳🏿', '🤳🏾', '🤳🏽', '🤳🏼', '🤳🏻'],
     },
     {
         code: '💪',
@@ -2191,7 +2191,7 @@ const emojis = [
             en: ['biceps', 'comic', 'flex', 'muscle', 'flexed biceps'],
             es: ['bíceps', 'cómic', 'flexionado', 'fuerte', 'músculo'],
         },
-        types: ['💪🏻', '💪🏼', '💪🏽', '💪🏾', '💪🏿'],
+        types: ['💪🏿', '💪🏾', '💪🏽', '💪🏼', '💪🏻'],
     },
     {
         code: '🦾',
@@ -2225,7 +2225,7 @@ const emojis = [
             en: ['kick', 'limb', 'leg'],
             es: ['extremidad', 'patada', 'pierna'],
         },
-        types: ['🦵🏻', '🦵🏼', '🦵🏽', '🦵🏾', '🦵🏿'],
+        types: ['🦵🏿', '🦵🏾', '🦵🏽', '🦵🏼', '🦵🏻'],
     },
     {
         code: '🦶',
@@ -2237,7 +2237,7 @@ const emojis = [
             en: ['kick', 'stomp', 'foot'],
             es: ['patada', 'pisotón', 'pie'],
         },
-        types: ['🦶🏻', '🦶🏼', '🦶🏽', '🦶🏾', '🦶🏿'],
+        types: ['🦶🏿', '🦶🏾', '🦶🏽', '🦶🏼', '🦶🏻'],
     },
     {
         code: '👂',
@@ -2249,7 +2249,7 @@ const emojis = [
             en: ['body', 'ear'],
             es: ['cuerpo', 'oreja'],
         },
-        types: ['👂🏻', '👂🏼', '👂🏽', '👂🏾', '👂🏿'],
+        types: ['👂🏿', '👂🏾', '👂🏽', '👂🏼', '👂🏻'],
     },
     {
         code: '🦻',
@@ -2261,7 +2261,7 @@ const emojis = [
             en: ['accessibility', 'hard of hearing', 'ear with hearing aid'],
             es: ['accesibilidad', 'audífono', 'prótesis auditiva', 'sordo', 'oreja con audífono'],
         },
-        types: ['🦻🏻', '🦻🏼', '🦻🏽', '🦻🏾', '🦻🏿'],
+        types: ['🦻🏿', '🦻🏾', '🦻🏽', '🦻🏼', '🦻🏻'],
     },
     {
         code: '👃',
@@ -2273,7 +2273,7 @@ const emojis = [
             en: ['body', 'nose'],
             es: ['cuerpo', 'nariz'],
         },
-        types: ['👃🏻', '👃🏼', '👃🏽', '👃🏾', '👃🏿'],
+        types: ['👃🏿', '👃🏾', '👃🏽', '👃🏼', '👃🏻'],
     },
     {
         code: '🧠',
@@ -2384,7 +2384,7 @@ const emojis = [
             en: ['young', 'baby'],
             es: ['joven', 'niño', 'bebé'],
         },
-        types: ['👶🏻', '👶🏼', '👶🏽', '👶🏾', '👶🏿'],
+        types: ['👶🏿', '👶🏾', '👶🏽', '👶🏼', '👶🏻'],
     },
     {
         code: '🧒',
@@ -2396,7 +2396,7 @@ const emojis = [
             en: ['gender-neutral', 'unspecified gender', 'young', 'child'],
             es: ['crío', 'género', 'joven', 'neutro', 'infante'],
         },
-        types: ['🧒🏻', '🧒🏼', '🧒🏽', '🧒🏾', '🧒🏿'],
+        types: ['🧒🏿', '🧒🏾', '🧒🏽', '🧒🏼', '🧒🏻'],
     },
     {
         code: '👦',
@@ -2408,7 +2408,7 @@ const emojis = [
             en: ['young', 'boy'],
             es: ['joven', 'niño'],
         },
-        types: ['👦🏻', '👦🏼', '👦🏽', '👦🏾', '👦🏿'],
+        types: ['👦🏿', '👦🏾', '👦🏽', '👦🏼', '👦🏻'],
     },
     {
         code: '👧',
@@ -2420,7 +2420,7 @@ const emojis = [
             en: ['Virgo', 'young', 'zodiac', 'girl'],
             es: ['chica', 'joven', 'niña'],
         },
-        types: ['👧🏻', '👧🏼', '👧🏽', '👧🏾', '👧🏿'],
+        types: ['👧🏿', '👧🏾', '👧🏽', '👧🏼', '👧🏻'],
     },
     {
         code: '🧑',
@@ -2432,7 +2432,7 @@ const emojis = [
             en: ['adult', 'gender-neutral', 'unspecified gender', 'person'],
             es: ['género', 'neutro', 'persona adulta'],
         },
-        types: ['🧑🏻', '🧑🏼', '🧑🏽', '🧑🏾', '🧑🏿'],
+        types: ['🧑🏿', '🧑🏾', '🧑🏽', '🧑🏼', '🧑🏻'],
     },
     {
         code: '👱',
@@ -2444,7 +2444,7 @@ const emojis = [
             en: ['blond', 'blond-haired person', 'hair', 'person: blond hair'],
             es: ['rubia', 'rubias', 'rubio', 'rubios', 'persona adulta rubia'],
         },
-        types: ['👱🏻', '👱🏼', '👱🏽', '👱🏾', '👱🏿'],
+        types: ['👱🏿', '👱🏾', '👱🏽', '👱🏼', '👱🏻'],
     },
     {
         code: '👨',
@@ -2456,7 +2456,7 @@ const emojis = [
             en: ['adult', 'man'],
             es: ['adulto', 'hombre'],
         },
-        types: ['👨🏻', '👨🏼', '👨🏽', '👨🏾', '👨🏿'],
+        types: ['👨🏿', '👨🏾', '👨🏽', '👨🏼', '👨🏻'],
     },
     {
         code: '🧔',
@@ -2468,7 +2468,7 @@ const emojis = [
             en: ['beard', 'person', 'person: beard'],
             es: ['barbas', 'barbudo', 'persona', 'persona con barba'],
         },
-        types: ['🧔🏻', '🧔🏼', '🧔🏽', '🧔🏾', '🧔🏿'],
+        types: ['🧔🏿', '🧔🏾', '🧔🏽', '🧔🏼', '🧔🏻'],
     },
     {
         code: '🧔‍♂️',
@@ -2480,7 +2480,7 @@ const emojis = [
             en: ['beard', 'man', 'man: beard'],
             es: ['barba', 'hombre', 'hombre: barba'],
         },
-        types: ['🧔🏻‍♂️', '🧔🏼‍♂️', '🧔🏽‍♂️', '🧔🏾‍♂️', '🧔🏿‍♂️'],
+        types: ['🧔🏿‍♂️', '🧔🏾‍♂️', '🧔🏽‍♂️', '🧔🏼‍♂️', '🧔🏻‍♂️'],
     },
     {
         code: '🧔‍♀️',
@@ -2492,7 +2492,7 @@ const emojis = [
             en: ['beard', 'woman', 'woman: beard'],
             es: ['barba', 'mujer', 'mujer: barba'],
         },
-        types: ['🧔🏻‍♀️', '🧔🏼‍♀️', '🧔🏽‍♀️', '🧔🏾‍♀️', '🧔🏿‍♀️'],
+        types: ['🧔🏿‍♀️', '🧔🏾‍♀️', '🧔🏽‍♀️', '🧔🏼‍♀️', '🧔🏻‍♀️'],
     },
     {
         code: '👨‍🦰',
@@ -2504,7 +2504,7 @@ const emojis = [
             en: ['adult', 'man', 'red hair'],
             es: ['adulto', 'hombre', 'pelo pelirrojo'],
         },
-        types: ['👨🏻‍🦰', '👨🏼‍🦰', '👨🏽‍🦰', '👨🏾‍🦰', '👨🏿‍🦰'],
+        types: ['👨🏿‍🦰', '👨🏾‍🦰', '👨🏽‍🦰', '👨🏼‍🦰', '👨🏻‍🦰'],
     },
     {
         code: '👨‍🦱',
@@ -2516,7 +2516,7 @@ const emojis = [
             en: ['adult', 'curly hair', 'man'],
             es: ['adulto', 'hombre', 'pelo rizado'],
         },
-        types: ['👨🏻‍🦱', '👨🏼‍🦱', '👨🏽‍🦱', '👨🏾‍🦱', '👨🏿‍🦱'],
+        types: ['👨🏿‍🦱', '👨🏾‍🦱', '👨🏽‍🦱', '👨🏼‍🦱', '👨🏻‍🦱'],
     },
     {
         code: '👨‍🦳',
@@ -2528,7 +2528,7 @@ const emojis = [
             en: ['adult', 'man', 'white hair'],
             es: ['adulto', 'hombre', 'pelo blanco'],
         },
-        types: ['👨🏻‍🦳', '👨🏼‍🦳', '👨🏽‍🦳', '👨🏾‍🦳', '👨🏿‍🦳'],
+        types: ['👨🏿‍🦳', '👨🏾‍🦳', '👨🏽‍🦳', '👨🏼‍🦳', '👨🏻‍🦳'],
     },
     {
         code: '👨‍🦲',
@@ -2540,7 +2540,7 @@ const emojis = [
             en: ['adult', 'bald', 'man'],
             es: ['adulto', 'hombre', 'sin pelo'],
         },
-        types: ['👨🏻‍🦲', '👨🏼‍🦲', '👨🏽‍🦲', '👨🏾‍🦲', '👨🏿‍🦲'],
+        types: ['👨🏿‍🦲', '👨🏾‍🦲', '👨🏽‍🦲', '👨🏼‍🦲', '👨🏻‍🦲'],
     },
     {
         code: '👩',
@@ -2552,7 +2552,7 @@ const emojis = [
             en: ['adult', 'woman'],
             es: ['adulta', 'mujer'],
         },
-        types: ['👩🏻', '👩🏼', '👩🏽', '👩🏾', '👩🏿'],
+        types: ['👩🏿', '👩🏾', '👩🏽', '👩🏼', '👩🏻'],
     },
     {
         code: '👩‍🦰',
@@ -2564,7 +2564,7 @@ const emojis = [
             en: ['adult', 'red hair', 'woman'],
             es: ['adulta', 'mujer', 'pelo pelirrojo'],
         },
-        types: ['👩🏻‍🦰', '👩🏼‍🦰', '👩🏽‍🦰', '👩🏾‍🦰', '👩🏿‍🦰'],
+        types: ['👩🏿‍🦰', '👩🏾‍🦰', '👩🏽‍🦰', '👩🏼‍🦰', '👩🏻‍🦰'],
     },
     {
         code: '🧑‍🦰',
@@ -2576,7 +2576,7 @@ const emojis = [
             en: ['adult', 'gender-neutral', 'person', 'red hair', 'unspecified gender'],
             es: ['género', 'neutro', 'pelo pelirrojo', 'persona adulta'],
         },
-        types: ['🧑🏻‍🦰', '🧑🏼‍🦰', '🧑🏽‍🦰', '🧑🏾‍🦰', '🧑🏿‍🦰'],
+        types: ['🧑🏿‍🦰', '🧑🏾‍🦰', '🧑🏽‍🦰', '🧑🏼‍🦰', '🧑🏻‍🦰'],
     },
     {
         code: '👩‍🦱',
@@ -2588,7 +2588,7 @@ const emojis = [
             en: ['adult', 'curly hair', 'woman'],
             es: ['adulta', 'mujer', 'pelo rizado'],
         },
-        types: ['👩🏻‍🦱', '👩🏼‍🦱', '👩🏽‍🦱', '👩🏾‍🦱', '👩🏿‍🦱'],
+        types: ['👩🏿‍🦱', '👩🏾‍🦱', '👩🏽‍🦱', '👩🏼‍🦱', '👩🏻‍🦱'],
     },
     {
         code: '🧑‍🦱',
@@ -2600,7 +2600,7 @@ const emojis = [
             en: ['adult', 'curly hair', 'gender-neutral', 'person', 'unspecified gender'],
             es: ['género', 'neutro', 'pelo rizado', 'persona adulta'],
         },
-        types: ['🧑🏻‍🦱', '🧑🏼‍🦱', '🧑🏽‍🦱', '🧑🏾‍🦱', '🧑🏿‍🦱'],
+        types: ['🧑🏿‍🦱', '🧑🏾‍🦱', '🧑🏽‍🦱', '🧑🏼‍🦱', '🧑🏻‍🦱'],
     },
     {
         code: '👩‍🦳',
@@ -2612,7 +2612,7 @@ const emojis = [
             en: ['adult', 'white hair', 'woman'],
             es: ['adulta', 'mujer', 'pelo blanco'],
         },
-        types: ['👩🏻‍🦳', '👩🏼‍🦳', '👩🏽‍🦳', '👩🏾‍🦳', '👩🏿‍🦳'],
+        types: ['👩🏿‍🦳', '👩🏾‍🦳', '👩🏽‍🦳', '👩🏼‍🦳', '👩🏻‍🦳'],
     },
     {
         code: '🧑‍🦳',
@@ -2624,7 +2624,7 @@ const emojis = [
             en: ['adult', 'gender-neutral', 'person', 'unspecified gender', 'white hair'],
             es: ['género', 'neutro', 'pelo blanco', 'persona adulta'],
         },
-        types: ['🧑🏻‍🦳', '🧑🏼‍🦳', '🧑🏽‍🦳', '🧑🏾‍🦳', '🧑🏿‍🦳'],
+        types: ['🧑🏿‍🦳', '🧑🏾‍🦳', '🧑🏽‍🦳', '🧑🏼‍🦳', '🧑🏻‍🦳'],
     },
     {
         code: '👩‍🦲',
@@ -2636,7 +2636,7 @@ const emojis = [
             en: ['adult', 'bald', 'woman'],
             es: ['adulta', 'mujer', 'sin pelo'],
         },
-        types: ['👩🏻‍🦲', '👩🏼‍🦲', '👩🏽‍🦲', '👩🏾‍🦲', '👩🏿‍🦲'],
+        types: ['👩🏿‍🦲', '👩🏾‍🦲', '👩🏽‍🦲', '👩🏼‍🦲', '👩🏻‍🦲'],
     },
     {
         code: '🧑‍🦲',
@@ -2648,7 +2648,7 @@ const emojis = [
             en: ['adult', 'bald', 'gender-neutral', 'person', 'unspecified gender'],
             es: ['género', 'neutro', 'persona adulta', 'sin pelo'],
         },
-        types: ['🧑🏻‍🦲', '🧑🏼‍🦲', '🧑🏽‍🦲', '🧑🏾‍🦲', '🧑🏿‍🦲'],
+        types: ['🧑🏿‍🦲', '🧑🏾‍🦲', '🧑🏽‍🦲', '🧑🏼‍🦲', '🧑🏻‍🦲'],
     },
     {
         code: '👱‍♀️',
@@ -2660,7 +2660,7 @@ const emojis = [
             en: ['blond-haired woman', 'blonde', 'hair', 'woman', 'woman: blond hair'],
             es: ['mujer', 'rubia', 'rubiales'],
         },
-        types: ['👱🏻‍♀️', '👱🏼‍♀️', '👱🏽‍♀️', '👱🏾‍♀️', '👱🏿‍♀️'],
+        types: ['👱🏿‍♀️', '👱🏾‍♀️', '👱🏽‍♀️', '👱🏼‍♀️', '👱🏻‍♀️'],
     },
     {
         code: '👱‍♂️',
@@ -2672,7 +2672,7 @@ const emojis = [
             en: ['blond', 'blond-haired man', 'hair', 'man', 'man: blond hair'],
             es: ['hombre', 'rubiales', 'rubio'],
         },
-        types: ['👱🏻‍♂️', '👱🏼‍♂️', '👱🏽‍♂️', '👱🏾‍♂️', '👱🏿‍♂️'],
+        types: ['👱🏿‍♂️', '👱🏾‍♂️', '👱🏽‍♂️', '👱🏼‍♂️', '👱🏻‍♂️'],
     },
     {
         code: '🧓',
@@ -2684,7 +2684,7 @@ const emojis = [
             en: ['adult', 'gender-neutral', 'old', 'unspecified gender', 'older person'],
             es: ['adulto', 'género neutro', 'género no especificado', 'maduro', 'mayor', 'persona mayor'],
         },
-        types: ['🧓🏻', '🧓🏼', '🧓🏽', '🧓🏾', '🧓🏿'],
+        types: ['🧓🏿', '🧓🏾', '🧓🏽', '🧓🏼', '🧓🏻'],
     },
     {
         code: '👴',
@@ -2696,7 +2696,7 @@ const emojis = [
             en: ['adult', 'man', 'old'],
             es: ['hombre', 'mayor', 'anciano'],
         },
-        types: ['👴🏻', '👴🏼', '👴🏽', '👴🏾', '👴🏿'],
+        types: ['👴🏿', '👴🏾', '👴🏽', '👴🏼', '👴🏻'],
     },
     {
         code: '👵',
@@ -2708,7 +2708,7 @@ const emojis = [
             en: ['adult', 'old', 'woman'],
             es: ['mayor', 'mujer', 'anciana'],
         },
-        types: ['👵🏻', '👵🏼', '👵🏽', '👵🏾', '👵🏿'],
+        types: ['👵🏿', '👵🏾', '👵🏽', '👵🏼', '👵🏻'],
     },
     {
         code: '🙍',
@@ -2720,7 +2720,7 @@ const emojis = [
             en: ['frown', 'gesture', 'person frowning'],
             es: ['ceño', 'fruncido', 'gesto', 'persona', 'persona frunciendo el ceño'],
         },
-        types: ['🙍🏻', '🙍🏼', '🙍🏽', '🙍🏾', '🙍🏿'],
+        types: ['🙍🏿', '🙍🏾', '🙍🏽', '🙍🏼', '🙍🏻'],
     },
     {
         code: '🙍‍♂️',
@@ -2732,7 +2732,7 @@ const emojis = [
             en: ['frowning', 'gesture', 'man'],
             es: ['ceño', 'fruncido', 'gesto', 'hombre', 'hombre frunciendo el ceño'],
         },
-        types: ['🙍🏻‍♂️', '🙍🏼‍♂️', '🙍🏽‍♂️', '🙍🏾‍♂️', '🙍🏿‍♂️'],
+        types: ['🙍🏿‍♂️', '🙍🏾‍♂️', '🙍🏽‍♂️', '🙍🏼‍♂️', '🙍🏻‍♂️'],
     },
     {
         code: '🙍‍♀️',
@@ -2744,7 +2744,7 @@ const emojis = [
             en: ['frowning', 'gesture', 'woman'],
             es: ['ceño', 'fruncido', 'gesto', 'mujer', 'mujer frunciendo el ceño'],
         },
-        types: ['🙍🏻‍♀️', '🙍🏼‍♀️', '🙍🏽‍♀️', '🙍🏾‍♀️', '🙍🏿‍♀️'],
+        types: ['🙍🏿‍♀️', '🙍🏾‍♀️', '🙍🏽‍♀️', '🙍🏼‍♀️', '🙍🏻‍♀️'],
     },
     {
         code: '🙎',
@@ -2756,7 +2756,7 @@ const emojis = [
             en: ['gesture', 'pouting', 'person pouting'],
             es: ['gesto', 'persona', 'pucheros', 'persona haciendo pucheros'],
         },
-        types: ['🙎🏻', '🙎🏼', '🙎🏽', '🙎🏾', '🙎🏿'],
+        types: ['🙎🏿', '🙎🏾', '🙎🏽', '🙎🏼', '🙎🏻'],
     },
     {
         code: '🙎‍♂️',
@@ -2768,7 +2768,7 @@ const emojis = [
             en: ['gesture', 'man', 'pouting'],
             es: ['gesto', 'hombre', 'pucheros', 'hombre haciendo pucheros'],
         },
-        types: ['🙎🏻‍♂️', '🙎🏼‍♂️', '🙎🏽‍♂️', '🙎🏾‍♂️', '🙎🏿‍♂️'],
+        types: ['🙎🏿‍♂️', '🙎🏾‍♂️', '🙎🏽‍♂️', '🙎🏼‍♂️', '🙎🏻‍♂️'],
     },
     {
         code: '🙎‍♀️',
@@ -2780,7 +2780,7 @@ const emojis = [
             en: ['gesture', 'pouting', 'woman'],
             es: ['gesto', 'mujer', 'pucheros', 'mujer haciendo pucheros'],
         },
-        types: ['🙎🏻‍♀️', '🙎🏼‍♀️', '🙎🏽‍♀️', '🙎🏾‍♀️', '🙎🏿‍♀️'],
+        types: ['🙎🏿‍♀️', '🙎🏾‍♀️', '🙎🏽‍♀️', '🙎🏼‍♀️', '🙎🏻‍♀️'],
     },
     {
         code: '🙅',
@@ -2792,7 +2792,7 @@ const emojis = [
             en: ['forbidden', 'gesture', 'hand', 'prohibited', 'person gesturing NO'],
             es: ['gesto', 'mano', 'no', 'prohibido', 'persona haciendo el gesto de "no"'],
         },
-        types: ['🙅🏻', '🙅🏼', '🙅🏽', '🙅🏾', '🙅🏿'],
+        types: ['🙅🏿', '🙅🏾', '🙅🏽', '🙅🏼', '🙅🏻'],
     },
     {
         code: '🙅‍♂️',
@@ -2804,7 +2804,7 @@ const emojis = [
             en: ['forbidden', 'gesture', 'hand', 'man', 'prohibited', 'man gesturing NO'],
             es: ['gesto', 'hombre', 'mano', 'prohibido', 'hombre haciendo el gesto de "no"'],
         },
-        types: ['🙅🏻‍♂️', '🙅🏼‍♂️', '🙅🏽‍♂️', '🙅🏾‍♂️', '🙅🏿‍♂️'],
+        types: ['🙅🏿‍♂️', '🙅🏾‍♂️', '🙅🏽‍♂️', '🙅🏼‍♂️', '🙅🏻‍♂️'],
     },
     {
         code: '🙅‍♀️',
@@ -2816,7 +2816,7 @@ const emojis = [
             en: ['forbidden', 'gesture', 'hand', 'prohibited', 'woman', 'woman gesturing NO'],
             es: ['gesto', 'mano', 'mujer', 'prohibido', 'mujer haciendo el gesto de "no"'],
         },
-        types: ['🙅🏻‍♀️', '🙅🏼‍♀️', '🙅🏽‍♀️', '🙅🏾‍♀️', '🙅🏿‍♀️'],
+        types: ['🙅🏿‍♀️', '🙅🏾‍♀️', '🙅🏽‍♀️', '🙅🏼‍♀️', '🙅🏻‍♀️'],
     },
     {
         code: '🙆',
@@ -2828,7 +2828,7 @@ const emojis = [
             en: ['gesture', 'hand', 'OK', 'person gesturing OK'],
             es: ['gesto', 'mano', 'OK', 'vale', 'persona haciendo el gesto de "de acuerdo"'],
         },
-        types: ['🙆🏻', '🙆🏼', '🙆🏽', '🙆🏾', '🙆🏿'],
+        types: ['🙆🏿', '🙆🏾', '🙆🏽', '🙆🏼', '🙆🏻'],
     },
     {
         code: '🙆‍♂️',
@@ -2840,7 +2840,7 @@ const emojis = [
             en: ['gesture', 'hand', 'man', 'OK', 'man gesturing OK'],
             es: ['gesto', 'mano', 'OK', 'vale', 'hombre haciendo el gesto de "de acuerdo"'],
         },
-        types: ['🙆🏻‍♂️', '🙆🏼‍♂️', '🙆🏽‍♂️', '🙆🏾‍♂️', '🙆🏿‍♂️'],
+        types: ['🙆🏿‍♂️', '🙆🏾‍♂️', '🙆🏽‍♂️', '🙆🏼‍♂️', '🙆🏻‍♂️'],
     },
     {
         code: '🙆‍♀️',
@@ -2852,7 +2852,7 @@ const emojis = [
             en: ['gesture', 'hand', 'OK', 'woman', 'woman gesturing OK'],
             es: ['gesto', 'mano', 'OK', 'vale', 'mujer haciendo el gesto de "de acuerdo"'],
         },
-        types: ['🙆🏻‍♀️', '🙆🏼‍♀️', '🙆🏽‍♀️', '🙆🏾‍♀️', '🙆🏿‍♀️'],
+        types: ['🙆🏿‍♀️', '🙆🏾‍♀️', '🙆🏽‍♀️', '🙆🏼‍♀️', '🙆🏻‍♀️'],
     },
     {
         code: '💁',
@@ -2864,7 +2864,7 @@ const emojis = [
             en: ['hand', 'help', 'information', 'sassy', 'tipping', 'person tipping hand'],
             es: ['información', 'mano', 'mostrador', 'persona', 'persona de mostrador de información'],
         },
-        types: ['💁🏻', '💁🏼', '💁🏽', '💁🏾', '💁🏿'],
+        types: ['💁🏿', '💁🏾', '💁🏽', '💁🏼', '💁🏻'],
     },
     {
         code: '💁‍♂️',
@@ -2876,7 +2876,7 @@ const emojis = [
             en: ['man', 'sassy', 'tipping hand', 'man tipping hand'],
             es: ['hombre', 'información', 'mano', 'mostrador', 'empleado de mostrador de información'],
         },
-        types: ['💁🏻‍♂️', '💁🏼‍♂️', '💁🏽‍♂️', '💁🏾‍♂️', '💁🏿‍♂️'],
+        types: ['💁🏿‍♂️', '💁🏾‍♂️', '💁🏽‍♂️', '💁🏼‍♂️', '💁🏻‍♂️'],
     },
     {
         code: '💁‍♀️',
@@ -2888,7 +2888,7 @@ const emojis = [
             en: ['sassy', 'tipping hand', 'woman', 'woman tipping hand'],
             es: ['información', 'mano', 'mostrador', 'mujer', 'empleada de mostrador de información'],
         },
-        types: ['💁🏻‍♀️', '💁🏼‍♀️', '💁🏽‍♀️', '💁🏾‍♀️', '💁🏿‍♀️'],
+        types: ['💁🏿‍♀️', '💁🏾‍♀️', '💁🏽‍♀️', '💁🏼‍♀️', '💁🏻‍♀️'],
     },
     {
         code: '🙋',
@@ -2900,7 +2900,7 @@ const emojis = [
             en: ['gesture', 'hand', 'happy', 'raised', 'person raising hand'],
             es: ['feliz', 'gesto', 'levantar', 'mano', 'persona con la mano levantada'],
         },
-        types: ['🙋🏻', '🙋🏼', '🙋🏽', '🙋🏾', '🙋🏿'],
+        types: ['🙋🏿', '🙋🏾', '🙋🏽', '🙋🏼', '🙋🏻'],
     },
     {
         code: '🙋‍♂️',
@@ -2912,7 +2912,7 @@ const emojis = [
             en: ['gesture', 'man', 'raising hand', 'man raising hand'],
             es: ['gesto', 'hombre', 'levantar', 'mano', 'hombre con la mano levantada'],
         },
-        types: ['🙋🏻‍♂️', '🙋🏼‍♂️', '🙋🏽‍♂️', '🙋🏾‍♂️', '🙋🏿‍♂️'],
+        types: ['🙋🏿‍♂️', '🙋🏾‍♂️', '🙋🏽‍♂️', '🙋🏼‍♂️', '🙋🏻‍♂️'],
     },
     {
         code: '🙋‍♀️',
@@ -2924,7 +2924,7 @@ const emojis = [
             en: ['gesture', 'raising hand', 'woman', 'woman raising hand'],
             es: ['gesto', 'levantar', 'mano', 'mujer', 'mujer con la mano levantada'],
         },
-        types: ['🙋🏻‍♀️', '🙋🏼‍♀️', '🙋🏽‍♀️', '🙋🏾‍♀️', '🙋🏿‍♀️'],
+        types: ['🙋🏿‍♀️', '🙋🏾‍♀️', '🙋🏽‍♀️', '🙋🏼‍♀️', '🙋🏻‍♀️'],
     },
     {
         code: '🧏',
@@ -2936,7 +2936,7 @@ const emojis = [
             en: ['accessibility', 'deaf', 'ear', 'hear', 'deaf person'],
             es: ['accesibilidad', 'escuchar', 'oído', 'oír', 'sordera', 'persona sorda'],
         },
-        types: ['🧏🏻', '🧏🏼', '🧏🏽', '🧏🏾', '🧏🏿'],
+        types: ['🧏🏿', '🧏🏾', '🧏🏽', '🧏🏼', '🧏🏻'],
     },
     {
         code: '🧏‍♂️',
@@ -2948,7 +2948,7 @@ const emojis = [
             en: ['deaf', 'man'],
             es: ['hombre', 'sordera', 'sordo'],
         },
-        types: ['🧏🏻‍♂️', '🧏🏼‍♂️', '🧏🏽‍♂️', '🧏🏾‍♂️', '🧏🏿‍♂️'],
+        types: ['🧏🏿‍♂️', '🧏🏾‍♂️', '🧏🏽‍♂️', '🧏🏼‍♂️', '🧏🏻‍♂️'],
     },
     {
         code: '🧏‍♀️',
@@ -2960,7 +2960,7 @@ const emojis = [
             en: ['deaf', 'woman'],
             es: ['mujer', 'sorda', 'sordera'],
         },
-        types: ['🧏🏻‍♀️', '🧏🏼‍♀️', '🧏🏽‍♀️', '🧏🏾‍♀️', '🧏🏿‍♀️'],
+        types: ['🧏🏿‍♀️', '🧏🏾‍♀️', '🧏🏽‍♀️', '🧏🏼‍♀️', '🧏🏻‍♀️'],
     },
     {
         code: '🙇',
@@ -2972,7 +2972,7 @@ const emojis = [
             en: ['apology', 'bow', 'gesture', 'sorry', 'person bowing'],
             es: ['disculpa', 'gesto', 'perdón', 'reverencia', 'persona haciendo una reverencia'],
         },
-        types: ['🙇🏻', '🙇🏼', '🙇🏽', '🙇🏾', '🙇🏿'],
+        types: ['🙇🏿', '🙇🏾', '🙇🏽', '🙇🏼', '🙇🏻'],
     },
     {
         code: '🙇‍♂️',
@@ -2984,7 +2984,7 @@ const emojis = [
             en: ['apology', 'bowing', 'favor', 'gesture', 'man', 'sorry'],
             es: ['disculpa', 'gesto', 'perdón', 'reverencia', 'hombre haciendo una reverencia'],
         },
-        types: ['🙇🏻‍♂️', '🙇🏼‍♂️', '🙇🏽‍♂️', '🙇🏾‍♂️', '🙇🏿‍♂️'],
+        types: ['🙇🏿‍♂️', '🙇🏾‍♂️', '🙇🏽‍♂️', '🙇🏼‍♂️', '🙇🏻‍♂️'],
     },
     {
         code: '🙇‍♀️',
@@ -2996,7 +2996,7 @@ const emojis = [
             en: ['apology', 'bowing', 'favor', 'gesture', 'sorry', 'woman'],
             es: ['disculpa', 'gesto', 'perdón', 'reverencia', 'mujer haciendo una reverencia'],
         },
-        types: ['🙇🏻‍♀️', '🙇🏼‍♀️', '🙇🏽‍♀️', '🙇🏾‍♀️', '🙇🏿‍♀️'],
+        types: ['🙇🏿‍♀️', '🙇🏾‍♀️', '🙇🏽‍♀️', '🙇🏼‍♀️', '🙇🏻‍♀️'],
     },
     {
         code: '🤦',
@@ -3008,7 +3008,7 @@ const emojis = [
             en: ['disbelief', 'exasperation', 'face', 'palm', 'person facepalming'],
             es: ['facepalm', 'frente', 'incredulidad', 'mano', 'persona con la mano en la frente'],
         },
-        types: ['🤦🏻', '🤦🏼', '🤦🏽', '🤦🏾', '🤦🏿'],
+        types: ['🤦🏿', '🤦🏾', '🤦🏽', '🤦🏼', '🤦🏻'],
     },
     {
         code: '🤦‍♂️',
@@ -3020,7 +3020,7 @@ const emojis = [
             en: ['disbelief', 'exasperation', 'facepalm', 'man', 'man facepalming'],
             es: ['facepalm', 'frente', 'incredulidad', 'mano', 'hombre con la mano en la frente'],
         },
-        types: ['🤦🏻‍♂️', '🤦🏼‍♂️', '🤦🏽‍♂️', '🤦🏾‍♂️', '🤦🏿‍♂️'],
+        types: ['🤦🏿‍♂️', '🤦🏾‍♂️', '🤦🏽‍♂️', '🤦🏼‍♂️', '🤦🏻‍♂️'],
     },
     {
         code: '🤦‍♀️',
@@ -3032,7 +3032,7 @@ const emojis = [
             en: ['disbelief', 'exasperation', 'facepalm', 'woman', 'woman facepalming'],
             es: ['facepalm', 'frente', 'incredulidad', 'mano', 'mujer con la mano en la frente'],
         },
-        types: ['🤦🏻‍♀️', '🤦🏼‍♀️', '🤦🏽‍♀️', '🤦🏾‍♀️', '🤦🏿‍♀️'],
+        types: ['🤦🏿‍♀️', '🤦🏾‍♀️', '🤦🏽‍♀️', '🤦🏼‍♀️', '🤦🏻‍♀️'],
     },
     {
         code: '🤷',
@@ -3044,7 +3044,7 @@ const emojis = [
             en: ['doubt', 'ignorance', 'indifference', 'shrug', 'person shrugging'],
             es: ['duda', 'encogerse', 'hombros', 'indiferencia', 'persona encogida de hombros'],
         },
-        types: ['🤷🏻', '🤷🏼', '🤷🏽', '🤷🏾', '🤷🏿'],
+        types: ['🤷🏿', '🤷🏾', '🤷🏽', '🤷🏼', '🤷🏻'],
     },
     {
         code: '🤷‍♂️',
@@ -3056,7 +3056,7 @@ const emojis = [
             en: ['doubt', 'ignorance', 'indifference', 'man', 'shrug', 'man shrugging'],
             es: ['duda', 'encogerse', 'hombros', 'indiferencia', 'hombre encogido de hombros'],
         },
-        types: ['🤷🏻‍♂️', '🤷🏼‍♂️', '🤷🏽‍♂️', '🤷🏾‍♂️', '🤷🏿‍♂️'],
+        types: ['🤷🏿‍♂️', '🤷🏾‍♂️', '🤷🏽‍♂️', '🤷🏼‍♂️', '🤷🏻‍♂️'],
     },
     {
         code: '🤷‍♀️',
@@ -3068,7 +3068,7 @@ const emojis = [
             en: ['doubt', 'ignorance', 'indifference', 'shrug', 'woman', 'woman shrugging'],
             es: ['duda', 'encogerse', 'hombros', 'indiferencia', 'mujer encogida de hombros'],
         },
-        types: ['🤷🏻‍♀️', '🤷🏼‍♀️', '🤷🏽‍♀️', '🤷🏾‍♀️', '🤷🏿‍♀️'],
+        types: ['🤷🏿‍♀️', '🤷🏾‍♀️', '🤷🏽‍♀️', '🤷🏼‍♀️', '🤷🏻‍♀️'],
     },
     {
         code: '🧑‍⚕️',
@@ -3080,7 +3080,7 @@ const emojis = [
             en: ['doctor', 'healthcare', 'nurse', 'therapist', 'health worker'],
             es: ['doctor', 'enfermero', 'médico', 'salud', 'terapeuta', 'profesional sanitario'],
         },
-        types: ['🧑🏻‍⚕️', '🧑🏼‍⚕️', '🧑🏽‍⚕️', '🧑🏾‍⚕️', '🧑🏿‍⚕️'],
+        types: ['🧑🏿‍⚕️', '🧑🏾‍⚕️', '🧑🏽‍⚕️', '🧑🏼‍⚕️', '🧑🏻‍⚕️'],
     },
     {
         code: '👨‍⚕️',
@@ -3092,7 +3092,7 @@ const emojis = [
             en: ['doctor', 'healthcare', 'man', 'nurse', 'therapist', 'man health worker'],
             es: ['doctor', 'enfermero', 'médico', 'sanitario', 'terapeuta hombre', 'profesional sanitario hombre'],
         },
-        types: ['👨🏻‍⚕️', '👨🏼‍⚕️', '👨🏽‍⚕️', '👨🏾‍⚕️', '👨🏿‍⚕️'],
+        types: ['👨🏿‍⚕️', '👨🏾‍⚕️', '👨🏽‍⚕️', '👨🏼‍⚕️', '👨🏻‍⚕️'],
     },
     {
         code: '👩‍⚕️',
@@ -3104,7 +3104,7 @@ const emojis = [
             en: ['doctor', 'healthcare', 'nurse', 'therapist', 'woman', 'woman health worker'],
             es: ['doctora', 'enfermera', 'médica', 'sanitaria', 'terapeuta mujer', 'profesional sanitario mujer'],
         },
-        types: ['👩🏻‍⚕️', '👩🏼‍⚕️', '👩🏽‍⚕️', '👩🏾‍⚕️', '👩🏿‍⚕️'],
+        types: ['👩🏿‍⚕️', '👩🏾‍⚕️', '👩🏽‍⚕️', '👩🏼‍⚕️', '👩🏻‍⚕️'],
     },
     {
         code: '🧑‍🎓',
@@ -3116,7 +3116,7 @@ const emojis = [
             en: ['graduate', 'student'],
             es: ['graduado', 'licenciado', 'universitario', 'estudiante'],
         },
-        types: ['🧑🏻‍🎓', '🧑🏼‍🎓', '🧑🏽‍🎓', '🧑🏾‍🎓', '🧑🏿‍🎓'],
+        types: ['🧑🏿‍🎓', '🧑🏾‍🎓', '🧑🏽‍🎓', '🧑🏼‍🎓', '🧑🏻‍🎓'],
     },
     {
         code: '👨‍🎓',
@@ -3128,7 +3128,7 @@ const emojis = [
             en: ['graduate', 'man', 'student'],
             es: ['estudiante', 'graduado', 'hombre', 'licenciado', 'universitario'],
         },
-        types: ['👨🏻‍🎓', '👨🏼‍🎓', '👨🏽‍🎓', '👨🏾‍🎓', '👨🏿‍🎓'],
+        types: ['👨🏿‍🎓', '👨🏾‍🎓', '👨🏽‍🎓', '👨🏼‍🎓', '👨🏻‍🎓'],
     },
     {
         code: '👩‍🎓',
@@ -3140,7 +3140,7 @@ const emojis = [
             en: ['graduate', 'student', 'woman'],
             es: ['estudiante', 'graduada', 'licenciada', 'mujer', 'universitaria'],
         },
-        types: ['👩🏻‍🎓', '👩🏼‍🎓', '👩🏽‍🎓', '👩🏾‍🎓', '👩🏿‍🎓'],
+        types: ['👩🏿‍🎓', '👩🏾‍🎓', '👩🏽‍🎓', '👩🏼‍🎓', '👩🏻‍🎓'],
     },
     {
         code: '🧑‍🏫',
@@ -3152,7 +3152,7 @@ const emojis = [
             en: ['instructor', 'professor', 'teacher'],
             es: ['educador', 'enseñanza', 'instructor', 'maestro', 'profesor', 'docente'],
         },
-        types: ['🧑🏻‍🏫', '🧑🏼‍🏫', '🧑🏽‍🏫', '🧑🏾‍🏫', '🧑🏿‍🏫'],
+        types: ['🧑🏿‍🏫', '🧑🏾‍🏫', '🧑🏽‍🏫', '🧑🏼‍🏫', '🧑🏻‍🏫'],
     },
     {
         code: '👨‍🏫',
@@ -3164,7 +3164,7 @@ const emojis = [
             en: ['instructor', 'man', 'professor', 'teacher'],
             es: ['educador', 'hombre', 'instructor', 'maestro', 'profesor', 'docente hombre'],
         },
-        types: ['👨🏻‍🏫', '👨🏼‍🏫', '👨🏽‍🏫', '👨🏾‍🏫', '👨🏿‍🏫'],
+        types: ['👨🏿‍🏫', '👨🏾‍🏫', '👨🏽‍🏫', '👨🏼‍🏫', '👨🏻‍🏫'],
     },
     {
         code: '👩‍🏫',
@@ -3176,7 +3176,7 @@ const emojis = [
             en: ['instructor', 'professor', 'teacher', 'woman'],
             es: ['educadora', 'instructora', 'maestra', 'mujer', 'profesora', 'docente mujer'],
         },
-        types: ['👩🏻‍🏫', '👩🏼‍🏫', '👩🏽‍🏫', '👩🏾‍🏫', '👩🏿‍🏫'],
+        types: ['👩🏿‍🏫', '👩🏾‍🏫', '👩🏽‍🏫', '👩🏼‍🏫', '👩🏻‍🏫'],
     },
     {
         code: '🧑‍⚖️',
@@ -3188,7 +3188,7 @@ const emojis = [
             en: ['justice', 'scales', 'judge'],
             es: ['juez', 'juicio', 'magistrado', 'fiscal'],
         },
-        types: ['🧑🏻‍⚖️', '🧑🏼‍⚖️', '🧑🏽‍⚖️', '🧑🏾‍⚖️', '🧑🏿‍⚖️'],
+        types: ['🧑🏿‍⚖️', '🧑🏾‍⚖️', '🧑🏽‍⚖️', '🧑🏼‍⚖️', '🧑🏻‍⚖️'],
     },
     {
         code: '👨‍⚖️',
@@ -3200,7 +3200,7 @@ const emojis = [
             en: ['judge', 'justice', 'man', 'scales'],
             es: ['hombre', 'juez', 'justicia', 'magistrado', 'fiscal hombre'],
         },
-        types: ['👨🏻‍⚖️', '👨🏼‍⚖️', '👨🏽‍⚖️', '👨🏾‍⚖️', '👨🏿‍⚖️'],
+        types: ['👨🏿‍⚖️', '👨🏾‍⚖️', '👨🏽‍⚖️', '👨🏼‍⚖️', '👨🏻‍⚖️'],
     },
     {
         code: '👩‍⚖️',
@@ -3212,7 +3212,7 @@ const emojis = [
             en: ['judge', 'justice', 'scales', 'woman'],
             es: ['jueza', 'justicia', 'magistrada', 'mujer', 'fiscal mujer'],
         },
-        types: ['👩🏻‍⚖️', '👩🏼‍⚖️', '👩🏽‍⚖️', '👩🏾‍⚖️', '👩🏿‍⚖️'],
+        types: ['👩🏿‍⚖️', '👩🏾‍⚖️', '👩🏽‍⚖️', '👩🏼‍⚖️', '👩🏻‍⚖️'],
     },
     {
         code: '🧑‍🌾',
@@ -3224,7 +3224,7 @@ const emojis = [
             en: ['gardener', 'rancher', 'farmer'],
             es: ['agricultor', 'cultivador', 'granjero', 'jardinero', 'labrador', 'profesional de la agricultura'],
         },
-        types: ['🧑🏻‍🌾', '🧑🏼‍🌾', '🧑🏽‍🌾', '🧑🏾‍🌾', '🧑🏿‍🌾'],
+        types: ['🧑🏿‍🌾', '🧑🏾‍🌾', '🧑🏽‍🌾', '🧑🏼‍🌾', '🧑🏻‍🌾'],
     },
     {
         code: '👨‍🌾',
@@ -3236,7 +3236,7 @@ const emojis = [
             en: ['farmer', 'gardener', 'man', 'rancher'],
             es: ['agricultor', 'campo', 'granjero', 'hombre', 'labrador', 'profesional de la agricultura hombre'],
         },
-        types: ['👨🏻‍🌾', '👨🏼‍🌾', '👨🏽‍🌾', '👨🏾‍🌾', '👨🏿‍🌾'],
+        types: ['👨🏿‍🌾', '👨🏾‍🌾', '👨🏽‍🌾', '👨🏼‍🌾', '👨🏻‍🌾'],
     },
     {
         code: '👩‍🌾',
@@ -3248,7 +3248,7 @@ const emojis = [
             en: ['farmer', 'gardener', 'rancher', 'woman'],
             es: ['agricultora', 'campo', 'granjera', 'labradora', 'mujer', 'profesional de la agricultura mujer'],
         },
-        types: ['👩🏻‍🌾', '👩🏼‍🌾', '👩🏽‍🌾', '👩🏾‍🌾', '👩🏿‍🌾'],
+        types: ['👩🏿‍🌾', '👩🏾‍🌾', '👩🏽‍🌾', '👩🏼‍🌾', '👩🏻‍🌾'],
     },
     {
         code: '🧑‍🍳',
@@ -3260,7 +3260,7 @@ const emojis = [
             en: ['chef', 'cook'],
             es: ['cocinero', 'cocinillas', 'guisandero', 'pinche', 'chef'],
         },
-        types: ['🧑🏻‍🍳', '🧑🏼‍🍳', '🧑🏽‍🍳', '🧑🏾‍🍳', '🧑🏿‍🍳'],
+        types: ['🧑🏿‍🍳', '🧑🏾‍🍳', '🧑🏽‍🍳', '🧑🏼‍🍳', '🧑🏻‍🍳'],
     },
     {
         code: '👨‍🍳',
@@ -3272,7 +3272,7 @@ const emojis = [
             en: ['chef', 'cook', 'man'],
             es: ['chef', 'cocinero', 'hombre', 'pinche'],
         },
-        types: ['👨🏻‍🍳', '👨🏼‍🍳', '👨🏽‍🍳', '👨🏾‍🍳', '👨🏿‍🍳'],
+        types: ['👨🏿‍🍳', '👨🏾‍🍳', '👨🏽‍🍳', '👨🏼‍🍳', '👨🏻‍🍳'],
     },
     {
         code: '👩‍🍳',
@@ -3284,7 +3284,7 @@ const emojis = [
             en: ['chef', 'cook', 'woman'],
             es: ['chef', 'cocinera', 'mujer', 'pinche'],
         },
-        types: ['👩🏻‍🍳', '👩🏼‍🍳', '👩🏽‍🍳', '👩🏾‍🍳', '👩🏿‍🍳'],
+        types: ['👩🏿‍🍳', '👩🏾‍🍳', '👩🏽‍🍳', '👩🏼‍🍳', '👩🏻‍🍳'],
     },
     {
         code: '🧑‍🔧',
@@ -3296,7 +3296,7 @@ const emojis = [
             en: ['electrician', 'plumber', 'tradesperson', 'mechanic'],
             es: ['electricista', 'fontanero', 'mecánico', 'operario', 'técnico', 'profesional de la mecánica'],
         },
-        types: ['🧑🏻‍🔧', '🧑🏼‍🔧', '🧑🏽‍🔧', '🧑🏾‍🔧', '🧑🏿‍🔧'],
+        types: ['🧑🏿‍🔧', '🧑🏾‍🔧', '🧑🏽‍🔧', '🧑🏼‍🔧', '🧑🏻‍🔧'],
     },
     {
         code: '👨‍🔧',
@@ -3308,7 +3308,7 @@ const emojis = [
             en: ['electrician', 'man', 'mechanic', 'plumber', 'tradesperson'],
             es: ['electricista', 'fontanero', 'hombre', 'mecánico', 'operario', 'profesional de la mecánica hombre'],
         },
-        types: ['👨🏻‍🔧', '👨🏼‍🔧', '👨🏽‍🔧', '👨🏾‍🔧', '👨🏿‍🔧'],
+        types: ['👨🏿‍🔧', '👨🏾‍🔧', '👨🏽‍🔧', '👨🏼‍🔧', '👨🏻‍🔧'],
     },
     {
         code: '👩‍🔧',
@@ -3320,7 +3320,7 @@ const emojis = [
             en: ['electrician', 'mechanic', 'plumber', 'tradesperson', 'woman'],
             es: ['electricista', 'fontanera', 'mecánica', 'mujer', 'operaria', 'profesional de la mecánica mujer'],
         },
-        types: ['👩🏻‍🔧', '👩🏼‍🔧', '👩🏽‍🔧', '👩🏾‍🔧', '👩🏿‍🔧'],
+        types: ['👩🏿‍🔧', '👩🏾‍🔧', '👩🏽‍🔧', '👩🏼‍🔧', '👩🏻‍🔧'],
     },
     {
         code: '🧑‍🏭',
@@ -3332,7 +3332,7 @@ const emojis = [
             en: ['assembly', 'factory', 'industrial', 'worker'],
             es: ['fábrica', 'montaje', 'obrero', 'operario', 'trabajador', 'profesional industrial'],
         },
-        types: ['🧑🏻‍🏭', '🧑🏼‍🏭', '🧑🏽‍🏭', '🧑🏾‍🏭', '🧑🏿‍🏭'],
+        types: ['🧑🏿‍🏭', '🧑🏾‍🏭', '🧑🏽‍🏭', '🧑🏼‍🏭', '🧑🏻‍🏭'],
     },
     {
         code: '👨‍🏭',
@@ -3344,7 +3344,7 @@ const emojis = [
             en: ['assembly', 'factory', 'industrial', 'man', 'worker'],
             es: ['fábrica', 'montaje', 'obrero', 'operario', 'trabajador', 'profesional industrial hombre'],
         },
-        types: ['👨🏻‍🏭', '👨🏼‍🏭', '👨🏽‍🏭', '👨🏾‍🏭', '👨🏿‍🏭'],
+        types: ['👨🏿‍🏭', '👨🏾‍🏭', '👨🏽‍🏭', '👨🏼‍🏭', '👨🏻‍🏭'],
     },
     {
         code: '👩‍🏭',
@@ -3356,7 +3356,7 @@ const emojis = [
             en: ['assembly', 'factory', 'industrial', 'woman', 'worker'],
             es: ['fábrica', 'montaje', 'obrera', 'operaria', 'trabajadora', 'profesional industrial mujer'],
         },
-        types: ['👩🏻‍🏭', '👩🏼‍🏭', '👩🏽‍🏭', '👩🏾‍🏭', '👩🏿‍🏭'],
+        types: ['👩🏿‍🏭', '👩🏾‍🏭', '👩🏽‍🏭', '👩🏼‍🏭', '👩🏻‍🏭'],
     },
     {
         code: '🧑‍💼',
@@ -3368,7 +3368,7 @@ const emojis = [
             en: ['architect', 'business', 'manager', 'white-collar', 'office worker'],
             es: ['arquitecto', 'director', 'ejecutivo', 'empresa', 'oficinista'],
         },
-        types: ['🧑🏻‍💼', '🧑🏼‍💼', '🧑🏽‍💼', '🧑🏾‍💼', '🧑🏿‍💼'],
+        types: ['🧑🏿‍💼', '🧑🏾‍💼', '🧑🏽‍💼', '🧑🏼‍💼', '🧑🏻‍💼'],
     },
     {
         code: '👨‍💼',
@@ -3380,7 +3380,7 @@ const emojis = [
             en: ['architect', 'business', 'man', 'manager', 'white-collar', 'man office worker'],
             es: ['director', 'ejecutivo', 'empresa', 'hombre', 'oficina', 'oficinista'],
         },
-        types: ['👨🏻‍💼', '👨🏼‍💼', '👨🏽‍💼', '👨🏾‍💼', '👨🏿‍💼'],
+        types: ['👨🏿‍💼', '👨🏾‍💼', '👨🏽‍💼', '👨🏼‍💼', '👨🏻‍💼'],
     },
     {
         code: '👩‍💼',
@@ -3392,7 +3392,7 @@ const emojis = [
             en: ['architect', 'business', 'manager', 'white-collar', 'woman', 'woman office worker'],
             es: ['directora', 'ejecutiva', 'empresa', 'mujer', 'oficina', 'oficinista'],
         },
-        types: ['👩🏻‍💼', '👩🏼‍💼', '👩🏽‍💼', '👩🏾‍💼', '👩🏿‍💼'],
+        types: ['👩🏿‍💼', '👩🏾‍💼', '👩🏽‍💼', '👩🏼‍💼', '👩🏻‍💼'],
     },
     {
         code: '🧑‍🔬',
@@ -3404,7 +3404,7 @@ const emojis = [
             en: ['biologist', 'chemist', 'engineer', 'physicist', 'scientist'],
             es: ['biólogo', 'científico', 'físico', 'investigador', 'químico', 'profesional de la ciencia'],
         },
-        types: ['🧑🏻‍🔬', '🧑🏼‍🔬', '🧑🏽‍🔬', '🧑🏾‍🔬', '🧑🏿‍🔬'],
+        types: ['🧑🏿‍🔬', '🧑🏾‍🔬', '🧑🏽‍🔬', '🧑🏼‍🔬', '🧑🏻‍🔬'],
     },
     {
         code: '👨‍🔬',
@@ -3416,7 +3416,7 @@ const emojis = [
             en: ['biologist', 'chemist', 'engineer', 'man', 'physicist', 'scientist'],
             es: ['biólogo', 'científico', 'físico', 'hombre', 'químico', 'profesional de la ciencia hombre'],
         },
-        types: ['👨🏻‍🔬', '👨🏼‍🔬', '👨🏽‍🔬', '👨🏾‍🔬', '👨🏿‍🔬'],
+        types: ['👨🏿‍🔬', '👨🏾‍🔬', '👨🏽‍🔬', '👨🏼‍🔬', '👨🏻‍🔬'],
     },
     {
         code: '👩‍🔬',
@@ -3428,7 +3428,7 @@ const emojis = [
             en: ['biologist', 'chemist', 'engineer', 'physicist', 'scientist', 'woman'],
             es: ['bióloga', 'científica', 'física', 'mujer', 'química', 'profesional de la ciencia mujer'],
         },
-        types: ['👩🏻‍🔬', '👩🏼‍🔬', '👩🏽‍🔬', '👩🏾‍🔬', '👩🏿‍🔬'],
+        types: ['👩🏿‍🔬', '👩🏾‍🔬', '👩🏽‍🔬', '👩🏼‍🔬', '👩🏻‍🔬'],
     },
     {
         code: '🧑‍💻',
@@ -3440,7 +3440,7 @@ const emojis = [
             en: ['coder', 'developer', 'inventor', 'software', 'technologist'],
             es: ['desarrollador', 'informático', 'programador', 'software', 'tecnólogo', 'profesional de la tecnología'],
         },
-        types: ['🧑🏻‍💻', '🧑🏼‍💻', '🧑🏽‍💻', '🧑🏾‍💻', '🧑🏿‍💻'],
+        types: ['🧑🏿‍💻', '🧑🏾‍💻', '🧑🏽‍💻', '🧑🏼‍💻', '🧑🏻‍💻'],
     },
     {
         code: '👨‍💻',
@@ -3452,7 +3452,7 @@ const emojis = [
             en: ['coder', 'developer', 'inventor', 'man', 'software', 'technologist'],
             es: ['desarrollador', 'hombre', 'informático', 'programador', 'tecnólogo', 'profesional de la tecnología hombre'],
         },
-        types: ['👨🏻‍💻', '👨🏼‍💻', '👨🏽‍💻', '👨🏾‍💻', '👨🏿‍💻'],
+        types: ['👨🏿‍💻', '👨🏾‍💻', '👨🏽‍💻', '👨🏼‍💻', '👨🏻‍💻'],
     },
     {
         code: '👩‍💻',
@@ -3464,7 +3464,7 @@ const emojis = [
             en: ['coder', 'developer', 'inventor', 'software', 'technologist', 'woman'],
             es: ['desarrolladora', 'informática', 'mujer', 'programadora', 'tecnóloga', 'profesional de la tecnología mujer'],
         },
-        types: ['👩🏻‍💻', '👩🏼‍💻', '👩🏽‍💻', '👩🏾‍💻', '👩🏿‍💻'],
+        types: ['👩🏿‍💻', '👩🏾‍💻', '👩🏽‍💻', '👩🏼‍💻', '👩🏻‍💻'],
     },
     {
         code: '🧑‍🎤',
@@ -3476,7 +3476,7 @@ const emojis = [
             en: ['actor', 'entertainer', 'rock', 'star', 'singer'],
             es: ['artista', 'estrella', 'rock', 'cantante'],
         },
-        types: ['🧑🏻‍🎤', '🧑🏼‍🎤', '🧑🏽‍🎤', '🧑🏾‍🎤', '🧑🏿‍🎤'],
+        types: ['🧑🏿‍🎤', '🧑🏾‍🎤', '🧑🏽‍🎤', '🧑🏼‍🎤', '🧑🏻‍🎤'],
     },
     {
         code: '👨‍🎤',
@@ -3488,7 +3488,7 @@ const emojis = [
             en: ['actor', 'entertainer', 'man', 'rock', 'singer', 'star'],
             es: ['artista', 'estrella', 'hombre', 'rock', 'cantante hombre'],
         },
-        types: ['👨🏻‍🎤', '👨🏼‍🎤', '👨🏽‍🎤', '👨🏾‍🎤', '👨🏿‍🎤'],
+        types: ['👨🏿‍🎤', '👨🏾‍🎤', '👨🏽‍🎤', '👨🏼‍🎤', '👨🏻‍🎤'],
     },
     {
         code: '👩‍🎤',
@@ -3500,7 +3500,7 @@ const emojis = [
             en: ['actor', 'entertainer', 'rock', 'singer', 'star', 'woman'],
             es: ['artista', 'estrella', 'mujer', 'rock', 'cantante mujer'],
         },
-        types: ['👩🏻‍🎤', '👩🏼‍🎤', '👩🏽‍🎤', '👩🏾‍🎤', '👩🏿‍🎤'],
+        types: ['👩🏿‍🎤', '👩🏾‍🎤', '👩🏽‍🎤', '👩🏼‍🎤', '👩🏻‍🎤'],
     },
     {
         code: '🧑‍🎨',
@@ -3512,7 +3512,7 @@ const emojis = [
             en: ['palette', 'artist'],
             es: ['paleta', 'pintor', 'pinturas', 'artista'],
         },
-        types: ['🧑🏻‍🎨', '🧑🏼‍🎨', '🧑🏽‍🎨', '🧑🏾‍🎨', '🧑🏿‍🎨'],
+        types: ['🧑🏿‍🎨', '🧑🏾‍🎨', '🧑🏽‍🎨', '🧑🏼‍🎨', '🧑🏻‍🎨'],
     },
     {
         code: '👨‍🎨',
@@ -3524,7 +3524,7 @@ const emojis = [
             en: ['artist', 'man', 'palette'],
             es: ['hombre', 'paleta', 'pintor', 'pinturas', 'artista hombre'],
         },
-        types: ['👨🏻‍🎨', '👨🏼‍🎨', '👨🏽‍🎨', '👨🏾‍🎨', '👨🏿‍🎨'],
+        types: ['👨🏿‍🎨', '👨🏾‍🎨', '👨🏽‍🎨', '👨🏼‍🎨', '👨🏻‍🎨'],
     },
     {
         code: '👩‍🎨',
@@ -3536,7 +3536,7 @@ const emojis = [
             en: ['artist', 'palette', 'woman'],
             es: ['mujer', 'paleta', 'pintora', 'pinturas', 'artista mujer'],
         },
-        types: ['👩🏻‍🎨', '👩🏼‍🎨', '👩🏽‍🎨', '👩🏾‍🎨', '👩🏿‍🎨'],
+        types: ['👩🏿‍🎨', '👩🏾‍🎨', '👩🏽‍🎨', '👩🏼‍🎨', '👩🏻‍🎨'],
     },
     {
         code: '🧑‍✈️',
@@ -3548,7 +3548,7 @@ const emojis = [
             en: ['plane', 'pilot'],
             es: ['avión', 'capitán', 'vuelo', 'piloto'],
         },
-        types: ['🧑🏻‍✈️', '🧑🏼‍✈️', '🧑🏽‍✈️', '🧑🏾‍✈️', '🧑🏿‍✈️'],
+        types: ['🧑🏿‍✈️', '🧑🏾‍✈️', '🧑🏽‍✈️', '🧑🏼‍✈️', '🧑🏻‍✈️'],
     },
     {
         code: '👨‍✈️',
@@ -3560,7 +3560,7 @@ const emojis = [
             en: ['man', 'pilot', 'plane'],
             es: ['avión', 'capitán', 'hombre', 'piloto', 'vuelo'],
         },
-        types: ['👨🏻‍✈️', '👨🏼‍✈️', '👨🏽‍✈️', '👨🏾‍✈️', '👨🏿‍✈️'],
+        types: ['👨🏿‍✈️', '👨🏾‍✈️', '👨🏽‍✈️', '👨🏼‍✈️', '👨🏻‍✈️'],
     },
     {
         code: '👩‍✈️',
@@ -3572,7 +3572,7 @@ const emojis = [
             en: ['pilot', 'plane', 'woman'],
             es: ['avión', 'capitana', 'mujer', 'piloto', 'vuelo'],
         },
-        types: ['👩🏻‍✈️', '👩🏼‍✈️', '👩🏽‍✈️', '👩🏾‍✈️', '👩🏿‍✈️'],
+        types: ['👩🏿‍✈️', '👩🏾‍✈️', '👩🏽‍✈️', '👩🏼‍✈️', '👩🏻‍✈️'],
     },
     {
         code: '🧑‍🚀',
@@ -3584,7 +3584,7 @@ const emojis = [
             en: ['rocket', 'astronaut'],
             es: ['cohete', 'espacio', 'astronauta'],
         },
-        types: ['🧑🏻‍🚀', '🧑🏼‍🚀', '🧑🏽‍🚀', '🧑🏾‍🚀', '🧑🏿‍🚀'],
+        types: ['🧑🏿‍🚀', '🧑🏾‍🚀', '🧑🏽‍🚀', '🧑🏼‍🚀', '🧑🏻‍🚀'],
     },
     {
         code: '👨‍🚀',
@@ -3596,7 +3596,7 @@ const emojis = [
             en: ['astronaut', 'man', 'rocket'],
             es: ['astronauta', 'cohete', 'espacio', 'hombre'],
         },
-        types: ['👨🏻‍🚀', '👨🏼‍🚀', '👨🏽‍🚀', '👨🏾‍🚀', '👨🏿‍🚀'],
+        types: ['👨🏿‍🚀', '👨🏾‍🚀', '👨🏽‍🚀', '👨🏼‍🚀', '👨🏻‍🚀'],
     },
     {
         code: '👩‍🚀',
@@ -3608,7 +3608,7 @@ const emojis = [
             en: ['astronaut', 'rocket', 'woman'],
             es: ['astronauta', 'cohete', 'espacio', 'mujer'],
         },
-        types: ['👩🏻‍🚀', '👩🏼‍🚀', '👩🏽‍🚀', '👩🏾‍🚀', '👩🏿‍🚀'],
+        types: ['👩🏿‍🚀', '👩🏾‍🚀', '👩🏽‍🚀', '👩🏼‍🚀', '👩🏻‍🚀'],
     },
     {
         code: '🧑‍🚒',
@@ -3620,7 +3620,7 @@ const emojis = [
             en: ['firetruck', 'firefighter'],
             es: ['camión', 'manguera', 'bombero'],
         },
-        types: ['🧑🏻‍🚒', '🧑🏼‍🚒', '🧑🏽‍🚒', '🧑🏾‍🚒', '🧑🏿‍🚒'],
+        types: ['🧑🏿‍🚒', '🧑🏾‍🚒', '🧑🏽‍🚒', '🧑🏼‍🚒', '🧑🏻‍🚒'],
     },
     {
         code: '👨‍🚒',
@@ -3632,7 +3632,7 @@ const emojis = [
             en: ['firefighter', 'firetruck', 'man'],
             es: ['apagafuegos', 'bombero', 'camión', 'manguera', 'bombero hombre'],
         },
-        types: ['👨🏻‍🚒', '👨🏼‍🚒', '👨🏽‍🚒', '👨🏾‍🚒', '👨🏿‍🚒'],
+        types: ['👨🏿‍🚒', '👨🏾‍🚒', '👨🏽‍🚒', '👨🏼‍🚒', '👨🏻‍🚒'],
     },
     {
         code: '👩‍🚒',
@@ -3644,7 +3644,7 @@ const emojis = [
             en: ['firefighter', 'firetruck', 'woman'],
             es: ['apagafuegos', 'bombera mujera', 'camión', 'manguera', 'bombera'],
         },
-        types: ['👩🏻‍🚒', '👩🏼‍🚒', '👩🏽‍🚒', '👩🏾‍🚒', '👩🏿‍🚒'],
+        types: ['👩🏿‍🚒', '👩🏾‍🚒', '👩🏽‍🚒', '👩🏼‍🚒', '👩🏻‍🚒'],
     },
     {
         code: '👮',
@@ -3656,7 +3656,7 @@ const emojis = [
             en: ['cop', 'officer', 'police'],
             es: ['agente', 'personas', 'policía', 'agente de policía'],
         },
-        types: ['👮🏻', '👮🏼', '👮🏽', '👮🏾', '👮🏿'],
+        types: ['👮🏿', '👮🏾', '👮🏽', '👮🏼', '👮🏻'],
     },
     {
         code: '👮‍♂️',
@@ -3668,7 +3668,7 @@ const emojis = [
             en: ['cop', 'man', 'officer', 'police'],
             es: ['agente', 'hombre', 'poli', 'policía', 'agente de policía hombre'],
         },
-        types: ['👮🏻‍♂️', '👮🏼‍♂️', '👮🏽‍♂️', '👮🏾‍♂️', '👮🏿‍♂️'],
+        types: ['👮🏿‍♂️', '👮🏾‍♂️', '👮🏽‍♂️', '👮🏼‍♂️', '👮🏻‍♂️'],
     },
     {
         code: '👮‍♀️',
@@ -3680,7 +3680,7 @@ const emojis = [
             en: ['cop', 'officer', 'police', 'woman'],
             es: ['agente', 'mujer', 'poli', 'policía', 'agente de policía mujer'],
         },
-        types: ['👮🏻‍♀️', '👮🏼‍♀️', '👮🏽‍♀️', '👮🏾‍♀️', '👮🏿‍♀️'],
+        types: ['👮🏿‍♀️', '👮🏾‍♀️', '👮🏽‍♀️', '👮🏼‍♀️', '👮🏻‍♀️'],
     },
     {
         code: '🕵️',
@@ -3692,7 +3692,7 @@ const emojis = [
             en: ['sleuth', 'spy', 'detective'],
             es: ['cara', 'espía', 'detective'],
         },
-        types: ['🕵🏻', '🕵🏼', '🕵🏽', '🕵🏾', '🕵🏿'],
+        types: ['🕵🏿', '🕵🏾', '🕵🏽', '🕵🏼', '🕵🏻'],
     },
     {
         code: '🕵️‍♂️',
@@ -3704,7 +3704,7 @@ const emojis = [
             en: ['detective', 'man', 'sleuth', 'spy'],
             es: ['agente', 'detective', 'espía', 'hombre', 'investigador'],
         },
-        types: ['🕵🏻‍♂️', '🕵🏼‍♂️', '🕵🏽‍♂️', '🕵🏾‍♂️', '🕵🏿‍♂️'],
+        types: ['🕵🏿‍♂️', '🕵🏾‍♂️', '🕵🏽‍♂️', '🕵🏼‍♂️', '🕵🏻‍♂️'],
     },
     {
         code: '🕵️‍♀️',
@@ -3716,7 +3716,7 @@ const emojis = [
             en: ['detective', 'sleuth', 'spy', 'woman'],
             es: ['agente', 'detective', 'espía', 'investigadora', 'mujer'],
         },
-        types: ['🕵🏻‍♀️', '🕵🏼‍♀️', '🕵🏽‍♀️', '🕵🏾‍♀️', '🕵🏿‍♀️'],
+        types: ['🕵🏿‍♀️', '🕵🏾‍♀️', '🕵🏽‍♀️', '🕵🏼‍♀️', '🕵🏻‍♀️'],
     },
     {
         code: '💂',
@@ -3728,7 +3728,7 @@ const emojis = [
             en: ['guard'],
             es: ['guardia real británica', 'guardia'],
         },
-        types: ['💂🏻', '💂🏼', '💂🏽', '💂🏾', '💂🏿'],
+        types: ['💂🏿', '💂🏾', '💂🏽', '💂🏼', '💂🏻'],
     },
     {
         code: '💂‍♂️',
@@ -3740,7 +3740,7 @@ const emojis = [
             en: ['guard', 'man'],
             es: ['guardia', 'hombre', 'vigilante'],
         },
-        types: ['💂🏻‍♂️', '💂🏼‍♂️', '💂🏽‍♂️', '💂🏾‍♂️', '💂🏿‍♂️'],
+        types: ['💂🏿‍♂️', '💂🏾‍♂️', '💂🏽‍♂️', '💂🏼‍♂️', '💂🏻‍♂️'],
     },
     {
         code: '💂‍♀️',
@@ -3752,7 +3752,7 @@ const emojis = [
             en: ['guard', 'woman'],
             es: ['guardia', 'mujer', 'vigilante'],
         },
-        types: ['💂🏻‍♀️', '💂🏼‍♀️', '💂🏽‍♀️', '💂🏾‍♀️', '💂🏿‍♀️'],
+        types: ['💂🏿‍♀️', '💂🏾‍♀️', '💂🏽‍♀️', '💂🏼‍♀️', '💂🏻‍♀️'],
     },
     {
         code: '🥷',
@@ -3764,7 +3764,7 @@ const emojis = [
             en: ['fighter', 'hidden', 'stealth', 'ninja'],
             es: ['furtivo', 'guerrero', 'luchador', 'oculto', 'sigilo', 'ninja'],
         },
-        types: ['🥷🏻', '🥷🏼', '🥷🏽', '🥷🏾', '🥷🏿'],
+        types: ['🥷🏿', '🥷🏾', '🥷🏽', '🥷🏼', '🥷🏻'],
     },
     {
         code: '👷',
@@ -3776,7 +3776,7 @@ const emojis = [
             en: ['construction', 'hat', 'worker'],
             es: ['casco', 'construcción', 'obrero', 'trabajador', 'profesional de la construcción'],
         },
-        types: ['👷🏻', '👷🏼', '👷🏽', '👷🏾', '👷🏿'],
+        types: ['👷🏿', '👷🏾', '👷🏽', '👷🏼', '👷🏻'],
     },
     {
         code: '👷‍♂️',
@@ -3788,7 +3788,7 @@ const emojis = [
             en: ['construction', 'man', 'worker'],
             es: ['albañil', 'construcción', 'hombre', 'obrero', 'trabajador', 'profesional de la construcción hombre'],
         },
-        types: ['👷🏻‍♂️', '👷🏼‍♂️', '👷🏽‍♂️', '👷🏾‍♂️', '👷🏿‍♂️'],
+        types: ['👷🏿‍♂️', '👷🏾‍♂️', '👷🏽‍♂️', '👷🏼‍♂️', '👷🏻‍♂️'],
     },
     {
         code: '👷‍♀️',
@@ -3800,7 +3800,7 @@ const emojis = [
             en: ['construction', 'woman', 'worker'],
             es: ['albañila', 'construcción', 'mujer', 'obrera', 'trabajadora', 'profesional de la construcción mujer'],
         },
-        types: ['👷🏻‍♀️', '👷🏼‍♀️', '👷🏽‍♀️', '👷🏾‍♀️', '👷🏿‍♀️'],
+        types: ['👷🏿‍♀️', '👷🏾‍♀️', '👷🏽‍♀️', '👷🏼‍♀️', '👷🏻‍♀️'],
     },
     {
         code: '🤴',
@@ -3812,7 +3812,7 @@ const emojis = [
             en: ['prince'],
             es: ['corona', 'príncipe'],
         },
-        types: ['🤴🏻', '🤴🏼', '🤴🏽', '🤴🏾', '🤴🏿'],
+        types: ['🤴🏿', '🤴🏾', '🤴🏽', '🤴🏼', '🤴🏻'],
     },
     {
         code: '👸',
@@ -3824,7 +3824,7 @@ const emojis = [
             en: ['fairy tale', 'fantasy', 'princess'],
             es: ['cuento', 'fantasía', 'hadas', 'princesa'],
         },
-        types: ['👸🏻', '👸🏼', '👸🏽', '👸🏾', '👸🏿'],
+        types: ['👸🏿', '👸🏾', '👸🏽', '👸🏼', '👸🏻'],
     },
     {
         code: '👳',
@@ -3836,7 +3836,7 @@ const emojis = [
             en: ['turban', 'person wearing turban'],
             es: ['turbante', 'persona con turbante'],
         },
-        types: ['👳🏻', '👳🏼', '👳🏽', '👳🏾', '👳🏿'],
+        types: ['👳🏿', '👳🏾', '👳🏽', '👳🏼', '👳🏻'],
     },
     {
         code: '👳‍♂️',
@@ -3848,7 +3848,7 @@ const emojis = [
             en: ['man', 'turban', 'man wearing turban'],
             es: ['hombre', 'turbante', 'hombre con turbante'],
         },
-        types: ['👳🏻‍♂️', '👳🏼‍♂️', '👳🏽‍♂️', '👳🏾‍♂️', '👳🏿‍♂️'],
+        types: ['👳🏿‍♂️', '👳🏾‍♂️', '👳🏽‍♂️', '👳🏼‍♂️', '👳🏻‍♂️'],
     },
     {
         code: '👳‍♀️',
@@ -3860,7 +3860,7 @@ const emojis = [
             en: ['turban', 'woman', 'woman wearing turban'],
             es: ['mujer', 'turbante', 'mujer con turbante'],
         },
-        types: ['👳🏻‍♀️', '👳🏼‍♀️', '👳🏽‍♀️', '👳🏾‍♀️', '👳🏿‍♀️'],
+        types: ['👳🏿‍♀️', '👳🏾‍♀️', '👳🏽‍♀️', '👳🏼‍♀️', '👳🏻‍♀️'],
     },
     {
         code: '👲',
@@ -3872,7 +3872,7 @@ const emojis = [
             en: ['cap', 'gua pi mao', 'hat', 'person', 'skullcap', 'person with skullcap'],
             es: ['gorro', 'gua', 'mao', 'persona', 'gua pi mao', 'persona con gorro chino'],
         },
-        types: ['👲🏻', '👲🏼', '👲🏽', '👲🏾', '👲🏿'],
+        types: ['👲🏿', '👲🏾', '👲🏽', '👲🏼', '👲🏻'],
     },
     {
         code: '🧕',
@@ -3884,7 +3884,7 @@ const emojis = [
             en: ['headscarf', 'hijab', 'mantilla', 'tichel', 'woman with headscarf'],
             es: ['hiyab', 'pañuelo', 'mujer con hiyab'],
         },
-        types: ['🧕🏻', '🧕🏼', '🧕🏽', '🧕🏾', '🧕🏿'],
+        types: ['🧕🏿', '🧕🏾', '🧕🏽', '🧕🏼', '🧕🏻'],
     },
     {
         code: '🤵',
@@ -3896,7 +3896,7 @@ const emojis = [
             en: ['groom', 'person', 'tuxedo', 'person in tuxedo'],
             es: ['esmoquin', 'novio', 'persona', 'persona con esmoquin'],
         },
-        types: ['🤵🏻', '🤵🏼', '🤵🏽', '🤵🏾', '🤵🏿'],
+        types: ['🤵🏿', '🤵🏾', '🤵🏽', '🤵🏼', '🤵🏻'],
     },
     {
         code: '🤵‍♂️',
@@ -3908,7 +3908,7 @@ const emojis = [
             en: ['man', 'tuxedo', 'man in tuxedo'],
             es: ['esmoquin', 'hombre', 'hombre con esmoquin'],
         },
-        types: ['🤵🏻‍♂️', '🤵🏼‍♂️', '🤵🏽‍♂️', '🤵🏾‍♂️', '🤵🏿‍♂️'],
+        types: ['🤵🏿‍♂️', '🤵🏾‍♂️', '🤵🏽‍♂️', '🤵🏼‍♂️', '🤵🏻‍♂️'],
     },
     {
         code: '🤵‍♀️',
@@ -3920,7 +3920,7 @@ const emojis = [
             en: ['tuxedo', 'woman', 'woman in tuxedo'],
             es: ['esmoquin', 'mujer', 'mujer con esmoquin'],
         },
-        types: ['🤵🏻‍♀️', '🤵🏼‍♀️', '🤵🏽‍♀️', '🤵🏾‍♀️', '🤵🏿‍♀️'],
+        types: ['🤵🏿‍♀️', '🤵🏾‍♀️', '🤵🏽‍♀️', '🤵🏼‍♀️', '🤵🏻‍♀️'],
     },
     {
         code: '👰',
@@ -3932,7 +3932,7 @@ const emojis = [
             en: ['bride', 'person', 'veil', 'wedding', 'person with veil'],
             es: ['boda', 'novia', 'persona', 'velo', 'persona con velo'],
         },
-        types: ['👰🏻', '👰🏼', '👰🏽', '👰🏾', '👰🏿'],
+        types: ['👰🏿', '👰🏾', '👰🏽', '👰🏼', '👰🏻'],
     },
     {
         code: '👰‍♂️',
@@ -3944,7 +3944,7 @@ const emojis = [
             en: ['man', 'veil', 'man with veil'],
             es: ['boda', 'hombre', 'novio', 'velo', 'hombre con velo'],
         },
-        types: ['👰🏻‍♂️', '👰🏼‍♂️', '👰🏽‍♂️', '👰🏾‍♂️', '👰🏿‍♂️'],
+        types: ['👰🏿‍♂️', '👰🏾‍♂️', '👰🏽‍♂️', '👰🏼‍♂️', '👰🏻‍♂️'],
     },
     {
         code: '👰‍♀️',
@@ -3956,7 +3956,7 @@ const emojis = [
             en: ['veil', 'woman', 'woman with veil'],
             es: ['boda', 'mujer', 'novia', 'velo', 'mujer con velo'],
         },
-        types: ['👰🏻‍♀️', '👰🏼‍♀️', '👰🏽‍♀️', '👰🏾‍♀️', '👰🏿‍♀️'],
+        types: ['👰🏿‍♀️', '👰🏾‍♀️', '👰🏽‍♀️', '👰🏼‍♀️', '👰🏻‍♀️'],
     },
     {
         code: '🤰',
@@ -3968,7 +3968,7 @@ const emojis = [
             en: ['pregnant', 'woman'],
             es: ['embarazada', 'mujer'],
         },
-        types: ['🤰🏻', '🤰🏼', '🤰🏽', '🤰🏾', '🤰🏿'],
+        types: ['🤰🏿', '🤰🏾', '🤰🏽', '🤰🏼', '🤰🏻'],
     },
     {
         code: '🤱',
@@ -3980,7 +3980,7 @@ const emojis = [
             en: ['baby', 'breast', 'nursing', 'breast-feeding'],
             es: ['amamantar', 'bebé', 'dar pecho', 'pecho', 'lactancia materna'],
         },
-        types: ['🤱🏻', '🤱🏼', '🤱🏽', '🤱🏾', '🤱🏿'],
+        types: ['🤱🏿', '🤱🏾', '🤱🏽', '🤱🏼', '🤱🏻'],
     },
     {
         code: '👩‍🍼',
@@ -3992,7 +3992,7 @@ const emojis = [
             en: ['baby', 'feeding', 'nursing', 'woman'],
             es: ['alimentar', 'amamantar', 'bebé', 'lactancia', 'mujer', 'mujer alimentando a bebé'],
         },
-        types: ['👩🏻‍🍼', '👩🏼‍🍼', '👩🏽‍🍼', '👩🏾‍🍼', '👩🏿‍🍼'],
+        types: ['👩🏿‍🍼', '👩🏾‍🍼', '👩🏽‍🍼', '👩🏼‍🍼', '👩🏻‍🍼'],
     },
     {
         code: '👨‍🍼',
@@ -4004,7 +4004,7 @@ const emojis = [
             en: ['baby', 'feeding', 'man', 'nursing'],
             es: ['alimentar', 'amamantar', 'bebé', 'hombre', 'lactancia', 'hombre alimentando a bebé'],
         },
-        types: ['👨🏻‍🍼', '👨🏼‍🍼', '👨🏽‍🍼', '👨🏾‍🍼', '👨🏿‍🍼'],
+        types: ['👨🏿‍🍼', '👨🏾‍🍼', '👨🏽‍🍼', '👨🏼‍🍼', '👨🏻‍🍼'],
     },
     {
         code: '🧑‍🍼',
@@ -4016,7 +4016,7 @@ const emojis = [
             en: ['baby', 'feeding', 'nursing', 'person'],
             es: ['alimentar', 'amamantar', 'bebé', 'lactancia', 'persona', 'persona alimentando a bebé'],
         },
-        types: ['🧑🏻‍🍼', '🧑🏼‍🍼', '🧑🏽‍🍼', '🧑🏾‍🍼', '🧑🏿‍🍼'],
+        types: ['🧑🏿‍🍼', '🧑🏾‍🍼', '🧑🏽‍🍼', '🧑🏼‍🍼', '🧑🏻‍🍼'],
     },
     {
         code: '👼',
@@ -4028,7 +4028,7 @@ const emojis = [
             en: ['angel', 'baby', 'face', 'fairy tale', 'fantasy'],
             es: ['ángel', 'bebé', 'cara', 'cuento'],
         },
-        types: ['👼🏻', '👼🏼', '👼🏽', '👼🏾', '👼🏿'],
+        types: ['👼🏿', '👼🏾', '👼🏽', '👼🏼', '👼🏻'],
     },
     {
         code: '🎅',
@@ -4040,7 +4040,7 @@ const emojis = [
             en: ['celebration', 'Christmas', 'claus', 'father', 'santa', 'Santa Claus'],
             es: ['celebración', 'claus', 'Navidad', 'papá noel', 'Papá Noel', 'santa'],
         },
-        types: ['🎅🏻', '🎅🏼', '🎅🏽', '🎅🏾', '🎅🏿'],
+        types: ['🎅🏿', '🎅🏾', '🎅🏽', '🎅🏼', '🎅🏻'],
     },
     {
         code: '🤶',
@@ -4052,7 +4052,7 @@ const emojis = [
             en: ['celebration', 'Christmas', 'claus', 'mother', 'Mrs.', 'Mrs. Claus'],
             es: ['abuela', 'mamá', 'Navidad', 'noel', 'Mamá Noel'],
         },
-        types: ['🤶🏻', '🤶🏼', '🤶🏽', '🤶🏾', '🤶🏿'],
+        types: ['🤶🏿', '🤶🏾', '🤶🏽', '🤶🏼', '🤶🏻'],
     },
     {
         code: '🧑‍🎄',
@@ -4075,7 +4075,7 @@ const emojis = [
             en: ['good', 'hero', 'heroine', 'superpower', 'superhero'],
             es: ['bien', 'héroe', 'heroína', 'superhéroe', 'superheroína', 'superpoder', 'personaje de superhéroe'],
         },
-        types: ['🦸🏻', '🦸🏼', '🦸🏽', '🦸🏾', '🦸🏿'],
+        types: ['🦸🏿', '🦸🏾', '🦸🏽', '🦸🏼', '🦸🏻'],
     },
     {
         code: '🦸‍♂️',
@@ -4087,7 +4087,7 @@ const emojis = [
             en: ['good', 'hero', 'man', 'superpower', 'man superhero'],
             es: ['bueno', 'héroe', 'hombre', 'superhombre', 'superpoder', 'superhéroe'],
         },
-        types: ['🦸🏻‍♂️', '🦸🏼‍♂️', '🦸🏽‍♂️', '🦸🏾‍♂️', '🦸🏿‍♂️'],
+        types: ['🦸🏿‍♂️', '🦸🏾‍♂️', '🦸🏽‍♂️', '🦸🏼‍♂️', '🦸🏻‍♂️'],
     },
     {
         code: '🦸‍♀️',
@@ -4099,7 +4099,7 @@ const emojis = [
             en: ['good', 'hero', 'heroine', 'superpower', 'woman', 'woman superhero'],
             es: ['héroe', 'heroína', 'mujer', 'superhéroe', 'superpoder', 'superheroína'],
         },
-        types: ['🦸🏻‍♀️', '🦸🏼‍♀️', '🦸🏽‍♀️', '🦸🏾‍♀️', '🦸🏿‍♀️'],
+        types: ['🦸🏿‍♀️', '🦸🏾‍♀️', '🦸🏽‍♀️', '🦸🏼‍♀️', '🦸🏻‍♀️'],
     },
     {
         code: '🦹',
@@ -4111,7 +4111,7 @@ const emojis = [
             en: ['criminal', 'evil', 'superpower', 'villain', 'supervillain'],
             es: ['mal', 'superpoder', 'supervillana', 'supervillano', 'villana', 'villano', 'personaje de supervillano'],
         },
-        types: ['🦹🏻', '🦹🏼', '🦹🏽', '🦹🏾', '🦹🏿'],
+        types: ['🦹🏿', '🦹🏾', '🦹🏽', '🦹🏼', '🦹🏻'],
     },
     {
         code: '🦹‍♂️',
@@ -4123,7 +4123,7 @@ const emojis = [
             en: ['criminal', 'evil', 'man', 'superpower', 'villain', 'man supervillain'],
             es: ['hombre', 'mal', 'malvado', 'villano', 'supervillano'],
         },
-        types: ['🦹🏻‍♂️', '🦹🏼‍♂️', '🦹🏽‍♂️', '🦹🏾‍♂️', '🦹🏿‍♂️'],
+        types: ['🦹🏿‍♂️', '🦹🏾‍♂️', '🦹🏽‍♂️', '🦹🏼‍♂️', '🦹🏻‍♂️'],
     },
     {
         code: '🦹‍♀️',
@@ -4135,7 +4135,7 @@ const emojis = [
             en: ['criminal', 'evil', 'superpower', 'villain', 'woman', 'woman supervillain'],
             es: ['mal', 'malvada', 'mujer', 'villana', 'supervillana'],
         },
-        types: ['🦹🏻‍♀️', '🦹🏼‍♀️', '🦹🏽‍♀️', '🦹🏾‍♀️', '🦹🏿‍♀️'],
+        types: ['🦹🏿‍♀️', '🦹🏾‍♀️', '🦹🏽‍♀️', '🦹🏼‍♀️', '🦹🏻‍♀️'],
     },
     {
         code: '🧙',
@@ -4147,7 +4147,7 @@ const emojis = [
             en: ['sorcerer', 'sorceress', 'witch', 'wizard', 'mage'],
             es: ['bruja', 'brujo', 'hechicera', 'hechicero', 'persona maga'],
         },
-        types: ['🧙🏻', '🧙🏼', '🧙🏽', '🧙🏾', '🧙🏿'],
+        types: ['🧙🏿', '🧙🏾', '🧙🏽', '🧙🏼', '🧙🏻'],
     },
     {
         code: '🧙‍♂️',
@@ -4159,7 +4159,7 @@ const emojis = [
             en: ['sorcerer', 'wizard', 'man mage'],
             es: ['brujo', 'hechicero', 'mago'],
         },
-        types: ['🧙🏻‍♂️', '🧙🏼‍♂️', '🧙🏽‍♂️', '🧙🏾‍♂️', '🧙🏿‍♂️'],
+        types: ['🧙🏿‍♂️', '🧙🏾‍♂️', '🧙🏽‍♂️', '🧙🏼‍♂️', '🧙🏻‍♂️'],
     },
     {
         code: '🧙‍♀️',
@@ -4171,7 +4171,7 @@ const emojis = [
             en: ['sorceress', 'witch', 'woman mage'],
             es: ['bruja', 'hechicera', 'maga'],
         },
-        types: ['🧙🏻‍♀️', '🧙🏼‍♀️', '🧙🏽‍♀️', '🧙🏾‍♀️', '🧙🏿‍♀️'],
+        types: ['🧙🏿‍♀️', '🧙🏾‍♀️', '🧙🏽‍♀️', '🧙🏼‍♀️', '🧙🏻‍♀️'],
     },
     {
         code: '🧚',
@@ -4183,7 +4183,7 @@ const emojis = [
             en: ['Oberon', 'Puck', 'Titania', 'fairy'],
             es: ['campanilla', 'oberón', 'puck', 'titania', 'hada'],
         },
-        types: ['🧚🏻', '🧚🏼', '🧚🏽', '🧚🏾', '🧚🏿'],
+        types: ['🧚🏿', '🧚🏾', '🧚🏽', '🧚🏼', '🧚🏻'],
     },
     {
         code: '🧚‍♂️',
@@ -4195,7 +4195,7 @@ const emojis = [
             en: ['Oberon', 'Puck', 'man fairy'],
             es: ['hada', 'oberón', 'puck', 'hada hombre'],
         },
-        types: ['🧚🏻‍♂️', '🧚🏼‍♂️', '🧚🏽‍♂️', '🧚🏾‍♂️', '🧚🏿‍♂️'],
+        types: ['🧚🏿‍♂️', '🧚🏾‍♂️', '🧚🏽‍♂️', '🧚🏼‍♂️', '🧚🏻‍♂️'],
     },
     {
         code: '🧚‍♀️',
@@ -4207,7 +4207,7 @@ const emojis = [
             en: ['Titania', 'woman fairy'],
             es: ['campanilla', 'hada', 'titania', 'hada mujer'],
         },
-        types: ['🧚🏻‍♀️', '🧚🏼‍♀️', '🧚🏽‍♀️', '🧚🏾‍♀️', '🧚🏿‍♀️'],
+        types: ['🧚🏿‍♀️', '🧚🏾‍♀️', '🧚🏽‍♀️', '🧚🏼‍♀️', '🧚🏻‍♀️'],
     },
     {
         code: '🧛',
@@ -4219,7 +4219,7 @@ const emojis = [
             en: ['Dracula', 'undead', 'vampire'],
             es: ['drácula', 'muerto viviente', 'no muerto', 'vampiro'],
         },
-        types: ['🧛🏻', '🧛🏼', '🧛🏽', '🧛🏾', '🧛🏿'],
+        types: ['🧛🏿', '🧛🏾', '🧛🏽', '🧛🏼', '🧛🏻'],
     },
     {
         code: '🧛‍♂️',
@@ -4231,7 +4231,7 @@ const emojis = [
             en: ['Dracula', 'undead', 'man vampire'],
             es: ['drácula', 'muerto viviente', 'no muerto', 'vampiro hombre'],
         },
-        types: ['🧛🏻‍♂️', '🧛🏼‍♂️', '🧛🏽‍♂️', '🧛🏾‍♂️', '🧛🏿‍♂️'],
+        types: ['🧛🏿‍♂️', '🧛🏾‍♂️', '🧛🏽‍♂️', '🧛🏼‍♂️', '🧛🏻‍♂️'],
     },
     {
         code: '🧛‍♀️',
@@ -4243,7 +4243,7 @@ const emojis = [
             en: ['undead', 'woman vampire'],
             es: ['muerta viviente', 'no muerta', 'vampiresa'],
         },
-        types: ['🧛🏻‍♀️', '🧛🏼‍♀️', '🧛🏽‍♀️', '🧛🏾‍♀️', '🧛🏿‍♀️'],
+        types: ['🧛🏿‍♀️', '🧛🏾‍♀️', '🧛🏽‍♀️', '🧛🏼‍♀️', '🧛🏻‍♀️'],
     },
     {
         code: '🧜',
@@ -4255,7 +4255,7 @@ const emojis = [
             en: ['mermaid', 'merman', 'merwoman', 'merperson'],
             es: ['sirena', 'tritón', 'persona sirena'],
         },
-        types: ['🧜🏻', '🧜🏼', '🧜🏽', '🧜🏾', '🧜🏿'],
+        types: ['🧜🏿', '🧜🏾', '🧜🏽', '🧜🏼', '🧜🏻'],
     },
     {
         code: '🧜‍♂️',
@@ -4267,7 +4267,7 @@ const emojis = [
             en: ['Triton', 'merman'],
             es: ['sirena', 'tritón', 'sirena hombre'],
         },
-        types: ['🧜🏻‍♂️', '🧜🏼‍♂️', '🧜🏽‍♂️', '🧜🏾‍♂️', '🧜🏿‍♂️'],
+        types: ['🧜🏿‍♂️', '🧜🏾‍♂️', '🧜🏽‍♂️', '🧜🏼‍♂️', '🧜🏻‍♂️'],
     },
     {
         code: '🧜‍♀️',
@@ -4279,7 +4279,7 @@ const emojis = [
             en: ['merwoman', 'mermaid'],
             es: ['sirena'],
         },
-        types: ['🧜🏻‍♀️', '🧜🏼‍♀️', '🧜🏽‍♀️', '🧜🏾‍♀️', '🧜🏿‍♀️'],
+        types: ['🧜🏿‍♀️', '🧜🏾‍♀️', '🧜🏽‍♀️', '🧜🏼‍♀️', '🧜🏻‍♀️'],
     },
     {
         code: '🧝',
@@ -4291,7 +4291,7 @@ const emojis = [
             en: ['magical', 'elf'],
             es: ['mágico', 'elfo'],
         },
-        types: ['🧝🏻', '🧝🏼', '🧝🏽', '🧝🏾', '🧝🏿'],
+        types: ['🧝🏿', '🧝🏾', '🧝🏽', '🧝🏼', '🧝🏻'],
     },
     {
         code: '🧝‍♂️',
@@ -4303,7 +4303,7 @@ const emojis = [
             en: ['magical', 'man elf'],
             es: ['elfo', 'mágico', 'elfo hombre'],
         },
-        types: ['🧝🏻‍♂️', '🧝🏼‍♂️', '🧝🏽‍♂️', '🧝🏾‍♂️', '🧝🏿‍♂️'],
+        types: ['🧝🏿‍♂️', '🧝🏾‍♂️', '🧝🏽‍♂️', '🧝🏼‍♂️', '🧝🏻‍♂️'],
     },
     {
         code: '🧝‍♀️',
@@ -4315,7 +4315,7 @@ const emojis = [
             en: ['magical', 'woman elf'],
             es: ['mágico', 'mujer', 'elfa'],
         },
-        types: ['🧝🏻‍♀️', '🧝🏼‍♀️', '🧝🏽‍♀️', '🧝🏾‍♀️', '🧝🏿‍♀️'],
+        types: ['🧝🏿‍♀️', '🧝🏾‍♀️', '🧝🏽‍♀️', '🧝🏼‍♀️', '🧝🏻‍♀️'],
     },
     {
         code: '🧞',
@@ -4393,7 +4393,7 @@ const emojis = [
             en: ['face', 'massage', 'salon', 'person getting massage'],
             es: ['cara', 'facial', 'masaje', 'salón', 'persona recibiendo masaje'],
         },
-        types: ['💆🏻', '💆🏼', '💆🏽', '💆🏾', '💆🏿'],
+        types: ['💆🏿', '💆🏾', '💆🏽', '💆🏼', '💆🏻'],
     },
     {
         code: '💆‍♂️',
@@ -4405,7 +4405,7 @@ const emojis = [
             en: ['face', 'man', 'massage', 'man getting massage'],
             es: ['cara', 'facial', 'masaje', 'salón', 'hombre recibiendo masaje'],
         },
-        types: ['💆🏻‍♂️', '💆🏼‍♂️', '💆🏽‍♂️', '💆🏾‍♂️', '💆🏿‍♂️'],
+        types: ['💆🏿‍♂️', '💆🏾‍♂️', '💆🏽‍♂️', '💆🏼‍♂️', '💆🏻‍♂️'],
     },
     {
         code: '💆‍♀️',
@@ -4417,7 +4417,7 @@ const emojis = [
             en: ['face', 'massage', 'woman', 'woman getting massage'],
             es: ['cara', 'facial', 'masaje', 'salón', 'mujer recibiendo masaje'],
         },
-        types: ['💆🏻‍♀️', '💆🏼‍♀️', '💆🏽‍♀️', '💆🏾‍♀️', '💆🏿‍♀️'],
+        types: ['💆🏿‍♀️', '💆🏾‍♀️', '💆🏽‍♀️', '💆🏼‍♀️', '💆🏻‍♀️'],
     },
     {
         code: '💇',
@@ -4429,7 +4429,7 @@ const emojis = [
             en: ['barber', 'beauty', 'haircut', 'parlor', 'person getting haircut'],
             es: ['belleza', 'corte', 'pelo', 'peluquero', 'persona cortándose el pelo'],
         },
-        types: ['💇🏻', '💇🏼', '💇🏽', '💇🏾', '💇🏿'],
+        types: ['💇🏿', '💇🏾', '💇🏽', '💇🏼', '💇🏻'],
     },
     {
         code: '💇‍♂️',
@@ -4441,7 +4441,7 @@ const emojis = [
             en: ['haircut', 'man', 'man getting haircut'],
             es: ['belleza', 'corte', 'pelo', 'peluquero', 'hombre cortándose el pelo'],
         },
-        types: ['💇🏻‍♂️', '💇🏼‍♂️', '💇🏽‍♂️', '💇🏾‍♂️', '💇🏿‍♂️'],
+        types: ['💇🏿‍♂️', '💇🏾‍♂️', '💇🏽‍♂️', '💇🏼‍♂️', '💇🏻‍♂️'],
     },
     {
         code: '💇‍♀️',
@@ -4453,7 +4453,7 @@ const emojis = [
             en: ['haircut', 'woman', 'woman getting haircut'],
             es: ['belleza', 'corte', 'pelo', 'peluquero', 'mujer cortándose el pelo'],
         },
-        types: ['💇🏻‍♀️', '💇🏼‍♀️', '💇🏽‍♀️', '💇🏾‍♀️', '💇🏿‍♀️'],
+        types: ['💇🏿‍♀️', '💇🏾‍♀️', '💇🏽‍♀️', '💇🏼‍♀️', '💇🏻‍♀️'],
     },
     {
         code: '🚶',
@@ -4465,7 +4465,7 @@ const emojis = [
             en: ['hike', 'walk', 'walking', 'person walking'],
             es: ['andar', 'caminando', 'caminar', 'persona caminando'],
         },
-        types: ['🚶🏻', '🚶🏼', '🚶🏽', '🚶🏾', '🚶🏿'],
+        types: ['🚶🏿', '🚶🏾', '🚶🏽', '🚶🏼', '🚶🏻'],
     },
     {
         code: '🚶‍♂️',
@@ -4477,7 +4477,7 @@ const emojis = [
             en: ['hike', 'man', 'walk', 'man walking'],
             es: ['andar', 'caminata', 'hombre', 'marcha', 'hombre caminando'],
         },
-        types: ['🚶🏻‍♂️', '🚶🏼‍♂️', '🚶🏽‍♂️', '🚶🏾‍♂️', '🚶🏿‍♂️'],
+        types: ['🚶🏿‍♂️', '🚶🏾‍♂️', '🚶🏽‍♂️', '🚶🏼‍♂️', '🚶🏻‍♂️'],
     },
     {
         code: '🚶‍♀️',
@@ -4489,7 +4489,7 @@ const emojis = [
             en: ['hike', 'walk', 'woman', 'woman walking'],
             es: ['andar', 'caminata', 'marcha', 'mujer', 'mujer caminando'],
         },
-        types: ['🚶🏻‍♀️', '🚶🏼‍♀️', '🚶🏽‍♀️', '🚶🏾‍♀️', '🚶🏿‍♀️'],
+        types: ['🚶🏿‍♀️', '🚶🏾‍♀️', '🚶🏽‍♀️', '🚶🏼‍♀️', '🚶🏻‍♀️'],
     },
     {
         code: '🧍',
@@ -4501,7 +4501,7 @@ const emojis = [
             en: ['stand', 'standing', 'person standing'],
             es: ['de pie', 'levantada', 'levantado', 'levantarse', 'persona de pie'],
         },
-        types: ['🧍🏻', '🧍🏼', '🧍🏽', '🧍🏾', '🧍🏿'],
+        types: ['🧍🏿', '🧍🏾', '🧍🏽', '🧍🏼', '🧍🏻'],
     },
     {
         code: '🧍‍♂️',
@@ -4513,7 +4513,7 @@ const emojis = [
             en: ['man', 'standing'],
             es: ['de pie', 'hombre', 'levantado', 'levantarse', 'hombre de pie'],
         },
-        types: ['🧍🏻‍♂️', '🧍🏼‍♂️', '🧍🏽‍♂️', '🧍🏾‍♂️', '🧍🏿‍♂️'],
+        types: ['🧍🏿‍♂️', '🧍🏾‍♂️', '🧍🏽‍♂️', '🧍🏼‍♂️', '🧍🏻‍♂️'],
     },
     {
         code: '🧍‍♀️',
@@ -4525,7 +4525,7 @@ const emojis = [
             en: ['standing', 'woman'],
             es: ['de pie', 'levantada', 'levantarse', 'mujer', 'mujer de pie'],
         },
-        types: ['🧍🏻‍♀️', '🧍🏼‍♀️', '🧍🏽‍♀️', '🧍🏾‍♀️', '🧍🏿‍♀️'],
+        types: ['🧍🏿‍♀️', '🧍🏾‍♀️', '🧍🏽‍♀️', '🧍🏼‍♀️', '🧍🏻‍♀️'],
     },
     {
         code: '🧎',
@@ -4537,7 +4537,7 @@ const emojis = [
             en: ['kneel', 'kneeling', 'person kneeling'],
             es: ['arrodillada', 'arrodillado', 'arrodillarse', 'de rodillas', 'persona de rodillas'],
         },
-        types: ['🧎🏻', '🧎🏼', '🧎🏽', '🧎🏾', '🧎🏿'],
+        types: ['🧎🏿', '🧎🏾', '🧎🏽', '🧎🏼', '🧎🏻'],
     },
     {
         code: '🧎‍♂️',
@@ -4549,7 +4549,7 @@ const emojis = [
             en: ['kneeling', 'man'],
             es: ['arrodillado', 'arrodillarse', 'de rodillas', 'hombre', 'hombre de rodillas'],
         },
-        types: ['🧎🏻‍♂️', '🧎🏼‍♂️', '🧎🏽‍♂️', '🧎🏾‍♂️', '🧎🏿‍♂️'],
+        types: ['🧎🏿‍♂️', '🧎🏾‍♂️', '🧎🏽‍♂️', '🧎🏼‍♂️', '🧎🏻‍♂️'],
     },
     {
         code: '🧎‍♀️',
@@ -4561,7 +4561,7 @@ const emojis = [
             en: ['kneeling', 'woman'],
             es: ['arrodillada', 'arrodillarse', 'de rodillas', 'mujer', 'mujer de rodillas'],
         },
-        types: ['🧎🏻‍♀️', '🧎🏼‍♀️', '🧎🏽‍♀️', '🧎🏾‍♀️', '🧎🏿‍♀️'],
+        types: ['🧎🏿‍♀️', '🧎🏾‍♀️', '🧎🏽‍♀️', '🧎🏼‍♀️', '🧎🏻‍♀️'],
     },
     {
         code: '🧑‍🦯',
@@ -4573,7 +4573,7 @@ const emojis = [
             en: ['accessibility', 'blind', 'person with white cane'],
             es: ['accesibilidad', 'ciego', 'invidente', 'persona con bastón'],
         },
-        types: ['🧑🏻‍🦯', '🧑🏼‍🦯', '🧑🏽‍🦯', '🧑🏾‍🦯', '🧑🏿‍🦯'],
+        types: ['🧑🏿‍🦯', '🧑🏾‍🦯', '🧑🏽‍🦯', '🧑🏼‍🦯', '🧑🏻‍🦯'],
     },
     {
         code: '👨‍🦯',
@@ -4585,7 +4585,7 @@ const emojis = [
             en: ['accessibility', 'blind', 'man', 'man with white cane'],
             es: ['accesibilidad', 'bastón', 'ciego', 'hombre', 'invidente', 'hombre con bastón'],
         },
-        types: ['👨🏻‍🦯', '👨🏼‍🦯', '👨🏽‍🦯', '👨🏾‍🦯', '👨🏿‍🦯'],
+        types: ['👨🏿‍🦯', '👨🏾‍🦯', '👨🏽‍🦯', '👨🏼‍🦯', '👨🏻‍🦯'],
     },
     {
         code: '👩‍🦯',
@@ -4597,7 +4597,7 @@ const emojis = [
             en: ['accessibility', 'blind', 'woman', 'woman with white cane'],
             es: ['accesibilidad', 'bastón', 'ciega', 'invidente', 'mujer', 'mujer con bastón'],
         },
-        types: ['👩🏻‍🦯', '👩🏼‍🦯', '👩🏽‍🦯', '👩🏾‍🦯', '👩🏿‍🦯'],
+        types: ['👩🏿‍🦯', '👩🏾‍🦯', '👩🏽‍🦯', '👩🏼‍🦯', '👩🏻‍🦯'],
     },
     {
         code: '🧑‍🦼',
@@ -4609,7 +4609,7 @@ const emojis = [
             en: ['accessibility', 'wheelchair', 'person in motorized wheelchair'],
             es: ['accesibilidad', 'silla de ruedas', 'persona en silla de ruedas eléctrica'],
         },
-        types: ['🧑🏻‍🦼', '🧑🏼‍🦼', '🧑🏽‍🦼', '🧑🏾‍🦼', '🧑🏿‍🦼'],
+        types: ['🧑🏿‍🦼', '🧑🏾‍🦼', '🧑🏽‍🦼', '🧑🏼‍🦼', '🧑🏻‍🦼'],
     },
     {
         code: '👨‍🦼',
@@ -4621,7 +4621,7 @@ const emojis = [
             en: ['accessibility', 'man', 'wheelchair', 'man in motorized wheelchair'],
             es: ['accesibilidad', 'hombre', 'silla de ruedas', 'hombre en silla de ruedas eléctrica'],
         },
-        types: ['👨🏻‍🦼', '👨🏼‍🦼', '👨🏽‍🦼', '👨🏾‍🦼', '👨🏿‍🦼'],
+        types: ['👨🏿‍🦼', '👨🏾‍🦼', '👨🏽‍🦼', '👨🏼‍🦼', '👨🏻‍🦼'],
     },
     {
         code: '👩‍🦼',
@@ -4633,7 +4633,7 @@ const emojis = [
             en: ['accessibility', 'wheelchair', 'woman', 'woman in motorized wheelchair'],
             es: ['accesibilidad', 'mujer', 'silla de ruedas', 'mujer en silla de ruedas eléctrica'],
         },
-        types: ['👩🏻‍🦼', '👩🏼‍🦼', '👩🏽‍🦼', '👩🏾‍🦼', '👩🏿‍🦼'],
+        types: ['👩🏿‍🦼', '👩🏾‍🦼', '👩🏽‍🦼', '👩🏼‍🦼', '👩🏻‍🦼'],
     },
     {
         code: '🧑‍🦽',
@@ -4645,7 +4645,7 @@ const emojis = [
             en: ['accessibility', 'wheelchair', 'person in manual wheelchair'],
             es: ['accesibilidad', 'silla de ruedas', 'persona en silla de ruedas manual'],
         },
-        types: ['🧑🏻‍🦽', '🧑🏼‍🦽', '🧑🏽‍🦽', '🧑🏾‍🦽', '🧑🏿‍🦽'],
+        types: ['🧑🏿‍🦽', '🧑🏾‍🦽', '🧑🏽‍🦽', '🧑🏼‍🦽', '🧑🏻‍🦽'],
     },
     {
         code: '👨‍🦽',
@@ -4657,7 +4657,7 @@ const emojis = [
             en: ['accessibility', 'man', 'wheelchair', 'man in manual wheelchair'],
             es: ['accesibilidad', 'hombre', 'silla de ruedas', 'hombre en silla de ruedas manual'],
         },
-        types: ['👨🏻‍🦽', '👨🏼‍🦽', '👨🏽‍🦽', '👨🏾‍🦽', '👨🏿‍🦽'],
+        types: ['👨🏿‍🦽', '👨🏾‍🦽', '👨🏽‍🦽', '👨🏼‍🦽', '👨🏻‍🦽'],
     },
     {
         code: '👩‍🦽',
@@ -4669,7 +4669,7 @@ const emojis = [
             en: ['accessibility', 'wheelchair', 'woman', 'woman in manual wheelchair'],
             es: ['accesibilidad', 'mujer', 'silla de ruedas', 'mujer en silla de ruedas manual'],
         },
-        types: ['👩🏻‍🦽', '👩🏼‍🦽', '👩🏽‍🦽', '👩🏾‍🦽', '👩🏿‍🦽'],
+        types: ['👩🏿‍🦽', '👩🏾‍🦽', '👩🏽‍🦽', '👩🏼‍🦽', '👩🏻‍🦽'],
     },
     {
         code: '🏃',
@@ -4681,7 +4681,7 @@ const emojis = [
             en: ['running', 'marathon  person running'],
             es: ['carrera', 'deporte', 'maratón  persona corriendo'],
         },
-        types: ['🏃🏻', '🏃🏼', '🏃🏽', '🏃🏾', '🏃🏿'],
+        types: ['🏃🏿', '🏃🏾', '🏃🏽', '🏃🏼', '🏃🏻'],
     },
     {
         code: '🏃‍♂️',
@@ -4693,7 +4693,7 @@ const emojis = [
             en: ['man', 'racing', 'running', 'marathon'],
             es: ['carrera', 'correr', 'hombre', 'hombre corriendo  maratón'],
         },
-        types: ['🏃🏻‍♂️', '🏃🏼‍♂️', '🏃🏽‍♂️', '🏃🏾‍♂️', '🏃🏿‍♂️'],
+        types: ['🏃🏿‍♂️', '🏃🏾‍♂️', '🏃🏽‍♂️', '🏃🏼‍♂️', '🏃🏻‍♂️'],
     },
     {
         code: '🏃‍♀️',
@@ -4705,7 +4705,7 @@ const emojis = [
             en: ['racing', 'running', 'woman', 'marathon'],
             es: ['carrera', 'correr', 'mujer', 'maratón', 'mujer corriendo'],
         },
-        types: ['🏃🏻‍♀️', '🏃🏼‍♀️', '🏃🏽‍♀️', '🏃🏾‍♀️', '🏃🏿‍♀️'],
+        types: ['🏃🏿‍♀️', '🏃🏾‍♀️', '🏃🏽‍♀️', '🏃🏼‍♀️', '🏃🏻‍♀️'],
     },
     {
         code: '💃',
@@ -4717,7 +4717,7 @@ const emojis = [
             en: ['dance', 'dancing', 'woman'],
             es: ['bailar', 'mujer', 'mujer bailando'],
         },
-        types: ['💃🏻', '💃🏼', '💃🏽', '💃🏾', '💃🏿'],
+        types: ['💃🏿', '💃🏾', '💃🏽', '💃🏼', '💃🏻'],
     },
     {
         code: '🕺',
@@ -4729,7 +4729,7 @@ const emojis = [
             en: ['dance', 'dancing', 'man'],
             es: ['bailar', 'hombre', 'hombre bailando'],
         },
-        types: ['🕺🏻', '🕺🏼', '🕺🏽', '🕺🏾', '🕺🏿'],
+        types: ['🕺🏿', '🕺🏾', '🕺🏽', '🕺🏼', '🕺🏻'],
     },
     {
         code: '🕴️',
@@ -4741,7 +4741,7 @@ const emojis = [
             en: ['business', 'person', 'suit', 'person in suit levitating'],
             es: ['levitar', 'negocios', 'persona', 'traje', 'persona trajeada levitando'],
         },
-        types: ['🕴🏻', '🕴🏼', '🕴🏽', '🕴🏾', '🕴🏿'],
+        types: ['🕴🏿', '🕴🏾', '🕴🏽', '🕴🏼', '🕴🏻'],
     },
     {
         code: '👯',
@@ -4786,7 +4786,7 @@ const emojis = [
             en: ['sauna', 'steam room', 'person in steamy room'],
             es: ['sauna', 'vapor', 'persona en una sauna'],
         },
-        types: ['🧖🏻', '🧖🏼', '🧖🏽', '🧖🏾', '🧖🏿'],
+        types: ['🧖🏿', '🧖🏾', '🧖🏽', '🧖🏼', '🧖🏻'],
     },
     {
         code: '🧖‍♂️',
@@ -4798,7 +4798,7 @@ const emojis = [
             en: ['sauna', 'steam room', 'man in steamy room'],
             es: ['sauna', 'vapor', 'hombre en una sauna'],
         },
-        types: ['🧖🏻‍♂️', '🧖🏼‍♂️', '🧖🏽‍♂️', '🧖🏾‍♂️', '🧖🏿‍♂️'],
+        types: ['🧖🏿‍♂️', '🧖🏾‍♂️', '🧖🏽‍♂️', '🧖🏼‍♂️', '🧖🏻‍♂️'],
     },
     {
         code: '🧖‍♀️',
@@ -4810,7 +4810,7 @@ const emojis = [
             en: ['sauna', 'steam room', 'woman in steamy room'],
             es: ['sauna', 'vapor', 'mujer en una sauna'],
         },
-        types: ['🧖🏻‍♀️', '🧖🏼‍♀️', '🧖🏽‍♀️', '🧖🏾‍♀️', '🧖🏿‍♀️'],
+        types: ['🧖🏿‍♀️', '🧖🏾‍♀️', '🧖🏽‍♀️', '🧖🏼‍♀️', '🧖🏻‍♀️'],
     },
     {
         code: '🧗',
@@ -4822,7 +4822,7 @@ const emojis = [
             en: ['climber', 'person climbing'],
             es: ['alpinista', 'escalador', 'persona escalando'],
         },
-        types: ['🧗🏻', '🧗🏼', '🧗🏽', '🧗🏾', '🧗🏿'],
+        types: ['🧗🏿', '🧗🏾', '🧗🏽', '🧗🏼', '🧗🏻'],
     },
     {
         code: '🧗‍♂️',
@@ -4834,7 +4834,7 @@ const emojis = [
             en: ['climber', 'man climbing'],
             es: ['alpinista', 'escalador', 'hombre escalando'],
         },
-        types: ['🧗🏻‍♂️', '🧗🏼‍♂️', '🧗🏽‍♂️', '🧗🏾‍♂️', '🧗🏿‍♂️'],
+        types: ['🧗🏿‍♂️', '🧗🏾‍♂️', '🧗🏽‍♂️', '🧗🏼‍♂️', '🧗🏻‍♂️'],
     },
     {
         code: '🧗‍♀️',
@@ -4846,7 +4846,7 @@ const emojis = [
             en: ['climber', 'woman climbing'],
             es: ['alpinista', 'escaladora', 'mujer escalando'],
         },
-        types: ['🧗🏻‍♀️', '🧗🏼‍♀️', '🧗🏽‍♀️', '🧗🏾‍♀️', '🧗🏿‍♀️'],
+        types: ['🧗🏿‍♀️', '🧗🏾‍♀️', '🧗🏽‍♀️', '🧗🏼‍♀️', '🧗🏻‍♀️'],
     },
     {
         code: '🤺',
@@ -4869,7 +4869,7 @@ const emojis = [
             en: ['horse', 'jockey', 'racehorse', 'racing'],
             es: ['caballo', 'caballo de carreras', 'carreras', 'jinete', 'carrera de caballos'],
         },
-        types: ['🏇🏻', '🏇🏼', '🏇🏽', '🏇🏾', '🏇🏿'],
+        types: ['🏇🏿', '🏇🏾', '🏇🏽', '🏇🏼', '🏇🏻'],
     },
     {
         code: '⛷️',
@@ -4892,7 +4892,7 @@ const emojis = [
             en: ['ski', 'snow', 'snowboard', 'snowboarder'],
             es: ['nieve', 'snowboard', 'practicante de snowboard'],
         },
-        types: ['🏂🏻', '🏂🏼', '🏂🏽', '🏂🏾', '🏂🏿'],
+        types: ['🏂🏿', '🏂🏾', '🏂🏽', '🏂🏼', '🏂🏻'],
     },
     {
         code: '🏌️',
@@ -4904,7 +4904,7 @@ const emojis = [
             en: ['ball', 'golf', 'person golfing'],
             es: ['golf', 'golfista', 'pelota', 'persona jugando al golf'],
         },
-        types: ['🏌🏻', '🏌🏼', '🏌🏽', '🏌🏾', '🏌🏿'],
+        types: ['🏌🏿', '🏌🏾', '🏌🏽', '🏌🏼', '🏌🏻'],
     },
     {
         code: '🏌️‍♂️',
@@ -4916,7 +4916,7 @@ const emojis = [
             en: ['golf', 'man', 'man golfing'],
             es: ['golf', 'hombre', 'jugador', 'hombre jugando al golf'],
         },
-        types: ['🏌🏻‍♂️', '🏌🏼‍♂️', '🏌🏽‍♂️', '🏌🏾‍♂️', '🏌🏿‍♂️'],
+        types: ['🏌🏿‍♂️', '🏌🏾‍♂️', '🏌🏽‍♂️', '🏌🏼‍♂️', '🏌🏻‍♂️'],
     },
     {
         code: '🏌️‍♀️',
@@ -4928,7 +4928,7 @@ const emojis = [
             en: ['golf', 'woman', 'woman golfing'],
             es: ['golf', 'jugadora', 'mujer', 'mujer jugando al golf'],
         },
-        types: ['🏌🏻‍♀️', '🏌🏼‍♀️', '🏌🏽‍♀️', '🏌🏾‍♀️', '🏌🏿‍♀️'],
+        types: ['🏌🏿‍♀️', '🏌🏾‍♀️', '🏌🏽‍♀️', '🏌🏼‍♀️', '🏌🏻‍♀️'],
     },
     {
         code: '🏄',
@@ -4940,7 +4940,7 @@ const emojis = [
             en: ['surfing', 'person surfing'],
             es: ['surf', 'persona haciendo surf', 'surfear'],
         },
-        types: ['🏄🏻', '🏄🏼', '🏄🏽', '🏄🏾', '🏄🏿'],
+        types: ['🏄🏿', '🏄🏾', '🏄🏽', '🏄🏼', '🏄🏻'],
     },
     {
         code: '🏄‍♂️',
@@ -4952,7 +4952,7 @@ const emojis = [
             en: ['man', 'surfing'],
             es: ['hombre', 'surf', 'surfero', 'surfista', 'hombre haciendo surf'],
         },
-        types: ['🏄🏻‍♂️', '🏄🏼‍♂️', '🏄🏽‍♂️', '🏄🏾‍♂️', '🏄🏿‍♂️'],
+        types: ['🏄🏿‍♂️', '🏄🏾‍♂️', '🏄🏽‍♂️', '🏄🏼‍♂️', '🏄🏻‍♂️'],
     },
     {
         code: '🏄‍♀️',
@@ -4964,7 +4964,7 @@ const emojis = [
             en: ['surfing', 'woman'],
             es: ['mujer', 'surf', 'surfera', 'surfista', 'mujer haciendo surf'],
         },
-        types: ['🏄🏻‍♀️', '🏄🏼‍♀️', '🏄🏽‍♀️', '🏄🏾‍♀️', '🏄🏿‍♀️'],
+        types: ['🏄🏿‍♀️', '🏄🏾‍♀️', '🏄🏽‍♀️', '🏄🏼‍♀️', '🏄🏻‍♀️'],
     },
     {
         code: '🚣',
@@ -4976,7 +4976,7 @@ const emojis = [
             en: ['boat', 'rowboat', 'person rowing boat'],
             es: ['barca', 'bote', 'remo', 'persona remando en un bote'],
         },
-        types: ['🚣🏻', '🚣🏼', '🚣🏽', '🚣🏾', '🚣🏿'],
+        types: ['🚣🏿', '🚣🏾', '🚣🏽', '🚣🏼', '🚣🏻'],
     },
     {
         code: '🚣‍♂️',
@@ -4988,7 +4988,7 @@ const emojis = [
             en: ['boat', 'man', 'rowboat', 'man rowing boat'],
             es: ['barca', 'bote', 'hombre', 'remo', 'hombre remando en un bote'],
         },
-        types: ['🚣🏻‍♂️', '🚣🏼‍♂️', '🚣🏽‍♂️', '🚣🏾‍♂️', '🚣🏿‍♂️'],
+        types: ['🚣🏿‍♂️', '🚣🏾‍♂️', '🚣🏽‍♂️', '🚣🏼‍♂️', '🚣🏻‍♂️'],
     },
     {
         code: '🚣‍♀️',
@@ -5000,7 +5000,7 @@ const emojis = [
             en: ['boat', 'rowboat', 'woman', 'woman rowing boat'],
             es: ['barca', 'bote', 'mujer', 'remo', 'mujer remando en un bote'],
         },
-        types: ['🚣🏻‍♀️', '🚣🏼‍♀️', '🚣🏽‍♀️', '🚣🏾‍♀️', '🚣🏿‍♀️'],
+        types: ['🚣🏿‍♀️', '🚣🏾‍♀️', '🚣🏽‍♀️', '🚣🏼‍♀️', '🚣🏻‍♀️'],
     },
     {
         code: '🏊',
@@ -5012,7 +5012,7 @@ const emojis = [
             en: ['swim', 'person swimming'],
             es: ['nadar', 'natación', 'persona nadando'],
         },
-        types: ['🏊🏻', '🏊🏼', '🏊🏽', '🏊🏾', '🏊🏿'],
+        types: ['🏊🏿', '🏊🏾', '🏊🏽', '🏊🏼', '🏊🏻'],
     },
     {
         code: '🏊‍♂️',
@@ -5024,7 +5024,7 @@ const emojis = [
             en: ['man', 'swim', 'man swimming'],
             es: ['hombre', 'nadar', 'hombre nadando'],
         },
-        types: ['🏊🏻‍♂️', '🏊🏼‍♂️', '🏊🏽‍♂️', '🏊🏾‍♂️', '🏊🏿‍♂️'],
+        types: ['🏊🏿‍♂️', '🏊🏾‍♂️', '🏊🏽‍♂️', '🏊🏼‍♂️', '🏊🏻‍♂️'],
     },
     {
         code: '🏊‍♀️',
@@ -5036,7 +5036,7 @@ const emojis = [
             en: ['swim', 'woman', 'woman swimming'],
             es: ['mujer', 'nadar', 'mujer nadando'],
         },
-        types: ['🏊🏻‍♀️', '🏊🏼‍♀️', '🏊🏽‍♀️', '🏊🏾‍♀️', '🏊🏿‍♀️'],
+        types: ['🏊🏿‍♀️', '🏊🏾‍♀️', '🏊🏽‍♀️', '🏊🏼‍♀️', '🏊🏻‍♀️'],
     },
     {
         code: '⛹️',
@@ -5048,7 +5048,7 @@ const emojis = [
             en: ['ball', 'person bouncing ball'],
             es: ['balón', 'botar', 'pelota', 'persona botando un balón'],
         },
-        types: ['⛹🏻', '⛹🏼', '⛹🏽', '⛹🏾', '⛹🏿'],
+        types: ['⛹🏿', '⛹🏾', '⛹🏽', '⛹🏼', '⛹🏻'],
     },
     {
         code: '⛹️‍♂️',
@@ -5060,7 +5060,7 @@ const emojis = [
             en: ['ball', 'man', 'man bouncing ball'],
             es: ['balón', 'botar', 'hombre', 'pelota', 'hombre botando un balón'],
         },
-        types: ['⛹🏻‍♂️', '⛹🏼‍♂️', '⛹🏽‍♂️', '⛹🏾‍♂️', '⛹🏿‍♂️'],
+        types: ['⛹🏿‍♂️', '⛹🏾‍♂️', '⛹🏽‍♂️', '⛹🏼‍♂️', '⛹🏻‍♂️'],
     },
     {
         code: '⛹️‍♀️',
@@ -5072,7 +5072,7 @@ const emojis = [
             en: ['ball', 'woman', 'woman bouncing ball'],
             es: ['balón', 'botar', 'mujer', 'pelota', 'mujer botando un balón'],
         },
-        types: ['⛹🏻‍♀️', '⛹🏼‍♀️', '⛹🏽‍♀️', '⛹🏾‍♀️', '⛹🏿‍♀️'],
+        types: ['⛹🏿‍♀️', '⛹🏾‍♀️', '⛹🏽‍♀️', '⛹🏼‍♀️', '⛹🏻‍♀️'],
     },
     {
         code: '🏋️',
@@ -5084,7 +5084,7 @@ const emojis = [
             en: ['lifter', 'weight', 'person lifting weights'],
             es: ['halterofilia', 'levantador', 'pesas', 'peso', 'persona levantando pesas'],
         },
-        types: ['🏋🏻', '🏋🏼', '🏋🏽', '🏋🏾', '🏋🏿'],
+        types: ['🏋🏿', '🏋🏾', '🏋🏽', '🏋🏼', '🏋🏻'],
     },
     {
         code: '🏋️‍♂️',
@@ -5096,7 +5096,7 @@ const emojis = [
             en: ['man', 'weight lifter', 'man lifting weights'],
             es: ['halterofilia', 'hombre', 'levantador de pesas', 'pesas', 'hombre levantando pesas'],
         },
-        types: ['🏋🏻‍♂️', '🏋🏼‍♂️', '🏋🏽‍♂️', '🏋🏾‍♂️', '🏋🏿‍♂️'],
+        types: ['🏋🏿‍♂️', '🏋🏾‍♂️', '🏋🏽‍♂️', '🏋🏼‍♂️', '🏋🏻‍♂️'],
     },
     {
         code: '🏋️‍♀️',
@@ -5108,7 +5108,7 @@ const emojis = [
             en: ['weight lifter', 'woman', 'woman lifting weights'],
             es: ['halterofilia', 'levantadora de pesas', 'mujer', 'pesas', 'mujer levantando pesas'],
         },
-        types: ['🏋🏻‍♀️', '🏋🏼‍♀️', '🏋🏽‍♀️', '🏋🏾‍♀️', '🏋🏿‍♀️'],
+        types: ['🏋🏿‍♀️', '🏋🏾‍♀️', '🏋🏽‍♀️', '🏋🏼‍♀️', '🏋🏻‍♀️'],
     },
     {
         code: '🚴',
@@ -5120,7 +5120,7 @@ const emojis = [
             en: ['bicycle', 'biking', 'cyclist', 'person biking'],
             es: ['bicicleta', 'ciclismo', 'ciclista', 'persona en bicicleta'],
         },
-        types: ['🚴🏻', '🚴🏼', '🚴🏽', '🚴🏾', '🚴🏿'],
+        types: ['🚴🏿', '🚴🏾', '🚴🏽', '🚴🏼', '🚴🏻'],
     },
     {
         code: '🚴‍♂️',
@@ -5132,7 +5132,7 @@ const emojis = [
             en: ['bicycle', 'biking', 'cyclist', 'man'],
             es: ['bicicleta', 'ciclismo', 'ciclista', 'hombre', 'hombre en bicicleta'],
         },
-        types: ['🚴🏻‍♂️', '🚴🏼‍♂️', '🚴🏽‍♂️', '🚴🏾‍♂️', '🚴🏿‍♂️'],
+        types: ['🚴🏿‍♂️', '🚴🏾‍♂️', '🚴🏽‍♂️', '🚴🏼‍♂️', '🚴🏻‍♂️'],
     },
     {
         code: '🚴‍♀️',
@@ -5144,7 +5144,7 @@ const emojis = [
             en: ['bicycle', 'biking', 'cyclist', 'woman'],
             es: ['bicicleta', 'ciclismo', 'ciclista', 'mujer', 'mujer en bicicleta'],
         },
-        types: ['🚴🏻‍♀️', '🚴🏼‍♀️', '🚴🏽‍♀️', '🚴🏾‍♀️', '🚴🏿‍♀️'],
+        types: ['🚴🏿‍♀️', '🚴🏾‍♀️', '🚴🏽‍♀️', '🚴🏼‍♀️', '🚴🏻‍♀️'],
     },
     {
         code: '🚵',
@@ -5156,7 +5156,7 @@ const emojis = [
             en: ['bicycle', 'bicyclist', 'bike', 'cyclist', 'mountain', 'person mountain biking'],
             es: ['bicicleta', 'ciclista', 'montaña', 'mountain bike', 'persona en bicicleta de montaña'],
         },
-        types: ['🚵🏻', '🚵🏼', '🚵🏽', '🚵🏾', '🚵🏿'],
+        types: ['🚵🏿', '🚵🏾', '🚵🏽', '🚵🏼', '🚵🏻'],
     },
     {
         code: '🚵‍♂️',
@@ -5168,7 +5168,7 @@ const emojis = [
             en: ['bicycle', 'bike', 'cyclist', 'man', 'mountain', 'man mountain biking'],
             es: ['bicicleta', 'ciclista', 'montaña', 'mountain bike', 'hombre en bicicleta de montaña'],
         },
-        types: ['🚵🏻‍♂️', '🚵🏼‍♂️', '🚵🏽‍♂️', '🚵🏾‍♂️', '🚵🏿‍♂️'],
+        types: ['🚵🏿‍♂️', '🚵🏾‍♂️', '🚵🏽‍♂️', '🚵🏼‍♂️', '🚵🏻‍♂️'],
     },
     {
         code: '🚵‍♀️',
@@ -5180,7 +5180,7 @@ const emojis = [
             en: ['bicycle', 'bike', 'biking', 'cyclist', 'mountain', 'woman'],
             es: ['bicicleta', 'ciclista', 'montaña', 'mountain bike', 'mujer en bicicleta de montaña'],
         },
-        types: ['🚵🏻‍♀️', '🚵🏼‍♀️', '🚵🏽‍♀️', '🚵🏾‍♀️', '🚵🏿‍♀️'],
+        types: ['🚵🏿‍♀️', '🚵🏾‍♀️', '🚵🏽‍♀️', '🚵🏼‍♀️', '🚵🏻‍♀️'],
     },
     {
         code: '🤸',
@@ -5192,7 +5192,7 @@ const emojis = [
             en: ['cartwheel', 'gymnastics', 'person cartwheeling'],
             es: ['acrobacia', 'gimnasia', 'pirueta', 'rueda', 'voltereta', 'persona haciendo voltereta lateral'],
         },
-        types: ['🤸🏻', '🤸🏼', '🤸🏽', '🤸🏾', '🤸🏿'],
+        types: ['🤸🏿', '🤸🏾', '🤸🏽', '🤸🏼', '🤸🏻'],
     },
     {
         code: '🤸‍♂️',
@@ -5204,7 +5204,7 @@ const emojis = [
             en: ['cartwheel', 'gymnastics', 'man', 'man cartwheeling'],
             es: ['deporte', 'gimnasia', 'hombre', 'rueda', 'voltereta', 'hombre dando una voltereta lateral'],
         },
-        types: ['🤸🏻‍♂️', '🤸🏼‍♂️', '🤸🏽‍♂️', '🤸🏾‍♂️', '🤸🏿‍♂️'],
+        types: ['🤸🏿‍♂️', '🤸🏾‍♂️', '🤸🏽‍♂️', '🤸🏼‍♂️', '🤸🏻‍♂️'],
     },
     {
         code: '🤸‍♀️',
@@ -5216,7 +5216,7 @@ const emojis = [
             en: ['cartwheel', 'gymnastics', 'woman', 'woman cartwheeling'],
             es: ['deporte', 'gimnasia', 'mujer', 'rueda', 'voltereta', 'mujer dando una voltereta lateral'],
         },
-        types: ['🤸🏻‍♀️', '🤸🏼‍♀️', '🤸🏽‍♀️', '🤸🏾‍♀️', '🤸🏿‍♀️'],
+        types: ['🤸🏿‍♀️', '🤸🏾‍♀️', '🤸🏽‍♀️', '🤸🏼‍♀️', '🤸🏻‍♀️'],
     },
     {
         code: '🤼',
@@ -5261,7 +5261,7 @@ const emojis = [
             en: ['polo', 'water', 'person playing water polo'],
             es: ['waterpolista', 'waterpolo', 'persona jugando al waterpolo'],
         },
-        types: ['🤽🏻', '🤽🏼', '🤽🏽', '🤽🏾', '🤽🏿'],
+        types: ['🤽🏿', '🤽🏾', '🤽🏽', '🤽🏼', '🤽🏻'],
     },
     {
         code: '🤽‍♂️',
@@ -5273,7 +5273,7 @@ const emojis = [
             en: ['man', 'water polo', 'man playing water polo'],
             es: ['agua', 'deporte', 'waterpolista', 'waterpolo', 'hombre jugando al waterpolo'],
         },
-        types: ['🤽🏻‍♂️', '🤽🏼‍♂️', '🤽🏽‍♂️', '🤽🏾‍♂️', '🤽🏿‍♂️'],
+        types: ['🤽🏿‍♂️', '🤽🏾‍♂️', '🤽🏽‍♂️', '🤽🏼‍♂️', '🤽🏻‍♂️'],
     },
     {
         code: '🤽‍♀️',
@@ -5285,7 +5285,7 @@ const emojis = [
             en: ['water polo', 'woman', 'woman playing water polo'],
             es: ['agua', 'deporte', 'waterpolista', 'waterpolo', 'mujer jugando al waterpolo'],
         },
-        types: ['🤽🏻‍♀️', '🤽🏼‍♀️', '🤽🏽‍♀️', '🤽🏾‍♀️', '🤽🏿‍♀️'],
+        types: ['🤽🏿‍♀️', '🤽🏾‍♀️', '🤽🏽‍♀️', '🤽🏼‍♀️', '🤽🏻‍♀️'],
     },
     {
         code: '🤾',
@@ -5297,7 +5297,7 @@ const emojis = [
             en: ['ball', 'handball', 'person playing handball'],
             es: ['balonmanista', 'balonmano', 'persona jugando al balonmano'],
         },
-        types: ['🤾🏻', '🤾🏼', '🤾🏽', '🤾🏾', '🤾🏿'],
+        types: ['🤾🏿', '🤾🏾', '🤾🏽', '🤾🏼', '🤾🏻'],
     },
     {
         code: '🤾‍♂️',
@@ -5309,7 +5309,7 @@ const emojis = [
             en: ['handball', 'man', 'man playing handball'],
             es: ['balonmanista', 'balonmano', 'deporte', 'hombre', 'hombre jugando al balonmano'],
         },
-        types: ['🤾🏻‍♂️', '🤾🏼‍♂️', '🤾🏽‍♂️', '🤾🏾‍♂️', '🤾🏿‍♂️'],
+        types: ['🤾🏿‍♂️', '🤾🏾‍♂️', '🤾🏽‍♂️', '🤾🏼‍♂️', '🤾🏻‍♂️'],
     },
     {
         code: '🤾‍♀️',
@@ -5321,7 +5321,7 @@ const emojis = [
             en: ['handball', 'woman', 'woman playing handball'],
             es: ['balonmanista', 'balonmano', 'deporte', 'mujer', 'mujer jugando al balonmano'],
         },
-        types: ['🤾🏻‍♀️', '🤾🏼‍♀️', '🤾🏽‍♀️', '🤾🏾‍♀️', '🤾🏿‍♀️'],
+        types: ['🤾🏿‍♀️', '🤾🏾‍♀️', '🤾🏽‍♀️', '🤾🏼‍♀️', '🤾🏻‍♀️'],
     },
     {
         code: '🤹',
@@ -5333,7 +5333,7 @@ const emojis = [
             en: ['balance', 'juggle', 'multitask', 'skill', 'person juggling'],
             es: ['equilibrio', 'malabares', 'malabarismo', 'malabarista', 'persona haciendo malabares'],
         },
-        types: ['🤹🏻', '🤹🏼', '🤹🏽', '🤹🏾', '🤹🏿'],
+        types: ['🤹🏿', '🤹🏾', '🤹🏽', '🤹🏼', '🤹🏻'],
     },
     {
         code: '🤹‍♂️',
@@ -5345,7 +5345,7 @@ const emojis = [
             en: ['juggling', 'man', 'multitask'],
             es: ['hombre', 'malabares', 'malabarismo', 'malabarista', 'hombre haciendo malabares'],
         },
-        types: ['🤹🏻‍♂️', '🤹🏼‍♂️', '🤹🏽‍♂️', '🤹🏾‍♂️', '🤹🏿‍♂️'],
+        types: ['🤹🏿‍♂️', '🤹🏾‍♂️', '🤹🏽‍♂️', '🤹🏼‍♂️', '🤹🏻‍♂️'],
     },
     {
         code: '🤹‍♀️',
@@ -5357,7 +5357,7 @@ const emojis = [
             en: ['juggling', 'multitask', 'woman'],
             es: ['malabares', 'malabarismo', 'malabarista', 'mujer', 'mujer haciendo malabares'],
         },
-        types: ['🤹🏻‍♀️', '🤹🏼‍♀️', '🤹🏽‍♀️', '🤹🏾‍♀️', '🤹🏿‍♀️'],
+        types: ['🤹🏿‍♀️', '🤹🏾‍♀️', '🤹🏽‍♀️', '🤹🏼‍♀️', '🤹🏻‍♀️'],
     },
     {
         code: '🧘',
@@ -5369,7 +5369,7 @@ const emojis = [
             en: ['meditation', 'yoga', 'person in lotus position'],
             es: ['meditación', 'yoga', 'persona en posición de loto'],
         },
-        types: ['🧘🏻', '🧘🏼', '🧘🏽', '🧘🏾', '🧘🏿'],
+        types: ['🧘🏿', '🧘🏾', '🧘🏽', '🧘🏼', '🧘🏻'],
     },
     {
         code: '🧘‍♂️',
@@ -5381,7 +5381,7 @@ const emojis = [
             en: ['meditation', 'yoga', 'man in lotus position'],
             es: ['meditación', 'yoga', 'hombre en posición de loto'],
         },
-        types: ['🧘🏻‍♂️', '🧘🏼‍♂️', '🧘🏽‍♂️', '🧘🏾‍♂️', '🧘🏿‍♂️'],
+        types: ['🧘🏿‍♂️', '🧘🏾‍♂️', '🧘🏽‍♂️', '🧘🏼‍♂️', '🧘🏻‍♂️'],
     },
     {
         code: '🧘‍♀️',
@@ -5393,7 +5393,7 @@ const emojis = [
             en: ['meditation', 'yoga', 'woman in lotus position'],
             es: ['meditación', 'yoga', 'mujer en posición de loto'],
         },
-        types: ['🧘🏻‍♀️', '🧘🏼‍♀️', '🧘🏽‍♀️', '🧘🏾‍♀️', '🧘🏿‍♀️'],
+        types: ['🧘🏿‍♀️', '🧘🏾‍♀️', '🧘🏽‍♀️', '🧘🏼‍♀️', '🧘🏻‍♀️'],
     },
     {
         code: '🛀',
@@ -5405,7 +5405,7 @@ const emojis = [
             en: ['bath', 'bathtub', 'person taking bath'],
             es: ['bañera', 'baño', 'persona', 'persona en la bañera'],
         },
-        types: ['🛀🏻', '🛀🏼', '🛀🏽', '🛀🏾', '🛀🏿'],
+        types: ['🛀🏿', '🛀🏾', '🛀🏽', '🛀🏼', '🛀🏻'],
     },
     {
         code: '🛌',
@@ -5417,7 +5417,7 @@ const emojis = [
             en: ['good night', 'hotel', 'sleep', 'person in bed'],
             es: ['dormir', 'hotel', 'persona en la cama'],
         },
-        types: ['🛌🏻', '🛌🏼', '🛌🏽', '🛌🏾', '🛌🏿'],
+        types: ['🛌🏿', '🛌🏾', '🛌🏽', '🛌🏼', '🛌🏻'],
     },
     {
         code: '🧑‍🤝‍🧑',
@@ -5429,7 +5429,7 @@ const emojis = [
             en: ['couple', 'hand', 'hold', 'holding hands', 'person', 'people holding hands'],
             es: ['mano', 'pareja', 'persona', 'dos personas de la mano'],
         },
-        types: ['🧑🏻‍🤝‍🧑🏻', '🧑🏻‍🤝‍🧑🏼', '🧑🏻‍🤝‍🧑🏽', '🧑🏻‍🤝‍🧑🏾', '🧑🏻‍🤝‍🧑🏿', '🧑🏼‍🤝‍🧑🏻', '🧑🏼‍🤝‍🧑🏼', '🧑🏼‍🤝‍🧑🏽', '🧑🏼‍🤝‍🧑🏾', '🧑🏼‍🤝‍🧑🏿', '🧑🏽‍🤝‍🧑🏻', '🧑🏽‍🤝‍🧑🏼', '🧑🏽‍🤝‍🧑🏽', '🧑🏽‍🤝‍🧑🏾', '🧑🏽‍🤝‍🧑🏿', '🧑🏾‍🤝‍🧑🏻', '🧑🏾‍🤝‍🧑🏼', '🧑🏾‍🤝‍🧑🏽', '🧑🏾‍🤝‍🧑🏾', '🧑🏾‍🤝‍🧑🏿', '🧑🏿‍🤝‍🧑🏻', '🧑🏿‍🤝‍🧑🏼', '🧑🏿‍🤝‍🧑🏽', '🧑🏿‍🤝‍🧑🏾', '🧑🏿‍🤝‍🧑🏿'],
+        types: ['🧑🏿‍🤝‍🧑🏿', '🧑🏿‍🤝‍🧑🏾', '🧑🏿‍🤝‍🧑🏽', '🧑🏿‍🤝‍🧑🏼', '🧑🏿‍🤝‍🧑🏻', '🧑🏾‍🤝‍🧑🏿', '🧑🏾‍🤝‍🧑🏾', '🧑🏾‍🤝‍🧑🏽', '🧑🏾‍🤝‍🧑🏼', '🧑🏾‍🤝‍🧑🏻', '🧑🏽‍🤝‍🧑🏿', '🧑🏽‍🤝‍🧑🏾', '🧑🏽‍🤝‍🧑🏽', '🧑🏽‍🤝‍🧑🏼', '🧑🏽‍🤝‍🧑🏻', '🧑🏼‍🤝‍🧑🏿', '🧑🏼‍🤝‍🧑🏾', '🧑🏼‍🤝‍🧑🏽', '🧑🏼‍🤝‍🧑🏼', '🧑🏼‍🤝‍🧑🏻', '🧑🏻‍🤝‍🧑🏿', '🧑🏻‍🤝‍🧑🏾', '🧑🏻‍🤝‍🧑🏽', '🧑🏻‍🤝‍🧑🏼', '🧑🏻‍🤝‍🧑🏻'],
     },
     {
         code: '👭',
@@ -5441,7 +5441,7 @@ const emojis = [
             en: ['couple', 'hand', 'holding hands', 'women', 'women holding hands'],
             es: ['lesbianas', 'mujeres', 'novias', 'pareja', 'mujeres de la mano'],
         },
-        types: ['👩🏻‍🤝‍👩🏼', '👩🏻‍🤝‍👩🏽', '👩🏻‍🤝‍👩🏾', '👩🏻‍🤝‍👩🏿', '👩🏼‍🤝‍👩🏻', '👩🏼‍🤝‍👩🏽', '👩🏼‍🤝‍👩🏾', '👩🏼‍🤝‍👩🏿', '👩🏽‍🤝‍👩🏻', '👩🏽‍🤝‍👩🏼', '👩🏽‍🤝‍👩🏾', '👩🏽‍🤝‍👩🏿', '👩🏾‍🤝‍👩🏻', '👩🏾‍🤝‍👩🏼', '👩🏾‍🤝‍👩🏽', '👩🏾‍🤝‍👩🏿', '👩🏿‍🤝‍👩🏻', '👩🏿‍🤝‍👩🏼', '👩🏿‍🤝‍👩🏽', '👩🏿‍🤝‍👩🏾', '👭🏻', '👭🏼', '👭🏽', '👭🏾', '👭🏿'],
+        types: ['👭🏿', '👭🏾', '👭🏽', '👭🏼', '👭🏻', '👩🏿‍🤝‍👩🏾', '👩🏿‍🤝‍👩🏽', '👩🏿‍🤝‍👩🏼', '👩🏿‍🤝‍👩🏻', '👩🏾‍🤝‍👩🏿', '👩🏾‍🤝‍👩🏽', '👩🏾‍🤝‍👩🏼', '👩🏾‍🤝‍👩🏻', '👩🏽‍🤝‍👩🏿', '👩🏽‍🤝‍👩🏾', '👩🏽‍🤝‍👩🏼', '👩🏽‍🤝‍👩🏻', '👩🏼‍🤝‍👩🏿', '👩🏼‍🤝‍👩🏾', '👩🏼‍🤝‍👩🏽', '👩🏼‍🤝‍👩🏻', '👩🏻‍🤝‍👩🏿', '👩🏻‍🤝‍👩🏾', '👩🏻‍🤝‍👩🏽', '👩🏻‍🤝‍👩🏼'],
     },
     {
         code: '👫',
@@ -5453,7 +5453,7 @@ const emojis = [
             en: ['couple', 'hand', 'hold', 'holding hands', 'man', 'woman', 'woman and man holding hands'],
             es: ['hombre', 'hombre y mujer de la mano', 'mujer', 'novios', 'pareja', 'mujer y hombre de la mano'],
         },
-        types: ['👩🏻‍🤝‍👨🏼', '👩🏻‍🤝‍👨🏽', '👩🏻‍🤝‍👨🏾', '👩🏻‍🤝‍👨🏿', '👩🏼‍🤝‍👨🏻', '👩🏼‍🤝‍👨🏽', '👩🏼‍🤝‍👨🏾', '👩🏼‍🤝‍👨🏿', '👩🏽‍🤝‍👨🏻', '👩🏽‍🤝‍👨🏼', '👩🏽‍🤝‍👨🏾', '👩🏽‍🤝‍👨🏿', '👩🏾‍🤝‍👨🏻', '👩🏾‍🤝‍👨🏼', '👩🏾‍🤝‍👨🏽', '👩🏾‍🤝‍👨🏿', '👩🏿‍🤝‍👨🏻', '👩🏿‍🤝‍👨🏼', '👩🏿‍🤝‍👨🏽', '👩🏿‍🤝‍👨🏾', '👫🏻', '👫🏼', '👫🏽', '👫🏾', '👫🏿'],
+        types: ['👫🏿', '👫🏾', '👫🏽', '👫🏼', '👫🏻', '👩🏿‍🤝‍👨🏾', '👩🏿‍🤝‍👨🏽', '👩🏿‍🤝‍👨🏼', '👩🏿‍🤝‍👨🏻', '👩🏾‍🤝‍👨🏿', '👩🏾‍🤝‍👨🏽', '👩🏾‍🤝‍👨🏼', '👩🏾‍🤝‍👨🏻', '👩🏽‍🤝‍👨🏿', '👩🏽‍🤝‍👨🏾', '👩🏽‍🤝‍👨🏼', '👩🏽‍🤝‍👨🏻', '👩🏼‍🤝‍👨🏿', '👩🏼‍🤝‍👨🏾', '👩🏼‍🤝‍👨🏽', '👩🏼‍🤝‍👨🏻', '👩🏻‍🤝‍👨🏿', '👩🏻‍🤝‍👨🏾', '👩🏻‍🤝‍👨🏽', '👩🏻‍🤝‍👨🏼'],
     },
     {
         code: '👬',
@@ -5465,7 +5465,7 @@ const emojis = [
             en: ['couple', 'Gemini', 'holding hands', 'man', 'men', 'twins', 'zodiac', 'men holding hands'],
             es: ['gays', 'hombres', 'novios', 'pareja', 'hombres de la mano'],
         },
-        types: ['👨🏻‍🤝‍👨🏼', '👨🏻‍🤝‍👨🏽', '👨🏻‍🤝‍👨🏾', '👨🏻‍🤝‍👨🏿', '👨🏼‍🤝‍👨🏻', '👨🏼‍🤝‍👨🏽', '👨🏼‍🤝‍👨🏾', '👨🏼‍🤝‍👨🏿', '👨🏽‍🤝‍👨🏻', '👨🏽‍🤝‍👨🏼', '👨🏽‍🤝‍👨🏾', '👨🏽‍🤝‍👨🏿', '👨🏾‍🤝‍👨🏻', '👨🏾‍🤝‍👨🏼', '👨🏾‍🤝‍👨🏽', '👨🏾‍🤝‍👨🏿', '👨🏿‍🤝‍👨🏻', '👨🏿‍🤝‍👨🏼', '👨🏿‍🤝‍👨🏽', '👨🏿‍🤝‍👨🏾', '👬🏻', '👬🏼', '👬🏽', '👬🏾', '👬🏿'],
+        types: ['👬🏿', '👬🏾', '👬🏽', '👬🏼', '👬🏻', '👨🏿‍🤝‍👨🏾', '👨🏿‍🤝‍👨🏽', '👨🏿‍🤝‍👨🏼', '👨🏿‍🤝‍👨🏻', '👨🏾‍🤝‍👨🏿', '👨🏾‍🤝‍👨🏽', '👨🏾‍🤝‍👨🏼', '👨🏾‍🤝‍👨🏻', '👨🏽‍🤝‍👨🏿', '👨🏽‍🤝‍👨🏾', '👨🏽‍🤝‍👨🏼', '👨🏽‍🤝‍👨🏻', '👨🏼‍🤝‍👨🏿', '👨🏼‍🤝‍👨🏾', '👨🏼‍🤝‍👨🏽', '👨🏼‍🤝‍👨🏻', '👨🏻‍🤝‍👨🏿', '👨🏻‍🤝‍👨🏾', '👨🏻‍🤝‍👨🏽', '👨🏻‍🤝‍👨🏼'],
     },
     {
         code: '💏',
@@ -5477,7 +5477,7 @@ const emojis = [
             en: ['couple', 'kiss'],
             es: ['personas', 'romance', 'beso'],
         },
-        types: ['💏🏻', '💏🏼', '💏🏽', '💏🏾', '💏🏿'],
+        types: ['💏🏿', '💏🏾', '💏🏽', '💏🏼', '💏🏻'],
     },
     {
         code: '👩‍❤️‍💋‍👨',
@@ -5489,7 +5489,7 @@ const emojis = [
             en: ['couple', 'kiss', 'man', 'woman'],
             es: ['beso', 'hombre', 'mujer', 'personas', 'romance'],
         },
-        types: ['👩🏻‍❤️‍💋‍👨🏻', '👩🏻‍❤️‍💋‍👨🏼', '👩🏻‍❤️‍💋‍👨🏽', '👩🏻‍❤️‍💋‍👨🏾', '👩🏻‍❤️‍💋‍👨🏿', '👩🏼‍❤️‍💋‍👨🏻', '👩🏼‍❤️‍💋‍👨🏼', '👩🏼‍❤️‍💋‍👨🏽', '👩🏼‍❤️‍💋‍👨🏾', '👩🏼‍❤️‍💋‍👨🏿', '👩🏽‍❤️‍💋‍👨🏻', '👩🏽‍❤️‍💋‍👨🏼', '👩🏽‍❤️‍💋‍👨🏽', '👩🏽‍❤️‍💋‍👨🏾', '👩🏽‍❤️‍💋‍👨🏿', '👩🏾‍❤️‍💋‍👨🏻', '👩🏾‍❤️‍💋‍👨🏼', '👩🏾‍❤️‍💋‍👨🏽', '👩🏾‍❤️‍💋‍👨🏾', '👩🏾‍❤️‍💋‍👨🏿', '👩🏿‍❤️‍💋‍👨🏻', '👩🏿‍❤️‍💋‍👨🏼', '👩🏿‍❤️‍💋‍👨🏽', '👩🏿‍❤️‍💋‍👨🏾', '👩🏿‍❤️‍💋‍👨🏿'],
+        types: ['👩🏿‍❤️‍💋‍👨🏿', '👩🏿‍❤️‍💋‍👨🏾', '👩🏿‍❤️‍💋‍👨🏽', '👩🏿‍❤️‍💋‍👨🏼', '👩🏿‍❤️‍💋‍👨🏻', '👩🏾‍❤️‍💋‍👨🏿', '👩🏾‍❤️‍💋‍👨🏾', '👩🏾‍❤️‍💋‍👨🏽', '👩🏾‍❤️‍💋‍👨🏼', '👩🏾‍❤️‍💋‍👨🏻', '👩🏽‍❤️‍💋‍👨🏿', '👩🏽‍❤️‍💋‍👨🏾', '👩🏽‍❤️‍💋‍👨🏽', '👩🏽‍❤️‍💋‍👨🏼', '👩🏽‍❤️‍💋‍👨🏻', '👩🏼‍❤️‍💋‍👨🏿', '👩🏼‍❤️‍💋‍👨🏾', '👩🏼‍❤️‍💋‍👨🏽', '👩🏼‍❤️‍💋‍👨🏼', '👩🏼‍❤️‍💋‍👨🏻', '👩🏻‍❤️‍💋‍👨🏿', '👩🏻‍❤️‍💋‍👨🏾', '👩🏻‍❤️‍💋‍👨🏽', '👩🏻‍❤️‍💋‍👨🏼', '👩🏻‍❤️‍💋‍👨🏻'],
     },
     {
         code: '👨‍❤️‍💋‍👨',
@@ -5501,7 +5501,7 @@ const emojis = [
             en: ['couple', 'kiss', 'man'],
             es: ['beso', 'hombre', 'personas', 'romance'],
         },
-        types: ['👨🏻‍❤️‍💋‍👨🏻', '👨🏻‍❤️‍💋‍👨🏼', '👨🏻‍❤️‍💋‍👨🏽', '👨🏻‍❤️‍💋‍👨🏾', '👨🏻‍❤️‍💋‍👨🏿', '👨🏼‍❤️‍💋‍👨🏻', '👨🏼‍❤️‍💋‍👨🏼', '👨🏼‍❤️‍💋‍👨🏽', '👨🏼‍❤️‍💋‍👨🏾', '👨🏼‍❤️‍💋‍👨🏿', '👨🏽‍❤️‍💋‍👨🏻', '👨🏽‍❤️‍💋‍👨🏼', '👨🏽‍❤️‍💋‍👨🏽', '👨🏽‍❤️‍💋‍👨🏾', '👨🏽‍❤️‍💋‍👨🏿', '👨🏾‍❤️‍💋‍👨🏻', '👨🏾‍❤️‍💋‍👨🏼', '👨🏾‍❤️‍💋‍👨🏽', '👨🏾‍❤️‍💋‍👨🏾', '👨🏾‍❤️‍💋‍👨🏿', '👨🏿‍❤️‍💋‍👨🏻', '👨🏿‍❤️‍💋‍👨🏼', '👨🏿‍❤️‍💋‍👨🏽', '👨🏿‍❤️‍💋‍👨🏾', '👨🏿‍❤️‍💋‍👨🏿'],
+        types: ['👨🏿‍❤️‍💋‍👨🏿', '👨🏿‍❤️‍💋‍👨🏾', '👨🏿‍❤️‍💋‍👨🏽', '👨🏿‍❤️‍💋‍👨🏼', '👨🏿‍❤️‍💋‍👨🏻', '👨🏾‍❤️‍💋‍👨🏿', '👨🏾‍❤️‍💋‍👨🏾', '👨🏾‍❤️‍💋‍👨🏽', '👨🏾‍❤️‍💋‍👨🏼', '👨🏾‍❤️‍💋‍👨🏻', '👨🏽‍❤️‍💋‍👨🏿', '👨🏽‍❤️‍💋‍👨🏾', '👨🏽‍❤️‍💋‍👨🏽', '👨🏽‍❤️‍💋‍👨🏼', '👨🏽‍❤️‍💋‍👨🏻', '👨🏼‍❤️‍💋‍👨🏿', '👨🏼‍❤️‍💋‍👨🏾', '👨🏼‍❤️‍💋‍👨🏽', '👨🏼‍❤️‍💋‍👨🏼', '👨🏼‍❤️‍💋‍👨🏻', '👨🏻‍❤️‍💋‍👨🏿', '👨🏻‍❤️‍💋‍👨🏾', '👨🏻‍❤️‍💋‍👨🏽', '👨🏻‍❤️‍💋‍👨🏼', '👨🏻‍❤️‍💋‍👨🏻'],
     },
     {
         code: '👩‍❤️‍💋‍👩',
@@ -5513,7 +5513,7 @@ const emojis = [
             en: ['couple', 'kiss', 'woman'],
             es: ['beso', 'mujer', 'personas', 'romance'],
         },
-        types: ['👩🏻‍❤️‍💋‍👩🏻', '👩🏻‍❤️‍💋‍👩🏼', '👩🏻‍❤️‍💋‍👩🏽', '👩🏻‍❤️‍💋‍👩🏾', '👩🏻‍❤️‍💋‍👩🏿', '👩🏼‍❤️‍💋‍👩🏻', '👩🏼‍❤️‍💋‍👩🏼', '👩🏼‍❤️‍💋‍👩🏽', '👩🏼‍❤️‍💋‍👩🏾', '👩🏼‍❤️‍💋‍👩🏿', '👩🏽‍❤️‍💋‍👩🏻', '👩🏽‍❤️‍💋‍👩🏼', '👩🏽‍❤️‍💋‍👩🏽', '👩🏽‍❤️‍💋‍👩🏾', '👩🏽‍❤️‍💋‍👩🏿', '👩🏾‍❤️‍💋‍👩🏻', '👩🏾‍❤️‍💋‍👩🏼', '👩🏾‍❤️‍💋‍👩🏽', '👩🏾‍❤️‍💋‍👩🏾', '👩🏾‍❤️‍💋‍👩🏿', '👩🏿‍❤️‍💋‍👩🏻', '👩🏿‍❤️‍💋‍👩🏼', '👩🏿‍❤️‍💋‍👩🏽', '👩🏿‍❤️‍💋‍👩🏾', '👩🏿‍❤️‍💋‍👩🏿'],
+        types: ['👩🏿‍❤️‍💋‍👩🏿', '👩🏿‍❤️‍💋‍👩🏾', '👩🏿‍❤️‍💋‍👩🏽', '👩🏿‍❤️‍💋‍👩🏼', '👩🏿‍❤️‍💋‍👩🏻', '👩🏾‍❤️‍💋‍👩🏿', '👩🏾‍❤️‍💋‍👩🏾', '👩🏾‍❤️‍💋‍👩🏽', '👩🏾‍❤️‍💋‍👩🏼', '👩🏾‍❤️‍💋‍👩🏻', '👩🏽‍❤️‍💋‍👩🏿', '👩🏽‍❤️‍💋‍👩🏾', '👩🏽‍❤️‍💋‍👩🏽', '👩🏽‍❤️‍💋‍👩🏼', '👩🏽‍❤️‍💋‍👩🏻', '👩🏼‍❤️‍💋‍👩🏿', '👩🏼‍❤️‍💋‍👩🏾', '👩🏼‍❤️‍💋‍👩🏽', '👩🏼‍❤️‍💋‍👩🏼', '👩🏼‍❤️‍💋‍👩🏻', '👩🏻‍❤️‍💋‍👩🏿', '👩🏻‍❤️‍💋‍👩🏾', '👩🏻‍❤️‍💋‍👩🏽', '👩🏻‍❤️‍💋‍👩🏼', '👩🏻‍❤️‍💋‍👩🏻'],
     },
     {
         code: '💑',
@@ -5525,7 +5525,7 @@ const emojis = [
             en: ['couple', 'love', 'couple with heart'],
             es: ['amor', 'pareja', 'pareja enamorada  personas enamoradas'],
         },
-        types: ['💑🏻', '💑🏼', '💑🏽', '💑🏾', '💑🏿'],
+        types: ['💑🏿', '💑🏾', '💑🏽', '💑🏼', '💑🏻'],
     },
     {
         code: '👩‍❤️‍👨',
@@ -5537,7 +5537,7 @@ const emojis = [
             en: ['couple', 'couple with heart', 'love', 'man', 'woman'],
             es: ['amor', 'hombre', 'mujer', 'pareja', 'pareja enamorada', 'personas enamoradas'],
         },
-        types: ['👩🏻‍❤️‍👨🏻', '👩🏻‍❤️‍👨🏼', '👩🏻‍❤️‍👨🏽', '👩🏻‍❤️‍👨🏾', '👩🏻‍❤️‍👨🏿', '👩🏼‍❤️‍👨🏻', '👩🏼‍❤️‍👨🏼', '👩🏼‍❤️‍👨🏽', '👩🏼‍❤️‍👨🏾', '👩🏼‍❤️‍👨🏿', '👩🏽‍❤️‍👨🏻', '👩🏽‍❤️‍👨🏼', '👩🏽‍❤️‍👨🏽', '👩🏽‍❤️‍👨🏾', '👩🏽‍❤️‍👨🏿', '👩🏾‍❤️‍👨🏻', '👩🏾‍❤️‍👨🏼', '👩🏾‍❤️‍👨🏽', '👩🏾‍❤️‍👨🏾', '👩🏾‍❤️‍👨🏿', '👩🏿‍❤️‍👨🏻', '👩🏿‍❤️‍👨🏼', '👩🏿‍❤️‍👨🏽', '👩🏿‍❤️‍👨🏾', '👩🏿‍❤️‍👨🏿'],
+        types: ['👩🏿‍❤️‍👨🏿', '👩🏿‍❤️‍👨🏾', '👩🏿‍❤️‍👨🏽', '👩🏿‍❤️‍👨🏼', '👩🏿‍❤️‍👨🏻', '👩🏾‍❤️‍👨🏿', '👩🏾‍❤️‍👨🏾', '👩🏾‍❤️‍👨🏽', '👩🏾‍❤️‍👨🏼', '👩🏾‍❤️‍👨🏻', '👩🏽‍❤️‍👨🏿', '👩🏽‍❤️‍👨🏾', '👩🏽‍❤️‍👨🏽', '👩🏽‍❤️‍👨🏼', '👩🏽‍❤️‍👨🏻', '👩🏼‍❤️‍👨🏿', '👩🏼‍❤️‍👨🏾', '👩🏼‍❤️‍👨🏽', '👩🏼‍❤️‍👨🏼', '👩🏼‍❤️‍👨🏻', '👩🏻‍❤️‍👨🏿', '👩🏻‍❤️‍👨🏾', '👩🏻‍❤️‍👨🏽', '👩🏻‍❤️‍👨🏼', '👩🏻‍❤️‍👨🏻'],
     },
     {
         code: '👨‍❤️‍👨',
@@ -5549,7 +5549,7 @@ const emojis = [
             en: ['couple', 'couple with heart', 'love', 'man'],
             es: ['amor', 'hombre', 'pareja', 'pareja enamorada', 'personas enamoradas'],
         },
-        types: ['👨🏻‍❤️‍👨🏻', '👨🏻‍❤️‍👨🏼', '👨🏻‍❤️‍👨🏽', '👨🏻‍❤️‍👨🏾', '👨🏻‍❤️‍👨🏿', '👨🏼‍❤️‍👨🏻', '👨🏼‍❤️‍👨🏼', '👨🏼‍❤️‍👨🏽', '👨🏼‍❤️‍👨🏾', '👨🏼‍❤️‍👨🏿', '👨🏽‍❤️‍👨🏻', '👨🏽‍❤️‍👨🏼', '👨🏽‍❤️‍👨🏽', '👨🏽‍❤️‍👨🏾', '👨🏽‍❤️‍👨🏿', '👨🏾‍❤️‍👨🏻', '👨🏾‍❤️‍👨🏼', '👨🏾‍❤️‍👨🏽', '👨🏾‍❤️‍👨🏾', '👨🏾‍❤️‍👨🏿', '👨🏿‍❤️‍👨🏻', '👨🏿‍❤️‍👨🏼', '👨🏿‍❤️‍👨🏽', '👨🏿‍❤️‍👨🏾', '👨🏿‍❤️‍👨🏿'],
+        types: ['👨🏿‍❤️‍👨🏿', '👨🏿‍❤️‍👨🏾', '👨🏿‍❤️‍👨🏽', '👨🏿‍❤️‍👨🏼', '👨🏿‍❤️‍👨🏻', '👨🏾‍❤️‍👨🏿', '👨🏾‍❤️‍👨🏾', '👨🏾‍❤️‍👨🏽', '👨🏾‍❤️‍👨🏼', '👨🏾‍❤️‍👨🏻', '👨🏽‍❤️‍👨🏿', '👨🏽‍❤️‍👨🏾', '👨🏽‍❤️‍👨🏽', '👨🏽‍❤️‍👨🏼', '👨🏽‍❤️‍👨🏻', '👨🏼‍❤️‍👨🏿', '👨🏼‍❤️‍👨🏾', '👨🏼‍❤️‍👨🏽', '👨🏼‍❤️‍👨🏼', '👨🏼‍❤️‍👨🏻', '👨🏻‍❤️‍👨🏿', '👨🏻‍❤️‍👨🏾', '👨🏻‍❤️‍👨🏽', '👨🏻‍❤️‍👨🏼', '👨🏻‍❤️‍👨🏻'],
     },
     {
         code: '👩‍❤️‍👩',
@@ -5561,7 +5561,7 @@ const emojis = [
             en: ['couple', 'couple with heart', 'love', 'woman'],
             es: ['amor', 'mujer', 'pareja', 'pareja enamorada', 'personas enamoradas'],
         },
-        types: ['👩🏻‍❤️‍👩🏻', '👩🏻‍❤️‍👩🏼', '👩🏻‍❤️‍👩🏽', '👩🏻‍❤️‍👩🏾', '👩🏻‍❤️‍👩🏿', '👩🏼‍❤️‍👩🏻', '👩🏼‍❤️‍👩🏼', '👩🏼‍❤️‍👩🏽', '👩🏼‍❤️‍👩🏾', '👩🏼‍❤️‍👩🏿', '👩🏽‍❤️‍👩🏻', '👩🏽‍❤️‍👩🏼', '👩🏽‍❤️‍👩🏽', '👩🏽‍❤️‍👩🏾', '👩🏽‍❤️‍👩🏿', '👩🏾‍❤️‍👩🏻', '👩🏾‍❤️‍👩🏼', '👩🏾‍❤️‍👩🏽', '👩🏾‍❤️‍👩🏾', '👩🏾‍❤️‍👩🏿', '👩🏿‍❤️‍👩🏻', '👩🏿‍❤️‍👩🏼', '👩🏿‍❤️‍👩🏽', '👩🏿‍❤️‍👩🏾', '👩🏿‍❤️‍👩🏿'],
+        types: ['👩🏿‍❤️‍👩🏿', '👩🏿‍❤️‍👩🏾', '👩🏿‍❤️‍👩🏽', '👩🏿‍❤️‍👩🏼', '👩🏿‍❤️‍👩🏻', '👩🏾‍❤️‍👩🏿', '👩🏾‍❤️‍👩🏾', '👩🏾‍❤️‍👩🏽', '👩🏾‍❤️‍👩🏼', '👩🏾‍❤️‍👩🏻', '👩🏽‍❤️‍👩🏿', '👩🏽‍❤️‍👩🏾', '👩🏽‍❤️‍👩🏽', '👩🏽‍❤️‍👩🏼', '👩🏽‍❤️‍👩🏻', '👩🏼‍❤️‍👩🏿', '👩🏼‍❤️‍👩🏾', '👩🏼‍❤️‍👩🏽', '👩🏼‍❤️‍👩🏼', '👩🏼‍❤️‍👩🏻', '👩🏻‍❤️‍👩🏿', '👩🏻‍❤️‍👩🏾', '👩🏻‍❤️‍👩🏽', '👩🏻‍❤️‍👩🏼', '👩🏻‍❤️‍👩🏻'],
     },
     {
         code: '👪',
