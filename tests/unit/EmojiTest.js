@@ -128,13 +128,7 @@ describe('EmojiTest', () => {
 
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
-        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([
-            {
-                code: '⚰️',
-                name: 'coffin',
-                enName: 'coffin',
-            },
-        ]);
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin',enName: 'coffin'}]);
     });
 
     it('suggests a limited number of matching emojis', () => {
