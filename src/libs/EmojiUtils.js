@@ -20,11 +20,10 @@ Onyx.connect({
     },
 });
 
-
 /**
- * 
- * @param {Object} emoji 
- * @param {String} lang 
+ *
+ * @param {Object} emoji
+ * @param {String} lang
  * @returns {String}
  */
 const getEmojiName = (emoji, lang = CONST.LOCALES.DEFAULT) => _.get(emoji, ['name', lang], '');
@@ -36,7 +35,7 @@ const getEmojiName = (emoji, lang = CONST.LOCALES.DEFAULT) => _.get(emoji, ['nam
  * @param {String} lang
  * @returns {String}
  */
-const getLocalizedEmojiName = (enName, lang) => lang === CONST.LOCALES.DEFAULT ? enName : _.get(localizedEmojiNames, [enName, lang], '');
+const getLocalizedEmojiName = (enName, lang) => (lang === CONST.LOCALES.DEFAULT ? enName : _.get(localizedEmojiNames, [enName, lang], ''));
 
 /**
  * Get the unicode code of an emoji in base 16.
