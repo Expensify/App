@@ -1,6 +1,6 @@
 import React, {useRef, useCallback} from 'react';
 import {InteractionManager} from 'react-native';
-import {useIsFocused, useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
@@ -11,18 +11,16 @@ import themeColors from '../../../../styles/themes/default';
 
 function SidebarScreen(props) {
     const popoverModal = useRef(null);
-    const isFocused = useIsFocused();
 
     useFocusEffect(
         useCallback(() => {
-            if (!isFocused) return;
             const previousColor = StatusBar.getBackgroundColor();
             InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(themeColors.sidebar));
 
             return () => {
                 InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(previousColor));
             };
-        }, [isFocused]),
+        }, []),
     );
 
     /**
