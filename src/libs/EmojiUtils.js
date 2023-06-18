@@ -279,12 +279,19 @@ function suggestEmojis(text, lang, limit = 5) {
 
     const matching = [];
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
+    /**
+     * structure of matching
+     * @property {String} code
+     * @property {String} name - localized name
+     * @property {String} enName - English name
+     * @property {Array} types - skintones
+     */
     for (let j = 0; j < nodes.length; j++) {
         if (nodes[j].metaData.code && !_.find(matching, (obj) => obj.name === nodes[j].name)) {
             if (matching.length === limit) {
                 return matching;
             }
-            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
+            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types, enName: _.get(nodes[j], ['metaData', 'name', 'en'])});
         }
         const suggestions = nodes[j].metaData.suggestions;
         for (let i = 0; i < suggestions.length; i++) {
@@ -294,7 +301,7 @@ function suggestEmojis(text, lang, limit = 5) {
 
             const suggestion = suggestions[i];
             if (!_.find(matching, (obj) => obj.name === suggestion.name[lang])) {
-                matching.push({...suggestion, name: suggestion.name[lang]});
+                matching.push({...suggestion, name: _.get(suggestion, ['name', lang]), enName: _.get(suggestion, ['name', 'en'])});
             }
         }
     }
