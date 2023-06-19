@@ -230,7 +230,7 @@ const SelectionListRadio = (props) => {
                 hoverStyle={styles.hoveredComponentBG}
                 focusStyle={styles.hoveredComponentBG}
             >
-                <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, styles.borderTop, isFocused && styles.sidebarLinkActive]}>
+                <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, isFocused && styles.sidebarLinkActive]}>
                     <View style={[styles.flex1, styles.alignItemsStart]}>
                         <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.boldStyle && styles.sidebarLinkTextBold]}>
                             {item.text}

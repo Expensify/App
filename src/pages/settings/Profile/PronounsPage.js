@@ -138,8 +138,6 @@ class PronounsPage extends Component {
                             sections={[{data: filteredPronounsList, indexOffset: 0}]}
                             onSelectRow={this.updatePronouns}
                             onChangeText={this.onChangeText}
-                            shouldFocusOnSelectRow
-                            shouldHaveOptionSeparator
                             initiallyFocusedOptionKey={this.initiallyFocusedOption.keyForList}
                         />
 
