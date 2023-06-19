@@ -54,6 +54,10 @@ const defaultProps = {
 };
 
 function AvatarWithDisplayName(props) {
+    if (props.report.reportID == '5154639516299574') {
+        debugger;
+    }
+    const title2 =  ReportUtils.getReportName(props.report);
     const title = props.isAnonymous ? props.report.displayName : ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);

@@ -178,33 +178,29 @@ function HeaderView(props) {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat || isThread) && (
-                                    <>
-                                        {!_.isEmpty(subtitleLink) && (
-                                            <PressableWithoutFeedback
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
-                                                }}
-                                                accessibilityLabel={subtitleLink}
-                                                accessibilityRole="link"
-                                            >
-                                                <Text
-                                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {subtitleLink}
-                                                </Text>
-                                            </PressableWithoutFeedback>
-                                        )}
-                                        {!_.isEmpty(subtitle) && (
-                                            <Text
-                                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
-                                                numberOfLines={1}
-                                            >
-                                                {subtitle}
-                                            </Text>
-                                        )}
-                                    </>
+                                {!_.isEmpty(subtitleLink) && (
+                                    <PressableWithoutFeedback
+                                        onPress={() => {
+                                            Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                                        }}
+                                        accessibilityLabel={subtitleLink}
+                                        accessibilityRole="link"
+                                    >
+                                        <Text
+                                            style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
+                                            numberOfLines={1}
+                                        >
+                                            {subtitleLink}
+                                        </Text>
+                                    </PressableWithoutFeedback>
+                                )}
+                                {!_.isEmpty(subtitle) && (
+                                    <Text
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                        numberOfLines={1}
+                                    >
+                                        {subtitle}
+                                    </Text>
                                 )}
                             </View>
                             {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (

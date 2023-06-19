@@ -105,7 +105,6 @@ function MoneyRequestHeader(props) {
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
                 report={props.report}
-                parentReport={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
