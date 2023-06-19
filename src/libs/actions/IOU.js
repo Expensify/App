@@ -1071,10 +1071,12 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  * @param {Object} iouReport
  * @param {Object} recipient
  * @param {String} paymentMethodType
+ * @param {String} reportActionID
  * @returns {Object}
  */
-function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
+function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType, reportActionID) {
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(iouReport.total, iouReport.currency, iouReport.reportID);
+
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         iouReport.total,
@@ -1093,19 +1095,28 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         login: recipient.login,
     };
 
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(chatReport.reportID);
+    let optimisticParentReportData = {
+        ...chatReport,
+        lastReadTime: DateUtils.getDBTime(),
+        lastVisibleActionCreated: optimisticIOUReportAction.created,
+        hasOutstandingIOU: false,
+        iouReportID: null,
+    };
+
+    if (lastVisibleAction.reportActionID === reportActionID) {
+        optimisticParentReportData = {
+            ...optimisticParentReportData,
+            lastMessageText: optimisticIOUReportAction.message[0].text,
+            lastMessageHtml: optimisticIOUReportAction.message[0].html,
+        };
+    }
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                lastReadTime: DateUtils.getDBTime(),
-                lastVisibleActionCreated: optimisticIOUReportAction.created,
-                hasOutstandingIOU: false,
-                iouReportID: null,
-                lastMessageText: optimisticIOUReportAction.message[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message[0].html,
-            },
+            value: optimisticParentReportData,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1250,15 +1261,15 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipi
  * @param {String} paymentType
  * @param {Object} chatReport
  * @param {Object} iouReport
- * @param {String} reimbursementBankAccountState
+ * @param {String} reportActionID
  */
-function payMoneyRequest(paymentType, chatReport, iouReport) {
+function payMoneyRequest(paymentType, chatReport, iouReport, reportActionID) {
     const recipient = {
         login: iouReport.ownerEmail,
         accountID: iouReport.ownerAccountID,
         payPalMeAddress: iouReport.submitterPayPalMeAddress,
     };
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, reportActionID);
 
     // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.

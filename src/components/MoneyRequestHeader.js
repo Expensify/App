@@ -156,7 +156,7 @@ function MoneyRequestHeader(props) {
                                     shouldShowPaypal={shouldShowPaypal}
                                     chatReportID={props.chatReport.reportID}
                                     iouReport={props.report}
-                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.parentReportAction.reportActionID)}
                                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                                     addBankAccountRoute={bankAccountRoute}
                                     shouldShowPaymentOptions
@@ -172,7 +172,7 @@ function MoneyRequestHeader(props) {
                         shouldShowPaypal={shouldShowPaypal}
                         chatReportID={props.report.chatReportID}
                         iouReport={props.report}
-                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report, props.parentReportAction.reportActionID)}
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
