@@ -321,7 +321,7 @@ class WorkspaceMembersPage extends React.Component {
      * @returns {React.Component}
      */
     renderItem({item}) {
-        const hasError = !_.isEmpty(item.errors) || this.state.errors[item.login];
+        const hasError = !_.isEmpty(item.errors) || this.state.errors[item.accountID];
         const isChecked = _.contains(this.state.selectedEmployees, Number(item.accountID));
         return (
             <OfflineWithFeedback
@@ -330,7 +330,7 @@ class WorkspaceMembersPage extends React.Component {
                 errors={item.errors}
             >
                 <PressableWithFeedback
-                    style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.login]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
+                    style={[styles.peopleRow, (_.isEmpty(item.errors) || this.state.errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
                     onPress={() => this.toggleUser(item.accountID, item.pendingAction)}
                     accessibilityRole="checkbox"
                     accessibilityState={{
