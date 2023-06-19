@@ -51,7 +51,7 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
- * 
+ *
  * @param {Number} accountID
  * @param {String} [defaultDisplayName] display name to use if user details don't exist in Onyx or if
  *                                      found details don't include the user's displayName or login
