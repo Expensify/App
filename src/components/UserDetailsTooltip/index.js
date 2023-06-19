@@ -16,7 +16,7 @@ import * as UserUtils from '../../libs/UserUtils';
 function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
     let userDisplayName = userDetails.displayName ? userDetails.displayName.trim() : '';
-    let userLogin = String(userDetails.login).trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
+    let userLogin = (userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
     let userAvatar = userDetails.avatar;
     let userAccountID = props.accountID;
 
@@ -44,7 +44,7 @@ function UserDetailsTooltip(props) {
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{userDisplayName}</Text>
 
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
-                    {String(userLogin || '').trim() && !_.isEqual(userLogin, userDisplayName) ? Str.removeSMSDomain(userLogin) : ''}
+                    {(userLogin || '').trim() && !_.isEqual(userLogin, userDisplayName) ? Str.removeSMSDomain(userLogin) : ''}
                 </Text>
             </View>
         ),
