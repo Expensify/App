@@ -18,11 +18,13 @@ import Log from '../Log';
 import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
 import * as ErrorUtils from '../ErrorUtils';
+import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
+import SidebarUtils from '../SidebarUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -57,6 +59,12 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
     },
+});
+
+let isNetworkOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
 
 const allReports = {};
@@ -215,7 +223,9 @@ function addActions(reportID, text = '', file) {
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
+        lastMessageHtml: lastCommentText,
         lastActorEmail: currentUserEmail,
+        lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
 
@@ -274,8 +284,8 @@ function addActions(reportID, text = '', file) {
         parameters.timezone = JSON.stringify(timezone);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {[currentUserEmail]: {timezone}},
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {[currentUserAccountID]: {timezone}},
         });
         DateUtils.setTimezoneUpdated();
     }
@@ -320,11 +330,12 @@ function addComment(reportID, text) {
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
  * @param {String} reportID
- * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
+ * @param {Array} participantLoginList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
+ * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
  */
-function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0') {
+function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -332,7 +343,6 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             isLoadingReportActions: true,
             isLoadingMoreReportActions: false,
             lastReadTime: DateUtils.getDBTime(),
-            reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
         },
     };
     const reportSuccessData = {
@@ -365,9 +375,19 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
 
     const params = {
         reportID,
-        emailList: participantList ? participantList.join(',') : '',
+        emailList: participantLoginList ? participantLoginList.join(',') : '',
         parentReportActionID,
     };
+
+    if (isFromDeepLink) {
+        params.shouldRetry = false;
+    }
+
+    // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
+    // and we need data to be available when we navigate to the chat page
+    if (_.isEmpty(ReportUtils.getReport(reportID))) {
+        optimisticReportData.onyxMethod = Onyx.METHOD.SET;
+    }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
     if (!_.isEmpty(newReportObject)) {
@@ -375,6 +395,7 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         // and we need the data to be available when we navigate to the chat page
         optimisticReportData.onyxMethod = Onyx.METHOD.SET;
         optimisticReportData.value = {
+            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
             ...optimisticReportData.value,
             ...newReportObject,
             pendingFields: {
@@ -383,23 +404,37 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             isOptimisticReport: true,
         };
 
-        // Add a created action, unless we are creating a thread
-        if (parentReportActionID === '0') {
-            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
-            onyxData.optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
-            });
-            onyxData.successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-            });
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        onyxData.optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+        });
+        onyxData.successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+        });
 
-            // Add the createdReportActionID parameter to the API call
-            params.createdReportActionID = optimisticCreatedAction.reportActionID;
-        }
+        // Add optimistic personal details for new participants
+        const optimisticPersonalDetails = {};
+        _.map(participantLoginList, (login, index) => {
+            const accountID = newReportObject.participantAccountIDs[index];
+            optimisticPersonalDetails[accountID] = {
+                login,
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: login,
+            };
+        });
+        onyxData.optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetails,
+        });
+
+        // Add the createdReportActionID parameter to the API call
+        params.createdReportActionID = optimisticCreatedAction.reportActionID;
 
         // If we are creating a thread, ensure the report action has childReportID property added
         if (newReportObject.parentReportID && parentReportActionID) {
@@ -416,26 +451,34 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
         }
     }
 
-    API.write('OpenReport', params, onyxData);
+    if (isFromDeepLink) {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
+            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        });
+    } else {
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write('OpenReport', params, onyxData);
+    }
 }
 
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
- * @param {Array} userLogins list of user logins.
+ * @param {Array} userLogins list of user logins to start a chat report with.
  */
 function navigateToAndOpenReport(userLogins) {
-    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     let newChat = {};
-    const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
+    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, newChat.participants, newChat);
-    Navigation.navigate(ROUTES.getReportRoute(reportID));
+    openReport(reportID, userLogins, newChat);
+    Navigation.dismissModal(reportID);
 }
 
 /**
@@ -451,14 +494,15 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
         openReport(childReportID);
         Navigation.navigate(ROUTES.getReportRoute(childReportID));
     } else {
-        const participants = _.uniq([currentUserEmail, parentReportAction.actorEmail]);
-        const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
+        const parentReport = allReports[parentReportID];
         const newChat = ReportUtils.buildOptimisticChatReport(
-            formattedUserLogins,
+            participantAccountIDs,
             lodashGet(parentReportAction, ['message', 0, 'text']),
-            '',
+            lodashGet(parentReport, 'chatType', ''),
+            lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
             CONST.POLICY.OWNER_EMAIL_FAKE,
-            CONST.POLICY.OWNER_EMAIL_FAKE,
+            CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',
             undefined,
@@ -467,7 +511,8 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             parentReportID,
         );
 
-        openReport(newChat.reportID, newChat.participants, newChat, parentReportAction.reportActionID);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
+        openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
     }
 }
@@ -564,93 +609,16 @@ function readOldestAction(reportID, reportActionID) {
 }
 
 /**
- * Gets the IOUReport and the associated report actions.
+ * Gets metadata info about links in the provided report action
  *
- * @param {String} chatReportID
- * @param {Number} iouReportID
+ * @param {String} reportID
+ * @param {String} reportActionID
  */
-function openPaymentDetailsPage(chatReportID, iouReportID) {
-    API.read(
-        'OpenPaymentDetailsPage',
-        {
-            reportID: chatReportID,
-            iouReportID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-        },
-    );
-}
-
-/**
- * Gets transactions and data associated with the linked report (expense or IOU report)
- *
- * @param {String} chatReportID
- * @param {String} linkedReportID
- */
-function openMoneyRequestsReportPage(chatReportID, linkedReportID) {
-    API.read(
-        'OpenMoneyRequestsReportPage',
-        {
-            reportID: chatReportID,
-            linkedReportID,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: true,
-                    },
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IOU,
-                    value: {
-                        loading: false,
-                    },
-                },
-            ],
-        },
-    );
+function expandURLPreview(reportID, reportActionID) {
+    API.read('ExpandURLPreview', {
+        reportID,
+        reportActionID,
+    });
 }
 
 /**
@@ -685,10 +653,13 @@ function readNewestAction(reportID) {
  * @param {String} reportActionCreated
  */
 function markCommentAsUnread(reportID, reportActionCreated) {
+    // If no action created date is provided, use the last action's
+    const actionCreationTime = reportActionCreated || lodashGet(allReports, [reportID, 'lastVisibleActionCreated'], '0');
+
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportActionCreated, 1);
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(actionCreationTime, 1);
     API.write(
         'MarkAsUnread',
         {
@@ -712,16 +683,17 @@ function markCommentAsUnread(reportID, reportActionCreated) {
 /**
  * Toggles the pinned state of the report.
  *
- * @param {Object} report
+ * @param {Object} reportID
+ * @param {Boolean} isPinnedChat
  */
-function togglePinnedState(report) {
-    const pinnedValue = !report.isPinned;
+function togglePinnedState(reportID, isPinnedChat) {
+    const pinnedValue = !isPinnedChat;
 
     // Optimistically pin/unpin the report before we send out the command
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {isPinned: pinnedValue},
         },
     ];
@@ -729,7 +701,7 @@ function togglePinnedState(report) {
     API.write(
         'TogglePinnedChat',
         {
-            reportID: report.reportID,
+            reportID,
             pinnedValue,
         },
         {optimisticData},
@@ -823,6 +795,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
+            isDeletedParentAction: true,
         },
     ];
     const optimisticReportActions = {
@@ -952,6 +925,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = lodashGet(originalReportAction, 'message[0].html');
     const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentHTML);
+    const reportComment = parser.htmlToText(htmlForNewComment);
 
     // For comments shorter than 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
@@ -983,7 +957,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
                     ...originalMessage,
                     isEdited: true,
                     html: htmlForNewComment,
-                    text: textForNewComment,
+                    text: reportComment,
                 },
             ],
         },
@@ -999,7 +973,6 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
     if (reportActionID === lastVisibleAction.reportActionID) {
-        const reportComment = parser.htmlToText(htmlForNewComment);
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
             lastMessageText,
@@ -1072,7 +1045,7 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  */
 function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     if (previousValue === newValue) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1090,7 +1063,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1130,7 +1103,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
  */
 function updateWriteCapabilityAndNavigate(report, newValue) {
     if (report.writeCapability === newValue) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
+        Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
         return;
     }
 
@@ -1150,7 +1123,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
     ];
     API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(report.reportID));
+    Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
 }
 
 /**
@@ -1182,13 +1155,14 @@ function navigateToConciergeChat() {
  */
 function addPolicyReport(policy, reportName, visibility) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserEmail, ..._.pluck(policy.employeeList, 'email')]);
+    const participants = _.unique([currentUserAccountID, ..._.pluck(policy.employeeList, 'accountID')]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         policy.id,
         CONST.REPORT.OWNER_EMAIL_FAKE,
+        CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
         visibility,
@@ -1238,6 +1212,17 @@ function addPolicyReport(policy, reportName, visibility) {
             },
         },
     ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
+            value: {
+                errorFields: {
+                    addWorkspaceRoom: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                },
+            },
+        },
+    ];
 
     API.write(
         'AddWorkspaceRoom',
@@ -1248,9 +1233,9 @@ function addPolicyReport(policy, reportName, visibility) {
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
         },
-        {optimisticData, successData},
+        {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.getReportRoute(policyReport.reportID));
+    Navigation.dismissModal(policyReport.reportID);
 }
 
 /**
@@ -1301,7 +1286,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
 
     // No change needed, navigate back
     if (previousName === policyRoomName) {
-        Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1340,7 +1325,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
-    Navigation.drawerGoBack(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1481,8 +1466,8 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
 
 /**
  * Returns true if the accountID has reacted to the report action (with the given skin tone).
- * @param {String} accountID
- * @param {Array<Object | String | number>} users
+ * @param {Number} accountID
+ * @param {Array<Object | Number>} users
  * @param {Number} [skinTone]
  * @returns {boolean}
  */
@@ -1491,12 +1476,12 @@ function hasAccountIDReacted(accountID, users, skinTone) {
         _.find(users, (user) => {
             let userAccountID;
             if (typeof user === 'object') {
-                userAccountID = `${user.accountID}`;
+                userAccountID = user.accountID;
             } else {
-                userAccountID = `${user}`;
+                userAccountID = user;
             }
 
-            return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
+            return userAccountID === accountID && (skinTone == null ? true : user.skinTone === skinTone);
         }) !== undefined
     );
 }
@@ -1624,12 +1609,28 @@ function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = pref
 
 /**
  * @param {String|null} url
+ * @param {Boolean} isAuthenticated
  */
-function openReportFromDeepLink(url) {
+function openReportFromDeepLink(url, isAuthenticated) {
+    const route = ReportUtils.getRouteFromLink(url);
+    const reportID = ReportUtils.getReportIDFromLink(url);
+
+    if (reportID && !isAuthenticated) {
+        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
+        openReport(reportID, [], {}, '0', true);
+
+        // Show the sign-in page if the app is offline
+        if (isNetworkOffline) {
+            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        }
+    } else {
+        // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
+        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+    }
+
+    // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
-        Navigation.isReportScreenReady().then(() => {
-            const route = ReportUtils.getRouteFromLink(url);
-            const reportID = ReportUtils.getReportIDFromLink(url);
+        SidebarUtils.isSidebarLoadedReady().then(() => {
             if (reportID) {
                 Navigation.navigate(ROUTES.getReportRoute(reportID));
             }
@@ -1678,6 +1679,25 @@ function leaveRoom(reportID) {
 }
 
 /**
+ * @param {String} reportID
+ */
+function setLastOpenedPublicRoom(reportID) {
+    Onyx.set(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
+}
+
+/**
+ * Navigates to the last opened public room
+ *
+ * @param {String} lastOpenedPublicRoomID
+ */
+function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
+    Navigation.isNavigationReady().then(() => {
+        setLastOpenedPublicRoom('');
+        Navigation.navigate(ROUTES.getReportRoute(lastOpenedPublicRoomID));
+    });
+}
+
+/**
  * Flag a comment as offensive
  *
  * @param {String} reportID
@@ -1685,30 +1705,40 @@ function leaveRoom(reportID) {
  * @param {String} severity
  */
 function flagComment(reportID, reportAction, severity) {
-    let newDecision;
+    const message = reportAction.message[0];
+    let updatedDecision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
-        newDecision = {
-            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
-        };
+        if (_.isEmpty(message.moderationDecisions) || message.moderationDecisions[message.moderationDecisions.length - 1].decision !== CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE) {
+            updatedDecision = [
+                {
+                    decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
+                },
+            ];
+        }
+    } else if (severity === CONST.MODERATION.FLAG_SEVERITY_ASSAULT || severity === CONST.MODERATION.FLAG_SEVERITY_HARASSMENT) {
+        updatedDecision = [
+            {
+                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+            },
+        ];
     } else {
-        newDecision = {
-            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
-        };
+        updatedDecision = [
+            {
+                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+            },
+        ];
     }
 
-    const message = reportAction.message[0];
     const reportActionID = reportAction.reportActionID;
-
-    const updatedDecisions = [...(message.moderationDecisions || []), newDecision];
 
     const updatedMessage = {
         ...message,
-        moderationDecisions: updatedDecisions,
+        moderationDecisions: updatedDecision,
     };
 
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -1721,7 +1751,7 @@ function flagComment(reportID, reportAction, severity) {
 
     const failureData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -1734,7 +1764,7 @@ function flagComment(reportID, reportAction, severity) {
 
     const successData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [reportActionID]: {
@@ -1776,6 +1806,7 @@ export {
     deleteReport,
     navigateToConciergeChatAndDeleteReport,
     setIsComposerFullSize,
+    expandURLPreview,
     markCommentAsUnread,
     readNewestAction,
     readOldestAction,
@@ -1783,9 +1814,7 @@ export {
     openReportFromDeepLink,
     navigateToAndOpenReport,
     navigateToAndOpenChildReport,
-    openPaymentDetailsPage,
     updatePolicyRoomNameAndNavigate,
-    openMoneyRequestsReportPage,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
@@ -1796,5 +1825,7 @@ export {
     hasAccountIDReacted,
     shouldShowReportActionNotification,
     leaveRoom,
+    setLastOpenedPublicRoom,
     flagComment,
+    openLastOpenedPublicRoom,
 };

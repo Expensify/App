@@ -18,10 +18,16 @@ import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
+import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
+import textUnderline from './utilities/textUnderline';
+
+function getTransparentColor(color, transparency = '') {
+    return `${color}${transparency}`;
+}
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -162,6 +168,7 @@ const styles = {
     ...cursor,
     ...userSelect,
     ...themeColors,
+    ...textUnderline,
 
     rateCol: {
         margin: 0,
@@ -179,6 +186,7 @@ const styles = {
         position: 'absolute',
         left: 0,
         right: 0,
+        paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
     },
 
     autoCompleteSuggestionContainer: {
@@ -187,20 +195,33 @@ const styles = {
     },
 
     emojiSuggestionsEmoji: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,
         width: 51,
         textAlign: 'center',
     },
     emojiSuggestionsText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,
+    },
+
+    mentionSuggestionsAvatarContainer: {
+        width: 24,
+        height: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     mentionSuggestionsText: {
         fontSize: variables.fontSizeMedium,
-        flex: 1,
         ...spacing.ml2,
+    },
+
+    mentionSuggestionsDisplayName: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+    },
+
+    mentionSuggestionsHandle: {
+        color: themeColors.textSupporting,
     },
 
     unitCol: {
@@ -326,6 +347,7 @@ const styles = {
     textHero: {
         fontSize: variables.fontSizeHero,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        lineHeight: variables.lineHeightHero,
     },
 
     textStrong: {
@@ -343,6 +365,7 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     textHeadlineH1: {
@@ -350,6 +373,7 @@ const styles = {
         ...whiteSpace.preWrap,
         color: themeColors.heading,
         fontSize: variables.fontSizeh1,
+        lineHeight: variables.lineHeightSizeh1,
     },
 
     textDecorationNoLine: {
@@ -726,6 +750,13 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    headerAnonymousFooter: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
+        fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -734,7 +765,7 @@ const styles = {
     },
 
     headerGap: {
-        height: 12,
+        height: CONST.DESKTOP_HEADER_PADDING,
     },
 
     pushTextRight: {
@@ -1014,8 +1045,18 @@ const styles = {
         color: themeColors.textSupporting,
     },
 
+    furtherDetailsText: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeSmall,
+        color: themeColors.textSupporting,
+    },
+
     lh16: {
         lineHeight: 16,
+    },
+
+    lh20: {
+        lineHeight: 20,
     },
 
     lh140Percent: {
@@ -1204,8 +1245,20 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    leftPanelContainer: {
+        maxWidth: variables.sideBarWidth,
+    },
+
+    rightPanelContainer: {
+        width: variables.sideBarWidth,
+    },
+
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
+        lineHeight: variables.fontSizeOnlyEmojisHeight,
+    },
+
+    onlyEmojisTextLineHeight: {
         lineHeight: variables.fontSizeOnlyEmojisHeight,
     },
 
@@ -1216,7 +1269,7 @@ const styles = {
 
     createMenuPositionProfile: (windowWidth) => ({
         horizontal: windowWidth - 355,
-        vertical: 250,
+        ...getPopOverVerticalOffset(162),
     }),
 
     createMenuPositionReportActionCompose: (windowHeight) => ({
@@ -1258,6 +1311,11 @@ const styles = {
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
+    },
+
+    popoverInnerContainer: {
+        paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
+        maxHeight: '95%',
     },
 
     menuItemTextContainer: {
@@ -1366,11 +1424,6 @@ const styles = {
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
-
-        // Starting version 6.3.2 @react-navigation/drawer adds "user-select: none;" to its container.
-        // We add user-select-auto to the inner component to prevent incorrect triple-click text selection.
-        // For further explanation see - https://github.com/Expensify/App/pull/12730/files#r1022883823
-        ...userSelect.userSelectText,
     },
 
     appContentHeader: {
@@ -1536,7 +1589,7 @@ const styles = {
             backgroundColor: themeColors.componentBG,
             borderColor: themeColors.border,
             color: themeColors.text,
-            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             borderWidth: 0,
             height: 'auto',
@@ -1593,15 +1646,6 @@ const styles = {
         backgroundColor: themeColors.componentBG,
     },
 
-    emojiPickerList: {
-        height: 288,
-        width: '100%',
-        ...spacing.ph4,
-    },
-    emojiPickerListLandscape: {
-        height: 240,
-    },
-
     emojiHeaderContainer: {
         backgroundColor: themeColors.componentBG,
         display: 'flex',
@@ -1621,7 +1665,6 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
@@ -1686,13 +1729,6 @@ const styles = {
         backgroundColor: themeColors.transparent,
     },
 
-    taskSelectorLink: {
-        alignSelf: 'center',
-        width: '100%',
-        padding: 6,
-        backgroundColor: themeColors.transparent,
-    },
-
     chatItemAttachmentPlaceholder: {
         backgroundColor: themeColors.sidebar,
         borderColor: themeColors.border,
@@ -1708,6 +1744,15 @@ const styles = {
         marginTop: 5,
         marginRight: 4,
     },
+
+    navigationModalCard: (isSmallScreenWidth) => ({
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        backgroundColor: 'transparent',
+        height: '100%',
+    }),
 
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
@@ -1868,6 +1913,16 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarMedium: {
+        height: variables.avatarSizeMedium,
+        width: variables.avatarSizeMedium,
+    },
+
+    emptyAvatarLarge: {
+        height: variables.avatarSizeLarge,
+        width: variables.avatarSizeLarge,
+    },
+
     emptyAvatarMargin: {
         marginRight: variables.avatarChatSpacing,
     },
@@ -2021,6 +2076,7 @@ const styles = {
         ...headlineFont,
         color: themeColors.heading,
         fontSize: variables.fontSizeXLarge,
+        lineHeight: variables.lineHeightXXLarge,
         marginTop: 20,
         marginBottom: 8,
         textAlign: 'center',
@@ -2064,8 +2120,8 @@ const styles = {
         ...flex.dFlex,
         ...flex.flexColumn,
         ...flex.alignItemsCenter,
-        ...spacing.mt4,
-        height: 170,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
 
     reportDetailsRoomInfo: {
@@ -2077,12 +2133,6 @@ const styles = {
 
     reportSettingsVisibilityText: {
         textTransform: 'capitalize',
-    },
-
-    reportTransactionWrapper: {
-        paddingVertical: 8,
-        display: 'flex',
-        flexDirection: 'row',
     },
 
     settingsPageBackground: {
@@ -2113,14 +2163,26 @@ const styles = {
         padding: 0,
     },
 
-    twoFactorAuthCodesBox: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: themeColors.highlightBG,
-        paddingVertical: 28,
-        paddingHorizontal: 60,
-        borderRadius: 16,
-        marginTop: 32,
+    twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
+        let paddingHorizontal = styles.ph15;
+
+        if (isSmallScreenWidth) {
+            paddingHorizontal = styles.ph10;
+        }
+
+        if (isExtraSmallScreenWidth) {
+            paddingHorizontal = styles.ph4;
+        }
+
+        return {
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: themeColors.highlightBG,
+            paddingVertical: 28,
+            borderRadius: 16,
+            marginTop: 32,
+            ...paddingHorizontal,
+        };
     },
 
     twoFactorLoadingContainer: {
@@ -2141,7 +2203,6 @@ const styles = {
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
         width: 100,
-        height: 18,
         textAlign: 'center',
     },
 
@@ -2158,6 +2219,33 @@ const styles = {
 
     twoFactorAuthFooter: {
         marginTop: 'auto',
+    },
+
+    anonymousRoomFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 20,
+        marginBottom: 20,
+        backgroundColor: themeColors.activeComponentBG,
+        flexWrap: 'wrap',
+        gap: 8,
+        borderRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+    },
+
+    anonymousRoomFooterLogo: {
+        width: 88,
+        marginLeft: 0,
+        height: 20,
+    },
+
+    signInButtonAvatar: {
+        width: 80,
+    },
+
+    anonymousRoomFooterSignInButton: {
+        width: 125,
     },
 
     roomHeaderAvatarSize: {
@@ -2592,6 +2680,15 @@ const styles = {
         outline: 'none',
     },
 
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
+    cardStyleNavigator: {
+        overflow: 'hidden',
+        height: '100%',
+    },
+
     fullscreenCard: {
         position: 'absolute',
         left: 0,
@@ -2679,7 +2776,7 @@ const styles = {
         width: 250,
     },
 
-    workspaceInviteWelcome: {
+    autoGrowHeightMultilineInput: {
         maxHeight: 115,
     },
 
@@ -2871,12 +2968,12 @@ const styles = {
     },
 
     threeDotsPopoverOffset: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 60,
     }),
 
     threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 10,
     }),
 
@@ -3241,7 +3338,7 @@ const styles = {
     newKansasLarge: {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
-        lineHeight: 27,
+        lineHeight: variables.lineHeightXXLarge,
     },
 
     moneyRequestHeaderCheckmark: {
@@ -3254,6 +3351,25 @@ const styles = {
         fontSize: variables.fontSizeSignInHeroBody,
         color: themeColors.textLight,
         textAlign: 'center',
+    },
+
+    linkPreviewWrapper: {
+        marginTop: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        paddingLeft: 12,
+    },
+
+    linkPreviewImage: {
+        flex: 1,
+        resizeMode: 'contain',
+        borderRadius: 8,
+        marginTop: 8,
+    },
+
+    linkPreviewLogoImage: {
+        height: 16,
+        width: 16,
     },
 
     validateCodeMessage: {

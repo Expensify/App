@@ -1,10 +1,9 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -28,6 +27,7 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as IOUUtils from '../../libs/IOUUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import refPropTypes from '../refPropTypes';
+import PressableWithFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -60,8 +60,14 @@ const propTypes = {
         /** Email address of the manager in this iou report */
         managerEmail: PropTypes.string,
 
+        /** Account ID of the manager in this iou report */
+        managerID: PropTypes.number,
+
         /** Email address of the creator of this iou report */
         ownerEmail: PropTypes.string,
+
+        /** Account ID of the creator of this iou report */
+        ownerAccountID: PropTypes.number,
 
         /** Outstanding amount in cents of this transaction */
         total: PropTypes.number,
@@ -83,7 +89,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(
         PropTypes.shape({
             /** This is either the user's full name, or their login if full name is an empty string */
-            displayName: PropTypes.string.isRequired,
+            displayName: PropTypes.string,
         }),
     ),
 
@@ -124,24 +130,24 @@ const defaultProps = {
     shouldShowPendingConversionMessage: false,
 };
 
-const IOUPreview = (props) => {
-    if (_.isEmpty(props.iouReport)) {
+function IOUPreview(props) {
+    if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
-    const sessionEmail = lodashGet(props.session, 'email', null);
-    const managerEmail = props.iouReport.managerEmail || '';
-    const ownerEmail = props.iouReport.ownerEmail || '';
-    const participantEmails = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participants', []) : [managerEmail, ownerEmail];
-    const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails, props.personalDetails);
+    const sessionAccountID = lodashGet(props.session, 'accountID', null);
+    const managerID = props.iouReport.managerID || '';
+    const ownerAccountID = props.iouReport.ownerAccountID || '';
+    const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
+    const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
 
     // Pay button should only be visible to the manager of the report.
-    const isCurrentUserManager = managerEmail === sessionEmail;
+    const isCurrentUserManager = managerID === sessionAccountID;
 
     const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
 
     const requestAmount = moneyRequestAction.amount;
     const requestCurrency = moneyRequestAction.currency;
-    const requestComment = Str.htmlDecode(moneyRequestAction.comment).trim();
+    const requestComment = moneyRequestAction.comment.trim();
 
     const getSettledMessage = () => {
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
@@ -160,6 +166,14 @@ const IOUPreview = (props) => {
         showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive);
     };
 
+    const getPreviewHeaderText = () => {
+        if (props.isBillSplit) {
+            return props.translate('iou.split');
+        }
+
+        return `${props.translate('iou.cash')}${!props.iouReport.hasOutstandingIOU ? ` • ${props.translate('iou.settledExpensify')}` : ''}`;
+    };
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -175,7 +189,7 @@ const IOUPreview = (props) => {
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewHeaderText()}</Text>
                             {Boolean(getSettledMessage()) && (
                                 <>
                                     <Icon
@@ -220,10 +234,10 @@ const IOUPreview = (props) => {
                             )}
                             {!_.isEmpty(requestComment) && <Text style={[styles.colorMuted]}>{requestComment}</Text>}
                         </View>
-                        {props.isBillSplit && !_.isEmpty(participantEmails) && (
+                        {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
                                 {props.translate('iou.amountEach', {
-                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantEmails.length - 1, requestAmount), requestCurrency),
+                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount), requestCurrency),
                                 })}
                             </Text>
                         )}
@@ -238,16 +252,18 @@ const IOUPreview = (props) => {
     }
 
     return (
-        <Pressable
+        <PressableWithFeedback
             onPress={props.onPreviewPressed}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
+            accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
+            accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
         >
             {childContainer}
-        </Pressable>
+        </PressableWithFeedback>
     );
-};
+}
 
 IOUPreview.propTypes = propTypes;
 IOUPreview.defaultProps = defaultProps;
@@ -257,7 +273,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,

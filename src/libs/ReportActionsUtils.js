@@ -34,6 +34,14 @@ Onyx.connect({
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isCreatedAction(reportAction) {
+    return lodashGet(reportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isDeletedAction(reportAction) {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = lodashGet(reportAction, 'message', []);
@@ -49,7 +57,15 @@ function isMoneyRequestAction(reportAction) {
 }
 
 /**
- * Returns the parentReportAction if the given report is a thread.
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function hasCommentThread(reportAction) {
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
+}
+
+/**
+ * Returns the parentReportAction if the given report is a thread/task.
  *
  * @param {Object} report
  * @returns {Object}
@@ -163,6 +179,25 @@ function getMostRecentIOURequestActionID(reportActions) {
 }
 
 /**
+ * Returns array of links inside a given report action
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function extractLinksFromMessageHtml(reportAction) {
+    const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
+
+    // Regex to get link in href prop inside of <a/> component
+    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
+
+    if (!htmlContent) {
+        return;
+    }
+
+    return _.map([...htmlContent.matchAll(regex)], (match) => match[1]);
+}
+
+/**
  * Returns true when the report action immediately before the specified index is a comment made by the same actor who who is leaving a comment in the action at the specified index.
  * Also checks to ensure that the comment is not too old to be shown as a grouped comment.
  *
@@ -229,6 +264,10 @@ function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
         return CONST.ATTACHMENT_MESSAGE_TEXT;
     }
 
+    if (isCreatedAction(lastVisibleAction)) {
+        return '';
+    }
+
     const messageText = lodashGet(message, 'text', '');
     return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
@@ -283,6 +322,10 @@ function shouldReportActionBeVisible(reportAction, key) {
 
     // Ignore closed action here since we're already displaying a footer that explains why the report was closed
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+        return false;
+    }
+
+    if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
         return false;
     }
 
@@ -382,11 +425,26 @@ function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
 
+/**
+ * A helper method to identify if the message is deleted or not.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isMessageDeleted(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
+}
+
+function isWhisperAction(action) {
+    return (action.whisperedTo || []).length > 0;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
+    extractLinksFromMessageHtml,
     isDeletedAction,
     shouldReportActionBeVisible,
     isReportActionDeprecated,
@@ -395,6 +453,7 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
+    hasCommentThread,
     getLinkedTransactionID,
     getReportPreviewAction,
     isCreatedTaskReportAction,
@@ -402,4 +461,6 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isMessageDeleted,
+    isWhisperAction,
 };

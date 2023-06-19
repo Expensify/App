@@ -44,7 +44,7 @@ const defaultProps = {
     environment: CONST.ENVIRONMENT.DEV,
 };
 
-const Badge = (props) => {
+function Badge(props) {
     const textStyles = props.success || props.error ? styles.textWhite : undefined;
     const Wrapper = props.pressable ? Pressable : View;
     const wrapperStyles = ({pressed}) => [
@@ -67,7 +67,7 @@ const Badge = (props) => {
             </Text>
         </Wrapper>
     );
-};
+}
 
 Badge.displayName = 'Badge';
 Badge.propTypes = propTypes;

@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, TouchableOpacity, Pressable} from 'react-native';
+import {View} from 'react-native';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import Text from '../Text';
@@ -14,6 +14,8 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 class CalendarPicker extends React.PureComponent {
     constructor(props) {
@@ -56,19 +58,21 @@ class CalendarPicker extends React.PureComponent {
         throw new Error('Minimum date cannot be greater than the maximum date.');
     }
 
-    componentDidUpdate(prevProps) {
-        // Check if selectedYear has changed
-        if (this.props.selectedYear === prevProps.selectedYear) {
+    componentDidUpdate(prevProps, prevState) {
+        // if the selectedYear prop or state has changed, update the currentDateView state with the new year value
+        if (this.props.selectedYear === prevProps.selectedYear && prevState.selectedYear === this.state.selectedYear) {
             return;
         }
 
-        // If the selectedYear prop has changed, update the currentDateView state with the new year value
+        // If we changed the prop for selectedYear, update the state to match it, otherwise use the state value
+        const newSelectedYear = this.props.selectedYear !== prevProps.selectedYear ? this.props.selectedYear : this.state.selectedYear;
+
         this.setState(
             (prev) => {
-                const newMomentDate = moment(prev.currentDateView).set('year', this.props.selectedYear);
+                const newMomentDate = moment(prev.currentDateView).set('year', newSelectedYear);
 
                 return {
-                    selectedYear: this.props.selectedYear,
+                    selectedYear: newSelectedYear,
                     currentDateView: this.clampDate(newMomentDate.toDate()),
                 };
             },
@@ -206,9 +210,12 @@ class CalendarPicker extends React.PureComponent {
         return (
             <View>
                 <View style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}>
-                    <TouchableOpacity
+                    <PressableWithFeedback
                         onPress={this.onYearPickerPressed}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
+                        wrapperStyle={[styles.alignItemsCenter]}
+                        hoverDimmingValue={1}
+                        accessibilityLabel={this.props.translate('common.currentYear')}
                     >
                         <Text
                             style={styles.sidebarLinkTextBold}
@@ -218,7 +225,7 @@ class CalendarPicker extends React.PureComponent {
                             {currentYearView}
                         </Text>
                         <ArrowIcon />
-                    </TouchableOpacity>
+                    </PressableWithFeedback>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
                         <Text
                             style={styles.sidebarLinkTextBold}
@@ -227,23 +234,27 @@ class CalendarPicker extends React.PureComponent {
                         >
                             {monthNames[currentMonthView]}
                         </Text>
-                        <TouchableOpacity
+                        <PressableWithFeedback
                             testID="prev-month-arrow"
                             disabled={!hasAvailableDatesPrevMonth}
                             onPress={this.moveToPrevMonth}
+                            hoverDimmingValue={1}
+                            accessibilityLabel={this.props.translate('common.previous')}
                         >
                             <ArrowIcon
                                 disabled={!hasAvailableDatesPrevMonth}
                                 direction={CONST.DIRECTION.LEFT}
                             />
-                        </TouchableOpacity>
-                        <TouchableOpacity
+                        </PressableWithFeedback>
+                        <PressableWithFeedback
                             testID="next-month-arrow"
                             disabled={!hasAvailableDatesNextMonth}
                             onPress={this.moveToNextMonth}
+                            hoverDimmingValue={1}
+                            accessibilityLabel={this.props.translate('common.next')}
                         >
                             <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
-                        </TouchableOpacity>
+                        </PressableWithFeedback>
                     </View>
                 </View>
                 <View style={styles.flexRow}>
@@ -269,25 +280,27 @@ class CalendarPicker extends React.PureComponent {
                             const isSelected = moment(this.props.value).isSame(moment([currentYearView, currentMonthView, day]), 'day');
 
                             return (
-                                <Pressable
+                                <PressableWithoutFeedback
                                     key={`${index}_day-${day}`}
                                     disabled={isDisabled}
                                     onPress={() => this.onDayPressed(day)}
                                     style={styles.calendarDayRoot}
                                     accessibilityLabel={day ? day.toString() : undefined}
+                                    focusable={Boolean(day)}
+                                    accessible={Boolean(day)}
                                 >
                                     {({hovered, pressed}) => (
                                         <View
                                             style={[
                                                 styles.calendarDayContainer,
                                                 isSelected ? styles.calendarDayContainerSelected : {},
-                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+                                                !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >
                                             <Text style={isDisabled ? styles.buttonOpacityDisabled : styles.dayText}>{day}</Text>
                                         </View>
                                     )}
-                                </Pressable>
+                                </PressableWithoutFeedback>
                             );
                         })}
                     </View>

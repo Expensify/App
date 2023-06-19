@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
@@ -7,56 +8,82 @@ import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 
+// we have to mock `useIsFocused` because it's used in the SidebarLinks component
+const mockedNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: () => ({
+            navigate: mockedNavigate,
+        }),
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: jest.fn(),
+        }),
+        createNavigationContainerRef: jest.fn(),
+    };
+});
+
 const fakePersonalDetails = {
-    'email1@test.com': {
+    1: {
+        accountID: 1,
         login: 'email1@test.com',
         displayName: 'Email One',
         avatar: 'none',
         firstName: 'One',
     },
-    'email2@test.com': {
+    2: {
+        accountID: 2,
         login: 'email2@test.com',
         displayName: 'Email Two',
         avatar: 'none',
         firstName: 'Two',
     },
-    'email3@test.com': {
+    3: {
+        accountID: 3,
         login: 'email3@test.com',
         displayName: 'Email Three',
         avatar: 'none',
         firstName: 'Three',
     },
-    'email4@test.com': {
+    4: {
+        accountID: 4,
         login: 'email4@test.com',
         displayName: 'Email Four',
         avatar: 'none',
         firstName: 'Four',
     },
-    'email5@test.com': {
+    5: {
+        accountID: 5,
         login: 'email5@test.com',
         displayName: 'Email Five',
         avatar: 'none',
         firstName: 'Five',
     },
-    'email6@test.com': {
+    6: {
+        accountID: 6,
         login: 'email6@test.com',
         displayName: 'Email Six',
         avatar: 'none',
         firstName: 'Six',
     },
-    'email7@test.com': {
+    7: {
+        accountID: 7,
         login: 'email7@test.com',
         displayName: 'Email Seven',
         avatar: 'none',
         firstName: 'Seven',
     },
-    'email8@test.com': {
+    8: {
+        accountID: 8,
         login: 'email8@test.com',
         displayName: 'Email Eight',
         avatar: 'none',
         firstName: 'Eight',
     },
-    'email9@test.com': {
+    9: {
+        accountID: 9,
         login: 'email9@test.com',
         displayName: 'Email Nine',
         avatar: 'none',
@@ -68,12 +95,12 @@ let lastFakeReportID = 0;
 let lastFakeReportActionID = 0;
 
 /**
- * @param {String[]} participants
+ * @param {Number[]} participants
  * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  * @param {boolean} isUnread
  * @returns {Object}
  */
-function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
+function getFakeReport(participants = [1, 2], millisecondsInThePast = 0, isUnread = false) {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
         type: CONST.REPORT.TYPE.CHAT,
@@ -81,7 +108,7 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participants,
+        participantAccountIDs: participants,
     };
 }
 
@@ -168,22 +195,40 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // and there are a lot of render warnings. It needs to be done like this because normally in
     // our app (App.js) is when the react application is wrapped in the context providers
     render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <ErrorBoundary>
-                <SidebarLinks
-                    onLinkClick={() => {}}
-                    insets={{
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                    }}
-                    isSmallScreenWidth={false}
-                    reportIDFromRoute={reportIDFromRoute}
-                />
-            </ErrorBoundary>
-        </ComposeProviders>,
+        <ErrorBoundary>
+            <MockedSidebarLinks reportIDFromRoute={reportIDFromRoute} />
+        </ErrorBoundary>,
     );
 }
 
-export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction};
+/**
+ * @param {String} [reportIDFromRoute]
+ * @returns {JSX.Element}
+ */
+function MockedSidebarLinks({reportIDFromRoute}) {
+    return (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+            <SidebarLinks
+                onLinkClick={() => {}}
+                insets={{
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                }}
+                isSmallScreenWidth={false}
+                reportIDFromRoute={reportIDFromRoute}
+            />
+        </ComposeProviders>
+    );
+}
+
+MockedSidebarLinks.propTypes = {
+    reportIDFromRoute: PropTypes.string,
+};
+
+MockedSidebarLinks.defaultProps = {
+    reportIDFromRoute: '',
+};
+
+export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};

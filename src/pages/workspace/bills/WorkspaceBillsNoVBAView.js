@@ -18,31 +18,33 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceBillsNoVBAView = (props) => (
-    <>
-        <WorkspaceBillsFirstSection policyID={props.policyID} />
+function WorkspaceBillsNoVBAView(props) {
+    return (
+        <>
+            <WorkspaceBillsFirstSection policyID={props.policyID} />
 
-        <Section
-            title={props.translate('workspace.bills.unlockOnlineBillPayment')}
-            icon={Illustrations.LockOpen}
-            containerStyles={[styles.cardSection]}
-        >
-            <View style={[styles.mv3]}>
-                <Text>{props.translate('workspace.bills.unlockNoVBACopy')}</Text>
-            </View>
-            <Button
-                text={props.translate('workspace.common.connectBankAccount')}
-                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
-                icon={Expensicons.Bank}
-                style={[styles.mt4]}
-                iconStyles={[styles.buttonCTAIcon]}
-                shouldShowRightIcon
-                large
-                success
-            />
-        </Section>
-    </>
-);
+            <Section
+                title={props.translate('workspace.bills.unlockOnlineBillPayment')}
+                icon={Illustrations.LockOpen}
+                containerStyles={[styles.cardSection]}
+            >
+                <View style={[styles.mv3]}>
+                    <Text>{props.translate('workspace.bills.unlockNoVBACopy')}</Text>
+                </View>
+                <Button
+                    text={props.translate('workspace.common.connectBankAccount')}
+                    onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
+                    icon={Expensicons.Bank}
+                    style={[styles.mt4]}
+                    iconStyles={[styles.buttonCTAIcon]}
+                    shouldShowRightIcon
+                    large
+                    success
+                />
+            </Section>
+        </>
+    );
+}
 
 WorkspaceBillsNoVBAView.propTypes = propTypes;
 WorkspaceBillsNoVBAView.displayName = 'WorkspaceBillsNoVBAView';

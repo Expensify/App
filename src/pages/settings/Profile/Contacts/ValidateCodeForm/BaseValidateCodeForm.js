@@ -79,6 +79,8 @@ function BaseValidateCodeForm(props) {
      */
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(props.contactMethod);
+        setValidateCode('');
+        inputValidateCodeRef.current.focus();
     };
 
     /**
@@ -135,7 +137,7 @@ function BaseValidateCodeForm(props) {
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateCodeSent')}
             >
-                <View style={[styles.mt2, styles.dFlex, styles.flexColumn]}>
+                <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
                     <Text
                         style={[styles.link, styles.mr1]}
                         onPress={resendValidateCode}
@@ -146,7 +148,7 @@ function BaseValidateCodeForm(props) {
                         <DotIndicatorMessage
                             type="success"
                             style={[styles.mt6, styles.flex0]}
-                            messages={{0: props.translate('resendValidationForm.linkHasBeenResent')}}
+                            messages={{0: 'resendValidationForm.linkHasBeenResent'}}
                         />
                     )}
                 </View>

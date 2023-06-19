@@ -3,11 +3,21 @@ import {Dimensions, Keyboard} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
+import styles from '../../styles/styles';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
+import compose from '../../libs/compose';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+};
+
+const propTypes = {
+    ...windowDimensionsPropTypes,
+    ...viewportOffsetTopPropTypes,
 };
 
 class EmojiPicker extends React.Component {
@@ -134,7 +144,8 @@ class EmojiPicker extends React.Component {
      * Focus the search input in the emoji picker.
      */
     focusEmojiSearchInput() {
-        if (!this.emojiSearchInput) {
+        // we won't focus the input if it's mobile device
+        if (!this.emojiSearchInput || this.props.isSmallScreenWidth) {
             return;
         }
         this.emojiSearchInput.focus();
@@ -161,7 +172,10 @@ class EmojiPicker extends React.Component {
                     width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                     height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
                 }}
+                outerStyle={StyleUtils.getOuterModalStyle(this.props.windowHeight, this.props.viewportOffsetTop)}
                 anchorAlignment={this.state.emojiPopoverAnchorOrigin}
+                innerContainerStyle={styles.popoverInnerContainer}
+                avoidKeyboard
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
@@ -172,4 +186,6 @@ class EmojiPicker extends React.Component {
     }
 }
 
-export default EmojiPicker;
+EmojiPicker.propTypes = propTypes;
+
+export default compose(withViewportOffsetTop, withWindowDimensions)(EmojiPicker);

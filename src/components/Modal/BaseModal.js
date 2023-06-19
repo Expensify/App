@@ -51,10 +51,9 @@ class BaseModal extends PureComponent {
     }
 
     componentWillUnmount() {
-        // we don't want to call the onModalHide on unmount
-        this.hideModal(this.props.isVisible);
-
+        // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
         if (this.props.isVisible) {
+            this.hideModal(true);
             Modal.willAlertModalBecomeVisible(false);
         }
 
@@ -137,6 +136,7 @@ class BaseModal extends PureComponent {
                 animationOutTiming={this.props.animationOutTiming}
                 statusBarTranslucent={this.props.statusBarTranslucent}
                 onLayout={this.props.onLayout}
+                avoidKeyboard={this.props.avoidKeyboard}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {

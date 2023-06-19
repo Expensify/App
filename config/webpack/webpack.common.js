@@ -20,7 +20,6 @@ const includeModules = [
     'react-native-gesture-handler',
     'react-native-flipper',
     'react-native-google-places-autocomplete',
-    '@react-navigation/drawer',
     'react-native-qrcode-svg',
     'react-native-view-shot',
 ].join('|');
@@ -59,13 +58,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         publicPath: '/',
     },
     stats: {
-        warningsFilter: [
-            // @react-navigation for web uses the legacy modules (related to react-native-reanimated)
-            // This results in 33 warnings with stack traces that appear during build and each time we make a change
-            // We can't do anything about the warnings, and they only get in the way, so we suppress them
-            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Drawer.js',
-            './node_modules/@react-navigation/drawer/lib/module/views/legacy/Overlay.js',
-        ],
+        warningsFilter: [],
     },
     plugins: [
         new CleanWebpackPlugin(),

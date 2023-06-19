@@ -24,6 +24,9 @@ const propTypes = {
 
     /** Show that we should include ReportRecipientLocalTime view height */
     shouldIncludeReportRecipientLocalTimeHeight: PropTypes.bool.isRequired,
+
+    /** create accessibility label for each item */
+    accessibilityLabelExtractor: PropTypes.func.isRequired,
 };
 
 const defaultProps = {};

@@ -22,7 +22,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ChronosOOOListActions = (props) => {
+function ChronosOOOListActions(props) {
     const events = lodashGet(props.action, 'originalMessage.events', []);
 
     if (!events.length) {
@@ -70,7 +70,7 @@ const ChronosOOOListActions = (props) => {
             </View>
         </OfflineWithFeedback>
     );
-};
+}
 
 ChronosOOOListActions.propTypes = propTypes;
 ChronosOOOListActions.displayName = 'ChronosOOOListActions';

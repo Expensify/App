@@ -93,9 +93,9 @@ class WorkspaceRateAndUnitPage extends React.Component {
     validate(values) {
         const errors = {};
         const decimalSeparator = this.props.toLocaleDigit('.');
-        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,3})?$`, 'i');
+        const rateValueRegex = RegExp(String.raw`^\d{1,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,3})?$`, 'i');
         if (!rateValueRegex.test(values.rate)) {
-            errors.rate = this.props.translate('workspace.reimburse.invalidRateError');
+            errors.rate = 'workspace.reimburse.invalidRateError';
         }
         return errors;
     }

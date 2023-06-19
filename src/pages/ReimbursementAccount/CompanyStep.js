@@ -6,10 +6,9 @@ import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {parsePhoneNumber} from 'awesome-phonenumber';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import DatePicker from '../../components/DatePicker';
 import TextInput from '../../components/TextInput';
@@ -84,53 +83,53 @@ class CompanyStep extends React.Component {
         const errors = {};
 
         if (!values.companyName) {
-            errors.companyName = this.props.translate('bankAccount.error.companyName');
+            errors.companyName = 'bankAccount.error.companyName';
         }
 
         if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = this.props.translate('bankAccount.error.addressStreet');
+            errors.addressStreet = 'bankAccount.error.addressStreet';
         }
 
         if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = this.props.translate('bankAccount.error.zipCode');
+            errors.addressZipCode = 'bankAccount.error.zipCode';
         }
 
         if (!values.addressCity) {
-            errors.addressCity = this.props.translate('bankAccount.error.addressCity');
+            errors.addressCity = 'bankAccount.error.addressCity';
         }
 
         if (!values.addressState) {
-            errors.addressState = this.props.translate('bankAccount.error.addressState');
+            errors.addressState = 'bankAccount.error.addressState';
         }
 
         if (!values.companyPhone || !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
-            errors.companyPhone = this.props.translate('bankAccount.error.phoneNumber');
+            errors.companyPhone = 'bankAccount.error.phoneNumber';
         }
 
         if (!values.website || !ValidationUtils.isValidWebsite(values.website)) {
-            errors.website = this.props.translate('bankAccount.error.website');
+            errors.website = 'bankAccount.error.website';
         }
 
         if (!values.companyTaxID || !ValidationUtils.isValidTaxID(values.companyTaxID)) {
-            errors.companyTaxID = this.props.translate('bankAccount.error.taxID');
+            errors.companyTaxID = 'bankAccount.error.taxID';
         }
 
         if (!values.incorporationType) {
-            errors.incorporationType = this.props.translate('bankAccount.error.companyType');
+            errors.incorporationType = 'bankAccount.error.companyType';
         }
 
         if (!values.incorporationDate || !ValidationUtils.isValidDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('common.error.dateInvalid');
+            errors.incorporationDate = 'common.error.dateInvalid';
         } else if (!values.incorporationDate || !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-            errors.incorporationDate = this.props.translate('bankAccount.error.incorporationDateFuture');
+            errors.incorporationDate = 'bankAccount.error.incorporationDateFuture';
         }
 
         if (!values.incorporationState) {
-            errors.incorporationState = this.props.translate('bankAccount.error.incorporationState');
+            errors.incorporationState = 'bankAccount.error.incorporationState';
         }
 
         if (!values.hasNoConnectionToCannabis) {
-            errors.hasNoConnectionToCannabis = this.props.translate('bankAccount.error.restrictedBusiness');
+            errors.hasNoConnectionToCannabis = 'bankAccount.error.restrictedBusiness';
         }
 
         return errors;
@@ -159,14 +158,12 @@ class CompanyStep extends React.Component {
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('companyStep.headerTitle')}
                     stepCounter={{step: 2, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
-                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}

@@ -218,7 +218,11 @@ platform :ios do
               contact_phone: ENV["APPLE_CONTACT_PHONE"],
               demo_account_name: ENV["APPLE_DEMO_EMAIL"],
               demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
-              notes: "Use the account provided. Thank you for the review."
+              notes: "1. Log into the Expensify app using the provided email
+                      2. Now, you have to log in to this gmail account on https://mail.google.com/ so you can retrieve a One-Time-Password
+                      3. To log in to the gmail account, use the password above (That's NOT a password for the Expensify app but for the Gmail account)
+                      4. At the Gmail inbox, you should have received a one-time 6 digit magic code
+                      5. Use that to sign in"
           }
       )
     rescue Exception => e
