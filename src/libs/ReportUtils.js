@@ -993,6 +993,17 @@ function getTransactionReportName(reportAction) {
     });
 }
 
+/*
+ * There are report comments that are added by our system. Those messages are created in english.
+ * This function translates these messages before showing them in the LHN or in another option list.
+ */
+function getTranslatedReportLastMessage(report) {
+    if (isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
+        return `[${Localize.translateLocal('common.attachment')}]`;
+    }
+    return report ? report.lastMessageText || '' : '';
+}
+
 /**
  * Get the title for a report.
  *
@@ -2333,4 +2344,5 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getTranslatedReportLastMessage,
 };

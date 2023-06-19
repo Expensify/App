@@ -368,17 +368,6 @@ function getAllReportErrors(report, reportActions) {
     return allReportErrors;
 }
 
-/*
- * There are report comments that are added by our system. Those messages are created in english.
- * This function translates these messages before showing them in the LHN.
- */
-function getTranslatedReportLastMessage(report) {
-    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
-        return `[${Localize.translateLocal('common.attachment')}]`;
-    }
-    return report ? report.lastMessageText || '' : '';
-}
-
 /**
  * Creates a report list option
  *
@@ -457,7 +446,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        const lastMessageTextFromReport = getTranslatedReportLastMessage(report);
+        const lastMessageTextFromReport = ReportUtils.getTranslatedReportLastMessage(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
         let lastMessageText =
             lastMessageTextFromReport && hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';

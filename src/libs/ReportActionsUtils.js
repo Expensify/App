@@ -254,7 +254,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 /**
  * Return the last visible action for the LHN. The criteria for an action to be visible here is different than in the chat conversation,
  * see shouldReportActionBeVisible for that.
- * 
+ *
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
  * @return {Object}
