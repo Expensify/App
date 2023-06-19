@@ -50,7 +50,7 @@ function BasicOnyxComponent(props) {
             contentContainerStyle={{padding: 24}}
             style={{flex: 1}}
         >
-            <Pressable onPress={() => console.log('Hello from share menu!')}>
+            <Pressable onPress={() => App.setLocale(props.preferredLocale === 'en' ? 'es' : 'en')}>
                 <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
             </Pressable>
             <View style={{padding: 24}} />
@@ -61,15 +61,22 @@ function BasicOnyxComponent(props) {
                 >
                     {prop.toUpperCase()}
                     {'\n\n'}
-                    {Object.entries(json).map(([key, value]) => (
-                        <Text
-                            key={key}
-                            style={{color: '#E7ECE9', fontWeight: 'normal'}}
-                        >
-                            {key}: {JSON.stringify(value)}
+                    {typeof json === 'string' ? (
+                        <Text style={{color: '#E7ECE9', fontWeight: 'normal'}}>
+                            {json}
                             {'\n\n'}
                         </Text>
-                    ))}
+                    ) : (
+                        Object.entries(json).map(([key, value]) => (
+                            <Text
+                                key={key}
+                                style={{color: '#E7ECE9', fontWeight: 'normal'}}
+                            >
+                                {key}: {JSON.stringify(value)}
+                                {'\n\n'}
+                            </Text>
+                        ))
+                    )}
                 </Text>
             ))}
         </ScrollView>
@@ -78,6 +85,7 @@ function BasicOnyxComponent(props) {
 
 const WithHOC = withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
+    preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
     session: {key: ONYXKEYS.SESSION},
 })(BasicOnyxComponent);
 
