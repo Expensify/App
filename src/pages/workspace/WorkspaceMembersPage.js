@@ -37,6 +37,7 @@ import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -90,15 +91,16 @@ function WorkspaceMembersPage(props) {
      */
     const validateSelection = useCallback(() => {
         const newErrors = {};
+        const ownerAccountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([props.policy.owner]));
         _.each(selectedEmployees, (member) => {
-            if (member !== props.policy.owner && member !== props.session.email) {
+            if (member !== ownerAccountID && member !== props.session.accountID) {
                 return;
             }
             newErrors[member] = props.translate('workspace.people.error.cannotRemove');
         });
         setErrors(newErrors);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedEmployees]);
+    }, [selectedEmployees, props.policy.owner, props.session.accountID]);
 
     useEffect(() => {
         getWorkspaceMembers();
@@ -290,7 +292,7 @@ function WorkspaceMembersPage(props) {
      */
     const renderItem = useCallback(
         ({item}) => {
-            const hasError = !_.isEmpty(item.errors) || errors[item.login];
+            const hasError = !_.isEmpty(item.errors) || errors[item.accountID];
             const isChecked = _.contains(selectedEmployees, Number(item.accountID));
             return (
                 <OfflineWithFeedback
@@ -299,7 +301,7 @@ function WorkspaceMembersPage(props) {
                     errors={item.errors}
                 >
                     <PressableWithFeedback
-                        style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.login]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
+                        style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
                         onPress={() => toggleUser(item.accountID, item.pendingAction)}
                         accessibilityRole="checkbox"
                         accessibilityState={{
@@ -339,10 +341,10 @@ function WorkspaceMembersPage(props) {
                             </View>
                         )}
                     </PressableWithFeedback>
-                    {!_.isEmpty(errors[item.login]) && (
+                    {!_.isEmpty(errors[item.accountID]) && (
                         <FormHelpMessage
                             isError
-                            message={errors[item.login]}
+                            message={errors[item.accountID]}
                         />
                     )}
                 </OfflineWithFeedback>

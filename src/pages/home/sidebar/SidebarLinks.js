@@ -28,7 +28,7 @@ import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import withCurrentReportId from '../../../components/withCurrentReportId';
+import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../../components/withCurrentReportId';
 import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
@@ -84,6 +84,7 @@ const propTypes = {
     priorityMode: PropTypes.string,
 
     ...withLocalizePropTypes,
+    ...withCurrentReportIdPropTypes,
     ...withNavigationPropTypes,
 };
 
