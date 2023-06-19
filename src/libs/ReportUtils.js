@@ -1106,9 +1106,6 @@ function getChatRoomSubtitle(report) {
  * @returns {String}
  */
 function getChatRoomSubtitleLink(report) {
-    if (report.reportID == '3519318573359925') {
-        debugger;
-    }
     if (isThread(report)) {
         const from = Localize.translateLocal('threads.from');
         const workspaceName = getPolicyName(report);
