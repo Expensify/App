@@ -144,6 +144,7 @@ export default {
         mi: 'milla',
         km: 'kilómetro',
         copied: '¡Copiado!',
+        someone: 'Alguien',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',

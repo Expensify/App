@@ -13,7 +13,7 @@ import Text from '../../../components/Text';
 import TextWithEllipsis from '../../../components/TextWithEllipsis';
 
 const propTypes = {
-    /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
+    /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */
     userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
 
     /** Information about the network */
@@ -43,7 +43,7 @@ function ReportTypingIndicator(props) {
         case 1:
             return (
                 <TextWithEllipsis
-                    leadingText={PersonalDetails.getDisplayNameByAccountID(usersTyping[0], 'Someone')}
+                    leadingText={PersonalDetails.getDisplayNameForTypingIndicator(usersTyping[0], props.translate('common.someone'))}
                     trailingText={` ${props.translate('reportTypingIndicator.isTyping')}`}
                     textStyle={[styles.chatItemComposeSecondaryRowSubText]}
                     wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
