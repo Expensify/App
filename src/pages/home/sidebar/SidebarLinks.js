@@ -292,9 +292,17 @@ const personalDetailsSelector = (personalDetails) =>
  */
 const reportActionsSelector = (reportActions) =>
     reportActions &&
-    _.map(reportActions, (reportAction) => ({
-        errors: reportAction.errors,
-    }));
+    _.map(reportActions, (reportAction) => {
+        const action = {
+            errors: reportAction.errors,
+        };
+
+        // Update the component if the moderation decision changes
+        if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision')) {
+            action.message = reportAction.message;
+        }
+        return action;
+    });
 
 /**
  * @param {Object} [policy]
