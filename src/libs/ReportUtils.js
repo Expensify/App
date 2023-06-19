@@ -1879,7 +1879,7 @@ function canSeeDefaultRoom(report, policies, betas) {
         return true;
     }
 
-    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Accountant 
+    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Accountant
     if (isDomainRoom(report) && doesDomainHaveAccountant && hasExpensifyEmails(lodashGet(report, ['participantAccountIDs'], []))) {
         return true;
     }
