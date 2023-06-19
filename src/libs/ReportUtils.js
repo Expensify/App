@@ -703,7 +703,11 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
-        participantDetails.push([lodashGet(personalDetails, [accountID, 'login'], ''), lodashGet(personalDetails, [accountID, 'firstName'], ''), avatarSource]);
+        participantDetails.push([
+            lodashGet(personalDetails, [accountID, 'login'], lodashGet(personalDetails, [accountID, 'displayName'], '')),
+            lodashGet(personalDetails, [accountID, 'firstName'], ''),
+            avatarSource,
+        ]);
     }
 
     // Sort all logins by first name (which is the second element in the array)

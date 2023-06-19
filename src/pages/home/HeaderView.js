@@ -51,6 +51,11 @@ const propTypes = {
         guideCalendarLink: PropTypes.string,
     }),
 
+    /** Current user session */
+    session: PropTypes.shape({
+        accountID: PropTypes.number,
+    }),
+
     /** The report actions from the parent report */
     // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
     // eslint-disable-next-line react/no-unused-prop-types
@@ -68,6 +73,9 @@ const defaultProps = {
         guideCalendarLink: null,
     },
     parentReport: {},
+    session: {
+        accountID: 0,
+    },
 };
 
 function HeaderView(props) {
@@ -91,7 +99,8 @@ function HeaderView(props) {
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
     if (isTaskReport) {
-        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
+        const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID);
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
@@ -100,7 +109,7 @@ function HeaderView(props) {
         }
 
         // Task is marked as completed
-        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
@@ -109,7 +118,7 @@ function HeaderView(props) {
         }
 
         // Task is not closed
-        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED) {
+        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
@@ -259,6 +268,9 @@ export default compose(
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(HeaderView);
