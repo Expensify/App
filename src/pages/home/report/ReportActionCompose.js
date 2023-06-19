@@ -52,7 +52,6 @@ import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager';
-import useKeyboardShortcut from '../../../hooks/useKeyboardShortcut';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const {RNTextInputReset} = NativeModules;
