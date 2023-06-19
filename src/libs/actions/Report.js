@@ -117,27 +117,30 @@ function subscribeToReportTypingEvents(reportID) {
 
     const pusherChannelName = getReportChannelName(reportID);
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING, (typingStatus) => {
+        // If the pusher message comes from OldDot, we expect the typing status to be keyed by user
+        // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
+        // since personal details are keyed by accountID.
         const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
-        const accountID = _.first(_.keys(normalizedTypingStatus));
+        const accountIDOrLogin = _.first(_.keys(normalizedTypingStatus));
 
-        if (!accountID) {
+        if (!accountIDOrLogin) {
             return;
         }
 
         // Don't show the typing indicator if the user is typing on another platform
-        if (accountID === currentUserAccountID) {
+        if (Number(accountIDOrLogin) === currentUserAccountID) {
             return;
         }
 
         // Use a combo of the reportID and the accountID as a key for holding our timers.
-        const reportUserIdentifier = `${reportID}-${accountID}`;
+        const reportUserIdentifier = `${reportID}-${accountIDOrLogin}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
             const typingStoppedStatus = {};
-            typingStoppedStatus[accountID] = false;
+            typingStoppedStatus[accountIDOrLogin] = false;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
