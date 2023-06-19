@@ -368,30 +368,15 @@ function getAllReportErrors(report, reportActions) {
     return allReportErrors;
 }
 
-/**
- * Get the last message text from the report directly or from other sources for special cases.
- * @param {Object} report
- * @returns {String}
+/*
+ * There are report comments that are added by our system. Those messages are created in english.
+ * This function translates these messages before showing them in the LHN.
  */
-function getLastMessageTextForReport(report) {
-    let lastMessageTextFromReport = '';
+function getTranslatedReportLastMessage(report) {
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
-    } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-
-        // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
-        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action) && !ReportActionUtils.isCreatedAction(action));
-        if (lodashGet(lastNonWhisper, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
-            const latestVisibleAction = _.find(
-                allSortedReportActions[report.reportID],
-                (action) =>
-                    ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !ReportActionUtils.isWhisperAction(action) && !ReportActionUtils.isCreatedAction(action),
-            );
-            lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
-        }
+        return `[${Localize.translateLocal('common.attachment')}]`;
     }
-    return lastMessageTextFromReport;
+    return report ? report.lastMessageText || '' : '';
 }
 
 /**
@@ -472,7 +457,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        const lastMessageTextFromReport = getLastMessageTextForReport(report);
+        const lastMessageTextFromReport = getTranslatedReportLastMessage(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
         let lastMessageText =
             lastMessageTextFromReport && hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
@@ -1026,5 +1011,4 @@ export {
     getParticipantsOptions,
     isSearchStringMatch,
     shouldOptionShowTooltip,
-    getLastMessageTextForReport,
 };

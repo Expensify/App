@@ -52,6 +52,22 @@ function isDeletedAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isWhisperAction(reportAction) {
+    return (reportAction.whisperedTo || []).length > 0;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isPendingModeration(reportAction) {
+    return lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isMoneyRequestAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
@@ -236,13 +252,16 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 }
 
 /**
+ * Return the last visible action for the LHN. The criteria for an action to be visible here is different than in the chat conversation,
+ * see shouldReportActionBeVisible for that.
+ * 
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
  * @return {Object}
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action));
+    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action) && !isWhisperAction(action) && !isCreatedAction(action) && !isPendingModeration(action));
 
     if (_.isEmpty(visibleActions)) {
         return {};
@@ -325,7 +344,7 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+    if (isPendingModeration(reportAction)) {
         return false;
     }
 
@@ -433,10 +452,6 @@ function isCreatedTaskReportAction(reportAction) {
  */
 function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
-}
-
-function isWhisperAction(action) {
-    return (action.whisperedTo || []).length > 0;
 }
 
 export {
