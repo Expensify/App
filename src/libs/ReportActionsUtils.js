@@ -325,6 +325,10 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
@@ -431,6 +435,10 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
 }
 
+function isWhisperAction(action) {
+    return (action.whisperedTo || []).length > 0;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -454,4 +462,5 @@ export {
     getFormattedAmount,
     isSentMoneyReportAction,
     isMessageDeleted,
+    isWhisperAction,
 };
