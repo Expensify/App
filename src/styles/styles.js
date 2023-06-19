@@ -2224,7 +2224,7 @@ const styles = {
             justifyContent: 'space-between',
         }),
         padding: 20,
-        backgroundColor: themeColors.activeComponentBG,
+        backgroundColor: themeColors.sidebar,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
     }),
