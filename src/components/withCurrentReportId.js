@@ -45,6 +45,7 @@ function CurrentReportIdContextProvider(props) {
 
 CurrentReportIdContextProvider.displayName = 'CurrentReportIdContextProvider';
 CurrentReportIdContextProvider.propTypes = {
+    /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
 };
 

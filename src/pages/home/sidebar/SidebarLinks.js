@@ -81,7 +81,7 @@ const propTypes = {
     priorityMode: PropTypes.string,
 
     ...withLocalizePropTypes,
-    ...withCurrentReportId,
+    ...withCurrentReportIdPropTypes,
     ...withNavigationPropTypes,
 };
 
