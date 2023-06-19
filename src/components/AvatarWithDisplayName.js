@@ -7,7 +7,7 @@ import reportPropTypes from '../pages/reportPropTypes';
 import participantPropTypes from './participantPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import Tooltip from './Tooltip';
+import UserDetailsTooltip from './UserDetailsTooltip';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import SubscriptAvatar from './SubscriptAvatar';
@@ -70,10 +70,9 @@ function AvatarWithDisplayName(props) {
                             mainTooltip={props.report.ownerEmail}
                             secondaryTooltip={subtitle}
                             size={props.size}
-                            noMargin
                         />
                     ) : (
-                        <Tooltip text={props.report.ownerEmail}>
+                        <UserDetailsTooltip accountID={props.report.ownerAccountID}>
                             <View>
                                 <Avatar
                                     size={props.size}
@@ -83,7 +82,7 @@ function AvatarWithDisplayName(props) {
                                     containerStyles={avatarContainerStyle}
                                 />
                             </View>
-                        </Tooltip>
+                        </UserDetailsTooltip>
                     )}
                     <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                         <DisplayNames
@@ -92,7 +91,7 @@ function AvatarWithDisplayName(props) {
                             tooltipEnabled
                             numberOfLines={1}
                             textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isExpenseReport || props.isAnonymous}
+                            shouldUseFullTitle={props.isAnonymous}
                         />
                         {!_.isEmpty(subtitle) && (
                             <Text

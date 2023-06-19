@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import UserDetailsTooltip from './UserDetailsTooltip';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -11,7 +12,6 @@ import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 import participantPropTypes from './participantPropTypes';
 import Avatar from './Avatar';
-import Tooltip from './Tooltip';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
@@ -116,7 +116,13 @@ function MoneyRequestHeader(props) {
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Tooltip text={isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : moneyRequestReport.managerEmail}>
+                        <UserDetailsTooltip
+                            accountID={isExpenseReport ? '' : moneyRequestReport.managerID}
+                            fallbackUserDetails={{
+                                avatar: payeeAvatar,
+                                displayName: ReportUtils.getPolicyName(moneyRequestReport, props.policies),
+                            }}
+                        >
                             <View>
                                 <Avatar
                                     source={payeeAvatar}
@@ -125,17 +131,23 @@ function MoneyRequestHeader(props) {
                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                 />
                             </View>
-                        </Tooltip>
+                        </UserDetailsTooltip>
                         <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                             <View style={[styles.alignItemsStart]}>
-                                <Tooltip text={isExpenseReport ? '' : moneyRequestReport.managerEmail}>
+                                <UserDetailsTooltip
+                                    accountID={isExpenseReport ? '' : moneyRequestReport.managerID}
+                                    fallbackUserDetails={{
+                                        avatar: payeeAvatar,
+                                        displayName: ReportUtils.getPolicyName(moneyRequestReport, props.policies),
+                                    }}
+                                >
                                     <Text
                                         style={[styles.headerText, styles.pre]}
                                         numberOfLines={1}
                                     >
                                         {payeeName}
                                     </Text>
-                                </Tooltip>
+                                </UserDetailsTooltip>
                             </View>
                             {isExpenseReport && (
                                 <Text
