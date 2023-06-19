@@ -86,7 +86,6 @@ module.exports = {
                 '@typescript-eslint/no-explicit-any': 'error',
                 '@typescript-eslint/switch-exhaustiveness-check': 'error',
                 '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-                'react/static-property-placement': 'off',
                 'react/default-props-match-prop-types': 'off',
                 'react/require-default-props': 'off',
                 'es/no-nullish-coalescing-operators': 'off',
