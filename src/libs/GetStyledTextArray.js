@@ -8,10 +8,6 @@ import Str from 'expensify-common/lib/str';
  */
 const getStyledTextArray = (name, prefix) => {
     const texts = [];
-    console.log(`~~Monil logs name ${name} and prefix ${prefix}`);
-    if (!name) {
-        return texts;
-    }
     const prefixLowercase = prefix.toLowerCase();
     const prefixLocation = name.toLowerCase().search(Str.escapeForRegExp(prefixLowercase));
 

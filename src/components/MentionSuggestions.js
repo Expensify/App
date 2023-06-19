@@ -69,11 +69,6 @@ function MentionSuggestions(props) {
         const styledDisplayName = getStyledTextArray(item.text, props.prefix);
         const styledHandle = getStyledTextArray(item.alternateText, props.prefix);
 
-        console.debug('~~Monil styledDisplayName');
-        console.debug(styledDisplayName);
-        console.debug('~~Monil styledHandle');
-        console.debug(styledHandle);
-
         return (
             <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
                 <View style={styles.mentionSuggestionsAvatarContainer}>
