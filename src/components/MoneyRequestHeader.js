@@ -90,6 +90,11 @@ function MoneyRequestHeader(props) {
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
+    const report = props.report;
+    if (props.isSingleTransactionView) {
+        report.ownerAccountID = props.parentReport.ownerAccountID;
+        report.ownerEmail = props.parentReport.ownerEmail;
+    }
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithBackButton
@@ -104,7 +109,7 @@ function MoneyRequestHeader(props) {
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={props.report}
+                report={report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
