@@ -7,7 +7,6 @@ import CarouselButtons from '../CarouselButtons';
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     carouselState: PropTypes.object.isRequired,
-
     updatePageByIndex: PropTypes.func.isRequired,
     toggleArrowsVisibility: PropTypes.func.isRequired,
     autoHideArrow: PropTypes.func.isRequired,

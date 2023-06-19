@@ -121,8 +121,7 @@ function AttachmentCarouselView(props) {
                     decelerationRate="fast"
                     showsHorizontalScrollIndicator={false}
                     bounces={false}
-                    // Scroll only one image at a time no matter how fast the user swipes
-                    disableIntervalMomentum
+                    disableIntervalMomentum // Scroll only one image at a time no matter how fast the user swipes
                     pagingEnabled
                     snapToAlignment="start"
                     snapToInterval={props.carouselState.containerWidth}
