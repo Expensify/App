@@ -12,7 +12,6 @@ import compose from '../../../libs/compose';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import CONST from '../../../CONST';
-import OptionsSelector from '../../../components/OptionsSelector';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
 import SelectionListRadio from '../../../components/SelectionListRadio';
@@ -122,43 +121,22 @@ class PronounsPage extends Component {
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <HeaderWithBackButton
-                            title={this.props.translate('pronounsPage.pronouns')}
-                            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
-                        />
-                        <Text style={[styles.ph5, styles.mb3]}>{this.props.translate('pronounsPage.isShownOnProfile')}</Text>
+                <HeaderWithBackButton
+                    title={this.props.translate('pronounsPage.pronouns')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                />
+                <Text style={[styles.ph5, styles.mb3]}>{this.props.translate('pronounsPage.isShownOnProfile')}</Text>
 
-                        <SelectionListRadio
-                            headerMessage={headerMessage}
-                            textInputLabel={this.props.translate('pronounsPage.pronouns')}
-                            textInputPlaceholder={this.props.translate('pronounsPage.placeholderText')}
-                            textInputValue={this.state.searchValue}
-                            sections={[{data: filteredPronounsList, indexOffset: 0}]}
-                            onSelectRow={this.updatePronouns}
-                            onChangeText={this.onChangeText}
-                            initiallyFocusedOptionKey={this.initiallyFocusedOption.keyForList}
-                        />
-
-                        {/* TODO: REMOVE */}
-                        {/* <OptionsSelector */}
-                        {/*     textInputLabel={this.props.translate('pronounsPage.pronouns')} */}
-                        {/*     placeholderText={this.props.translate('pronounsPage.placeholderText')} */}
-                        {/*     headerMessage={headerMessage} */}
-                        {/*     sections={[{data: filteredPronounsList, indexOffset: 0}]} */}
-                        {/*     value={this.state.searchValue} */}
-                        {/*     onSelectRow={this.updatePronouns} */}
-                        {/*     onChangeText={this.onChangeText} */}
-                        {/*     optionHoveredStyle={styles.hoveredComponentBG} */}
-                        {/*     safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle} */}
-                        {/*     shouldDelayFocus */}
-                        {/*     shouldFocusOnSelectRow */}
-                        {/*     shouldHaveOptionSeparator */}
-                        {/*     initiallyFocusedOptionKey={this.initiallyFocusedOption.keyForList} */}
-                        {/* /> */}
-                    </>
-                )}
+                <SelectionListRadio
+                    headerMessage={headerMessage}
+                    textInputLabel={this.props.translate('pronounsPage.pronouns')}
+                    textInputPlaceholder={this.props.translate('pronounsPage.placeholderText')}
+                    textInputValue={this.state.searchValue}
+                    sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                    onSelectRow={this.updatePronouns}
+                    onChangeText={this.onChangeText}
+                    initiallyFocusedOptionKey={this.initiallyFocusedOption.keyForList}
+                />
             </ScreenWrapper>
         );
     }

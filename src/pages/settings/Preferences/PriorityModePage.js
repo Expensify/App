@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import themeColors from '../../../styles/themes/default';
@@ -55,27 +54,11 @@ function PriorityModePage(props) {
             />
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
 
-            {/* TODO: ARROW KEY ERROR */}
             <SelectionListRadio
                 sections={[{data: priorityModes}]}
                 onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
                 initiallyFocusedOptionKey={_.find(priorityModes, (mode) => Boolean(mode.customIcon)).keyForList}
             />
-
-            {/* TODO: REMOVE */}
-            {/* <OptionsList */}
-            {/*     sections={[{data: priorityModes}]} */}
-            {/*     onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)} */}
-            {/*     hideSectionHeaders */}
-            {/*     optionHoveredStyle={{ */}
-            {/*         ...styles.hoveredComponentBG, */}
-            {/*         ...styles.mhn5, */}
-            {/*         ...styles.ph5, */}
-            {/*     }} */}
-            {/*     shouldHaveOptionSeparator */}
-            {/*     shouldDisableRowInnerPadding */}
-            {/*     contentContainerStyles={[styles.ph5]} */}
-            {/* /> */}
         </ScreenWrapper>
     );
 }

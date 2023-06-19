@@ -6,9 +6,7 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ROUTES from '../ROUTES';
-import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
-import OptionsSelector from '../components/OptionsSelector';
 import themeColors from '../styles/themes/default';
 import * as Expensicons from '../components/Icon/Expensicons';
 import CONST from '../CONST';
@@ -115,23 +113,6 @@ class YearPickerPage extends React.Component {
                     onSelectRow={(option) => this.updateSelectedYear(option.value)}
                     initiallyFocusedOptionKey={this.currentYear.toString()}
                 />
-
-                {/* TODO: REMOVE */}
-                {/* <OptionsSelector */}
-                {/*     textInputLabel={this.props.translate('yearPickerPage.selectYear')} */}
-                {/*     onChangeText={this.filterYearList} */}
-                {/*     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD} */}
-                {/*     maxLength={4} */}
-                {/*     value={this.state.inputText} */}
-                {/*     sections={[{data: this.state.yearOptions, indexOffset: 0}]} */}
-                {/*     onSelectRow={(option) => this.updateSelectedYear(option.value)} */}
-                {/*     headerMessage={headerMessage} */}
-                {/*     initiallyFocusedOptionKey={this.currentYear.toString()} */}
-                {/*     hideSectionHeaders */}
-                {/*     optionHoveredStyle={styles.hoveredComponentBG} */}
-                {/*     shouldHaveOptionSeparator */}
-                {/*     contentContainerStyles={[styles.ph5]} */}
-                {/* /> */}
             </ScreenWrapper>
         );
     }
