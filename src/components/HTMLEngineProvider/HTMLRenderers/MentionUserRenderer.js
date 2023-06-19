@@ -42,9 +42,10 @@ function MentionUserRenderer(props) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     href={ROUTES.getDetailsRoute(loginWithoutLeadingAt)}
-                    color={StyleUtils.getMentionTextColor(isOurMention)}
-                    style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention)]}
+                    style={[_.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
                     onPress={() => showUserDetails(loginWithoutLeadingAt)}
+                    // Add testID so it is NOT selected as an anchor tag by SelectionScraper
+                    testID="span"
                 >
                     <TNodeChildrenRenderer tnode={props.tnode} />
                 </TextLink>

@@ -98,6 +98,7 @@ function CodesPage(props) {
                                     <View style={styles.twoFactorAuthCodesButtonsContainer}>
                                         <PressableWithDelayToggle
                                             text={props.translate('twoFactorAuth.copyCodes')}
+                                            textChecked={props.translate('common.copied')}
                                             icon={Expensicons.Copy}
                                             inline={false}
                                             onPress={() => {
