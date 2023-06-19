@@ -12,6 +12,7 @@ import {AppRegistry, ScrollView, Text, View} from 'react-native';
 import 'react-native-gesture-handler';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from './src/ONYXKEYS';
+import ExpensifyWordmark from './src/components/ExpensifyWordmark';
 
 const config = {
     keys: ONYXKEYS,
@@ -25,6 +26,8 @@ function BasicOnyxComponent(props) {
             contentContainerStyle={{padding: 24}}
             style={{flex: 1}}
         >
+            <ExpensifyWordmark />
+            <View style={{padding: 24}} />
             {Object.entries(props).map(([prop, json]) => (
                 <Text style={{color: '#E7ECE9', fontWeight: 'bold'}}>
                     {prop.toUpperCase()}
