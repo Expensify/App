@@ -8,7 +8,7 @@ const Stack = createStackNavigator();
 
 function RigthModalNavigator() {
     return (
-        <Stack.Navigator screenOptions={RHPScreenOptions} >
+        <Stack.Navigator screenOptions={RHPScreenOptions}>
             <Stack.Screen
                 name="Settings"
                 component={ModalStackNavigators.SettingsModalStackNavigator}
