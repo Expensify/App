@@ -76,7 +76,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     private static final String ONYX_DATA_KEY = "onyxData";
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
-    public final HashMap<Integer, NotificationCache> cache = new HashMap<>();
+    public final HashMap<Long, NotificationCache> cache = new HashMap<>();
 
     public CustomNotificationProvider(@NonNull Context context, @NonNull AirshipConfigOptions configOptions) {
         super(context, configOptions);
@@ -168,7 +168,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
      * @param notificationID Current notification ID
      */
     private void applyMessageStyle(@NonNull Context context, NotificationCompat.Builder builder, JsonMap payload, int notificationID) {
-        int reportID = payload.get("reportID").getInt(-1);
+        long reportID = payload.get("reportID").getLong(-1);
         if (reportID == -1) {
             return;
         }
@@ -271,7 +271,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
      * @param reportID Report ID.
      * @return Notification Cache.
      */
-    private NotificationCache findOrCreateNotificationCache(int reportID) {
+    private NotificationCache findOrCreateNotificationCache(long reportID) {
         NotificationCache notificationCache = cache.get(reportID);
 
         if (notificationCache == null) {
