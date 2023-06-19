@@ -58,12 +58,12 @@ const policyPropTypes = {
     }),
 
     /** The employee list of this policy */
-    policyMemberList: PropTypes.objectOf(policyMemberPropType),
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
 };
 
 const policyDefaultProps = {
     policy: {},
-    policyMemberList: {},
+    policyMembers: {},
 };
 
 /*
@@ -117,8 +117,8 @@ export default function (WrappedComponent) {
         policy: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
         },
-        policyMemberList: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${getPolicyIDFromRoute(props.route)}`,
+        policyMembers: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
         },
     })(withPolicy);
 }

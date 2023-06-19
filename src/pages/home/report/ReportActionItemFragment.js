@@ -22,7 +22,7 @@ import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
     /** Users accountID */
-    accountID: PropTypes.string.isRequired,
+    accountID: PropTypes.number.isRequired,
 
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,
@@ -124,7 +124,7 @@ function ReportActionItemFragment(props) {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {convertToLTR(Str.htmlDecode(text))}
+                    {convertToLTR(text)}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}

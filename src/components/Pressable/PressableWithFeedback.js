@@ -11,7 +11,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle'];
 
 const PressableWithFeedbackPropTypes = {
-    ..._.omit(GenericPressablePropTypes.pressablePropTypes, omittedProps),
+    ...GenericPressablePropTypes.pressablePropTypes,
     /**
      * Determines what opacity value should be applied to the underlaying view when Pressable is pressed.
      * To disable dimming, pass 1 as pressDimmingValue
@@ -31,7 +31,7 @@ const PressableWithFeedbackPropTypes = {
 };
 
 const PressableWithFeedbackDefaultProps = {
-    ..._.omit(GenericPressablePropTypes.defaultProps, omittedProps),
+    ...GenericPressablePropTypes.defaultProps,
     pressDimmingValue: variables.pressDimValue,
     hoverDimmingValue: variables.hoverDimValue,
     nativeID: '',
@@ -78,7 +78,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                         ...(state.focused ? StyleUtils.parseStyleAsArray(props.focusStyle, state) : []),
                     ]}
                 >
-                    {props.children}
+                    {_.isFunction(props.children) ? props.children(state) : props.children}
                 </OpacityView>
             )}
         </GenericPressable>
