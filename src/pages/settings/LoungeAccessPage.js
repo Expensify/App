@@ -44,31 +44,29 @@ function LoungeAccessPage(props) {
                         title={props.translate('loungeAccessPage.loungeAccess')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     />
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
-                        <View style={[styles.flex1]}>
-                            <Illustrations.Lounge />
-                            <View style={styles.pageWrapper}>
-                                <View style={[styles.settingsPageBody]}>
-                                    <Text
-                                        style={[styles.textHeadline, styles.preWrap]}
-                                        numberOfLines={2}
-                                    >
-                                        {props.translate('loungeAccessPage.headline')}
-                                    </Text>
-                                    <Text style={[styles.baseFontStyle, styles.mt5]}>{props.translate('loungeAccessPage.description')}</Text>
-                                </View>
+                    <ScrollView contentContainerStyle={[safeAreaPaddingBottomStyle]}>
+                        <Illustrations.Lounge/>
+                        <View style={[styles.pageWrapper]}>
+                            <View style={[styles.settingsPageBody]}>
+                                <Text
+                                    style={[styles.textHeadline, styles.preWrap]}
+                                    numberOfLines={2}
+                                >
+                                    {props.translate('loungeAccessPage.headline')}
+                                </Text>
+                                <Text style={[styles.baseFontStyle, styles.mt5]}>{props.translate('loungeAccessPage.description')}</Text>
                             </View>
-                            {_.map(menuItems, (item) => (
-                                <MenuItem
-                                    key={item.translationKey}
-                                    title={props.translate(item.translationKey)}
-                                    icon={item.icon}
-                                    iconWidth={60}
-                                    iconHeight={60}
-                                    iconStyles={[styles.mr2]}
-                                />
-                            ))}
                         </View>
+                        {_.map(menuItems, (item) => (
+                            <MenuItem
+                                key={item.translationKey}
+                                title={props.translate(item.translationKey)}
+                                icon={item.icon}
+                                iconWidth={60}
+                                iconHeight={60}
+                                iconStyles={[styles.mr2]}
+                            />
+                        ))}
                     </ScrollView>
                 </>
             )}
