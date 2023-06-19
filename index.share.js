@@ -8,11 +8,19 @@
 //   "ShareMenuModuleComponent",
 //   () => MyShareComponent
 // );
-import {AppRegistry, ScrollView, Text, View} from 'react-native';
+import {useEffect} from 'react';
+import {AppRegistry, Pressable, ScrollView, Text, View} from 'react-native';
 import 'react-native-gesture-handler';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import CONFIG from './src/CONFIG';
 import ONYXKEYS from './src/ONYXKEYS';
 import ExpensifyWordmark from './src/components/ExpensifyWordmark';
+import NetworkConnection from './src/libs/NetworkConnection';
+import * as Pusher from './src/libs/Pusher/pusher';
+import PusherConnectionManager from './src/libs/PusherConnectionManager';
+import * as App from './src/libs/actions/App';
+import * as User from './src/libs/actions/User';
+import styles from './src/styles/styles';
 
 const config = {
     keys: ONYXKEYS,
@@ -21,19 +29,43 @@ const config = {
 Onyx.init(config);
 
 function BasicOnyxComponent(props) {
+    useEffect(() => {
+        NetworkConnection.listenForReconnect();
+        NetworkConnection.onReconnect(() => App.reconnectApp());
+        PusherConnectionManager.init();
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=AuthenticatePusher`,
+        }).then(() => {
+            User.subscribeToUserEvents();
+        });
+
+        App.openApp();
+        App.setUpPoliciesAndNavigate(props.session);
+    }, [props.session]);
+
     return (
         <ScrollView
             contentContainerStyle={{padding: 24}}
             style={{flex: 1}}
         >
-            <ExpensifyWordmark />
+            <Pressable onPress={() => console.log('Hello from share menu!')}>
+                <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
+            </Pressable>
             <View style={{padding: 24}} />
             {Object.entries(props).map(([prop, json]) => (
-                <Text style={{color: '#E7ECE9', fontWeight: 'bold'}}>
+                <Text
+                    key={prop}
+                    style={{color: '#E7ECE9', fontWeight: 'bold'}}
+                >
                     {prop.toUpperCase()}
                     {'\n\n'}
                     {Object.entries(json).map(([key, value]) => (
-                        <Text style={{color: '#E7ECE9', fontWeight: 'normal'}}>
+                        <Text
+                            key={key}
+                            style={{color: '#E7ECE9', fontWeight: 'normal'}}
+                        >
                             {key}: {JSON.stringify(value)}
                             {'\n\n'}
                         </Text>
