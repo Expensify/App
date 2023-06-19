@@ -1246,7 +1246,7 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: variables.leftPaneMaxWidth,
+        maxWidth: variables.sideBarWidth,
     },
 
     rightPanelContainer: {
@@ -2215,10 +2215,6 @@ const styles = {
 
     twoFactorAuthCodesButton: {
         minWidth: 100,
-    },
-
-    twoFactorAuthFooter: {
-        marginTop: 'auto',
     },
 
     anonymousRoomFooter: {
