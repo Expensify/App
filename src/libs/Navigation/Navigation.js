@@ -18,11 +18,6 @@ const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
-let resolveReportScreenIsReadyPromise;
-let reportScreenIsReadyPromise = new Promise((resolve) => {
-    resolveReportScreenIsReadyPromise = resolve;
-});
-
 let pendingRoute = null;
 
 /**
@@ -145,7 +140,7 @@ function dismissModal(targetReportID) {
                 action.type = 'REPLACE';
                 navigationRef.current.dispatch(action);
             } else {
-                navigationRef.current.dispatch(StackActions.pop());
+                navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
             }
             break;
         default: {
@@ -225,20 +220,6 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-function resetIsReportScreenReadyPromise() {
-    reportScreenIsReadyPromise = new Promise((resolve) => {
-        resolveReportScreenIsReadyPromise = resolve;
-    });
-}
-
-function isReportScreenReady() {
-    return reportScreenIsReadyPromise;
-}
-
-function setIsReportScreenIsReady() {
-    resolveReportScreenIsReadyPromise();
-}
-
 export default {
     canNavigate,
     navigate,
@@ -250,9 +231,6 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getReportIDFromRoute,
-    resetIsReportScreenReadyPromise,
-    isReportScreenReady,
-    setIsReportScreenIsReady,
     getTopmostReportId,
 };
 

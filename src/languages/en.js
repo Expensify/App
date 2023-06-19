@@ -44,6 +44,7 @@ export default {
         and: 'and',
         details: 'Details',
         privacy: 'Privacy',
+        hidden: 'Hidden',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
@@ -143,6 +144,7 @@ export default {
         per: 'per',
         mi: 'mile',
         km: 'kilometer',
+        copied: 'Copied!',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -225,8 +227,8 @@ export default {
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
-        newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}`,
-        welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}`,
+        newFaceEnterMagicCode: ({login}) => `It's always great to see a new face around here! Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
+        welcomeEnterMagicCode: ({login}) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
     },
     login: {
         hero: {
@@ -265,6 +267,7 @@ export default {
         copyURLToClipboard: 'Copy URL to clipboard',
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
+        markAsRead: 'Mark as read',
         editComment: 'Edit comment',
         deleteAction: ({action}) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
         deleteConfirmation: ({action}) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
@@ -1073,6 +1076,7 @@ export default {
             growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
+            notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}) => `Go to ${roomName} room`,
         },
         emptyWorkspace: {
@@ -1242,6 +1246,7 @@ export default {
         pleaseEnterRoomName: 'Please enter a room name',
         pleaseSelectWorkspace: 'Please select a workspace',
         renamedRoomAction: ({oldName, newName}) => ` renamed this room from ${oldName} to ${newName}`,
+        roomRenamedTo: ({newName}) => `Room renamed to ${newName}`,
         social: 'social',
         selectAWorkspace: 'Select a workspace',
         growlMessageOnRenameError: 'Unable to rename policy room, please check your connection and try again.',
@@ -1395,6 +1400,7 @@ export default {
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
         prestyledText: 'Prestyled text',
+        viewAttachment: 'View attachment',
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
@@ -1403,6 +1409,7 @@ export default {
         lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
+        from: 'From',
     },
     qrCodes: {
         copyUrlToClipboard: 'Copy URL to clipboard',

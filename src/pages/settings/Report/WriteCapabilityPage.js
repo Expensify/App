@@ -23,7 +23,7 @@ const propTypes = {
 };
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
-const WriteCapabilityPage = (props) => {
+function WriteCapabilityPage(props) {
     const writeCapabilityOptions = _.map(CONST.REPORT.WRITE_CAPABILITIES, (value) => ({
         value,
         text: props.translate(`writeCapabilityPage.writeCapability.${value}`),
@@ -58,7 +58,7 @@ const WriteCapabilityPage = (props) => {
             />
         </ScreenWrapper>
     );
-};
+}
 
 WriteCapabilityPage.displayName = 'WriteCapabilityPage';
 WriteCapabilityPage.propTypes = propTypes;

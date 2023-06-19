@@ -35,6 +35,11 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.DetailsModalStackNavigator}
             />
             <Stack.Screen
+                name="Profile"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.ProfileModalStackNavigator}
+            />
+            <Stack.Screen
                 name="Report_Details"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.ReportDetailsModalStackNavigator}

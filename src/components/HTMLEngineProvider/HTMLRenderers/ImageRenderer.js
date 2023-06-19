@@ -3,14 +3,17 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
-import PressableWithoutFocus from '../../PressableWithoutFocus';
+import PressableWithoutFocus from '../../Pressable/PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import ROUTES from '../../../ROUTES';
 
-const ImageRenderer = (props) => {
+const propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
+
+function ImageRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -52,12 +55,14 @@ const ImageRenderer = (props) => {
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFocus
-                    style={styles.noOutline}
+                    style={[styles.noOutline]}
                     onPress={() => {
                         const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
                         Navigation.navigate(route);
                     }}
                     onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    accessibilityRole="imagebutton"
+                    accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
@@ -70,9 +75,9 @@ const ImageRenderer = (props) => {
             )}
         </ShowContextMenuContext.Consumer>
     );
-};
+}
 
-ImageRenderer.propTypes = htmlRendererPropTypes;
+ImageRenderer.propTypes = propTypes;
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default ImageRenderer;
+export default withLocalize(ImageRenderer);

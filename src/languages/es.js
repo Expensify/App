@@ -43,6 +43,7 @@ export default {
         and: 'y',
         details: 'Detalles',
         privacy: 'Privacidad',
+        hidden: 'Oculto',
         delete: 'Eliminar',
         archived: 'archivado',
         contacts: 'Contactos',
@@ -142,6 +143,7 @@ export default {
         per: 'por',
         mi: 'milla',
         km: 'kilómetro',
+        copied: '¡Copiado!',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -224,8 +226,8 @@ export default {
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         enterPassword: 'Por favor, introduce tu contraseña',
-        newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}`,
-        welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}`,
+        newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+        welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
     login: {
         hero: {
@@ -264,6 +266,7 @@ export default {
         copyURLToClipboard: 'Copiar URL al portapapeles',
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
+        markAsRead: 'Marcar como leído',
         editComment: 'Editar comentario',
         deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
@@ -1078,6 +1081,7 @@ export default {
             growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
+            notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda agregarte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}) => `Ir a la sala ${roomName}`,
         },
         emptyWorkspace: {
@@ -1248,6 +1252,7 @@ export default {
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
         renamedRoomAction: ({oldName, newName}) => ` cambió el nombre de la sala de ${oldName} a ${newName}`,
+        roomRenamedTo: ({newName}) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
         growlMessageOnRenameError: 'No se ha podido cambiar el nombre del espacio de trabajo, por favor, comprueba tu conexión e inténtalo de nuevo.',
@@ -1861,6 +1866,7 @@ export default {
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         prestyledText: 'texto preestilizado',
+        viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
@@ -1869,6 +1875,7 @@ export default {
         lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
+        from: 'De',
     },
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',

@@ -20,6 +20,7 @@ import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
+import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
@@ -30,6 +31,9 @@ const propTypes = {
 
     /** Object of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The report currently being looked at */
+    report: reportPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -148,7 +152,7 @@ class AttachmentCarousel extends React.Component {
      * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
      */
     createInitialState() {
-        const actions = ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions));
+        const actions = [ReportActionsUtils.getParentReportAction(this.props.report), ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
         const attachments = [];
 
         const htmlParser = new HtmlParser({
@@ -172,6 +176,14 @@ class AttachmentCarousel extends React.Component {
         _.forEach(actions, (action) => htmlParser.write(_.get(action, ['message', 0, 'html'])));
         htmlParser.end();
 
+        // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
+        // promotes the natural feeling of swiping left/right to go to the next/previous image
+        // We don't want to invert the list for desktop/web because this interferes with mouse
+        // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
+        if (this.canUseTouchScreen) {
+            attachments.reverse();
+        }
+
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (page === -1) {
             throw new Error('Attachment not found');
@@ -194,7 +206,12 @@ class AttachmentCarousel extends React.Component {
      * @param {Number} deltaSlide
      */
     cycleThroughAttachments(deltaSlide) {
-        const nextIndex = this.state.page - deltaSlide;
+        let delta = deltaSlide;
+        if (this.canUseTouchScreen) {
+            delta = deltaSlide * -1;
+        }
+
+        const nextIndex = this.state.page - delta;
         const nextItem = this.state.attachments[nextIndex];
 
         if (!nextItem || !this.scrollRef.current) {
@@ -261,8 +278,13 @@ class AttachmentCarousel extends React.Component {
     }
 
     render() {
-        const isForwardDisabled = this.state.page === 0;
-        const isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
+        let isForwardDisabled = this.state.page === 0;
+        let isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
+
+        if (this.canUseTouchScreen) {
+            isForwardDisabled = isBackDisabled;
+            isBackDisabled = this.state.page === 0;
+        }
 
         return (
             <View
@@ -318,11 +340,6 @@ class AttachmentCarousel extends React.Component {
                     <FlatList
                         listKey="AttachmentCarousel"
                         horizontal
-                        // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
-                        // promotes the natural feeling of swiping left/right to go to the next/previous image
-                        // We don't want to invert the list for desktop/web because this interferes with mouse
-                        // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
-                        inverted={this.canUseTouchScreen}
                         decelerationRate="fast"
                         showsHorizontalScrollIndicator={false}
                         bounces={false}
@@ -362,7 +379,7 @@ AttachmentCarousel.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
         },
     }),

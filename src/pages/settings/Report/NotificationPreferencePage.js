@@ -22,7 +22,7 @@ const propTypes = {
 };
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
-const NotificationPreferencePage = (props) => {
+function NotificationPreferencePage(props) {
     const notificationPreferenceOptions = _.map(props.translate('notificationPreferencesPage.notificationPreferences'), (preference, key) => ({
         value: key,
         text: preference,
@@ -56,7 +56,7 @@ const NotificationPreferencePage = (props) => {
             />
         </ScreenWrapper>
     );
-};
+}
 
 NotificationPreferencePage.displayName = 'NotificationPreferencePage';
 NotificationPreferencePage.propTypes = propTypes;
