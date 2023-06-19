@@ -1730,18 +1730,21 @@ function flagComment(reportID, reportAction, severity) {
     }
 
     const reportActionID = reportAction.reportActionID;
-
     const updatedMessage = {
         ...message,
         moderationDecisions: updatedDecision,
     };
 
+    // We're using Onyx.set here so that the moderation decision is available when the side bar updates. Merge is too slow.
+    const reportActions = allReportActions[reportID] || {};
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
+                ...reportActions,
                 [reportActionID]: {
+                    ...reportAction,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     message: [updatedMessage],
                 },

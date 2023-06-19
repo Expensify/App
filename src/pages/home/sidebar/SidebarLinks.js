@@ -39,6 +39,7 @@ import PressableWithoutFeedback from '../../../components/Pressable/PressableWit
 import * as Session from '../../../libs/actions/Session';
 import Button from '../../../components/Button';
 import * as UserUtils from '../../../libs/UserUtils';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -253,7 +254,7 @@ const chatReportSelector = (report) =>
         },
         lastReadTime: report.lastReadTime,
         lastMentionedTime: report.lastMentionedTime,
-        lastMessageText: report.lastMessageText,
+        lastMessageText: OptionsListUtils.getLastMessageTextForReport(report),
         lastVisibleActionCreated: report.lastVisibleActionCreated,
         iouReportID: report.iouReportID,
         hasOutstandingIOU: report.hasOutstandingIOU,
