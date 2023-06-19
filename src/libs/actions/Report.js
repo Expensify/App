@@ -1152,10 +1152,11 @@ function navigateToConciergeChat() {
  * @param {Object} policy
  * @param {String} reportName
  * @param {String} visibility
+ * @param {Array} policyMembers
  */
-function addPolicyReport(policy, reportName, visibility) {
+function addPolicyReport(policy, reportName, visibility, policyMembers) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserAccountID, ..._.pluck(policy.employeeList, 'accountID')]);
+    const participants = _.unique([currentUserAccountID, ...policyMembers]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,

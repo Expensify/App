@@ -21,7 +21,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import Form from '../../components/Form';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
-import policyMemberPropType from "../policyMemberPropType";
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -53,7 +53,6 @@ const propTypes = {
         }),
     ),
 
-
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
@@ -84,7 +83,8 @@ class WorkspaceNewRoomPage extends React.Component {
      */
     submit(values) {
         const policyID = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${values.policyID}`];
-        Report.addPolicyReport(policyID, values.roomName, values.visibility);
+        const policyMembers = _.map(_.keys(this.props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), Number);
+        Report.addPolicyReport(policyID, values.roomName, values.visibility, policyMembers);
     }
 
     /**
@@ -210,7 +210,7 @@ export default compose(
         },
         allPolicyMembers: {
             key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-        }
+        },
     }),
     withLocalize,
 )(WorkspaceNewRoomPage);
