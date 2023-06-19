@@ -421,7 +421,7 @@ function ReportActionItem(props) {
     }
 
     const hasErrors = !_.isEmpty(props.action.errors);
-    const whisperedTo = lodashGet(props.action, 'whisperedTo', []);
+    const whisperedTo = props.action.whisperedTo || [];
     const isWhisper = whisperedTo.length > 0;
     const isMultipleParticipant = whisperedTo.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
