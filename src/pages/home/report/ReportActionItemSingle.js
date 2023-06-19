@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -21,6 +21,7 @@ import CONST from '../../../CONST';
 import SubscriptAvatar from '../../../components/SubscriptAvatar';
 import reportPropTypes from '../../reportPropTypes';
 import * as UserUtils from '../../../libs/UserUtils';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
@@ -85,11 +86,13 @@ function ReportActionItemSingle(props) {
 
     return (
         <View style={props.wrapperStyles}>
-            <Pressable
+            <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
                 onPress={() => showUserDetails(actorAccountID)}
+                accessibilityLabel={actorEmail}
+                accessibilityRole="button"
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
@@ -111,15 +114,17 @@ function ReportActionItemSingle(props) {
                         </UserDetailsTooltip>
                     )}
                 </OfflineWithFeedback>
-            </Pressable>
+            </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>
-                        <Pressable
+                        <PressableWithoutFeedback
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
                             onPress={() => showUserDetails(actorAccountID)}
+                            accessibilityLabel={actorEmail}
+                            accessibilityRole="button"
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
@@ -131,7 +136,7 @@ function ReportActionItemSingle(props) {
                                     isSingleLine
                                 />
                             ))}
-                        </Pressable>
+                        </PressableWithoutFeedback>
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}

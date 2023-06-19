@@ -125,6 +125,7 @@ function VerifyPage(props) {
                             {Boolean(props.account.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(props.account.twoFactorAuthSecretKey)}</Text>}
                             <PressableWithDelayToggle
                                 text={props.translate('twoFactorAuth.copy')}
+                                textChecked={props.translate('common.copied')}
                                 icon={Expensicons.Copy}
                                 inline={false}
                                 onPress={() => Clipboard.setString(props.account.twoFactorAuthSecretKey)}

@@ -1,6 +1,8 @@
 import React from 'react';
-import {Pressable} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
+import GenericPressable from './GenericPressable';
+import genericPressablePropTypes from './GenericPressable/PropTypes';
 
 const propTypes = {
     /** Element that should be clickable  */
@@ -14,11 +16,14 @@ const propTypes = {
 
     /** Styles that should be passed to touchable container */
     // eslint-disable-next-line react/forbid-prop-types
-    styles: PropTypes.arrayOf(PropTypes.object),
+    style: PropTypes.arrayOf(PropTypes.object),
+
+    /** Proptypes of pressable component used for implementation */
+    ...genericPressablePropTypes.pressablePropTypes,
 };
 
 const defaultProps = {
-    styles: [],
+    style: [],
     onLongPress: undefined,
 };
 
@@ -41,15 +46,18 @@ class PressableWithoutFocus extends React.Component {
     }
 
     render() {
+        const restProps = _.omit(this.props, ['children', 'onPress', 'onLongPress', 'style']);
         return (
-            <Pressable
+            <GenericPressable
                 onPress={this.pressAndBlur}
                 onLongPress={this.props.onLongPress}
                 ref={(el) => (this.pressableRef = el)}
-                style={this.props.styles}
+                style={this.props.style}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...restProps}
             >
                 {this.props.children}
-            </Pressable>
+            </GenericPressable>
         );
     }
 }

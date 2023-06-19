@@ -10,6 +10,8 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 /**
  * Clears out the task info from the store
@@ -308,8 +310,9 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
     let assigneeChatReportID;
-    if (assigneeAccountID && assigneeAccountID !== report.managerID) {
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID) {
         assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID]).reportID;
+
         if (assigneeChatReportID !== report.parentReportID.toString()) {
             optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
                 report.reportID,
@@ -493,7 +496,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {assignee, newAssigneeAccountID});
+    Onyx.merge(ONYXKEYS.TASK, {assignee, assigneeAccountID: newAssigneeAccountID});
 }
 
 /**
@@ -626,6 +629,47 @@ function dismissModalAndClearOutTaskInfo() {
     clearOutTaskInfo();
 }
 
+/**
+ * Returns Task assignee accountID
+ *
+ * @param {Object} taskReport
+ * @returns {Number|null}
+ */
+function getTaskAssigneeAccountID(taskReport) {
+    if (!taskReport) {
+        return null;
+    }
+
+    if (taskReport.managerID) {
+        return taskReport.managerID;
+    }
+
+    const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
+    return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
+}
+
+/**
+ * Returns Task owner accountID
+ *
+ * @param {Object} taskReport
+ * @returns {Number|null}
+ */
+function getTaskOwnerAccountID(taskReport) {
+    return lodashGet(taskReport, 'ownerAccountID', null);
+}
+
+/**
+ * Check if current user is either task assignee or task owner
+ *
+ * @param {Object} taskReport
+ * @param {Number} sessionAccountID
+ * @returns {Boolean}
+ */
+function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
+    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -645,4 +689,6 @@ export {
     cancelTask,
     isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
+    getTaskAssigneeAccountID,
+    isTaskAssigneeOrTaskOwner,
 };

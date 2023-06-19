@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -25,6 +25,7 @@ import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** All the data of the action */
@@ -103,7 +104,7 @@ function ReportPreview(props) {
     return (
         <View style={[styles.chatItemMessage]}>
             {_.map(props.action.message, (message, index) => (
-                <Pressable
+                <PressableWithoutFeedback
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
                     onPress={() => {
                         Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
@@ -112,7 +113,8 @@ function ReportPreview(props) {
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                     style={[styles.flexRow, styles.justifyContentBetween]}
-                    focusable
+                    accessibilityRole="button"
+                    accessibilityLabel={props.translate('iou.viewDetails')}
                 >
                     <View style={[styles.flexShrink1]}>
                         {props.iouReport.hasOutstandingIOU ? (
@@ -140,7 +142,7 @@ function ReportPreview(props) {
                         src={Expensicons.ArrowRight}
                         fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
                     />
-                </Pressable>
+                </PressableWithoutFeedback>
             ))}
             {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
                 <SettlementButton
