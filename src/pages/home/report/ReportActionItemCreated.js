@@ -109,6 +109,10 @@ export default compose(
     memo(
         ReportActionItemCreated,
         (prevProps, nextProps) =>
-            lodashGet(prevProps.props, 'policy.name') === lodashGet(nextProps, 'policy.name') && lodashGet(prevProps.props, 'policy.avatar') === lodashGet(nextProps, 'policy.avatar'),
+            lodashGet(prevProps.props, 'policy.name') === lodashGet(nextProps, 'policy.name') &&
+            lodashGet(prevProps.props, 'policy.avatar') === lodashGet(nextProps, 'policy.avatar') &&
+            lodashGet(prevProps.props, 'report.lastReadTime') === lodashGet(nextProps, 'report.lastReadTime') &&
+            lodashGet(prevProps.props, 'report.statusNum') === lodashGet(nextProps, 'report.statusNum') &&
+            lodashGet(prevProps.props, 'report.stateNum') === lodashGet(nextProps, 'report.stateNum'),
     ),
 );
