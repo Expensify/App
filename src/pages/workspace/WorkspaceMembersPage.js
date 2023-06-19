@@ -36,6 +36,7 @@ import withCurrentUserPersonalDetails from '../../components/withCurrentUserPers
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import Log from '../../libs/Log';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -286,8 +287,9 @@ class WorkspaceMembersPage extends React.Component {
 
     validate() {
         const errors = {};
+        const ownerAccountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([this.props.policy.owner]));
         _.each(this.state.selectedEmployees, (member) => {
-            if (member !== this.props.policy.owner && member !== this.props.session.email) {
+            if (member !== ownerAccountID && member !== this.props.session.accountID) {
                 return;
             }
 
@@ -368,10 +370,10 @@ class WorkspaceMembersPage extends React.Component {
                         </View>
                     )}
                 </PressableWithFeedback>
-                {!_.isEmpty(this.state.errors[item.login]) && (
+                {!_.isEmpty(this.state.errors[item.accountID]) && (
                     <FormHelpMessage
                         isError
-                        message={this.state.errors[item.login]}
+                        message={this.state.errors[item.accountID]}
                     />
                 )}
             </OfflineWithFeedback>
