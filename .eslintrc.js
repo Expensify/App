@@ -61,16 +61,8 @@ module.exports = {
         },
         {
             files: ['*.ts', '*.tsx'],
-            extends: [
-                'expensify',
-                'airbnb-typescript',
-                'plugin:storybook/recommended',
-                'plugin:react-hooks/recommended',
-                'plugin:@typescript-eslint/recommended',
-                'plugin:@typescript-eslint/recommended-requiring-type-checking',
-                'prettier',
-            ],
-            plugins: ['@typescript-eslint', 'react-hooks'],
+            extends: ['airbnb-typescript', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier'],
+            plugins: ['@typescript-eslint'],
             parser: '@typescript-eslint/parser',
             parserOptions: {
                 project: './tsconfig.json',
