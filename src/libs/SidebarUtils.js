@@ -313,7 +313,8 @@ function getOptionData(reportID) {
               }
             : null;
     }
-    let lastMessageText = lastMessageTextFromReport && hasMultipleParticipants && lastActorDetails && Number(lastActorDetails.accountID) !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
+    let lastMessageText =
+        lastMessageTextFromReport && hasMultipleParticipants && lastActorDetails && Number(lastActorDetails.accountID) !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
     lastMessageText += report ? lastMessageTextFromReport : '';
 
     if (result.isArchivedRoom) {
