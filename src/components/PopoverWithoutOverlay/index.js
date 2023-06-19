@@ -38,7 +38,9 @@ function Popover(props) {
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
         Modal.setCloseModal(props.isVisible ? () => props.onClose(props.anchorRef) : null);
-        // eslint-disable-next-line
+    
+        // We want this effect to run strictly ONLY when isVisible prop changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);
 
     return props.isVisible ? (
