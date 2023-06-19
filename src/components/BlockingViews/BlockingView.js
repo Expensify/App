@@ -49,29 +49,31 @@ const defaultProps = {
     onLinkPress: () => Navigation.dismissModal(),
 };
 
-const BlockingView = (props) => (
-    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
-        <Icon
-            src={props.icon}
-            fill={props.iconColor}
-            width={props.iconWidth}
-            height={props.iconHeight}
-        />
-        <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
-        <AutoEmailLink
-            style={[styles.textAlignCenter]}
-            text={props.subtitle}
-        />
-        {props.shouldShowLink ? (
-            <TextLink
-                onPress={props.onLinkPress}
-                style={[styles.link, styles.mt2]}
-            >
-                {props.link}
-            </TextLink>
-        ) : null}
-    </View>
-);
+function BlockingView(props) {
+    return (
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
+            <Icon
+                src={props.icon}
+                fill={props.iconColor}
+                width={props.iconWidth}
+                height={props.iconHeight}
+            />
+            <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
+            <AutoEmailLink
+                style={[styles.textAlignCenter]}
+                text={props.subtitle}
+            />
+            {props.shouldShowLink ? (
+                <TextLink
+                    onPress={props.onLinkPress}
+                    style={[styles.link, styles.mt2]}
+                >
+                    {props.link}
+                </TextLink>
+            ) : null}
+        </View>
+    );
+}
 
 BlockingView.propTypes = propTypes;
 BlockingView.defaultProps = defaultProps;

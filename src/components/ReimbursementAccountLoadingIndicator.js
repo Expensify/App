@@ -22,31 +22,33 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ReimbursementAccountLoadingIndicator = (props) => (
-    <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
-        <HeaderWithBackButton
-            title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
-            onBackButtonPress={props.onBackButtonPress}
-        />
-        <FullPageOfflineBlockingView>
-            {props.isSubmittingVerificationsData ? (
-                <View style={[styles.pageWrapper]}>
-                    <Lottie
-                        source={ReviewingBankInfoAnimation}
-                        autoPlay
-                        loop
-                        style={styles.loadingVBAAnimation}
-                    />
-                    <View style={[styles.ph6]}>
-                        <Text style={[styles.textAlignCenter]}>{props.translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
+function ReimbursementAccountLoadingIndicator(props) {
+    return (
+        <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
+            <HeaderWithBackButton
+                title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
+                onBackButtonPress={props.onBackButtonPress}
+            />
+            <FullPageOfflineBlockingView>
+                {props.isSubmittingVerificationsData ? (
+                    <View style={[styles.pageWrapper]}>
+                        <Lottie
+                            source={ReviewingBankInfoAnimation}
+                            autoPlay
+                            loop
+                            style={styles.loadingVBAAnimation}
+                        />
+                        <View style={[styles.ph6]}>
+                            <Text style={[styles.textAlignCenter]}>{props.translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
+                        </View>
                     </View>
-                </View>
-            ) : (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            )}
-        </FullPageOfflineBlockingView>
-    </ScreenWrapper>
-);
+                ) : (
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                )}
+            </FullPageOfflineBlockingView>
+        </ScreenWrapper>
+    );
+}
 
 ReimbursementAccountLoadingIndicator.propTypes = propTypes;
 ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';

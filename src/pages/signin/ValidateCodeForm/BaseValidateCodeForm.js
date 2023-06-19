@@ -24,6 +24,7 @@ import * as User from '../../../libs/actions/User';
 import FormHelpMessage from '../../../components/FormHelpMessage';
 import MagicCodeInput from '../../../components/MagicCodeInput';
 import Terms from '../Terms';
+import DotIndicatorMessage from '../../../components/DotIndicatorMessage';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../../hooks/usePrevious';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -94,11 +95,11 @@ function BaseValidateCodeForm(props) {
             return;
         }
 
-        // Clear the code input if magic code valid or a new magic code was requested
-        if ((prevIsVisible && !props.isVisible) || (props.isVisible && linkSent && props.account.message)) {
+        // Clear the code input if magic code valid
+        if (prevIsVisible && !props.isVisible) {
             setValidateCode('');
         }
-    }, [props.isVisible, props.account.message, prevIsVisible, linkSent, validateCode]);
+    }, [props.isVisible, prevIsVisible, validateCode]);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
@@ -115,11 +116,12 @@ function BaseValidateCodeForm(props) {
     }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
 
     useEffect(() => {
-        if (!inputValidateCodeRef.current || validateCode.length > 0) {
+        // Avoid resetting the input when the linkSent is true to keep showing the sent status even when the input is empty.
+        if (!inputValidateCodeRef.current || validateCode.length > 0 || linkSent) {
             return;
         }
         inputValidateCodeRef.current.clear();
-    }, [validateCode]);
+    }, [validateCode, linkSent]);
 
     useEffect(() => {
         if (!input2FARef.current || twoFactorAuthCode.length > 0) {
@@ -151,6 +153,10 @@ function BaseValidateCodeForm(props) {
     const resendValidateCode = () => {
         setTwoFactorAuthCode('');
         setFormError({});
+        setValidateCode('');
+        // We need to clear the input manually as we are preventing the hook which clears it from firing when linkSent is true.
+        // Clearing the input via state will trigger the changeText on Input which resets the linkSent value but we need linkSent to show the `sent status`
+        inputValidateCodeRef.current.clear();
         User.resendValidateCode(props.credentials.login, true);
 
         // Give feedback to the user to let them know the email was sent so they don't spam the button.
@@ -208,6 +214,7 @@ function BaseValidateCodeForm(props) {
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
+
     return (
         <>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -241,22 +248,25 @@ function BaseValidateCodeForm(props) {
                         hasError={hasError}
                         autoFocus
                     />
-                    <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                        {linkSent ? (
-                            <Text style={[styles.mt2]}>{props.account.message ? props.translate(props.account.message) : ''}</Text>
-                        ) : (
-                            <PressableWithFeedback
+                    <View>
+                        <PressableWithFeedback
+                            style={[styles.mt2]}
+                            onPress={resendValidateCode}
+                            underlayColor={themeColors.componentBG}
+                            disabled={props.network.isOffline}
+                            hoverDimmingValue={1}
+                            pressDimmingValue={0.2}
+                            accessibilityRole="button"
+                            accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
+                        >
+                            <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        </PressableWithFeedback>
+                        {linkSent && !hasError && !_.isEmpty(props.account.message) && (
+                            <DotIndicatorMessage
+                                type="success"
                                 style={[styles.mt2]}
-                                onPress={resendValidateCode}
-                                underlayColor={themeColors.componentBG}
-                                disabled={props.network.isOffline}
-                                hoverDimmingValue={1}
-                                pressDimmingValue={0.2}
-                                accessibilityRole="button"
-                                accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
-                            >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
-                            </PressableWithFeedback>
+                                messages={{0: props.translate(props.account.message)}}
+                            />
                         )}
                     </View>
                 </View>

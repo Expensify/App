@@ -54,22 +54,24 @@ const defaultProps = {
     },
 };
 
-const MoneyRequestConfirmPage = (props) => (
-    <MoneyRequestConfirmationList
-        hasMultipleParticipants={props.hasMultipleParticipants}
-        participants={props.participants}
-        iouAmount={props.iouAmount}
-        iouComment={props.iou.comment}
-        iouCurrencyCode={props.iou.selectedCurrencyCode}
-        onConfirm={props.onConfirm}
-        onSendMoney={props.onSendMoney}
-        iouType={props.iouType}
-        canModifyParticipants={props.canModifyParticipants}
-        navigateToStep={props.navigateToStep}
-        policyID={props.policyID}
-        bankAccountRoute={props.bankAccountRoute}
-    />
-);
+function MoneyRequestConfirmPage(props) {
+    return (
+        <MoneyRequestConfirmationList
+            hasMultipleParticipants={props.hasMultipleParticipants}
+            participants={props.participants}
+            iouAmount={props.iouAmount}
+            iouComment={props.iou.comment}
+            iouCurrencyCode={props.iou.selectedCurrencyCode}
+            onConfirm={props.onConfirm}
+            onSendMoney={props.onSendMoney}
+            iouType={props.iouType}
+            canModifyParticipants={props.canModifyParticipants}
+            navigateToStep={props.navigateToStep}
+            policyID={props.policyID}
+            bankAccountRoute={props.bankAccountRoute}
+        />
+    );
+}
 
 MoneyRequestConfirmPage.displayName = 'MoneyRequestConfirmPage';
 MoneyRequestConfirmPage.propTypes = propTypes;
