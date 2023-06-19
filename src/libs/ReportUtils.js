@@ -68,11 +68,11 @@ Onyx.connect({
     callback: (val) => (allReports = val),
 });
 
-let doesDomainHaveApprovedAccountant;
+let doesDomainHaveAccountant;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     waitForCollectionCallback: true,
-    callback: (val) => (doesDomainHaveApprovedAccountant = lodashGet(val, 'doesDomainHaveApprovedAccountant', false)),
+    callback: (val) => (doesDomainHaveAccountant = lodashGet(val, 'doesDomainHaveAccountant', false)),
 });
 
 let allPolicies;
@@ -1879,8 +1879,8 @@ function canSeeDefaultRoom(report, policies, betas) {
         return true;
     }
 
-    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
-    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(lodashGet(report, ['participantAccountIDs'], []))) {
+    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Accountant 
+    if (isDomainRoom(report) && doesDomainHaveAccountant && hasExpensifyEmails(lodashGet(report, ['participantAccountIDs'], []))) {
         return true;
     }
 
