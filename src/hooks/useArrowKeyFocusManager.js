@@ -17,6 +17,7 @@ const EMPTY_ARRAY = Object.freeze([]);
  * @param {Number} [config.initialFocusedIndex] – where to start in the list
  * @param {Array} [config.disabledIndexes] – An array of indexes to disable + skip over
  * @param {Boolean} [config.shouldExcludeTextAreaNodes] – Whether arrow keys should have any effect when a TextArea node is focused
+ * @param {Boolean} [config.isActive] – Whether the component is ready and should subscribe to KeyboardShortcut
  * @returns {Array}
  */
 export default function useArrowKeyFocusManager({
