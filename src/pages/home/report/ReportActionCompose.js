@@ -395,21 +395,6 @@ function ReportActionCompose({translate, ...props}) {
         return true;
     }, []);
 
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.ESCAPE,
-        () => {
-            if (!isFocused || comment.current.length === 0) {
-                return;
-            }
-
-            updateComment('', true);
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: true,
-        },
-    );
-
     useEffect(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
@@ -434,23 +419,22 @@ function ReportActionCompose({translate, ...props}) {
         return () => {
             ReportActionComposeFocusManager.clear();
         };
-    }, [focus, isFocused, props.disabled, props.isFocused, props.navigation, showPopoverMenu, updateComment]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (willBlurTextInputOnTapOutside && props.isFocused && !props.modal.isVisible) {
-            focus();
-        }
+        if (!willBlurTextInputOnTapOutside || !props.isFocused || !props.modal.isVisible) return;
+
+        focus();
     }, [focus, props.isFocused, props.modal.isVisible]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (value !== props.comment) {
-            updateComment(comment.current);
-        }
+        if (value === props.comment) return;
+
+        updateComment(comment.current);
     }, [props.comment, props.report.reportID, updateComment, value]);
 
     /**
