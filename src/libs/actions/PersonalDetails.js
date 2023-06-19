@@ -51,6 +51,23 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
+ * 
+ * @param {Number} accountID
+ * @param {String} [defaultDisplayName] display name to use if user details don't exist in Onyx or if
+ *                                      found details don't include the user's displayName or login
+ * @returns {String}
+ */
+function getDisplayNameByAccountID(accountID, defaultDisplayName = '') {
+    const userDetails = allPersonalDetails && lodashGet(allPersonalDetails, accountID, {});
+
+    if (_.isEmpty(userDetails)) {
+        return defaultDisplayName;
+    }
+
+    return userDetails.displayName || getDisplayName(userDetails.login || '', userDetails) || defaultDisplayName;
+}
+
+/**
  * Gets the first and last name from the user's personal details.
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
@@ -466,6 +483,7 @@ function clearAvatarErrors() {
 
 export {
     getDisplayName,
+    getDisplayNameByAccountID,
     updateAvatar,
     deleteAvatar,
     openMoneyRequestModalPage,
