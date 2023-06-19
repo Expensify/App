@@ -63,9 +63,16 @@ function MentionSuggestions(props) {
      * @returns {JSX.Element}
      */
     const renderSuggestionMenuItem = (item) => {
+        console.debug(item);
+        console.debug(props.prefix);
         const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
         const styledDisplayName = getStyledTextArray(item.text, props.prefix);
         const styledHandle = getStyledTextArray(item.alternateText, props.prefix);
+
+        console.debug('~~Monil styledDisplayName');
+        console.debug(styledDisplayName);
+        console.debug('~~Monil styledHandle');
+        console.debug(styledHandle);
 
         return (
             <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>

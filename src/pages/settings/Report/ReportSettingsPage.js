@@ -62,7 +62,7 @@ class ReportSettingsPage extends Component {
      */
     shouldDisableRename(linkedWorkspace) {
         if (ReportUtils.isDefaultRoom(this.props.report) || ReportUtils.isArchivedRoom(this.props.report)) {
-            return true;
+            return false;
         }
 
         // The remaining checks only apply to public rooms

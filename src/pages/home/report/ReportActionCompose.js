@@ -436,6 +436,8 @@ class ReportActionCompose extends React.Component {
      * @returns {Object}
      */
     getMentionOptions(personalDetails, searchValue = '') {
+        console.debug(`~~Monil logs personalDetails`);
+        console.debug(personalDetails);
         const suggestions = [];
 
         if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
@@ -460,6 +462,7 @@ class ReportActionCompose extends React.Component {
 
         const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
         _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
+            console.debug(`~~Monil logs detail ${JSON.stringify(detail)}`);
             suggestions.push({
                 text: detail.displayName,
                 alternateText: detail.login,
@@ -634,11 +637,14 @@ class ReportActionCompose extends React.Component {
      * @param {Number} highlightedMentionIndex
      */
     insertSelectedMention(highlightedMentionIndex) {
+        console.debug(`~~Monil selected mention ${highlightedMentionIndex}`);
+        console.debug(this.state.suggestedMentions);
         const commentBeforeAtSign = this.state.value.slice(0, this.state.atSignIndex);
         const mentionObject = this.state.suggestedMentions[highlightedMentionIndex];
-        const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
+        const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.text}`;
         const commentAfterAtSignWithMentionRemoved = this.state.value.slice(this.state.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
 
+        console.debug(`~~Monil mentionCode ${mentionCode}`);
         this.updateComment(`${commentBeforeAtSign}${mentionCode} ${this.trimLeadingSpace(commentAfterAtSignWithMentionRemoved)}`, true);
         this.setState((prevState) => ({
             selection: {
@@ -907,7 +913,7 @@ class ReportActionCompose extends React.Component {
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
         const maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-
+        console.debug(this.state.suggestedMentions);
         return (
             <View
                 style={[
