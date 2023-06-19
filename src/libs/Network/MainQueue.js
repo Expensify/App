@@ -2,6 +2,7 @@ import _ from 'underscore';
 import * as NetworkStore from './NetworkStore';
 import * as SequentialQueue from './SequentialQueue';
 import * as Request from '../Request';
+import CONST from '../CONST';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -80,7 +81,7 @@ function process() {
  * Non-cancellable requests like Log would not be cleared
  */
 function clear() {
-    _.filter(networkRequestQueue, (request) => request.command !== 'Log');
+    _.filter(networkRequestQueue, (request) => request.command !== CONST.NETWORK.COMMAND.LOG);
 }
 
 /**

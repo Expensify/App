@@ -724,6 +724,7 @@ const CONST = {
         MAX_PENDING_TIME_MS: 10 * 1000,
         COMMAND: {
             RECONNECT_APP: 'ReconnectApp',
+            LOG: 'Log',
         },
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},

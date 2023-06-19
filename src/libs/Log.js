@@ -6,6 +6,7 @@ import getPlatform from './getPlatform';
 import pkg from '../../package.json';
 import requireParameters from './requireParameters';
 import * as Network from './Network';
+import CONST from '../CONST';
 
 let timeout = null;
 
@@ -16,7 +17,7 @@ let timeout = null;
  * @returns {Promise}
  */
 function LogCommand(parameters) {
-    const commandName = 'Log';
+    const commandName = CONST.NETWORK.COMMAND.LOG;
     requireParameters(['logPacket', 'expensifyCashAppVersion'], parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
