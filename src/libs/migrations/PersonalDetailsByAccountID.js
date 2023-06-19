@@ -12,6 +12,9 @@ const DEPRECATED_ONYX_KEYS = {
     },
 };
 
+/**
+ * @returns {Promise<Object>}
+ */
 function getReportsFromOnyx() {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
@@ -25,6 +28,9 @@ function getReportsFromOnyx() {
     });
 }
 
+/**
+ * @returns {Promise<Object>}
+ */
 function getReportActionsFromOnyx() {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
@@ -38,6 +44,9 @@ function getReportActionsFromOnyx() {
     });
 }
 
+/**
+ * @returns {Promise<Object>}
+ */
 function getDeprecatedPersonalDetailsFromOnyx() {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
@@ -50,6 +59,9 @@ function getDeprecatedPersonalDetailsFromOnyx() {
     });
 }
 
+/**
+ * @returns {Promise<Object>}
+ */
 function getDeprecatedPolicyMemberListFromOnyx() {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
