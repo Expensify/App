@@ -74,6 +74,8 @@ export default {
     IOU_REQUEST,
     IOU_BILL,
     IOU_SEND,
+
+    // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
     MONEY_REQUEST: ':iouType/new/:reportID?',
     MONEY_REQUEST_AMOUNT: ':iouType/new/amount/:reportID?',
     MONEY_REQUEST_PARTICIPANTS: ':iouType/new/participants/:reportID?',
