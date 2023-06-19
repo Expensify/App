@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
@@ -349,27 +349,30 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        let errorComponent;
+        if (this.state.shouldShowContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    continue={this.continue}
+                    policyName={policyName}
+                />
+            );
+        }
+
+        let errorText;
         const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
+        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
+        const hasUnsupportedCurrency = lodashGet(this.props.policy, 'outputCurrency', '') !== CONST.CURRENCY.USD;
 
         if (userHasPhonePrimaryEmail) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
-                </View>
-            );
+            errorText = this.props.translate('bankAccount.hasPhoneLoginError');
+        } else if (throttledDate) {
+            errorText = this.props.translate('bankAccount.hasBeenThrottledError');
+        } else if (hasUnsupportedCurrency) {
+            errorText = this.props.translate('bankAccount.hasCurrencyError');
         }
 
-        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
-        if (throttledDate) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasBeenThrottledError')}</Text>
-                </View>
-            );
-        }
-
-        if (errorComponent) {
+        if (errorText) {
             return (
                 <ScreenWrapper>
                     <HeaderWithBackButton
@@ -377,7 +380,9 @@ class ReimbursementAccountPage extends React.Component {
                         subtitle={policyName}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
-                    <ScrollView>{errorComponent}</ScrollView>
+                    <View style={[styles.m5, styles.flex1]}>
+                        <Text>{errorText}</Text>
+                    </View>
                 </ScreenWrapper>
             );
         }
