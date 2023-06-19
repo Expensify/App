@@ -176,6 +176,14 @@ class AttachmentCarousel extends React.Component {
         _.forEach(actions, (action) => htmlParser.write(_.get(action, ['message', 0, 'html'])));
         htmlParser.end();
 
+        // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
+        // promotes the natural feeling of swiping left/right to go to the next/previous image
+        // We don't want to invert the list for desktop/web because this interferes with mouse
+        // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
+        if (this.canUseTouchScreen) {
+            attachments.reverse();
+        }
+
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (page === -1) {
             throw new Error('Attachment not found');
@@ -195,7 +203,12 @@ class AttachmentCarousel extends React.Component {
      * @param {Number} deltaSlide
      */
     cycleThroughAttachments(deltaSlide) {
-        const nextIndex = this.state.page - deltaSlide;
+        let delta = deltaSlide;
+        if (this.canUseTouchScreen) {
+            delta = deltaSlide * -1;
+        }
+
+        const nextIndex = this.state.page - delta;
         const nextItem = this.state.attachments[nextIndex];
 
         if (!nextItem || !this.scrollRef.current) {
@@ -262,8 +275,13 @@ class AttachmentCarousel extends React.Component {
     }
 
     render() {
-        const isForwardDisabled = this.state.page === 0;
-        const isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
+        let isForwardDisabled = this.state.page === 0;
+        let isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
+
+        if (this.canUseTouchScreen) {
+            isForwardDisabled = isBackDisabled;
+            isBackDisabled = this.state.page === 0;
+        }
 
         return (
             <View
@@ -319,11 +337,6 @@ class AttachmentCarousel extends React.Component {
                     <FlatList
                         listKey="AttachmentCarousel"
                         horizontal
-                        // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
-                        // promotes the natural feeling of swiping left/right to go to the next/previous image
-                        // We don't want to invert the list for desktop/web because this interferes with mouse
-                        // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
-                        inverted={this.canUseTouchScreen}
                         decelerationRate="fast"
                         showsHorizontalScrollIndicator={false}
                         bounces={false}

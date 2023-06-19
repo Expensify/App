@@ -25,17 +25,19 @@ const defaultProps = {
     isTestToolsModalOpen: false,
 };
 
-const TestToolsModal = (props) => (
-    <Modal
-        isVisible={props.isTestToolsModalOpen}
-        type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-        onClose={toggleTestToolsModal}
-    >
-        <View style={[styles.settingsPageBody, styles.p5]}>
-            <TestToolMenu />
-        </View>
-    </Modal>
-);
+function TestToolsModal(props) {
+    return (
+        <Modal
+            isVisible={props.isTestToolsModalOpen}
+            type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
+            onClose={toggleTestToolsModal}
+        >
+            <View style={[styles.settingsPageBody, styles.p5]}>
+                <TestToolMenu />
+            </View>
+        </Modal>
+    );
+}
 
 TestToolsModal.propTypes = propTypes;
 TestToolsModal.defaultProps = defaultProps;

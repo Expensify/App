@@ -34,7 +34,7 @@ const defaultProps = {
     },
 };
 
-const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
+function DateOfBirthPage({translate, route, privatePersonalDetails}) {
     /**
      * The year should be set on the route when navigating back from the year picker
      * This lets us pass the selected year without having to overwrite the value in Onyx
@@ -49,24 +49,21 @@ const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
      * @param {String} values.dob - date of birth
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
-            const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
-            const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
+    const validate = useCallback((values) => {
+        const errors = {};
+        const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+        const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
 
-            if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
-                errors.dob = translate('common.error.fieldRequired');
-            }
-            const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
-            if (dateError) {
-                errors.dob = dateError;
-            }
+        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
+            errors.dob = 'common.error.fieldRequired';
+        }
+        const dateError = ValidationUtils.getAgeRequirementError(values.dob, minimumAge, maximumAge);
+        if (dateError) {
+            errors.dob = dateError;
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    }, []);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -93,7 +90,7 @@ const DateOfBirthPage = ({translate, route, privatePersonalDetails}) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 DateOfBirthPage.propTypes = propTypes;
 DateOfBirthPage.defaultProps = defaultProps;

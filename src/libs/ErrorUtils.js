@@ -2,6 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import DateUtils from './DateUtils';
+import * as Localize from './Localize';
 
 /**
  * @param {Object} response
@@ -91,18 +92,23 @@ function getLatestErrorField(onyxData, fieldName) {
  * Method used to generate error message for given inputID
  * @param {Object} errors - An object containing current errors in the form
  * @param {String} inputID
- * @param {String} message - Message to assign to the inputID errors
+ * @param {String|Array} message - Message to assign to the inputID errors
  *
  */
 function addErrorMessage(errors, inputID, message) {
-    const errorList = errors;
     if (!message || !inputID) {
         return;
     }
+
+    const errorList = errors;
+    const translatedMessage = Localize.translateIfPhraseKey(message);
+
     if (_.isEmpty(errorList[inputID])) {
-        errorList[inputID] = message;
+        errorList[inputID] = [translatedMessage, {isTranslated: true}];
+    } else if (_.isString(errorList[inputID])) {
+        errorList[inputID] = [`${errorList[inputID]}\n${translatedMessage}`, {isTranslated: true}];
     } else {
-        errorList[inputID] = `${errorList[inputID]}\n${message}`;
+        errorList[inputID][0] = `${errorList[inputID][0]}\n${translatedMessage}`;
     }
 }
 

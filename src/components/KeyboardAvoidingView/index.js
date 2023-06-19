@@ -5,13 +5,13 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 
-const KeyboardAvoidingView = (props) => {
+function KeyboardAvoidingView(props) {
     const viewProps = _.omit(props, ['behavior', 'contentContainerStyle', 'enabled', 'keyboardVerticalOffset']);
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <View {...viewProps} />
     );
-};
+}
 
 KeyboardAvoidingView.displayName = 'KeyboardAvoidingView';
 

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -88,7 +88,9 @@ class ReportSettingsPage extends Component {
      * @returns {Boolean}
      */
     shouldDisableWelcomeMessage(linkedWorkspace) {
-        return !ReportUtils.isArchivedRoom(this.props.report) && !_.isEmpty(linkedWorkspace) && Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role === CONST.POLICY.ROLE.ADMIN;
+        return (
+            ReportUtils.isArchivedRoom(this.props.report) || !ReportUtils.isChatRoom(this.props.report) || (!_.isEmpty(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN)
+        );
     }
 
     render() {
@@ -96,7 +98,7 @@ class ReportSettingsPage extends Component {
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
-        const shouldDisableWelcomeMessage = this.shouldDisableRename(linkedWorkspace);
+        const shouldDisableWelcomeMessage = this.shouldDisableWelcomeMessage(linkedWorkspace);
         const writeCapability = this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
         const writeCapabilityText = this.props.translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
         const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
@@ -108,109 +110,111 @@ class ReportSettingsPage extends Component {
                         title={this.props.translate('common.settings')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(this.props.report.reportID))}
                     />
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={notificationPreference}
-                        description={this.props.translate('notificationPreferencesPage.label')}
-                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(this.props.report.reportID))}
-                    />
-                    {shouldShowRoomName && (
-                        <OfflineWithFeedback
-                            pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
-                            errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
-                            onClose={() => Report.clearPolicyRoomNameErrors(this.props.report.reportID)}
-                        >
-                            {shouldDisableRename ? (
-                                <View style={[styles.ph5, styles.pv3]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {this.props.translate('newRoomPage.roomName')}
-                                    </Text>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.optionAlternateText, styles.pre]}
-                                    >
-                                        {this.props.report.reportName}
-                                    </Text>
-                                </View>
-                            ) : (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={this.props.report.reportName}
-                                    description={this.props.translate('newRoomPage.roomName')}
-                                    onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(this.props.report.reportID))}
-                                />
-                            )}
-                        </OfflineWithFeedback>
-                    )}
-                    {shouldAllowWriteCapabilityEditing ? (
+                    <ScrollView style={[styles.flex1]}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={writeCapabilityText}
-                            description={this.props.translate('writeCapabilityPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.getReportSettingsWriteCapabilityRoute(this.props.report.reportID))}
+                            title={notificationPreference}
+                            description={this.props.translate('notificationPreferencesPage.label')}
+                            onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(this.props.report.reportID))}
                         />
-                    ) : (
-                        <View style={[styles.ph5, styles.pv3]}>
-                            <Text
-                                style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                numberOfLines={1}
+                        {shouldShowRoomName && (
+                            <OfflineWithFeedback
+                                pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
+                                errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
+                                onClose={() => Report.clearPolicyRoomNameErrors(this.props.report.reportID)}
                             >
-                                {this.props.translate('writeCapabilityPage.label')}
-                            </Text>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.optionAlternateText, styles.pre]}
-                            >
-                                {writeCapabilityText}
-                            </Text>
-                        </View>
-                    )}
-                    <View style={[styles.ph5]}>
-                        {Boolean(linkedWorkspace) && (
-                            <View style={[styles.pv3]}>
+                                {shouldDisableRename ? (
+                                    <View style={[styles.ph5, styles.pv3]}>
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                            numberOfLines={1}
+                                        >
+                                            {this.props.translate('newRoomPage.roomName')}
+                                        </Text>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[styles.optionAlternateText, styles.pre]}
+                                        >
+                                            {this.props.report.reportName}
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        title={this.props.report.reportName}
+                                        description={this.props.translate('newRoomPage.roomName')}
+                                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(this.props.report.reportID))}
+                                    />
+                                )}
+                            </OfflineWithFeedback>
+                        )}
+                        {shouldAllowWriteCapabilityEditing ? (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={writeCapabilityText}
+                                description={this.props.translate('writeCapabilityPage.label')}
+                                onPress={() => Navigation.navigate(ROUTES.getReportSettingsWriteCapabilityRoute(this.props.report.reportID))}
+                            />
+                        ) : (
+                            <View style={[styles.ph5, styles.pv3]}>
                                 <Text
                                     style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
                                     numberOfLines={1}
                                 >
-                                    {this.props.translate('workspace.common.workspace')}
+                                    {this.props.translate('writeCapabilityPage.label')}
                                 </Text>
                                 <Text
                                     numberOfLines={1}
                                     style={[styles.optionAlternateText, styles.pre]}
                                 >
-                                    {linkedWorkspace.name}
+                                    {writeCapabilityText}
                                 </Text>
                             </View>
                         )}
-                        {Boolean(this.props.report.visibility) && (
-                            <View style={[styles.pv3]}>
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                    numberOfLines={1}
-                                >
-                                    {this.props.translate('newRoomPage.visibility')}
-                                </Text>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.reportSettingsVisibilityText]}
-                                >
-                                    {this.props.translate(`newRoomPage.visibilityOptions.${this.props.report.visibility}`)}
-                                </Text>
-                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{this.props.translate(`newRoomPage.${this.props.report.visibility}Description`)}</Text>
-                            </View>
+                        <View style={[styles.ph5]}>
+                            {Boolean(linkedWorkspace) && (
+                                <View style={[styles.pv3]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                        numberOfLines={1}
+                                    >
+                                        {this.props.translate('workspace.common.workspace')}
+                                    </Text>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.optionAlternateText, styles.pre]}
+                                    >
+                                        {linkedWorkspace.name}
+                                    </Text>
+                                </View>
+                            )}
+                            {Boolean(this.props.report.visibility) && (
+                                <View style={[styles.pv3]}>
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
+                                        numberOfLines={1}
+                                    >
+                                        {this.props.translate('newRoomPage.visibility')}
+                                    </Text>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.reportSettingsVisibilityText]}
+                                    >
+                                        {this.props.translate(`newRoomPage.visibilityOptions.${this.props.report.visibility}`)}
+                                    </Text>
+                                    <Text style={[styles.textLabelSupporting, styles.mt1]}>{this.props.translate(`newRoomPage.${this.props.report.visibility}Description`)}</Text>
+                                </View>
+                            )}
+                        </View>
+                        {!shouldDisableWelcomeMessage && (
+                            <MenuItem
+                                title={this.props.translate('welcomeMessagePage.welcomeMessage')}
+                                icon={Expensicons.ChatBubble}
+                                onPress={() => Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(this.props.report.reportID))}
+                                shouldShowRightIcon
+                            />
                         )}
-                    </View>
-                    {!shouldDisableWelcomeMessage && (
-                        <MenuItem
-                            title={this.props.translate('welcomeMessagePage.welcomeMessage')}
-                            icon={Expensicons.ChatBubble}
-                            onPress={() => Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(this.props.report.reportID))}
-                            shouldShowRightIcon
-                        />
-                    )}
+                    </ScrollView>
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );

@@ -5,14 +5,14 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
 /**
- * Checks if we have any errors stored within the POLICY_MEMBER_LIST. Determines whether we should show a red brick road error or not.
- * Data structure: {email: {role:'user', errors: []}, email2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
+ * Checks if we have any errors stored within the POLICY_MEMBERS. Determines whether we should show a red brick road error or not.
+ * Data structure: {accountID: {role:'user', errors: []}, accountID2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
  *
- * @param {Object} policyMemberList
+ * @param {Object} policyMembers
  * @returns {Boolean}
  */
-function hasPolicyMemberError(policyMemberList) {
-    return _.some(policyMemberList, (member) => !_.isEmpty(member.errors));
+function hasPolicyMemberError(policyMembers) {
+    return _.some(policyMembers, (member) => !_.isEmpty(member.errors));
 }
 
 /**
@@ -53,12 +53,12 @@ function hasCustomUnitsError(policy) {
  *
  * @param {Object} policy
  * @param {String} policy.id
- * @param {Object} policyMembers
+ * @param {Object} policyMembersCollection
  * @returns {String}
  */
-function getPolicyBrickRoadIndicatorStatus(policy, policyMembers) {
-    const policyMemberList = lodashGet(policyMembers, `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${policy.id}`, {});
-    if (hasPolicyMemberError(policyMemberList) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
+function getPolicyBrickRoadIndicatorStatus(policy, policyMembersCollection) {
+    const policyMembers = lodashGet(policyMembersCollection, `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy.id}`, {});
+    if (hasPolicyMemberError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return '';
@@ -100,4 +100,38 @@ function isExpensifyTeam(email) {
  */
 const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
 
-export {hasPolicyMemberError, hasPolicyError, hasPolicyErrorFields, hasCustomUnitsError, getPolicyBrickRoadIndicatorStatus, shouldShowPolicy, isExpensifyTeam, isPolicyAdmin};
+/**
+ * @param {Object} policyMembers
+ * @param {Object} personalDetails
+ * @returns {Object}
+ *
+ * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
+ *
+ * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
+ */
+function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails) {
+    const memberEmailsToAccountIDs = {};
+    _.each(policyMembers, (member, accountID) => {
+        if (!_.isEmpty(member.errors)) {
+            return;
+        }
+        const personalDetail = personalDetails[accountID];
+        if (!personalDetail || !personalDetail.login) {
+            return;
+        }
+        memberEmailsToAccountIDs[personalDetail.login] = accountID;
+    });
+    return memberEmailsToAccountIDs;
+}
+
+export {
+    hasPolicyMemberError,
+    hasPolicyError,
+    hasPolicyErrorFields,
+    hasCustomUnitsError,
+    getPolicyBrickRoadIndicatorStatus,
+    shouldShowPolicy,
+    isExpensifyTeam,
+    isPolicyAdmin,
+    getClientPolicyMemberEmailsToAccountIDs,
+};
