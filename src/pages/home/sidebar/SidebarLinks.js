@@ -69,6 +69,9 @@ const propTypes = {
 
         /** Login email of the current user */
         login: PropTypes.string,
+
+        /** AccountID of the current user */
+        accountID: PropTypes.number,
     }),
 
     /** Current reportID from the route in react navigation state object */
@@ -111,7 +114,12 @@ class SidebarLinks extends React.Component {
 
     componentDidMount() {
         App.setSidebarLoaded();
+        SidebarUtils.setIsSidebarLoadedReady();
         this.isSidebarLoaded = true;
+    }
+
+    componentWillUnmount() {
+        SidebarUtils.resetIsSidebarLoadedReadyPromise();
     }
 
     showSearchPage() {
@@ -201,7 +209,7 @@ class SidebarLinks extends React.Component {
                         ) : (
                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <AvatarWithIndicator
-                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
                                     tooltipText={this.props.translate('common.settings')}
                                 />
                             </OfflineWithFeedback>
@@ -263,14 +271,15 @@ const chatReportSelector = (report) =>
 const personalDetailsSelector = (personalDetails) =>
     _.reduce(
         personalDetails,
-        (finalPersonalDetails, personalData, login) => {
+        (finalPersonalDetails, personalData, accountID) => {
             // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
             // eslint-disable-next-line no-param-reassign
-            finalPersonalDetails[login] = {
+            finalPersonalDetails[accountID] = {
+                accountID: Number(accountID),
                 login: personalData.login,
                 displayName: personalData.displayName,
                 firstName: personalData.firstName,
-                avatar: UserUtils.getAvatar(personalData.avatar, personalData.login),
+                avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
             };
             return finalPersonalDetails;
         },
@@ -316,7 +325,7 @@ export default compose(
             selector: chatReportSelector,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             selector: personalDetailsSelector,
         },
         priorityMode: {

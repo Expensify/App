@@ -43,7 +43,7 @@ const defaultProps = {
     policyName: '',
 };
 
-const EnableStep = (props) => {
+function EnableStep(props) {
     const isUsingExpensifyCard = props.user.isUsingExpensifyCard;
     const achData = lodashGet(props.reimbursementAccount, 'achData') || {};
     const {icon, iconSize} = getBankIcon(achData.bankName);
@@ -117,7 +117,7 @@ const EnableStep = (props) => {
             {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} />}
         </ScreenWrapper>
     );
-};
+}
 
 EnableStep.displayName = 'EnableStep';
 EnableStep.propTypes = propTypes;

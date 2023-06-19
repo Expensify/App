@@ -9,7 +9,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInHeroImage = (props) => {
+function SignInHeroImage(props) {
     let imageSize;
     if (props.isSmallScreenWidth) {
         imageSize = {
@@ -36,7 +36,7 @@ const SignInHeroImage = (props) => {
             style={[styles.alignSelfCenter, imageSize]}
         />
     );
-};
+}
 
 SignInHeroImage.displayName = 'SignInHeroImage';
 SignInHeroImage.propTypes = propTypes;

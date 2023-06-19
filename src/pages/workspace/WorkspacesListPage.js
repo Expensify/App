@@ -27,6 +27,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     /* Onyx Props */
@@ -54,8 +55,8 @@ const propTypes = {
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
-    /** List of policy members */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
+    /** A collection of objects for all policies which key policy member objects by accountIDs */
+    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
@@ -71,7 +72,7 @@ const propTypes = {
 
 const defaultProps = {
     policies: {},
-    policyMembers: {},
+    allPolicyMembers: {},
     reimbursementAccount: {},
     userWallet: {
         currentBalance: 0,
@@ -130,7 +131,7 @@ class WorkspacesListPage extends Component {
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
                 iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.allPolicyMembers),
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
@@ -211,13 +212,14 @@ WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
-        policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+        allPolicyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

@@ -14,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import * as Browser from '../libs/Browser';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
@@ -205,12 +206,11 @@ class NewChatPage extends Component {
         if (!this.props.isGroupChat) {
             return;
         }
-
-        const userLogins = _.pluck(this.state.selectedOptions, 'login');
-        if (userLogins.length < 1) {
+        const logins = _.pluck(this.state.selectedOptions, 'login');
+        if (logins.length < 1) {
             return;
         }
-        Report.navigateToAndOpenReport(userLogins);
+        Report.navigateToAndOpenReport(logins);
     }
 
     render() {
@@ -243,7 +243,7 @@ class NewChatPage extends Component {
                                 onChangeText={this.updateOptionsWithSearchTerm}
                                 headerMessage={headerMessage}
                                 boldStyle
-                                shouldFocusOnSelectRow={this.props.isGroupChat}
+                                shouldFocusOnSelectRow={this.props.isGroupChat && !Browser.isMobile()}
                                 shouldShowConfirmButton={this.props.isGroupChat}
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                                 confirmButtonText={this.props.translate('newChatPage.createGroup')}
@@ -270,7 +270,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

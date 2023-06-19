@@ -17,7 +17,7 @@ const story = {
     component: DragAndDrop,
 };
 
-const Default = () => {
+function Default() {
     const [draggingOver, setDraggingOver] = useState(false);
 
     const [fileUrl, setFileUrl] = useState('');
@@ -80,7 +80,7 @@ const Default = () => {
             )}
         </PortalProvider>
     );
-};
+}
 
 export default story;
 export {Default};

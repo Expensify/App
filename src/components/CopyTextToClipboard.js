@@ -20,7 +20,7 @@ const defaultProps = {
     textStyles: [],
 };
 
-const CopyTextToClipboard = (props) => {
+function CopyTextToClipboard(props) {
     const copyToClipboard = useCallback(() => {
         Clipboard.setString(props.text);
     }, [props.text]);
@@ -35,7 +35,7 @@ const CopyTextToClipboard = (props) => {
             onPress={copyToClipboard}
         />
     );
-};
+}
 
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;
