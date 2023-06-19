@@ -49,7 +49,6 @@ const propTypes = {
 
 const defaultProps = {
     initialSearchValue: '',
-
     initialOption: '',
 };
 
