@@ -134,9 +134,7 @@ function MoneyRequestHeader(props) {
                         </UserDetailsTooltip>
                         <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                             <View style={[styles.alignItemsStart]}>
-                                <UserDetailsTooltip
-                                    accountID={isExpenseReport ? '' : moneyRequestReport.managerID}
-                                >
+                                <UserDetailsTooltip accountID={isExpenseReport ? '' : moneyRequestReport.managerID}>
                                     <Text
                                         style={[styles.headerText, styles.pre]}
                                         numberOfLines={1}
