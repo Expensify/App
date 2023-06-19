@@ -28,7 +28,7 @@ import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import withCurrentReportID, {withCurrentReportIDPropTypes} from '../../../components/withCurrentReportID';
+import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../../components/withCurrentReportID';
 import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
@@ -51,10 +51,6 @@ const propTypes = {
     /** List of reports */
     // eslint-disable-next-line react/no-unused-prop-types
     chatReports: PropTypes.objectOf(reportPropTypes),
-
-    /** Current reportID from the route in react navigation state object */
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportIDFromRoute: PropTypes.string,
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -93,11 +89,11 @@ const defaultProps = {
     chatReports: {},
     reportActions: {},
     personalDetails: {},
-    reportIDFromRoute: '',
     currentUserPersonalDetails: {
         avatar: '',
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    ...withCurrentReportIDDefaultProps,
 };
 
 class SidebarLinks extends React.Component {

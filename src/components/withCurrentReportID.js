@@ -14,6 +14,10 @@ const withCurrentReportIDPropTypes = {
     currentReportID: PropTypes.string,
 };
 
+const withCurrentReportIDDefaultProps = {
+    currentReportID: '',
+};
+
 function CurrentReportIDContextProvider(props) {
     const [CurrentReportID, setCurrentReportID] = useState('');
 
@@ -69,4 +73,4 @@ export default function withCurrentReportID(WrappedComponent) {
     return WithCurrentReportID;
 }
 
-export {withCurrentReportIDPropTypes, CurrentReportIDContextProvider};
+export {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps, CurrentReportIDContextProvider};
