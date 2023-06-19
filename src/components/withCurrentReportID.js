@@ -19,10 +19,10 @@ const withCurrentReportIDDefaultProps = {
 };
 
 function CurrentReportIDContextProvider(props) {
-    const [CurrentReportID, setCurrentReportID] = useState('');
+    const [currentReportID, setCurrentReportID] = useState('');
 
     /**
-     * This function is used to update the CurrentReportID
+     * This function is used to update the currentReportID
      * @param {Object} state root navigation state
      */
     const updateCurrentReportID = useCallback(
@@ -34,14 +34,14 @@ function CurrentReportIDContextProvider(props) {
 
     /**
      * The context this component exposes to child components
-     * @returns {Object} CurrentReportID to share between central pane and LHN
+     * @returns {Object} currentReportID to share between central pane and LHN
      */
     const contextValue = useMemo(
         () => ({
             updateCurrentReportID,
-            CurrentReportID,
+            currentReportID,
         }),
-        [updateCurrentReportID, CurrentReportID],
+        [updateCurrentReportID, currentReportID],
     );
 
     return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;
