@@ -1185,24 +1185,13 @@ function getOuterModalStyle(windowHeight, viewportOffsetTop) {
 }
 
 /**
- * Gets the correct size for the empty state background image based on screen dimensions
- *
- * @param {Boolean} isSmallScreenWidth
- * @returns {Object}
+ * Returns style object for flexWrap depending on the screen size
+ * @param {Boolean} isExtraSmallScreenWidth
+ * @return {Object}
  */
-function getLoungeIllustrationBackgroundImageStyle(isSmallScreenWidth) {
-    if (isSmallScreenWidth) {
-        return {
-            height: 80,
-            width: '100%',
-            // position: 'absolute',
-        };
-    }
-
+function getWrappingStyle(isExtraSmallScreenWidth) {
     return {
-        height: 80,
-        width: '100%',
-        // position: 'absolute',
+        flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
     };
 }
 
@@ -1272,5 +1261,5 @@ export {
     getMentionTextColor,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
-    getLoungeIllustrationBackgroundImageStyle,
+    getWrappingStyle,
 };
