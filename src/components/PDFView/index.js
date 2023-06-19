@@ -3,8 +3,6 @@ import React, {Component} from 'react';
 import {View, Dimensions} from 'react-native';
 import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
