@@ -28,7 +28,7 @@ const propTypes = {
 
     /** Fired when react-navigation is ready */
     onReady: PropTypes.func.isRequired,
-    ...withCurrentReportIdPropTypes,
+    ...withCurrentReportIDPropTypes,
 };
 
 /**

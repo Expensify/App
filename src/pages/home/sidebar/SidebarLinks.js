@@ -53,6 +53,7 @@ const propTypes = {
     chatReports: PropTypes.objectOf(reportPropTypes),
 
     /** Current reportID from the route in react navigation state object */
+    // eslint-disable-next-line react/no-unused-prop-types
     reportIDFromRoute: PropTypes.string,
 
     /** All report actions for all reports */
@@ -157,7 +158,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.currentReportID);
         const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
 
         return (
