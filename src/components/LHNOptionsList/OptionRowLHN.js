@@ -67,17 +67,18 @@ function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
     const runUseEffectOnlyOnce = useCallback(() => {
-        if (!optionItem) {
-            return null;
-        }
         if (!optionItem.hasDraftComment && props.comment && props.comment.length > 0 && !props.isFocused) {
             Report.setReportWithDraft(props.reportID, true);
         }
+        return null;
     }, [optionItem, props.comment, props.isFocused, props.reportID]);
 
     useEffect(() => {
+        if (!optionItem) {
+            return null;
+        }
         runUseEffectOnlyOnce();
-    }, [runUseEffectOnlyOnce]);
+    }, [runUseEffectOnlyOnce, optionItem]);
 
     let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
