@@ -11,7 +11,7 @@ import lodashGet from 'lodash/get';
  */
 function getTopmostReportId(state) {
     if (!state) {
-        return
+        return;
     }
     const topmostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');
 
