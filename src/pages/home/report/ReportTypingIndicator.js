@@ -27,7 +27,7 @@ const defaultProps = {
 };
 
 function ReportTypingIndicator(props) {
-    const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (login) => props.userTypingStatuses[login]), [props.userTypingStatuses]);
+    const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (accountID) => props.userTypingStatuses[accountID]), [props.userTypingStatuses]);
     // If we are offline, the user typing statuses are not up-to-date so do not show them
     if (props.network.isOffline) {
         return null;
@@ -43,7 +43,7 @@ function ReportTypingIndicator(props) {
         case 1:
             return (
                 <TextWithEllipsis
-                    leadingText={PersonalDetails.getDisplayName(usersTyping[0])}
+                    leadingText={PersonalDetails.getDisplayNameByAccountID(usersTyping[0], 'Someone')}
                     trailingText={` ${props.translate('reportTypingIndicator.isTyping')}`}
                     textStyle={[styles.chatItemComposeSecondaryRowSubText]}
                     wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
