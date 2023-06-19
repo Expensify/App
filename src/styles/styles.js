@@ -1246,7 +1246,7 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: variables.leftPaneMaxWidth,
+        maxWidth: variables.sideBarWidth,
     },
 
     rightPanelContainer: {
