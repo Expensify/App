@@ -3,6 +3,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import AttachmentModal from '../../../components/AttachmentModal';
 import Navigation from '../../../libs/Navigation/Navigation';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -19,13 +20,14 @@ const propTypes = {
 
 function ReportAttachments(props) {
     const reportID = _.get(props, ['route', 'params', 'reportID']);
+    const report = ReportUtils.getReport(reportID);
     const source = decodeURI(_.get(props, ['route', 'params', 'source']));
 
     return (
         <AttachmentModal
             allowDownload
             defaultOpen
-            reportID={reportID}
+            report={report}
             source={source}
             onModalHide={() => Navigation.dismissModal(reportID)}
         />
