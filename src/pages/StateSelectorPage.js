@@ -40,6 +40,8 @@ function StateSelectorPage(props) {
     const translate = props.translate;
     const route = props.route;
     const currentCountryState = !_.isEmpty(route.params) ? route.params.stateISO : lodashGet(props.privatePersonalDetails, 'address.state');
+    const allStates = translate('allStates');
+    const selectedSearchState = !_.isEmpty(currentCountryState) ? allStates[currentCountryState].stateName : '';
 
     const countryStates = useMemo(
         () =>
@@ -63,6 +65,7 @@ function StateSelectorPage(props) {
             textSearchLabel={translate('common.state')}
             placeholder={translate('pronounsPage.placeholderText')}
             onSelectRow={updateCountryState}
+            initialSearchValue={selectedSearchState}
             initialOption={currentCountryState}
             data={countryStates}
         />

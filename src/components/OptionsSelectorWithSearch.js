@@ -25,6 +25,9 @@ const propTypes = {
     /** Function to call when a row is selected */
     onSelectRow: PropTypes.func.isRequired,
 
+    /** Initial value to display in the search input */
+    initialSearchValue: PropTypes.string,
+
     /** Initial option to display as selected */
     initialOption: PropTypes.string,
 
@@ -45,6 +48,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    initialSearchValue: '',
     initialOption: '',
 };
 
@@ -60,7 +64,7 @@ function filterOptions(searchValue, data) {
 }
 
 function OptionsSelectorWithSearch(props) {
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, setSearchValue] = useState(props.initialSearchValue);
     const translate = props.translate;
     const initialOption = props.initialOption;
 

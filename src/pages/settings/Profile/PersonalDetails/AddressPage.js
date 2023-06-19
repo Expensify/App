@@ -147,7 +147,7 @@ function AddressPage({translate, route, navigation, privatePersonalDetails}) {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
+                <View>
                     <AddressSearch
                         inputID="addressLine1"
                         label={translate('common.addressLine', {lineNumber: 1})}

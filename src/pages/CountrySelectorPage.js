@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import React, {useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import ROUTES from '../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Navigation from '../libs/Navigation/Navigation';
@@ -40,6 +41,7 @@ function CountrySelectorPage(props) {
     const translate = props.translate;
     const route = props.route;
     const currentCountry = route.params.countryISO || lodashGet(props.privatePersonalDetails, 'address.country');
+    const selectedSearchCountry = PersonalDetails.getCountryNameBy(currentCountry);
 
     const countries = useMemo(
         () =>
@@ -64,6 +66,7 @@ function CountrySelectorPage(props) {
             textSearchLabel={translate('common.country')}
             placeholder={translate('pronounsPage.placeholderText')}
             onSelectRow={updateCountry}
+            initialSearchValue={selectedSearchCountry}
             initialOption={currentCountry}
         />
     );

@@ -179,7 +179,7 @@ function AddressSearch(props) {
         // If the address is not in the US, use the full length state name since we're displaying the address's
         // state / province in a TextInput instead of in a picker.
         const isUS = country === CONST.COUNTRY.US;
-        if (isUS) {
+        if (!isUS) {
             values.state = longStateName;
         }
 

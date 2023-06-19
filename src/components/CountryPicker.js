@@ -2,6 +2,7 @@ import React, {useCallback, useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import sizes from '../styles/variables';
+import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
@@ -58,7 +59,9 @@ function BaseCountryPicker(props) {
                 description={props.translate('common.country')}
                 onPress={navigateToCountrySelector}
             />
-            <FormHelpMessage message={props.errorText} />
+            <View style={styles.ml5}>
+                <FormHelpMessage message={props.errorText} />
+            </View>
         </View>
     );
 }

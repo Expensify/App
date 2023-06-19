@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import compose from '../libs/compose';
 import withNavigation from './withNavigation';
 import sizes from '../styles/variables';
+import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
@@ -50,8 +51,6 @@ function BaseStatePicker(props) {
 
         // Needed to call onInputChange, so Form can update the validation and values
         onInputChange(paramStateISO);
-
-        navigation.setParams({stateISO: null});
     }, [paramStateISO, stateTitle, onInputChange, navigation]);
 
     const navigateToCountrySelector = useCallback(() => {
@@ -81,7 +80,9 @@ function BaseStatePicker(props) {
                 descriptionTextStyle={descStyle}
                 onPress={navigateToCountrySelector}
             />
-            <FormHelpMessage message={props.errorText} />
+            <View style={styles.ml5}>
+                <FormHelpMessage message={props.errorText} />
+            </View>
         </View>
     );
 }
