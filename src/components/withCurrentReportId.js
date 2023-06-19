@@ -11,7 +11,7 @@ const withCurrentReportIdPropTypes = {
     updateCurrentReportId: PropTypes.func.isRequired,
 
     /** The top most report id */
-    currentReportId: PropTypes.string.isRequired,
+    currentReportId: PropTypes.string,
 };
 
 function CurrentReportIdContextProvider(props) {
