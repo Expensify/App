@@ -83,7 +83,7 @@ class WorkspaceNewRoomPage extends React.Component {
      */
     submit(values) {
         const policyID = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${values.policyID}`];
-        const policyMembers = _.map(_.keys(this.props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), accountID => Number(accountID));
+        const policyMembers = _.map(_.keys(this.props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
         Report.addPolicyReport(policyID, values.roomName, values.visibility, policyMembers);
     }
 
