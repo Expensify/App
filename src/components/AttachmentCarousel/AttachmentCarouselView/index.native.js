@@ -61,7 +61,8 @@ function AttachmentCarouselView(props) {
                 <Pager
                     items={reversedAttachments}
                     initialIndex={reversedPage}
-                    onTap={props.toggleArrowsVisibility}
+                    onTap={() => props.toggleArrowsVisibility(!props.carouselState.shouldShowArrow)}
+                    onPinchGestureChange={(isPinchGestureRunning) => props.toggleArrowsVisibility(!isPinchGestureRunning)}
                     itemExtractor={({item}) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})}
                     ref={pagerRef}
                 />

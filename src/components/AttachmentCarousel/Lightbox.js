@@ -88,7 +88,7 @@ const defaultDimensions = {
 };
 
 function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, isActive, onSwipe, onSwipeSuccess, renderImage, renderFallback, onTap}) {
-    const {pagerRef, shouldPagerScroll, isScrolling} = useContext(Context);
+    const {pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
     const windowDimensions = useWindowDimensions();
 
     const [showFallback, setShowFallback] = useState(typeof imageHeight === 'undefined' || typeof imageWidth === 'undefined');
@@ -505,6 +505,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
     // used to store event scale value when we limit scale
     const gestureScale = useSharedValue(1);
 
+    const pinchGestureRunning = useSharedValue(false);
     const pinchGesture = Gesture.Pinch()
         .onTouchesDown((evt, state) => {
             // we don't want to activate pinch gesture when we are scrolling pager
@@ -514,6 +515,8 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         })
         .simultaneousWithExternalGesture(panGesture, doubleTap)
         .onStart((evt) => {
+            pinchGestureRunning.value = true;
+
             stopAnimation();
 
             const adjustFocal = getAdjustedFocal(evt.focalX, evt.focalY);
@@ -553,7 +556,25 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
             }
 
             afterGesture();
+
+            pinchGestureRunning.value = false;
         });
+
+    const isPinchGestureInUse = useSharedValue(false);
+    useAnimatedReaction(
+        () => [scale.value, pinchGestureRunning.value],
+        ([s, running]) => {
+            const newIsPinchGestureInUse = s !== 1 || running;
+            if (isPinchGestureInUse.value !== newIsPinchGestureInUse) {
+                isPinchGestureInUse.value = newIsPinchGestureInUse;
+            }
+        },
+    );
+
+    useAnimatedReaction(
+        () => isPinchGestureInUse.value,
+        (zoomed) => runOnJS(onPinchGestureChange)(zoomed),
+    );
 
     const animatedStyles = useAnimatedStyle(() => {
         const x = scaleTranslateX.value + translateX.value + offsetX.value;
@@ -745,7 +766,7 @@ const noopWorklet = () => {
 };
 
 // eslint-disable-next-line react/prop-types
-function Pager({items, initialIndex = 0, onTap, itemExtractor, onSwipe = noopWorklet, onSwipeSuccess = () => {}, forwardedRef}) {
+function Pager({items, initialIndex = 0, onTap, itemExtractor, onSwipe = noopWorklet, onSwipeSuccess = () => {}, forwardedRef, onPinchGestureChange = () => {}}) {
     const windowDimensions = useWindowDimensions();
 
     const shouldPagerScroll = useSharedValue(true);
@@ -803,6 +824,7 @@ function Pager({items, initialIndex = 0, onTap, itemExtractor, onSwipe = noopWor
                         isScrolling,
                         pagerRef,
                         shouldPagerScroll,
+                        onPinchGestureChange,
                     }}
                 >
                     <AnimatedPagerView
