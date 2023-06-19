@@ -52,19 +52,24 @@ function getDisplayName(login, personalDetail) {
 
 /**
  *
- * @param {Number} accountID
+ * @param {String} userAccountIDOrLogin
  * @param {String} [defaultDisplayName] display name to use if user details don't exist in Onyx or if
  *                                      found details don't include the user's displayName or login
  * @returns {String}
  */
-function getDisplayNameByAccountID(accountID, defaultDisplayName = '') {
-    const userDetails = allPersonalDetails && lodashGet(allPersonalDetails, accountID, {});
+function getDisplayNameForTypingIndicator(userAccountIDOrLogin, defaultDisplayName = '') {
+    // Try to convert to a number, which means we have an accountID
+    const accountID = Number(userAccountIDOrLogin);
 
-    if (_.isEmpty(userDetails)) {
-        return defaultDisplayName;
+    // If the user is typing on OldDot, userAccountIDOrLogin will be a string (the user's login),
+    // so Number(string) is NaN. Search for personalDetails by login to get the display name.
+    if (_.isNaN(accountID)) {
+        const detailsByLogin = _.findWhere(allPersonalDetails, {login: userAccountIDOrLogin}) || {};
+        return detailsByLogin.displayName || userAccountIDOrLogin;
     }
 
-    return userDetails.displayName || getDisplayName(userDetails.login || '', userDetails) || defaultDisplayName;
+    const detailsByAccountID = lodashGet(allPersonalDetails, accountID, {});
+    return detailsByAccountID.displayName || detailsByAccountID.login || defaultDisplayName;
 }
 
 /**
@@ -483,7 +488,7 @@ function clearAvatarErrors() {
 
 export {
     getDisplayName,
-    getDisplayNameByAccountID,
+    getDisplayNameForTypingIndicator,
     updateAvatar,
     deleteAvatar,
     openMoneyRequestModalPage,
