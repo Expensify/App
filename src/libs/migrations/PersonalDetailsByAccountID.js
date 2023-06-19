@@ -103,45 +103,42 @@ function getDeprecatedPolicyMemberListFromOnyx() {
 export default function () {
     return Promise.all([getReportsFromOnyx(), getReportActionsFromOnyx(), getDeprecatedPersonalDetailsFromOnyx(), getDeprecatedPolicyMemberListFromOnyx()]).then(
         ([oldReports, oldReportActions, oldPersonalDetails, oldPolicyMemberLists]) => {
-            /**
-             * User A "knows" user B if any of the following are true:
-             *   - They share at least one non-public workspace room or domain room
-             *   - User B has ever sent user A a message in a DM or group DM.
-             *
-             * @param {String} login
-             * @returns {Boolean}
-             */
-            function isLoginOfKnownUser(login) {
-                return _.some(oldReports, (report) => {
-                    if (!report) {
-                        return false;
-                    }
+            const knownUsers = new Set();
+            _.each(oldReports, (report) => {
+                if (!report) {
+                    return;
+                }
 
-                    if (ReportUtils.isPublicRoom(report)) {
-                        return false;
-                    }
+                if (ReportUtils.isPublicRoom(report)) {
+                    return;
+                }
 
+                if (ReportUtils.isChatRoom(report)) {
                     const participants = report.participants;
-                    if (!_.has(participants, login)) {
-                        return false;
+                    _.each(participants, (login) => knownUsers.add(login));
+                    return;
+                }
+
+                const reportActionsForReport = oldReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+                _.each(reportActionsForReport, (reportAction) => {
+                    if (!reportAction) {
+                        return;
                     }
 
-                    // If this is true, it means that the user shares a non-public room, which means they're on the same workspace.
-                    if (ReportUtils.isChatRoom(report)) {
-                        return true;
+                    const actorEmail = reportAction.actorEmail;
+                    if (!actorEmail) {
+                        return;
                     }
 
-                    // It might be possible that the user is a member of the same policy, but are not in any overlapping private rooms.
-                    // So we check the policy member list as well.
-                    const isMemberOfSamePolicy = _.some(oldPolicyMemberLists, (memberList) => _.has(memberList, login));
-                    if (isMemberOfSamePolicy) {
-                        return true;
-                    }
-
-                    const reportActionsForReport = oldReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-                    return _.some(reportActionsForReport, (reportAction) => reportAction.actorEmail === login);
+                    knownUsers.add(actorEmail);
                 });
-            }
+            });
+
+            _.each(oldPolicyMemberLists, (memberList) => {
+                _.each(memberList, (login) => {
+                    knownUsers.add(login);
+                });
+            });
 
             // Migrate personalDetails => personalDetailsList
             const newPersonalDetailsList = {};
@@ -151,8 +148,7 @@ export default function () {
                 }
 
                 let newPersonalDetailsForUser;
-                const isKnownUser = isLoginOfKnownUser(login);
-                if (!isKnownUser) {
+                if (!knownUsers.has(login)) {
                     newPersonalDetailsForUser = _.omit(value, ['login', 'phoneNumber']);
                     newPersonalDetailsForUser.displayName = '';
                 } else {
