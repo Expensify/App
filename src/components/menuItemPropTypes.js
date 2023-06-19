@@ -22,7 +22,7 @@ const propTypes = {
     onPress: PropTypes.func,
 
     /** Icon to display on the left side of component */
-    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
 
     /** Icon Width */
     iconWidth: PropTypes.number,
@@ -32,6 +32,9 @@ const propTypes = {
 
     /** Text to display for the item */
     title: PropTypes.string.isRequired,
+
+    /** Text that appears above the title */
+    label: PropTypes.string,
 
     /** Boolean whether to display the title right icon */
     shouldShowTitleIcon: PropTypes.bool,

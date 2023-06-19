@@ -49,7 +49,7 @@ const defaultProps = {
     maskImage: Expensicons.ImageCropCircleMask,
 };
 
-const ImageCropView = (props) => {
+function ImageCropView(props) {
     const containerStyle = StyleUtils.getWidthAndHeightStyle(props.containerSize, props.containerSize);
 
     const originalImageHeight = props.originalImageHeight;
@@ -93,7 +93,7 @@ const ImageCropView = (props) => {
             </Animated.View>
         </PanGestureHandler>
     );
-};
+}
 
 ImageCropView.displayName = 'ImageCropView';
 ImageCropView.propTypes = propTypes;

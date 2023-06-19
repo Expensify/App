@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {View, ScrollView, Pressable} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
 import compose from '../libs/compose';
@@ -27,6 +27,7 @@ import CONST from '../CONST';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -57,7 +58,7 @@ const defaultProps = {
     personalDetails: {},
 };
 
-const ReportDetailsPage = (props) => {
+function ReportDetailsPage(props) {
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(props.report), [props.report]);
@@ -69,7 +70,7 @@ const ReportDetailsPage = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
-    const participants = useMemo(() => lodashGet(props.report, 'participants', []), [props.report]);
+    const participants = useMemo(() => lodashGet(props.report, 'participantAccountIDs', []), [props.report]);
 
     const menuItems = useMemo(() => {
         if (isArchivedRoom) {
@@ -122,7 +123,7 @@ const ReportDetailsPage = (props) => {
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
-        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), hasMultipleParticipants);
+        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails), hasMultipleParticipants);
     }, [participants, props.personalDetails]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
@@ -155,13 +156,15 @@ const ReportDetailsPage = (props) => {
                                 />
                             </View>
                             {isPolicyAdmin ? (
-                                <Pressable
+                                <PressableWithoutFeedback
+                                    accessibilityRole="button"
+                                    accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.report.policyID));
                                     }}
                                 >
                                     {chatRoomSubtitleText}
-                                </Pressable>
+                                </PressableWithoutFeedback>
                             ) : (
                                 chatRoomSubtitleText
                             )}
@@ -186,7 +189,7 @@ const ReportDetailsPage = (props) => {
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
-};
+}
 
 ReportDetailsPage.displayName = 'ReportDetailsPage';
 ReportDetailsPage.propTypes = propTypes;
@@ -197,7 +200,7 @@ export default compose(
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

@@ -53,88 +53,26 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <!-- Production URLs -->
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/r"
-                    android:scheme="https" />
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/settings"
-                    android:scheme="https" />
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/setpassword"
-                    android:scheme="https" />
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/details"
-                    android:scheme="https" />
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/v"
-                    android:scheme="https" />
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/bank-account"
-                    android:scheme="https" />
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/iou"
-                    android:scheme="https" />
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/enable-payments"
-                    android:scheme="https" />
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/statements"
-                    android:scheme="https" />
-                <data
-                    android:host="new.expensify.com"
-                    android:pathPrefix="/concierge"
-                    android:scheme="https" />
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/r"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/details"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/v"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/bank-account"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/iou"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/enable-payments"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/statements"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/concierge"/>
 
                 <!-- Staging URLs -->
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/r"
-                    android:scheme="https" />
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/settings"
-                    android:scheme="https" />
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/setpassword"
-                    android:scheme="https" />
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/details"
-                    android:scheme="https" />
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/v"
-                    android:scheme="https" />
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/bank-account"
-                    android:scheme="https" />
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/iou"
-                    android:scheme="https" />
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/enable-payments"
-                    android:scheme="https" />
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/statements"
-                    android:scheme="https" />
-                <data
-                    android:host="staging.new.expensify.com"
-                    android:pathPrefix="/concierge"
-                    android:scheme="https" />
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/details"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/v"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/bank-account"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/iou"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/enable-payments"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/statements"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/concierge"/>
             </intent-filter>
         </activity>
 

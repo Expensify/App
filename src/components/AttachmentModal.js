@@ -23,6 +23,7 @@ import ConfirmModal from './ConfirmModal';
 import HeaderGap from './HeaderGap';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
+import reportPropTypes from '../pages/reportPropTypes';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -57,8 +58,8 @@ const propTypes = {
     /** Title shown in the header of the modal */
     headerTitle: PropTypes.string,
 
-    /** The ID of the report that has this attachment */
-    reportID: PropTypes.string,
+    /** The report that has this attachment */
+    report: reportPropTypes,
 
     ...withLocalizePropTypes,
 
@@ -72,7 +73,7 @@ const defaultProps = {
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
-    reportID: '',
+    report: {},
     onModalShow: () => {},
     onModalHide: () => {},
 };
@@ -287,9 +288,9 @@ class AttachmentModal extends PureComponent {
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
-                        {this.props.reportID ? (
+                        {!_.isEmpty(this.props.report) ? (
                             <AttachmentCarousel
-                                reportID={this.props.reportID}
+                                report={this.props.report}
                                 onNavigate={this.onNavigate}
                                 source={this.props.source}
                                 onToggleKeyboard={this.updateConfirmButtonVisibility}

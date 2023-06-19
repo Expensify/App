@@ -51,7 +51,7 @@ function parseAndLogRoute(state) {
     Navigation.setIsNavigationReady();
 }
 
-const NavigationRoot = (props) => {
+function NavigationRoot(props) {
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
 
@@ -77,7 +77,7 @@ const NavigationRoot = (props) => {
             <AppNavigator authenticated={props.authenticated} />
         </NavigationContainer>
     );
-};
+}
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;

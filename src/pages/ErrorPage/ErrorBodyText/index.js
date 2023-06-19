@@ -9,17 +9,19 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ErrorBodyText = (props) => (
-    <Text>
-        {`${props.translate('genericErrorPage.body.helpTextMobile')} `}
-        <TextLink
-            href={CONST.NEW_EXPENSIFY_URL}
-            style={[styles.link]}
-        >
-            {props.translate('genericErrorPage.body.helpTextWeb')}
-        </TextLink>
-    </Text>
-);
+function ErrorBodyText(props) {
+    return (
+        <Text>
+            {`${props.translate('genericErrorPage.body.helpTextMobile')} `}
+            <TextLink
+                href={CONST.NEW_EXPENSIFY_URL}
+                style={[styles.link]}
+            >
+                {props.translate('genericErrorPage.body.helpTextWeb')}
+            </TextLink>
+        </Text>
+    );
+}
 
 ErrorBodyText.displayName = 'ErrorBodyText';
 ErrorBodyText.propTypes = propTypes;
