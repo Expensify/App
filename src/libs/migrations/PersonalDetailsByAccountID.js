@@ -103,6 +103,8 @@ function getDeprecatedPolicyMemberListFromOnyx() {
 export default function () {
     return Promise.all([getReportsFromOnyx(), getReportActionsFromOnyx(), getDeprecatedPersonalDetailsFromOnyx(), getDeprecatedPolicyMemberListFromOnyx()]).then(
         ([oldReports, oldReportActions, oldPersonalDetails, oldPolicyMemberLists]) => {
+            const onyxData = {};
+
             const knownUsers = new Set();
             _.each(oldReports, (report) => {
                 if (!report) {
@@ -157,9 +159,10 @@ export default function () {
 
                 newPersonalDetailsList[value.accountID] = newPersonalDetailsForUser;
             });
+            onyxData[DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS] = null;
+            onyxData[ONYXKEYS.PERSONAL_DETAILS_LIST] = newPersonalDetailsList;
 
             // Migrate policyMemberList_ to policyMember_
-            const newPolicyMemberLists = {};
             _.each(oldPolicyMemberLists, (value, policyKey) => {
                 const policyID = policyKey.substr(DEPRECATED_ONYX_KEYS.COLLECTION.POLICY_MEMBER_LIST.length);
                 const newMemberList = {};
@@ -170,11 +173,11 @@ export default function () {
                     }
                     newMemberList[accountID] = member;
                 });
-                newPolicyMemberLists[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] = newMemberList;
+                onyxData[policyKey] = null;
+                onyxData[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] = newMemberList;
             });
 
             // Migrate reportActions
-            const newReportActions = {};
             _.each(oldReportActions, (reportActionsForReport, onyxKey) => {
                 if (!reportActionsForReport) {
                     return;
@@ -268,11 +271,10 @@ export default function () {
                     newReportActionsForReport[newReportAction.reportActionID] = newReportAction;
                 });
 
-                newReportActions[onyxKey] = newReportActionsForReport;
+                onyxData[onyxKey] = newReportActionsForReport;
             });
 
             // Migrate reports
-            const newReports = {};
             _.each(oldReports, (report, onyxKey) => {
                 const newReport = _.omit(report, ['ownerEmail', 'managerEmail', 'lastActorEmail', 'participants']);
 
@@ -306,33 +308,7 @@ export default function () {
                     newReport.participantAccountIDs = participantAccountIDs;
                 }
 
-                newReports[onyxKey] = newReport;
-            });
-
-            const onyxData = {
-                [DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS]: null,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: newPersonalDetailsList,
-            };
-
-            _.each(oldPolicyMemberLists, (value, key) => {
-                onyxData[key] = null;
-            });
-            _.each(newPolicyMemberLists, (value, key) => {
-                onyxData[key] = value;
-            });
-
-            _.each(oldReports, (value, key) => {
-                onyxData[key] = null;
-            });
-            _.each(newReports, (value, key) => {
-                onyxData[key] = value;
-            });
-
-            _.each(oldReportActions, (value, key) => {
-                onyxData[key] = null;
-            });
-            _.each(newReportActions, (value, key) => {
-                onyxData[key] = value;
+                onyxData[onyxKey] = newReport;
             });
 
             return Onyx.multiSet(onyxData);
