@@ -48,7 +48,7 @@ function AnonymousReportFooter(props) {
                     <View style={[isSmallSizeLayout ? styles.alignItemsStart : styles.alignItemsEnd]}>
                         <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
                     </View>
-                    <Text style={[styles.textNormal, styles.textWhite]}>{props.translate('anonymousReportFooter.logoTagline')}</Text>
+                    <Text style={styles.anonymousRoomFooterLogoTaglineText}>{props.translate('anonymousReportFooter.logoTagline')}</Text>
                 </View>
                 <View style={[styles.anonymousRoomFooterSignInButton]}>
                     <Button

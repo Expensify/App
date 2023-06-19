@@ -2246,7 +2246,11 @@ const styles = {
         marginLeft: 0,
         height: 20,
     },
-
+    anonymousRoomFooterLogoTaglineText: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeMedium,
+        color: themeColors.textLight,
+    },
     signInButtonAvatar: {
         width: 80,
     },
