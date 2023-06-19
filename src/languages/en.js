@@ -144,6 +144,7 @@ export default {
         per: 'per',
         mi: 'mile',
         km: 'kilometer',
+        copied: 'Copied!',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -1399,6 +1400,7 @@ export default {
         chatUserDisplayNames: 'Chat user display names',
         scrollToNewestMessages: 'Scroll to newest messages',
         prestyledText: 'Prestyled text',
+        viewAttachment: 'View attachment',
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
