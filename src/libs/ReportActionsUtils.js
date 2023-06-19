@@ -65,7 +65,7 @@ function hasCommentThread(reportAction) {
 }
 
 /**
- * Returns the parentReportAction if the given report is a thread.
+ * Returns the parentReportAction if the given report is a thread/task.
  *
  * @param {Object} report
  * @returns {Object}
