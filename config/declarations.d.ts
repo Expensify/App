@@ -1,5 +1,11 @@
-declare module '*.png';
-declare module '*.jpg';
+declare module '*.png' {
+    const value: import('react-native').ImageSourcePropType;
+    export default value;
+}
+declare module '*.jpg' {
+    const value: import('react-native').ImageSourcePropType;
+    export default value;
+}
 declare module '*.svg' {
     import React from 'react';
     import {SvgProps} from 'react-native-svg';
