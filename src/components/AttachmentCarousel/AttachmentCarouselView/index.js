@@ -118,10 +118,6 @@ function AttachmentCarouselView(props) {
                 <FlatList
                     listKey="AttachmentCarousel"
                     horizontal
-                    // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
-                    // promotes the natural feeling of swiping left/right to go to the next/previous image
-                    // We don't want to invert the list for desktop/web because this interferes with mouse
-                    // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
                     decelerationRate="fast"
                     showsHorizontalScrollIndicator={false}
                     bounces={false}
