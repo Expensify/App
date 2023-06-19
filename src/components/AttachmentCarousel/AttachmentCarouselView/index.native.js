@@ -57,13 +57,15 @@ function AttachmentCarouselView(props) {
                 cancelAutoHideArrow={props.cancelAutoHideArrow}
             />
 
-            <Pager
-                items={reversedAttachments}
-                initialIndex={reversedPage}
-                onTap={props.toggleArrowsVisibility}
-                itemExtractor={({item}) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})}
-                ref={pagerRef}
-            />
+            {props.carouselState.containerWidth > 0 && (
+                <Pager
+                    items={reversedAttachments}
+                    initialIndex={reversedPage}
+                    onTap={props.toggleArrowsVisibility}
+                    itemExtractor={({item}) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})}
+                    ref={pagerRef}
+                />
+            )}
         </>
     );
 }
