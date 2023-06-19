@@ -213,25 +213,30 @@ function isPersonalDetailsReady(personalDetails) {
  * @returns {Array}
  */
 function getParticipantsOptions(report, personalDetails) {
-    const participants = lodashGet(report, 'participantAccountIDs', []);
-    return _.map(getPersonalDetailsForAccountIDs(participants, personalDetails), (details) => ({
-        keyForList: details.login,
-        login: details.login,
-        accountID: details.accountID,
-        text: details.displayName,
-        firstName: lodashGet(details, 'firstName', ''),
-        lastName: lodashGet(details, 'lastName', ''),
-        alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
-        icons: [
-            {
-                source: UserUtils.getAvatar(details.avatar, details.accountID),
-                name: details.login,
-                type: CONST.ICON_TYPE_AVATAR,
-            },
-        ],
-        payPalMeAddress: lodashGet(details, 'payPalMeAddress', ''),
-        phoneNumber: lodashGet(details, 'phoneNumber', ''),
-    }));
+    const participantsAccountIDs = lodashGet(report, 'participantAccountIDs', []);
+    const participants = getPersonalDetailsForAccountIDs(participantsAccountIDs, personalDetails);
+    return _.map(participants, (details, index) => {
+        const userLogin = Str.removeSMSDomain(details.login || '') || 'Hidden';
+
+        return {
+            keyForList: `${index}-${userLogin}`,
+            login: userLogin,
+            accountID: details.accountID,
+            text: details.displayName,
+            firstName: lodashGet(details, 'firstName', ''),
+            lastName: lodashGet(details, 'lastName', ''),
+            alternateText: userLogin,
+            icons: [
+                {
+                    source: UserUtils.getAvatar(details.avatar, details.accountID),
+                    name: details.login,
+                    type: CONST.ICON_TYPE_AVATAR,
+                },
+            ],
+            payPalMeAddress: lodashGet(details, 'payPalMeAddress', ''),
+            phoneNumber: lodashGet(details, 'phoneNumber', ''),
+        }
+    });
 }
 
 /**
