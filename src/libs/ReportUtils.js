@@ -694,19 +694,25 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
-        participantDetails.push([lodashGet(personalDetails, [accountID, 'login'], ''), lodashGet(personalDetails, [accountID, 'firstName'], ''), avatarSource]);
+        participantDetails.push([
+            accountID,
+            lodashGet(personalDetails, [accountID, 'login'], lodashGet(personalDetails, [accountID, 'displayName'], '')),
+            lodashGet(personalDetails, [accountID, 'firstName'], ''),
+            avatarSource,
+        ]);
     }
 
     // Sort all logins by first name (which is the second element in the array)
-    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
+    const sortedParticipantDetails = participantDetails.sort((a, b) => a[2] - b[2]);
 
     // Now that things are sorted, gather only the avatars (third element in the array) and return those
     const avatars = [];
     for (let i = 0; i < sortedParticipantDetails.length; i++) {
         const userIcon = {
-            source: sortedParticipantDetails[i][2],
+            id: sortedParticipantDetails[i][0],
+            source: sortedParticipantDetails[i][3],
             type: CONST.ICON_TYPE_AVATAR,
-            name: sortedParticipantDetails[i][0],
+            name: sortedParticipantDetails[i][1],
         };
         avatars.push(userIcon);
     }
@@ -735,11 +741,6 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         result.source = defaultIcon || Expensicons.FallbackAvatar;
         return [result];
     }
-    if (isConciergeChatReport(report)) {
-        result.source = CONST.CONCIERGE_ICON_URL;
-        result.name = CONST.EMAIL.CONCIERGE;
-        return [result];
-    }
     if (isArchivedRoom(report)) {
         result.source = Expensicons.DeletedRoomAvatar;
         return [result];
@@ -750,6 +751,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
         const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', '');
         const actorIcon = {
+            id: actorAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
             name: actorEmail,
             type: CONST.ICON_TYPE_AVATAR,
@@ -760,6 +762,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     if (isTaskReport(report)) {
         const ownerEmail = report.ownerEmail || '';
         const ownerIcon = {
+            id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             name: ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
@@ -797,6 +800,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         }
 
         const adminIcon = {
+            id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             name: report.ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
@@ -817,6 +821,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         const accountID = isPayer ? report.managerID : report.ownerAccountID;
         return [
             {
+                id: accountID,
                 source: UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar']), accountID),
                 name: email,
                 type: CONST.ICON_TYPE_AVATAR,
@@ -850,16 +855,6 @@ function getPersonalDetailsForAccountID(accountID) {
             avatar: UserUtils.getDefaultAvatar(accountID),
         }
     );
-}
-
-/**
- * Gets the accountID for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
- * then an empty string is returned.
- * @param {String} login
- * @returns {String}
- */
-function getAccountIDForLogin(login) {
-    return lodashGet(allPersonalDetails, [login, 'accountID'], '');
 }
 
 /**
@@ -2275,7 +2270,6 @@ function getParentReport(report) {
 }
 
 export {
-    getAccountIDForLogin,
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,

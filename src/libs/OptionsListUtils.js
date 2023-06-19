@@ -159,6 +159,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails) {
     return _.map(accountIDs, (accountID) => {
         const userPersonalDetail = lodashGet(personalDetails, accountID, {login: '', accountID, avatar: ''});
         return {
+            id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
             type: CONST.ICON_TYPE_AVATAR,
             name: userPersonalDetail.login,
@@ -859,7 +860,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amount
         alternateText: personalDetail.login,
         icons: [
             {
-                source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.login),
+                source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
                 name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
             },

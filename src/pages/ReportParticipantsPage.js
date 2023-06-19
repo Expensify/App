@@ -67,6 +67,7 @@ const getAllParticipants = (report, personalDetails) => {
                 accountID: userPersonalDetail.accountID,
                 icons: [
                     {
+                        id: accountID,
                         source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
                         name: userLogin,
                         type: CONST.ICON_TYPE_AVATAR,
