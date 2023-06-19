@@ -15,14 +15,14 @@ const defaultProps = {
     route: validateLinkDefaultProps,
 };
 
-const UnlinkLoginPage = (props) => {
+function UnlinkLoginPage(props) {
     const accountID = lodashGet(props.route.params, 'accountID', '');
     const validateCode = lodashGet(props.route.params, 'validateCode', '');
 
     Session.unlinkLogin(accountID, validateCode);
     Navigation.navigate(ROUTES.HOME);
     return <FullScreenLoadingIndicator />;
-};
+}
 
 UnlinkLoginPage.propTypes = propTypes;
 UnlinkLoginPage.defaultProps = defaultProps;

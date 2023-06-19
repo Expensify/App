@@ -1,7 +1,9 @@
 import React from 'react';
 import MoneyRequestModal from './MoneyRequestModal';
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const IOURequestPage = (props) => <MoneyRequestModal {...props} />;
+function IOURequestPage(props) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <MoneyRequestModal {...props} />;
+}
 IOURequestPage.displayName = 'IOURequestPage';
 export default IOURequestPage;

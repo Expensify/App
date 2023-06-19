@@ -50,7 +50,7 @@ const defaultProps = {
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const FullPageNotFoundView = (props) => {
+function FullPageNotFoundView(props) {
     if (props.shouldShow) {
         return (
             <>
@@ -72,7 +72,7 @@ const FullPageNotFoundView = (props) => {
     }
 
     return props.children;
-};
+}
 
 FullPageNotFoundView.propTypes = propTypes;
 FullPageNotFoundView.defaultProps = defaultProps;

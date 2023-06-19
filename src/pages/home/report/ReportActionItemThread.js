@@ -31,7 +31,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const ReportActionItemThread = (props) => {
+function ReportActionItemThread(props) {
     const numberOfRepliesText = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 
@@ -71,7 +71,7 @@ const ReportActionItemThread = (props) => {
             </PressableWithoutFeedback>
         </View>
     );
-};
+}
 
 ReportActionItemThread.propTypes = propTypes;
 ReportActionItemThread.displayName = 'ReportActionItemThread';

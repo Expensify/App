@@ -24,7 +24,7 @@ const logoComponents = {
     [CONST.ENVIRONMENT.ADHOC]: AdhocLogo,
 };
 
-const ExpensifyCashLogo = (props) => {
+function ExpensifyCashLogo(props) {
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[props.environment];
     return (
@@ -33,7 +33,7 @@ const ExpensifyCashLogo = (props) => {
             height={props.height}
         />
     );
-};
+}
 
 ExpensifyCashLogo.displayName = 'ExpensifyCashLogo';
 ExpensifyCashLogo.propTypes = propTypes;

@@ -65,11 +65,11 @@ const defaultProps = {
     shouldUseCardBackground: false,
 };
 
-const MultipleAvatars = (props) => {
+function MultipleAvatars(props) {
     let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
     const singleAvatarStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
-    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [];
+    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
     if (!props.icons.length) {
         return null;
@@ -227,7 +227,7 @@ const MultipleAvatars = (props) => {
             )}
         </View>
     );
-};
+}
 
 MultipleAvatars.defaultProps = defaultProps;
 MultipleAvatars.propTypes = propTypes;

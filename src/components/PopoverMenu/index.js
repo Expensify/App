@@ -38,7 +38,7 @@ const defaultProps = {
     },
 };
 
-const PopoverMenu = (props) => {
+function PopoverMenu(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
 
@@ -97,7 +97,7 @@ const PopoverMenu = (props) => {
             </View>
         </PopoverWithMeasuredContent>
     );
-};
+}
 
 PopoverMenu.propTypes = propTypes;
 PopoverMenu.defaultProps = defaultProps;

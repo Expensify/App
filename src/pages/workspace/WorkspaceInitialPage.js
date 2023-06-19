@@ -64,7 +64,7 @@ function dismissError(policyID) {
     Policy.removeWorkspace(policyID);
 }
 
-const WorkspaceInitialPage = (props) => {
+function WorkspaceInitialPage(props) {
     const policy = props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
@@ -92,7 +92,7 @@ const WorkspaceInitialPage = (props) => {
     );
 
     const policyName = lodashGet(policy, 'name', '');
-    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMemberList);
+    const hasMembersError = PolicyUtils.hasPolicyMemberError(props.policyMembers);
     const hasGeneralSettingsError = !_.isEmpty(lodashGet(policy, 'errorFields.generalSettings', {})) || !_.isEmpty(lodashGet(policy, 'errorFields.avatar', {}));
     const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
     const menuItems = [
@@ -256,7 +256,7 @@ const WorkspaceInitialPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 WorkspaceInitialPage.propTypes = propTypes;
 WorkspaceInitialPage.defaultProps = defaultProps;
