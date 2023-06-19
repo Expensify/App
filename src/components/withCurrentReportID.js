@@ -1,4 +1,4 @@
-import React, {createContext, forwardRef} from 'react';
+import React, {createContext, forwardRef, useCallback, useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
 
 import getComponentDisplayName from '../libs/getComponentDisplayName';
@@ -7,52 +7,55 @@ import Navigation from '../libs/Navigation/Navigation';
 const CurrentReportIDContext = createContext(null);
 
 const withCurrentReportIDPropTypes = {
+    /** Function to update the state */
+    updateCurrentReportID: PropTypes.func.isRequired,
+
+    /** The top most report id */
+    D: PropTypes.string,
+};
+
+function CurrentReportIDContextProvider(props) {
+    const [CurrentReportID, setCurrentReportID] = useState('');
+
+    /**
+     * This function is used to update the CurrentReportID
+     * @param {Object} state root navigation state
+     */
+    const updateCurrentReportID = useCallback(
+        (state) => {
+            setCurrentReportID(Navigation.getTopmostReportId(state));
+        },
+        [setCurrentReportID],
+    );
+
+    /**
+     * The context this component exposes to child components
+     * @returns {Object} CurrentReportID to share between central pane and LHN
+     */
+    const contextValue = useMemo(
+        () => ({
+            updateCurrentReportID,
+            CurrentReportID,
+        }),
+        [updateCurrentReportID, CurrentReportID],
+    );
+
+    return <CurrentReportIDContext.Provider value={contextValue}>{props.children}</CurrentReportIDContext.Provider>;
+}
+
+CurrentReportIDContextProvider.displayName = 'CurrentReportIDContextProvider';
+CurrentReportIDContextProvider.propTypes = {
     /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
 };
 
-class CurrentReportIDContextProvider extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            currentReportID: '',
-        };
-    }
-
-    /**
-     * The context this component exposes to child components
-     * @returns {Object} currentReportID to share between central pane and LHN
-     */
-    getContextValue() {
-        return {
-            updateCurrentReportID: this.updateCurrentReportID.bind(this),
-            currentReportID: this.state.currentReportID,
-        };
-    }
-
-    /**
-     * @param {Object} state
-     * @returns {String}
-     */
-    updateCurrentReportID(state) {
-        return this.setState({currentReportID: Navigation.getTopmostReportId(state)});
-    }
-
-    render() {
-        return <CurrentReportIDContext.Provider value={this.getContextValue()}>{this.props.children}</CurrentReportIDContext.Provider>;
-    }
-}
-
-CurrentReportIDContextProvider.propTypes = withCurrentReportIDPropTypes;
-
 export default function withCurrentReportID(WrappedComponent) {
     const WithCurrentReportID = forwardRef((props, ref) => (
         <CurrentReportIDContext.Consumer>
-            {(translateUtils) => (
+            {(currentReportIDUtils) => (
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...translateUtils}
+                    {...currentReportIDUtils}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     ref={ref}

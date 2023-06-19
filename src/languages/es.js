@@ -143,6 +143,7 @@ export default {
         per: 'por',
         mi: 'milla',
         km: 'kilómetro',
+        copied: '¡Copiado!',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -225,8 +226,8 @@ export default {
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         enterPassword: 'Por favor, introduce tu contraseña',
-        newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}`,
-        welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}`,
+        newFaceEnterMagicCode: ({login}) => `¡Siempre es genial ver una cara nueva por aquí! Por favor ingresa el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
+        welcomeEnterMagicCode: ({login}) => `Por favor, introduce el código mágico enviado a ${login}. Debería llegar en un par de minutos.`,
     },
     login: {
         hero: {
@@ -265,6 +266,7 @@ export default {
         copyURLToClipboard: 'Copiar URL al portapapeles',
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
+        markAsRead: 'Marcar como leído',
         editComment: 'Editar comentario',
         deleteAction: ({action}) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
         deleteConfirmation: ({action}) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
@@ -818,6 +820,8 @@ export default {
         hasPhoneLoginError:
             'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar agregar tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
+        hasCurrencyError:
+            '¡Ups! Parece que la moneda de tu espacio de trabajo está configurada en una moneda diferente a USD. Para continuar, por favor configúrala en USD e inténtalo nuevamente.',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
@@ -1074,9 +1078,7 @@ export default {
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             settlementFrequency: 'Frecuencia de liquidación',
-            growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
-            growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda agregarte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
@@ -1210,6 +1212,10 @@ export default {
             bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
             areYouSure: '¿Estás seguro?',
+            workspaceCurrency: 'Moneda del espacio de trabajo',
+            updateCurrencyPrompt:
+                'Parece que tu espacio de trabajo está configurado actualmente en una moneda diferente a USD. Por favor, haz clic en el botón de abajo para actualizar tu moneda a USD ahora.',
+            updateToUSD: 'Actualizar a USD',
         },
     },
     getAssistancePage: {
@@ -1864,6 +1870,7 @@ export default {
         chatUserDisplayNames: 'Nombres de los usuarios del chat',
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         prestyledText: 'texto preestilizado',
+        viewAttachment: 'Ver archivo adjunto',
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
