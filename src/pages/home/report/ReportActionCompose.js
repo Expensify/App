@@ -222,7 +222,7 @@ const trimLeadingSpace = (str) => (str.slice(0, 1) === ' ' ? str.slice(1) : str)
 // so we need to ensure that it is only updated after focus.
 const isMobileSafari = Browser.isMobileSafari();
 
-function ReportActionCompose(props) {
+function ReportActionCompose({translate, ...props}) {
     /**
      * Updates the Highlight state of the composer
      */
@@ -296,20 +296,23 @@ function ReportActionCompose(props) {
     );
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
-    const conciergePlaceholderRandomIndex = useMemo(() => _.random(props.translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)), [props]);
+    const conciergePlaceholderRandomIndex = useMemo(
+        () => _.random(translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
+        [props.isSmallScreenWidth, translate],
+    );
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
         if (ReportUtils.chatIncludesConcierge(props.report)) {
             if (User.isBlockedFromConcierge(props.blockedFromConcierge)) {
-                return props.translate('reportActionCompose.blockedFromConcierge');
+                return translate('reportActionCompose.blockedFromConcierge');
             }
 
-            return props.translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceholderRandomIndex];
+            return translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceholderRandomIndex];
         }
 
-        return props.translate('reportActionCompose.writeSomething');
-    }, [props, conciergePlaceholderRandomIndex]);
+        return translate('reportActionCompose.writeSomething');
+    }, [props.report, props.blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
 
     /**
      * Focus the composer text input
@@ -503,7 +506,7 @@ function ReportActionCompose(props) {
             if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
                 suggestions.push({
                     text: CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT,
-                    alternateText: props.translate('mentionSuggestions.hereAlternateText'),
+                    alternateText: translate('mentionSuggestions.hereAlternateText'),
                     icons: [
                         {
                             source: Expensicons.Megaphone,
@@ -537,7 +540,7 @@ function ReportActionCompose(props) {
 
             return suggestions;
         },
-        [props],
+        [translate],
     );
 
     const getNavigationKey = useCallback(() => {
@@ -643,23 +646,23 @@ function ReportActionCompose(props) {
         const options = {
             [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
-                text: props.translate('iou.splitBill'),
+                text: translate('iou.splitBill'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
-                text: props.translate('iou.requestMoney'),
+                text: translate('iou.requestMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
                 icon: Expensicons.Send,
-                text: props.translate('iou.sendMoney'),
+                text: translate('iou.sendMoney'),
                 onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(props.reportID)),
             },
         };
 
         return _.map(ReportUtils.getMoneyRequestOptions(props.report, reportParticipants, props.betas), (option) => options[option]);
-    }, [props, reportParticipants]);
+    }, [props.betas, props.report, props.reportID, reportParticipants, translate]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -687,11 +690,11 @@ function ReportActionCompose(props) {
         return [
             {
                 icon: Expensicons.Task,
-                text: props.translate('newTaskPage.assignTask'),
+                text: translate('newTaskPage.assignTask'),
                 onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(props.reportID),
             },
         ];
-    }, [props, reportParticipants]);
+    }, [props.betas, props.report, props.reportID, reportParticipants, translate]);
 
     /**
      * Replace the code of emoji and update selection
@@ -969,7 +972,7 @@ function ReportActionCompose(props) {
                     ]}
                 >
                     <AttachmentModal
-                        headerTitle={props.translate('reportActionCompose.sendAttachment')}
+                        headerTitle={translate('reportActionCompose.sendAttachment')}
                         onConfirm={addAttachment}
                         onModalShow={() => setIsAttachmentPreviewActive(true)}
                         onModalHide={attachmentPreviewClosed}
@@ -987,7 +990,7 @@ function ReportActionCompose(props) {
                                                 ]}
                                             >
                                                 {props.isComposerFullSize && (
-                                                    <Tooltip text={props.translate('reportActionCompose.collapse')}>
+                                                    <Tooltip text={translate('reportActionCompose.collapse')}>
                                                         <PressableWithFeedback
                                                             onPress={(e) => {
                                                                 e.preventDefault();
@@ -999,14 +1002,14 @@ function ReportActionCompose(props) {
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || props.disabled}
                                                             accessibilityRole="button"
-                                                            accessibilityLabel={props.translate('reportActionCompose.collapse')}
+                                                            accessibilityLabel={translate('reportActionCompose.collapse')}
                                                         >
                                                             <Icon src={Expensicons.Collapse} />
                                                         </PressableWithFeedback>
                                                     </Tooltip>
                                                 )}
                                                 {!props.isComposerFullSize && isFullSizeComposerAvailable && (
-                                                    <Tooltip text={props.translate('reportActionCompose.expand')}>
+                                                    <Tooltip text={translate('reportActionCompose.expand')}>
                                                         <PressableWithFeedback
                                                             onPress={(e) => {
                                                                 e.preventDefault();
@@ -1018,13 +1021,13 @@ function ReportActionCompose(props) {
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || props.disabled}
                                                             accessibilityRole="button"
-                                                            accessibilityLabel={props.translate('reportActionCompose.expand')}
+                                                            accessibilityLabel={translate('reportActionCompose.expand')}
                                                         >
                                                             <Icon src={Expensicons.Expand} />
                                                         </PressableWithFeedback>
                                                     </Tooltip>
                                                 )}
-                                                <Tooltip text={props.translate('reportActionCompose.addAction')}>
+                                                <Tooltip text={translate('reportActionCompose.addAction')}>
                                                     <PressableWithFeedback
                                                         ref={actionButton}
                                                         onPress={(e) => {
@@ -1037,7 +1040,7 @@ function ReportActionCompose(props) {
                                                         style={styles.composerSizeButton}
                                                         disabled={isBlockedFromConcierge || props.disabled}
                                                         accessibilityRole="button"
-                                                        accessibilityLabel={props.translate('reportActionCompose.addAction')}
+                                                        accessibilityLabel={translate('reportActionCompose.addAction')}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
                                                     </PressableWithFeedback>
@@ -1055,7 +1058,7 @@ function ReportActionCompose(props) {
                                                     ...taskOption,
                                                     {
                                                         icon: Expensicons.Paperclip,
-                                                        text: props.translate('reportActionCompose.addAttachment'),
+                                                        text: translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
                                                             // Set a flag to block suggestion calculation until we're finished using the file picker,
                                                             // which will stop any flickering as the file picker opens on non-native devices.
@@ -1141,13 +1144,13 @@ function ReportActionCompose(props) {
                         // Keep focus on the composer when Send message is clicked.
                         onMouseDown={(e) => e.preventDefault()}
                     >
-                        <Tooltip text={props.translate('common.send')}>
+                        <Tooltip text={translate('common.send')}>
                             <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                 onPress={submitForm}
                                 disabled={isCommentEmpty || isBlockedFromConcierge || props.disabled || hasExceededMaxCommentLength}
                                 accessibilityRole="button"
-                                accessibilityLabel={props.translate('common.send')}
+                                accessibilityLabel={translate('common.send')}
                             >
                                 <Icon
                                     src={Expensicons.Send}
