@@ -297,7 +297,8 @@ function ReportActionCompose({translate, ...props}) {
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
         () => _.random(translate('reportActionCompose.conciergePlaceholderOptions').length - (props.isSmallScreenWidth ? 4 : 1)),
-        [props.isSmallScreenWidth, translate],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
     );
 
     // Placeholder to display in the chat input.
