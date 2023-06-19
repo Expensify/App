@@ -8,7 +8,6 @@ import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
-import cursor from '../../styles/utilities/cursor';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
@@ -119,12 +118,12 @@ function ReportPreview(props) {
                 >
                     <View style={[styles.flexShrink1]}>
                         {props.iouReport.hasOutstandingIOU ? (
-                            <Text style={[styles.chatItemMessage, cursor.cursorPointer, styles.colorMuted]}>
+                            <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
                                 {lodashGet(message, 'html', props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount}))}
                             </Text>
                         ) : (
                             <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, cursor.cursorPointer, styles.colorMuted]}>
+                                <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
                                     {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
                                 </Text>
                                 {!props.iouReport.hasOutstandingIOU && (
