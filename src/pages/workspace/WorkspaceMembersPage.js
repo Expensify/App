@@ -287,8 +287,6 @@ class WorkspaceMembersPage extends React.Component {
     validate() {
         const errors = {};
         _.each(this.state.selectedEmployees, (member) => {
-            console.debug(member);
-            console.debug(this.props.policy);
             if (member !== this.props.policy.owner && member !== this.props.session.email) {
                 return;
             }
