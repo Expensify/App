@@ -67,6 +67,14 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
 
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        allPersonalDetails = val || {};
+    },
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -420,7 +428,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         const optimisticPersonalDetails = {};
         _.map(participantLoginList, (login, index) => {
             const accountID = newReportObject.participantAccountIDs[index];
-            optimisticPersonalDetails[accountID] = {
+            optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
@@ -653,10 +661,13 @@ function readNewestAction(reportID) {
  * @param {String} reportActionCreated
  */
 function markCommentAsUnread(reportID, reportActionCreated) {
+    // If no action created date is provided, use the last action's
+    const actionCreationTime = reportActionCreated || lodashGet(allReports, [reportID, 'lastVisibleActionCreated'], '0');
+
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportActionCreated, 1);
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(actionCreationTime, 1);
     API.write(
         'MarkAsUnread',
         {
@@ -1712,6 +1723,12 @@ function flagComment(reportID, reportAction, severity) {
                 },
             ];
         }
+    } else if (severity === CONST.MODERATION.FLAG_SEVERITY_ASSAULT || severity === CONST.MODERATION.FLAG_SEVERITY_HARASSMENT) {
+        updatedDecision = [
+            {
+                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+            },
+        ];
     } else {
         updatedDecision = [
             {

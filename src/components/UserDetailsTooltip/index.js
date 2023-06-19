@@ -43,7 +43,9 @@ function UserDetailsTooltip(props) {
 
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{userDisplayName}</Text>
 
-                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{userLogin}</Text>
+                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
+                    {String(userLogin || '').trim() && !_.isEqual(userLogin, userDisplayName) ? Str.removeSMSDomain(userLogin) : ''}
+                </Text>
             </View>
         ),
         [userAvatar, userDisplayName, userLogin, userAccountID],
