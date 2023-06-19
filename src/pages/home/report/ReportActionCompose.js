@@ -1161,10 +1161,10 @@ function ReportActionCompose({translate, ...props}) {
                 </View>
             </OfflineWithFeedback>
             {isDraggingOver && <ReportDropUI />}
-            {!_.isEmpty(suggestionValues.suggestedEmojis) && (
+            {!_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu && (
                 <EmojiSuggestions
                     onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
-                    highlightedEmojiIndex={suggestionValues.highlightedEmojiIndex}
+                    highlightedEmojiIndex={highlightedEmojiIndex}
                     emojis={suggestionValues.suggestedEmojis}
                     comment={value}
                     updateComment={(newComment) => setValue(newComment)}
