@@ -20,6 +20,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import {isMoneyRequestAction} from './ReportActionsUtils';
 
 let sessionEmail;
 let sessionAccountID;
@@ -1064,7 +1065,7 @@ function getReportName(report) {
  */
 function getRootOrExpenseReportName(report) {
     if (isThread(report)) {
-        if (isExpenseReport(report)) {
+        if (isMoneyRequestReport(report)) {
             return lodashGet(report, 'displayName', '');
         }
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
@@ -1105,6 +1106,9 @@ function getChatRoomSubtitle(report) {
  * @returns {String}
  */
 function getChatRoomSubtitleLink(report) {
+    if (report.reportID == '3519318573359925') {
+        debugger;
+    }
     if (isThread(report)) {
         const from = Localize.translateLocal('threads.from');
         const workspaceName = getPolicyName(report);
@@ -1117,9 +1121,9 @@ function getChatRoomSubtitleLink(report) {
             return `${from} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
         }
 
-        if (isExpenseReport(report)) {
+        if (isMoneyRequestReport(report)) {
             const payeeEmail = getDisplayNameForParticipant(report.managerID);
-            return `${from} ${workspaceName ? [payeeEmail, workspaceName].join(' in ') : payeeEmail}`;
+            return isIOUReport(report) ? `${from} ${payeeEmail}` : `${from} ${payeeEmail} in ${workspaceName}`;
         }
 
         return `${from} ${getRootOrExpenseReportName(report)}`;
