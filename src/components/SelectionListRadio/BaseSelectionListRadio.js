@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -27,31 +27,28 @@ const propTypes = {
             /** Array of options */
             data: PropTypes.arrayOf(
                 PropTypes.shape({
-                    // Text to display
+                    /** Text to display */
                     text: PropTypes.string,
 
                     /** Display the text of the option in bold font style */
                     boldStyle: PropTypes.bool,
 
-                    // Alternate text to display
+                    /** Alternate text to display */
                     alternateText: PropTypes.string,
 
-                    // Key used internally by React
+                    /** Key used internally by React */
                     keyForList: PropTypes.string,
 
-                    // Custom icon to render on the right side of the option
+                    /** Custom icon to render on the right side of the option */
                     customIcon: PropTypes.shape({
-                        // The icon source
+                        /** The icon source */
                         src: PropTypes.func,
 
-                        // The color of the icon
+                        /** The icon color */
                         color: PropTypes.string,
                     }),
                 }),
             ),
-
-            /** Whether this section should show or not */
-            shouldShow: PropTypes.bool,
 
             /** Whether this section items disabled for selection */
             isDisabled: PropTypes.bool,
@@ -68,7 +65,6 @@ const propTypes = {
     onChangeText: PropTypes.func,
     keyboardType: PropTypes.string,
     initiallyFocusedOptionKey: PropTypes.string,
-    hideSectionHeaders: PropTypes.bool,
     shouldDelayFocus: PropTypes.bool,
     onScroll: PropTypes.func,
     onScrollBeginDrag: PropTypes.func,
@@ -84,14 +80,13 @@ const defaultProps = {
     keyboardType: CONST.KEYBOARD_TYPE.DEFAULT,
     onChangeText: () => {},
     initiallyFocusedOptionKey: '',
-    hideSectionHeaders: true,
     shouldDelayFocus: false,
     onScroll: () => {},
     onScrollBeginDrag: () => {},
     headerMessage: '',
 };
 
-const SelectionListRadio = (props) => {
+function SelectionListRadio(props) {
     const listRef = useRef(null);
     const pressableRef = useRef(null);
     const textInputRef = useRef(null);
@@ -107,8 +102,9 @@ const SelectionListRadio = (props) => {
         const itemLayouts = [{length: 0, offset}];
 
         _.each(props.sections, (section, sectionIndex) => {
-            // Add the section header dimensions to the itemLayouts array
-            const sectionHeaderHeight = section.title && !props.hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
+            // We're not rendering any section header, but we need to push to the array
+            // because React Native accounts for it in getItemLayout
+            const sectionHeaderHeight = 0;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
@@ -126,17 +122,18 @@ const SelectionListRadio = (props) => {
                 }
                 disabledIndex += 1;
 
-                // Add the item dimensions to the itemLayouts array
+                // Add the item dimensions to calculate cell size
                 const fullItemHeight = variables.optionRowHeight + variables.borderTopWidth;
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
             });
 
-            // Add the section footer dimensions to the itemLayouts array
+            // Add the section footer dimensions to calculate cell size
             itemLayouts.push({length: 0, offset});
         });
 
-        // Add the list footer dimensions to the itemLayouts array
+        // We're not rendering any section footer, but we need to push to the array
+        // because React Native accounts for it in getItemLayout
         itemLayouts.push({length: 0, offset});
 
         return {
@@ -144,9 +141,9 @@ const SelectionListRadio = (props) => {
             disabledOptionsIndexes,
             itemLayouts,
         };
-    }, [props.hideSectionHeaders, props.sections]);
+    }, [props.sections]);
 
-    const [focusedIndex, setFocusedIndex] = React.useState(() => {
+    const [focusedIndex, setFocusedIndex] = useState(() => {
         const defaultIndex = 0;
 
         const indexOfInitiallyFocusedOption = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
@@ -185,7 +182,7 @@ const SelectionListRadio = (props) => {
                 }
             }
 
-            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, viewPosition: 0.5, animated: true});
+            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated: true});
         },
         [flattenedSections.allOptions, props.sections],
     );
@@ -380,7 +377,7 @@ const SelectionListRadio = (props) => {
             </View>
         </ArrowKeyFocusManager>
     );
-};
+}
 
 SelectionListRadio.displayName = 'SelectionListRadio';
 SelectionListRadio.propTypes = propTypes;
