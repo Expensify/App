@@ -793,6 +793,50 @@ Onyx.connect({
 });
 
 /**
+ * After a reportActions change, we may need to update the last visible reportAction
+ * text, author and date store in the report.
+ * 
+ * @param {String} reportID
+ * @param {Object} [optimisticReportActions]
+ * @return {Object} Optimistic and failure onyx updates for the report
+ */
+
+function getReportLastVisibleMessageOnyxUpdatesForReportAfterActionChange(reportID, optimisticReportActions) {
+    let optimisticReport = {
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
+        lastActorAccountID: 0,
+    };
+    const originalReportLastMessage = {
+        lastMessageText: allReports[reportID].lastMessageText,
+        lastVisibleActionCreated: allReports[reportID].lastVisibleActionCreated,
+        lastActorAccountID: allReports[reportID].lastActorAccountID,
+    };
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
+    if (lastMessageText.length > 0) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
+        optimisticReport = {
+            lastMessageText,
+            lastVisibleActionCreated: lastVisibleAction.created,
+            lastActorAccountID: lastVisibleAction.actorAccountID,
+        };
+    }
+
+    const optimisticUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: optimisticReport,
+    };
+
+    const failureUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: originalReportLastMessage,
+    };
+    return {optimisticUpdate, failureUpdate};
+}
+
+/**
  * Deletes a comment from the report, basically sets it as empty string
  *
  * @param {String} reportID
@@ -820,18 +864,7 @@ function deleteReportComment(reportID, reportAction) {
 
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
-    let optimisticReport = {
-        lastMessageText: '',
-        lastVisibleActionCreated: '',
-    };
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    if (lastMessageText.length > 0) {
-        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
-        optimisticReport = {
-            lastMessageText,
-            lastVisibleActionCreated,
-        };
-    }
+    const reportOnyxUpdates = getReportLastVisibleMessageOnyxUpdatesForReportAfterActionChange(reportID, optimisticReportActions);
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
@@ -847,6 +880,7 @@ function deleteReportComment(reportID, reportAction) {
                 },
             },
         },
+        reportOnyxUpdates.failureUpdate,
     ];
 
     const successData = [
@@ -868,11 +902,7 @@ function deleteReportComment(reportID, reportAction) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: optimisticReport,
-        },
+        reportOnyxUpdates.optimisticUpdate,
     ];
 
     const parameters = {
@@ -1748,17 +1778,21 @@ function flagComment(reportID, reportAction, severity) {
         moderationDecisions: updatedDecision,
     };
 
+    const optimisticReportActions = {
+        [reportActionID]: {
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            message: [updatedMessage],
+        },
+    };
+    const reportOnyxUpdates = getReportLastVisibleMessageOnyxUpdatesForReportAfterActionChange(reportID, optimisticReportActions);
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [reportActionID]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    message: [updatedMessage],
-                },
-            },
+            value: optimisticReportActions,
         },
+        reportOnyxUpdates.optimisticUpdate,
     ];
 
     const failureData = [
@@ -1772,6 +1806,7 @@ function flagComment(reportID, reportAction, severity) {
                 },
             },
         },
+        reportOnyxUpdates.failureUpdate,
     ];
 
     const successData = [
