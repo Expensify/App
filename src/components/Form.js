@@ -96,7 +96,7 @@ function Form(props) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const isFirstRender = useRef(true);
-  
+
     const {validate, onSubmit, children} = props;
 
     /**
