@@ -20,10 +20,10 @@ Onyx.connect({
     },
 });
 
-let personalDetails;
+let allPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = val),
+    callback: (val) => (allPersonalDetails = val),
 });
 
 /**
@@ -37,7 +37,7 @@ function getDisplayName(login, personalDetail) {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
-    const userDetails = personalDetail || lodashGet(personalDetails, login);
+    const userDetails = personalDetail || lodashGet(allPersonalDetails, login);
 
     if (!userDetails) {
         return userLogin;
@@ -402,8 +402,8 @@ function updateAvatar(file) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: personalDetails[currentUserAccountID].avatar,
-                    avatarThumbnail: personalDetails[currentUserAccountID].avatarThumbnail || personalDetails[currentUserAccountID].avatar,
+                    avatar: allPersonalDetails[currentUserAccountID].avatar,
+                    avatarThumbnail: allPersonalDetails[currentUserAccountID].avatarThumbnail || allPersonalDetails[currentUserAccountID].avatar,
                     pendingFields: {
                         avatar: null,
                     },
@@ -439,7 +439,7 @@ function deleteAvatar() {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: personalDetails[currentUserAccountID].avatar,
+                    avatar: allPersonalDetails[currentUserAccountID].avatar,
                 },
             },
         },
