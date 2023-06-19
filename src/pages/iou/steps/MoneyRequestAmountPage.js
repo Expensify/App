@@ -441,7 +441,7 @@ class MoneyRequestAmountPage extends React.Component {
         const buttonText = this.isEditing ? this.props.translate('common.save') : this.props.translate('common.next');
 
         return (
-            <FullPageNotFoundView shouldShow={!IOUUtils.isValidType(this.iouType)}>
+            <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(this.iouType)}>
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     onEntryTransitionEnd={this.focusTextInput}
