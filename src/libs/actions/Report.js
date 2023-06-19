@@ -132,7 +132,7 @@ function subscribeToReportTypingEvents(reportID) {
             return;
         }
 
-        // Use a combo of the reportID and the accountID as a key for holding our timers.
+        // Use a combo of the reportID and the accountID or login as a key for holding our timers.
         const reportUserIdentifier = `${reportID}-${accountIDOrLogin}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);

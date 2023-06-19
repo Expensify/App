@@ -27,7 +27,7 @@ const defaultProps = {
 };
 
 function ReportTypingIndicator(props) {
-    const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (accountID) => props.userTypingStatuses[accountID]), [props.userTypingStatuses]);
+    const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (loginOrAccountID) => props.userTypingStatuses[loginOrAccountID]), [props.userTypingStatuses]);
     // If we are offline, the user typing statuses are not up-to-date so do not show them
     if (props.network.isOffline) {
         return null;
