@@ -2898,6 +2898,14 @@ const styles = {
         marginTop: 12,
     },
 
+    shortTermsHeadline: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
+    },
+
     longTermsRow: {
         flexDirection: 'row',
         marginTop: 20,
