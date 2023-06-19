@@ -64,6 +64,9 @@
         select:focus-visible, select:focus[data-focusvisible-polyfill]  {
             box-shadow: none;
         }
+        div[role="checkbox"]:focus-visible > div[data-checkbox], div[role="checkbox"]:focus[data-focusvisible-polyfill] > div[data-checkbox] {
+            border-color: #03D47C !important;
+        }
         ::-ms-reveal {
             display: none;
         }

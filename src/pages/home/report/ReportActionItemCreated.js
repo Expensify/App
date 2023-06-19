@@ -38,7 +38,7 @@ const defaultProps = {
     personalDetails: {},
 };
 
-const ReportActionItemCreated = (props) => {
+function ReportActionItemCreated(props) {
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
@@ -85,7 +85,7 @@ const ReportActionItemCreated = (props) => {
             </View>
         </OfflineWithFeedback>
     );
-};
+}
 
 ReportActionItemCreated.defaultProps = defaultProps;
 ReportActionItemCreated.propTypes = propTypes;
@@ -99,7 +99,7 @@ export default compose(
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(ReportActionItemCreated);

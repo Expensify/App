@@ -6,9 +6,8 @@ import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import compose from '../../../../libs/compose';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -25,6 +24,7 @@ import * as ErrorUtils from '../../../../libs/ErrorUtils';
 import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import ValidateCodeForm from './ValidateCodeForm';
+import ROUTES from '../../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -204,11 +204,9 @@ class ContactMethodDetailsPage extends Component {
 
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={formattedContactMethod}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
                 />
                 <ScrollView keyboardShouldPersistTaps="handled">
                     <ConfirmModal
@@ -217,6 +215,7 @@ class ContactMethodDetailsPage extends Component {
                         onCancel={() => this.toggleDeleteModal(false)}
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
+                        cancelText={this.props.translate('common.cancel')}
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
@@ -232,7 +231,7 @@ class ContactMethodDetailsPage extends Component {
                             <DotIndicatorMessage
                                 type="success"
                                 style={[styles.mb3]}
-                                messages={{0: this.props.translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}}
+                                messages={{0: ['contacts.enterMagicCode', {contactMethod: formattedContactMethod}]}}
                             />
                             <ValidateCodeForm
                                 contactMethod={contactMethod}

@@ -6,8 +6,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
-import Navigation from '../libs/Navigation/Navigation';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import styles from '../styles/styles';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -44,12 +43,12 @@ function ReportWelcomeMessagePage(props) {
     }, []);
 
     const submitForm = useCallback(() => {
-        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage);
+        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage.trim());
     }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
 
     return (
         <ScreenWrapper
-            onTransitionEnd={() => {
+            onEntryTransitionEnd={() => {
                 if (!welcomeMessageInputRef.current) {
                     return;
                 }
@@ -57,16 +56,11 @@ function ReportWelcomeMessagePage(props) {
             }}
         >
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                <HeaderWithCloseButton
-                    title={props.translate('welcomeMessagePage.welcomeMessage')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
-                />
+                <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
-                    validate={() => ({})}
                     submitButtonText={props.translate('common.save')}
                     enabledWhenOffline
                 >
@@ -78,10 +72,11 @@ function ReportWelcomeMessagePage(props) {
                             multiline
                             numberOfLines={10}
                             maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={welcomeMessageInputRef}
+                            ref={(el) => (welcomeMessageInputRef.current = el)}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
+                            textAlignVertical="top"
                         />
                     </View>
                 </Form>

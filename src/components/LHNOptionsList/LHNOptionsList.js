@@ -24,9 +24,6 @@ const propTypes = {
     /** Toggle between compact and default view of the option */
     optionMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)).isRequired,
 
-    /** Callback to execute when the SectionList lays out */
-    onLayout: PropTypes.func.isRequired,
-
     /** Whether to allow option focus or not */
     shouldDisableFocusOptions: PropTypes.bool,
 };
@@ -41,6 +38,7 @@ class LHNOptionsList extends Component {
 
         this.renderItem = this.renderItem.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
+        this.data = this.props.data;
     }
 
     /**
@@ -83,6 +81,11 @@ class LHNOptionsList extends Component {
     }
 
     render() {
+        const areArraysEqual = _.isEqual(this.props.data, this.data);
+        if (!areArraysEqual) {
+            this.data = this.props.data;
+        }
+
         return (
             <View style={[styles.flex1]}>
                 <FlatList
@@ -90,7 +93,7 @@ class LHNOptionsList extends Component {
                     keyboardShouldPersistTaps="always"
                     contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
-                    data={this.props.data}
+                    data={this.data}
                     keyExtractor={(item) => item}
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}
@@ -99,7 +102,6 @@ class LHNOptionsList extends Component {
                     initialNumToRender={5}
                     maxToRenderPerBatch={5}
                     windowSize={5}
-                    onLayout={this.props.onLayout}
                 />
             </View>
         );
