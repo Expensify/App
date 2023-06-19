@@ -136,10 +136,6 @@ function MoneyRequestHeader(props) {
                             <View style={[styles.alignItemsStart]}>
                                 <UserDetailsTooltip
                                     accountID={isExpenseReport ? '' : moneyRequestReport.managerID}
-                                    fallbackUserDetails={{
-                                        avatar: payeeAvatar,
-                                        displayName: ReportUtils.getPolicyName(moneyRequestReport, props.policies),
-                                    }}
                                 >
                                     <Text
                                         style={[styles.headerText, styles.pre]}
