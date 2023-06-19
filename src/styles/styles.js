@@ -1246,7 +1246,7 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: variables.leftPaneMaxWidth,
+        maxWidth: variables.sideBarWidth,
     },
 
     rightPanelContainer: {
@@ -2217,10 +2217,6 @@ const styles = {
         minWidth: 100,
     },
 
-    twoFactorAuthFooter: {
-        marginTop: 'auto',
-    },
-
     anonymousRoomFooter: (isSmallSizeLayout) => ({
         flexDirection: isSmallSizeLayout ? 'column' : 'row',
         ...(!isSmallSizeLayout && {
@@ -2689,10 +2685,6 @@ const styles = {
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
-    },
-
-    cursorPointer: {
-        cursor: 'pointer',
     },
 
     cardStyleNavigator: {
