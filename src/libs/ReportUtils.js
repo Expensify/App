@@ -1969,6 +1969,43 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, iouR
 }
 
 /**
+ * Returns all the participants in the active report
+ *
+ * @param {Object} report The active report object
+ * @param {Object} personalDetails The personal details of the users
+ * @return {Array}
+ */
+function getAllParticipants(report, personalDetails) {
+    const {participantAccountIDs} = report;
+
+    return _.chain(participantAccountIDs)
+        .map((accountID, index) => {
+            const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || Localize.translateLocal('common.hidden'), avatar: ''});
+            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || Localize.translateLocal('common.hidden');
+
+            return {
+                alternateText: userLogin,
+                displayName: userPersonalDetail.displayName,
+                accountID: userPersonalDetail.accountID,
+                icons: [
+                    {
+                        source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
+                        name: userLogin,
+                        type: CONST.ICON_TYPE_AVATAR,
+                    },
+                ],
+                keyForList: `${index}-${userLogin}`,
+                login: userLogin,
+                text: userPersonalDetail.displayName,
+                tooltipText: userLogin,
+                participantsList: [{accountID, displayName: userPersonalDetail.displayName}],
+            };
+        })
+        .sortBy((participant) => participant.displayName.toLowerCase())
+        .value();
+}
+
+/**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads
  * @param {Array} newParticipantList
  * @returns {Array|undefined}
@@ -2251,6 +2288,7 @@ function getParentReport(report) {
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
 }
 
+
 export {
     getAccountIDForLogin,
     getReportParticipantsTitle,
@@ -2343,4 +2381,5 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getAllParticipants,
 };

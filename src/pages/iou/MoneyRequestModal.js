@@ -108,7 +108,7 @@ function MoneyRequestModal(props) {
     const [selectedOptions, setSelectedOptions] = useState(
         ReportUtils.isPolicyExpenseChat(props.report)
             ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
-            : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails),
+            : ReportUtils.getAllParticipants(props.report, props.personalDetails),
     );
     const [amount, setAmount] = useState(0);
 

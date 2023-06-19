@@ -46,45 +46,8 @@ const defaultProps = {
     personalDetails: {},
 };
 
-/**
- * Returns all the participants in the active report
- *
- * @param {Object} report The active report object
- * @param {Object} personalDetails The personal details of the users
- * @return {Array}
- */
-const getAllParticipants = (report, personalDetails) => {
-    const {participantAccountIDs} = report;
-
-    return _.chain(participantAccountIDs)
-        .map((accountID, index) => {
-            const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || 'Hidden', avatar: ''});
-            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || 'Hidden';
-
-            return {
-                alternateText: userLogin,
-                displayName: userPersonalDetail.displayName,
-                accountID: userPersonalDetail.accountID,
-                icons: [
-                    {
-                        source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
-                        name: userLogin,
-                        type: CONST.ICON_TYPE_AVATAR,
-                    },
-                ],
-                keyForList: `${index}-${userLogin}`,
-                login: userLogin,
-                text: userPersonalDetail.displayName,
-                tooltipText: userLogin,
-                participantsList: [{accountID, displayName: userPersonalDetail.displayName}],
-            };
-        })
-        .sortBy((participant) => participant.displayName.toLowerCase())
-        .value();
-};
-
 function ReportParticipantsPage(props) {
-    const participants = getAllParticipants(props.report, props.personalDetails);
+    const participants = ReportUtils.getAllParticipants(props.report, props.personalDetails);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>

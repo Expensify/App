@@ -207,39 +207,6 @@ function isPersonalDetailsReady(personalDetails) {
 }
 
 /**
- * Get the participant options for a report.
- * @param {Object} report
- * @param {Array<Object>} personalDetails
- * @returns {Array}
- */
-function getParticipantsOptions(report, personalDetails) {
-    const participantsAccountIDs = lodashGet(report, 'participantAccountIDs', []);
-    const participants = getPersonalDetailsForAccountIDs(participantsAccountIDs, personalDetails);
-    return _.map(participants, (details, index) => {
-        const userLogin = Str.removeSMSDomain(details.login || '') || 'Hidden';
-
-        return {
-            keyForList: `${index}-${userLogin}`,
-            login: userLogin,
-            accountID: details.accountID,
-            text: details.displayName,
-            firstName: lodashGet(details, 'firstName', ''),
-            lastName: lodashGet(details, 'lastName', ''),
-            alternateText: userLogin,
-            icons: [
-                {
-                    source: UserUtils.getAvatar(details.avatar, details.accountID),
-                    name: details.login,
-                    type: CONST.ICON_TYPE_AVATAR,
-                },
-            ],
-            payPalMeAddress: lodashGet(details, 'payPalMeAddress', ''),
-            phoneNumber: lodashGet(details, 'phoneNumber', ''),
-        }
-    });
-}
-
-/**
  * Constructs a Set with all possible names (displayName, firstName, lastName, email) for all participants in a report,
  * to be used in isSearchStringMatch.
  *
@@ -1026,7 +993,6 @@ export {
     getSearchText,
     getAllReportErrors,
     getPolicyExpenseReportOptions,
-    getParticipantsOptions,
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
