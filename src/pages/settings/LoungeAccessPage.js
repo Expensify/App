@@ -65,6 +65,7 @@ function LoungeAccessPage(props) {
                                     icon={item.icon}
                                     iconWidth={60}
                                     iconHeight={60}
+                                    iconStyles={[styles.mr2]}
                                 />
                             ))}
                         </View>
