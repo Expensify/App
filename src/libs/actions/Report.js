@@ -95,6 +95,8 @@ function getReportChannelName(reportID) {
 function getNormalizedTypingStatus(typingStatus) {
     let normalizedTypingStatus = typingStatus;
 
+    // TODO: figure out what to do from here
+    // probably look up login in personalDetails and convert to accountID if it exists
     if (_.first(_.keys(typingStatus)) === 'userLogin') {
         normalizedTypingStatus = {[typingStatus.userLogin]: true};
     }
@@ -118,26 +120,26 @@ function subscribeToReportTypingEvents(reportID) {
     const pusherChannelName = getReportChannelName(reportID);
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING, (typingStatus) => {
         const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
-        const login = _.first(_.keys(normalizedTypingStatus));
+        const accountID = _.first(_.keys(normalizedTypingStatus));
 
-        if (!login) {
+        if (!accountID) {
             return;
         }
 
-        // Don't show the typing indicator if a user is typing on another platform
-        if (login === currentUserEmail) {
+        // Don't show the typing indicator if the user is typing on another platform
+        if (accountID === currentUserAccountID) {
             return;
         }
 
-        // Use a combo of the reportID and the login as a key for holding our timers.
-        const reportUserIdentifier = `${reportID}-${login}`;
+        // Use a combo of the reportID and the accountID as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${accountID}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
             const typingStoppedStatus = {};
-            typingStoppedStatus[login] = false;
+            typingStoppedStatus[accountID] = false;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
@@ -747,7 +749,7 @@ function setReportWithDraft(reportID, hasDraft) {
 function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
     const typingStatus = {};
-    typingStatus[currentUserEmail] = true;
+    typingStatus[currentUserAccountID] = true;
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 
