@@ -2,7 +2,7 @@ import _ from 'underscore';
 import * as NetworkStore from './NetworkStore';
 import * as SequentialQueue from './SequentialQueue';
 import * as Request from '../Request';
-import CONST from '../CONST';
+import CONST from '../../CONST';
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
