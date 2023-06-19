@@ -134,6 +134,14 @@ class AttachmentCarousel extends React.Component {
         _.forEach(actions, (action) => htmlParser.write(_.get(action, ['message', 0, 'html'])));
         htmlParser.end();
 
+        // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
+        // promotes the natural feeling of swiping left/right to go to the next/previous image
+        // We don't want to invert the list for desktop/web because this interferes with mouse
+        // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
+        if (this.canUseTouchScreen) {
+            attachments.reverse();
+        }
+
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (page === -1) {
             throw new Error('Attachment not found');
