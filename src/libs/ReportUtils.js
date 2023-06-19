@@ -1976,7 +1976,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, iouR
  * @return {Array}
  */
 function getAllParticipants(report, personalDetails) {
-    const {participantAccountIDs} = report;
+    const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
     return _.chain(participantAccountIDs)
         .map((accountID, index) => {
