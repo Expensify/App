@@ -20,6 +20,7 @@ import ContextMenuItem from '../components/ContextMenuItem';
 import * as UserUtils from '../libs/UserUtils';
 import ROUTES from '../ROUTES';
 import withEnvironment, {environmentPropTypes} from '../components/withEnvironment';
+import * as Url from '../libs/Url';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -43,7 +44,8 @@ class ShareCodePage extends React.Component {
         const isReport = this.props.report != null && this.props.report.reportID != null;
         const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
 
-        const url = isReport ? `${this.props.environmentURL}r/${this.props.report.reportID}` : `${this.props.environmentURL}details?login=${encodeURIComponent(this.props.session.email)}`;
+        const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
+        const url = isReport ? `${urlWithTrailingSlash}r/${this.props.report.reportID}` : `${urlWithTrailingSlash}details?login=${encodeURIComponent(this.props.session.email)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
