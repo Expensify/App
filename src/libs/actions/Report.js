@@ -95,8 +95,6 @@ function getReportChannelName(reportID) {
 function getNormalizedTypingStatus(typingStatus) {
     let normalizedTypingStatus = typingStatus;
 
-    // TODO: figure out what to do from here
-    // probably look up login in personalDetails and convert to accountID if it exists
     if (_.first(_.keys(typingStatus)) === 'userLogin') {
         normalizedTypingStatus = {[typingStatus.userLogin]: true};
     }
