@@ -1,7 +1,7 @@
 package com.expensify.chat.customairshipextender;
 
 import static androidx.core.app.NotificationCompat.CATEGORY_MESSAGE;
-import static androidx.core.app.NotificationCompat.PRIORITY_MAX;
+import static androidx.core.app.NotificationCompat.PRIORITY_HIGH;
 
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
@@ -99,7 +99,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setChannelId(CHANNEL_MESSAGES_ID);
         } else {
-            builder.setPriority(PRIORITY_MAX);
+            builder.setPriority(PRIORITY_HIGH);
         }
 
         // Attempt to parse data and apply custom notification styling
@@ -189,7 +189,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String avatar = messageData.get("avatar").getString();
             String accountID = Integer.toString(messageData.get("actorAccountID").getInt(-1));
             String message = messageData.get("message").getList().get(0).getMap().get("text").getString();
-            String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+            String conversationName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
 
             // Retrieve or create the Person object who sent the latest report comment
             Person person = notificationCache.people.get(accountID);
@@ -219,7 +219,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             // notification with the person who sent the report comment.
             NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
                     .setGroupConversation(true)
-                    .setConversationTitle(roomName);
+                    .setConversationTitle(conversationName);
 
             // Add all conversation messages to the notification, including the last one we just received.
             for (NotificationCache.Message cachedMessage : notificationCache.messages) {
