@@ -47,15 +47,13 @@ function LoungeAccessPage(props) {
                     <ScrollView contentContainerStyle={[safeAreaPaddingBottomStyle]}>
                         <Illustrations.Lounge/>
                         <View style={[styles.pageWrapper]}>
-                            <View style={[styles.settingsPageBody]}>
-                                <Text
-                                    style={[styles.textHeadline, styles.preWrap]}
-                                    numberOfLines={2}
-                                >
-                                    {props.translate('loungeAccessPage.headline')}
-                                </Text>
-                                <Text style={[styles.baseFontStyle, styles.mt5]}>{props.translate('loungeAccessPage.description')}</Text>
-                            </View>
+                            <Text
+                                style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                                numberOfLines={2}
+                            >
+                                {props.translate('loungeAccessPage.headline')}
+                            </Text>
+                            <Text style={[styles.baseFontStyle]}>{props.translate('loungeAccessPage.description')}</Text>
                         </View>
                         {_.map(menuItems, (item) => (
                             <MenuItem
@@ -64,7 +62,7 @@ function LoungeAccessPage(props) {
                                 icon={item.icon}
                                 iconWidth={60}
                                 iconHeight={60}
-                                iconStyles={[styles.mr2]}
+                                iconStyles={[styles.mr3, styles.ml3]}
                             />
                         ))}
                     </ScrollView>
