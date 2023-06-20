@@ -190,7 +190,7 @@ function getAvatarBorderStyle(size, type) {
  * @returns {Object}
  */
 function getDefaultWorkspaceAvatarColor(workspaceName) {
-    const colorHash = UserUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
+    const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
@@ -1184,6 +1184,17 @@ function getOuterModalStyle(windowHeight, viewportOffsetTop) {
     return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
+/**
+ * Returns style object for flexWrap depending on the screen size
+ * @param {Boolean} isExtraSmallScreenWidth
+ * @return {Object}
+ */
+function getWrappingStyle(isExtraSmallScreenWidth) {
+    return {
+        flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1250,4 +1261,5 @@ export {
     getMentionTextColor,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
+    getWrappingStyle,
 };

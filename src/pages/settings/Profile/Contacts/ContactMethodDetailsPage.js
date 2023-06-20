@@ -215,6 +215,7 @@ class ContactMethodDetailsPage extends Component {
                         onCancel={() => this.toggleDeleteModal(false)}
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
+                        cancelText={this.props.translate('common.cancel')}
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />

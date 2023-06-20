@@ -189,6 +189,10 @@ export default {
         marginTop: 44,
     },
 
+    mtAuto: {
+        marginTop: 'auto',
+    },
+
     mb0: {
         marginBottom: 0,
     },

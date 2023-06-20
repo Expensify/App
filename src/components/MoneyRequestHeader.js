@@ -72,7 +72,7 @@ const defaultProps = {
     parentReport: {},
 };
 
-const MoneyRequestHeader = (props) => {
+function MoneyRequestHeader(props) {
     // These are only used for the single transaction view and not for expense and iou reports
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
@@ -86,13 +86,12 @@ const MoneyRequestHeader = (props) => {
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerEmail);
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
-        : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
-    
+        : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
     const isPayer =
         Policy.isAdminOfFreePolicy([props.policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']));
+    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <View style={[styles.ph5, styles.pb2]}>
@@ -125,7 +124,7 @@ const MoneyRequestHeader = (props) => {
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
                         {!props.isSingleTransactionView && isSettled && (
-                            <View style={styles.moneyRequestHeaderCheckmark}>
+                            <View style={styles.defaultCheckmarkWrapper}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     fill={themeColors.iconSuccessFill}
@@ -184,7 +183,7 @@ const MoneyRequestHeader = (props) => {
             )}
         </View>
     );
-};
+}
 
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;

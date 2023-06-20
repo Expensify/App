@@ -16,7 +16,7 @@ const defaultProps = {
     message: '',
 };
 
-const InlineSystemMessage = (props) => {
+function InlineSystemMessage(props) {
     if (props.message.length === 0) {
         return null;
     }
@@ -29,7 +29,7 @@ const InlineSystemMessage = (props) => {
             <Text style={[styles.inlineSystemMessage]}>{props.message}</Text>
         </View>
     );
-};
+}
 
 InlineSystemMessage.propTypes = propTypes;
 InlineSystemMessage.defaultProps = defaultProps;

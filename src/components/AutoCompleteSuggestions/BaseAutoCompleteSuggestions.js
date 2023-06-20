@@ -24,7 +24,7 @@ const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
     return numRows * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
 };
 
-const BaseAutoCompleteSuggestions = (props) => {
+function BaseAutoCompleteSuggestions(props) {
     const rowHeight = useSharedValue(0);
     /**
      * Render a suggestion menu item component.
@@ -73,7 +73,7 @@ const BaseAutoCompleteSuggestions = (props) => {
             />
         </Animated.View>
     );
-};
+}
 
 BaseAutoCompleteSuggestions.propTypes = propTypes;
 BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
