@@ -25,6 +25,7 @@ import Clipboard from '../../../../libs/Clipboard';
 import themeColors from '../../../../styles/themes/default';
 import localFileDownload from '../../../../libs/localFileDownload';
 import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
+import * as StyleUtils from '../../../../styles/StyleUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -67,7 +68,7 @@ function CodesPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
             />
             <FullPageOfflineBlockingView>
-                <ScrollView contentContainerStyle={styles.flex1}>
+                <ScrollView>
                     <Section
                         title={props.translate('twoFactorAuth.keepCodesSafe')}
                         icon={Illustrations.ShieldYellow}
@@ -95,7 +96,7 @@ function CodesPage(props) {
                                                 </Text>
                                             ))}
                                     </View>
-                                    <View style={styles.twoFactorAuthCodesButtonsContainer}>
+                                    <View style={[styles.twoFactorAuthCodesButtonsContainer, StyleUtils.getWrappingStyle(props.isExtraSmallScreenWidth)]}>
                                         <PressableWithDelayToggle
                                             text={props.translate('twoFactorAuth.copyCodes')}
                                             textChecked={props.translate('common.copied')}
@@ -124,15 +125,15 @@ function CodesPage(props) {
                             )}
                         </View>
                     </Section>
-                    <FixedFooter style={[styles.twoFactorAuthFooter]}>
-                        <Button
-                            success
-                            text={props.translate('common.next')}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY)}
-                            isDisabled={isNextButtonDisabled}
-                        />
-                    </FixedFooter>
                 </ScrollView>
+                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
+                    <Button
+                        success
+                        text={props.translate('common.next')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY)}
+                        isDisabled={isNextButtonDisabled}
+                    />
+                </FixedFooter>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
