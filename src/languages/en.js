@@ -407,7 +407,6 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
-        loungeAccess: 'Lounge access',
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
