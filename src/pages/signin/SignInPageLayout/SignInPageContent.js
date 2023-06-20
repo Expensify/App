@@ -77,16 +77,11 @@ function SignInPageContent(props) {
                         <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
                     </View>
                     {props.isSmallScreenWidth ? (
-                        <View style={[styles.mt8]}>
+                        <View>
                             <SignInHeroImage />
                         </View>
                     ) : null}
                 </View>
-                {props.isSmallScreenWidth ? (
-                    <View>
-                        <SignInHeroImage />
-                    </View>
-                ) : null}
             </View>
         </ScrollView>
     );
