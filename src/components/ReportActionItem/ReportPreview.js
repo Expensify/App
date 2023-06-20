@@ -21,7 +21,6 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import SettlementButton from '../SettlementButton';
-import themeColors from '../../styles/themes/default';
 import getButtonState from '../../libs/getButtonState';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
@@ -126,15 +125,6 @@ function ReportPreview(props) {
                                 <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
                                     {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
                                 </Text>
-                                {!props.iouReport.hasOutstandingIOU && (
-                                    <View style={styles.iouPreviewBoxCheckmark}>
-                                        <Icon
-                                            style={[styles.ml10]}
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
                             </View>
                         )}
                     </View>
