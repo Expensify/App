@@ -544,11 +544,16 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
  * yourself or a different user, and people won't be starting new chats via accountID usually.
  *
  * @param {Object} userDetails
+ * @param {Boolean} [useAccountID] Should we make the comparison using accountIDs?
  * @returns {Boolean}
  */
-function isCurrentUser(userDetails) {
+function isCurrentUser(userDetails, useAccountID) {
     if (!userDetails) {
         return false;
+    }
+
+    if (useAccountID) {
+        return userDetails.accountID === currentUserAccountID;
     }
 
     // If user login is a mobile number, append sms domain if not appended already.
@@ -602,6 +607,12 @@ function getOptions(
             currentUserOption: null,
         };
     }
+
+    // We're only picking personal details that have logins set
+    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
+    // See for more context
+    // eslint-disable-next-line no-param-reassign
+    personalDetails = _.pick(personalDetails, detail => Boolean(detail.login));
 
     let recentReportOptions = [];
     let personalDetailsOptions = [];
