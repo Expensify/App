@@ -7,7 +7,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
-const Image = (props) => {
+function Image(props) {
     // eslint-disable-next-line react/destructuring-assignment
     const {source, isAuthTokenRequired, session, ...rest} = props;
 
@@ -31,7 +31,7 @@ const Image = (props) => {
             source={imageSource}
         />
     );
-};
+}
 
 Image.propTypes = imagePropTypes;
 Image.defaultProps = defaultProps;

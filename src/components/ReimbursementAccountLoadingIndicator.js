@@ -6,8 +6,7 @@ import ReviewingBankInfoAnimation from '../../assets/animations/ReviewingBankInf
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
-import Navigation from '../libs/Navigation/Navigation';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
@@ -23,33 +22,33 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ReimbursementAccountLoadingIndicator = (props) => (
-    <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
-        <HeaderWithCloseButton
-            title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
-            onCloseButtonPress={Navigation.dismissModal}
-            shouldShowBackButton={props.network.isOffline}
-            onBackButtonPress={props.onBackButtonPress}
-        />
-        <FullPageOfflineBlockingView>
-            {props.isSubmittingVerificationsData ? (
-                <View style={[styles.pageWrapper]}>
-                    <Lottie
-                        source={ReviewingBankInfoAnimation}
-                        autoPlay
-                        loop
-                        style={styles.loadingVBAAnimation}
-                    />
-                    <View style={[styles.ph6]}>
-                        <Text style={[styles.textAlignCenter]}>{props.translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
+function ReimbursementAccountLoadingIndicator(props) {
+    return (
+        <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
+            <HeaderWithBackButton
+                title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
+                onBackButtonPress={props.onBackButtonPress}
+            />
+            <FullPageOfflineBlockingView>
+                {props.isSubmittingVerificationsData ? (
+                    <View style={[styles.pageWrapper]}>
+                        <Lottie
+                            source={ReviewingBankInfoAnimation}
+                            autoPlay
+                            loop
+                            style={styles.loadingVBAAnimation}
+                        />
+                        <View style={[styles.ph6]}>
+                            <Text style={[styles.textAlignCenter]}>{props.translate('reimbursementAccountLoadingAnimation.explanationLine')}</Text>
+                        </View>
                     </View>
-                </View>
-            ) : (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-            )}
-        </FullPageOfflineBlockingView>
-    </ScreenWrapper>
-);
+                ) : (
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                )}
+            </FullPageOfflineBlockingView>
+        </ScreenWrapper>
+    );
+}
 
 ReimbursementAccountLoadingIndicator.propTypes = propTypes;
 ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';

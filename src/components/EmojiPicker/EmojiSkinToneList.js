@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {useState, useCallback} from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as Emojis from '../../../assets/emojis';
@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Stores user's preferred skin tone */
@@ -42,15 +43,17 @@ function EmojiSkinToneList(props) {
     return (
         <View style={[styles.flexRow, styles.p3, styles.ph4, styles.emojiPickerContainer]}>
             {!isSkinToneListVisible && (
-                <Pressable
+                <PressableWithoutFeedback
                     onPress={toggleIsSkinToneListVisible}
                     style={[styles.flex1, styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
+                    accessibilityLabel={props.translate('emojiPicker.skinTonePickerLabel')}
+                    accessibilityRole="button"
                 >
                     <View style={[styles.emojiItem, styles.justifyContentCenter]}>
                         <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>{currentSkinTone.code}</Text>
                     </View>
                     <Text style={[styles.emojiSkinToneTitle]}>{props.translate('emojiPicker.skinTonePickerLabel')}</Text>
-                </Pressable>
+                </PressableWithoutFeedback>
             )}
             {isSkinToneListVisible && (
                 <View style={[styles.flexRow, styles.flex1]}>

@@ -10,7 +10,6 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
-const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
@@ -161,6 +160,8 @@ const CONST = {
             VIEW_HEIGHT: 275,
         },
     },
+
+    RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
@@ -449,6 +450,7 @@ const CONST = {
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
+    CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
@@ -617,6 +619,7 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 79,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
+        OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
     },
     COMPOSER: {
@@ -796,6 +799,7 @@ const CONST = {
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
         URL: 'url',
+        DEFAULT: 'default',
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
@@ -827,13 +831,20 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
+    DESKTOP_HEADER_PADDING: 12,
+    CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
+    SMALL_EMOJI_PICKER_SIZE: {
+        WIDTH: '100%',
+    },
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT_WEB: 200,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     RECIPIENT_LOCAL_TIME_HEIGHT: 25,
     AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
-        ITEM_HEIGHT: 36,
+        SUGGESTER_INNER_PADDING: 8,
+        ITEM_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
         MIN_AMOUNT_OF_ITEMS: 3,
         MAX_AMOUNT_OF_ITEMS: 5,
@@ -852,22 +863,41 @@ const CONST = {
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
-        CONCIERGE: 'concierge@expensify.com',
-        HELP: 'help@expensify.com',
-        RECEIPTS: 'receipts@expensify.com',
+        ACCOUNTING: 'accounting@expensify.com',
+        ADMIN: 'admin@expensify.com',
+        BILLS: 'bills@expensify.com',
         CHRONOS: 'chronos@expensify.com',
-        QA: 'qa@expensify.com',
+        CONCIERGE: 'concierge@expensify.com',
         CONTRIBUTORS: 'contributors@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
-        QA_TRAVIS: 'qa+travisreceipts@expensify.com',
-        BILLS: 'bills@expensify.com',
-        STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
-        ACCOUNTING: 'accounting@expensify.com',
-        PAYROLL: 'payroll@expensify.com',
-        SVFG: 'svfg@expensify.com',
-        INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
-        ADMIN: 'admin@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
+        HELP: 'help@expensify.com',
+        INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+        PAYROLL: 'payroll@expensify.com',
+        QA: 'qa@expensify.com',
+        QA_TRAVIS: 'qa+travisreceipts@expensify.com',
+        RECEIPTS: 'receipts@expensify.com',
+        STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+        SVFG: 'svfg@expensify.com',
+    },
+
+    ACCOUNT_ID: {
+        ACCOUNTING: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_ACCOUNTING', 9645353)),
+        ADMIN: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_ADMIN', -1)),
+        BILLS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_BILLS', 1371)),
+        CHRONOS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_CHRONOS', 10027416)),
+        CONCIERGE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_CONCIERGE', 8392101)),
+        CONTRIBUTORS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_CONTRIBUTORS', 9675014)),
+        FIRST_RESPONDER: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER', 9375152)),
+        HELP: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_HELP', -1)),
+        INTEGRATION_TESTING_CREDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS', -1)),
+        PAYROLL: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_PAYROLL', 9679724)),
+        QA: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA', 3126513)),
+        QA_TRAVIS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA_TRAVIS', 8595733)),
+        RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
+        REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
+        STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
+        SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
     },
 
     ENVIRONMENT: {
@@ -1049,6 +1079,7 @@ const CONST = {
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
+        OWNER_ACCOUNT_ID_FAKE: 0,
     },
 
     CUSTOM_UNITS: {
@@ -1077,6 +1108,7 @@ const CONST = {
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
+        MENTION_ICON: 'mention-icon',
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -1098,7 +1130,7 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
         ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
@@ -1121,8 +1153,9 @@ const CONST = {
             // eslint-disable-next-line no-misleading-character-class
             /[\n\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
-        // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
-        EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
+        SPACE_OR_EMOJI:
+            // eslint-disable-next-line no-misleading-character-class
+            /(\s+|(?:[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)+)/gu,
 
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
         MENTION_REPLACER:
@@ -1154,21 +1187,41 @@ const CONST = {
     },
     get EXPENSIFY_EMAILS() {
         return [
-            this.EMAIL.CONCIERGE,
-            this.EMAIL.HELP,
-            this.EMAIL.RECEIPTS,
+            this.EMAIL.ACCOUNTING,
+            this.EMAIL.ADMIN,
+            this.EMAIL.BILLS,
             this.EMAIL.CHRONOS,
-            this.EMAIL.QA,
+            this.EMAIL.CONCIERGE,
             this.EMAIL.CONTRIBUTORS,
             this.EMAIL.FIRST_RESPONDER,
-            this.EMAIL.QA_TRAVIS,
-            this.EMAIL.BILLS,
-            this.EMAIL.STUDENT_AMBASSADOR,
-            this.EMAIL.ACCOUNTING,
-            this.EMAIL.PAYROLL,
-            this.EMAIL.SVFG,
+            this.EMAIL.HELP,
             this.EMAIL.INTEGRATION_TESTING_CREDS,
-            this.EMAIL.ADMIN,
+            this.EMAIL.PAYROLL,
+            this.EMAIL.QA,
+            this.EMAIL.QA_TRAVIS,
+            this.EMAIL.RECEIPTS,
+            this.EMAIL.STUDENT_AMBASSADOR,
+            this.EMAIL.SVFG,
+        ];
+    },
+    get EXPENSIFY_ACCOUNT_IDS() {
+        return [
+            this.ACCOUNT_ID.ACCOUNTING,
+            this.ACCOUNT_ID.ADMIN,
+            this.ACCOUNT_ID.BILLS,
+            this.ACCOUNT_ID.CHRONOS,
+            this.ACCOUNT_ID.CONCIERGE,
+            this.ACCOUNT_ID.CONTRIBUTORS,
+            this.ACCOUNT_ID.FIRST_RESPONDER,
+            this.ACCOUNT_ID.HELP,
+            this.ACCOUNT_ID.INTEGRATION_TESTING_CREDS,
+            this.ACCOUNT_ID.PAYROLL,
+            this.ACCOUNT_ID.QA,
+            this.ACCOUNT_ID.QA_TRAVIS,
+            this.ACCOUNT_ID.RECEIPTS,
+            this.ACCOUNT_ID.REWARDS,
+            this.ACCOUNT_ID.STUDENT_AMBASSADOR,
+            this.ACCOUNT_ID.SVFG,
         ];
     },
 
@@ -1299,9 +1352,7 @@ const CONST = {
     TFA_CODE_LENGTH: 6,
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 
-    USA_COUNTRY_NAME,
     SPACE_LENGTH: 1,
-    SPACE: 1,
 
     ALL_COUNTRIES: {
         AF: 'Afghanistan',
@@ -2428,12 +2479,13 @@ const CONST = {
     },
     SPACE_CHARACTER_WIDTH: 4,
 
-    // This ID is used in SelectionScraper.js to query the DOM for UnreadActionIndicator's
-    // div and then remove it from copied contents in the getHTMLOfSelection() method.
-    UNREAD_ACTION_INDICATOR_ID: 'no-copy-area-unread-action-indicator',
+    // The attribute used in the SelectionScraper.js helper to query all the DOM elements
+    // that should be removed from the copied contents in the getHTMLOfSelection() method
+    SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        MODERATOR_DECISION_PENDING_REMOVE: 'pendingRemove',
         MODERATOR_DECISION_APPROVED: 'approved',
         MODERATOR_DECISION_HIDDEN: 'hidden',
         FLAG_SEVERITY_SPAM: 'spam',
@@ -2442,6 +2494,13 @@ const CONST = {
         FLAG_SEVERITY_BULLYING: 'bullying',
         FLAG_SEVERITY_HARASSMENT: 'harassment',
         FLAG_SEVERITY_ASSAULT: 'assault',
+    },
+    EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    QR: {
+        DEFAULT_LOGO_SIZE_RATIO: 0.25,
+        DEFAULT_LOGO_MARGIN_RATIO: 0.02,
+        EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
+        EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
 };
 

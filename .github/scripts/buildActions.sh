@@ -26,6 +26,7 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/verifySignedCommits/verifySignedCommits.js"
     "$ACTIONS_DIR/authorChecklist/authorChecklist.js"
     "$ACTIONS_DIR/reviewerChecklist/reviewerChecklist.js"
+    "$ACTIONS_DIR/validateReassureOutput/validateReassureOutput.js"
 )
 
 # This will be inserted at the top of all compiled files as a warning to devs.

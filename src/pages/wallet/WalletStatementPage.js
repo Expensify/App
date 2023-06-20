@@ -6,7 +6,7 @@ import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -62,7 +62,7 @@ class WalletStatementPage extends React.Component {
     componentDidMount() {
         const currentYearMonth = moment().format('YYYYMM');
         if (!this.yearMonth || this.yearMonth.length !== 6 || this.yearMonth > currentYearMonth) {
-            Navigation.dismissModal(true);
+            Navigation.dismissModal();
         }
     }
 
@@ -94,10 +94,9 @@ class WalletStatementPage extends React.Component {
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={Str.recapitalize(title)}
                     shouldShowDownloadButton={!this.props.network.isOffline || this.props.walletStatement.isGenerating}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
                     onDownloadButtonPress={() => this.processDownload(this.yearMonth)}
                 />
                 <FullPageOfflineBlockingView>
