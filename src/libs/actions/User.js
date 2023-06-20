@@ -24,20 +24,20 @@ let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserAccountID = lodashGet(val, 'accountID', -1);
         currentEmail = lodashGet(val, 'email', '');
     },
 });
 
 let myPersonalDetails = {};
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        if (!val || !currentEmail) {
+        if (!val || !currentUserAccountID) {
             return;
         }
 
-        myPersonalDetails = val[currentEmail];
+        myPersonalDetails = val[currentUserAccountID];
     },
 });
 
@@ -360,7 +360,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
     ];
 
     API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -785,14 +785,12 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [newDefaultContactMethod]: {
-                    ...myPersonalDetails,
+                [currentUserAccountID]: {
                     login: newDefaultContactMethod,
                     displayName: PersonalDetails.getDisplayName(newDefaultContactMethod, myPersonalDetails),
                 },
-                [oldDefaultContactMethod]: null,
             },
         },
     ];
@@ -833,10 +831,9 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [newDefaultContactMethod]: null,
-                [oldDefaultContactMethod]: {...myPersonalDetails},
+                [currentUserAccountID]: {...myPersonalDetails},
             },
         },
     ];
