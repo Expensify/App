@@ -549,7 +549,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
-        const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text).toLowerCase();
         const accountID = Number(participant.accountID);
         if (email === currentUserEmail) {
             return;

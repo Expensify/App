@@ -1981,10 +1981,10 @@ function getAllParticipants(report, personalDetails) {
     return _.chain(participantAccountIDs)
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || Localize.translateLocal('common.hidden'), avatar: ''});
-            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || Localize.translateLocal('common.hidden');
+            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '');
 
             return {
-                alternateText: userLogin,
+                alternateText: userLogin || Localize.translateLocal('common.hidden'),
                 displayName: userPersonalDetail.displayName,
                 accountID: userPersonalDetail.accountID,
                 icons: [
