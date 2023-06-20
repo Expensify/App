@@ -1,6 +1,6 @@
 # TypeScript Coding Standards
 
-For our Javascript code style rules, refer to the [JavaScript Style Guide](contributingGuides/STYLE.md). 
+For our Javascript code style rules, refer to the [JavaScript Style Guide](STYLE.md). 
 
 You can also refer to [the TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html) for more information on how to use TypeScript.
 
@@ -8,7 +8,7 @@ You can also refer to [the TypeScript Handbook](https://www.typescriptlang.org/d
 
 ### File structure
 
-- Reusable type definitions, such as models, must have their own file and be placed in a shared directory, e.g. `src/types/`.
+- Reusable type definitions, such as models (e.g. Report), must have their own file and be placed in a shared directory, e.g. `src/types/`.
 - Types specific to a single file should remain inside that file to keep their scope limited and their usage clear.
 - Types specific to a component/file with platform-specific variants should have their own file and be placed in the same folder.
 
@@ -201,11 +201,11 @@ Remove any words that are already clear from the variable's type declaration.
 ```ts
 // Bad
 let nameString: string;
-let holidayDateList: Array<Date>;
+let holidayDateList: Date[];
 
 // Good
 let name: string;
-let holidays: Array<Date>;
+let holidays: Date[];
 ```
 
 Don't include overly specific names that make the code harder to read.
@@ -258,7 +258,7 @@ interface Foo {
 
 Use interfaces only when you encounter a situation where `type` does not fulfill your requirements. Example scenario is when you need to modify or extend an interface from a third-party library that lacks typings or has incorrect typings. 
 
-When extending or correcting interfaces from third-party libraries, always use [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) to maintain code consistency and avoid potential issues.
+When extending or correcting interfaces from third-party libraries, always use [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) to maintain code consistency and avoid potential issues, and declare it inside the `global.d.ts` file.
 
 ```ts
 // Third-party library with missing or incorrect typings
@@ -323,7 +323,7 @@ const COLORS = {
     Green: 'green',
     Blue: 'blue',
 } as const;
-type Colors = ValueOf<typeof COLORS]>
+type Colors = ValueOf<typeof COLORS>
 ```
 
 If using enum is necessary, utilize string enum. Do not use numeric and heterogenous enums. This can help prevent potential bugs at runtime.
@@ -351,7 +351,25 @@ enum Colors {
 
 ## Usage of type `any` and `unknown`
 
-The `any` type allows assignment to all types and dereference of any property, which is undesirable and should be avoided. Instead, in most cases use the `unknown` type which expresses a similar concept and is much safer as it requires narrowing the type before using it.
+Usage of `any` is forbidden unless there is a very good reason for it. The `any` type bypass TypeScript type-checking system, thus making the code less safe and more prone to bugs. Any usage of `any` type must be followed with a comment explaining why you are using it.
+
+```ts
+// Bad
+function processAPIResponse(response: any) {
+    // your code
+}
+
+// Good
+// As we are just going to persist the response in Onyx and
+// it would be very hard to type all possible data structures,
+// we just leave `response` as `any`.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function processAPIResponse (response: any) {
+    // your code
+}
+```
+
+The `any` type allows assignment to all types and dereference of any property, which is undesirable and should be avoided. Instead, and in most cases, use the `unknown` type which expresses a similar concept and is much safer as it requires narrowing the type before using it. When you know that the type structure is a object but you don't have context about the content, use `Record<string, unknown>`.
 
 ```ts
 // Bad
@@ -371,33 +389,25 @@ if (typeof safer === 'string') {
 }
 ```
 
-Usage of `any` is forbidden unless there is a very good reason for it. The `any` type bypass TypeScript type-checking system, thus making the code less safe and more prone to bugs. Any usage of `any` type must be followed with a comment explaining why you are using it.
-
-```ts
-// Bad
-function processAPIResponse(response: any) {
-    // your code
-}
-
-// Good
-// As we are just going to persist the response in Onyx and
-// it would be very hard to type all possible data structures,
-// we just leave `response` as `any`.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function processAPIResponse (response: any) {
-    // your code
-}
-```
-
 ## TypeScript Annotations
 
 ### Usage of `@ts-expect-error`
+
+The `@ts-expect-error` annotation tells the TS compiler to ignore any errors in the following line. However, if there's no error on the following line, TypeScript will raise an error about the comment itself.
+
+```ts
+// @ts-expect-error
+const x: number = 'This is a string'; // No TS error raised
+
+// @ts-expect-error
+const y: number = 123; // TS error: Unused '@ts-expect-error' directive.
+```
 
 During migration, it is expected to find TS errors revealing underlying JS issues. Treat significant errors as separate issues linked to the TS migration issue, unless the fix is minor and verifiable (document it in the PR). Use `@ts-expect-error` for such cases.
 
 ### Usage of `@ts-ignore`
 
-`@ts-ignore` should not be used. If the usage of `@ts-ignore` cannot be avoided for rare situations, explain the reason in a comment.
+The `@ts-ignore` annotation will act in the same way that `@ts-expect-error` does, with the difference that it won't raise an error in the comment if there isn't errors anymore in the code, and for this reason it should not be used. If the usage of `@ts-ignore` cannot be avoided for rare situations, explain the reason in a comment.
 
 ## Optional chaining and nullish coalescing
 
@@ -423,11 +433,14 @@ const [counter, setCounter] = useState<number>(0);
 // Good
 const name = 'name';
 const [counter, setCounter] = useState(0);
+
+// In this case I need to specify the type because `hint` state can be either a `string` or `undefined`.
+const [hint, setHint] = useState<string | undefined>(undefined);
 ```
 
-### Return types
+### Parameter and return types
 
-For function return types, depending on the clarity of the function use inferred types. Provide explicit typing when it enhances code readability.
+For function parameter types, depending on the clarity of the function use inferred types. Provide explicit typing when it enhances code readability.
 
 ```tsx
 // Bad
@@ -480,12 +493,12 @@ Always use const assertions when declaring global constant values.
 
 ```ts
 // Bad
-const CONST = {
+const SOMETHING = {
     // ...
 };
 
 // Good
-const CONST = {
+const SOMETHING = {
     // ...
 } as const;
 ```
@@ -556,7 +569,23 @@ if (isPolicyRoomReport(report)) {
 }
 ```
 
-In this example, we have the `ChatReport` type which can be two possible types of object, `PolicyRoomReport` or `PolicyExpenseChatReport`. The `isPolicyRoomReport` function will accept `report` as a parameter and will narrow the type of `report` to `PolicyRoomReport` if the condition inside it is true, and to PolicyExpenseChatReport if the condition is false.
+In this example, we have the `ChatReport` type which can be two possible types of object, `PolicyRoomReport` or `PolicyExpenseChatReport`. The `isPolicyRoomReport` function will accept `report` as a parameter and will narrow the type of `report` to `PolicyRoomReport` if the condition inside it is true, and to `PolicyExpenseChatReport` if the condition is false.
+
+## Typing arrays
+
+To type arrays, use `T[]` for simple types (i.e. types which are just primitive names or type references). Use `Array<T>` for all other types (union types, intersection types, object types, function types, etc).
+
+```ts
+// T[]
+const items: Item[] = [];
+const labels: string[] = ['name', 'city'];
+const indexes: number[] = [1, 2, 3];
+
+// Array<T>
+const items: Array<Partial<Item>> = [];
+const ids: Array<string | number> = ['some_id', 42];
+const colors: Array<ValueOf<typeof COLORS>> = [];
+```
 
 ## Usage of “defaultProps”
 
@@ -598,22 +627,22 @@ TypeScript provides a more efficient and comprehensive solution for managing pro
 
 When converting a `propTypes` object to a `type`, use the following table to help and guide you in the process:
 
-| PropTypes                                                            | TypeScript           | Instructions                                                                                                                                                                                                                                                                                                      |
-|----------------------------------------------------------------------|----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `PropTypes.any`                                                      | `any`                | Figure out what would be the correct data type, if not possible convert to `any` and leave a comment explaining the reason.                                                                                                                                                                                       |
-| `PropTypes.array` or `PropTypes.arrayOf(T)`                          | `Array<T>`           | Convert to `Array<T>`, where `T` is the data type of the array.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure of your prop and use it.                                                                                                                                  |
-| `PropTypes.bool`                                                     | `boolean`            | Convert to `boolean`.                                                                                                                                                                                                                                                                                             |
-| `PropTypes.func`                                                     | `(args: any) => any` | Convert to the function signature of your prop e.g. `(value: string) => void`.                                                                                                                                                                                                                                    |
-| `PropTypes.number`                                                   | `number`             | Convert to `number`.                                                                                                                                                                                                                                                                                              |
-| `PropTypes.object`, `PropTypes.shape(T)` or `PropTypes.exact(T)`     | `T`                  | If `T` isn't a primitive type, create a separate `type` for the `T` object structure of your prop and use it.<br><br>If you want an empty object, use `EmptyObject` from `type-fest` library.<br><br>If you want an object but isn't possible to determine the internal structure, use `Record<string, unknown>`. |
-| `PropTypes.objectOf(T)`                                              | `Record<string, T>`  | Convert to a `Record<string, T>` where `T` is the data type of your dictionary.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure and use it.                                                                                                                               |
-| `PropTypes.string`                                                   | `string`             | Convert to `string`.                                                                                                                                                                                                                                                                                              |
-| `PropTypes.node`                                                     | `React.ReactNode`    | Convert to `React.ReactNode`.                                                                                                                                                                                                                                                                                     |
-| `PropTypes.element`                                                  | `React.ReactElement` | Convert to `React.ReactElement`.                                                                                                                                                                                                                                                                                  |
-| `PropTypes.symbol`                                                   | `symbol`             | Convert to `symbol`.                                                                                                                                                                                                                                                                                              |
-| `PropTypes.elementType`                                              | `React.ElementType`  | Convert to `React.ElementType`.                                                                                                                                                                                                                                                                                   |
-| `PropTypes.instanceOf(T)`                                            | `T`                  | Convert to `T`.                                                                                                                                                                                                                                                                                                   |
-| `PropTypes.oneOf([T, U, ...])` or `PropTypes.oneOfType([T, U, ...])` | `T \| U \| ...`      | Convert to a union type e.g. `T \| U \| ...`.                                                                                                                                                                                                                                                                     |
+| PropTypes                                                            | TypeScript                              | Instructions                                                                                                                                                                                                                                                                                                      |
+|----------------------------------------------------------------------|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `PropTypes.any`                                                      | `T`, `Record<string, unknown>` or `any` | Figure out what would be the correct data type and use it.<br><br>If you know that it's a object but isn't possible to determine the internal structure, use `Record<string, unknown>`.<br><br>As a last resource, use `any` and leave a comment explaining the reason.                                           |
+| `PropTypes.array` or `PropTypes.arrayOf(T)`                          | `T[]` or `Array<T>`                     | Convert to `T[]` or `Array<T>`, where `T` is the data type of the array.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure of your prop and use it.                                                                                                                         |
+| `PropTypes.bool`                                                     | `boolean`                               | Convert to `boolean`.                                                                                                                                                                                                                                                                                             |
+| `PropTypes.func`                                                     | `(args: any) => any`                    | Convert to the function signature of your prop e.g. `(value: string) => void`.                                                                                                                                                                                                                                    |
+| `PropTypes.number`                                                   | `number`                                | Convert to `number`.                                                                                                                                                                                                                                                                                              |
+| `PropTypes.object`, `PropTypes.shape(T)` or `PropTypes.exact(T)`     | `T`                                     | If `T` isn't a primitive type, create a separate `type` for the `T` object structure of your prop and use it.<br><br>If you want an empty object, use `EmptyObject` from `type-fest` library.<br><br>If you want an object but isn't possible to determine the internal structure, use `Record<string, unknown>`. |
+| `PropTypes.objectOf(T)`                                              | `Record<string, T>`                     | Convert to a `Record<string, T>` where `T` is the data type of your dictionary.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure and use it.                                                                                                                               |
+| `PropTypes.string`                                                   | `string`                                | Convert to `string`.                                                                                                                                                                                                                                                                                              |
+| `PropTypes.node`                                                     | `React.ReactNode`                       | Convert to `React.ReactNode`.                                                                                                                                                                                                                                                                                     |
+| `PropTypes.element`                                                  | `React.ReactElement`                    | Convert to `React.ReactElement`.                                                                                                                                                                                                                                                                                  |
+| `PropTypes.symbol`                                                   | `symbol`                                | Convert to `symbol`.                                                                                                                                                                                                                                                                                              |
+| `PropTypes.elementType`                                              | `React.ElementType`                     | Convert to `React.ElementType`.                                                                                                                                                                                                                                                                                   |
+| `PropTypes.instanceOf(T)`                                            | `T`                                     | Convert to `T`.                                                                                                                                                                                                                                                                                                   |
+| `PropTypes.oneOf([T, U, ...])` or `PropTypes.oneOfType([T, U, ...])` | `T \| U \| ...`                         | Convert to a union type e.g. `T \| U \| ...`.                                                                                                                                                                                                                                                                     |
 
 ```ts
 // Before
@@ -665,14 +694,14 @@ type Input = {
 type Size = 'small' | 'medium' | 'large';
 
 type Props = {
-    unknownData: Array<string>;
+    unknownData: string[];
 
     // It's not possible to infer the data as it can be anything because of reasons X, Y and Z.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     anotherUnknownData: any;
 
-    indexes: Array<number>;
-    items: Array<Item>;
+    indexes: number[];
+    items: Item[];
     shouldShowIcon: boolean;
     onChangeText: (value: string) => void;
     count: number;
