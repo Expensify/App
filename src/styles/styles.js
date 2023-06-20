@@ -1246,7 +1246,7 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: variables.leftPaneMaxWidth,
+        maxWidth: variables.sideBarWidth,
     },
 
     rightPanelContainer: {
@@ -2217,10 +2217,6 @@ const styles = {
         minWidth: 100,
     },
 
-    twoFactorAuthFooter: {
-        marginTop: 'auto',
-    },
-
     anonymousRoomFooter: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -2546,8 +2542,8 @@ const styles = {
         marginBottom: 0,
     },
 
-    iouPreviewBoxCheckmark: {
-        marginLeft: 4,
+    defaultCheckmarkWrapper: {
+        marginLeft: 8,
         alignSelf: 'center',
     },
 
@@ -2678,10 +2674,6 @@ const styles = {
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
-    },
-
-    cursorPointer: {
-        cursor: 'pointer',
     },
 
     cardStyleNavigator: {
@@ -3339,11 +3331,6 @@ const styles = {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
         lineHeight: variables.lineHeightXXLarge,
-    },
-
-    moneyRequestHeaderCheckmark: {
-        marginLeft: 5,
-        alignSelf: 'center',
     },
 
     loginHeroBody: {
