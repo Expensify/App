@@ -14,6 +14,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../components/wit
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import * as Browser from '../libs/Browser';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
@@ -203,7 +204,7 @@ function NewChatPage(props) {
                             onChangeText={updateOptionsWithSearchTerm}
                             headerMessage={headerMessage}
                             boldStyle
-                            shouldFocusOnSelectRow={props.isGroupChat}
+                            shouldFocusOnSelectRow={props.isGroupChat && !Browser.isMobile()}
                             shouldShowConfirmButton={props.isGroupChat}
                             shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                             confirmButtonText={props.translate('newChatPage.createGroup')}
