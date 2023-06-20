@@ -218,7 +218,7 @@ function MoneyRequestConfirmationList(props) {
 
             setParticipants((prevParticipants) => {
                 const newParticipants = _.map(prevParticipants, (participant) => {
-                    if (participant.login === option.login) {
+                    if (participant.accountID === option.accountID) {
                         return {...participant, selected: !participant.selected};
                     }
                     return participant;
