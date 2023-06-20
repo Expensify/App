@@ -17,7 +17,7 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
             return;
         }
 
-        const name = _.get(langEmojis, [item.code, 'name']);
+        const name = lang === CONST.LOCALES.DEFAULT ? item.name : _.get(langEmojis, [item.code, 'name']);
         const node = trie.search(name);
         if (!node) {
             trie.add(name, {code: item.code, types: item.types, name, suggestions: []});

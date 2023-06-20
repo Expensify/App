@@ -5,18 +5,18 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
-import {emojiNameCodeTable, categoryFrequentlyUsed, localeEmojis} from '../../assets/emojis';
+import {emojiNameTable, emojiCodeTable, categoryFrequentlyUsed, localeEmojis} from '../../assets/emojis';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
     callback: (val) => {
         frequentlyUsedEmojis = _.map(val, (item) => {
-            const emoji = emojiNameCodeTable[item.enName || item.name];
+            const emoji = emojiCodeTable[item.code];
             if (emoji) {
-                return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+                return {name: emoji.name, code: emoji.code, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
             }
-        }).filter((i) => i);
+        });
     },
 });
 
@@ -25,7 +25,14 @@ Onyx.connect({
  * @param {String} name
  * @returns {Object}
  */
-const findEmojiByName = (name) => emojiNameCodeTable[name];
+const findEmojiByName = (name) => emojiNameTable[name];
+
+/**
+ *
+ * @param {String} code
+ * @returns {Object}
+ */
+const findEmojiByCode = (code) => emojiCodeTable[code];
 
 /**
  *
@@ -33,7 +40,13 @@ const findEmojiByName = (name) => emojiNameCodeTable[name];
  * @param {String} lang
  * @returns {String}
  */
-const getEmojiName = (emoji, lang = CONST.LOCALES.DEFAULT) => _.get(localeEmojis, [lang, emoji.code, 'name'], '');
+const getEmojiName = (emoji, lang = CONST.LOCALES.DEFAULT) => {
+    if (lang === CONST.LOCALES.DEFAULT) {
+        return emoji.name;
+    }
+
+    return _.get(localeEmojis, [lang, emoji.code, 'name'], '');
+};
 
 /**
  * Given an English emoji name, get its localized version
@@ -42,7 +55,13 @@ const getEmojiName = (emoji, lang = CONST.LOCALES.DEFAULT) => _.get(localeEmojis
  * @param {String} lang
  * @returns {String}
  */
-const getLocalizedEmojiName = (name, lang) => _.get(localeEmojis, [lang, _.get(emojiNameCodeTable, [name, 'code'], ''), 'name'], '');
+const getLocalizedEmojiName = (name, lang) => {
+    if (lang === CONST.LOCALES.DEFAULT) {
+        return name;
+    }
+
+    return _.get(localeEmojis, [lang, _.get(emojiNameTable, [name, 'code'], ''), 'name'], '');
+};
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -208,7 +227,9 @@ function getFrequentlyUsedEmojis(newEmoji) {
             currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
             frequentEmojiList.splice(emojiIndex, 1);
         }
-        const updatedEmoji = {...emoji, ...{count: currentEmojiCount, lastUpdatedAt: currentTimestamp}};
+
+        const {name, code} = emojiCodeTable[emoji.code];
+        const updatedEmoji = {name, code, count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
 
         // We want to make sure the current emoji is added to the list
         // Hence, we take one less than the current frequent used emojis
@@ -303,6 +324,7 @@ function suggestEmojis(text, lang, limit = 5) {
 
     const matching = [];
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
+    console.log('nodes: ', nodes);
     /**
      * structure of matching
      * @property {String} code
@@ -315,7 +337,7 @@ function suggestEmojis(text, lang, limit = 5) {
             if (matching.length === limit) {
                 return matching;
             }
-            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types, enName: getEmojiName(nodes[j].metaData)});
+            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
         }
         const suggestions = nodes[j].metaData.suggestions;
         for (let i = 0; i < suggestions.length; i++) {
@@ -324,8 +346,8 @@ function suggestEmojis(text, lang, limit = 5) {
             }
 
             const suggestion = suggestions[i];
-            if (!_.find(matching, (obj) => obj.name === suggestion.name[lang])) {
-                matching.push({...suggestion, enName: getEmojiName(suggestion)});
+            if (!_.find(matching, (obj) => obj.name === suggestion.name)) {
+                matching.push({...suggestion});
             }
         }
     }
@@ -389,6 +411,7 @@ const getUniqueEmojiCodes = (emoji, users) => {
 
 export {
     findEmojiByName,
+    findEmojiByCode,
     getEmojiName,
     getLocalizedEmojiName,
     getHeaderEmojis,

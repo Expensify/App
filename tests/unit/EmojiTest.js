@@ -10,11 +10,6 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import * as TestHelper from '../utils/TestHelper';
 import CONST from '../../src/CONST';
 
-const convertFrequentlyUsedEmoji = (item) => ({
-    ..._.omit(item, 'name'),
-    ..._.find(Emoji, (emoji) => !emoji.header && emoji.code === item.code),
-});
-
 describe('EmojiTest', () => {
     it('matches all the emojis in the list', () => {
         // Given the set of Emojis available in the application
@@ -128,7 +123,7 @@ describe('EmojiTest', () => {
 
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
-        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin', enName: 'coffin'}]);
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin'}]);
     });
 
     it('suggests a limited number of matching emojis', () => {
@@ -142,13 +137,11 @@ describe('EmojiTest', () => {
             {
                 code: '👍',
                 name: '+1',
-                enName: '+1',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
             },
             {
                 code: '👎',
                 name: '-1',
-                enName: '-1',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
         ]);
@@ -159,19 +152,16 @@ describe('EmojiTest', () => {
             {
                 code: '🤙',
                 name: 'mano_llámame',
-                enName: 'call_me_hand',
                 types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
             },
             {
                 code: '👍',
                 name: '+1',
-                enName: '+1',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
             },
             {
                 code: '👎',
                 name: '-1',
-                enName: '-1',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
         ]);
@@ -232,7 +222,7 @@ describe('EmojiTest', () => {
                 // Then the new emoji should be at the last item of the list
                 const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
 
-                const expectedFrequentlyEmojisList = [..._.map(frequentlyEmojisList, convertFrequentlyUsedEmoji), expectedSmileEmoji];
+                const expectedFrequentlyEmojisList = [...frequentlyEmojisList, expectedSmileEmoji];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
         });
@@ -276,11 +266,7 @@ describe('EmojiTest', () => {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(newEmoji));
 
                 // Then the count should be increased and put into the very front of the other emoji within the same count
-                const expectedFrequentlyEmojisList = [
-                    convertFrequentlyUsedEmoji(frequentlyEmojisList[0]),
-                    {...smileEmoji, count: 2, lastUpdatedAt: currentTime},
-                    ..._.map(frequentlyEmojisList.slice(1, -1), convertFrequentlyUsedEmoji),
-                ];
+                const expectedFrequentlyEmojisList = [frequentlyEmojisList[0], {...smileEmoji, count: 2, lastUpdatedAt: currentTime}, ...frequentlyEmojisList.slice(1, -1)];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
         });
@@ -323,11 +309,11 @@ describe('EmojiTest', () => {
                 // Then the count should be increased for existing emoji and sorted descending by count and lastUpdatedAt
                 const expectedFrequentlyEmojisList = [
                     {...zzzEmoji, count: 3, lastUpdatedAt: currentTime},
-                    convertFrequentlyUsedEmoji(frequentlyEmojisList[0]),
+                    frequentlyEmojisList[0],
                     {...smileEmoji, count: 2, lastUpdatedAt: currentTime},
-                    convertFrequentlyUsedEmoji(frequentlyEmojisList[1]),
+                    frequentlyEmojisList[1],
                     {...impEmoji, count: 1, lastUpdatedAt: currentTime},
-                    convertFrequentlyUsedEmoji(frequentlyEmojisList[3]),
+                    frequentlyEmojisList[3],
                 ];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
@@ -492,7 +478,7 @@ describe('EmojiTest', () => {
                 // Then the last emojis from the list should be replaced with the most recent new emoji (smile)
                 const expectedFrequentlyEmojisList = [
                     {...bookEmoji, count: 4, lastUpdatedAt: currentTime},
-                    ..._.map(frequentlyEmojisList.slice(0, -2), convertFrequentlyUsedEmoji),
+                    ...frequentlyEmojisList.slice(0, -2),
                     {...smileEmoji, count: 1, lastUpdatedAt: currentTime},
                 ];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);

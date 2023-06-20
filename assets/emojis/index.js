@@ -3,7 +3,7 @@ import emojis from './common';
 import enEmojis from './en';
 import esEmojis from './es';
 
-const emojiNameCodeTable = _.reduce(
+const emojiNameTable = _.reduce(
     emojis,
     (prev, cur) => {
         const newValue = prev;
@@ -15,10 +15,22 @@ const emojiNameCodeTable = _.reduce(
     {},
 );
 
+const emojiCodeTable = _.reduce(
+    emojis,
+    (prev, cur) => {
+        const newValue = prev;
+        if (!cur.header) {
+            newValue[cur.code] = cur;
+        }
+        return newValue;
+    },
+    {},
+);
+
 const localeEmojis = {
     en: enEmojis,
     es: esEmojis,
 };
 
-export {emojiNameCodeTable, localeEmojis};
+export {emojiNameTable, emojiCodeTable, localeEmojis};
 export {skinTones, categoryFrequentlyUsed, default} from './common';
