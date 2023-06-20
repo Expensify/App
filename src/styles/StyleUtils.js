@@ -752,17 +752,6 @@ function getPaddingLeft(paddingLeft) {
 }
 
 /**
- * Get variable margin-top as style
- * @param {Number} marginTop
- * @returns {Object}
- */
-function getMarginTop(marginTop) {
-    return {
-        marginTop,
-    };
-}
-
-/**
  * Checks to see if the iOS device has safe areas or not
  *
  * @param {Number} windowWidth
@@ -1231,7 +1220,6 @@ export {
     parseStyleFromFunction,
     combineStyles,
     getPaddingLeft,
-    getMarginTop,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
