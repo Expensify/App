@@ -133,7 +133,7 @@ describe('EmojiTest', () => {
     });
 
     it('correct suggests emojis accounting for keywords', () => {
-        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual([
+        const thumbEmojis = [
             {
                 code: '👍',
                 name: '+1',
@@ -144,9 +144,11 @@ describe('EmojiTest', () => {
                 name: '-1',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
-        ]);
+        ];
 
-        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual([]);
+        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual(thumbEmojis);
+
+        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojis);
 
         expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
             {
