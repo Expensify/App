@@ -117,7 +117,6 @@ class PronounsPage extends Component {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
                 />
                 <Text style={[styles.ph5, styles.mb3]}>{this.props.translate('pronounsPage.isShownOnProfile')}</Text>
-
                 <SelectionListRadio
                     headerMessage={headerMessage}
                     textInputLabel={this.props.translate('pronounsPage.pronouns')}

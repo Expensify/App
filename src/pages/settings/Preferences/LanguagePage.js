@@ -30,7 +30,6 @@ function LanguagePage(props) {
                 title={props.translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
-
             <SelectionListRadio
                 sections={[{data: localesToLanguages}]}
                 onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}

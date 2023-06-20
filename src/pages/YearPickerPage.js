@@ -92,7 +92,6 @@ class YearPickerPage extends React.Component {
                     title={this.props.translate('yearPickerPage.year')}
                     onBackButtonPress={() => Navigation.goBack(`${this.props.route.params.backTo}?year=${this.currentYear}` || ROUTES.HOME)}
                 />
-
                 <SelectionListRadio
                     textInputLabel={this.props.translate('yearPickerPage.selectYear')}
                     textInputValue={this.state.inputText}

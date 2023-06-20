@@ -44,7 +44,6 @@ function PriorityModePage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
-
             <SelectionListRadio
                 sections={[{data: priorityModes}]}
                 onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
