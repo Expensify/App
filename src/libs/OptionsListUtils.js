@@ -233,7 +233,6 @@ function getParticipantsOptions(report, personalDetails) {
         ],
         payPalMeAddress: lodashGet(details, 'payPalMeAddress', ''),
         phoneNumber: lodashGet(details, 'phoneNumber', ''),
-        isMoneyRequestReport: true,
     }));
 }
 
