@@ -96,10 +96,12 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
+    const requestComment = 'Hey';
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
+    const manageraccountID = props.iouReport.managerID || 0;
     const managerName =
-        (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true)) || managerEmail;
+        (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(manageraccountID, true)) || managerEmail;
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
@@ -125,11 +127,11 @@ function ReportPreview(props) {
                                 ) : (
                                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('iou.payerPaid', {payer: managerName})}</Text>
                                 )}
-                                <Icon
-                                    src={Expensicons.ArrowRight}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-                                />
                             </View>
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                            />
                         </View>
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>

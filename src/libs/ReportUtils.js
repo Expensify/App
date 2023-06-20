@@ -937,6 +937,13 @@ function getMoneyRequestTotal(report, moneyRequestReports = {}) {
     return 0;
 }
 
+function getMoneyRequestComment(report) {
+    if (!report.hasOutstandingIOU || !isMoneyRequestReport(report)) {
+        return '';
+    }
+
+}
+
 /**
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  *
