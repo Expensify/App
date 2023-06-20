@@ -8,10 +8,10 @@ import styles from '../../styles/styles';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import CONST from '../../CONST';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import variables from '../../styles/variables';
 import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListRadioDefaultProps} from './selectionListRadioPropTypes';
 import RadioListItem from './RadioListItem';
+import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 
 const propTypes = {
     ...selectionListRadioPropTypes,
@@ -186,53 +186,22 @@ function SelectionListRadio(props) {
         scrollToIndex(focusedIndex);
     }, [flattenedSections.allOptions, focusedIndex, props.sections]);
 
-    /** Subscribes to `Enter` and `CTRL Enter` keyboard shortcuts, and select the row when pressed */
-    useEffect(() => {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        const unsubscribeEnter = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            () => {
-                const focusedOption = flattenedSections.allOptions[focusedIndex];
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ENTER,
+        () => {
+            const focusedOption = flattenedSections.allOptions[focusedIndex];
 
-                if (!focusedOption) {
-                    return;
-                }
-
-                props.onSelectRow(focusedOption);
-            },
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !flattenedSections.allOptions[focusedIndex],
-        );
-
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        const unsubscribeCTRLEnter = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                const focusedOption = flattenedSections.allOptions[focusedIndex];
-
-                if (!focusedOption) {
-                    return;
-                }
-
-                props.onSelectRow(focusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
-
-        return () => {
-            if (unsubscribeEnter) {
-                unsubscribeEnter();
+            if (!focusedOption) {
+                return;
             }
 
-            if (unsubscribeCTRLEnter) {
-                unsubscribeCTRLEnter();
-            }
-        };
-    }, [flattenedSections.allOptions, focusedIndex, props]);
+            props.onSelectRow(focusedOption);
+        },
+        {
+            captureOnInputs: true,
+            shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+        },
+    );
 
     return (
         <ArrowKeyFocusManager
