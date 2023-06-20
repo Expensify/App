@@ -1058,13 +1058,18 @@ function getReportName(report) {
  * @param {Object} report
  * @returns {String|*}
  */
-function getRootOrExpenseReportName(report) {
+function getRootOrExpenseReportNameWithWorkspace(report) {
     if (isThread(report)) {
-        if (isMoneyRequestReport(report)) {
+        if (isIOUReport(report)) {
             return lodashGet(report, 'displayName', '');
         }
+        if (isExpenseReport(report)) {
+            const workspaceName = getPolicyName(report);
+            return `${lodashGet(report, 'displayName', '')} in ${workspaceName}`;
+        }
+
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-        return getRootOrExpenseReportName(parentReport);
+        return getRootOrExpenseReportNameWithWorkspace(parentReport);
     }
 
     return getReportName(report);
@@ -1118,7 +1123,7 @@ function getChatRoomSubtitleLink(report) {
             return isIOUReport(report) ? `${from} ${payeeEmail}` : `${from} ${payeeEmail} in ${workspaceName}`;
         }
 
-        return `${from} ${getRootOrExpenseReportName(report)}`;
+        return `${from} ${getRootOrExpenseReportNameWithWorkspace(report)}`;
     }
     return '';
 }
