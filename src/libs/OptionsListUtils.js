@@ -314,6 +314,9 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
                 // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
                 // More info https://github.com/Expensify/App/issues/8007
                 searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+            } else if (personalDetail.displayName) {
+                // For unknown users, if login is not set and displayName is set, then set searchText on the basis of displayName
+                searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.displayName.replace(/\.(?=[^\s@]*@)/g, '')]);
             }
         }
     }
@@ -719,7 +722,7 @@ function getOptions(
 
             recentReportOptions.push(reportOption);
 
-            // Add this accountID to the exclude list so it won't appear when we process the personal details
+            // Add this accountID to the exclude list, so it won't appear when we process the personal details
             if (reportOption.accountID) {
                 accountIDOptionsToExclude.push({accountID: reportOption.accountID});
             }
@@ -741,15 +744,14 @@ function getOptions(
         });
     }
 
-    let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
+    let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.accountID === currentUserAccountID);
     if (searchValue && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
         currentUserOption = null;
     }
 
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
-
+    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) =>  (option.login || option.searchText) === searchValue.toLowerCase());
     if (
         searchValue &&
         (noOptions || noOptionsMatchExactly) &&
