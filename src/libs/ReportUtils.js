@@ -20,6 +20,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let sessionEmail;
 let sessionAccountID;
@@ -1970,14 +1971,14 @@ function getAllParticipants(report, personalDetails) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
     return _.chain(participantAccountIDs)
-        .map((accountID, index) => {
+        .map((accountID) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || Localize.translateLocal('common.hidden'), avatar: ''});
-            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '');
+            const userLogin = Str.isSMSLogin(userPersonalDetail.login || '') ? LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login) : userPersonalDetail.login;
 
             return {
+                accountID: userPersonalDetail.accountID,
                 alternateText: userLogin || Localize.translateLocal('common.hidden'),
                 displayName: userPersonalDetail.displayName,
-                accountID: userPersonalDetail.accountID,
                 icons: [
                     {
                         source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
@@ -1985,7 +1986,7 @@ function getAllParticipants(report, personalDetails) {
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                keyForList: `${index}-${userLogin}`,
+                keyForList: String(userPersonalDetail.accountID),
                 login: userLogin,
                 text: userPersonalDetail.displayName,
                 tooltipText: userLogin,
