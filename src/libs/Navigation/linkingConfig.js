@@ -285,7 +285,6 @@ export default {
                     Participants: {
                         screens: {
                             ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,
-                            ReportParticipants_Details: ROUTES.REPORT_PARTICIPANT,
                         },
                     },
                     IOU_Request: {
