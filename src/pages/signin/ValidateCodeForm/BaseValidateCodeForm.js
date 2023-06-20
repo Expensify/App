@@ -258,7 +258,7 @@ function BaseValidateCodeForm(props) {
                         {timeRemaining > 0 && !props.network.isOffline ? (
                             <Text style={[styles.mt2]}>
                                 {props.translate('validateCodeForm.requestNewCode')}
-                                <Text style={[styles.validateCodeTimer]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
+                                <Text style={[styles.textBlue]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
                             </Text>
                         ) : (
                             <PressableWithFeedback
