@@ -13,7 +13,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+// import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
@@ -338,16 +338,17 @@ function MoneyRequestModal(props) {
     const enableMaxHeight = DeviceCapabilities.canUseTouchScreen() && currentStep === Steps.MoneyRequestParticipants;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.report);
 
+    // TODO: investigate the didScreenTransitionEnd being false all the time
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={enableMaxHeight}
         >
+            {/* eslint-disable-next-line no-unused-vars */}
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <View style={[styles.pRelative, styles.flex1]}>
-                        {!didScreenTransitionEnd && <FullScreenLoadingIndicator />}
-                        {didScreenTransitionEnd && (
+                        {/* {!didScreenTransitionEnd && <FullScreenLoadingIndicator />} */}
                             <>
                                 {currentStep === Steps.MoneyRequestAmount && (
                                     <AnimatedStep
@@ -420,7 +421,7 @@ function MoneyRequestModal(props) {
                                     </AnimatedStep>
                                 )}
                             </>
-                        )}
+                        {/* )} */}
                     </View>
                 </>
             )}
