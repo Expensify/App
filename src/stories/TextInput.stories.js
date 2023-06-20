@@ -123,12 +123,13 @@ AutoGrowInput.args = {
     name: 'AutoGrow',
     placeholder: 'My placeholder text',
     autoGrow: true,
-    value: '',
     textInputContainerStyles: [
         {
             minWidth: 150,
+            maxWidth: 500,
         },
     ],
+    value: '',
 };
 
 const AutoGrowHeightInput = AutoGrowSupportInput.bind({});
