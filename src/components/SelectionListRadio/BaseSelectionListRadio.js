@@ -1,90 +1,41 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import Icon from '../Icon';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import variables from '../../styles/variables';
-import * as Expensicons from '../Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
+import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListRadioDefaultProps} from './selectionListRadioPropTypes';
+import RadioListItem from './RadioListItem';
 
 const propTypes = {
-    /** Sections for the section list */
-    sections: PropTypes.arrayOf(
-        PropTypes.shape({
-            /** Title of the section */
-            title: PropTypes.string,
-
-            /** The initial index of this section given the total number of options in each section's data array */
-            indexOffset: PropTypes.number,
-
-            /** Array of options */
-            data: PropTypes.arrayOf(
-                PropTypes.shape({
-                    /** Text to display */
-                    text: PropTypes.string,
-
-                    /** Alternate text to display */
-                    alternateText: PropTypes.string,
-
-                    /** Key used internally by React */
-                    keyForList: PropTypes.string,
-
-                    /** Whether this option is selected */
-                    isSelected: PropTypes.bool,
-                }),
-            ),
-
-            /** Whether this section items disabled for selection */
-            isDisabled: PropTypes.bool,
-        }),
-    ).isRequired,
-
-    /** Callback to fire when a row is tapped */
-    onSelectRow: PropTypes.func,
-
-    textInputLabel: PropTypes.string,
-    textInputPlaceholder: PropTypes.string,
-    textInputValue: PropTypes.string,
-    textInputMaxLength: PropTypes.number,
-    onChangeText: PropTypes.func,
-    keyboardType: PropTypes.string,
-    initiallyFocusedOptionKey: PropTypes.string,
-    shouldDelayFocus: PropTypes.bool,
-    onScroll: PropTypes.func,
-    onScrollBeginDrag: PropTypes.func,
-    headerMessage: PropTypes.string,
+    ...selectionListRadioPropTypes,
 };
 
 const defaultProps = {
-    onSelectRow: () => {},
-    textInputLabel: '',
-    textInputPlaceholder: '',
-    textInputValue: '',
-    textInputMaxLength: undefined,
-    keyboardType: CONST.KEYBOARD_TYPE.DEFAULT,
-    onChangeText: () => {},
-    initiallyFocusedOptionKey: '',
-    shouldDelayFocus: false,
-    onScroll: () => {},
-    onScrollBeginDrag: () => {},
-    headerMessage: '',
+    ...selectionListRadioDefaultProps,
 };
 
 function SelectionListRadio(props) {
     const listRef = useRef(null);
-    const pressableRef = useRef(null);
     const textInputRef = useRef(null);
+    const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(props.textInputLabel);
 
+    /**
+     * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
+     * - `allOptions`: Contains all the items in the list, flattened, regardless of section
+     * - `disabledOptionsIndexes`: Contains the indexes of all the disabled items in the list, to be used by the ArrowKeyFocusManager
+     * - `itemLayouts`: Contains the layout information for each item, header and footer in the list,
+     * so we can calculate the position of any given item when scrolling programmatically
+     *
+     * @return {{itemLayouts: [{offset: number, length: number}], disabledOptionsIndexes: *[], allOptions: *[]}}
+     */
     const getFlattenedSections = () => {
         const allOptions = [];
 
@@ -152,37 +103,6 @@ function SelectionListRadio(props) {
     });
 
     /**
-     * Scrolls to the focused index within the SectionList
-     *
-     * @param {Number} index
-     */
-    const scrollToIndex = useCallback(
-        (index) => {
-            const item = flattenedSections.allOptions[index];
-
-            if (!listRef.current || !item) {
-                return;
-            }
-
-            const itemIndex = item.index;
-            const sectionIndex = item.sectionIndex;
-
-            // Note: react-native's SectionList automatically strips out any empty sections.
-            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-            let adjustedSectionIndex = sectionIndex;
-            for (let i = 0; i < sectionIndex; i++) {
-                if (_.isEmpty(lodashGet(props.sections, `[${i}].data`))) {
-                    adjustedSectionIndex--;
-                }
-            }
-
-            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated: true});
-        },
-        [flattenedSections.allOptions, props.sections],
-    );
-
-    /**
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
      *
@@ -212,69 +132,61 @@ function SelectionListRadio(props) {
         const isFocused = focusedIndex === index + lodashGet(section, 'indexOffset', 0);
 
         return (
-            <PressableWithFeedback
-                ref={pressableRef}
-                onPress={() => props.onSelectRow(item)}
-                accessibilityLabel={item.text}
-                accessibilityRole="button"
-                hoverDimmingValue={1}
-                hoverStyle={styles.hoveredComponentBG}
-                focusStyle={styles.hoveredComponentBG}
-            >
-                <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, isFocused && styles.sidebarLinkActive]}>
-                    <View style={[styles.flex1, styles.alignItemsStart]}>
-                        <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.isSelected && styles.sidebarLinkTextBold]}>
-                            {item.text}
-                        </Text>
-
-                        {Boolean(item.alternateText) && (
-                            <Text style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}>
-                                {item.alternateText}
-                            </Text>
-                        )}
-                    </View>
-
-                    {item.isSelected && (
-                        <View
-                            style={[styles.flexRow, styles.alignItemsCenter]}
-                            accessible={false}
-                        >
-                            <View>
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    fill={themeColors.success}
-                                />
-                            </View>
-                        </View>
-                    )}
-                </View>
-            </PressableWithFeedback>
+            <RadioListItem
+                item={item}
+                isFocused={isFocused}
+                onSelectRow={props.onSelectRow}
+            />
         );
     };
 
+    /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
     useEffect(() => {
-        let focusTimeout;
-
         if (shouldShowTextInput) {
             if (props.shouldDelayFocus) {
-                focusTimeout = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
+                focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
             } else {
                 textInputRef.current.focus();
             }
         }
 
         return () => {
-            if (!focusTimeout) {
+            if (!focusTimeoutRef.current) {
                 return;
             }
-            clearTimeout(focusTimeout);
+            clearTimeout(focusTimeoutRef.current);
         };
     }, [props.shouldDelayFocus, shouldShowTextInput]);
 
+    /** Scrolls to the focused index within the SectionList */
     useEffect(() => {
-        scrollToIndex(focusedIndex);
-    }, [focusedIndex, scrollToIndex]);
+        const scrollToIndex = (index) => {
+            const item = flattenedSections.allOptions[index];
 
+            if (!listRef.current || !item) {
+                return;
+            }
+
+            const itemIndex = item.index;
+            const sectionIndex = item.sectionIndex;
+
+            // Note: react-native's SectionList automatically strips out any empty sections.
+            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
+            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+            let adjustedSectionIndex = sectionIndex;
+            for (let i = 0; i < sectionIndex; i++) {
+                if (_.isEmpty(lodashGet(props.sections, `[${i}].data`))) {
+                    adjustedSectionIndex--;
+                }
+            }
+
+            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated: true});
+        };
+
+        scrollToIndex(focusedIndex);
+    }, [flattenedSections.allOptions, focusedIndex, props.sections]);
+
+    /** Subscribes to `Enter` and `CTRL Enter` keyboard shortcuts, and select the row when pressed */
     useEffect(() => {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         const unsubscribeEnter = KeyboardShortcut.subscribe(
@@ -344,13 +256,11 @@ function SelectionListRadio(props) {
                         />
                     </View>
                 )}
-
                 {props.headerMessage && (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
                     </View>
                 )}
-
                 <SectionList
                     ref={listRef}
                     sections={props.sections}
