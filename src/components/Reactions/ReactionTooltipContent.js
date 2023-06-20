@@ -22,7 +22,7 @@ const propTypes = {
     /**
      * A list of account IDs to display in the tooltip.
      */
-    accountIDs: PropTypes.arrayOf(PropTypes.string).isRequired,
+    accountIDs: PropTypes.arrayOf(PropTypes.number).isRequired,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
