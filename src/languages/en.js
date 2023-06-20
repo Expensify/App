@@ -144,11 +144,7 @@ export default {
         per: 'per',
         mi: 'mile',
         km: 'kilometer',
-<<<<<<< HEAD
-=======
-        copied: 'Copied!',
         someone: 'Someone',
->>>>>>> b25a014743 (Merge pull request #21029 from Expensify/beaman-fixUserIsTypingIndicator)
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
