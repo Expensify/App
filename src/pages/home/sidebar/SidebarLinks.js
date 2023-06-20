@@ -157,7 +157,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute || this.props.currentReportId);
 
         const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
 
