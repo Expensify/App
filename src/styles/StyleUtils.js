@@ -1186,6 +1186,17 @@ function getOuterModalStyle(windowHeight, viewportOffsetTop) {
 }
 
 /**
+ * Returns style object for flexWrap depending on the screen size
+ * @param {Boolean} isExtraSmallScreenWidth
+ * @return {Object}
+ */
+function getWrappingStyle(isExtraSmallScreenWidth) {
+    return {
+        flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
+    };
+}
+
+/**
  * Returns link styles based on whether the link is disabled or not
  * @param {Boolean} isDisabled
  * @returns {Object}
@@ -1268,5 +1279,6 @@ export {
     getMentionTextColor,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
+    getWrappingStyle,
     getDisabledLinkStyles,
 };
