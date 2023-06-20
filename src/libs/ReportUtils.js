@@ -2280,7 +2280,6 @@ function getParentReport(report) {
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
 }
 
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
