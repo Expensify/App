@@ -25,6 +25,7 @@ import getButtonState from '../../libs/getButtonState';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** All the data of the action */
