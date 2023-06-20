@@ -1,8 +1,6 @@
 import React, {useState} from 'react';
 import _ from 'underscore';
 import SelectionListRadio from '../components/SelectionListRadio';
-import * as Expensicons from '../components/Icon/Expensicons';
-import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 
 /**
@@ -18,22 +16,19 @@ const story = {
 const ITEMS = [
     {
         text: 'Option 1',
-        boldStyle: false,
         keyForList: 'option-1',
     },
     {
         text: 'Option 2',
-        boldStyle: false,
         keyForList: 'option-2',
     },
     {
         text: 'Option 3',
-        boldStyle: false,
         keyForList: 'option-3',
     },
 ];
 
-const Default = (props) => {
+function Default(props) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const data = _.map(ITEMS, (item, index) => {
@@ -41,8 +36,7 @@ const Default = (props) => {
 
         return {
             ...item,
-            boldStyle: isSelected,
-            customIcon: isSelected ? {src: Expensicons.Checkmark, color: themeColors.success} : undefined,
+            isSelected,
         };
     });
 
@@ -60,11 +54,11 @@ const Default = (props) => {
             {...props}
         />
     );
-};
+}
 
 Default.args = {};
 
-const WithTextInput = (props) => {
+function WithTextInput(props) {
     const [searchText, setSearchText] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(1);
 
@@ -76,13 +70,7 @@ const WithTextInput = (props) => {
             }
 
             const isSelected = index === selectedIndex;
-
-            memo.push({
-                ...item,
-                boldStyle: isSelected,
-                customIcon: isSelected ? {src: Expensicons.Checkmark, color: themeColors.success} : undefined,
-            });
-
+            memo.push({...item, isSelected});
             return memo;
         },
         [],
@@ -104,7 +92,7 @@ const WithTextInput = (props) => {
             {...props}
         />
     );
-};
+}
 
 WithTextInput.args = {
     textInputLabel: 'Option list',
@@ -113,12 +101,14 @@ WithTextInput.args = {
     keyboardType: CONST.KEYBOARD_TYPE.NUMBER_PAD,
 };
 
-const WithHeaderMessage = (props) => (
-    <WithTextInput
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-    />
-);
+function WithHeaderMessage(props) {
+    return (
+        <WithTextInput
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        />
+    );
+}
 
 WithHeaderMessage.args = {
     ...WithTextInput.args,
@@ -126,7 +116,7 @@ WithHeaderMessage.args = {
     sections: [],
 };
 
-const WithAlternateText = (props) => {
+function WithAlternateText(props) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const data = _.map(ITEMS, (item, index) => {
@@ -134,9 +124,8 @@ const WithAlternateText = (props) => {
 
         return {
             ...item,
-            boldStyle: isSelected,
-            customIcon: isSelected ? {src: Expensicons.Checkmark, color: themeColors.success} : undefined,
             alternateText: `Alternate ${index + 1}`,
+            isSelected,
         };
     });
 
@@ -154,7 +143,7 @@ const WithAlternateText = (props) => {
             {...props}
         />
     );
-};
+}
 
 WithAlternateText.args = {
     ...Default.args,
