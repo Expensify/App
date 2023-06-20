@@ -12,8 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import MenuItem from '../../components/MenuItem';
 import compose from '../../libs/compose';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import * as StyleUtils from '../../styles/StyleUtils';
-import Icon from '../../components/Icon';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -35,6 +33,10 @@ function LoungeAccessPage(props) {
             icon: Illustrations.SanFrancisco,
         },
     ];
+    const illustrationStyle = props.isSmallScreenWidth ? {
+        width: props.windowWidth,
+        height: .64 * props.windowWidth,
+    } : {};
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -45,8 +47,10 @@ function LoungeAccessPage(props) {
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     />
                     <ScrollView contentContainerStyle={[safeAreaPaddingBottomStyle]}>
-                        <Illustrations.Lounge/>
-                        <View style={[styles.pageWrapper]}>
+                        <View style={[illustrationStyle]}>
+                            <Illustrations.Lounge />
+                        </View>
+                        <View style={[styles.pageWrapperNotCentered]}>
                             <Text
                                 style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                                 numberOfLines={2}
