@@ -18,10 +18,11 @@ Onyx.connect({
  * @returns {String}
  */
 function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
-    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
+    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName, defaultValue);
 
-    return displayName || defaultValue || 'Hidden';
+    return lodashGet(displayName, 'length') ? displayName : 'Hidden';
 }
+
 
 /**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
