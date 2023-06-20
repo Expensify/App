@@ -120,6 +120,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
         }
 
         return newSections;
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- props does not need to be a dependency as it will always exist
     }, [maxParticipantsReached, newChatOptions, props.participants, props.translate]);
 
     /**
@@ -158,6 +159,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
                 setSearchTerm('');
             }
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- props does not need to be a dependency as it will always exist
         [searchTerm, props.participants, props.onAddParticipants, props.reports, props.personalDetails, props.betas, setNewChatOptions, setSearchTerm],
     );
 
