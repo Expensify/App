@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -68,13 +68,15 @@ function MoneyRequestParticipantsSplitSelector(props) {
         userToInvite: null,
     });
 
+    const maxParticipantsReached = props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+
     /**
      * Returns the sections needed for the OptionsSelector
      *
      * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
-    const getSections = (maxParticipantsReached) => {
+    const sections = useMemo(() => {
         const newSections = [];
         let indexOffset = 0;
 
@@ -118,42 +120,47 @@ function MoneyRequestParticipantsSplitSelector(props) {
         }
 
         return newSections;
-    };
+    }, [maxParticipantsReached, newChatOptions, props.participants, props.translate]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    const toggleOption = (option) => {
-        const isOptionInList = _.some(props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
+    const toggleOption = useCallback(
+        (option) => {
+            const isOptionInList = _.some(props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
 
-        let newSelectedOptions;
+            let newSelectedOptions;
 
-        if (isOptionInList) {
-            newSelectedOptions = _.reject(props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
-        } else {
-            newSelectedOptions = [...props.participants, option];
-        }
+            if (isOptionInList) {
+                newSelectedOptions = _.reject(props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
+            } else {
+                newSelectedOptions = [...props.participants, option];
+            }
 
-        props.onAddParticipants(newSelectedOptions);
+            props.onAddParticipants(newSelectedOptions);
 
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            isOptionInList ? searchTerm : '',
-            newSelectedOptions,
-            CONST.EXPENSIFY_EMAILS,
-        );
+            const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+                props.reports,
+                props.personalDetails,
+                props.betas,
+                isOptionInList ? searchTerm : '',
+                newSelectedOptions,
+                CONST.EXPENSIFY_EMAILS,
+            );
 
-        setNewChatOptions({
-            recentReports,
-            personalDetails,
-            userToInvite,
-        });
-    };
+            setNewChatOptions({
+                recentReports,
+                personalDetails,
+                userToInvite,
+            });
+            if (!isOptionInList) {
+                setSearchTerm('');
+            }
+        },
+        [searchTerm, props.participants, props.onAddParticipants, props.reports, props.personalDetails, props.betas, setNewChatOptions, setSearchTerm],
+    );
 
-    const maxParticipantsReached = props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
         newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
         Boolean(newChatOptions.userToInvite),
@@ -161,8 +168,6 @@ function MoneyRequestParticipantsSplitSelector(props) {
         maxParticipantsReached,
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
-
-    const sections = getSections(maxParticipantsReached);
 
     useEffect(() => {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
@@ -193,7 +198,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
                 boldStyle
                 shouldShowConfirmButton
                 confirmButtonText={props.translate('common.next')}
-                onConfirmSelection={props.onStepComplete()}
+                onConfirmSelection={props.onStepComplete}
                 textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
