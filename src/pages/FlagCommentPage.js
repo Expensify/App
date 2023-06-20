@@ -9,7 +9,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import Text from '../components/Text';
@@ -142,10 +142,7 @@ function FlagCommentPage(props) {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithCloseButton
-                        title={props.translate('reportActionContextMenu.flagAsOffensive')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                    />
+                    <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
                         style={styles.settingsPageBackground}

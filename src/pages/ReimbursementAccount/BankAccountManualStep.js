@@ -1,10 +1,9 @@
 import React from 'react';
 import {Image} from 'react-native';
 import lodashGet from 'lodash/get';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
@@ -42,13 +41,16 @@ class BankAccountManualStep extends React.Component {
             !values.accountNumber ||
             (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
         ) {
-            errorFields.accountNumber = this.props.translate('bankAccount.error.accountNumber');
+            errorFields.accountNumber = 'bankAccount.error.accountNumber';
         }
         if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
-            errorFields.routingNumber = this.props.translate('bankAccount.error.routingNumber');
+            errorFields.routingNumber = 'bankAccount.error.routingNumber';
+        }
+        if (values.accountNumber === routingNumber) {
+            errorFields.accountNumber = this.props.translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
         }
         if (!values.acceptTerms) {
-            errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
+            errorFields.acceptTerms = 'common.error.acceptTerms';
         }
 
         return errorFields;
@@ -68,14 +70,12 @@ class BankAccountManualStep extends React.Component {
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('workspace.common.connectBankAccount')}
                     stepCounter={{step: 1, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
-                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}

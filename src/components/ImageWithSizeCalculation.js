@@ -52,6 +52,10 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     imageLoadingStart() {
+        // Return early if the image has already loaded (this can happen when uploading the same image twice on Android)
+        if (this.isLoaded) {
+            return;
+        }
         this.setState({isLoading: true});
     }
 
@@ -60,6 +64,7 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     imageLoadedSuccessfully(event) {
+        this.isLoaded = true;
         this.props.onMeasure({
             width: event.nativeEvent.width,
             height: event.nativeEvent.height,

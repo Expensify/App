@@ -1,10 +1,10 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import Text from '../Text';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */
@@ -61,7 +61,7 @@ class EmojiPickerMenuItem extends PureComponent {
 
     render() {
         return (
-            <Pressable
+            <PressableWithoutFeedback
                 onPress={() => this.props.onPress(this.props.emoji)}
                 onHoverIn={this.props.onHoverIn}
                 onHoverOut={this.props.onHoverOut}
@@ -74,9 +74,11 @@ class EmojiPickerMenuItem extends PureComponent {
                     this.props.isHighlighted && !this.props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
                     styles.emojiItem,
                 ]}
+                accessibilityLabel={this.props.emoji}
+                accessibilityRole="button"
             >
                 <Text style={[styles.emojiText]}>{this.props.emoji}</Text>
-            </Pressable>
+            </PressableWithoutFeedback>
         );
     }
 }

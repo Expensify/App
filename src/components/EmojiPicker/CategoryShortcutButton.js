@@ -1,6 +1,5 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
 import Icon from '../Icon';
 import Tooltip from '../Tooltip';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -9,6 +8,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import themeColors from '../../styles/themes/default';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The emoji code of the category header */
@@ -37,7 +37,7 @@ class CategoryShortcutButton extends PureComponent {
                 text={this.props.translate(`emojiPicker.headers.${this.props.code}`)}
                 shiftVertical={-4}
             >
-                <Pressable
+                <PressableWithoutFeedback
                     onPress={this.props.onPress}
                     onHoverIn={() => this.setState({isHighlighted: true})}
                     onHoverOut={() => this.setState({isHighlighted: false})}
@@ -46,6 +46,8 @@ class CategoryShortcutButton extends PureComponent {
                         styles.categoryShortcutButton,
                         this.state.isHighlighted && styles.emojiItemHighlighted,
                     ]}
+                    accessibilityLabel={`emojiPicker.headers.${this.props.code}`}
+                    accessibilityRole="button"
                 >
                     <Icon
                         fill={themeColors.icon}
@@ -53,7 +55,7 @@ class CategoryShortcutButton extends PureComponent {
                         height={variables.iconSizeNormal}
                         width={variables.iconSizeNormal}
                     />
-                </Pressable>
+                </PressableWithoutFeedback>
             </Tooltip>
         );
     }

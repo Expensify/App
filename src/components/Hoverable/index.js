@@ -68,10 +68,13 @@ class Hoverable extends Component {
     }
 
     render() {
-        const child = _.isFunction(this.props.children) ? this.props.children(this.state.isHovered) : this.props.children;
+        let child = this.props.children;
+        if (_.isArray(this.props.children) && this.props.children.length === 1) {
+            child = this.props.children[0];
+        }
 
-        if (!React.isValidElement(child)) {
-            throw Error('Children is not a valid element.');
+        if (_.isFunction(child)) {
+            child = child(this.state.isHovered);
         }
 
         return React.cloneElement(React.Children.only(child), {
@@ -104,7 +107,9 @@ class Hoverable extends Component {
                 }
             },
             onBlur: (el) => {
-                if (!this.wrapperView.contains(el.relatedTarget)) {
+                // Check if the blur event occurred due to clicking outside the element
+                // and the wrapperView contains the element that caused the blur and reset isHovered
+                if (!this.wrapperView.contains(el.target) && !this.wrapperView.contains(el.relatedTarget)) {
                     this.setIsHovered(false);
                 }
 

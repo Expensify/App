@@ -1,11 +1,10 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {Freeze} from 'react-freeze';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -28,14 +27,19 @@ import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
+import withNavigationFocus from '../../../components/withNavigationFocus';
+import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../../components/withCurrentReportId';
+import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
 import variables from '../../../styles/variables';
 import LogoComponent from '../../../../assets/images/expensify-wordmark.svg';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import * as Session from '../../../libs/actions/Session';
 import Button from '../../../components/Button';
 import * as UserUtils from '../../../libs/UserUtils';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -66,13 +70,13 @@ const propTypes = {
 
         /** Login email of the current user */
         login: PropTypes.string,
+
+        /** AccountID of the current user */
+        accountID: PropTypes.number,
     }),
 
     /** Current reportID from the route in react navigation state object */
     reportIDFromRoute: PropTypes.string,
-
-    /** Callback when onLayout of sidebar is called */
-    onLayout: PropTypes.func,
 
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
@@ -80,7 +84,15 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
+    /** Details about any modals being used */
+    modal: PropTypes.shape({
+        /** Indicates when an Alert modal is about to be visible */
+        willAlertModalBecomeVisible: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
+    ...withCurrentReportIdPropTypes,
+    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -91,8 +103,8 @@ const defaultProps = {
         avatar: '',
     },
     reportIDFromRoute: '',
-    onLayout: () => {},
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    modal: {},
 };
 
 class SidebarLinks extends React.Component {
@@ -102,6 +114,39 @@ class SidebarLinks extends React.Component {
         this.showSearchPage = this.showSearchPage.bind(this);
         this.showSettingsPage = this.showSettingsPage.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
+
+        if (this.props.isSmallScreenWidth) {
+            App.confirmReadyToOpenApp();
+        }
+    }
+
+    componentDidMount() {
+        App.setSidebarLoaded();
+        SidebarUtils.setIsSidebarLoadedReady();
+        this.isSidebarLoaded = true;
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (this.props.modal.willAlertModalBecomeVisible) {
+                    return;
+                }
+
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
+    }
+
+    componentWillUnmount() {
+        SidebarUtils.resetIsSidebarLoadedReadyPromise();
+        if (this.unsubscribeEscapeKey) {
+            this.unsubscribeEscapeKey();
+        }
     }
 
     showSearchPage() {
@@ -139,14 +184,13 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const shouldFreeze = this.props.isSmallScreenWidth && !this.props.isDrawerOpen && this.isSidebarLoaded;
         const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
 
-        const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate={!shouldFreeze} />;
+        const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
 
         return (
             <View
-                accessibilityElementsHidden={this.props.isSmallScreenWidth && !this.props.isDrawerOpen}
+                accessibilityElementsHidden={!this.props.isFocused}
                 accessibilityLabel={this.props.translate('sidebarScreen.listOfChats')}
                 style={[styles.flex1, styles.h100]}
             >
@@ -166,16 +210,16 @@ class SidebarLinks extends React.Component {
                         shouldShowEnvironmentBadge
                     />
                     <Tooltip text={this.props.translate('common.search')}>
-                        <TouchableOpacity
+                        <PressableWithoutFeedback
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
                             style={[styles.flexRow, styles.ph5]}
                             onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
                             <Icon src={Expensicons.MagnifyingGlass} />
-                        </TouchableOpacity>
+                        </PressableWithoutFeedback>
                     </Tooltip>
-                    <TouchableOpacity
+                    <PressableWithoutFeedback
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
                         onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
@@ -192,35 +236,25 @@ class SidebarLinks extends React.Component {
                         ) : (
                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <AvatarWithIndicator
-                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
                                     tooltipText={this.props.translate('common.settings')}
                                 />
                             </OfflineWithFeedback>
                         )}
-                    </TouchableOpacity>
+                    </PressableWithoutFeedback>
                 </View>
-                <Freeze
-                    freeze={shouldFreeze}
-                    placeholder={skeletonPlaceholder}
-                >
-                    {isLoading ? (
-                        skeletonPlaceholder
-                    ) : (
-                        <LHNOptionsList
-                            contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
-                            data={optionListItems}
-                            focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.reportIDFromRoute)}
-                            onSelectRow={this.showReportPage}
-                            shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                            optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
-                            onLayout={() => {
-                                this.props.onLayout();
-                                App.setSidebarLoaded();
-                                this.isSidebarLoaded = true;
-                            }}
-                        />
-                    )}
-                </Freeze>
+                {isLoading ? (
+                    skeletonPlaceholder
+                ) : (
+                    <LHNOptionsList
+                        contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
+                        data={optionListItems}
+                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportId)}
+                        onSelectRow={this.showReportPage}
+                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
+                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                    />
+                )}
             </View>
         );
     }
@@ -264,14 +298,15 @@ const chatReportSelector = (report) =>
 const personalDetailsSelector = (personalDetails) =>
     _.reduce(
         personalDetails,
-        (finalPersonalDetails, personalData, login) => {
+        (finalPersonalDetails, personalData, accountID) => {
             // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
             // eslint-disable-next-line no-param-reassign
-            finalPersonalDetails[login] = {
+            finalPersonalDetails[accountID] = {
+                accountID: Number(accountID),
                 login: personalData.login,
                 displayName: personalData.displayName,
                 firstName: personalData.firstName,
-                avatar: UserUtils.getAvatar(personalData.avatar, personalData.login),
+                avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
             };
             return finalPersonalDetails;
         },
@@ -302,7 +337,10 @@ const policySelector = (policy) =>
 export default compose(
     withLocalize,
     withCurrentUserPersonalDetails,
+    withNavigationFocus,
     withWindowDimensions,
+    withCurrentReportId,
+    withNavigation,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same
         // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
@@ -314,7 +352,7 @@ export default compose(
             selector: chatReportSelector,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             selector: personalDetailsSelector,
         },
         priorityMode: {
@@ -333,6 +371,9 @@ export default compose(
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        modal: {
+            key: ONYXKEYS.MODAL,
         },
     }),
 )(SidebarLinks);

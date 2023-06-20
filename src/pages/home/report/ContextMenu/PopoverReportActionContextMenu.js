@@ -40,6 +40,7 @@ class PopoverReportActionContextMenu extends React.Component {
             isArchivedRoom: false,
             isChronosReport: false,
             isPinnedChat: false,
+            isUnreadChat: false,
         };
         this.onPopoverShow = () => {};
         this.onPopoverHide = () => {};
@@ -128,6 +129,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
      * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
+     * @param {Boolean} isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
     showContextMenu(
         type,
@@ -142,6 +144,7 @@ class PopoverReportActionContextMenu extends React.Component {
         isArchivedRoom = false,
         isChronosReport = false,
         isPinnedChat = false,
+        isUnreadChat = false,
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
@@ -173,6 +176,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 isArchivedRoom,
                 isChronosReport,
                 isPinnedChat,
+                isUnreadChat,
             });
         });
     }
@@ -256,12 +260,12 @@ class PopoverReportActionContextMenu extends React.Component {
     hideDeleteModal() {
         this.callbackWhenDeleteModalHide = () => (this.onCancelDeleteModal = this.runAndResetCallback(this.onCancelDeleteModal));
         this.setState({
-            reportID: '0',
             isDeleteCommentConfirmModalVisible: false,
             shouldSetModalVisibilityForDeleteConfirmation: true,
             isArchivedRoom: false,
             isChronosReport: false,
             isPinnedChat: false,
+            isUnreadChat: false,
         });
     }
 
@@ -309,6 +313,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         isArchivedRoom={this.state.isArchivedRoom}
                         isChronosReport={this.state.isChronosReport}
                         isPinnedChat={this.state.isPinnedChat}
+                        isUnreadChat={this.state.isUnreadChat}
                         anchor={this.contextMenuTargetNode}
                         contentRef={this.contentRef}
                     />
@@ -319,7 +324,10 @@ class PopoverReportActionContextMenu extends React.Component {
                     shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfirmation}
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={this.hideDeleteModal}
-                    onModalHide={this.callbackWhenDeleteModalHide}
+                    onModalHide={() => {
+                        this.setState({reportID: '0', reportAction: {}});
+                        this.callbackWhenDeleteModalHide();
+                    }}
                     prompt={this.props.translate('reportActionContextMenu.deleteConfirmation', {action: this.state.reportAction})}
                     confirmText={this.props.translate('common.delete')}
                     cancelText={this.props.translate('common.cancel')}

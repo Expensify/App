@@ -1,8 +1,9 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ROUTES from '../ROUTES';
 import styles from '../styles/styles';
@@ -64,7 +65,15 @@ class YearPickerPage extends React.Component {
      */
     updateSelectedYear(selectedYear) {
         // We have to navigate using concatenation here as it is not possible to pass a function as a route param
-        Navigation.navigate(`${this.props.route.params.backTo}?year=${selectedYear}`);
+        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+        const dateOfBirthRoute = _.find(routes, (route) => route.name === 'Settings_PersonalDetails_DateOfBirth');
+
+        if (dateOfBirthRoute) {
+            Navigation.setParams({year: selectedYear.toString()}, lodashGet(dateOfBirthRoute, 'key', ''));
+            Navigation.goBack();
+        } else {
+            Navigation.goBack(`${ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH}?year=${selectedYear}`);
+        }
     }
 
     /**
@@ -89,11 +98,9 @@ class YearPickerPage extends React.Component {
         const headerMessage = this.state.inputText.trim() && !this.state.yearOptions.length ? this.props.translate('common.noResultsFound') : '';
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('yearPickerPage.year')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(`${this.props.route.params.backTo}?year=${this.currentYear}` || ROUTES.HOME)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(`${this.props.route.params.backTo}?year=${this.currentYear}` || ROUTES.HOME)}
                 />
                 <OptionsSelector
                     textInputLabel={this.props.translate('yearPickerPage.selectYear')}

@@ -50,36 +50,54 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 }
 
 /**
- * Determines if there is an overlapping element at the top of a given coordinate.
+ * Determines if there is an overlapping element at the top of both given coordinates.
+ *                    (targetCenterX, y)
+ *                            |
+ *                            v
+ *                        _ _ _ _ _
+ *                       |         |
+ *                       |         |
+ * (x, targetCenterY) -> |         |
+ *                       |         |
+ *                       |_ _ _ _ _|
  *
  * @param {Number} xOffset - The distance between the left edge of the window
  *                           and the left edge of the wrapped component.
  * @param {Number} yOffset - The distance between the top edge of the window
  *                           and the top edge of the wrapped component.
  * @param {Element} [tooltip] - The reference to the tooltip's root element
+ * @param {Number} tooltipTargetWidth - The width of the tooltip's target
  * @param {Number} tooltipTargetHeight - The height of the tooltip's target
  * @returns {Boolean}
  */
-function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetHeight) {
+function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, tooltipTargetHeight) {
     if (typeof document.elementFromPoint !== 'function') {
         return false;
     }
 
-    // Use the vertical center of the target to prevent wrong element returned by elementFromPoint in case the target has a border radius.
-    const centerY = yOffset + tooltipTargetHeight / 2;
-    const element = document.elementFromPoint(xOffset, centerY);
+    // Use the x and y center position of the target to prevent wrong element
+    // returned by elementFromPoint in case the target has a border radius or is a multiline text.
+    const targetCenterX = xOffset + tooltipTargetWidth / 2;
+    const targetCenterY = yOffset + tooltipTargetHeight / 2;
+    const elementAtTargetCenterX = document.elementFromPoint(targetCenterX, yOffset);
+    const elementAtTargetCenterY = document.elementFromPoint(xOffset, targetCenterY);
     const tooltipRef = (tooltip && tooltip.current) || tooltip;
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!element || (tooltipRef && tooltipRef.contains(element))) {
+    if (!elementAtTargetCenterX || !elementAtTargetCenterY || (tooltipRef && (tooltipRef.contains(elementAtTargetCenterX) || tooltipRef.contains(elementAtTargetCenterY)))) {
         return false;
     }
 
-    const rect = element.getBoundingClientRect();
+    const rectAtTargetCenterX = elementAtTargetCenterX.getBoundingClientRect();
+    const rectAtTargetCenterY = elementAtTargetCenterY.getBoundingClientRect();
 
     // Ensure it's not overlapping with another element by checking if the yOffset is greater than the top of the element
     // and less than the bottom of the element
-    return yOffset > rect.top && yOffset < rect.bottom;
+    const isOverlappingAtTargetCenterX = yOffset > rectAtTargetCenterX.top && yOffset < rectAtTargetCenterX.bottom;
+    const isOverlappingAtTargetCenterY = yOffset > rectAtTargetCenterY.top && yOffset < rectAtTargetCenterY.bottom;
+
+    // Return true only if both elementAtTargetCenterX and elementAtTargetCenterY overlap with another element
+    return isOverlappingAtTargetCenterX && isOverlappingAtTargetCenterY;
 }
 
 /**
@@ -144,7 +162,7 @@ export default function getTooltipStyles(
         // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
         // Or the wrapped component is overlapping at top-left with another element
         // we'll display it beneath its wrapped component rather than above it as usual.
-        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetHeight);
+        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, tooltipTargetHeight);
 
         // When the tooltip size is ready, we can start animating the scale.
         scale = currentSize;

@@ -11,12 +11,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
 import Permissions from '../../libs/Permissions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import AbracadabraModal from '../../components/ValidateCode/AbracadabraModal';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
-import TfaRequiredModal from '../../components/ValidateCode/TfaRequiredModal';
+import JustSignedInModal from '../../components/ValidateCode/JustSignedInModal';
 
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
@@ -31,7 +30,7 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
-    /** The credentials of the logged in person */
+    /** The credentials of the person logging in */
     credentials: PropTypes.shape({
         /** The email the user logged in with */
         login: PropTypes.string,
@@ -61,17 +60,18 @@ const defaultProps = {
 
 class ValidateLoginPage extends Component {
     componentDidMount() {
-        // Validate login if
-        // - The user is not on passwordless beta
-        if (!Permissions.canUsePasswordlessLogins(this.props.betas)) {
+        const login = lodashGet(this.props, 'credentials.login', null);
+
+        // A fresh session will not have credentials.login and user permission betas available.
+        // In that case, we directly allow users to go through password less flow
+        if (login && !Permissions.canUsePasswordlessLogins(this.props.betas)) {
             User.validateLogin(this.getAccountID(), this.getValidateCode());
             return;
         }
 
         const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
         const cachedAutoAuthState = lodashGet(this.props, 'session.autoAuthState', null);
-        const login = lodashGet(this.props, 'credentials.login', null);
-        if (!login && isSignedIn && cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN) {
+        if (!login && isSignedIn && (cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || cachedAutoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
             Navigation.navigate(ROUTES.REPORT);
             return;
@@ -117,20 +117,21 @@ class ValidateLoginPage extends Component {
     }
 
     render() {
-        const isTfaRequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
+        const is2FARequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
         const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
+        const currentAuthState = this.getAutoAuthState();
         return (
             <>
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && (!isTfaRequired || isSignedIn) && <AbracadabraModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isTfaRequired && !isSignedIn && <TfaRequiredModal />}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
+                {currentAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
                     <ValidateCodeModal
                         accountID={this.getAccountID()}
                         code={this.getValidateCode()}
                     />
                 )}
-                {this.getAutoAuthState() === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
+                {currentAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
             </>
         );
     }
