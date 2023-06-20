@@ -296,27 +296,27 @@ function addActions(reportID, text = '', file) {
         const childVisibleActionCount = parentReportAction.childVisibleActionCount ? parentReportAction.childVisibleActionCount + 1 : 1;
         const childCommenterCount = parentReportAction.childCommenterCount ? parentReportAction.childCommenterCount : 1;
         const childLastVisibleActionCreated = currentTime;
-        let childOldestFourEmails = parentReportAction.childOldestFourEmails;
-        if (!childOldestFourEmails) {
-            childOldestFourEmails = currentUserEmail;
+        let childOldestFourAccountIDs = parentReportAction.childOldestFourAccountIDs;
+        if (!childOldestFourAccountIDs) {
+            childOldestFourAccountIDs = currentUserAccountID;
         } else {
-            const oldestFourEmails = childOldestFourEmails.split(',');
-            const index = _.findIndex(oldestFourEmails, (email) => email === currentUserEmail);
+            const oldestFourAccountIDs = childOldestFourAccountIDs.split(',');
+            const index = _.findIndex(oldestFourAccountIDs, (accountID) => accountID === currentUserAccountID);
             if (index !== -1) {
-                oldestFourEmails.splice(index, 1);
+                oldestFourAccountIDs.splice(index, 1);
             }
-            oldestFourEmails.push(currentUserEmail);
-            if (oldestFourEmails.length > 4) {
-                oldestFourEmails.splice(0, 1);
+            oldestFourAccountIDs.push(currentUserAccountID);
+            if (oldestFourAccountIDs.length > 4) {
+                oldestFourAccountIDs.splice(0, 1);
             }
-            childOldestFourEmails = oldestFourEmails.join(',');
+            childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
         }
 
         const optimisticParentReportAction = {
             childVisibleActionCount,
             childCommenterCount,
             childLastVisibleActionCreated,
-            childOldestFourEmails,
+            childOldestFourAccountIDs,
         };
 
         optimisticData.push({
