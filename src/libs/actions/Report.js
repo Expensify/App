@@ -795,7 +795,7 @@ Onyx.connect({
 /**
  * After a reportActions change, we may need to update the last visible reportAction
  * text, author and date store in the report.
- * 
+ *
  * @param {String} reportID
  * @param {Object} [optimisticReportActions]
  * @return {Object} Optimistic and failure onyx updates for the report
