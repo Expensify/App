@@ -1981,6 +1981,7 @@ function getAllParticipants(report, personalDetails) {
                 displayName: userPersonalDetail.displayName,
                 icons: [
                     {
+                        id: userPersonalDetail.accountID,
                         source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
                         name: userLogin,
                         type: CONST.ICON_TYPE_AVATAR,
