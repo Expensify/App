@@ -217,7 +217,7 @@ function getParticipantsOptions(report, personalDetails) {
     const participants = lodashGet(report, 'participantAccountIDs', []);
     return _.map(getPersonalDetailsForAccountIDs(participants, personalDetails), (details) => ({
         keyForList: String(details.accountID),
-        login: details.login || details.displayName,
+        login: details.login,
         accountID: details.accountID,
         text: details.displayName,
         firstName: lodashGet(details, 'firstName', ''),
@@ -233,6 +233,7 @@ function getParticipantsOptions(report, personalDetails) {
         ],
         payPalMeAddress: lodashGet(details, 'payPalMeAddress', ''),
         phoneNumber: lodashGet(details, 'phoneNumber', ''),
+        isMoneyRequestReport: true,
     }));
 }
 
