@@ -23,7 +23,7 @@ const propTypes = {
     keyboardAvoidingViewBehavior: PropTypes.oneOf(['padding', 'height', 'position']),
 
     /** Whether KeyboardAvoidingView should be enabled. Use false for screens where this functionality is not necessary */
-    shouldEnableKeyboardAvodingView: PropTypes.bool,
+    shouldEnableKeyboardAvoidingView: PropTypes.bool,
 
     /** Whether picker modal avoiding should be enabled. Should be enabled when there's a picker at the bottom of a
      *  scrollable form, gives a subtly better UX if disabled on non-scrollable screens with a submit button */
@@ -54,7 +54,7 @@ const defaultProps = {
     onEntryTransitionEnd: () => {},
     modal: {},
     keyboardAvoidingViewBehavior: 'padding',
-    shouldEnableKeyboardAvodingView: true,
+    shouldEnableKeyboardAvoidingView: true,
     shouldEnableMaxHeight: false,
     shouldEnablePickerAvoiding: true,
 };

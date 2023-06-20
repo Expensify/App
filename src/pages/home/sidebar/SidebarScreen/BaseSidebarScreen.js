@@ -49,7 +49,7 @@ class BaseSidebarScreen extends Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.sidebar]}
-                shouldEnableKeyboardAvodingView={false}
+                shouldEnableKeyboardAvoidingView={false}
             >
                 {({insets}) => (
                     <>

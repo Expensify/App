@@ -126,7 +126,7 @@ class ScreenWrapper extends React.Component {
                             <KeyboardAvoidingView
                                 style={[styles.w100, styles.h100, {maxHeight}]}
                                 behavior={this.props.keyboardAvoidingViewBehavior}
-                                enabled={this.props.shouldEnableKeyboardAvodingView}
+                                enabled={this.props.shouldEnableKeyboardAvoidingView}
                             >
                                 <PickerAvoidingView
                                     style={styles.flex1}
