@@ -544,16 +544,11 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
  * yourself or a different user, and people won't be starting new chats via accountID usually.
  *
  * @param {Object} userDetails
- * @param {Boolean} [useAccountID] Should we make the comparison using accountIDs?
  * @returns {Boolean}
  */
-function isCurrentUser(userDetails, useAccountID) {
+function isCurrentUser(userDetails) {
     if (!userDetails) {
         return false;
-    }
-
-    if (useAccountID) {
-        return userDetails.accountID === currentUserAccountID;
     }
 
     // If user login is a mobile number, append sms domain if not appended already.
