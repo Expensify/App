@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,13 +10,11 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Timing from '../../libs/actions/Timing';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
-import Performance from '../../libs/Performance';
 import * as TaskUtils from '../../libs/actions/Task';
 import ROUTES from '../../ROUTES';
 
@@ -41,7 +39,7 @@ const defaultProps = {
     reports: {},
 };
 
-const TaskShareDestinationSelectorModal = (props) => {
+function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -56,7 +54,7 @@ const TaskShareDestinationSelectorModal = (props) => {
         setFilteredPersonalDetails(results.personalDetails);
     }, [props]);
 
-    const updateOptions = useCallback(() => {
+    useEffect(() => {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
             props.reports,
             props.personalDetails,
@@ -74,21 +72,8 @@ const TaskShareDestinationSelectorModal = (props) => {
         setFilteredPersonalDetails(personalDetails);
     }, [props, searchValue]);
 
-    useEffect(() => {
-        Timing.start(CONST.TIMING.SEARCH_RENDER);
-        Performance.markStart(CONST.TIMING.SEARCH_RENDER);
-
-        updateOptions();
-
-        return () => {
-            Timing.end(CONST.TIMING.SEARCH_RENDER);
-            Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
-        };
-    }, [updateOptions]);
-
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
-        updateOptions();
     };
 
     const getSections = () => {
@@ -158,10 +143,6 @@ const TaskShareDestinationSelectorModal = (props) => {
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
                             placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            onLayout={() => {
-                                Timing.end(CONST.TIMING.SEARCH_RENDER);
-                                Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
-                            }}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>
@@ -169,7 +150,7 @@ const TaskShareDestinationSelectorModal = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 TaskShareDestinationSelectorModal.displayName = 'TaskShareDestinationSelectorModal';
 TaskShareDestinationSelectorModal.propTypes = propTypes;
@@ -182,7 +163,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

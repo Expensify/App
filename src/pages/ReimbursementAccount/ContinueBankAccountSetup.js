@@ -42,7 +42,7 @@ const propTypes = {
 
 const defaultProps = {policyName: ''};
 
-const ContinueBankAccountSetup = (props) => {
+function ContinueBankAccountSetup(props) {
     const errors = lodashGet(props.reimbursementAccount, 'errors', {});
     const pendingAction = lodashGet(props.reimbursementAccount, 'pendingAction', null);
     return (
@@ -93,7 +93,7 @@ const ContinueBankAccountSetup = (props) => {
             {props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={props.reimbursementAccount} />}
         </ScreenWrapper>
     );
-};
+}
 
 ContinueBankAccountSetup.propTypes = propTypes;
 ContinueBankAccountSetup.defaultProps = defaultProps;
