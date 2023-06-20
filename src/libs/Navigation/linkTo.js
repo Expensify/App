@@ -66,7 +66,7 @@ export default function linkTo(navigation, path, type) {
         if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && getTopmostReportId(root.getState()) !== getTopmostReportId(state)) {
             action.type = 'PUSH';
 
-            // Type is up we deeplinked to the one of RHP flows and we want to replace the current screen with the previous one in the flow
+            // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
             // and at the same time we want the back button to go to the page we were before the deeplink
         } else if (type === 'UP') {
             action.type = 'REPLACE';
