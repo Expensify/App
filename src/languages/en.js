@@ -145,6 +145,7 @@ export default {
         mi: 'mile',
         km: 'kilometer',
         copied: 'Copied!',
+        someone: 'Someone',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -818,6 +819,7 @@ export default {
             'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
+        hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             noBankAccountSelected: 'Please choose an account',
@@ -1072,8 +1074,6 @@ export default {
             reconcileCards: 'Reconcile cards',
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
-            growlMessageOnDelete: 'Workspace deleted',
-            growlMessageOnDeleteError: 'This workspace cannot be deleted right now because reports are actively being processed',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
@@ -1206,6 +1206,9 @@ export default {
             bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
             clearProgress: 'Starting over will clear the progress you have made so far.',
             areYouSure: 'Are you sure?',
+            workspaceCurrency: 'Workspace currency',
+            updateCurrencyPrompt: 'It looks like your Workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
+            updateToUSD: 'Update to USD',
         },
     },
     getAssistancePage: {

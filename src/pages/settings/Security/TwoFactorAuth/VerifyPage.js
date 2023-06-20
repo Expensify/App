@@ -102,7 +102,10 @@ function VerifyPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_CODES)}
             />
             <FullPageOfflineBlockingView>
-                <ScrollView style={styles.mb5}>
+                <ScrollView
+                    style={styles.mb5}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <View style={[styles.ph5, styles.mt3]}>
                         <Text>
                             {props.translate('twoFactorAuth.scanCode')}
@@ -139,7 +142,7 @@ function VerifyPage(props) {
                         <TwoFactorAuthForm />
                     </View>
                 </ScrollView>
-                <FixedFooter style={[styles.twoFactorAuthFooter]}>
+                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
                     <Button
                         success
                         text={props.translate('common.next')}
