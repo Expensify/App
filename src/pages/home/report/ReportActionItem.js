@@ -27,6 +27,7 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
+import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import {withBlockedFromConcierge, withNetwork, withPersonalDetails, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
@@ -110,6 +111,22 @@ function ReportActionItem(props) {
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
 
+    useEffect(
+        () => () => {
+            // ReportActionContextMenu and EmojiPicker are global component,
+            // we use showContextMenu and showEmojiPicker to show them,
+            // so we should also hide them when the current component is destroyed
+            if (ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
+                ReportActionContextMenu.hideContextMenu();
+                ReportActionContextMenu.hideDeleteModal();
+            }
+            if (EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
+                EmojiPickerAction.hideEmojiPicker(true);
+            }
+        },
+        [props.action.reportActionID],
+    );
+
     const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
         if (isDraftEmpty) {
@@ -131,6 +148,7 @@ function ReportActionItem(props) {
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
+
     useEffect(() => {
         if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(props.action.message[0].moderationDecisions)) {
             return;
@@ -146,7 +164,10 @@ function ReportActionItem(props) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision.decision);
-    }, [props.action.message, props.action.actionName]);
+
+        // props.action.message doesn't need to be a dependency, we only need to check the change of props.action.message[0].moderationDecisions
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.action.message[0].moderationDecisions, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -279,7 +300,7 @@ function ReportActionItem(props) {
                                         : undefined,
                                 ]}
                             />
-                            {props.displayAsGroup && hasBeenFlagged && (
+                            {hasBeenFlagged && (
                                 <Button
                                     small
                                     style={[styles.mt2, styles.alignSelfStart]}
@@ -309,20 +330,6 @@ function ReportActionItem(props) {
                             }
                         />
                     )}
-                    {!props.displayAsGroup && hasBeenFlagged && (
-                        <Button
-                            small
-                            style={[styles.mt2, styles.alignSelfStart]}
-                            onPress={() => setIsHidden(!isHidden)}
-                        >
-                            <Text
-                                style={styles.buttonSmallText}
-                                selectable={false}
-                            >
-                                {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
-                            </Text>
-                        </Button>
-                    )}
                 </ShowContextMenuContext.Provider>
             );
         }
@@ -333,7 +340,7 @@ function ReportActionItem(props) {
         const hasReplies = numberOfThreadReplies > 0;
 
         const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
-        const oldestFourEmails = lodashGet(props.action, 'childOldestFourEmails', '').split(',');
+        const oldestFourAccountIDs = lodashGet(props.action, 'childOldestFourAccountIDs', '').split(',');
         const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
         return (
@@ -370,7 +377,7 @@ function ReportActionItem(props) {
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
                             isHovered={hovered}
-                            icons={ReportUtils.getIconsForParticipants(oldestFourEmails, props.personalDetails)}
+                            icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, props.personalDetailsList)}
                         />
                     </View>
                 )}
@@ -410,7 +417,12 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        return <ReportActionItemCreated reportID={props.report.reportID} />;
+        return (
+            <ReportActionItemCreated
+                policyID={props.report.policyID}
+                reportID={props.report.reportID}
+            />
+        );
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return <RenameAction action={props.action} />;
@@ -425,7 +437,7 @@ function ReportActionItem(props) {
     }
 
     const hasErrors = !_.isEmpty(props.action.errors);
-    const whisperedTo = lodashGet(props.action, 'whisperedTo', []);
+    const whisperedTo = props.action.whisperedTo || [];
     const isWhisper = whisperedTo.length > 0;
     const isMultipleParticipant = whisperedTo.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);

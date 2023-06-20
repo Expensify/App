@@ -1,5 +1,5 @@
 import React, {memo, useState} from 'react';
-import {View, ActivityIndicator, Pressable} from 'react-native';
+import {View, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -15,6 +15,7 @@ import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Whether source url requires authentication */
@@ -93,13 +94,15 @@ function AttachmentView(props) {
             />
         );
         return props.onPress ? (
-            <Pressable
+            <PressableWithoutFeedback
                 onPress={props.onPress}
                 disabled={loadComplete}
                 style={containerStyles}
+                accessibilityRole="imagebutton"
+                accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
             >
                 {children}
-            </Pressable>
+            </PressableWithoutFeedback>
         ) : (
             children
         );
@@ -113,17 +116,20 @@ function AttachmentView(props) {
             <ImageView
                 onScaleChanged={props.onScaleChanged}
                 url={props.source}
+                fileName={props.file.name}
                 isAuthTokenRequired={isImage && props.isAuthTokenRequired}
             />
         );
         return props.onPress ? (
-            <Pressable
+            <PressableWithoutFeedback
                 onPress={props.onPress}
                 disabled={loadComplete}
                 style={containerStyles}
+                accessibilityRole="imagebutton"
+                accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
             >
                 {children}
-            </Pressable>
+            </PressableWithoutFeedback>
         ) : (
             children
         );

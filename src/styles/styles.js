@@ -1246,7 +1246,7 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: variables.leftPaneMaxWidth,
+        maxWidth: variables.sideBarWidth,
     },
 
     rightPanelContainer: {
@@ -2217,10 +2217,6 @@ const styles = {
         minWidth: 100,
     },
 
-    twoFactorAuthFooter: {
-        marginTop: 'auto',
-    },
-
     anonymousRoomFooter: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -2546,8 +2542,8 @@ const styles = {
         marginBottom: 0,
     },
 
-    iouPreviewBoxCheckmark: {
-        marginLeft: 4,
+    defaultCheckmarkWrapper: {
+        marginLeft: 8,
         alignSelf: 'center',
     },
 
@@ -2680,10 +2676,6 @@ const styles = {
         outline: 'none',
     },
 
-    cursorPointer: {
-        cursor: 'pointer',
-    },
-
     cardStyleNavigator: {
         overflow: 'hidden',
         height: '100%',
@@ -2776,7 +2768,7 @@ const styles = {
         width: 250,
     },
 
-    workspaceInviteWelcome: {
+    autoGrowHeightMultilineInput: {
         maxHeight: 115,
     },
 
@@ -3339,11 +3331,6 @@ const styles = {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
         lineHeight: variables.lineHeightXXLarge,
-    },
-
-    moneyRequestHeaderCheckmark: {
-        marginLeft: 5,
-        alignSelf: 'center',
     },
 
     loginHeroBody: {

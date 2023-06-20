@@ -78,7 +78,7 @@ function NewTaskPage(props) {
         // If we have an assignee, we want to set the assignee data
         // If there's an issue with the assignee chosen, we want to notify the user
         if (props.task.assignee) {
-            const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForLogins([props.task.assignee], props.personalDetails), props.task.assignee);
+            const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), props.task.assigneeAccountID);
             if (!assigneeDetails) {
                 return setErrorMessage(props.translate('newTaskPage.assigneeError'));
             }
@@ -126,7 +126,15 @@ function NewTaskPage(props) {
             return;
         }
 
-        TaskUtils.createTaskAndNavigate(props.session.email, parentReport.reportID, props.task.title, props.task.description, props.task.assignee);
+        TaskUtils.createTaskAndNavigate(
+            props.session.email,
+            props.session.accountID,
+            parentReport.reportID,
+            props.task.title,
+            props.task.description,
+            props.task.assignee,
+            props.task.assigneeAccountID,
+        );
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -202,7 +210,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         session: {
             key: ONYXKEYS.SESSION,

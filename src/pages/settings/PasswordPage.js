@@ -78,10 +78,7 @@ class PasswordPage extends Component {
      * @returns {String}
      */
     getErrorText(field) {
-        if (this.state.errors[field]) {
-            return this.props.translate(this.errorKeysMap[field]);
-        }
-        return '';
+        return this.state.errors[field] ? this.errorKeysMap[field] : '';
     }
 
     /**

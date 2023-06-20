@@ -27,6 +27,7 @@ function EmojiPicker(props, ref) {
         horizontal: 0,
         vertical: 0,
     });
+    const [reportAction, setReportAction] = useState({});
     const emojiPopoverAnchorOrigin = useRef(DEFAULT_ANCHOR_ORIGIN);
     const emojiPopoverAnchor = useRef(null);
     const onModalHide = useRef(() => {});
@@ -56,8 +57,9 @@ function EmojiPicker(props, ref) {
      * @param {Element} emojiPopoverAnchorValue - Element to which Popover is anchored
      * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
      * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
+     * @param {Object} reportActionValue - ReportAction for EmojiPicker
      */
-    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}) => {
+    const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, reportActionValue) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         emojiPopoverAnchor.current = emojiPopoverAnchorValue;
@@ -72,6 +74,7 @@ function EmojiPicker(props, ref) {
             setIsEmojiPickerVisible(true);
             setEmojiPopoverAnchorPosition(value);
             emojiPopoverAnchorOrigin.current = anchorOrigin || DEFAULT_ANCHOR_ORIGIN;
+            setReportAction(reportActionValue);
         });
     };
 
@@ -119,7 +122,15 @@ function EmojiPicker(props, ref) {
         }
     };
 
-    useImperativeHandle(ref, () => ({showEmojiPicker}));
+    /**
+     * Whether Context Menu is active for the Report Action.
+     *
+     * @param {Number|String} actionID
+     * @return {Boolean}
+     */
+    const isActiveReportAction = (actionID) => Boolean(actionID) && reportAction.reportActionID === actionID;
+
+    useImperativeHandle(ref, () => ({showEmojiPicker, isActiveReportAction}));
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
