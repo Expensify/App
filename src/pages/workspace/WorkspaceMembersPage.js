@@ -379,7 +379,7 @@ function WorkspaceMembersPage(props) {
     // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
     // see random people added to their policy, but guides having access to the policies help set them up.
     if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
-        data = _.reject(data, (member) => PolicyUtils.isExpensifyTeam(member.login));
+        data = _.reject(data, (member) => PolicyUtils.isExpensifyTeam(member.login || member.displayName));
     }
 
     _.each(data, (member) => {
