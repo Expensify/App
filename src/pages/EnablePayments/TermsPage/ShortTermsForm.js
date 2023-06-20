@@ -44,7 +44,7 @@ function ShortTermsForm() {
                         <View style={styles.flexRow}>
                             <Text style={styles.textLabelSupporting}>{Localize.translateLocal('termsStep.shortTermsForm.inNetwork')}</Text>
                         </View>
-                        <View style={[styles.flexRow, styles.mt1]}>
+                        <View style={[styles.flexRow, styles.mt4]}>
                             <Text style={styles.shortTermsHeadline}>{Localize.translateLocal('common.na')}</Text>
                         </View>
                         <View style={styles.flexRow}>
