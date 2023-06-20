@@ -45,7 +45,9 @@ class ShareCodePage extends React.Component {
         const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
 
         const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
-        const url = isReport ? `${urlWithTrailingSlash}r/${this.props.report.reportID}` : `${urlWithTrailingSlash}details?login=${encodeURIComponent(this.props.session.email)}`;
+        const url = isReport
+            ? `${urlWithTrailingSlash}${ROUTES.getReportRoute(this.props.report.reportID)}`
+            : `${urlWithTrailingSlash}${ROUTES.getProfileRoute(this.props.session.accountID)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
