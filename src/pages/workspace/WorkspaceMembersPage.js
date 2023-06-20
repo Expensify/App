@@ -369,6 +369,7 @@ class WorkspaceMembersPage extends React.Component {
                             <Text style={[styles.peopleBadgeText]}>{this.props.translate('common.admin')}</Text>
                         </View>
                     )}
+<<<<<<< HEAD
                 </PressableWithFeedback>
                 {!_.isEmpty(this.state.errors[item.accountID]) && (
                     <FormHelpMessage
@@ -378,6 +379,41 @@ class WorkspaceMembersPage extends React.Component {
                 )}
             </OfflineWithFeedback>
         );
+=======
+                </OfflineWithFeedback>
+            );
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [selectedEmployees, errors, props.session.email, dismissError, toggleUser],
+    );
+
+    const policyOwner = lodashGet(props.policy, 'owner');
+    const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
+    const removableMembers = {};
+    let data = [];
+    _.each(props.policyMembers, (policyMember, accountID) => {
+        if (isDeletedPolicyMember(policyMember)) {
+            return;
+        }
+        const details = props.personalDetails[accountID];
+        if (!details) {
+            Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
+            return;
+        }
+        data.push({
+            ...policyMember,
+            ...details,
+        });
+    });
+    data = _.sortBy(data, (value) => value.displayName.toLowerCase());
+    data = getMemberOptions(data, searchValue.trim().toLowerCase());
+
+    // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
+    // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
+    // see random people added to their policy, but guides having access to the policies help set them up.
+    if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+        data = _.reject(data, (member) => PolicyUtils.isExpensifyTeam(member.login || member.displayName));
+>>>>>>> 0140a14016 (Merge pull request #21150 from Expensify/aldo_fix-crash-invite-workspace-new-account)
     }
 
     render() {
