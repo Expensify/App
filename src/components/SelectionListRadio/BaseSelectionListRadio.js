@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -85,7 +85,7 @@ function SelectionListRadio(props) {
     const textInputRef = useRef(null);
     const shouldShowTextInput = Boolean(props.textInputLabel);
 
-    const flattenedSections = useMemo(() => {
+    const getFlattenedSections = () => {
         const allOptions = [];
 
         const disabledOptionsIndexes = [];
@@ -135,7 +135,9 @@ function SelectionListRadio(props) {
             disabledOptionsIndexes,
             itemLayouts,
         };
-    }, [props.sections]);
+    };
+
+    const flattenedSections = getFlattenedSections();
 
     const [focusedIndex, setFocusedIndex] = useState(() => {
         const defaultIndex = 0;
