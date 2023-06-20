@@ -315,6 +315,9 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
                 // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
                 // More info https://github.com/Expensify/App/issues/8007
                 searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+            } else if (personalDetail.displayName) {
+                // For unknown users, if login is not set and displayName is set, then set searchText on the basis of displayName
+                searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.displayName.replace(/\.(?=[^\s@]*@)/g, '')]);
             }
         }
     }
@@ -749,7 +752,7 @@ function getOptions(
 
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
+    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => (option.login || option.searchText) === searchValue.toLowerCase());
 
     if (
         searchValue &&
