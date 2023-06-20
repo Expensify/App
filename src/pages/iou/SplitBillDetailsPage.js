@@ -62,12 +62,12 @@ function getReportID(route) {
     return route.params.reportID.toString();
 }
 
-const SplitBillDetailsPage = (props) => {
+function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const personalDetails = OptionsListUtils.getPersonalDetailsForLogins(reportAction.originalMessage.participants, props.personalDetails);
+    const personalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(reportAction.originalMessage.participantAccountIDs, props.personalDetails);
     const participants = OptionsListUtils.getParticipantsOptions(reportAction.originalMessage, personalDetails);
-    const payeePersonalDetails = _.filter(participants, (participant) => participant.login === reportAction.actorEmail)[0];
-    const participantsExcludingPayee = _.filter(participants, (participant) => participant.login !== reportAction.actorEmail);
+    const payeePersonalDetails = personalDetails[reportAction.actorAccountID];
+    const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
     const splitComment = lodashGet(reportAction, 'originalMessage.comment');
     const splitCurrency = lodashGet(reportAction, 'originalMessage.currency');
@@ -75,10 +75,7 @@ const SplitBillDetailsPage = (props) => {
     return (
         <ScreenWrapper>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report) || _.isEmpty(reportAction)}>
-                <HeaderWithBackButton
-                    title={props.translate('common.details')}
-                    shouldShowBackButton={false}
-                />
+                <HeaderWithBackButton title={props.translate('common.details')} />
                 <View
                     pointerEvents="box-none"
                     style={[styles.containerWithSpaceBetween]}
@@ -100,7 +97,7 @@ const SplitBillDetailsPage = (props) => {
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
-};
+}
 
 SplitBillDetailsPage.propTypes = propTypes;
 SplitBillDetailsPage.defaultProps = defaultProps;
@@ -111,7 +108,7 @@ export default compose(
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,

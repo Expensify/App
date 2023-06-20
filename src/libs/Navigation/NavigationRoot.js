@@ -8,7 +8,7 @@ import AppNavigator from './AppNavigator';
 import themeColors from '../../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
-import withCurrentReportId from '../../components/withCurrentReportId';
+import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../components/withCurrentReportId';
 import compose from '../compose';
 
 // https://reactnavigation.org/docs/themes
@@ -28,6 +28,7 @@ const propTypes = {
 
     /** Fired when react-navigation is ready */
     onReady: PropTypes.func.isRequired,
+    ...withCurrentReportIdPropTypes,
 };
 
 /**
@@ -51,7 +52,7 @@ function parseAndLogRoute(state) {
     Navigation.setIsNavigationReady();
 }
 
-const NavigationRoot = (props) => {
+function NavigationRoot(props) {
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
 
@@ -77,7 +78,7 @@ const NavigationRoot = (props) => {
             <AppNavigator authenticated={props.authenticated} />
         </NavigationContainer>
     );
-};
+}
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;

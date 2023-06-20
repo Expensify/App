@@ -18,10 +18,16 @@ import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
+import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
+import textUnderline from './utilities/textUnderline';
+
+function getTransparentColor(color, transparency = '') {
+    return `${color}${transparency}`;
+}
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -162,6 +168,7 @@ const styles = {
     ...cursor,
     ...userSelect,
     ...themeColors,
+    ...textUnderline,
 
     rateCol: {
         margin: 0,
@@ -188,13 +195,11 @@ const styles = {
     },
 
     emojiSuggestionsEmoji: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,
         width: 51,
         textAlign: 'center',
     },
     emojiSuggestionsText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,
     },
 
@@ -273,14 +278,6 @@ const styles = {
 
     textUnderline: {
         textDecorationLine: 'underline',
-    },
-
-    textUnderlinePositionUnder: {
-        textUnderlinePosition: 'under',
-    },
-
-    textDecorationSkipInkNone: {
-        textDecorationSkipInk: 'none',
     },
 
     label: {
@@ -768,7 +765,7 @@ const styles = {
     },
 
     headerGap: {
-        height: 12,
+        height: CONST.DESKTOP_HEADER_PADDING,
     },
 
     pushTextRight: {
@@ -1249,7 +1246,7 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: variables.leftPaneMaxWidth,
+        maxWidth: variables.sideBarWidth,
     },
 
     rightPanelContainer: {
@@ -1272,7 +1269,7 @@ const styles = {
 
     createMenuPositionProfile: (windowWidth) => ({
         horizontal: windowWidth - 355,
-        vertical: 250,
+        ...getPopOverVerticalOffset(162),
     }),
 
     createMenuPositionReportActionCompose: (windowHeight) => ({
@@ -1314,6 +1311,11 @@ const styles = {
     popoverMenuText: {
         fontSize: variables.fontSizeNormal,
         color: themeColors.heading,
+    },
+
+    popoverInnerContainer: {
+        paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
+        maxHeight: '95%',
     },
 
     menuItemTextContainer: {
@@ -1587,7 +1589,7 @@ const styles = {
             backgroundColor: themeColors.componentBG,
             borderColor: themeColors.border,
             color: themeColors.text,
-            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             borderWidth: 0,
             height: 'auto',
@@ -1644,15 +1646,6 @@ const styles = {
         backgroundColor: themeColors.componentBG,
     },
 
-    emojiPickerList: {
-        height: 288,
-        width: '100%',
-        ...spacing.ph4,
-    },
-    emojiPickerListLandscape: {
-        height: 240,
-    },
-
     emojiHeaderContainer: {
         backgroundColor: themeColors.componentBG,
         display: 'flex',
@@ -1672,7 +1665,6 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
@@ -1734,13 +1726,6 @@ const styles = {
         padding: 6,
         margin: 3,
         borderRadius: variables.componentBorderRadiusRounded,
-        backgroundColor: themeColors.transparent,
-    },
-
-    taskSelectorLink: {
-        alignSelf: 'center',
-        width: '100%',
-        padding: 6,
         backgroundColor: themeColors.transparent,
     },
 
@@ -2232,10 +2217,6 @@ const styles = {
         minWidth: 100,
     },
 
-    twoFactorAuthFooter: {
-        marginTop: 'auto',
-    },
-
     anonymousRoomFooter: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -2561,8 +2542,8 @@ const styles = {
         marginBottom: 0,
     },
 
-    iouPreviewBoxCheckmark: {
-        marginLeft: 4,
+    defaultCheckmarkWrapper: {
+        marginLeft: 8,
         alignSelf: 'center',
     },
 
@@ -2695,10 +2676,6 @@ const styles = {
         outline: 'none',
     },
 
-    cursorPointer: {
-        cursor: 'pointer',
-    },
-
     cardStyleNavigator: {
         overflow: 'hidden',
         height: '100%',
@@ -2791,7 +2768,7 @@ const styles = {
         width: 250,
     },
 
-    workspaceInviteWelcome: {
+    autoGrowHeightMultilineInput: {
         maxHeight: 115,
     },
 
@@ -2983,12 +2960,12 @@ const styles = {
     },
 
     threeDotsPopoverOffset: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 60,
     }),
 
     threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 10,
     }),
 
@@ -3356,16 +3333,30 @@ const styles = {
         lineHeight: variables.lineHeightXXLarge,
     },
 
-    moneyRequestHeaderCheckmark: {
-        marginLeft: 5,
-        alignSelf: 'center',
-    },
-
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,
         color: themeColors.textLight,
         textAlign: 'center',
+    },
+
+    linkPreviewWrapper: {
+        marginTop: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        paddingLeft: 12,
+    },
+
+    linkPreviewImage: {
+        flex: 1,
+        resizeMode: 'contain',
+        borderRadius: 8,
+        marginTop: 8,
+    },
+
+    linkPreviewLogoImage: {
+        height: 16,
+        width: 16,
     },
 
     validateCodeMessage: {

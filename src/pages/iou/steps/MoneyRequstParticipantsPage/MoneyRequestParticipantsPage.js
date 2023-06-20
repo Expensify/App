@@ -43,7 +43,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
 };
 
-const MoneyRequestParticipantsPage = (props) => {
+function MoneyRequestParticipantsPage(props) {
     if (props.iou.loading) {
         return (
             <View style={styles.flex1}>
@@ -67,7 +67,7 @@ const MoneyRequestParticipantsPage = (props) => {
             iouType={props.iouType}
         />
     );
-};
+}
 
 MoneyRequestParticipantsPage.displayName = 'IOUParticipantsPage';
 MoneyRequestParticipantsPage.propTypes = propTypes;

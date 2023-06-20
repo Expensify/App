@@ -57,7 +57,7 @@ const defaultProps = {
  * @param {Object} values - form input values
  */
 function updateAddress(values) {
-    PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim(), values.country);
+    PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
 }
 
 function AddressPage(props) {
@@ -85,7 +85,7 @@ function AddressPage(props) {
 
             // Check "State" dropdown is a valid state if selected Country is USA.
             if (isUSAForm && !COMMON_CONST.STATES[values.state]) {
-                errors.state = translate('common.error.fieldRequired');
+                errors.state = 'common.error.fieldRequired';
             }
 
             // Add "Field required" errors if any required field is empty
@@ -93,7 +93,7 @@ function AddressPage(props) {
                 if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
                     return;
                 }
-                errors[fieldKey] = translate('common.error.fieldRequired');
+                errors[fieldKey] = 'common.error.fieldRequired';
             });
 
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
@@ -104,20 +104,20 @@ function AddressPage(props) {
             const countryZipFormat = lodashGet(countryRegexDetails, 'samples');
 
             if (countrySpecificZipRegex) {
-                if (!countrySpecificZipRegex.test(values.zipPostCode.trim())) {
+                if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
                     if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
-                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
+                        errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat}];
                     } else {
-                        errors.zipPostCode = translate('common.error.fieldRequired');
+                        errors.zipPostCode = 'common.error.fieldRequired';
                     }
                 }
-            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim())) {
-                errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
+            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim().toUpperCase())) {
+                errors.zipPostCode = 'privatePersonalDetails.error.incorrectZipFormat';
             }
 
             return errors;
         },
-        [translate, isUSAForm],
+        [isUSAForm],
     );
 
     return (

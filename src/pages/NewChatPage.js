@@ -168,13 +168,12 @@ function NewChatPage(props) {
         if (!props.isGroupChat) {
             return;
         }
-
-        const userLogins = _.pluck(selectedOptions, 'login');
-        if (userLogins.length < 1) {
+        const logins = _.pluck(selectedOptions, 'login');
+        if (logins.length < 1) {
             return;
         }
-        Report.navigateToAndOpenReport(userLogins);
-    };
+        Report.navigateToAndOpenReport(logins);
+    }
 
     useEffect(() => {
         updateOptionsWithSearchTerm(searchTerm);
@@ -231,7 +230,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

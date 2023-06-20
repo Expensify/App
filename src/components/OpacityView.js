@@ -1,9 +1,8 @@
 import React from 'react';
-import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
-import * as StyleUtils from '../styles/StyleUtils';
 import variables from '../styles/variables';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /**
@@ -35,7 +34,7 @@ const defaultProps = {
     dimmingValue: variables.hoverDimValue,
 };
 
-const OpacityView = (props) => {
+function OpacityView(props) {
     const opacity = useSharedValue(1);
     const opacityStyle = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -49,12 +48,8 @@ const OpacityView = (props) => {
         }
     }, [props.shouldDim, props.dimmingValue, opacity]);
 
-    return (
-        <Animated.View style={[opacityStyle]}>
-            <View style={StyleUtils.parseStyleAsArray(props.style)}>{props.children}</View>
-        </Animated.View>
-    );
-};
+    return <Animated.View style={[opacityStyle, ...StyleUtils.parseStyleAsArray(props.style)]}>{props.children}</Animated.View>;
+}
 
 OpacityView.displayName = 'OpacityView';
 OpacityView.propTypes = propTypes;

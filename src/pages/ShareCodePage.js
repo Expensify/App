@@ -18,6 +18,7 @@ import getPlatform from '../libs/getPlatform';
 import CONST from '../CONST';
 import ContextMenuItem from '../components/ContextMenuItem';
 import * as UserUtils from '../libs/UserUtils';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -40,7 +41,9 @@ class ShareCodePage extends React.Component {
         const isReport = this.props.report != null && this.props.report.reportID != null;
         const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
 
-        const url = isReport ? `${CONST.NEW_EXPENSIFY_URL}r/${this.props.report.reportID}` : `${CONST.NEW_EXPENSIFY_URL}details?login=${encodeURIComponent(this.props.session.email)}`;
+        const url = isReport
+            ? `${CONST.NEW_EXPENSIFY_URL}${ROUTES.getReportRoute(this.props.report.reportID)}`
+            : `${CONST.NEW_EXPENSIFY_URL}${ROUTES.getProfileRoute(this.props.session.accountID)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
@@ -49,7 +52,7 @@ class ShareCodePage extends React.Component {
             <ScreenWrapper>
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.getReportDetailsRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
                 />
 
                 <ScrollView style={[styles.flex1, styles.mt3]}>
@@ -59,7 +62,7 @@ class ShareCodePage extends React.Component {
                             url={url}
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
                             subtitle={isReport ? subtitle : this.props.session.email}
-                            logo={isReport ? expensifyLogo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                            logo={isReport ? expensifyLogo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
                             logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                             logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                         />
