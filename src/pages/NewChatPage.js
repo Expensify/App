@@ -174,7 +174,7 @@ function NewChatPage(props) {
             return;
         }
         Report.navigateToAndOpenReport(logins);
-    }
+    };
 
     useEffect(() => {
         updateOptionsWithSearchTerm(searchTerm);
