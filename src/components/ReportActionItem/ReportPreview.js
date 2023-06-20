@@ -100,7 +100,7 @@ function ReportPreview(props) {
     const managerEmail = props.iouReport.managerEmail || '';
     const managerAccountID = props.iouReport.managerID || 0;
     const managerName =
-        (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(manageraccountID, true)) || managerEmail;
+        (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerAccountID, true)) || managerEmail;
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
