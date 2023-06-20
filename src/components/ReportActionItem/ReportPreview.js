@@ -96,10 +96,9 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
-    const requestComment = 'Hey';
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
-    const manageraccountID = props.iouReport.managerID || 0;
+    const managerAccountID = props.iouReport.managerID || 0;
     const managerName =
         (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(manageraccountID, true)) || managerEmail;
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
