@@ -15,6 +15,7 @@ import Navigation from './Navigation/Navigation';
 import * as LoginUtils from './LoginUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
+import * as ReportActionUtils from './ReportActionsUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -77,16 +78,17 @@ Onyx.connect({
 });
 
 const lastReportActions = {};
-const allReportActions = {};
+const allSortedReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
         if (!key || !actions) {
             return;
         }
-        allReportActions[key] = actions;
+        const sortedReportActions = ReportActionUtils.getSortedReportActions(_.toArray(actions), true);
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        lastReportActions[reportID] = _.last(_.toArray(actions));
+        allSortedReportActions[reportID] = sortedReportActions;
+        lastReportActions[reportID] = _.first(sortedReportActions);
     },
 });
 
@@ -157,6 +159,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails) {
     return _.map(accountIDs, (accountID) => {
         const userPersonalDetail = lodashGet(personalDetails, accountID, {login: '', accountID, avatar: ''});
         return {
+            id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
             type: CONST.ICON_TYPE_AVATAR,
             name: userPersonalDetail.login,
@@ -181,7 +184,6 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
         let personalDetail = personalDetails[accountID];
         if (!personalDetail) {
             personalDetail = {
-                accountID: cleanAccountID,
                 avatar: UserUtils.getDefaultAvatar(cleanAccountID),
             };
         }
@@ -190,6 +192,7 @@ function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
             personalDetail.avatar = CONST.CONCIERGE_ICON_URL;
         }
 
+        personalDetail.accountID = cleanAccountID;
         personalDetailsForAccountIDs[cleanAccountID] = personalDetail;
     });
     return personalDetailsForAccountIDs;
@@ -213,18 +216,19 @@ function isPersonalDetailsReady(personalDetails) {
 function getParticipantsOptions(report, personalDetails) {
     const participants = lodashGet(report, 'participantAccountIDs', []);
     return _.map(getPersonalDetailsForAccountIDs(participants, personalDetails), (details) => ({
-        keyForList: details.login,
+        keyForList: String(details.accountID),
         login: details.login,
         accountID: details.accountID,
         text: details.displayName,
         firstName: lodashGet(details, 'firstName', ''),
         lastName: lodashGet(details, 'lastName', ''),
-        alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
+        alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login || details.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(details.avatar, details.accountID),
                 name: details.login,
                 type: CONST.ICON_TYPE_AVATAR,
+                id: details.accountID,
             },
         ],
         payPalMeAddress: lodashGet(details, 'payPalMeAddress', ''),
@@ -366,6 +370,32 @@ function getAllReportErrors(report, reportActions) {
 }
 
 /**
+ * Get the last message text from the report directly or from other sources for special cases.
+ * @param {Object} report
+ * @returns {String}
+ */
+function getLastMessageTextForReport(report) {
+    let lastMessageTextFromReport = '';
+    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
+        lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+    } else {
+        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+
+        // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
+        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
+        if (lodashGet(lastNonWhisper, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+            const latestVisibleAction =
+                _.find(
+                    allSortedReportActions[report.reportID],
+                    (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !ReportActionUtils.isWhisperAction(action),
+                ) || {};
+            lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
+        }
+    }
+    return lastMessageTextFromReport;
+}
+
+/**
  * Creates a report list option
  *
  * @param {Array<Number>} accountIDs
@@ -443,13 +473,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        let lastMessageTextFromReport = '';
-        if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
-            lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
-        } else {
-            lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-        }
-
+        const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
         let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
@@ -475,7 +499,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     } else {
         reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
         result.keyForList = String(accountIDs[0]);
-        result.alternateText = '';
+        result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
@@ -834,12 +858,13 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     return {
         text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
-        alternateText: personalDetail.login,
+        alternateText: personalDetail.login || personalDetail.displayName,
         icons: [
             {
-                source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.login),
+                source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
                 name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
+                id: personalDetail.accountID,
             },
         ],
         descriptiveText: amountText,
@@ -1002,4 +1027,5 @@ export {
     getParticipantsOptions,
     isSearchStringMatch,
     shouldOptionShowTooltip,
+    getLastMessageTextForReport,
 };
