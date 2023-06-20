@@ -134,6 +134,8 @@ function MoneyRequestParticipantsSplitSelector(props) {
         } else {
             newSelectedOptions = [...props.participants, option];
         }
+        
+        props.onAddParticipants(newSelectedOptions);
 
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
             props.reports,
@@ -149,14 +151,6 @@ function MoneyRequestParticipantsSplitSelector(props) {
             personalDetails,
             userToInvite,
         });
-        props.onAddParticipants(newSelectedOptions);
-    };
-
-    /**
-     * Once a single or more users are selected, navigates to next step
-     */
-    const finalizeParticipants = () => {
-        props.onStepComplete();
     };
 
     const maxParticipantsReached = props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
@@ -199,7 +193,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
                 boldStyle
                 shouldShowConfirmButton
                 confirmButtonText={props.translate('common.next')}
-                onConfirmSelection={finalizeParticipants}
+                onConfirmSelection={props.onStepComplete()}
                 textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 safeAreaPaddingBottomStyle={props.safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
