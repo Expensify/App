@@ -1108,21 +1108,17 @@ function getChatRoomSubtitle(report) {
 }
 
 /**
- * Get either the policyName or domainName the chat is tied to
+ * Get the subtitleLink for the report
  * @param {Object} report
  * @returns {String}
  */
 function getChatRoomSubtitleLink(report) {
     if (isThread(report)) {
-        if (report.reportID == '280084830934340') {
-            debugger;
-        }
-        const from = Localize.translateLocal('threads.from');
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
-        let subtitleLink = `${from} ${rootReportName}`;
+        let subtitleLink = `${Localize.translateLocal('common.from')} ${rootReportName}`;
         if (workspaceName && workspaceName !== rootReportName && workspaceName !== Localize.translateLocal('workspace.common.unavailable')) {
-            subtitleLink += ` in ${workspaceName}`;
+            subtitleLink += ` ${Localize.translateLocal('common.conjunctionIn')} ${workspaceName}`;
         }
         return subtitleLink;
     }

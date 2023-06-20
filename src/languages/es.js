@@ -145,6 +145,8 @@ export default {
         km: 'kilómetro',
         copied: '¡Copiado!',
         someone: 'Alguien',
+        from: 'De',
+        conjunctionIn: 'en',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -1880,7 +1882,6 @@ export default {
         lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
-        from: 'De',
     },
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',
