@@ -1160,18 +1160,19 @@ function navigateToConciergeChat() {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {Object} policy
+ * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
+ * @param {Array} policyMembers
  */
-function addPolicyReport(policy, reportName, visibility) {
+function addPolicyReport(policyID, reportName, visibility, policyMembers) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserAccountID, ..._.pluck(policy.employeeList, 'accountID')]);
+    const participants = _.unique([currentUserAccountID, ...policyMembers]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        policy.id,
+        policyID,
         CONST.REPORT.OWNER_EMAIL_FAKE,
         CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         false,
