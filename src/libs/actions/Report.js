@@ -427,22 +427,33 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         });
 
-        // Add optimistic personal details for new participants
+        // Add optimistic personal details for new participants, and clear it in successData
         const optimisticPersonalDetails = {};
+        const optimisticPersonalDetailsToClear = {};
         _.map(participantLoginList, (login, index) => {
             const accountID = newReportObject.participantAccountIDs[index];
-            optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
-                login,
-                accountID,
-                avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: login,
-            };
+            if (allPersonalDetails[accountID]) {
+                optimisticPersonalDetails[accountID] = allPersonalDetails[accountID]
+            } else {
+                optimisticPersonalDetailsToClear[accountID] = null;
+                optimisticPersonalDetails[accountID] = {
+                    login,
+                    accountID,
+                    avatar: UserUtils.getDefaultAvatarURL(accountID),
+                    displayName: login,
+                };
+            }
         });
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetails,
         });
+        onyxData.successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetailsToClear,
+        })
 
         // Add the createdReportActionID parameter to the API call
         params.createdReportActionID = optimisticCreatedAction.reportActionID;
