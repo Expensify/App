@@ -177,9 +177,9 @@ function BaseTextInput(props) {
         }
 
         if (inputValue) {
-            activateLabel()
+            activateLabel();
         }
-    }, [activateLabel, inputValue])
+    }, [activateLabel, inputValue]);
 
     useEffect(() => {
         // Activate or deactivate the label when the focus changes
@@ -204,10 +204,10 @@ function BaseTextInput(props) {
 
         Str.result(props.onChangeText, value);
         if (value && value.length > 0) {
-            hasValueRef.current = true
+            hasValueRef.current = true;
             activateLabel();
         } else {
-            hasValueRef.current = false
+            hasValueRef.current = false;
         }
     };
 

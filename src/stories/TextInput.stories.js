@@ -104,8 +104,8 @@ HintAndErrorInput.args = {
 function AutoGrowSupportInput(args) {
     const [value, setValue] = useState(args.value || '');
     React.useEffect(() => {
-        setValue(args.value || '')
-    }, [args.value])
+        setValue(args.value || '');
+    }, [args.value]);
 
     return (
         <TextInput
