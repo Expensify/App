@@ -1121,7 +1121,7 @@ function getChatRoomSubtitleLink(report) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
         let subtitleLink = `${from} ${rootReportName}`;
-        if (workspaceName && workspaceName !== rootReportName) {
+        if (workspaceName && workspaceName !== rootReportName && workspaceName !== Localize.translateLocal('workspace.common.unavailable')) {
             subtitleLink += ` in ${workspaceName}`;
         }
         return subtitleLink;
