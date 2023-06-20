@@ -349,27 +349,30 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        let errorComponent;
+        if (this.state.shouldShowContinueSetupButton) {
+            return (
+                <ContinueBankAccountSetup
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    continue={this.continue}
+                    policyName={policyName}
+                />
+            );
+        }
+
+        let errorText;
         const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
+        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
+        const hasUnsupportedCurrency = lodashGet(this.props.policy, 'outputCurrency', '') !== CONST.CURRENCY.USD;
 
         if (userHasPhonePrimaryEmail) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
-                </View>
-            );
+            errorText = this.props.translate('bankAccount.hasPhoneLoginError');
+        } else if (throttledDate) {
+            errorText = this.props.translate('bankAccount.hasBeenThrottledError');
+        } else if (hasUnsupportedCurrency) {
+            errorText = this.props.translate('bankAccount.hasCurrencyError');
         }
 
-        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
-        if (throttledDate) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasBeenThrottledError')}</Text>
-                </View>
-            );
-        }
-
-        if (errorComponent) {
+        if (errorText) {
             return (
                 <ScreenWrapper>
                     <HeaderWithBackButton
@@ -377,7 +380,9 @@ class ReimbursementAccountPage extends React.Component {
                         subtitle={policyName}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
-                    {errorComponent}
+                    <View style={[styles.m5]}>
+                        <Text>{errorText}</Text>
+                    </View>
                 </ScreenWrapper>
             );
         }

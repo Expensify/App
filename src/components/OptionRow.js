@@ -185,7 +185,6 @@ class OptionRow extends Component {
                             accessibilityRole="button"
                             hoverDimmingValue={1}
                             hoverStyle={this.props.hoverStyle}
-                            focusStyle={this.props.hoverStyle}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>

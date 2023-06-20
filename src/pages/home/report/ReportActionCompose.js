@@ -452,6 +452,10 @@ class ReportActionCompose extends React.Component {
         }
 
         const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+            // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
+            if (!detail.login) {
+                return false;
+            }
             if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
                 return false;
             }
