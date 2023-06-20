@@ -39,7 +39,7 @@ const defaultProps = {
  */
 const ImageWithSizeCalculation = (props) => {
     const [isLoading, setIsLoading] = useState(false);
-    const isLoadedRef = useRef(false);
+    const isLoadedRef = useRef(null);
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
