@@ -29,8 +29,7 @@ function Modal(props) {
         const isFullScreenModal =
             props.type === CONST.MODAL.MODAL_TYPE.CENTERED || props.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE || props.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
         setPreviousStatusBarColor(statusBarColor);
-        // If it is full screen modal then
-        // match it with appBG otherwise backdrop color
+        // If it is a full screen modal then match it with appBG, otherwise we use the backdrop color
         setStatusBarColor(isFullScreenModal ? themeColors.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
         props.onModalShow();
     };
