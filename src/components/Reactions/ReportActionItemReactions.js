@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
-import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import withLocalize from '../withLocalize';
@@ -61,7 +60,7 @@ function ReportActionItemReactions(props) {
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
                 const reactionUsers = _.map(reaction.users, (sender) => sender.accountID);
-                const emoji = _.find(emojis, (e) => EmojiUtils.getEmojiName(e) === reaction.emoji);
+                const emoji = EmojiUtils.findEmojiByName(reaction.emoji);
                 const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 

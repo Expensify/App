@@ -3,7 +3,7 @@ import React, {useState, useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import * as Emojis from '../../../assets/emojis';
+import {skinTones} from '../../../assets/emojis';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Text from '../Text';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
@@ -57,7 +57,7 @@ function EmojiSkinToneList(props) {
             )}
             {isSkinToneListVisible && (
                 <View style={[styles.flexRow, styles.flex1]}>
-                    {_.map(Emojis.skinTones, (skinToneEmoji) => (
+                    {_.map(skinTones, (skinToneEmoji) => (
                         <EmojiPickerMenuItem
                             onPress={() => updateSelectedSkinTone(skinToneEmoji)}
                             onHoverIn={() => setHighlightedIndex(skinToneEmoji.skinTone)}

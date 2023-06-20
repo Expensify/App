@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import emojis from '../../assets/emojis';
+import emojis, {localeEmojis} from '../../assets/emojis';
 import Trie from './Trie';
 import Timing from './actions/Timing';
 import CONST from '../CONST';
@@ -10,34 +10,30 @@ const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES];
 
 function createTrie(lang = CONST.LOCALES.DEFAULT) {
     const trie = new Trie();
+    const langEmojis = localeEmojis[lang];
 
-    // Inserting all emojis into the Trie object
     _.forEach(emojis, (item) => {
         if (item.header) {
             return;
         }
 
-        const name = item.name[lang];
-        if (!name) {
-            return;
-        }
-
+        const name = _.get(langEmojis, [item.code, 'name']);
         const node = trie.search(name);
         if (!node) {
-            trie.add(name, {code: item.code, types: item.types, name: item.name, suggestions: []});
+            trie.add(name, {code: item.code, types: item.types, name, suggestions: []});
         } else {
-            trie.update(name, {code: item.code, types: item.types, name: item.name, suggestions: node.metaData.suggestions});
+            trie.update(name, {code: item.code, types: item.types, name, suggestions: node.metaData.suggestions});
         }
 
-        const keywords = item.keywords[lang];
+        const keywords = _.get(langEmojis, [item.code, 'keywords']);
         for (let j = 0; j < keywords.length; j++) {
             const keywordNode = trie.search(keywords[j]);
             if (!keywordNode) {
-                trie.add(keywords[j], {suggestions: [{code: item.code, types: item.types, name: item.name}]});
+                trie.add(keywords[j], {suggestions: [{code: item.code, types: item.types, name}]});
             } else {
                 trie.update(keywords[j], {
                     ...keywordNode.metaData,
-                    suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name: item.name}],
+                    suggestions: [...keywordNode.metaData.suggestions, {code: item.code, types: item.types, name}],
                 });
             }
         }
@@ -46,10 +42,7 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
     return trie;
 }
 
-const emojiTrie = {};
-_.forEach(supportedLanguages, (lang) => {
-    emojiTrie[lang] = createTrie(lang);
-});
+const emojiTrie = _.reduce(supportedLanguages, (prev, cur) => ({...prev, [cur]: createTrie(cur)}), {});
 
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
