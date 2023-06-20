@@ -4,8 +4,7 @@ import Log from '../../../libs/Log';
 import ButtonBase from '../ButtonBase';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
-
-const appleLogoIcon = require('../../../../assets/images/signIn/apple-logo.svg').default;
+import appleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
 
 /**
  * Apple Sign In Configuration for Android.
