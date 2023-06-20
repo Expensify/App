@@ -67,6 +67,14 @@ Onyx.connect({
     callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
 });
 
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        allPersonalDetails = val || {};
+    },
+});
+
 const allReports = {};
 let conciergeChatReportID;
 const typingWatchTimers = {};
@@ -117,27 +125,30 @@ function subscribeToReportTypingEvents(reportID) {
 
     const pusherChannelName = getReportChannelName(reportID);
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING, (typingStatus) => {
+        // If the pusher message comes from OldDot, we expect the typing status to be keyed by user
+        // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
+        // since personal details are keyed by accountID.
         const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
-        const login = _.first(_.keys(normalizedTypingStatus));
+        const accountIDOrLogin = _.first(_.keys(normalizedTypingStatus));
 
-        if (!login) {
+        if (!accountIDOrLogin) {
             return;
         }
 
-        // Don't show the typing indicator if a user is typing on another platform
-        if (login === currentUserEmail) {
+        // Don't show the typing indicator if the user is typing on another platform
+        if (Number(accountIDOrLogin) === currentUserAccountID) {
             return;
         }
 
-        // Use a combo of the reportID and the login as a key for holding our timers.
-        const reportUserIdentifier = `${reportID}-${login}`;
+        // Use a combo of the reportID and the accountID or login as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${accountIDOrLogin}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
             const typingStoppedStatus = {};
-            typingStoppedStatus[login] = false;
+            typingStoppedStatus[accountIDOrLogin] = false;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
@@ -420,7 +431,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         const optimisticPersonalDetails = {};
         _.map(participantLoginList, (login, index) => {
             const accountID = newReportObject.participantAccountIDs[index];
-            optimisticPersonalDetails[accountID] = {
+            optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
@@ -747,7 +758,7 @@ function setReportWithDraft(reportID, hasDraft) {
 function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
     const typingStatus = {};
-    typingStatus[currentUserEmail] = true;
+    typingStatus[currentUserAccountID] = true;
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 
@@ -1149,18 +1160,19 @@ function navigateToConciergeChat() {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {Object} policy
+ * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
+ * @param {Array} policyMembers
  */
-function addPolicyReport(policy, reportName, visibility) {
+function addPolicyReport(policyID, reportName, visibility, policyMembers) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserAccountID, ..._.pluck(policy.employeeList, 'accountID')]);
+    const participants = _.unique([currentUserAccountID, ...policyMembers]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        policy.id,
+        policyID,
         CONST.REPORT.OWNER_EMAIL_FAKE,
         CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         false,

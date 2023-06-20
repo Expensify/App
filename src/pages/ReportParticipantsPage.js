@@ -3,8 +3,6 @@ import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -19,8 +17,6 @@ import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from './reportPropTypes';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import CONST from '../CONST';
-import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /* Onyx Props */
