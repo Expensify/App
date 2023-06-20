@@ -102,7 +102,11 @@ HintAndErrorInput.args = {
 
 // To use autoGrow we need to control the TextInput's value
 function AutoGrowSupportInput(args) {
-    const [value, setValue] = useState('');
+    const [value, setValue] = useState(args.value || '');
+    React.useEffect(() => {
+        setValue(args.value || '')
+    }, [args.value])
+
     return (
         <TextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -119,6 +123,7 @@ AutoGrowInput.args = {
     name: 'AutoGrow',
     placeholder: 'My placeholder text',
     autoGrow: true,
+    value: '',
     textInputContainerStyles: [
         {
             minWidth: 150,

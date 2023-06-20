@@ -167,17 +167,26 @@ function BaseTextInput(props) {
         [props.autoGrowHeight, props.multiline],
     );
 
+    const hasValueRef = useRef(inputValue.length > 0);
     useEffect(() => {
-        // Activate or deactivate the label when value is changed programmatically from outside
+        // Handle side effects when the value gets changed programatically from the outside
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
         if (inputValue === '') {
             input.current.clear();
         }
 
-        if (inputValue || isFocused) {
+        if (inputValue) {
+            activateLabel()
+        }
+    }, [activateLabel, inputValue])
+
+    useEffect(() => {
+        // Activate or deactivate the label when the focus changes
+
+        if (hasValueRef.current || isFocused) {
             activateLabel();
-        } else if (!isFocused) {
+        } else if (!hasValueRef.current && !isFocused) {
             deactivateLabel();
         }
     }, [activateLabel, deactivateLabel, inputValue, isFocused]);
@@ -194,7 +203,12 @@ function BaseTextInput(props) {
         }
 
         Str.result(props.onChangeText, value);
-        activateLabel();
+        if (value && value.length > 0) {
+            hasValueRef.current = true
+            activateLabel();
+        } else {
+            hasValueRef.current = false
+        }
     };
 
     const togglePasswordVisibility = useCallback(() => {
