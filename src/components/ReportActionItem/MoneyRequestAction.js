@@ -15,12 +15,12 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import * as IOUUtils from '../../libs/IOUUtils';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -103,10 +103,9 @@ function MoneyRequestAction(props) {
         // If the childReportID is not present, we need to create a new thread
         const childReportID = lodashGet(props.action, 'childReportID', '0');
         if (childReportID === '0') {
-            const participants = _.uniq([props.session.email, props.action.actorEmail]);
-            const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+            const participantAccountIDs = _.uniq([props.session.accountID, Number(props.action.actorAccountID)]);
             const thread = ReportUtils.buildOptimisticChatReport(
-                formattedUserLogins,
+                participantAccountIDs,
                 props.translate(ReportActionsUtils.isSentMoneyReportAction(props.action) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
                     formattedAmount: ReportActionsUtils.getFormattedAmount(props.action),
                     comment: props.action.originalMessage.comment,
@@ -114,6 +113,7 @@ function MoneyRequestAction(props) {
                 '',
                 CONST.POLICY.OWNER_EMAIL_FAKE,
                 CONST.POLICY.OWNER_EMAIL_FAKE,
+                CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
                 false,
                 '',
                 undefined,
@@ -122,7 +122,8 @@ function MoneyRequestAction(props) {
                 props.requestReportID,
             );
 
-            Report.openReport(thread.reportID, thread.participants, thread, props.action.reportActionID);
+            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
+            Report.openReport(thread.reportID, userLogins, thread, props.action.reportActionID);
             Navigation.navigate(ROUTES.getReportRoute(thread.reportID));
         } else {
             Report.openReport(childReportID);

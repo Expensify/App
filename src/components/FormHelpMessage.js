@@ -12,7 +12,7 @@ import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /** Error or hint text. Ignored when children is not empty */
-    message: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+    message: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Children to render next to dot indicator */
     children: PropTypes.node,
