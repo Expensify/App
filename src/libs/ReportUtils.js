@@ -1056,29 +1056,30 @@ function getReportName(report) {
 /**
  * Recursively navigates through thread parents to get the root reports name.
  * @param {Object} report
- * @returns {String|*}
+ * @returns {Object}
  */
-function getRootOrExpenseReportNameWithWorkspace(report) {
-    if (isThread(report)) {
-        if (isIOUReport(report)) {
-            return lodashGet(report, 'displayName', '');
-        }
-        if (isExpenseReport(report)) {
-            const workspaceName = getPolicyName(report);
-            return `${lodashGet(report, 'displayName', '')} in ${workspaceName}`;
-        }
-
-        if (isTaskReport(report)) {
-            const workspaceName = report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '' : getPolicyName(report);
-            const displayName = getDisplayNameForParticipant(report.ownerAccountID);
-            return `${workspaceName ? [displayName, workspaceName].join(' in ') : displayName}`;
-        }
-
+function getRootReportAndWorkspaceName(report) {
+    if (isThread(report) && !isMoneyRequestReport(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-        return getRootOrExpenseReportNameWithWorkspace(parentReport);
+        return getRootReportAndWorkspaceName(parentReport);
     }
 
-    return getReportName(report);
+    if (isIOUReport(report)) {
+        return {
+            rootReportName: lodashGet(report, 'displayName', ''),
+        };
+    }
+    if (isMoneyRequestReport(report)) {
+        return {
+            rootReportName: lodashGet(report, 'displayName', ''),
+            workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report),
+        };
+    }
+
+    return {
+        rootReportName: getReportName(report),
+        workspaceName: getPolicyName(report),
+    };
 }
 
 /**
@@ -1113,23 +1114,17 @@ function getChatRoomSubtitle(report) {
  */
 function getChatRoomSubtitleLink(report) {
     if (isThread(report)) {
+        if (report.reportID == '280084830934340') {
+            debugger;
+        }
         const from = Localize.translateLocal('threads.from');
-        const workspaceName = getPolicyName(report);
-        if (isChatRoom(report)) {
-            const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-            const roomName = parentReport
-                ? lodashGet(parentReport, 'displayName', '')
-                : lodashGet(report, 'displayName', '');
-
-            return `${from} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
+        let subtitleLink = `${from} ${rootReportName}`;
+        if (workspaceName && workspaceName !== rootReportName) {
+            subtitleLink += ` in ${workspaceName}`;
         }
-
-        if (isMoneyRequestReport(report)) {
-            const payeeEmail = getDisplayNameForParticipant(report.managerID);
-            return isIOUReport(report) ? `${from} ${payeeEmail}` : `${from} ${payeeEmail} in ${workspaceName}`;
-        }
-
-        return `${from} ${getRootOrExpenseReportNameWithWorkspace(report)}`;
+        return subtitleLink;
     }
     return '';
 }
