@@ -5,14 +5,14 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
-import {emojiNameTable, emojiCodeTable, categoryFrequentlyUsed, localeEmojis} from '../../assets/emojis';
+import * as Emojis from '../../assets/emojis';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
     callback: (val) => {
         frequentlyUsedEmojis = _.map(val, (item) => {
-            const emoji = emojiCodeTable[item.code];
+            const emoji = Emojis.emojiCodeTable[item.code];
             if (emoji) {
                 return {name: emoji.name, code: emoji.code, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
             }
@@ -25,14 +25,14 @@ Onyx.connect({
  * @param {String} name
  * @returns {Object}
  */
-const findEmojiByName = (name) => emojiNameTable[name];
+const findEmojiByName = (name) => Emojis.emojiNameTable[name];
 
 /**
  *
  * @param {String} code
  * @returns {Object}
  */
-const findEmojiByCode = (code) => emojiCodeTable[code];
+const findEmojiByCode = (code) => Emojis.emojiCodeTable[code];
 
 /**
  *
@@ -45,7 +45,7 @@ const getEmojiName = (emoji, lang = CONST.LOCALES.DEFAULT) => {
         return emoji.name;
     }
 
-    return _.get(localeEmojis, [lang, emoji.code, 'name'], '');
+    return _.get(Emojis.localeEmojis, [lang, emoji.code, 'name'], '');
 };
 
 /**
@@ -60,7 +60,7 @@ const getLocalizedEmojiName = (name, lang) => {
         return name;
     }
 
-    return _.get(localeEmojis, [lang, _.get(emojiNameTable, [name, 'code'], ''), 'name'], '');
+    return _.get(Emojis.localeEmojis, [lang, _.get(Emojis.emojiNameTable, [name, 'code'], ''), 'name'], '');
 };
 
 /**
@@ -206,7 +206,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const mergedEmojis = [categoryFrequentlyUsed].concat(frequentlyUsedEmojis, emojis);
+    const mergedEmojis = [Emojis.categoryFrequentlyUsed].concat(frequentlyUsedEmojis, emojis);
     return addSpacesToEmojiCategories(mergedEmojis);
 }
 
@@ -228,7 +228,7 @@ function getFrequentlyUsedEmojis(newEmoji) {
             frequentEmojiList.splice(emojiIndex, 1);
         }
 
-        const {name, code} = emojiCodeTable[emoji.code];
+        const {name, code} = Emojis.emojiCodeTable[emoji.code];
         const updatedEmoji = {name, code, count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
 
         // We want to make sure the current emoji is added to the list

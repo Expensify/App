@@ -19,13 +19,13 @@ function createTrie(lang = CONST.LOCALES.DEFAULT) {
         }
 
         const name = isDefaultLocale ? item.name : _.get(langEmojis, [item.code, 'name']);
-        const names = isDefaultLocale ? [name] : [...new Set([name, item.name])]; // support English as well
-        _.forEach(names, (name) => {
-            const node = trie.search(name);
+        const names = isDefaultLocale ? [name] : [...new Set([name, item.name])];
+        _.forEach(names, (nm) => {
+            const node = trie.search(nm);
             if (!node) {
-                trie.add(name, {code: item.code, types: item.types, name, suggestions: []});
+                trie.add(nm, {code: item.code, types: item.types, name: nm, suggestions: []});
             } else {
-                trie.update(name, {code: item.code, types: item.types, name, suggestions: node.metaData.suggestions});
+                trie.update(nm, {code: item.code, types: item.types, name: nm, suggestions: node.metaData.suggestions});
             }
         });
 
