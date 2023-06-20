@@ -212,6 +212,21 @@ index 15ce94c..17c6782 100644
      return null;
    }
  
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+index 35c31e9..f003b80 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+@@ -729,7 +729,9 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+ 
+   @ReactProp(name = ViewProps.MAXIMUM_NUMBER_OF_LINES, defaultInt = 1)
+   public void setMaxNumLines(ReactEditText view, int numLines) {
+-    view.setInputType(view.getInputType() | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
++    if ((view.getInputType() & InputType.TYPE_TEXT_FLAG_MULTI_LINE) == 0) {
++      view.setInputType(view.getInputType() | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
++    }
+     view.setMaxLines(numLines);
+   }
+ 
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
 index 2c9a4a5..41b21e9 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
