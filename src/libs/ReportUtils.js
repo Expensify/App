@@ -1054,7 +1054,7 @@ function getReportName(report) {
 }
 
 /**
- * Recursively navigates through thread parents to get the root reports name.
+ * Recursively navigates through thread parents to get the root report and workspace name.
  * @param {Object} report
  * @returns {Object}
  */
