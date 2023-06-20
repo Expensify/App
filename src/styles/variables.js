@@ -18,6 +18,7 @@ export default {
     contentHeaderHeight: getValueUsingPixelRatio(65, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
+    componentSizeMedium: 48,
     inputComponentSizeNormal: 40,
     componentSizeLarge: 52,
     componentBorderRadius: 8,
