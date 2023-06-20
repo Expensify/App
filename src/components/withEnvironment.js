@@ -28,7 +28,7 @@ export default function (WrappedComponent) {
                 this.setState({environment});
             });
             Environment.getEnvironmentURL().then((environmentURL) => {
-                this.setState({environmentURL})
+                this.setState({environmentURL});
             });
         }
 
