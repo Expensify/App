@@ -9,7 +9,7 @@ import getStateFromPath from './getStateFromPath';
  * Find minimal action for RHP.
  * This is necessary because getActionFromState doesn't take into consideration current navigation state.
  * That means that even if we want to open profile screen and the settings flow is currently opened, the target will be RHPNavigator and the payload will include whole structure.
- * that causess the issue described here https://github.com/Expensify/App/issues/20620
+ * That causes unexpected behaviour when clicking browser back in some of the RHP flows.
  *
  * To avoid that we are looking for the smallest possible action. In this case it will be push profile screen and the target will be the settings navigator.
  *
