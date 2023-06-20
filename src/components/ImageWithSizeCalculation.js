@@ -37,7 +37,7 @@ const defaultProps = {
  * @returns {React.Component}
  *
  */
-const ImageWithSizeCalculation = (props) => {
+function ImageWithSizeCalculation(props) {
     const [isLoading, setIsLoading] = useState(false);
     const isLoadedRef = useRef(null);
 
@@ -73,7 +73,7 @@ const ImageWithSizeCalculation = (props) => {
             {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>
     );
-};
+}
 
 ImageWithSizeCalculation.propTypes = propTypes;
 ImageWithSizeCalculation.defaultProps = defaultProps;
