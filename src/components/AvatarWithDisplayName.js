@@ -17,7 +17,6 @@ import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
-import {getChatRoomSubtitleLink} from '../libs/ReportUtils';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
