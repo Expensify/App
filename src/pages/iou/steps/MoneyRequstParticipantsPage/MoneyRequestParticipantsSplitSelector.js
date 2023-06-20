@@ -28,7 +28,7 @@ const propTypes = {
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
-            login: PropTypes.string.isRequired,
+            login: PropTypes.string,
             accountID: PropTypes.number.isRequired,
             alternateText: PropTypes.string,
             hasDraftComment: PropTypes.bool,
