@@ -74,6 +74,7 @@ module.exports = {
                 '@typescript-eslint/no-unsafe-member-access': 'off',
                 '@typescript-eslint/no-unsafe-assignment': 'off',
 
+                '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
                 '@typescript-eslint/no-unsafe-enum-comparison': 'error',
                 '@typescript-eslint/prefer-enum-initializers': 'error',
                 '@typescript-eslint/no-var-requires': 'off',
