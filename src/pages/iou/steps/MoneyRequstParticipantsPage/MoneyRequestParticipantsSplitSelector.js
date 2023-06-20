@@ -134,7 +134,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
         } else {
             newSelectedOptions = [...props.participants, option];
         }
-        
+
         props.onAddParticipants(newSelectedOptions);
 
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
