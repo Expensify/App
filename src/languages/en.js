@@ -837,6 +837,7 @@ export default {
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
             routingNumber: 'Please enter a valid routing number',
             accountNumber: 'Please enter a valid account number',
+            routingAndAccountNumberCannotBeSame: 'The routing number and account number cannot be the same',
             companyType: 'Please select a valid company type',
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
             address: 'Please enter a valid address',
