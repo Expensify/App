@@ -2,13 +2,13 @@ import React, {useEffect, useState, useRef} from 'react';
 import lodashFindIndex from 'lodash/findIndex';
 import PropTypes from 'prop-types';
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import {Freeze} from 'react-freeze';
 
 const propTypes = {
-    ...windowDimensionsPropTypes,
-    // until freeze works correctly on the new arch, we don't use the prop
-    // eslint-disable-next-line react/no-unused-prop-types
+    /** Prop to disable freeze */
     keepVisible: PropTypes.bool,
+    /** Children to wrap in FreezeWrapper. */
+    children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
@@ -43,10 +43,11 @@ function FreezeWrapper(props) {
         return () => unsubscribe();
     }, [isFocused, isScreenBlurred, navigation]);
 
-    return <>{props.children}</>;
+    return <Freeze freeze={!isFocused && isScreenBlurred && !props.keepVisible}>{props.children}</Freeze>;
 }
 
 FreezeWrapper.propTypes = propTypes;
 FreezeWrapper.defaultProps = defaultProps;
+FreezeWrapper.displayName = 'FreezeWrapper';
 
-export default withWindowDimensions(FreezeWrapper);
+export default FreezeWrapper;
