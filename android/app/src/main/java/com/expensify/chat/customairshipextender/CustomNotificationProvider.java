@@ -290,7 +290,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     public void onDismissNotification(PushMessage message) {
         try {
             JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
-            int reportID = payload.get("reportID").getInt(-1);
+            long reportID = payload.get("reportID").getLong(-1);
 
             if (reportID == -1) {
                 return;
