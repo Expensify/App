@@ -1068,6 +1068,12 @@ function getRootOrExpenseReportNameWithWorkspace(report) {
             return `${lodashGet(report, 'displayName', '')} in ${workspaceName}`;
         }
 
+        if (isTaskReport(report)) {
+            const workspaceName = report.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? '' : getPolicyName(report);
+            const displayName = getDisplayNameForParticipant(report.ownerAccountID);
+            return `${workspaceName ? [displayName, workspaceName].join(' in ') : displayName}`;
+        }
+
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         return getRootOrExpenseReportNameWithWorkspace(parentReport);
     }
