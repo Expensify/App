@@ -216,18 +216,19 @@ function isPersonalDetailsReady(personalDetails) {
 function getParticipantsOptions(report, personalDetails) {
     const participants = lodashGet(report, 'participantAccountIDs', []);
     return _.map(getPersonalDetailsForAccountIDs(participants, personalDetails), (details) => ({
-        keyForList: details.login,
+        keyForList: String(details.accountID),
         login: details.login,
         accountID: details.accountID,
         text: details.displayName,
         firstName: lodashGet(details, 'firstName', ''),
         lastName: lodashGet(details, 'lastName', ''),
-        alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login,
+        alternateText: Str.isSMSLogin(details.login || '') ? LocalePhoneNumber.formatPhoneNumber(details.login) : details.login || details.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(details.avatar, details.accountID),
                 name: details.login,
                 type: CONST.ICON_TYPE_AVATAR,
+                id: details.accountID,
             },
         ],
         payPalMeAddress: lodashGet(details, 'payPalMeAddress', ''),
@@ -857,12 +858,13 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     return {
         text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
-        alternateText: personalDetail.login,
+        alternateText: personalDetail.login || personalDetail.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
                 name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
+                id: personalDetail.accountID,
             },
         ],
         descriptiveText: amountText,
