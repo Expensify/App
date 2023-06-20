@@ -9,13 +9,9 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import CONST from '../../../CONST';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
-import themeColors from '../../../styles/themes/default';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import SelectionListRadio from '../../../components/SelectionListRadio';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -83,12 +79,7 @@ class TimezoneSelectPage extends Component {
         return {
             text,
             keyForList: this.getKey(text),
-
-            // Include the green checkmark icon to indicate the currently selected value
-            customIcon: text === this.timezone.selected ? greenCheckmark : undefined,
-
-            // This property will make the currently selected value have bold text
-            boldStyle: text === this.timezone.selected,
+            isSelected: text === this.timezone.selected,
         };
     }
 

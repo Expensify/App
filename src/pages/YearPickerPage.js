@@ -7,12 +7,8 @@ import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ROUTES from '../ROUTES';
 import Navigation from '../libs/Navigation/Navigation';
-import themeColors from '../styles/themes/default';
-import * as Expensicons from '../components/Icon/Expensicons';
 import CONST from '../CONST';
 import SelectionListRadio from '../components/SelectionListRadio';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -39,12 +35,7 @@ class YearPickerPage extends React.Component {
                 text: value.toString(),
                 value,
                 keyForList: value.toString(),
-
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: value === currentYear ? greenCheckmark : undefined,
-
-                // This property will make the currently selected value have bold text
-                boldStyle: value === currentYear,
+                isSelected: value === currentYear,
             }),
         );
 

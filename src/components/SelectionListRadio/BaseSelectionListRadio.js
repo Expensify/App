@@ -13,6 +13,8 @@ import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import CONST from '../../CONST';
 import KeyboardShortcut from '../../libs/KeyboardShortcut';
 import variables from '../../styles/variables';
+import * as Expensicons from '../Icon/Expensicons';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** Sections for the section list */
@@ -30,23 +32,14 @@ const propTypes = {
                     /** Text to display */
                     text: PropTypes.string,
 
-                    /** Display the text of the option in bold font style */
-                    boldStyle: PropTypes.bool,
-
                     /** Alternate text to display */
                     alternateText: PropTypes.string,
 
                     /** Key used internally by React */
                     keyForList: PropTypes.string,
 
-                    /** Custom icon to render on the right side of the option */
-                    customIcon: PropTypes.shape({
-                        /** The icon source */
-                        src: PropTypes.func,
-
-                        /** The icon color */
-                        color: PropTypes.string,
-                    }),
+                    /** Whether this option is selected */
+                    isSelected: PropTypes.bool,
                 }),
             ),
 
@@ -214,7 +207,6 @@ function SelectionListRadio(props) {
     };
 
     const renderItem = ({item, index, section}) => {
-        const isSelected = Boolean(item.customIcon);
         const isFocused = focusedIndex === index + lodashGet(section, 'indexOffset', 0);
 
         return (
@@ -229,7 +221,7 @@ function SelectionListRadio(props) {
             >
                 <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, isFocused && styles.sidebarLinkActive]}>
                     <View style={[styles.flex1, styles.alignItemsStart]}>
-                        <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.boldStyle && styles.sidebarLinkTextBold]}>
+                        <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.isSelected && styles.sidebarLinkTextBold]}>
                             {item.text}
                         </Text>
 
@@ -240,15 +232,15 @@ function SelectionListRadio(props) {
                         )}
                     </View>
 
-                    {isSelected && (
+                    {item.isSelected && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessible={false}
                         >
                             <View>
                                 <Icon
-                                    src={lodashGet(item, 'customIcon.src', '')}
-                                    fill={lodashGet(item, 'customIcon.color')}
+                                    src={Expensicons.Checkmark}
+                                    fill={themeColors.success}
                                 />
                             </View>
                         </View>

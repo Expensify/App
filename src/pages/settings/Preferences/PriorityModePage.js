@@ -7,16 +7,12 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
-import themeColors from '../../../styles/themes/default';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as User from '../../../libs/actions/User';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import SelectionListRadio from '../../../components/SelectionListRadio';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     /** The chat priority mode */
@@ -38,12 +34,7 @@ function PriorityModePage(props) {
         // Set max line to undefined to reset line restriction
         alternateTextMaxLines: undefined,
         keyForList: key,
-
-        // Include the green checkmark icon to indicate the currently selected value
-        customIcon: props.priorityMode === key ? greenCheckmark : undefined,
-
-        // This property will make the currently selected value have bold text
-        boldStyle: props.priorityMode === key,
+        isSelected: props.priorityMode === key,
     }));
 
     return (
@@ -57,7 +48,7 @@ function PriorityModePage(props) {
             <SelectionListRadio
                 sections={[{data: priorityModes}]}
                 onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
-                initiallyFocusedOptionKey={_.find(priorityModes, (mode) => Boolean(mode.customIcon)).keyForList}
+                initiallyFocusedOptionKey={_.find(priorityModes, (mode) => mode.isSelected).keyForList}
             />
         </ScreenWrapper>
     );

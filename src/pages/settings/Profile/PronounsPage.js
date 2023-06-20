@@ -9,14 +9,10 @@ import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
-import themeColors from '../../../styles/themes/default';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
 import SelectionListRadio from '../../../components/SelectionListRadio';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -96,12 +92,7 @@ class PronounsPage extends Component {
                     text: value,
                     value: fullPronounKey,
                     keyForList: key,
-
-                    // Include the green checkmark icon to indicate the currently selected value
-                    customIcon: isCurrentPronouns ? greenCheckmark : undefined,
-
-                    // This property will make the currently selected value have bold text
-                    boldStyle: isCurrentPronouns,
+                    isSelected: isCurrentPronouns,
                 };
             })
             .sortBy((pronoun) => pronoun.text.toLowerCase())

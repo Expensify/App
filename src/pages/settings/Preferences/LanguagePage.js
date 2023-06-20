@@ -4,14 +4,10 @@ import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import themeColors from '../../../styles/themes/default';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as App from '../../../libs/actions/App';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import SelectionListRadio from '../../../components/SelectionListRadio';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -25,12 +21,7 @@ function LanguagePage(props) {
         value: key,
         text: language.label,
         keyForList: key,
-
-        // Include the green checkmark icon to indicate the currently selected value
-        customIcon: props.preferredLocale === key ? greenCheckmark : undefined,
-
-        // This property will make the currently selected value have bold text
-        boldStyle: props.preferredLocale === key,
+        isSelected: props.preferredLocale === key,
     }));
 
     return (
@@ -43,7 +34,7 @@ function LanguagePage(props) {
             <SelectionListRadio
                 sections={[{data: localesToLanguages}]}
                 onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
-                initiallyFocusedOptionKey={_.find(localesToLanguages, (locale) => Boolean(locale.customIcon)).keyForList}
+                initiallyFocusedOptionKey={_.find(localesToLanguages, (locale) => locale.isSelected).keyForList}
             />
         </ScreenWrapper>
     );
