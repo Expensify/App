@@ -11,6 +11,8 @@ import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
+import * as Browser from '../../libs/Browser';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** If the submitted password is invalid (show an error message) */
@@ -104,7 +106,7 @@ class PDFPasswordForm extends Component {
                         </View>
                         <TextInput
                             label={this.props.translate('common.password')}
-                            autoComplete="off"
+                            autoComplete={Browser.getBrowser() === CONST.BROWSER.SAFARI ? 'username' : 'off'}
                             autoCorrect={false}
                             textContentType="password"
                             onChangeText={this.updatePassword}
