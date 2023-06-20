@@ -144,6 +144,7 @@ export default {
         per: 'per',
         mi: 'mile',
         km: 'kilometer',
+        someone: 'Someone',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
