@@ -1,7 +1,7 @@
 import React from 'react';
 import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
 import Log from '../../../libs/Log';
-import ButtonBase from '../ButtonBase';
+import IconButton from '../IconButton';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
 import appleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
@@ -47,7 +47,7 @@ function AppleSignIn() {
             });
     };
     return (
-        <ButtonBase
+        <IconButton
             onPress={handleSignIn}
             icon={appleLogoIcon}
         />

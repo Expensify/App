@@ -3457,7 +3457,7 @@ const styles = {
         marginRight: 20,
     },
 
-    signInButtonBase: {
+    signInIconButton: {
         margin: 10,
         marginTop: 0,
         padding: 2,
