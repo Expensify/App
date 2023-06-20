@@ -1001,7 +1001,7 @@ function getTranslatedReportLastMessage(report) {
     if (isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         return `[${Localize.translateLocal('common.attachment')}]`;
     }
-    return report ? report.lastMessageText || '' : '';
+    return report.lastMessageText || '';
 }
 
 /**

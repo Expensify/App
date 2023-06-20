@@ -801,7 +801,7 @@ Onyx.connect({
  * @return {Object} Optimistic and failure onyx updates for the report
  */
 
-function getReportLastVisibleMessageOnyxUpdatesForReportAfterActionChange(reportID, optimisticReportActions) {
+function getLastVisibleMessageOnyxUpdatesAfterActionChange(reportID, optimisticReportActions) {
     let optimisticReport = {
         lastMessageText: '',
         lastVisibleActionCreated: '',
@@ -864,7 +864,7 @@ function deleteReportComment(reportID, reportAction) {
 
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
-    const reportOnyxUpdates = getReportLastVisibleMessageOnyxUpdatesForReportAfterActionChange(reportID, optimisticReportActions);
+    const reportOnyxUpdates = getLastVisibleMessageOnyxUpdatesAfterActionChange(reportID, optimisticReportActions);
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
@@ -1784,7 +1784,7 @@ function flagComment(reportID, reportAction, severity) {
             message: [updatedMessage],
         },
     };
-    const reportOnyxUpdates = getReportLastVisibleMessageOnyxUpdatesForReportAfterActionChange(reportID, optimisticReportActions);
+    const reportOnyxUpdates = getLastVisibleMessageOnyxUpdatesAfterActionChange(reportID, optimisticReportActions);
 
     const optimisticData = [
         {
