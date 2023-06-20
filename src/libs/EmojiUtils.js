@@ -324,7 +324,6 @@ function suggestEmojis(text, lang, limit = 5) {
 
     const matching = [];
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
-    console.log('nodes: ', nodes);
     /**
      * structure of matching
      * @property {String} code

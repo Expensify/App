@@ -11,21 +11,25 @@ const supportedLanguages = [CONST.LOCALES.DEFAULT, CONST.LOCALES.ES];
 function createTrie(lang = CONST.LOCALES.DEFAULT) {
     const trie = new Trie();
     const langEmojis = localeEmojis[lang];
+    const isDefaultLocale = lang === CONST.LOCALES.DEFAULT;
 
     _.forEach(emojis, (item) => {
         if (item.header) {
             return;
         }
 
-        const name = lang === CONST.LOCALES.DEFAULT ? item.name : _.get(langEmojis, [item.code, 'name']);
-        const node = trie.search(name);
-        if (!node) {
-            trie.add(name, {code: item.code, types: item.types, name, suggestions: []});
-        } else {
-            trie.update(name, {code: item.code, types: item.types, name, suggestions: node.metaData.suggestions});
-        }
+        const name = isDefaultLocale ? item.name : _.get(langEmojis, [item.code, 'name']);
+        const names = isDefaultLocale ? [name] : [...new Set([name, item.name])]; // support English as well
+        _.forEach(names, (name) => {
+            const node = trie.search(name);
+            if (!node) {
+                trie.add(name, {code: item.code, types: item.types, name, suggestions: []});
+            } else {
+                trie.update(name, {code: item.code, types: item.types, name, suggestions: node.metaData.suggestions});
+            }
+        });
 
-        const keywords = _.get(langEmojis, [item.code, 'keywords']);
+        const keywords = _.get(langEmojis, [item.code, 'keywords'], []).concat(isDefaultLocale ? [] : _.get(localeEmojis, [CONST.LOCALES.DEFAULT, item.code, 'keywords'], []));
         for (let j = 0; j < keywords.length; j++) {
             const keywordNode = trie.search(keywords[j]);
             if (!keywordNode) {

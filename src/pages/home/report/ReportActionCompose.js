@@ -515,7 +515,6 @@ class ReportActionCompose extends React.Component {
             isAutoSuggestionPickerLarge,
         };
         const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, this.props.preferredLocale);
-        console.log(newSuggestedEmojis);
 
         if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
             nextState.suggestedEmojis = newSuggestedEmojis;
