@@ -95,7 +95,6 @@ const getPhoneNumber = (details) => {
 
 function ProfilePage(props) {
     const accountID = lodashGet(props.route.params, 'accountID', 0);
-    const reportID = lodashGet(props.route.params, 'reportID', '');
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
