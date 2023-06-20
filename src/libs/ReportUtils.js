@@ -582,6 +582,22 @@ function isThreadFirstChat(reportAction, reportID) {
 }
 
 /**
+ * An Expense Request is a thread where the parent report is an Expense Report and 
+ * the parentReportAction is a transaction.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isExpenseRequest(report) {
+    if (isThread(report)){
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        return isExpenseReport(parentReport) && ReportActionsUtils.isTransactionThread(parentReportAction);
+    }
+    return false;
+}
+
+/**
  * Get welcome message based on room type
  * @param {Object} report
  * @returns {Object}
@@ -771,15 +787,24 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         result.name = CONST.EMAIL.CONCIERGE;
         return [result];
     }
+    if (isExpenseRequest(report)){
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const workspaceIcon = getWorkspaceIcon(report);
+        const memberIcon = {
+            source: UserUtils.getAvatar(lodashGet(personalDetails, [parentReportAction.actorAccountID, 'avatar']), parentReportAction.actorAccountID),
+            id: parentReportAction.actorAccountID ? parentReportAction.actorAccountID.toString() : '',
+            type: CONST.ICON_TYPE_AVATAR,
+        };
+
+        return [memberIcon, workspaceIcon];
+    }
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
-        const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
         const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', '');
         const actorIcon = {
             id: actorAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
-            name: actorEmail,
             type: CONST.ICON_TYPE_AVATAR,
         };
 
@@ -790,11 +815,9 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         return [actorIcon];
     }
     if (isTaskReport(report)) {
-        const ownerEmail = report.ownerEmail || '';
         const ownerIcon = {
             id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
-            name: ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
         };
 
@@ -2227,7 +2250,7 @@ function getWhisperDisplayNames(participants) {
 }
 
 /**
- * Show subscript on workspace chats and workspace threads and expense requests
+ * Show subscript on workspace chats / threads and expense requests
  * @param {Object} report
  * @returns {Boolean}
  */
@@ -2236,7 +2259,11 @@ function shouldReportShowSubscript(report) {
         return false;
     }
 
-    if ((isPolicyExpenseChat(report) || isExpenseReport(report)) && !isThread(report) && !isTaskReport(report)) {
+    if (isExpenseRequest(report)) {
+        return true;
+    }
+
+    if ((isPolicyExpenseChat(report)) && !isThread(report) && !isTaskReport(report)) {
         return true;
     }
 
@@ -2334,6 +2361,7 @@ export {
     getDisplayNameForParticipant,
     isChatReport,
     isExpenseReport,
+    isExpenseRequest,
     isIOUReport,
     isTaskReport,
     isTaskCompleted,
