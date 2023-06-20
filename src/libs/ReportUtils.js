@@ -582,14 +582,14 @@ function isThreadFirstChat(reportAction, reportID) {
 }
 
 /**
- * An Expense Request is a thread where the parent report is an Expense Report and 
+ * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
  *
  * @param {Object} report
  * @returns {Boolean}
  */
 function isExpenseRequest(report) {
-    if (isThread(report)){
+    if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         return isExpenseReport(parentReport) && ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -787,7 +787,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         result.name = CONST.EMAIL.CONCIERGE;
         return [result];
     }
-    if (isExpenseRequest(report)){
+    if (isExpenseRequest(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const workspaceIcon = getWorkspaceIcon(report);
         const memberIcon = {
@@ -2263,7 +2263,7 @@ function shouldReportShowSubscript(report) {
         return true;
     }
 
-    if ((isPolicyExpenseChat(report)) && !isThread(report) && !isTaskReport(report)) {
+    if (isPolicyExpenseChat(report) && !isThread(report) && !isTaskReport(report)) {
         return true;
     }
 
