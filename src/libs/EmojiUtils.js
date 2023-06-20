@@ -324,13 +324,6 @@ function suggestEmojis(text, lang, limit = 5) {
 
     const matching = [];
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
-    /**
-     * structure of matching
-     * @property {String} code
-     * @property {String} name - localized name
-     * @property {String} enName - English name
-     * @property {Array} types - skintones
-     */
     for (let j = 0; j < nodes.length; j++) {
         if (nodes[j].metaData.code && !_.find(matching, (obj) => obj.name === nodes[j].name)) {
             if (matching.length === limit) {
