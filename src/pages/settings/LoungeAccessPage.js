@@ -33,10 +33,12 @@ function LoungeAccessPage(props) {
             icon: Illustrations.SanFrancisco,
         },
     ];
-    const illustrationStyle = props.isSmallScreenWidth ? {
-        width: props.windowWidth,
-        height: .64 * props.windowWidth,
-    } : {};
+    const illustrationStyle = props.isSmallScreenWidth
+        ? {
+              width: props.windowWidth,
+              height: 0.64 * props.windowWidth,
+          }
+        : {};
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
