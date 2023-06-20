@@ -115,17 +115,18 @@ function SelectionListRadio(props) {
                 }
                 disabledIndex += 1;
 
-                // Add the item dimensions to calculate cell size
-                const fullItemHeight = variables.optionRowHeight + variables.borderTopWidth;
+                // Account for the height of the item in getItemLayout
+                const fullItemHeight = variables.optionRowHeight;
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
             });
 
-            // Add the section footer dimensions to calculate cell size
+            // We're not rendering any section footer, but we need to push to the array
+            // because React Native accounts for it in getItemLayout
             itemLayouts.push({length: 0, offset});
         });
 
-        // We're not rendering any section footer, but we need to push to the array
+        // We're not rendering the list footer, but we need to push to the array
         // because React Native accounts for it in getItemLayout
         itemLayouts.push({length: 0, offset});
 
@@ -152,7 +153,6 @@ function SelectionListRadio(props) {
      * Scrolls to the focused index within the SectionList
      *
      * @param {Number} index
-     * @param {Boolean} animated
      */
     const scrollToIndex = useCallback(
         (index) => {
