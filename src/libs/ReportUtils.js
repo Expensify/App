@@ -540,7 +540,7 @@ function isThread(report) {
  * @returns {Boolean}
  */
 function isChatThread(report) {
-    return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
+    return isThread && report.type === CONST.REPORT.TYPE.CHAT;
 }
 
 /**
