@@ -28,8 +28,11 @@ import withNavigationFocus from '../../components/withNavigationFocus';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const personalDetailsPropTypes = PropTypes.shape({
+    /** The accountID of the person */
+    accountID: PropTypes.number.isRequired,
+
     /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
+    login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
     the person doesn't have their own avatar uploaded yet, except for anon users) */
