@@ -35,6 +35,13 @@ const propTypes = {
      */
     onSelectEmoji: PropTypes.func.isRequired,
 
+    /**
+     * ReportAction for EmojiPicker.
+     */
+    reportAction: PropTypes.shape({
+        reportActionID: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -42,6 +49,7 @@ const defaultProps = {
     isContextMenu: false,
     onWillShowPicker: () => {},
     onPressOpenPicker: undefined,
+    reportAction: {},
 };
 
 function AddReactionBubble(props) {
@@ -57,6 +65,7 @@ function AddReactionBubble(props) {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
+                props.reportAction,
             );
         };
 

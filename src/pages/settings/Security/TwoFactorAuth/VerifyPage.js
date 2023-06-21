@@ -91,7 +91,7 @@ function VerifyPage(props) {
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldShowOfflineIndicator={false}>
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
                 shouldShowStepCounter
@@ -142,7 +142,7 @@ function VerifyPage(props) {
                         <TwoFactorAuthForm />
                     </View>
                 </ScrollView>
-                <FixedFooter style={[styles.twoFactorAuthFooter]}>
+                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
                     <Button
                         success
                         text={props.translate('common.next')}

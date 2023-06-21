@@ -470,22 +470,15 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report) {
-    // Public rooms send back the policy name with the reportSummary,
-    // since they can also be accessed by people who aren't in the workspace
-    if (report.policyName) {
-        return report.policyName;
-    }
-
-    if (!allPolicies || _.size(allPolicies) === 0) {
+    if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
+    const policy = _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
 
-    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    if (!policy) {
-        return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
-    }
+    //     // Public rooms send back the policy name with the reportSummary,
+    //     // since they can also be accessed by people who aren't in the workspace
 
-    return policy.name || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**

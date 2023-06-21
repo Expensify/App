@@ -39,6 +39,7 @@ import PressableWithoutFeedback from '../../../components/Pressable/PressableWit
 import * as Session from '../../../libs/actions/Session';
 import Button from '../../../components/Button';
 import * as UserUtils from '../../../libs/UserUtils';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -80,6 +81,12 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
+    /** Details about any modals being used */
+    modal: PropTypes.shape({
+        /** Indicates when an Alert modal is about to be visible */
+        willAlertModalBecomeVisible: PropTypes.bool,
+    }),
+
     ...withCurrentReportIDPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationPropTypes,
@@ -93,6 +100,7 @@ const defaultProps = {
         avatar: '',
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    modal: {},
     ...withCurrentReportIDDefaultProps,
 };
 
@@ -113,10 +121,29 @@ class SidebarLinks extends React.Component {
         App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
         this.isSidebarLoaded = true;
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (this.props.modal.willAlertModalBecomeVisible) {
+                    return;
+                }
+
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
     }
 
     componentWillUnmount() {
         SidebarUtils.resetIsSidebarLoadedReadyPromise();
+        if (this.unsubscribeEscapeKey) {
+            this.unsubscribeEscapeKey();
+        }
     }
 
     showSearchPage() {
@@ -340,6 +367,9 @@ export default compose(
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        modal: {
+            key: ONYXKEYS.MODAL,
         },
     }),
 )(SidebarLinks);
