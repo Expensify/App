@@ -66,13 +66,13 @@
     </style>
 
     <style name="Theme.SplashScreen" parent="Theme.SplashScreen.Common">
-        <item name="windowSplashScreenAnimatedIcon">@android:drawable/sym_def_app_icon</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/bootsplash</item>
         <item name="windowSplashScreenBackground">?android:colorBackground</item>
     </style>
 
     <style name="BootTheme" parent="Theme.SplashScreen">
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/bootsplash_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/bootsplash</item>
         <item name="windowSplashScreenBackground">@color/bootsplash_background</item>
     </style>
 
