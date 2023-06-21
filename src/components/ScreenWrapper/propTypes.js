@@ -29,12 +29,6 @@ const propTypes = {
      *  scrollable form, gives a subtly better UX if disabled on non-scrollable screens with a submit button */
     shouldEnablePickerAvoiding: PropTypes.bool,
 
-    /** Details about any modals being used */
-    modal: PropTypes.shape({
-        /** Indicates when an Alert modal is about to be visible */
-        willAlertModalBecomeVisible: PropTypes.bool,
-    }),
-
     /** Whether to dismiss keyboard before leaving a screen */
     shouldDismissKeyboardBeforeClose: PropTypes.bool,
 
@@ -44,6 +38,9 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...environmentPropTypes,
+
+    /** Whether to show offline indicator */
+    shouldShowOfflineIndicator: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -52,11 +49,11 @@ const defaultProps = {
     shouldDismissKeyboardBeforeClose: true,
     includePaddingTop: true,
     onEntryTransitionEnd: () => {},
-    modal: {},
     keyboardAvoidingViewBehavior: 'padding',
     shouldEnableKeyboardAvoidingView: true,
     shouldEnableMaxHeight: false,
     shouldEnablePickerAvoiding: true,
+    shouldShowOfflineIndicator: true,
 };
 
 export {propTypes, defaultProps};

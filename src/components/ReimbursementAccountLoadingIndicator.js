@@ -24,7 +24,10 @@ const propTypes = {
 
 function ReimbursementAccountLoadingIndicator(props) {
     return (
-        <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
+        <ScreenWrapper
+            shouldShowOfflineIndicator={false}
+            style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}
+        >
             <HeaderWithBackButton
                 title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
                 onBackButtonPress={props.onBackButtonPress}

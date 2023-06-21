@@ -10,6 +10,7 @@ import CONST from '../../../../CONST';
 import Performance from '../../../../libs/Performance';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import sidebarPropTypes from './sidebarPropTypes';
+import * as Browser from '../../../../libs/Browser';
 
 const propTypes = {
     ...sidebarPropTypes,
@@ -48,8 +49,8 @@ class BaseSidebarScreen extends Component {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                style={[styles.sidebar]}
                 shouldEnableKeyboardAvoidingView={false}
+                style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             >
                 {({insets}) => (
                     <>
