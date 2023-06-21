@@ -635,10 +635,14 @@ function cancelTask(report) {
         },
     ];
 
-    API.write('CancelTask', {
-        taskReportID: report.reportID,
-        optimisticReportActionID
-    }, {optimisticData, failureData});
+    API.write(
+        'CancelTask',
+        {
+            taskReportID: report.reportID,
+            optimisticReportActionID,
+        },
+        {optimisticData, failureData},
+    );
 }
 
 function isTaskCanceled(taskReport) {
