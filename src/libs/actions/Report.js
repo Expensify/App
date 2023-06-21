@@ -479,10 +479,10 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  * @param {Array} userLogins list of user logins to start a chat report with.
  */
 function navigateToAndOpenReport(userLogins) {
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     let newChat = {};
-    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+    const chat = ReportUtils.getChatByParticipantsByLoginList(userLogins);
     if (!chat) {
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
