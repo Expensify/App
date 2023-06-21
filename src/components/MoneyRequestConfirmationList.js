@@ -20,7 +20,6 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
-import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -156,7 +155,7 @@ function MoneyRequestConfirmationList(props) {
             const formattedParticipantsList = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, true);
-            const formattedPayeePersonalDetails = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
+            const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 payeePersonalDetails,
                 CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
             );
@@ -164,7 +163,7 @@ function MoneyRequestConfirmationList(props) {
             sections.push(
                 {
                     title: translate('moneyRequestConfirmationList.whoPaid'),
-                    data: [formattedPayeePersonalDetails],
+                    data: [formattedPayeeOption],
                     shouldShow: true,
                     indexOffset: 0,
                 },
@@ -212,13 +211,13 @@ function MoneyRequestConfirmationList(props) {
     const toggleOption = useCallback(
         (option) => {
             // Return early if selected option is currently logged in user.
-            if (option.login === props.session.email) {
+            if (option.accountID === props.session.accountID) {
                 return;
             }
 
             setParticipants((prevParticipants) => {
                 const newParticipants = _.map(prevParticipants, (participant) => {
-                    if (participant.login === option.login) {
+                    if (participant.accountID === option.accountID) {
                         return {...participant, selected: !participant.selected};
                     }
                     return participant;
@@ -226,7 +225,7 @@ function MoneyRequestConfirmationList(props) {
                 return newParticipants;
             });
         },
-        [props.session.email],
+        [props.session.accountID],
     );
 
     /**
@@ -234,10 +233,10 @@ function MoneyRequestConfirmationList(props) {
      * @param {Object} option
      */
     const navigateToUserDetail = (option) => {
-        if (!option.login) {
+        if (!option.accountID) {
             return;
         }
-        Navigation.navigate(ROUTES.getProfileRoute(ReportUtils.getAccountIDForLogin(option.login)));
+        Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
     };
 
     /**
