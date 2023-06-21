@@ -130,7 +130,7 @@ jobs:
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
     runs-on: ubuntu-latest
-    needs: updateStaging
+    needs: [updateStaging, createNewPatchVersion]
     steps:
       - uses: actions/checkout@v3
         with:
