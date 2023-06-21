@@ -23,33 +23,35 @@ const defaultProps = {
     report: {},
 };
 
-const AnonymousReportFooter = (props) => (
-    <View style={styles.anonymousRoomFooter}>
-        <View style={[styles.flexRow]}>
-            <AvatarWithDisplayName
-                report={props.report}
-                size={CONST.AVATAR_SIZE.MEDIUM}
-                isAnonymous
-            />
-        </View>
-        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <View style={styles.mr4}>
-                <View style={[props.isSmallScreenWidth ? styles.alignItemsStart : styles.alignItemsEnd]}>
-                    <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
-                </View>
-                <Text style={[styles.textNormal, styles.textWhite]}>{props.translate('anonymousReportFooter.logoTagline')}</Text>
-            </View>
-            <View style={styles.anonymousRoomFooterSignInButton}>
-                <Button
-                    medium
-                    success
-                    text={props.translate('common.signIn')}
-                    onPress={() => Session.signOutAndRedirectToSignIn()}
+function AnonymousReportFooter(props) {
+    return (
+        <View style={styles.anonymousRoomFooter}>
+            <View style={[styles.flexRow]}>
+                <AvatarWithDisplayName
+                    report={props.report}
+                    size={CONST.AVATAR_SIZE.MEDIUM}
+                    isAnonymous
                 />
             </View>
+            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <View style={styles.mr4}>
+                    <View style={[props.isSmallScreenWidth ? styles.alignItemsStart : styles.alignItemsEnd]}>
+                        <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
+                    </View>
+                    <Text style={[styles.textNormal, styles.textWhite]}>{props.translate('anonymousReportFooter.logoTagline')}</Text>
+                </View>
+                <View style={styles.anonymousRoomFooterSignInButton}>
+                    <Button
+                        medium
+                        success
+                        text={props.translate('common.signIn')}
+                        onPress={() => Session.signOutAndRedirectToSignIn()}
+                    />
+                </View>
+            </View>
         </View>
-    </View>
-);
+    );
+}
 
 AnonymousReportFooter.propTypes = propTypes;
 AnonymousReportFooter.defaultProps = defaultProps;

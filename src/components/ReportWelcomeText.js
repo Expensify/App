@@ -19,14 +19,14 @@ import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
+    login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet) */
-    avatar: PropTypes.string.isRequired,
+    the person doesn't have their own avatar uploaded yet, except for anon users) */
+    avatar: PropTypes.string,
 
     /** This is either the user's full name, or their login if full name is an empty string */
-    displayName: PropTypes.string.isRequired,
+    displayName: PropTypes.string,
 });
 
 const propTypes = {
@@ -50,15 +50,18 @@ const defaultProps = {
     betas: [],
 };
 
-const ReportWelcomeText = (props) => {
+function ReportWelcomeText(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat);
-    const participants = lodashGet(props.report, 'participants', []);
-    const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), isMultipleParticipant);
+    const participantAccountIDs = lodashGet(props.report, 'participantAccountIDs', []);
+    const isMultipleParticipant = participantAccountIDs.length > 1;
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+        OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails),
+        isMultipleParticipant,
+    );
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participants, props.betas);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs, props.betas);
     return (
         <>
             <View>
@@ -70,7 +73,7 @@ const ReportWelcomeText = (props) => {
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
                         <Text style={[styles.textStrong]}>
                             {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
-                            {lodashGet(props.personalDetails, [props.report.ownerEmail, 'firstName']) || props.report.ownerEmail}
+                            {lodashGet(props.personalDetails, [props.report.ownerAccountID, 'firstName']) || props.report.ownerEmail}
                         </Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(props.report)}</Text>
@@ -98,7 +101,7 @@ const ReportWelcomeText = (props) => {
                                     <Text
                                         style={[styles.textStrong]}
                                         onPress={() => {
-                                            const accountDetails = props.personalDetails[participants[index]];
+                                            const accountDetails = props.personalDetails[participantAccountIDs[index]];
                                             if (accountDetails && accountDetails.accountID) {
                                                 Navigation.navigate(ROUTES.getProfileRoute(accountDetails.accountID));
                                             }
@@ -121,7 +124,7 @@ const ReportWelcomeText = (props) => {
             </Text>
         </>
     );
-};
+}
 
 ReportWelcomeText.defaultProps = defaultProps;
 ReportWelcomeText.propTypes = propTypes;
@@ -134,7 +137,7 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(ReportWelcomeText);

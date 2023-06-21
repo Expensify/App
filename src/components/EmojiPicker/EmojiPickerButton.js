@@ -25,7 +25,7 @@ const defaultProps = {
     nativeID: '',
 };
 
-const EmojiPickerButton = (props) => {
+function EmojiPickerButton(props) {
     let emojiPopoverAnchor = null;
     return (
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
@@ -46,7 +46,7 @@ const EmojiPickerButton = (props) => {
             </PressableWithoutFeedback>
         </Tooltip>
     );
-};
+}
 
 EmojiPickerButton.propTypes = propTypes;
 EmojiPickerButton.defaultProps = defaultProps;

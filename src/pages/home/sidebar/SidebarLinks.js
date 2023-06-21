@@ -28,7 +28,7 @@ import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import withCurrentReportId from '../../../components/withCurrentReportId';
+import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../../components/withCurrentReportId';
 import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
@@ -39,6 +39,7 @@ import PressableWithoutFeedback from '../../../components/Pressable/PressableWit
 import * as Session from '../../../libs/actions/Session';
 import Button from '../../../components/Button';
 import * as UserUtils from '../../../libs/UserUtils';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -69,6 +70,9 @@ const propTypes = {
 
         /** Login email of the current user */
         login: PropTypes.string,
+
+        /** AccountID of the current user */
+        accountID: PropTypes.number,
     }),
 
     /** Current reportID from the route in react navigation state object */
@@ -80,7 +84,14 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
+    /** Details about any modals being used */
+    modal: PropTypes.shape({
+        /** Indicates when an Alert modal is about to be visible */
+        willAlertModalBecomeVisible: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
+    ...withCurrentReportIdPropTypes,
     ...withNavigationPropTypes,
 };
 
@@ -93,6 +104,7 @@ const defaultProps = {
     },
     reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    modal: {},
 };
 
 class SidebarLinks extends React.Component {
@@ -110,7 +122,31 @@ class SidebarLinks extends React.Component {
 
     componentDidMount() {
         App.setSidebarLoaded();
+        SidebarUtils.setIsSidebarLoadedReady();
         this.isSidebarLoaded = true;
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (this.props.modal.willAlertModalBecomeVisible) {
+                    return;
+                }
+
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
+    }
+
+    componentWillUnmount() {
+        SidebarUtils.resetIsSidebarLoadedReadyPromise();
+        if (this.unsubscribeEscapeKey) {
+            this.unsubscribeEscapeKey();
+        }
     }
 
     showSearchPage() {
@@ -200,7 +236,7 @@ class SidebarLinks extends React.Component {
                         ) : (
                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <AvatarWithIndicator
-                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.login)}
+                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
                                     tooltipText={this.props.translate('common.settings')}
                                 />
                             </OfflineWithFeedback>
@@ -262,14 +298,15 @@ const chatReportSelector = (report) =>
 const personalDetailsSelector = (personalDetails) =>
     _.reduce(
         personalDetails,
-        (finalPersonalDetails, personalData, login) => {
+        (finalPersonalDetails, personalData, accountID) => {
             // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
             // eslint-disable-next-line no-param-reassign
-            finalPersonalDetails[login] = {
+            finalPersonalDetails[accountID] = {
+                accountID: Number(accountID),
                 login: personalData.login,
                 displayName: personalData.displayName,
                 firstName: personalData.firstName,
-                avatar: UserUtils.getAvatar(personalData.avatar, personalData.login),
+                avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
             };
             return finalPersonalDetails;
         },
@@ -315,7 +352,7 @@ export default compose(
             selector: chatReportSelector,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             selector: personalDetailsSelector,
         },
         priorityMode: {
@@ -334,6 +371,9 @@ export default compose(
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        modal: {
+            key: ONYXKEYS.MODAL,
         },
     }),
 )(SidebarLinks);

@@ -149,7 +149,6 @@ class ReportScreen extends React.Component {
 
         this.fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-        Navigation.setIsReportScreenIsReady();
     }
 
     componentDidUpdate(prevProps) {
@@ -169,10 +168,10 @@ class ReportScreen extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.unsubscribeVisibilityListener) {
-            this.unsubscribeVisibilityListener();
+        if (!this.unsubscribeVisibilityListener) {
+            return;
         }
-        Navigation.resetIsReportScreenReadyPromise();
+        this.unsubscribeVisibilityListener();
     }
 
     /**
@@ -394,7 +393,7 @@ export default compose(
             key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(ReportScreen);
