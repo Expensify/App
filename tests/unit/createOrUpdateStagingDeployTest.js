@@ -3,6 +3,7 @@
  */
 const core = require('@actions/core');
 const moment = require('moment');
+const CONST = require('../../.github/libs/CONST');
 const GitUtils = require('../../.github/libs/GitUtils');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 const run = require('../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy');
@@ -66,7 +67,7 @@ const LABELS = {
         id: 2783847782,
         node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
         url: 'https://api.github.com/repos/Expensify/App/labels/StagingDeployCash',
-        name: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
+        name: CONST.LABELS.STAGING_DEPLOY,
         color: '6FC269',
         default: false,
         description: '',
@@ -75,7 +76,7 @@ const LABELS = {
         id: 2810597462,
         node_id: 'MDU6TGFiZWwyODEwNTk3NDYy',
         url: 'https://api.github.com/repos/Expensify/App/labels/DeployBlockerCash',
-        name: GithubUtils.DEPLOY_BLOCKER_CASH_LABEL,
+        name: CONST.LABELS.DEPLOY_BLOCKER,
         color: '000000',
         default: false,
         description: 'This issue or pull request should block deployment',
@@ -158,7 +159,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         });
 
         mockListIssues.mockImplementation((args) => {
-            if (args.labels === GithubUtils.STAGING_DEPLOY_CASH_LABEL) {
+            if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                 return {data: [closedStagingDeployCash]};
             }
 
@@ -167,12 +168,12 @@ describe('createOrUpdateStagingDeployCash', () => {
 
         return run().then((result) => {
             expect(result).toStrictEqual({
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
-                labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
+                labels: [CONST.LABELS.STAGING_DEPLOY],
                 html_url: 'https://github.com/Expensify/App/issues/29',
-                assignees: [GithubUtils.APPLAUSE_BOT],
+                assignees: [CONST.APPLAUSE_BOT],
                 body:
                     `${baseExpectedOutput()}` +
                     `${openCheckbox}${basePRList[5]}` +
@@ -253,11 +254,11 @@ describe('createOrUpdateStagingDeployCash', () => {
             });
 
             mockListIssues.mockImplementation((args) => {
-                if (args.labels === GithubUtils.STAGING_DEPLOY_CASH_LABEL) {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                     return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
                 }
 
-                if (args.labels === GithubUtils.DEPLOY_BLOCKER_CASH_LABEL) {
+                if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
                     return {
                         data: [
                             ...currentDeployBlockers,
@@ -282,8 +283,8 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             return run().then((result) => {
                 expect(result).toStrictEqual({
-                    owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.APP_REPO,
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
                     issue_number: openStagingDeployCashBefore.number,
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
@@ -325,11 +326,11 @@ describe('createOrUpdateStagingDeployCash', () => {
                 return [];
             });
             mockListIssues.mockImplementation((args) => {
-                if (args.labels === GithubUtils.STAGING_DEPLOY_CASH_LABEL) {
+                if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                     return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
                 }
 
-                if (args.labels === GithubUtils.DEPLOY_BLOCKER_CASH_LABEL) {
+                if (args.labels === CONST.LABELS.DEPLOY_BLOCKER) {
                     return {
                         data: [
                             ...currentDeployBlockers,
@@ -354,8 +355,8 @@ describe('createOrUpdateStagingDeployCash', () => {
 
             return run().then((result) => {
                 expect(result).toStrictEqual({
-                    owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.APP_REPO,
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
                     issue_number: openStagingDeployCashBefore.number,
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
