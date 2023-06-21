@@ -18,21 +18,22 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
+const menuItems = [
+    {
+        translationKey: 'loungeAccessPage.coffeePromo',
+        icon: Illustrations.CoffeeMug,
+    },
+    {
+        translationKey: 'loungeAccessPage.networkingPromo',
+        icon: Illustrations.ChatBubbles,
+    },
+    {
+        translationKey: 'loungeAccessPage.viewsPromo',
+        icon: Illustrations.SanFrancisco,
+    },
+];
+
 function LoungeAccessPage(props) {
-    const menuItems = [
-        {
-            translationKey: 'loungeAccessPage.coffeePromo',
-            icon: Illustrations.CoffeeMug,
-        },
-        {
-            translationKey: 'loungeAccessPage.networkingPromo',
-            icon: Illustrations.ChatBubbles,
-        },
-        {
-            translationKey: 'loungeAccessPage.viewsPromo',
-            icon: Illustrations.SanFrancisco,
-        },
-    ];
     const illustrationStyle = props.isSmallScreenWidth
         ? {
               width: props.windowWidth,
@@ -48,18 +49,18 @@ function LoungeAccessPage(props) {
                         title={props.translate('loungeAccessPage.loungeAccess')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     />
-                    <ScrollView contentContainerStyle={[safeAreaPaddingBottomStyle]}>
-                        <View style={[illustrationStyle]}>
+                    <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
+                        <View style={illustrationStyle}>
                             <Illustrations.Lounge />
                         </View>
-                        <View style={[styles.pageWrapperNotCentered]}>
+                        <View style={styles.pageWrapperNotCentered}>
                             <Text
                                 style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                                 numberOfLines={2}
                             >
                                 {props.translate('loungeAccessPage.headline')}
                             </Text>
-                            <Text style={[styles.baseFontStyle]}>{props.translate('loungeAccessPage.description')}</Text>
+                            <Text style={styles.baseFontStyle}>{props.translate('loungeAccessPage.description')}</Text>
                         </View>
                         {_.map(menuItems, (item) => (
                             <MenuItem
