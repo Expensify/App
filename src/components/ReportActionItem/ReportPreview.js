@@ -121,7 +121,9 @@ function ReportPreview(props) {
                     <View style={styles.iouPreviewBox}>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate(props.iouReport.hasOutstandingIOU ? 'iou.payerPaid' :'iou.payerPaid' , {payer: managerName})}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                                    {props.translate(props.iouReport.hasOutstandingIOU ? 'iou.payerPaid' : 'iou.payerPaid', {payer: managerName})}
+                                </Text>
                             </View>
                             <Icon
                                 src={Expensicons.ArrowRight}
