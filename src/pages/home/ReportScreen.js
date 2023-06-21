@@ -248,7 +248,10 @@ class ReportScreen extends React.Component {
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
 
         return (
-            <ScreenWrapper style={screenWrapperStyle}>
+            <ScreenWrapper
+                style={screenWrapperStyle}
+                shouldEnableKeyboardAvoidingView={this.props.isFocused}
+            >
                 <FullPageNotFoundView
                     shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
                     subtitleKey="notFound.noAccess"
