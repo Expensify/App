@@ -20,10 +20,10 @@ Onyx.connect({
     },
 });
 
-let personalDetails;
+let allPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = val),
+    callback: (val) => (allPersonalDetails = val),
 });
 
 /**
@@ -37,7 +37,7 @@ function getDisplayName(login, personalDetail) {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
-    const userDetails = personalDetail || lodashGet(personalDetails, login);
+    const userDetails = personalDetail || lodashGet(allPersonalDetails, login);
 
     if (!userDetails) {
         return userLogin;
@@ -48,6 +48,27 @@ function getDisplayName(login, personalDetail) {
     const fullName = `${firstName} ${lastName}`.trim();
 
     return fullName || userLogin;
+}
+
+/**
+ * @param {String} userAccountIDOrLogin
+ * @param {String} [defaultDisplayName] display name to use if user details don't exist in Onyx or if
+ *                                      found details don't include the user's displayName or login
+ * @returns {String}
+ */
+function getDisplayNameForTypingIndicator(userAccountIDOrLogin, defaultDisplayName = '') {
+    // Try to convert to a number, which means we have an accountID
+    const accountID = Number(userAccountIDOrLogin);
+
+    // If the user is typing on OldDot, userAccountIDOrLogin will be a string (the user's login),
+    // so Number(string) is NaN. Search for personalDetails by login to get the display name.
+    if (_.isNaN(accountID)) {
+        const detailsByLogin = _.findWhere(allPersonalDetails, {login: userAccountIDOrLogin}) || {};
+        return detailsByLogin.displayName || userAccountIDOrLogin;
+    }
+
+    const detailsByAccountID = lodashGet(allPersonalDetails, accountID, {});
+    return detailsByAccountID.displayName || detailsByAccountID.login || defaultDisplayName;
 }
 
 /**
@@ -402,8 +423,8 @@ function updateAvatar(file) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: personalDetails[currentUserAccountID].avatar,
-                    avatarThumbnail: personalDetails[currentUserAccountID].avatarThumbnail || personalDetails[currentUserAccountID].avatar,
+                    avatar: allPersonalDetails[currentUserAccountID].avatar,
+                    avatarThumbnail: allPersonalDetails[currentUserAccountID].avatarThumbnail || allPersonalDetails[currentUserAccountID].avatar,
                     pendingFields: {
                         avatar: null,
                     },
@@ -439,7 +460,7 @@ function deleteAvatar() {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: personalDetails[currentUserAccountID].avatar,
+                    avatar: allPersonalDetails[currentUserAccountID].avatar,
                 },
             },
         },
@@ -466,6 +487,7 @@ function clearAvatarErrors() {
 
 export {
     getDisplayName,
+    getDisplayNameForTypingIndicator,
     updateAvatar,
     deleteAvatar,
     openMoneyRequestModalPage,
