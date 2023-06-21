@@ -21,8 +21,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import willBlurTextInputOnTapOutsideFunc from '../../../libs/willBlurTextInputOnTapOutside';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -51,6 +49,7 @@ import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
+import * as IOU from '../../../libs/actions/IOU';
 import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
@@ -279,10 +278,10 @@ function ReportActionCompose({translate, ...props}) {
     const actionButton = useRef(null);
 
     const reportParticipants = useMemo(
-        () => _.without(lodashGet(props.report, 'participants', []), props.currentUserPersonalDetails.login),
-        [props.report, props.currentUserPersonalDetails.login],
+        () => _.without(lodashGet(props.report, 'participantAccountIDs', []), props.currentUserPersonalDetails.accountID),
+        [props.currentUserPersonalDetails.accountID, props.report],
     );
-    const participantsWithoutExpensifyEmails = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS), [reportParticipants]);
+    const participantsWithoutExpensifyAccountIDs = useMemo(() => _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS), [reportParticipants]);
 
     const shouldShowReportRecipientLocalTime = useMemo(
         () => ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report, props.currentUserPersonalDetails.accountID) && !props.isComposerFullSize,
@@ -501,6 +500,10 @@ function ReportActionCompose({translate, ...props}) {
             }
 
             const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+                // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
+                if (!detail.login) {
+                    return false;
+                }
                 if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
                 }
@@ -631,22 +634,22 @@ function ReportActionCompose({translate, ...props}) {
             [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.requestMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(props.reportID)),
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(props.report, reportParticipants, props.betas), (option) => options[option]);
-    }, [props.betas, props.report, props.reportID, reportParticipants, translate]);
+        return _.map(ReportUtils.getMoneyRequestOptions(props.report, reportParticipants, props.betas), (option) => ({
+            ...options[option],
+            onSelected: () => IOU.startMoneyRequest(option, props.report.reportID),
+        }));
+    }, [props.betas, props.report, reportParticipants, translate]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
@@ -666,7 +669,7 @@ function ReportActionCompose({translate, ...props}) {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
         if (
             !Permissions.canUseTasks(props.betas) ||
-            (lodashGet(props.report, 'participants', []).length === 1 && _.some(reportParticipants, (email) => _.contains(CONST.EXPENSIFY_EMAILS, email)))
+            (lodashGet(props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
         ) {
             return [];
         }
@@ -927,7 +930,7 @@ function ReportActionCompose({translate, ...props}) {
     );
 
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
-    const reportRecipient = props.personalDetails[participantsWithoutExpensifyEmails[0]];
+    const reportRecipient = props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
     const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
     const maxComposerLines = props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
