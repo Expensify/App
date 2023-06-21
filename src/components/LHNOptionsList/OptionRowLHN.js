@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useCallback} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -66,19 +66,20 @@ const defaultProps = {
 function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
-    const runUseEffectOnlyOnce = useCallback(() => {
-        if (!optionItem.hasDraftComment && props.comment && props.comment.length > 0 && !props.isFocused) {
+    useEffect(() => {
+        const updateReportDraft = () => {
+            if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
+                return;
+            }
             Report.setReportWithDraft(props.reportID, true);
-        }
-        return null;
+        };
+
+        updateReportDraft();
     }, [optionItem, props.comment, props.isFocused, props.reportID]);
 
-    useEffect(() => {
-        if (!optionItem) {
-            return null;
-        }
-        runUseEffectOnlyOnce();
-    }, [runUseEffectOnlyOnce, optionItem]);
+    if (!optionItem) {
+        return null;
+    }
 
     let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
