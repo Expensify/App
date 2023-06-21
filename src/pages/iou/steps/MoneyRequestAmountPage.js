@@ -10,6 +10,7 @@ import BigNumberPad from '../../../components/BigNumberPad';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import personalDetailsPropType from '../../personalDetailsPropType';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as IOUUtils from '../../../libs/IOUUtils';
@@ -53,6 +54,9 @@ const propTypes = {
         ),
     }),
 
+    /** The personal details of the person who is logged in */
+    personalDetails: personalDetailsPropType,
+
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -65,6 +69,7 @@ const defaultProps = {
         },
     },
     report: {},
+    personalDetails: {},
     iou: {
         id: '',
         amount: 0,
@@ -426,6 +431,7 @@ class MoneyRequestAmountPage extends React.Component {
                     ? [{reportID: this.props.report.reportID, isPolicyExpenseChat: true, selected: true}]
                     : _.chain(this.props.report.participantAccountIDs)
                           .filter((accountID) => currentUserAccountID !== accountID)
+                          .filter((accountID) => lodashGet(this.props.personalDetails, `${accountID}.login`))
                           .map((accountID) => ({accountID, selected: true}))
                           .value();
                 IOU.setMoneyRequestParticipants(participants);
@@ -516,6 +522,9 @@ export default compose(
         iou: {key: ONYXKEYS.IOU},
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(MoneyRequestAmountPage);
