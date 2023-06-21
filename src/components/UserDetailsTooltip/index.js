@@ -19,7 +19,7 @@ function UserDetailsTooltip(props) {
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={UserUtils.getAvatar(userDetails.avatar, userDetails.login)}
+                        source={UserUtils.getAvatar(userDetails.avatar, userDetails.accountID)}
                     />
                 </View>
 
@@ -28,11 +28,11 @@ function UserDetailsTooltip(props) {
                 </Text>
 
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
-                    {String(userDetails.login).trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : ''}
+                    {String(userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : ''}
                 </Text>
             </View>
         ),
-        [userDetails.avatar, userDetails.displayName, userDetails.login],
+        [userDetails.avatar, userDetails.displayName, userDetails.login, userDetails.accountID],
     );
 
     if (!userDetails.displayName && !userDetails.login) {

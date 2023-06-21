@@ -325,6 +325,10 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
@@ -421,6 +425,20 @@ function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
 
+/**
+ * A helper method to identify if the message is deleted or not.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isMessageDeleted(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
+}
+
+function isWhisperAction(action) {
+    return (action.whisperedTo || []).length > 0;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -443,4 +461,6 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isMessageDeleted,
+    isWhisperAction,
 };
