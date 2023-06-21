@@ -104,7 +104,7 @@ function ReportPreview(props) {
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
-        <View style={[styles.chatItemMessage]}>
+        <View style={styles.chatItemMessage}>
             {_.map(props.action.message, (message, index) => (
                 <PressableWithoutFeedback
                     key={`ReportPreview-${props.action.reportActionID}-${index}`}
@@ -118,8 +118,8 @@ function ReportPreview(props) {
                     accessibilityRole="button"
                     accessibilityLabel={props.translate('iou.viewDetails')}
                 >
-                    <View style={[styles.iouPreviewBox]}>
-                        <View style={[styles.flexRow]}>
+                    <View style={styles.iouPreviewBox}>
+                        <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 {props.iouReport.hasOutstandingIOU ? (
                                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('iou.payerOwes', {payer: managerName})}</Text>
@@ -132,7 +132,7 @@ function ReportPreview(props) {
                                 fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
                             />
                         </View>
-                        <View style={[styles.flexRow]}>
+                        <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={styles.textHeadline}>{reportAmount}</Text>
                                 {!props.iouReport.hasOutstandingIOU && (
