@@ -938,6 +938,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         true,
     );
 
+    let reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport.reportID, optimisticIOUReport.reportID);
+
     // First, add data that will be used in all cases
     const optimisticChatReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -945,7 +947,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         value: {
             ...chatReport,
             lastReadTime: DateUtils.getDBTime(),
-            lastVisibleActionCreated: optimisticIOUReportAction.created,
+            lastVisibleActionCreated: reportPreviewAction.created,
         },
     };
     const optimisticIOUReportData = {
@@ -957,8 +959,9 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             lastMessageHtml: optimisticIOUReportAction.message[0].html,
         },
     };
-    const optimisticReportActionsData = {
-        onyxMethod: Onyx.METHOD.MERGE,
+    const optimisticReportActionsData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
         value: {
             [optimisticIOUReportAction.reportActionID]: {
@@ -966,7 +969,18 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
-    };
+    },
+    {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        value: {
+            [reportPreviewAction.reportActionID]: {
+                ...reportPreviewAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        },
+    },
+];
 
     const successData = [
         {
@@ -982,6 +996,15 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {pendingAction: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: {
+                              pendingAction: null,
+                          },
+            },
         },
     ];
 
@@ -1031,6 +1054,18 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
                     },
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    [chatCreatedAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                    },
+                    [reportPreviewAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError(null),
+                    },
+                },
+            },
         );
 
         // Add optimistic personal details for recipient
@@ -1050,18 +1085,29 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         // Add an optimistic created action to the optimistic reportActions data
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
     } else {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
+                value: {
+                    [optimisticIOUReportAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                    },
                 },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    [reportPreviewAction.reportActionID]: {
+                        created: reportPreviewAction.created,
+                    },
+                },
+            },
+        );
     }
 
-    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
+    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, ...optimisticReportActionsData, optimisticTransactionData];
     if (!_.isEmpty(optimisticPersonalDetailListData)) {
         optimisticData.push(optimisticPersonalDetailListData);
     }
