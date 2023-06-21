@@ -100,28 +100,25 @@ function ReportPreview(props) {
     const displayingMessage = ReportUtils.getMoneyRequestReportActionMessage(props.iouReport, props.action);
     return (
         <View style={[styles.chatItemMessage]}>
-            {_.map(props.action.message, (message, index) => (
-                <PressableWithoutFeedback
-                    key={`ReportPreview-${props.action.reportActionID}-${index}`}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
-                    }}
-                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                    onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                    style={[styles.flexRow, styles.justifyContentBetween]}
-                    accessibilityRole="button"
-                    accessibilityLabel={props.translate('iou.viewDetails')}
-                >
-                    <View style={[styles.flexShrink1]}>
-                        <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>{displayingMessage}</Text>
-                    </View>
-                    <Icon
-                        src={Expensicons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-                    />
-                </PressableWithoutFeedback>
-            ))}
+            <PressableWithoutFeedback
+                onPress={() => {
+                    Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
+                }}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+                style={[styles.flexRow, styles.justifyContentBetween]}
+                accessibilityRole="button"
+                accessibilityLabel={props.translate('iou.viewDetails')}
+            >
+                <View style={[styles.flexShrink1]}>
+                    <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>{displayingMessage}</Text>
+                </View>
+                <Icon
+                    src={Expensicons.ArrowRight}
+                    fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                />
+            </PressableWithoutFeedback>
             {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
                 <SettlementButton
                     currency={props.iouReport.currency}
