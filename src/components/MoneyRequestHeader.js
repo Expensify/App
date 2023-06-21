@@ -80,16 +80,16 @@ function MoneyRequestHeader(props) {
     const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
-    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerEmail);
+    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerID);
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
-        : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'avatar']), moneyRequestReport.managerEmail);
+        : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer =
-        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
+        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerEmail, 'payPalMeAddress']));
+    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithBackButton
@@ -141,7 +141,7 @@ function MoneyRequestHeader(props) {
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
                         {!props.isSingleTransactionView && isSettled && (
-                            <View style={styles.moneyRequestHeaderCheckmark}>
+                            <View style={styles.defaultCheckmarkWrapper}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     fill={themeColors.iconSuccessFill}
