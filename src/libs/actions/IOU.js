@@ -1291,7 +1291,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 }
 
 /**
- * Initialize money request info and navigates to the MoneyRequest page
+ * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} reportID
  */
