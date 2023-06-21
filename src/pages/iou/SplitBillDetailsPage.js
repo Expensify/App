@@ -19,6 +19,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -65,8 +66,10 @@ function getReportID(route) {
 
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const personalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(reportAction.originalMessage.participantAccountIDs, props.personalDetails);
-    const participants = ReportUtils.getAllParticipants(reportAction.originalMessage, personalDetails);
+    const participantAccountIDs = reportAction.originalMessage.participantAccountIDs || PersonalDetailsUtils.getAccountIDsByLogins(reportAction.originalMessage.participants);
+    const personalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, props.personalDetails);
+    const participants = ReportUtils.getAllParticipants({participantAccountIDs}, personalDetails);
+
     const payeePersonalDetails = personalDetails[reportAction.actorAccountID];
     const participantsExcludingPayee = _.filter(participants, (participant) => participant.accountID !== reportAction.actorAccountID);
     const splitAmount = parseInt(lodashGet(reportAction, 'originalMessage.amount', 0), 10);
