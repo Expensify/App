@@ -67,6 +67,7 @@ function dismissError(policyID) {
 function WorkspaceInitialPage(props) {
     const policy = props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
 
     /**
@@ -76,8 +77,19 @@ function WorkspaceInitialPage(props) {
         const policyReports = _.filter(props.reports, (report) => report && report.policyID === policy.id);
         Policy.deleteWorkspace(policy.id, policyReports, policy.name);
         setIsDeleteModalOpen(false);
+        // Pop the deleted workspace page before opening workspace settings.
+        Navigation.goBack();
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
+
+    /**
+     * Call update workspace currency and hide the modal
+     */
+    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+        Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+        setIsCurrencyModalOpen(false);
+        ReimbursementAccount.navigateToBankAccountRoute(policy.id);
+    }, [policy]);
 
     /**
      * Navigates to workspace rooms
@@ -137,7 +149,7 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
-            action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
+            action: () => (policy.outputCurrency === CONST.CURRENCY.USD ? ReimbursementAccount.navigateToBankAccountRoute(policy.id) : setIsCurrencyModalOpen(true)),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];
@@ -242,6 +254,16 @@ function WorkspaceInitialPage(props) {
                             </View>
                         </OfflineWithFeedback>
                     </ScrollView>
+                    <ConfirmModal
+                        title={props.translate('workspace.bankAccount.workspaceCurrency')}
+                        isVisible={isCurrencyModalOpen}
+                        onConfirm={confirmCurrencyChangeAndHideModal}
+                        onCancel={() => setIsCurrencyModalOpen(false)}
+                        prompt={props.translate('workspace.bankAccount.updateCurrencyPrompt')}
+                        confirmText={props.translate('workspace.bankAccount.updateToUSD')}
+                        cancelText={props.translate('common.cancel')}
+                        danger
+                    />
                     <ConfirmModal
                         title={props.translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
