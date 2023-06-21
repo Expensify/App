@@ -95,7 +95,7 @@ function ReportActionItemSingle(props) {
                 onPressOut={ControlSelection.unblock}
                 disabled={isPolicyAction}
                 onPress={() => showUserDetails(actorAccountID)}
-                accessibilityLabel={actorEmail}
+                accessibilityLabel={isPolicyAction ? displayName : actorEmail}
                 accessibilityRole="button"
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
@@ -103,7 +103,7 @@ function ReportActionItemSingle(props) {
                         <SubscriptAvatar
                             mainAvatar={{source: avatarSource, type: isPolicyAction ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName}}
                             secondaryAvatar={isPolicyAction ? {} : ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
-                            mainTooltip={actorEmail}
+                            mainTooltip={isPolicyAction ? displayName : actorEmail}
                             secondaryTooltip={ReportUtils.getPolicyName(props.report)}
                             noMargin
                         />
@@ -127,7 +127,7 @@ function ReportActionItemSingle(props) {
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
                             onPress={() => showUserDetails(actorAccountID)}
-                            accessibilityLabel={actorEmail}
+                            accessibilityLabel={isPolicyAction ? displayName : actorEmail}
                             accessibilityRole="button"
                         >
                             {_.map(personArray, (fragment, index) => (
