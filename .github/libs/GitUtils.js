@@ -59,12 +59,7 @@ function getValidMergedPRs(commits) {
             return;
         }
 
-        const message = commit.subject;
-        if (!_.isString(message)) {
-            return;
-        }
-
-        const match = message.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
         if (!_.isArray(match) || match.length < 2) {
             return;
         }
