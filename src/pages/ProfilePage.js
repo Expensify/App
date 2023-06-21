@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import * as Session from '../libs/actions/Session';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -200,7 +201,7 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {!isCurrentUser && (
+                        {!isCurrentUser && !Session.isAnonymousUser (
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
                                 icon={Expensicons.ChatBubble}
