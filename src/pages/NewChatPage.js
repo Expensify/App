@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -61,7 +61,7 @@ function NewChatPage(props) {
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
 
-    function getSections() {
+    const sections = useMemo(() => {
         const sectionsList = [];
         let indexOffset = 0;
 
@@ -111,7 +111,8 @@ function NewChatPage(props) {
         }
 
         return sectionsList;
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, props.isGroupChat, selectedOptions]);
 
     const updateOptionsWithSearchTerm = (newSearchTerm = '') => {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
@@ -183,8 +184,6 @@ function NewChatPage(props) {
         // 2. updateOptionsWithSearchTerm - it will change its reference upon each rerender unnecessarily
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.reports, props.personalDetails]);
-
-    const sections = getSections();
 
     return (
         <ScreenWrapper
