@@ -69,8 +69,19 @@ const showUserDetails = (accountID) => {
 function ReportActionItemSingle(props) {
     const actorEmail = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const actorAccountID = props.action.actorAccountID;
-    const {avatar, displayName, pendingFields} = props.personalDetailsList[actorAccountID] || {};
-    const avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
+    let {avatar, displayName} = props.personalDetailsList[actorAccountID] || {};
+    const {pendingFields} = props.personalDetailsList[actorAccountID] || {};
+
+    // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
+    // the Copilot feature is implemented.
+    if (props.action.delegateAccountID) {
+        const delegateDetails = props.personalDetailsList[props.action.delegateAccountID];
+        const delegateDisplayName = delegateDetails.displayName;
+        displayName = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
+        avatar = delegateDetails.avatar;
+    }
+
+    const avatarSource = UserUtils.getAvatar(avatar, props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -90,7 +101,7 @@ function ReportActionItemSingle(props) {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(actorAccountID)}
+                onPress={() => showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID)}
                 accessibilityLabel={actorEmail}
                 accessibilityRole="button"
             >
@@ -104,7 +115,10 @@ function ReportActionItemSingle(props) {
                             noMargin
                         />
                     ) : (
-                        <UserDetailsTooltip accountID={actorAccountID}>
+                        <UserDetailsTooltip
+                            accountID={actorAccountID}
+                            delegateAccountID={props.action.delegateAccountID}
+                        >
                             <View>
                                 <Avatar
                                     containerStyles={[styles.actionAvatar]}
@@ -122,7 +136,7 @@ function ReportActionItemSingle(props) {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(actorAccountID)}
+                            onPress={() => showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID)}
                             accessibilityLabel={actorEmail}
                             accessibilityRole="button"
                         >
@@ -133,6 +147,7 @@ function ReportActionItemSingle(props) {
                                     fragment={fragment}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
+                                    delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                 />
                             ))}
