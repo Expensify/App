@@ -25,6 +25,7 @@ import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -479,10 +480,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  * @param {Array} userLogins list of user logins to start a chat report with.
  */
 function navigateToAndOpenReport(userLogins) {
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     let newChat = {};
-    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+    const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
     if (!chat) {
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
