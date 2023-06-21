@@ -1976,11 +1976,11 @@ function getChatByParticipants(newParticipantList) {
  *
  * @deprecated - use getChatByParticipants()
  *
- * @param {Array} participantsloginList
+ * @param {Array} participantsLoginList
  * @returns {Array|undefined}
  */
-function getChatByParticipantsByLoginList(participantsloginList) {
-    participantsloginList.sort();
+function getChatByParticipantsByLoginList(participantsLoginList) {
+    participantsLoginList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
         if (!report || !report.participants || isThread(report)) {
@@ -1988,7 +1988,7 @@ function getChatByParticipantsByLoginList(participantsloginList) {
         }
 
         // Only return the room if it has all the participants and is not a policy room
-        return !isUserCreatedPolicyRoom(report) && _.isEqual(participantsloginList, _.sortBy(report.participants));
+        return !isUserCreatedPolicyRoom(report) && _.isEqual(participantsLoginList, _.sortBy(report.participants));
     });
 }
 
