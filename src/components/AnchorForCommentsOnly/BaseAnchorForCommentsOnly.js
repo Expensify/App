@@ -48,7 +48,7 @@ function BaseAnchorForCommentsOnly(props) {
     } else {
         linkProps.href = props.href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : styles.userSelectText;
+    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
@@ -70,7 +70,7 @@ function BaseAnchorForCommentsOnly(props) {
             <Tooltip text={props.href}>
                 <Text
                     ref={(el) => (linkRef = el)}
-                    style={StyleSheet.flatten([props.style, defaultTextStyle, styles.cursorPointer])}
+                    style={StyleSheet.flatten([props.style, defaultTextStyle])}
                     accessibilityRole="link"
                     hrefAttrs={{
                         rel: props.rel,
