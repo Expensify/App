@@ -92,8 +92,8 @@ function MoneyRequestHeader(props) {
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const report = props.report;
     if (props.isSingleTransactionView) {
-        report.ownerAccountID = props.parentReport.ownerAccountID;
-        report.ownerEmail = props.parentReport.ownerEmail;
+        report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
+        report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
     }
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
