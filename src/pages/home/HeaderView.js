@@ -122,7 +122,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
-                onSelected: () => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum, props.report.lastMessageText),
+                onSelected: () => Task.cancelTask(props.report),
             });
         }
     }
