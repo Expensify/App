@@ -1,11 +1,12 @@
 const _ = require('underscore');
 const core = require('@actions/core');
+const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GithubUtils = require('../../../libs/GithubUtils');
 
 const DEFAULT_PAYLOAD = {
-    owner: GithubUtils.GITHUB_OWNER,
-    repo: GithubUtils.APP_REPO,
+    owner: CONST.GITHUB_OWNER,
+    repo: CONST.APP_REPO,
 };
 
 const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
@@ -31,7 +32,7 @@ if (titleRegex) {
  * @param {Object} PR
  */
 function outputMergeActor(PR) {
-    if (user === 'OSBotify') {
+    if (user === CONST.OS_BOTIFY) {
         core.setOutput('MERGE_ACTOR', PR.merged_by.login);
     } else {
         core.setOutput('MERGE_ACTOR', user);
@@ -44,7 +45,7 @@ function outputMergeActor(PR) {
  * @param {Object} PR
  */
 function outputForkedRepoUrl(PR) {
-    if (PR.head.repo.html_url === GithubUtils.APP_REPO_URL) {
+    if (PR.head.repo.html_url === CONST.APP_REPO_URL) {
         core.setOutput('FORKED_REPO_URL', '');
     } else {
         core.setOutput('FORKED_REPO_URL', `${PR.head.repo.html_url}.git`);

@@ -1,13 +1,13 @@
 name: Reassure Performance Tests
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: ['**']
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
 
 jobs:
   perf-tests:
+    if: ${{ github.actor != 'OSBotify' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

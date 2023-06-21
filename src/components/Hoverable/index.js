@@ -107,7 +107,9 @@ class Hoverable extends Component {
                 }
             },
             onBlur: (el) => {
-                if (!this.wrapperView.contains(el.relatedTarget)) {
+                // Check if the blur event occurred due to clicking outside the element
+                // and the wrapperView contains the element that caused the blur and reset isHovered
+                if (!this.wrapperView.contains(el.target) && !this.wrapperView.contains(el.relatedTarget)) {
                     this.setIsHovered(false);
                 }
 

@@ -126,4 +126,8 @@ export default {
     flexBasisAuto: {
         flexBasis: 'auto',
     },
+
+    flexBasis0: {
+        flexBasis: 0,
+    },
 };

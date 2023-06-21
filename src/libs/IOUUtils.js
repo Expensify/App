@@ -29,13 +29,13 @@ function calculateAmount(numberOfParticipants, total, isDefaultUser = false) {
  * If user1 requests $17 from user2, then we have: {ownerEmail: user1, managerEmail: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param {Object} iouReport
- * @param {String} actorEmail
+ * @param {Number} actorAccountID
  * @param {Number} amount
  * @param {String} currency
  * @param {String} isDeleting - whether the user is deleting the request
  * @returns {Object}
  */
-function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, isDeleting = false) {
+function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, isDeleting = false) {
     if (currency !== iouReport.currency) {
         return iouReport;
     }
@@ -43,7 +43,7 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, isDelet
     // Make a copy so we don't mutate the original object
     const iouReportUpdate = {...iouReport};
 
-    if (actorEmail === iouReport.ownerEmail) {
+    if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
@@ -51,6 +51,8 @@ function updateIOUOwnerAndTotal(iouReport, actorEmail, amount, currency, isDelet
 
     if (iouReportUpdate.total < 0) {
         // The total sign has changed and hence we need to flip the manager and owner of the report.
+        iouReportUpdate.ownerAccountID = iouReport.managerID;
+        iouReportUpdate.managerID = iouReport.ownerAccountID;
         iouReportUpdate.ownerEmail = iouReport.managerEmail;
         iouReportUpdate.managerEmail = iouReport.ownerEmail;
         iouReportUpdate.total = -iouReportUpdate.total;
@@ -119,4 +121,13 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
     return hasPendingRequests;
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion};
+/**
+ * Checks if the iou type is one of request, send, or split.
+ * @param {String} iouType
+ * @returns {Boolean}
+ */
+function isValidMoneyRequestType(iouType) {
+    return [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SEND, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT].includes(iouType);
+}
+
+export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};

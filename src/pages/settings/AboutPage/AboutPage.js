@@ -28,7 +28,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const AboutPage = (props) => {
+function AboutPage(props) {
     let popoverAnchor;
     const menuItems = [
         {
@@ -136,7 +136,7 @@ const AboutPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';

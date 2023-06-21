@@ -123,47 +123,47 @@ class AdditionalDetailsStep extends React.Component {
         const errors = {};
 
         if (_.isEmpty(values[INPUT_IDS.LEGAL_FIRST_NAME])) {
-            errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.props.translate(this.errorTranslationKeys.legalFirstName);
+            errors[INPUT_IDS.LEGAL_FIRST_NAME] = this.errorTranslationKeys.legalFirstName;
         }
 
         if (_.isEmpty(values[INPUT_IDS.LEGAL_LAST_NAME])) {
-            errors[INPUT_IDS.LEGAL_LAST_NAME] = this.props.translate(this.errorTranslationKeys.legalLastName);
+            errors[INPUT_IDS.LEGAL_LAST_NAME] = this.errorTranslationKeys.legalLastName;
         }
 
         if (!ValidationUtils.isValidPastDate(values[INPUT_IDS.DOB]) || !ValidationUtils.meetsMaximumAgeRequirement(values[INPUT_IDS.DOB])) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.dob));
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.errorTranslationKeys.dob);
         } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[INPUT_IDS.DOB])) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.props.translate(this.errorTranslationKeys.age));
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DOB, this.errorTranslationKeys.age);
         }
 
         if (!ValidationUtils.isValidAddress(values[INPUT_IDS.ADDRESS.street]) || _.isEmpty(values[INPUT_IDS.ADDRESS.street])) {
-            errors[INPUT_IDS.ADDRESS.street] = this.props.translate('bankAccount.error.addressStreet');
+            errors[INPUT_IDS.ADDRESS.street] = 'bankAccount.error.addressStreet';
         }
 
         if (_.isEmpty(values[INPUT_IDS.ADDRESS.city])) {
-            errors[INPUT_IDS.ADDRESS.city] = this.props.translate('bankAccount.error.addressCity');
+            errors[INPUT_IDS.ADDRESS.city] = 'bankAccount.error.addressCity';
         }
 
         if (_.isEmpty(values[INPUT_IDS.ADDRESS.state])) {
-            errors[INPUT_IDS.ADDRESS.state] = this.props.translate('bankAccount.error.addressState');
+            errors[INPUT_IDS.ADDRESS.state] = 'bankAccount.error.addressState';
         }
 
         if (!ValidationUtils.isValidZipCode(values[INPUT_IDS.ADDRESS.zipCode])) {
-            errors[INPUT_IDS.ADDRESS.zipCode] = this.props.translate('bankAccount.error.zipCode');
+            errors[INPUT_IDS.ADDRESS.zipCode] = 'bankAccount.error.zipCode';
         }
 
         if (!ValidationUtils.isValidUSPhone(values[INPUT_IDS.PHONE_NUMBER], true)) {
-            errors[INPUT_IDS.PHONE_NUMBER] = this.props.translate(this.errorTranslationKeys.phoneNumber);
+            errors[INPUT_IDS.PHONE_NUMBER] = this.errorTranslationKeys.phoneNumber;
         }
 
         // this.props.walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
         // then the user needs to provide the full 9 digit SSN.
         if (this.props.walletAdditionalDetails.errorCode === CONST.WALLET.ERROR.SSN) {
             if (!ValidationUtils.isValidSSNFullNine(values[INPUT_IDS.SSN])) {
-                errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssnFull9);
+                errors[INPUT_IDS.SSN] = this.errorTranslationKeys.ssnFull9;
             }
         } else if (!ValidationUtils.isValidSSNLastFour(values[INPUT_IDS.SSN])) {
-            errors[INPUT_IDS.SSN] = this.props.translate(this.errorTranslationKeys.ssn);
+            errors[INPUT_IDS.SSN] = this.errorTranslationKeys.ssn;
         }
 
         return errors;
