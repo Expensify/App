@@ -603,6 +603,12 @@ function getOptions(
         };
     }
 
+    // We're only picking personal details that have logins set
+    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
+    // See https://github.com/Expensify/Expensify/issues/293465 for more context
+    // eslint-disable-next-line no-param-reassign
+    personalDetails = _.pick(personalDetails, (detail) => Boolean(detail.login));
+
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForAccountIDs = {};
