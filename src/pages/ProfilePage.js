@@ -201,16 +201,15 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {!isCurrentUser &&
-                            !Session.isAnonymousUser(
-                                <MenuItem
-                                    title={`${props.translate('common.message')}${displayName}`}
-                                    icon={Expensicons.ChatBubble}
-                                    onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
-                                    wrapperStyle={styles.breakAll}
-                                    shouldShowRightIcon
-                                />,
-                            )}
+                        {!isCurrentUser && !Session.isAnonymousUser() && (
+                            <MenuItem
+                                title={`${props.translate('common.message')}${displayName}`}
+                                icon={Expensicons.ChatBubble}
+                                onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
+                                wrapperStyle={styles.breakAll}
+                                shouldShowRightIcon
+                            />
+                        )}
                     </ScrollView>
                 )}
                 {!hasMinimumDetails && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
