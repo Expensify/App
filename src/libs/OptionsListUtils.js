@@ -214,18 +214,19 @@ function getParticipantsOptions(participants, personalDetails) {
     return _.map(participants, (participant) => {
         const detail = details[participant.accountID];
         return {
-            keyForList: detail.login,
+            keyForList: String(detail.accountID),
             login: detail.login,
             accountID: detail.accountID,
             text: detail.displayName,
             firstName: lodashGet(detail, 'firstName', ''),
             lastName: lodashGet(detail, 'lastName', ''),
-            alternateText: Str.isSMSLogin(detail.login || '') ? LocalePhoneNumber.formatPhoneNumber(detail.login) : detail.login,
+            alternateText: Str.isSMSLogin(detail.login || '') ? LocalePhoneNumber.formatPhoneNumber(detail.login) : detail.login || detail.displayName,
             icons: [
                 {
                     source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                     name: detail.login,
                     type: CONST.ICON_TYPE_AVATAR,
+                    id: detail.accountID
                 },
             ],
             payPalMeAddress: lodashGet(detail, 'payPalMeAddress', ''),
@@ -602,6 +603,12 @@ function getOptions(
         };
     }
 
+    // We're only picking personal details that have logins set
+    // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
+    // See https://github.com/Expensify/Expensify/issues/293465 for more context
+    // eslint-disable-next-line no-param-reassign
+    personalDetails = _.pick(personalDetails, (detail) => Boolean(detail.login));
+
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForAccountIDs = {};
@@ -857,12 +864,13 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     return {
         text: personalDetail.displayName ? personalDetail.displayName : personalDetail.login,
-        alternateText: personalDetail.login,
+        alternateText: personalDetail.login || personalDetail.displayName,
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
                 name: personalDetail.login,
                 type: CONST.ICON_TYPE_AVATAR,
+                id: personalDetail.accountID,
             },
         ],
         descriptiveText: amountText,
