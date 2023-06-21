@@ -75,30 +75,33 @@ function NewContactMethodPage(props) {
         return '';
     };
 
-    const validate = React.useCallback((values) => {
-        const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-        const validateIfnumber = validateNumber(phoneLogin);
+    const validate = React.useCallback(
+        (values) => {
+            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+            const validateIfnumber = validateNumber(phoneLogin);
 
-        const errors = {};
+            const errors = {};
 
-        if (_.isEmpty(values.phoneOrEmail)) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
-        }
+            if (_.isEmpty(values.phoneOrEmail)) {
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
+            }
 
-        if (!_.isEmpty(values.phoneOrEmail) && !(parsePhoneNumber(phoneLogin).possible || Str.isValidEmail(values.phoneOrEmail))) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
-        }
+            if (!_.isEmpty(values.phoneOrEmail) && !(parsePhoneNumber(phoneLogin).possible || Str.isValidEmail(values.phoneOrEmail))) {
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
+            }
 
-        if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
-        }
+            if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
+            }
 
-        if (!Permissions.canUsePasswordlessLogins(props.betas) && _.isEmpty(values.password)) {
-            errors.password = 'contacts.genericFailureMessages.passwordRequired';
-        }
+            if (!Permissions.canUsePasswordlessLogins(props.betas) && _.isEmpty(values.password)) {
+                errors.password = 'contacts.genericFailureMessages.passwordRequired';
+            }
 
-        return errors;
-    }, [props.betas, props.loginList]);
+            return errors;
+        },
+        [props.betas, props.loginList],
+    );
 
     const addNewContactMethod = (values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
