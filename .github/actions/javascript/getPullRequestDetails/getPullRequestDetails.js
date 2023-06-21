@@ -32,7 +32,7 @@ if (titleRegex) {
  * @param {Object} PR
  */
 function outputMergeActor(PR) {
-    if (user === 'OSBotify') {
+    if (user === CONST.OS_BOTIFY) {
         core.setOutput('MERGE_ACTOR', PR.merged_by.login);
     } else {
         core.setOutput('MERGE_ACTOR', user);

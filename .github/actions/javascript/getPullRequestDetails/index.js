@@ -42,7 +42,7 @@ if (titleRegex) {
  * @param {Object} PR
  */
 function outputMergeActor(PR) {
-    if (user === 'OSBotify') {
+    if (user === CONST.OS_BOTIFY) {
         core.setOutput('MERGE_ACTOR', PR.merged_by.login);
     } else {
         core.setOutput('MERGE_ACTOR', user);
@@ -709,7 +709,7 @@ class GithubUtils {
      * @returns {Boolean}
      */
     static isAutomatedPullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
+        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), CONST.OS_BOTIFY);
     }
 
     /**

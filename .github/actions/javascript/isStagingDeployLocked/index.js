@@ -566,7 +566,7 @@ class GithubUtils {
      * @returns {Boolean}
      */
     static isAutomatedPullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
+        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), CONST.OS_BOTIFY);
     }
 
     /**

@@ -144,7 +144,7 @@ const run = function () {
                             let deployer = lodashGet(response, 'data.merged_by.login', '');
                             const issueTitle = lodashGet(response, 'data.title', '');
                             const CPActorMatches = data.message.match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
-                            if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
+                            if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== CONST.OS_BOTIFY) {
                                 deployer = CPActorMatches[1];
                             }
 
@@ -743,7 +743,7 @@ class GithubUtils {
      * @returns {Boolean}
      */
     static isAutomatedPullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
+        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), CONST.OS_BOTIFY);
     }
 
     /**
