@@ -1,7 +1,24 @@
 const _ = require('underscore');
-const {spawn} = require('child_process');
+const {spawn, execSync} = require('child_process');
 const CONST = require('./CONST');
 const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
+
+/**
+ * @param {String} ref
+ */
+function fetchRefIfNeeded(ref) {
+    try {
+        console.log(`Checking if ref ${ref} exists locally`);
+        const command = `git rev-parse --verify ${ref}`;
+        console.log(`Running command: ${command}`);
+        execSync(command);
+    } catch (e) {
+        console.log(`Ref ${ref} not found locally, attempting to fetch it.`);
+        const command = `git fetch ${ref}`;
+        console.log(`Running command: ${command}`);
+        execSync(command);
+    }
+}
 
 /**
  * Get merge logs between two refs (inclusive) as a JavaScript object.
@@ -11,6 +28,9 @@ const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromRef, toRef) {
+    fetchRefIfNeeded(fromRef);
+    fetchRefIfNeeded(toRef);
+
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     return new Promise((resolve, reject) => {
         let stdout = '';

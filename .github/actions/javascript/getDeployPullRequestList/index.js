@@ -147,8 +147,26 @@ module.exports = CONST;
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(3571);
-const {spawn} = __nccwpck_require__(3129);
+const {spawn, execSync} = __nccwpck_require__(3129);
+const CONST = __nccwpck_require__(4097);
 const sanitizeStringForJSONParse = __nccwpck_require__(9338);
+
+/**
+ * @param {String} ref
+ */
+function fetchRefIfNeeded(ref) {
+    try {
+        console.log(`Checking if ref ${ref} exists locally`);
+        const command = `git rev-parse --verify ${ref}`;
+        console.log(`Running command: ${command}`);
+        execSync(command);
+    } catch (e) {
+        console.log(`Ref ${ref} not found locally, attempting to fetch it.`);
+        const command = `git fetch ${ref}`;
+        console.log(`Running command: ${command}`);
+        execSync(command);
+    }
+}
 
 /**
  * Get merge logs between two refs (inclusive) as a JavaScript object.
@@ -158,6 +176,9 @@ const sanitizeStringForJSONParse = __nccwpck_require__(9338);
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromRef, toRef) {
+    fetchRefIfNeeded(fromRef);
+    fetchRefIfNeeded(toRef);
+
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     return new Promise((resolve, reject) => {
         let stdout = '';
@@ -203,7 +224,7 @@ function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
     _.each(commits, (commit) => {
         const author = commit.authorName;
-        if (author === 'OSBotify') {
+        if (author === CONST.OS_BOTIFY) {
             return;
         }
 
