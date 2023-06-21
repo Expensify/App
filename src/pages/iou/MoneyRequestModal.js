@@ -52,7 +52,7 @@ const propTypes = {
     }),
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.shape({
+    allPersonalDetails: PropTypes.shape({
         /** Primary login of participant */
         login: PropTypes.string,
 
@@ -81,7 +81,7 @@ const defaultProps = {
     currentUserPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
-    personalDetails: {},
+    allPersonalDetails: {},
     iou: {
         error: false,
         selectedCurrencyCode: null,
@@ -108,7 +108,7 @@ function MoneyRequestModal(props) {
     const [selectedOptions, setSelectedOptions] = useState(
         ReportUtils.isPolicyExpenseChat(props.report)
             ? OptionsListUtils.getPolicyExpenseReportOptions(props.report)
-            : OptionsListUtils.getParticipantsOptions(props.report, props.personalDetails),
+            : OptionsListUtils.getParticipantsOptions(props.report, props.allPersonalDetails),
     );
     const [amount, setAmount] = useState(0);
 
@@ -442,7 +442,7 @@ export default compose(
         iou: {
             key: ONYXKEYS.IOU,
         },
-        personalDetails: {
+        allPersonalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
