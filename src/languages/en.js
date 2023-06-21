@@ -411,7 +411,7 @@ export default {
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
         headline: 'You qualify for access to our exclusive lounges.',
-        description: 'Talk to trees, look at the birds. Whatever it takes. Life is too short to be alone, too precious. Share it with a friend.',
+        description: 'The Expensify Lounge is where a "high-end airport lounge" meets a vibrant "co-working space" optimized for like-minded individuals.',
         coffeePromo: 'Great coffee and cocktails',
         networkingPromo: 'Network with other members',
         viewsPromo: 'Incredible views of San Francisco',
