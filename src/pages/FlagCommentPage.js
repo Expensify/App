@@ -116,7 +116,7 @@ function FlagCommentPage(props) {
         let reportID = getReportID(props.route);
 
         // Handle threads if needed
-        if (reportAction === undefined) {
+        if (reportAction === undefined || reportAction.reportActionID === undefined) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
             reportAction = ReportActionsUtils.getParentReportAction(props.report);
         }

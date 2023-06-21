@@ -484,22 +484,15 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report) {
-    // Public rooms send back the policy name with the reportSummary,
-    // since they can also be accessed by people who aren't in the workspace
-    if (report.policyName) {
-        return report.policyName;
-    }
-
-    if (!allPolicies || _.size(allPolicies) === 0) {
+    if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
+    const policy = _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
 
-    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    if (!policy) {
-        return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
-    }
+    //     // Public rooms send back the policy name with the reportSummary,
+    //     // since they can also be accessed by people who aren't in the workspace
 
-    return policy.name || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -2002,6 +1995,28 @@ function getChatByParticipants(newParticipantList) {
 }
 
 /**
+ * Attempts to find a report in onyx with the provided email list of participants. Does not include threads
+ * This is temporary function while migrating from PersonalDetails to PersonalDetailsList
+ *
+ * @deprecated - use getChatByParticipants()
+ *
+ * @param {Array} participantsLoginList
+ * @returns {Array|undefined}
+ */
+function getChatByParticipantsByLoginList(participantsLoginList) {
+    participantsLoginList.sort();
+    return _.find(allReports, (report) => {
+        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
+        if (!report || !report.participants || isThread(report)) {
+            return false;
+        }
+
+        // Only return the room if it has all the participants and is not a policy room
+        return !isUserCreatedPolicyRoom(report) && _.isEqual(participantsLoginList, _.sortBy(report.participants));
+    });
+}
+
+/**
  * Attempts to find a report in onyx with the provided list of participants in given policy
  * @param {Array} newParticipantList
  * @param {String} policyID
@@ -2326,6 +2341,7 @@ export {
     buildOptimisticTaskCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getChatByParticipantsByLoginList,
     getChatByParticipantsAndPolicy,
     getAllPolicyReports,
     getIOUReportActionMessage,
