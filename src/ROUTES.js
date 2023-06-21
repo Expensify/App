@@ -62,6 +62,8 @@ export default {
     NEW_TASK,
     REPORT,
     REPORT_WITH_ID: 'r/:reportID?',
+    EDIT_REQUEST: 'r/:threadReportID/edit/:field',
+    getEditRequestRoute: (threadReportID, field) => `r/${threadReportID}/edit/${field}`,
     getReportRoute: (reportID) => `r/${reportID}`,
     REPORT_WITH_ID_DETAILS_SHARE_CODE: 'r/:reportID/details/shareCode',
     getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
