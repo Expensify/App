@@ -326,20 +326,29 @@ const COLORS = {
 type Colors = ValueOf<typeof COLORS>
 ```
 
-If using enum is necessary, utilize string enum. Do not use numeric and heterogenous enums. This can help prevent potential bugs at runtime.
+If using enum is necessary, utilize string enum. Do not use numeric and heterogenous enums as they auto increment its numeric values in unexpected ways, are hard to understand when they have mixed value types and have reverse mappings. This can help prevent potential bugs at runtime.
 
 ```ts
 // Bad
-enum Colors {
-  Red,
-  Green,
-  Blue,
+enum Colors1 {
+  Red,   // when not assigning anything, the value will start with 0.
+  Green, // and will increment, 1.
+  Blue,  // 2.
 }
-enum Colors {
-  Red = 1,
-  Green = 2,
-  Blue = 3,
+
+enum Colors2 {
+  Red = 10,            // 10.
+  Green,               // will increment to 11.
+  Blue = 30,           // 30.
+  Yellow,              // same, will increment to 31.
+  Magenta = 'magenta', // "magenta".
+  Brown = 100,         // 100.
+  Black,               // 101.
 }
+
+// Bad - We also end up having reverse mappings when using numeric values in enums.
+Colors2.Green; // 11.
+Colors2[11];   // "Green".
 
 // Good
 enum Colors {
@@ -351,7 +360,7 @@ enum Colors {
 
 ## Usage of type `any` and `unknown`
 
-Usage of `any` is forbidden unless there is a very good reason for it. The `any` type bypass TypeScript type-checking system, thus making the code less safe and more prone to bugs. Any usage of `any` type must be followed with a comment explaining why you are using it.
+Usage of `any` is forbidden unless there is a very good reason for it. The `any` type bypasses the TypeScript type-checking system, thus making the code less safe and more prone to bugs. Any usage of `any` type must be followed with a comment explaining why you are using it.
 
 ```ts
 // Bad
@@ -463,7 +472,7 @@ Benefits of explicitly typing return values:
 - Surface potential type errors faster in the future if there are code changes that change the return type of the function.
 
 ```ts
-interface User {
+type User = {
   id: number;
   name: string;
   age: number;
@@ -569,7 +578,7 @@ if (isPolicyRoomReport(report)) {
 }
 ```
 
-In this example, we have the `ChatReport` type which can be two possible types of object, `PolicyRoomReport` or `PolicyExpenseChatReport`. The `isPolicyRoomReport` function will accept `report` as a parameter and will narrow the type of `report` to `PolicyRoomReport` if the condition inside it is true, and to `PolicyExpenseChatReport` if the condition is false.
+In this example, we have the `ChatReport` type which can be two possible types of object, `PolicyRoomReport` or `PolicyExpenseChatReport`. The `isPolicyRoomReport` function accepts `report` as a parameter and its return type is a [type predicate](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates), which means that it will narrow the type of `report` to `PolicyRoomReport` if the condition inside it is `true`, and to `PolicyExpenseChatReport` if the condition is `false`.
 
 ## Typing arrays
 
@@ -589,7 +598,7 @@ const colors: Array<ValueOf<typeof COLORS>> = [];
 
 ## Usage of “defaultProps”
 
-To achieve better and safer typing of components with default prop values, all usages `defaultProps` shall be removed and replaced by using prop destructuring. Please head to **Typing components** section to understand how you can convert your implementation.
+To achieve better and safer typing of components with default prop values, all usages `defaultProps` shall be removed and replaced by prop destructuring. Please head to **Typing components** section to understand how you can convert your implementation.
 
 ## JSDoc annotations
 
@@ -815,8 +824,8 @@ type Props = {
     style?: Animated.WithAnimatedValue<StyleProp<ViewStyle>>;
 };
 
-function Component(props: Props) {
-    return <Animated.View style={props.style} />;
+function Component({ style }: Props) {
+    return <Animated.View style={style} />;
 }
 
 function App() {
@@ -856,8 +865,8 @@ type Props = {
     children?: React.ReactNode;
 };
 
-function Component(props: Props) {
-    return props.children;
+function Component({ children }: Props) {
+    return children;
 }
 
 function App() {
@@ -876,8 +885,8 @@ type Props = {
     children: (label: string) => React.ReactNode;
 };
 
-function Component(props: Props) {
-    return props.children('Component label');
+function Component({ children }: Props) {
+    return children('Component label');
 }
 
 function App() {
