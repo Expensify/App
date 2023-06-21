@@ -90,7 +90,7 @@ const getPhoneNumber = (details) => {
 };
 
 function ProfilePage(props) {
-    const accountID = lodashGet(props.route.params, 'accountID', 0);
+    const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -200,11 +200,11 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {!isCurrentUser && Boolean(login) && (
+                        {!isCurrentUser && (
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
                                 icon={Expensicons.ChatBubble}
-                                onPress={() => Report.navigateToAndOpenReport([login])}
+                                onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                             />
