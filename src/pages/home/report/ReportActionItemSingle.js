@@ -84,6 +84,7 @@ function ReportActionItemSingle(props) {
           ]
         : props.action.person;
 
+
     return (
         <View style={props.wrapperStyles}>
             <PressableWithoutFeedback

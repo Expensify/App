@@ -233,7 +233,13 @@ function canFlagReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isSettled(reportID) {
-    return !lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'hasOutstandingIOU']);
+    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    return !report.hasOutstandingIOU && !report.isWaitingOnBankAccount;
+}
+
+function isCurrentUserSubmitter(reportID) {
+    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    return report.owner === sessionEmail;
 }
 
 /**
@@ -916,7 +922,7 @@ function getMoneyRequestAction(reportAction = {}) {
  * @returns {Number}
  */
 function getMoneyRequestTotal(report, moneyRequestReports = {}) {
-    if (report.hasOutstandingIOU || isMoneyRequestReport(report)) {
+    if (report.hasOutstandingIOU || report.isWaitingOnBankAccount || isMoneyRequestReport(report)) {
         const moneyRequestReport = moneyRequestReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`] || report;
         const total = lodashGet(moneyRequestReport, 'total', 0);
 
@@ -1821,7 +1827,7 @@ function hasOutstandingIOU(report, iouReports) {
     }
 
     if (iouReport.ownerAccountID === currentUserAccountID) {
-        return false;
+        return report.isWaitingOnBankAccount;
     }
 
     return report.hasOutstandingIOU;
@@ -1839,6 +1845,9 @@ function isIOUOwnedByCurrentUser(report, iouReports = {}) {
         if (iouReport) {
             return iouReport.ownerAccountID === currentUserAccountID;
         }
+    }
+    if (report.isWaitingOnBankAccount) {
+        return report.ownerAccountID === currentUserAccountID;
     }
     return false;
 }
@@ -2300,6 +2309,7 @@ export {
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
     isChatReport,
+    isCurrentUserSubmitter,
     isExpenseReport,
     isIOUReport,
     isTaskReport,

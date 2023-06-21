@@ -25,6 +25,7 @@ import getButtonState from '../../libs/getButtonState';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -100,6 +101,8 @@ function ReportPreview(props) {
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.iouReport.ownerAccountID, 'displayName'], props.iouReport.ownerEmail);
+
     return (
         <View style={[styles.chatItemMessage]}>
             {_.map(props.action.message, (message, index) => (
@@ -123,7 +126,7 @@ function ReportPreview(props) {
                         ) : (
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                    {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
+                                    {props.iouReport.isWaitingOnBankAccount ? props.translate('iou.waitingOnBankAccount', {submitterDisplayName}) : lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
                                 </Text>
                             </View>
                         )}
@@ -134,7 +137,7 @@ function ReportPreview(props) {
                     />
                 </PressableWithoutFeedback>
             ))}
-            {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
+            {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && !props.chatReport.isWaitingOnBankAccount && (
                 <SettlementButton
                     currency={props.iouReport.currency}
                     policyID={props.iouReport.policyID}

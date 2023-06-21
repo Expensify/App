@@ -180,7 +180,7 @@ class AddPlaidBankAccount extends React.Component {
                             token={token}
                             onSuccess={({publicToken, metadata}) => {
                                 Log.info('[PlaidLink] Success!');
-                                BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, this.props.allowDebit);
+                                BankAccounts.openPlaidBankAccountSelector(publicToken, metadata.institution.name, this.props.allowDebit, this.props.bankAccountID);
                             }}
                             onError={(error) => {
                                 Log.hmmm('[PlaidLink] Error: ', error.message);

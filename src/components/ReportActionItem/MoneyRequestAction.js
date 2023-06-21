@@ -135,7 +135,7 @@ function MoneyRequestAction(props) {
     if (
         !_.isEmpty(props.iouReport) &&
         !_.isEmpty(props.reportActions) &&
-        props.chatReport.hasOutstandingIOU &&
+        (props.chatReport.hasOutstandingIOU || props.chatReport.isWaitingOnBankAccount) &&
         props.isMostRecentIOUReportAction &&
         props.action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         props.network.isOffline

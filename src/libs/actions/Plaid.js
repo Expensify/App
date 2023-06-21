@@ -40,14 +40,16 @@ function openPlaidBankLogin(allowDebit, bankAccountID) {
  * @param {String} publicToken
  * @param {String} bankName
  * @param {Boolean} allowDebit
+ * @param {Number} bankAccountID
  */
-function openPlaidBankAccountSelector(publicToken, bankName, allowDebit) {
+function openPlaidBankAccountSelector(publicToken, bankName, allowDebit, bankAccountID) {
     API.read(
         'OpenPlaidBankAccountSelector',
         {
             publicToken,
             allowDebit,
             bank: bankName,
+            bankAccountID,
         },
         {
             optimisticData: [

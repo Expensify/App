@@ -359,6 +359,7 @@ export default {
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
         payerSettled: ({amount}) => `pagó ${amount}`,
+        waitingOnBankAccount: ({submitterDisplayName}) => `comenzó a establecerse, el pago se retiene hasta que ${submitterDisplayName} agrega una `,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,

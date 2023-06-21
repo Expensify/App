@@ -30,6 +30,7 @@ import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import {withBlockedFromConcierge, withNetwork, withPersonalDetails, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
+import ReportActionItemReimbursementQueued from './ReportActionItemReimbursementQueued';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
 import SelectionScraper from '../../../libs/SelectionScraper';
@@ -56,6 +57,7 @@ import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
+import * as PersonalDetailsUtils from "../../../libs/PersonalDetailsUtils";
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -273,6 +275,14 @@ function ReportActionItem(props) {
                     taskReportID={props.action.originalMessage.taskReportID.toString()}
                     action={props.action}
                     isHovered={hovered}
+                />
+            );
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            children = (
+                <ReportActionItemReimbursementQueued
+                    submitterDisplayName={submitterDisplayName}
+                    isCurrentUserSubmitter={ReportUtils.isCurrentUserSubmitter(props.report.reportID)}
                 />
             );
         } else {

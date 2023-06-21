@@ -168,7 +168,7 @@ function getOrderedReportIDs(reportIDFromRoute) {
             return;
         }
 
-        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, allReports)) {
+        if ((report.hasOutstandingIOU || report.isWaitingOnBankAccount) && !ReportUtils.isIOUOwnedByCurrentUser(report, allReports)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -258,6 +258,7 @@ function getOptionData(reportID) {
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
+        isWaitingOnBankAccount: false,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -289,6 +290,8 @@ function getOptionData(reportID) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
+    result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
+
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 

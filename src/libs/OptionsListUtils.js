@@ -471,6 +471,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.keyForList = String(report.reportID);
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
         result.hasOutstandingIOU = report.hasOutstandingIOU;
+        result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
