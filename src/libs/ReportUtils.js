@@ -997,7 +997,7 @@ function getMoneyRequestReportActionMessage(report, reportAction) {
     let formattedAmount = null;
     let reportHasOutstandingIOU = null;
     const totalAmount = getMoneyRequestTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerEmail, true);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
 
     if (totalAmount > 0) {
         formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
