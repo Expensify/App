@@ -27,6 +27,7 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
+import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import {withBlockedFromConcierge, withNetwork, withPersonalDetails, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
@@ -109,6 +110,22 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+
+    useEffect(
+        () => () => {
+            // ReportActionContextMenu and EmojiPicker are global component,
+            // we use showContextMenu and showEmojiPicker to show them,
+            // so we should also hide them when the current component is destroyed
+            if (ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
+                ReportActionContextMenu.hideContextMenu();
+                ReportActionContextMenu.hideDeleteModal();
+            }
+            if (EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
+                EmojiPickerAction.hideEmojiPicker(true);
+            }
+        },
+        [props.action.reportActionID],
+    );
 
     const isDraftEmpty = !props.draftMessage;
     useEffect(() => {
@@ -400,7 +417,12 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        return <ReportActionItemCreated reportID={props.report.reportID} />;
+        return (
+            <ReportActionItemCreated
+                policyID={props.report.policyID}
+                reportID={props.report.reportID}
+            />
+        );
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return <RenameAction action={props.action} />;
