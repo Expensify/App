@@ -453,10 +453,6 @@ function ReportActionCompose({translate, ...props}) {
      */
     const calculateEmojiSuggestion = useCallback(
         (selectionEnd) => {
-            if (!value) {
-                resetSuggestions();
-                return;
-            }
             if (shouldBlockEmojiCalc.current) {
                 shouldBlockEmojiCalc.current = false;
                 return;
@@ -484,7 +480,7 @@ function ReportActionCompose({translate, ...props}) {
 
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
         },
-        [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, resetSuggestions, shouldBlockEmojiCalc],
+        [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, shouldBlockEmojiCalc],
     );
 
     const getMentionOptions = useCallback(
@@ -542,10 +538,6 @@ function ReportActionCompose({translate, ...props}) {
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (selectionEnd < 1) {
-                return;
-            }
-
             if (shouldBlockMentionCalc.current) {
                 shouldBlockMentionCalc.current = false;
                 return;
@@ -656,7 +648,6 @@ function ReportActionCompose({translate, ...props}) {
         }));
     }, [props.betas, props.report, reportParticipants, translate]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (suggestionValues.shouldShowEmojiSuggestionMenu) {
             setSuggestionValues((prevState) => ({...prevState, shouldShowEmojiSuggestionMenu: false}));
