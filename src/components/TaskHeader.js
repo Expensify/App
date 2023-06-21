@@ -47,7 +47,6 @@ const defaultProps = {
 };
 
 function TaskHeader(props) {
-    const title = ReportUtils.getReportName(props.report);
     const assigneeAccountID = TaskUtils.getTaskAssigneeAccountID(props.report);
     const assigneeName = ReportUtils.getDisplayNameForParticipant(assigneeAccountID);
     const assigneeAvatar = UserUtils.getAvatar(lodashGet(props.personalDetails, [assigneeAccountID, 'avatar']), assigneeAccountID);
