@@ -21,7 +21,7 @@ const propTypes = {
     ...viewportOffsetTopPropTypes,
 };
 
-function EmojiPicker(props, ref) {
+const EmojiPicker = forwardRef((props, ref) => {
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
         horizontal: 0,
@@ -163,8 +163,8 @@ function EmojiPicker(props, ref) {
             />
         </PopoverWithMeasuredContent>
     );
-}
+});
 
 EmojiPicker.propTypes = propTypes;
 EmojiPicker.displayName = 'EmojiPicker';
-export default compose(withViewportOffsetTop, withWindowDimensions)(forwardRef(EmojiPicker));
+export default compose(withViewportOffsetTop, withWindowDimensions)(EmojiPicker);
