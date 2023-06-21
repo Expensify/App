@@ -213,20 +213,22 @@ function getParticipantsOptions(participants, personalDetails) {
     const details = getPersonalDetailsForAccountIDs(_.pluck(participants, 'accountID'), personalDetails);
     return _.map(participants, (participant) => {
         const detail = details[participant.accountID];
+        const login = detail.login || participant.login;
+        const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
         return {
             keyForList: String(detail.accountID),
-            login: detail.login,
+            login,
             accountID: detail.accountID,
-            text: detail.displayName,
+            text: displayName,
             firstName: lodashGet(detail, 'firstName', ''),
             lastName: lodashGet(detail, 'lastName', ''),
-            alternateText: Str.isSMSLogin(detail.login || '') ? LocalePhoneNumber.formatPhoneNumber(detail.login) : detail.login || detail.displayName,
+            alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
             icons: [
                 {
                     source: UserUtils.getAvatar(detail.avatar, detail.accountID),
-                    name: detail.login,
+                    name: login,
                     type: CONST.ICON_TYPE_AVATAR,
-                    id: detail.accountID
+                    id: detail.accountID,
                 },
             ],
             payPalMeAddress: lodashGet(detail, 'payPalMeAddress', ''),
