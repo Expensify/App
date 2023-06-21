@@ -375,14 +375,14 @@ function getAllReportErrors(report, reportActions) {
  * @returns {String}
  */
 function getLastMessageTextForReport(report) {
-    const lastVisibleReportAction = ReportActionUtils.getLastVisibleAction(report.reportID);
+    const lastReportAction = lastReportActions[report.reportID];
     let lastMessageTextFromReport = '';
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
-    } else if (ReportActionUtils.isReportPreviewAction(lastVisibleReportAction)) {
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastVisibleReportAction));
-        lastMessageTextFromReport = ReportUtils.getMoneyRequestReportActionMessage(iouReport, lastVisibleReportAction);
+    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
+        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        lastMessageTextFromReport = ReportUtils.getMoneyRequestReportActionMessage(iouReport, lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
