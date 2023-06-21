@@ -47,7 +47,7 @@ function TaskShareDestinationSelectorModal(props) {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     useEffect(() => {
-        const results = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
+        const results = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_ACCOUNT_IDS, true);
 
         setFilteredUserToInvite(results.userToInvite);
         setFilteredRecentReports(results.recentReports);
@@ -61,7 +61,7 @@ function TaskShareDestinationSelectorModal(props) {
             props.betas,
             searchValue.trim(),
             [],
-            CONST.EXPENSIFY_EMAILS,
+            CONST.EXPENSIFY_ACCOUNT_IDS,
             true,
         );
 

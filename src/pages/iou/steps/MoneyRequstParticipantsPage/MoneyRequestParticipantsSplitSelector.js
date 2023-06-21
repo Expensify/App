@@ -74,7 +74,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             props.betas,
             '',
             props.participants,
-            CONST.EXPENSIFY_EMAILS,
+            CONST.EXPENSIFY_ACCOUNT_IDS,
         );
 
         this.state = {
@@ -149,7 +149,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
             this.props.betas,
             searchTerm,
             this.props.participants,
-            CONST.EXPENSIFY_EMAILS,
+            CONST.EXPENSIFY_ACCOUNT_IDS,
         );
         this.setState({
             searchTerm,
@@ -190,7 +190,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                 this.props.betas,
                 isOptionInList ? prevState.searchTerm : '',
                 newSelectedOptions,
-                CONST.EXPENSIFY_EMAILS,
+                CONST.EXPENSIFY_ACCOUNT_IDS,
             );
             return {
                 recentReports,

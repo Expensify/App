@@ -449,6 +449,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     result.participantsList = personalDetailList;
 
     if (report) {
+        // console.debug(report);
         result.isChatRoom = ReportUtils.isChatRoom(report);
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
@@ -461,6 +462,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
         result.ownerEmail = report.ownerEmail;
+        result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
         result.hasDraftComment = report.hasDraft;
@@ -506,7 +508,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
     result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, iouReports);
 
     if (!hasMultipleParticipants) {
-        result.login = personalDetail.login;
+        result.login = personalDetail.login || personalDetail.displayName;
         result.accountID = Number(personalDetail.accountID);
         result.phoneNumber = personalDetail.phoneNumber;
         result.payPalMeAddress = personalDetail.payPalMeAddress;
@@ -607,7 +609,7 @@ function getOptions(
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // eslint-disable-next-line no-param-reassign
-    personalDetails = _.pick(personalDetails, (detail) => Boolean(detail.login));
+    // personalDetails = _.pick(personalDetails, (detail) => Boolean(detail.login));
 
     let recentReportOptions = [];
     let personalDetailsOptions = [];
@@ -688,16 +690,25 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text && personalDetail.text.toLowerCase()], 'asc');
     }
 
-    // Always exclude already selected options and the currently logged in user
-    const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
 
-    _.each(excludeLogins, (login) => {
-        loginOptionsToExclude.push({login});
+    // console.debug("selectedOptions");
+    // console.debug(selectedOptions);
+    // Always exclude already selected options and the currently logged in user
+    const loginOptionsToExclude = [...selectedOptions, {accountID: currentUserAccountID}];
+    // console.debug("loginOptionsToExclude before");
+    // console.debug(loginOptionsToExclude);
+    // console.debug(currentUserAccountID);
+    _.each(excludeLogins, (accountID) => {
+        loginOptionsToExclude.push({accountID});
     });
+
+    console.debug("loginOptionsToExclude");
+    console.debug(loginOptionsToExclude);
 
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             const reportOption = allReportOptions[i];
+            console.debug(reportOption);
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
@@ -705,7 +716,7 @@ function getOptions(
             }
 
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
-                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
+                reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
             // Skip if we aren't including multiple participant reports and this report has multiple participants
             if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.accountID) {
@@ -713,7 +724,7 @@ function getOptions(
             }
 
             // If we're excluding threads, check the report to see if it has a single participant and if the participant is already selected
-            if (!includeThreads && reportOption.login && _.some(loginOptionsToExclude, (option) => option.login === reportOption.login)) {
+            if (!includeThreads && reportOption.accountID && _.some(loginOptionsToExclude, (loginToExclude) => loginToExclude.accountID === reportOption.accountID)) {
                 continue;
             }
 
@@ -724,11 +735,12 @@ function getOptions(
                 continue;
             }
 
+            console.debug(reportOption);
             recentReportOptions.push(reportOption);
 
             // Add this login to the exclude list so it won't appear when we process the personal details
-            if (reportOption.login) {
-                loginOptionsToExclude.push({login: reportOption.login});
+            if (reportOption.accountID) {
+                loginOptionsToExclude.push({accountID: reportOption.accountID});
             }
         }
     }
@@ -736,7 +748,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === personalDetailOption.login)) {
+            if (_.some(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.accountID === personalDetailOption.accountID)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -748,7 +760,7 @@ function getOptions(
         });
     }
 
-    let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.login === currentUserLogin);
+    let currentUserOption = _.find(allPersonalDetailsOptions, (personalDetailsOption) => personalDetailsOption.accountID === currentUserAccountID);
     if (searchValue && !isSearchStringMatch(searchValue, currentUserOption.searchText)) {
         currentUserOption = null;
     }
