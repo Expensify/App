@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 const core = require('@actions/core');
+const CONST = require('../../.github/libs/CONST');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
 const mockGetInput = jest.fn();
