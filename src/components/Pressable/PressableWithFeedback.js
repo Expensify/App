@@ -6,9 +6,8 @@ import GenericPressable from './GenericPressable';
 import GenericPressablePropTypes from './GenericPressable/PropTypes';
 import OpacityView from '../OpacityView';
 import variables from '../../styles/variables';
-import * as StyleUtils from '../../styles/StyleUtils';
 
-const omittedProps = ['style', 'pressStyle', 'hoverStyle', 'focusStyle', 'wrapperStyle'];
+const omittedProps = ['wrapperStyle', 'onHoverIn', 'onHoverOut', 'onPressIn', 'onPressOut'];
 
 const PressableWithFeedbackPropTypes = {
     ...GenericPressablePropTypes.pressablePropTypes,
@@ -39,49 +38,59 @@ const PressableWithFeedbackDefaultProps = {
 };
 
 const PressableWithFeedback = forwardRef((props, ref) => {
-    const propsWithoutStyling = _.omit(props, omittedProps);
+    const rest = _.omit(props, omittedProps);
     const [disabled, setDisabled] = useState(props.disabled);
+    const [isPressed, setIsPressed] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
         setDisabled(props.disabled);
     }, [props.disabled]);
 
     return (
-        <GenericPressable
-            ref={ref}
+        <OpacityView
+            shouldDim={Boolean(!disabled && (isPressed || isHovered))}
+            dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...propsWithoutStyling}
-            disabled={disabled}
-            onPress={(e) => {
-                setDisabled(true);
-                const onPress = props.onPress(e);
-                InteractionManager.runAfterInteractions(() => {
-                    if (!(onPress instanceof Promise)) {
-                        setDisabled(props.disabled);
-                        return;
-                    }
-                    onPress.finally(() => {
-                        setDisabled(props.disabled);
-                    });
-                });
-            }}
         >
-            {(state) => (
-                <OpacityView
-                    shouldDim={Boolean(!disabled && (state.pressed || state.hovered))}
-                    dimmingValue={state.pressed ? props.pressDimmingValue : props.hoverDimmingValue}
-                    style={[
-                        ...StyleUtils.parseStyleFromFunction(props.style, state),
-                        ...(!disabled && state.pressed ? StyleUtils.parseStyleFromFunction(props.pressStyle, state) : []),
-                        ...(!disabled && state.hovered ? StyleUtils.parseStyleAsArray(props.hoverStyle, state) : []),
-                        ...(state.focused ? StyleUtils.parseStyleAsArray(props.focusStyle, state) : []),
-                    ]}
-                >
-                    {_.isFunction(props.children) ? props.children(state) : props.children}
-                </OpacityView>
-            )}
-        </GenericPressable>
+            <GenericPressable
+                ref={ref}
+                disabled={disabled}
+                onHoverIn={() => {
+                    setIsHovered(true);
+                    if (props.onHoverIn) props.onHoverIn();
+                }}
+                onHoverOut={() => {
+                    setIsHovered(false);
+                    if (props.onHoverOut) props.onHoverOut();
+                }}
+                onPressIn={() => {
+                    setIsPressed(true);
+                    if (props.onPressIn) props.onPressIn();
+                }}
+                onPressOut={() => {
+                    setIsPressed(false);
+                    if (props.onPressOut) props.onPressOut();
+                }}
+                onPress={(e) => {
+                    setDisabled(true);
+                    const onPress = props.onPress(e);
+                    InteractionManager.runAfterInteractions(() => {
+                        if (!(onPress instanceof Promise)) {
+                            setDisabled(props.disabled);
+                            return;
+                        }
+                        onPress.finally(() => {
+                            setDisabled(props.disabled);
+                        });
+                    });
+                }}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
+            >
+                {(state) => (_.isFunction(props.children) ? props.children(state) : props.children)}
+            </GenericPressable>
+        </OpacityView>
     );
 });
 

@@ -98,7 +98,12 @@ function ReportActionItemReactions(props) {
                     </Tooltip>
                 );
             })}
-            {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {reactionsWithCount.length > 0 && (
+                <AddReactionBubble
+                    onSelectEmoji={props.toggleReaction}
+                    reportAction={{reportActionID: props.reportActionID}}
+                />
+            )}
         </View>
     );
 }
