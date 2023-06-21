@@ -48,18 +48,25 @@ function parseAndLogRoute(state) {
     } else {
         Log.info('Navigating to route', false, {path: currentPath});
     }
-
-    Navigation.setIsNavigationReady();
 }
 
 function NavigationRoot(props) {
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
+    const onReadyCalled = useRef(false);
 
     const updateSavedNavigationStateAndLogRoute = (state) => {
         navigationStateRef.current = state;
         props.updateCurrentReportId(state);
         parseAndLogRoute(state);
+
+        // NavigationContainer's onReady callback is unreliable (it will fire but navigationRef.isReady() will still be false)
+        // So we use this onStateChange callback instead
+        if (!onReadyCalled.current) {
+            Navigation.setIsNavigationReady();
+            props.onReady();
+            onReadyCalled.current = true;
+        }
     };
 
     return (
@@ -67,7 +74,6 @@ function NavigationRoot(props) {
             key={props.isSmallScreenWidth ? 'small' : 'big'}
             onStateChange={updateSavedNavigationStateAndLogRoute}
             initialState={navigationStateRef.current}
-            onReady={props.onReady}
             theme={navigationTheme}
             ref={navigationRef}
             linking={linkingConfig}
