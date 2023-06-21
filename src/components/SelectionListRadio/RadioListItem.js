@@ -10,8 +10,13 @@ import themeColors from '../../styles/themes/default';
 import {radioListItemPropTypes} from './selectionListRadioPropTypes';
 
 const propTypes = {
+    /** The section list item */
     item: PropTypes.shape(radioListItemPropTypes),
+
+    /** Whether this item is focused (for arrow key controls) */
     isFocused: PropTypes.bool,
+
+    /** Callback to fire when the item is pressed */
     onSelectRow: PropTypes.func,
 };
 
