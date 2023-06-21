@@ -258,11 +258,16 @@ function ReportActionCompose({translate, ...props}) {
     // TODO: rewrite suggestion logic to some hook or state machine or util or something to not make it depend on ReportActionComposer
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
+    const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu;
+    const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowMentionSuggestionMenu;
+
     const [highlightedEmojiIndex] = useArrowKeyFocusManager({
+        isActive: isEmojiSuggestionsMenuVisible,
         maxIndex: getMaxArrowIndex(suggestionValues.suggestedEmojis.length, suggestionValues.isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
     });
     const [highlightedMentionIndex] = useArrowKeyFocusManager({
+        isActive: isMentionSuggestionsMenuVisible,
         maxIndex: getMaxArrowIndex(suggestionValues.suggestedMentions.length, suggestionValues.isAutoSuggestionPickerLarge),
         shouldExcludeTextAreaNodes: false,
     });
@@ -1164,7 +1169,7 @@ function ReportActionCompose({translate, ...props}) {
                 </View>
             </OfflineWithFeedback>
             {isDraggingOver && <ReportDropUI />}
-            {!_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu && (
+            {isEmojiSuggestionsMenuVisible && (
                 <EmojiSuggestions
                     onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
                     highlightedEmojiIndex={highlightedEmojiIndex}
@@ -1181,7 +1186,7 @@ function ReportActionCompose({translate, ...props}) {
                     shouldIncludeReportRecipientLocalTimeHeight={shouldShowReportRecipientLocalTime}
                 />
             )}
-            {!_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowMentionSuggestionMenu && (
+            {isMentionSuggestionsMenuVisible && (
                 <MentionSuggestions
                     onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedMentions: []}))}
                     highlightedMentionIndex={highlightedMentionIndex}
