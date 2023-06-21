@@ -187,7 +187,8 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(props.report),
                 ReportUtils.chatIncludesChronos(props.report),
-                null,
+                undefined,
+                undefined,
                 props.isParentReport,
             );
         },

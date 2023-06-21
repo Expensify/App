@@ -112,7 +112,7 @@ export default [
         icon: Expensicons.ChatBubble,
         successTextTranslateKey: '',
         successIcon: null,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isParentReport) =>
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isParentReport) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !isParentReport,
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
