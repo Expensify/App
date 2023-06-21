@@ -77,6 +77,8 @@ function WorkspaceInitialPage(props) {
         const policyReports = _.filter(props.reports, (report) => report && report.policyID === policy.id);
         Policy.deleteWorkspace(policy.id, policyReports, policy.name);
         setIsDeleteModalOpen(false);
+        // Pop the deleted workspace page before opening workspace settings.
+        Navigation.goBack();
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
 
