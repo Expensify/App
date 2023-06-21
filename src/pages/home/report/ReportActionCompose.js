@@ -555,7 +555,7 @@ function ReportActionCompose({translate, ...props}) {
             }
 
             const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
-            const words = leftString.split(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+            const words = leftString.split(CONST.REGEX.SPECIAL_CHAR_OR_EMOJI);
             const lastWord = _.last(words);
 
             let atSignIndex;
@@ -648,6 +648,7 @@ function ReportActionCompose({translate, ...props}) {
         }));
     }, [props.betas, props.report, reportParticipants, translate]);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         if (suggestionValues.shouldShowEmojiSuggestionMenu) {
             setSuggestionValues((prevState) => ({...prevState, shouldShowEmojiSuggestionMenu: false}));
