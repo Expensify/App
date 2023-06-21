@@ -2449,13 +2449,20 @@ const styles = {
         alignItems: 'center',
     },
 
+    checkboxPressable: {
+        borderRadius: 6,
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     checkboxContainer: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: 2,
+        borderRadius: 4,
         height: 20,
         width: 20,
-        borderColor: themeColors.icon,
-        borderWidth: 1,
+        borderColor: themeColors.borderLighter,
+        borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
