@@ -1047,6 +1047,7 @@ function getReportName(report) {
 
 /**
  * Recursively navigates through thread parents to get the root report and workspace name.
+ * The recursion stops when we find a non thread or money request report, whichever comes first.
  * @param {Object} report
  * @returns {Object}
  */
@@ -1100,7 +1101,7 @@ function getChatRoomSubtitle(report) {
 }
 
 /**
- * Get the subtitleLink for the report
+ * Get the subtitle link for the report
  * @param {Object} report
  * @returns {String}
  */

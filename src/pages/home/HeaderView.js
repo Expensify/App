@@ -83,11 +83,11 @@ function HeaderView(props) {
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
-    const isThread = ReportUtils.isChatThread(props.report);
+    const isChatThread = ReportUtils.isChatThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const reportHeaderData = !isTaskReport && !isThread && props.report.parentReportID ? props.parentReport : props.report;
+    const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const subtitleLink = ReportUtils.getChatRoomSubtitleLink(reportHeaderData);
@@ -175,7 +175,7 @@ function HeaderView(props) {
                             ) : (
                                 <MultipleAvatars
                                     icons={icons}
-                                    shouldShowTooltip={!isChatRoom || isThread}
+                                    shouldShowTooltip={!isChatRoom || isChatThread}
                                 />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
@@ -185,7 +185,7 @@ function HeaderView(props) {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
                                 {!_.isEmpty(subtitleLink) && (
                                     <PressableWithoutFeedback
