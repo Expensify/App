@@ -3,6 +3,7 @@ import React, {Component} from 'react';
 import {View, Dimensions} from 'react-native';
 import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
 import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
+import {VariableSizeList as List} from 'react-window';
 import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -19,6 +20,7 @@ class PDFView extends Component {
         super(props);
         this.state = {
             numPages: null,
+            pageViewports: [],
             windowWidth: Dimensions.get('window').width,
             shouldRequestPassword: false,
             isPasswordInvalid: false,
@@ -28,6 +30,9 @@ class PDFView extends Component {
         this.initiatePasswordChallenge = this.initiatePasswordChallenge.bind(this);
         this.attemptPDFLoad = this.attemptPDFLoad.bind(this);
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
+        this.calculatePageHeight = this.calculatePageHeight.bind(this);
+        this.calculatePageWidth = this.calculatePageWidth.bind(this);
+        this.renderPage = this.renderPage.bind(this);
 
         const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
         pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
@@ -45,19 +50,51 @@ class PDFView extends Component {
     }
 
     /**
-     * Upon successful document load, set the number of pages on PDF,
+     * Upon successful document load, combine an array of page viewports,
+     * set the number of pages on PDF,
      * hide/reset PDF password form, and notify parent component that
      * user input is no longer required.
      *
-     * @param {*} {numPages} No of pages in the rendered PDF
+     * @param {*} pdf The PDF file instance
      * @memberof PDFView
      */
-    onDocumentLoadSuccess({numPages}) {
-        this.setState({
-            numPages,
-            shouldRequestPassword: false,
-            isPasswordInvalid: false,
+    onDocumentLoadSuccess(pdf) {
+        const numPages = pdf.numPages;
+
+        Promise.all(
+            _.times(numPages, (index) => {
+                const pageNumber = index + 1;
+
+                return pdf.getPage(pageNumber).then((page) => page.getViewport({scale: 1}));
+            }),
+        ).then((pageViewports) => {
+            this.setState({
+                pageViewports,
+                numPages,
+                shouldRequestPassword: false,
+                isPasswordInvalid: false,
+            });
         });
+    }
+
+    calculatePageHeight(pageIndex) {
+        if (this.state.pageViewports.length === 0) {
+            throw new Error('calculatePageHeight() called too early');
+        }
+
+        const pageViewport = this.state.pageViewports[pageIndex];
+        const scale = this.calculatePageWidth() / pageViewport.width;
+        const actualHeight = pageViewport.height * scale;
+
+        return actualHeight;
+    }
+
+    calculatePageWidth() {
+        const pdfContainerWidth = this.state.windowWidth - 100;
+        const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
+        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth : pageWidthOnLargeScreen;
+
+        return pageWidth;
     }
 
     /**
@@ -105,10 +142,25 @@ class PDFView extends Component {
         this.props.onToggleKeyboard(isKeyboardOpen);
     }
 
+    renderPage({index, style}) {
+        const pageWidth = this.calculatePageWidth();
+
+        return (
+            <View style={style}>
+                <Page
+                    key={`page_${index}`}
+                    width={pageWidth}
+                    pageIndex={index}
+                    // This needs to be empty to avoid multiple loading texts which show per page and look ugly
+                    // See https://github.com/Expensify/App/issues/14358 for more details
+                    loading=""
+                />
+            </View>
+        );
+    }
+
     render() {
-        const pdfContainerWidth = this.state.windowWidth - 100;
-        const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
-        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth : pageWidthOnLargeScreen;
+        const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
         // If we're requesting a password then we need to hide - but still render -
@@ -136,16 +188,17 @@ class PDFView extends Component {
                         onLoadSuccess={this.onDocumentLoadSuccess}
                         onPassword={this.initiatePasswordChallenge}
                     >
-                        {_.map(_.range(this.state.numPages), (v, index) => (
-                            <Page
+                        {this.state.pageViewports.length > 0 && (
+                            <List
                                 width={pageWidth}
-                                key={`page_${index + 1}`}
-                                pageNumber={index + 1}
-                                // This needs to be empty to avoid multiple loading texts which show per page and look ugly
-                                // See https://github.com/Expensify/App/issues/14358 for more details
-                                loading=""
-                            />
-                        ))}
+                                height={this.props.windowHeight}
+                                estimatedItemSize={this.calculatePageHeight(0)}
+                                itemCount={this.state.numPages}
+                                itemSize={this.calculatePageHeight}
+                            >
+                                {this.renderPage}
+                            </List>
+                        )}
                     </Document>
                 </View>
                 {this.state.shouldRequestPassword && (
