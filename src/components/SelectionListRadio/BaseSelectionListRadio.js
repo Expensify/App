@@ -225,7 +225,7 @@ function SelectionListRadio(props) {
                         />
                     </View>
                 )}
-                {props.headerMessage && (
+                {Boolean(props.headerMessage) && (
                     <View style={[styles.ph5, styles.pb5]}>
                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
                     </View>
