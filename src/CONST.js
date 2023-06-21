@@ -475,8 +475,8 @@ const CONST = {
     APPLE_SIGN_IN_REDIRECT_URI: 'https://new.expensify.com/appleauth',
 
     SIGN_IN_METHOD: {
-        APPLE: 'apple',
-        GOOGLE: 'google',
+        APPLE: 'Apple',
+        GOOGLE: 'Google',
     },
 
     OPTION_TYPE: {
