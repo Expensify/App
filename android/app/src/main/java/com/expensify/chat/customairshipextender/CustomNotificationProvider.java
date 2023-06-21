@@ -1,7 +1,7 @@
 package com.expensify.chat.customairshipextender;
 
 import static androidx.core.app.NotificationCompat.CATEGORY_MESSAGE;
-import static androidx.core.app.NotificationCompat.PRIORITY_HIGH;
+import static androidx.core.app.NotificationCompat.PRIORITY_MAX;
 
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
@@ -99,7 +99,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setChannelId(CHANNEL_MESSAGES_ID);
         } else {
-            builder.setPriority(PRIORITY_HIGH);
+            builder.setPriority(PRIORITY_MAX);
         }
 
         // Attempt to parse data and apply custom notification styling
