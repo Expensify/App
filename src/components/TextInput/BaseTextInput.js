@@ -167,7 +167,6 @@ function BaseTextInput(props) {
         [props.autoGrowHeight, props.multiline],
     );
 
-    const hasValueRef = useRef(inputValue.length > 0);
     useEffect(() => {
         // Handle side effects when the value gets changed programatically from the outside
 
@@ -181,9 +180,15 @@ function BaseTextInput(props) {
         }
     }, [activateLabel, inputValue]);
 
-    useEffect(() => {
-        // Activate or deactivate the label when the focus changes
+    // We capture whether the input has a value or not in a ref.
+    // It gets updated when the text gets changed.
+    const hasValueRef = useRef(inputValue.length > 0);
 
+    // Activate or deactivate the label when the focus changes:
+    useEffect(() => {
+        // We can't use inputValue here directly, as it might contain
+        // the defaultValue, which doesn't get updated when the text changes.
+        // We can't use props.value either, as it might be undefined.
         if (hasValueRef.current || isFocused) {
             activateLabel();
         } else if (!hasValueRef.current && !isFocused) {
