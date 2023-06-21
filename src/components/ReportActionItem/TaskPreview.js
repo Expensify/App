@@ -77,13 +77,7 @@ function TaskPreview(props) {
                     containerStyle={[styles.taskCheckbox]}
                     isChecked={isTaskCompleted}
                     disabled={TaskUtils.isTaskCanceled(props.taskReport)}
-                    onPress={() => {
-                        if (isTaskCompleted) {
-                            TaskUtils.reopenTask(props.taskReport);
-                        } else {
-                            TaskUtils.completeTask(props.taskReportID, taskTitle, props.taskReport.lastMessageText);
-                        }
-                    }}
+                    onPress={() => isTaskCompleted ? TaskUtils.reopenTask(props.taskReport) : TaskUtils.completeTask(props.taskReport)}
                 />
                 <RenderHTML html={htmlForTaskPreview} />
             </View>

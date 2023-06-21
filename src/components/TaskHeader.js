@@ -109,7 +109,7 @@ function TaskHeader(props) {
                                         isDisabled={TaskUtils.isTaskCanceled(props.report) || !TaskUtils.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID)}
                                         medium
                                         text={props.translate('newTaskPage.markAsDone')}
-                                        onPress={() => TaskUtils.completeTask(props.report.reportID, title, props.report.lastMessageText)}
+                                        onPress={() => TaskUtils.completeTask(props.report)}
                                     />
                                 )}
                             </View>

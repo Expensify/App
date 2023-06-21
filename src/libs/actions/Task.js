@@ -186,28 +186,30 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
 
 /**
  * Completes an open task
- * @param {string} taskReportID ReportID of the task
- * @param {string} taskTitle Title of the task
- * @param {string} originalLastMessageText Original last message text shown in LNH preview
+ * @param {Object} report
  */
-function completeTask(taskReportID, taskTitle, originalLastMessageText) {
-    const message = `completed task: ${taskTitle}`;
-    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
+function completeTask(report) {
+    const message = `completed task: ${ReportUtils.getReportName(report)}`;
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.APPROVED,
                 lastMessageText: message,
+                lastVisibleActionCreated: completedTaskReportAction.created,
+                lastActorEmail: completedTaskReportAction.actorEmail,
+                lastActorAccountID: completedTaskReportAction.actorAccountID,
+                lastReadTime: completedTaskReportAction.created,
             },
         },
 
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             value: {[completedTaskReportAction.reportActionID]: completedTaskReportAction},
         },
     ];
@@ -216,16 +218,20 @@ function completeTask(taskReportID, taskTitle, originalLastMessageText) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
-                lastMessageText: originalLastMessageText,
+                lastMessageText: report.lastMessageText,
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                lastActorEmail: report.lastActorEmail,
+                lastActorAccountID: report.lastActorAccountID,
+                lastReadTime: report.lastReadTime,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             value: {[completedTaskReportAction.reportActionID]: {pendingAction: null}},
         },
     ];
@@ -233,7 +239,7 @@ function completeTask(taskReportID, taskTitle, originalLastMessageText) {
     API.write(
         'CompleteTask',
         {
-            taskReportID,
+            taskReportID: report.reportID,
             completedTaskReportActionID: completedTaskReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
@@ -255,8 +261,8 @@ function reopenTask(report) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
-                lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
+                lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastActorEmail: reopenedTaskReportAction.actorEmail,
                 lastActorAccountID: reopenedTaskReportAction.actorAccountID,
                 lastReadTime: reopenedTaskReportAction.created,
@@ -277,8 +283,8 @@ function reopenTask(report) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.APPROVED,
-                lastVisibleActionCreated: report.lastVisibleActionCreated,
                 lastMessageText: report.lastMessageText,
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
                 lastActorEmail: report.lastActorEmail,
                 lastActorAccountID: report.lastActorAccountID,
                 lastReadTime: report.lastReadTime,
@@ -302,7 +308,7 @@ function reopenTask(report) {
 }
 
 /**
- * @param {object} report
+ * @param {Object} report
  * @param {string} ownerEmail
  * @param {Number} ownerAccountID
  * @param {Object} editedTask
