@@ -90,7 +90,7 @@ function HeaderView(props) {
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
-    const subtitleLink = ReportUtils.getChatRoomSubtitleLink(reportHeaderData);
+    const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -187,19 +187,19 @@ function HeaderView(props) {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
-                                {!_.isEmpty(subtitleLink) && (
+                                {!_.isEmpty(parentNavigationSubtitle) && (
                                     <PressableWithoutFeedback
                                         onPress={() => {
                                             Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
                                         }}
-                                        accessibilityLabel={subtitleLink}
+                                        accessibilityLabel={parentNavigationSubtitle}
                                         accessibilityRole="link"
                                     >
                                         <Text
                                             style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
                                             numberOfLines={1}
                                         >
-                                            {subtitleLink}
+                                            {parentNavigationSubtitle}
                                         </Text>
                                     </PressableWithoutFeedback>
                                 )}
