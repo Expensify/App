@@ -242,18 +242,16 @@ function completeTask(taskReportID, taskTitle, originalLastMessageText) {
 
 /**
  * Reopens a closed task
- * @param {string} taskReportID ReportID of the task
- * @param {string} taskTitle Title of the task
- * @param {string} originalLastMessageText Original last message text shown in LNH preview
+ * @param {Object} report
  */
-function reopenTask(taskReportID, taskTitle, originalLastMessageText) {
-    const message = `reopened task: ${taskTitle}`;
-    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
+function reopenTask(report) {
+    const message = `reopened task: ${ReportUtils.getReportName(report)}`;
+    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
@@ -266,7 +264,7 @@ function reopenTask(taskReportID, taskTitle, originalLastMessageText) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             value: {[reopenedTaskReportAction.reportActionID]: reopenedTaskReportAction},
         },
     ];
@@ -275,16 +273,20 @@ function reopenTask(taskReportID, taskTitle, originalLastMessageText) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.APPROVED,
-                lastMessageText: originalLastMessageText,
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                lastMessageText: report.lastMessageText,
+                lastActorEmail: report.lastActorEmail,
+                lastActorAccountID: report.lastActorAccountID,
+                lastReadTime: report.lastReadTime,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             value: {[reopenedTaskReportAction.reportActionID]: {pendingAction: null}},
         },
     ];
@@ -292,7 +294,7 @@ function reopenTask(taskReportID, taskTitle, originalLastMessageText) {
     API.write(
         'ReopenTask',
         {
-            taskReportID,
+            taskReportID: report.reportID,
             reopenedTaskReportActionID: reopenedTaskReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
