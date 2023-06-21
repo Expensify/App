@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -66,16 +66,16 @@ const defaultProps = {
 function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
-    useEffect(() => {
-        const updateReportDraft = () => {
-            if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
-                return;
-            }
-            Report.setReportWithDraft(props.reportID, true);
-        };
+    const [isMounted, setIsMounted] = useState(false);
 
-        updateReportDraft();
-    }, [optionItem, props.comment, props.isFocused, props.reportID]);
+    useEffect(() => {
+        if (isMounted || !optionItem) return;
+        setIsMounted(true);
+
+        if (!optionItem.hasDraftComment && props.comment && props.comment.length > 0 && !props.isFocused) {
+            Report.setReportWithDraft(props.reportID, true);
+        }
+    }, [optionItem, props.comment, props.isFocused, props.reportID, isMounted]);
 
     if (!optionItem) {
         return null;
