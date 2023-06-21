@@ -68,12 +68,12 @@ const showUserDetails = (accountID) => {
 
 function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actorAccountID;
-    const isPolicyAction = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
-    const actorEmail = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
     const actorDetails = props.personalDetailsList[actorAccountID] || {};
-    const displayName = isPolicyAction ? ReportUtils.getPolicyName(props.report) : actorDetails.displayName;
-    const pendingFields = isPolicyAction ? {} : actorDetails.pendingFields;
-    const avatarSource = isPolicyAction ? ReportUtils.getWorkspaceAvatar(props.report) : UserUtils.getAvatar(actorDetails.avatar, actorAccountID);
+    const displayName = isWorkspaceActor ? ReportUtils.getPolicyName(props.report) : actorDetails.displayName;
+    const actorHint = isWorkspaceActor ? displayName : lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const pendingFields = isWorkspaceActor ? {} : actorDetails.pendingFields;
+    const avatarSource = isWorkspaceActor ? ReportUtils.getWorkspaceAvatar(props.report) : UserUtils.getAvatar(actorDetails.avatar, actorAccountID);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -93,17 +93,17 @@ function ReportActionItemSingle(props) {
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                disabled={isPolicyAction}
+                disabled={isWorkspaceActor}
                 onPress={() => showUserDetails(actorAccountID)}
-                accessibilityLabel={isPolicyAction ? displayName : actorEmail}
+                accessibilityLabel={actorHint}
                 accessibilityRole="button"
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
-                            mainAvatar={{source: avatarSource, type: isPolicyAction ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName}}
-                            secondaryAvatar={isPolicyAction ? {} : ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
-                            mainTooltip={isPolicyAction ? displayName : actorEmail}
+                            mainAvatar={{source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName}}
+                            secondaryAvatar={isWorkspaceActor ? {} : ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
+                            mainTooltip={actorHint}
                             secondaryTooltip={ReportUtils.getPolicyName(props.report)}
                             noMargin
                         />
@@ -127,7 +127,7 @@ function ReportActionItemSingle(props) {
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
                             onPress={() => showUserDetails(actorAccountID)}
-                            accessibilityLabel={isPolicyAction ? displayName : actorEmail}
+                            accessibilityLabel={actorHint}
                             accessibilityRole="button"
                         >
                             {_.map(personArray, (fragment, index) => (
