@@ -708,7 +708,7 @@ function getOptions(
                 reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
             // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
+            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.accountID) {
                 continue;
             }
 
