@@ -376,7 +376,6 @@ function getAllReportErrors(report, reportActions) {
  */
 function getLastMessageTextForReport(report) {
     const lastVisibleReportAction = ReportActionUtils.getLastVisibleAction(report.reportID);
-
     let lastMessageTextFromReport = '';
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
