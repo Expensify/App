@@ -50,8 +50,8 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
             />
             <Stack.Screen
-                name="IOU_Request"
-                component={ModalStackNavigators.IOURequestModalStackNavigator}
+                name="MoneyRequest"
+                component={ModalStackNavigators.MoneyRequestModalStackNavigator}
             />
             <Stack.Screen
                 name="NewTask"
@@ -60,10 +60,6 @@ function RigthModalNavigator() {
             <Stack.Screen
                 name="Task_Details"
                 component={ModalStackNavigators.TaskModalStackNavigator}
-            />
-            <Stack.Screen
-                name="IOU_Bill"
-                component={ModalStackNavigators.IOUBillStackNavigator}
             />
             <Stack.Screen
                 name="EnablePayments"
@@ -76,10 +72,6 @@ function RigthModalNavigator() {
             <Stack.Screen
                 name="AddPersonalBankAccount"
                 component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
-            />
-            <Stack.Screen
-                name="IOU_Send"
-                component={ModalStackNavigators.IOUSendModalStackNavigator}
             />
             <Stack.Screen
                 name="Wallet_Statement"
