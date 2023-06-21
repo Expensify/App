@@ -77,7 +77,7 @@ function Checkbox(props) {
             onPress={firePressHandlerOnClick}
             onMouseDown={props.onMouseDown}
             ref={props.forwardedRef}
-            style={props.style}
+            style={[props.style, styles.checkboxPressable]}
             onKeyDown={handleSpaceKey}
             accessibilityRole="checkbox"
             accessibilityState={{checked: props.isChecked}}
@@ -96,8 +96,6 @@ function Checkbox(props) {
                         props.disabled && styles.cursorDisabled,
                         props.isChecked && styles.borderColorFocus,
                     ]}
-                    // Used as CSS selector to customize focus-visible style
-                    dataSet={{checkbox: true}}
                 >
                     {props.isChecked && (
                         <Icon
