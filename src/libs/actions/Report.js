@@ -495,12 +495,11 @@ function navigateToAndOpenReport(userLogins) {
 }
 
 /**
- * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
+ * This will find an existing chat, or create a new one if none exists, for the given accountID or set of accountIDs. It will then navigate to this chat.
  *
  * @param {Array} participantAccountIDs of user logins to start a chat report with.
  */
 function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
-    console.log(participantAccountIDs);
     let newChat = {};
     const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     if (!chat) {
