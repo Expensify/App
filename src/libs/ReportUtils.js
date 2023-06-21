@@ -1972,7 +1972,7 @@ function getChatByParticipants(newParticipantList) {
 
 /**
  * Attempts to find a report in onyx with the provided email list of participants. Does not include threads
- * This is temporary function while Migrating from PersonalDetails to PersonalDetailsList
+ * This is temporary function while migrating from PersonalDetails to PersonalDetailsList
  *
  * @deprecated - use getChatByParticipants()
  *
