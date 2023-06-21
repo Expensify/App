@@ -127,7 +127,7 @@ jobs:
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
-  # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
+  # Create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
     runs-on: ubuntu-latest
     needs: [updateStaging, createNewPatchVersion]
