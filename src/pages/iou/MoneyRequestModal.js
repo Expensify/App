@@ -21,7 +21,6 @@ import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../reportPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
-import * as ReportScrollManager from '../../libs/ReportScrollManager';
 import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -395,14 +394,8 @@ function MoneyRequestModal(props) {
                                     >
                                         {modalHeader}
                                         <MoneyRequestConfirmPage
-                                            onConfirm={(selectedParticipants) => {
-                                                createTransaction(selectedParticipants);
-                                                ReportScrollManager.scrollToBottom();
-                                            }}
-                                            onSendMoney={(paymentMethodType) => {
-                                                sendMoney(paymentMethodType);
-                                                ReportScrollManager.scrollToBottom();
-                                            }}
+                                            onConfirm={createTransaction}
+                                            onSendMoney={sendMoney}
                                             hasMultipleParticipants={props.hasMultipleParticipants}
                                             participants={_.filter(selectedOptions, (option) => props.currentUserPersonalDetails.accountID !== option.accountID)}
                                             iouAmount={amount}

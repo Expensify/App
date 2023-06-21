@@ -16,6 +16,7 @@ import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
+import * as Report from './Report';
 
 const chatReports = {};
 const iouReports = {};
@@ -395,6 +396,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         {optimisticData, successData, failureData},
     );
     Navigation.dismissModal(chatReport.reportID);
+    Report.notifyNewAction(chatReport.reportID, payeeAccountID);
 }
 
 /**
@@ -700,6 +702,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
     );
 
     Navigation.dismissModal();
+    Report.notifyNewAction(groupData.chatReportID, currentUserAccountID);
 }
 
 /**
@@ -729,6 +732,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
     );
 
     Navigation.dismissModal(groupData.chatReportID);
+    Report.notifyNewAction(groupData.chatReportID, currentUserAccountID);
 }
 
 /**
@@ -1210,6 +1214,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipi
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(params.chatReportID);
+    Report.notifyNewAction(params.chatReportID, managerID);
 }
 
 /**
@@ -1226,6 +1231,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
     API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(params.chatReportID);
+    Report.notifyNewAction(params.chatReportID, managerID);
 }
 
 /**
@@ -1242,6 +1248,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipi
     API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
 
     Navigation.dismissModal(params.chatReportID);
+    Report.notifyNewAction(params.chatReportID, managerID);
 
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }

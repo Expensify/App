@@ -1,10 +1,9 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useContext} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -21,6 +20,7 @@ import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
+import ReportScreenContext from '../ReportScreenContext';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -78,6 +78,7 @@ function keyExtractor(item) {
 }
 
 function ReportActionsList(props) {
+    const {flatListRef} = useContext(ReportScreenContext);
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -152,7 +153,7 @@ function ReportActionsList(props) {
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
                 accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
-                ref={ReportScrollManager.flatListRef}
+                ref={flatListRef}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
                 contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
