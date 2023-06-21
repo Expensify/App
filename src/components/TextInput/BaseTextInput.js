@@ -343,7 +343,7 @@ class BaseTextInput extends Component {
                                 />
                                 {Boolean(this.props.secureTextEntry) && (
                                     <Checkbox
-                                        style={styles.textInputIconContainer}
+                                        style={[styles.flex1, styles.textInputIconContainer]}
                                         onPress={this.togglePasswordVisibility}
                                         onMouseDown={(e) => e.preventDefault()}
                                     >
