@@ -44,7 +44,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
+    allPersonalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -66,7 +66,7 @@ const propTypes = {
 
 const defaultProps = {
     ...policyDefaultProps,
-    personalDetails: {},
+    allPersonalDetails: {},
     betas: [],
     invitedEmailsToAccountIDsDraft: {},
 };
@@ -192,7 +192,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(this.props.invitedEmailsToAccountIDsDraft), this.props.personalDetails)}
+                                icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(this.props.invitedEmailsToAccountIDsDraft), this.props.allPersonalDetails)}
                                 shouldStackHorizontally
                                 secondAvatarStyle={[styles.secondAvatarInline]}
                             />
@@ -229,7 +229,7 @@ export default compose(
     withLocalize,
     withPolicyAndFullscreenLoading,
     withOnyx({
-        personalDetails: {
+        allPersonalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
