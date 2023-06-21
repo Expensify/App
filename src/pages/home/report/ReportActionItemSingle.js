@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -66,6 +66,10 @@ const showUserDetails = (accountID) => {
     Navigation.navigate(ROUTES.getProfileRoute(accountID));
 };
 
+const showWorkspaceDetails = (reportID) => {
+    Navigation.navigate(ROUTES.getReportDetailsRoute(reportID));
+};
+
 function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actorAccountID;
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
@@ -87,14 +91,21 @@ function ReportActionItemSingle(props) {
           ]
         : props.action.person;
 
+    const showActorDetails = useCallback(() => {
+        if (isWorkspaceActor) {
+            showWorkspaceDetails(props.report.reportID);
+        } else {
+            showUserDetails(actorAccountID);
+        }
+    }, [isWorkspaceActor, props.report.reportID, actorAccountID]);
+
     return (
         <View style={props.wrapperStyles}>
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                disabled={isWorkspaceActor}
-                onPress={() => showUserDetails(actorAccountID)}
+                onPress={showActorDetails}
                 accessibilityLabel={actorHint}
                 accessibilityRole="button"
             >
@@ -126,7 +137,7 @@ function ReportActionItemSingle(props) {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(actorAccountID)}
+                            onPress={showActorDetails}
                             accessibilityLabel={actorHint}
                             accessibilityRole="button"
                         >
