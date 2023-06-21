@@ -75,7 +75,7 @@ function NewContactMethodPage(props) {
         return '';
     };
 
-    const validate = (values) => {
+    const validate = React.useCallback((values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
         const validateIfnumber = validateNumber(phoneLogin);
 
@@ -98,7 +98,7 @@ function NewContactMethodPage(props) {
         }
 
         return errors;
-    };
+    }, [props.betas, props.loginList]);
 
     const addNewContactMethod = (values) => {
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
