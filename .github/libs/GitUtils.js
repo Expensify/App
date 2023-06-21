@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const {spawn} = require('child_process');
+const CONST = require('./CONST');
 const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
 
 /**
@@ -55,7 +56,7 @@ function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
     _.each(commits, (commit) => {
         const author = commit.authorName;
-        if (author === 'OSBotify') {
+        if (author === CONST.OS_BOTIFY) {
             return;
         }
 
