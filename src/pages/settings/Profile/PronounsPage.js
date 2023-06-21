@@ -68,8 +68,8 @@ function PronounsPage(props) {
             .value();
 
         setPronounsList(pronouns);
-        
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.currentUserPersonalDetails.pronouns]);
 
     const onChangeText = (value = '') => {
