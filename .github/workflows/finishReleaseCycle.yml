@@ -67,10 +67,15 @@ jobs:
 
       - name: Update production branch
         run: |
+          # Get the production branch locally
           git switch production
+
+          # Delete the production branch and re-create it from staging
           git switch staging
           git branch -D production
           git switch -c production
+
+          # Force-update push the new production branch.
           git push --force origin production
 
   # Create a new patch version to prep for next release cycle
@@ -98,10 +103,15 @@ jobs:
 
       - name: Update staging branch to trigger staging deploy
         run: |
+          # Get the staging branch locally
           git switch staging
+
+          # Delete the staging branch and re-create it from main
           git switch main
           git branch -D staging
           git switch -c staging
+
+          # Force-update the updated staging branch
           git push --force origin staging
 
         # Create a local git tag so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a

@@ -99,10 +99,15 @@ jobs:
 
       - name: Update staging branch from main
         run: |
+          # Get the staging branch locally
           git switch staging
+
+          # Delete the staging branch and re-create it from main
           git switch main
           git branch -D staging
           git switch -c staging
+
+          # Force-update the remote staging branch
           git push --force origin staging
 
       - name: Cherry-pick PR to staging
