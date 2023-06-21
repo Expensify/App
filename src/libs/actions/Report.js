@@ -195,10 +195,10 @@ function subscribeToNewActionEvent(reportID, callback) {
 
 /**
  * Notify the ReportActionsView that a new comment has arrived
- * 
- * @param {String} reportID 
- * @param {Number} accountID 
- * @param {String} reportActionID 
+ *
+ * @param {String} reportID
+ * @param {Number} accountID
+ * @param {String} reportActionID
  */
 function notifyNewAction(reportID, accountID, reportActionID) {
     if (reportID !== newActionSubscriber.reportID) {
