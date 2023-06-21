@@ -61,21 +61,24 @@ function TaskView(props) {
                     <>
                         <Text style={styles.taskTitleDescription}>Title</Text>
                         <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
-                            <Checkbox
-                                onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
-                                isChecked={isCompleted}
-                                style={[styles.mr3, styles.mt1]}
-                            />
-                            <View style={[styles.flexRow, styles.flex1]}>
-                                <Text
-                                    numberOfLines={3}
-                                    style={styles.taskTitleMenuItem}
-                                >
-                                    {convertToLTR(taskTitle)}
-                                </Text>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                                <Checkbox
+                                    onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
+                                    isChecked={isCompleted}
+                                    style={[styles.mr3]}
+                                />
+                                <View style={[styles.flexRow, styles.flex1]}>
+                                    <Text
+                                        numberOfLines={3}
+                                        style={styles.taskTitleMenuItem}
+                                    >
+                                        {convertToLTR(taskTitle)}
+                                    </Text>
+                                </View>
                             </View>
                             <View style={styles.taskRightIconContainer}>
                                 <Icon
+                                    additionalStyles={[styles.alignItemsCenter]}
                                     src={Expensicons.ArrowRight}
                                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                                 />

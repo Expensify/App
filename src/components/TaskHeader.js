@@ -67,7 +67,7 @@ function TaskHeader(props) {
                         onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                         disabled={!isOpen}
                         accessibilityRole="button"
-                        accessibilityLabel={props.translate('newTaskPage.assignee')}
+                        accessibilityLabel={props.translate('task.assignee')}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                     >
@@ -120,7 +120,7 @@ function TaskHeader(props) {
             <MenuItemWithTopDescription
                 shouldShowHeaderTitle
                 title={props.report.reportName}
-                description={props.translate('newTaskPage.task')}
+                description={props.translate('task.task')}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID))}
                 disabled={!isOpen}
                 interactive={isOpen}

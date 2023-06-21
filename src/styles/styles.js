@@ -3413,9 +3413,11 @@ const styles = {
 
     taskRightIconContainer: {
         width: variables.componentSizeNormal,
+        marginLeft: 'auto',
         ...spacing.mt1,
         ...pointerEventsAuto,
-        marginLeft: 'auto',
+        ...spacing.dFlex,
+        ...spacing.alignItemsCenter,
     },
 
     shareCodePage: {

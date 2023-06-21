@@ -67,7 +67,7 @@ function TaskPreview(props) {
             onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
             style={[styles.flexRow, styles.justifyContentBetween]}
             accessibilityRole="button"
-            accessibilityLabel={props.translate('newTaskPage.task')}
+            accessibilityLabel={props.translate('task.task')}
         >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
                 <Checkbox

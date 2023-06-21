@@ -101,8 +101,8 @@ function HeaderView(props) {
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
     if (isTaskReport) {
-    const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID);        
-    if (ReportUtils.isOpenTaskReport(props.report) && isTaskAssigneeOrTaskOwner) {
+        const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID);
+        if (ReportUtils.isOpenTaskReport(props.report) && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
