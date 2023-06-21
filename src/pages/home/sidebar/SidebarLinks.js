@@ -92,7 +92,6 @@ const defaultProps = {
     currentUserPersonalDetails: {
         avatar: '',
     },
-    currentReportId: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
