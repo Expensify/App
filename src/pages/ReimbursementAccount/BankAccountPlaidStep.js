@@ -83,6 +83,7 @@ class BankAccountPlaidStep extends React.Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
             >
                 <HeaderWithBackButton
                     title={this.props.translate('workspace.common.connectBankAccount')}
