@@ -435,7 +435,7 @@ function getReportPreviewAction(chatReportID, iouReportID) {
  * @param {Object} reportAction
  * @returns {String}
  */
-function getIOUReportID(reportAction) {
+function getIOUReportIDFromReportActionPreview(reportAction) {
     return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
 }
 
@@ -480,7 +480,7 @@ export {
     getFormattedAmount,
     isSentMoneyReportAction,
     isReportPreviewAction,
-    getIOUReportID,
+    getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
 };
