@@ -162,13 +162,13 @@ function MoneyRequestConfirmationList(props) {
 
             sections.push(
                 {
-                    title: translate('moneyRequestConfirmationList.paidBy'),
+                    title: translate('moneyRequestConfirmationList.whoPaid'),
                     data: [formattedPayeeOption],
                     shouldShow: true,
                     indexOffset: 0,
                 },
                 {
-                    title: translate('moneyRequestConfirmationList.splitWith'),
+                    title: translate('moneyRequestConfirmationList.whoWasThere'),
                     data: formattedParticipantsList,
                     shouldShow: true,
                     indexOffset: 1,

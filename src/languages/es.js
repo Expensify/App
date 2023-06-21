@@ -201,8 +201,8 @@ export default {
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
     },
     moneyRequestConfirmationList: {
-        paidBy: 'Pagado por',
-        splitWith: 'Dividir con',
+        whoPaid: '¿Quién pago?',
+        whoWasThere: '¿Quién asistió?',
         whatsItFor: '¿Para qué es?',
     },
     iOUCurrencySelection: {
