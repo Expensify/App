@@ -113,7 +113,7 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, toolt
  * @param {Number} tooltipTargetHeight - The height of the tooltip's target
  * @param {Number} maxWidth - The tooltip's max width.
  * @param {Number} tooltipContentWidth - The tooltip's inner content measured width.
- * @param {Number} tooltipContentHeight - The tooltip's inner content measured height.
+ * @param {Number} tooltipWrapperHeight - The tooltip's wrapper measured height.
  * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
@@ -131,18 +131,18 @@ export default function getTooltipStyles(
     tooltipTargetHeight,
     maxWidth,
     tooltipContentWidth,
-    tooltipContentHeight,
+    tooltipWrapperHeight,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
     tooltip,
 ) {
     const tooltipVerticalPadding = spacing.pv1;
 
-    // We calculate tooltip width and height based on the tooltip's content width and height
+    // We calculate tooltip width based on the tooltip's content width
     // so the tooltip wrapper is just big enough to fit content and prevent white space.
     // NOTE: Add 1 to the tooltipWidth to prevent truncated text in Safari
     const tooltipWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1;
-    const tooltipHeight = tooltipContentHeight && tooltipContentHeight + tooltipVerticalPadding.paddingVertical * 2;
+    const tooltipHeight = tooltipWrapperHeight;
 
     const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
 
