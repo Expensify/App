@@ -15,7 +15,6 @@ import SignInHeroBackgroundImage from '../../../../assets/images/home-background
 import SignInHeroBackgroundImageMobile from '../../../../assets/images/home-background--mobile.svg';
 import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';
-import withNavigationFocus from '../../../components/withNavigationFocus';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -59,10 +58,6 @@ function SignInPageLayout(props) {
     };
 
     useEffect(scrollPageToTop, [props.welcomeHeader, props.welcomeText]);
-
-    if (!props.isFocused) {
-        return null;
-    }
 
     return (
         <View style={containerStyles}>
@@ -143,4 +138,4 @@ function SignInPageLayout(props) {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default compose(withWindowDimensions, withSafeAreaInsets, withNavigationFocus)(SignInPageLayout);
+export default compose(withWindowDimensions, withSafeAreaInsets)(SignInPageLayout);
