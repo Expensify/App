@@ -27,7 +27,7 @@ export default {
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusCard: 12,
-    componentBorderRadiusRounded: 100,
+    componentBorderRadiusRounded: 24,
     buttonBorderRadius: 100,
     avatarSizeLarge: 80,
     avatarSizeHeader: 40,
