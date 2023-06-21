@@ -616,7 +616,6 @@ function cancelTask(report) {
                 statusNum: report.statusNum,
                 lastMessageText: report.lastMessageText,
                 lastVisibleActionCreated: report.lastVisibleActionCreated,
-                lastMessageText: report.lastMessageText,
                 lastActorEmail: report.lastActorEmail,
                 lastActorAccountID: report.lastActorAccountID,
             },
