@@ -1,9 +1,8 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
-import {Pressable} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import Text from '../Text';
-import HapticFeedback from '../../libs/HapticFeedback';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed.
@@ -13,22 +12,20 @@ import HapticFeedback from '../../libs/HapticFeedback';
  */
 function PressableWithSecondaryInteraction(props) {
     // Use Text node for inline mode to prevent content overflow.
-    const Node = props.inline ? Text : Pressable;
+    const Node = props.inline ? Text : PressableWithFeedback;
+    const executeSecondaryInteraction = (e) => {
+        e.preventDefault();
+        props.onSecondaryInteraction(e);
+    };
+
     return (
         <Node
             ref={props.forwardedRef}
             onPress={props.onPress}
-            onLongPress={(e) => {
-                if (!props.onSecondaryInteraction) {
-                    return;
-                }
-                e.preventDefault();
-                HapticFeedback.longPress();
-                props.onSecondaryInteraction(e);
-            }}
+            onLongPress={props.onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
-            activeOpacity={props.activeOpacity}
+            pressDimmingValue={props.activeOpacity}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {..._.omit(props, 'onLongPress')}
         >

@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import * as Session from '../libs/actions/Session';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -23,7 +24,7 @@ import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from '../components/Icon/Expensicons';
 import MenuItem from '../components/MenuItem';
 import AttachmentModal from '../components/AttachmentModal';
-import PressableWithoutFocus from '../components/PressableWithoutFocus';
+import PressableWithoutFocus from '../components/Pressable/PressableWithoutFocus';
 import * as Report from '../libs/actions/Report';
 import OfflineWithFeedback from '../components/OfflineWithFeedback';
 import AutoUpdateTime from '../components/AutoUpdateTime';
@@ -90,7 +91,7 @@ const getPhoneNumber = (details) => {
 };
 
 function ProfilePage(props) {
-    const accountID = lodashGet(props.route.params, 'accountID', 0);
+    const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -148,8 +149,10 @@ function ProfilePage(props) {
                             >
                                 {({show}) => (
                                     <PressableWithoutFocus
-                                        style={styles.noOutline}
+                                        style={[styles.noOutline]}
                                         onPress={show}
+                                        accessibilityLabel={props.translate('common.profile')}
+                                        accessibilityRole="imagebutton"
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar
@@ -198,11 +201,11 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {!isCurrentUser && Boolean(login) && (
+                        {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
                                 icon={Expensicons.ChatBubble}
-                                onPress={() => Report.navigateToAndOpenReport([login])}
+                                onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                             />
