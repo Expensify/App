@@ -126,7 +126,7 @@
     "react-native-safe-area-context": "4.4.1",
     "react-native-screens": "3.17.0",
     "react-native-svg": "^13.9.0",
-    "react-native-view-shot": "margelo/react-native-view-shot#feat/add-web-support",
+    "react-native-view-shot": "^3.7.0",
     "react-native-web-lottie": "^1.4.4",
     "react-native-webview": "^11.17.2",
     "react-pdf": "^6.2.2",
