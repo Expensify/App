@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import * as optionRowStyles from '../../styles/optionRowStyles';
@@ -56,6 +56,7 @@ const defaultProps = {
 
 function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
+    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     if (!optionItem) {
         return null;
@@ -95,6 +96,7 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+        setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
             event,
@@ -104,7 +106,7 @@ function OptionRowLHN(props) {
             {},
             '',
             () => {},
-            () => {},
+            () => setIsContextMenuActive(false),
             false,
             false,
             optionItem.isPinned,
@@ -140,7 +142,7 @@ function OptionRowLHN(props) {
                             styles.sidebarLinkInner,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
-                            hovered && !props.isFocused ? props.hoverStyle : null,
+                            (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
