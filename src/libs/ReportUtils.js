@@ -776,7 +776,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         return [result];
     }
     if (isConciergeChatReport(report)) {
-        result.source = CONST.CONCIERGE_ICON_URL;
+        result.source = Expensicons.ConciergeAvatar;
         result.name = CONST.EMAIL.CONCIERGE;
         return [result];
     }
