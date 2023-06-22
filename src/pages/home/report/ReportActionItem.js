@@ -449,7 +449,6 @@ function ReportActionItem(props) {
             ref={popoverAnchorRef}
             onPressIn={() => props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
-            onPress={() => {}}
             onSecondaryInteraction={showPopover}
             preventDefaultContextMenu={!props.draftMessage && !hasErrors}
             withoutFocusOnSecondaryInteraction
