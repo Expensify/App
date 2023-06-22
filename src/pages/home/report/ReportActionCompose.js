@@ -143,14 +143,13 @@ const {RNTextInputReset} = NativeModules;
  * Return the max available index for arrow manager.
  * @param {Number} numRows
  * @param {Boolean} isAutoSuggestionPickerLarge
- * @param {Boolean} [isMentionSuggestion]
+ * @param {Number} [maxAmountOfItems]
  * @returns {Number}
  */
-const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge, isMentionSuggestion = false) => {
+const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge, maxAmountOfItems = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS) => {
     // rowCount is number of emoji/mention suggestions. For small screen we can fit 3 items
     // and for large we show up to 5 items for emojis and 20 items for mentions
-    const MAX_SUGGESTIONS = isMentionSuggestion ? CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_MENTIONS : CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS;
-    const rowCount = isAutoSuggestionPickerLarge ? Math.min(numRows, MAX_SUGGESTIONS) : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+    const rowCount = isAutoSuggestionPickerLarge ? Math.min(numRows, maxAmountOfItems) : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return rowCount - 1;
@@ -1191,7 +1190,7 @@ class ReportActionCompose extends React.Component {
                 {!_.isEmpty(this.state.suggestedMentions) && this.state.shouldShowMentionSuggestionMenu && (
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedMentionIndex}
-                        maxIndex={getMaxArrowIndex(this.state.suggestedMentions.length, this.state.isAutoSuggestionPickerLarge, true)}
+                        maxIndex={getMaxArrowIndex(this.state.suggestedMentions.length, this.state.isAutoSuggestionPickerLarge, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_MENTIONS)}
                         shouldExcludeTextAreaNodes={false}
                         onFocusedIndexChanged={(index) => this.setState({highlightedMentionIndex: index})}
                     >
