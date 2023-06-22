@@ -20,6 +20,10 @@ function getMinimalAction(action, state) {
     let targetName = null;
 
     while (currentState.routes[currentState.index].name === currentAction.payload.name) {
+        if (!currentState.routes[currentState.index].state) {
+            break;
+        }
+
         targetName = currentState.routes[currentState.index].name;
         currentState = currentState.routes[currentState.index].state;
 
