@@ -8,6 +8,8 @@ import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import NAVIGATORS from '../../../../NAVIGATORS';
+import SCREENS from '../../../../SCREENS';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
 import PopoverMenu from '../../../../components/PopoverMenu';
@@ -22,6 +24,7 @@ import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
 import * as TaskUtils from '../../../../libs/actions/Task';
 import * as Session from '../../../../libs/actions/Session';
+import * as IOU from '../../../../libs/actions/IOU';
 import * as App from '../../../../libs/actions/App';
 
 /**
@@ -82,7 +85,12 @@ class FloatingActionButtonAndPopover extends React.Component {
     }
 
     componentDidMount() {
-        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+        const navigationState = this.props.navigation.getState();
+        const routes = lodashGet(navigationState, 'routes', []);
+        const currentRoute = routes[navigationState.index];
+        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
+            return;
+        }
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
@@ -190,7 +198,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Send,
                                       text: this.props.translate('iou.sendMoney'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_SEND)),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
                                   },
                               ]
                             : []),
@@ -199,7 +207,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.MoneyCircle,
                                       text: this.props.translate('iou.requestMoney'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_REQUEST)),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
                                   },
                               ]
                             : []),
@@ -208,7 +216,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Receipt,
                                       text: this.props.translate('iou.splitBill'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_BILL)),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
                                   },
                               ]
                             : []),

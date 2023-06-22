@@ -24,6 +24,7 @@ import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
 import * as Report from '../Report';
+import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
 let authTokenType = '';
 Onyx.connect({
@@ -89,6 +90,7 @@ function isAnonymousUser() {
 }
 
 function signOutAndRedirectToSignIn() {
+    hideContextMenu(false);
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');

@@ -64,6 +64,12 @@ Onyx.connect({
     callback: (val) => (personalDetails = val),
 });
 
+let loginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: (val) => (loginList = val),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -155,7 +161,7 @@ function isAdminOfFreePolicy(policies) {
  * @returns {Boolean}
  */
 function isPolicyOwner(policy) {
-    return policy.owner === sessionEmail;
+    return _.keys(loginList).includes(policy.owner);
 }
 
 /**
@@ -529,9 +535,12 @@ function clearAvatarErrors(policyID) {
 function updateGeneralSettings(policyID, name, currency) {
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+
                 pendingFields: {
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
