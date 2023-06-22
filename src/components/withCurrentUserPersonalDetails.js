@@ -22,7 +22,6 @@ export default function (WrappedComponent) {
 
         /** Session of the current user */
         session: PropTypes.shape({
-            email: PropTypes.string,
             accountID: PropTypes.number,
         }),
     };
@@ -30,15 +29,13 @@ export default function (WrappedComponent) {
         forwardedRef: undefined,
         personalDetails: {},
         session: {
-            email: '',
             accountID: 0,
         },
     };
 
-    const WithCurrentUserPersonalDetails = (props) => {
-        const currentUserEmail = props.session.email;
+    function WithCurrentUserPersonalDetails(props) {
         const accountID = props.session.accountID;
-        const currentUserPersonalDetails = useMemo(() => ({...props.personalDetails[currentUserEmail], accountID}), [props.personalDetails, currentUserEmail, accountID]);
+        const currentUserPersonalDetails = useMemo(() => ({...props.personalDetails[accountID], accountID}), [props.personalDetails, accountID]);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -47,7 +44,7 @@ export default function (WrappedComponent) {
                 currentUserPersonalDetails={currentUserPersonalDetails}
             />
         );
-    };
+    }
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
     WithCurrentUserPersonalDetails.propTypes = propTypes;
@@ -64,7 +61,7 @@ export default function (WrappedComponent) {
 
     return withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         session: {
             key: ONYXKEYS.SESSION,

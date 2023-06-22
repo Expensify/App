@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {Linking} from 'react-native';
+import clearCache from './clearCache';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -23,6 +24,7 @@ import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
 import * as Report from '../Report';
+import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
 let authTokenType = '';
 Onyx.connect({
@@ -71,7 +73,9 @@ function signOut() {
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
     });
-
+    clearCache().then(() => {
+        Log.info('Cleared all chache data', true, {}, true);
+    });
     Timing.clearData();
 }
 
@@ -85,6 +89,7 @@ function isAnonymousUser() {
 }
 
 function signOutAndRedirectToSignIn() {
+    hideContextMenu(false);
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
@@ -190,45 +195,6 @@ function resendValidateCode(login = credentials.login) {
                 isLoading: false,
                 message: null,
                 loadingForm: null,
-            },
-        },
-    ];
-    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
-}
-
-/**
- * Request a new validate / magic code for user to sign in automatically with the link
- *
- * @param {String} [login]
- */
-function resendLinkWithValidateCode(login = credentials.login) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                message: null,
-            },
-        },
-    ];
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: Localize.translateLocal('validateCodeModal.successfulNewCodeRequest'),
-            },
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: null,
             },
         },
     ];
@@ -766,7 +732,7 @@ function requestUnlinkValidationLink() {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: Localize.translateLocal('unlinkLoginForm.linkSent'),
+                message: 'unlinkLoginForm.linkSent',
                 loadingForm: null,
             },
         },
@@ -924,7 +890,6 @@ export {
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resendValidateCode,
-    resendLinkWithValidateCode,
     resetPassword,
     resendResetPassword,
     requestUnlinkValidationLink,
