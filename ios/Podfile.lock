@@ -570,10 +570,6 @@ PODS:
   - react-native-plaid-link-sdk (10.0.0):
     - Plaid (~> 4.1.0)
     - React-Core
-  - react-native-progress-bar-android (1.0.4):
-    - React
-  - react-native-progress-view (1.3.2):
-    - React-Core
   - react-native-quick-sqlite (8.0.0-beta.2):
     - React
     - React-callinvoker
@@ -853,8 +849,6 @@ DEPENDENCIES:
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-performance (from `../node_modules/react-native-performance`)
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
-  - "react-native-progress-bar-android (from `../node_modules/@react-native-community/progress-bar-android`)"
-  - "react-native-progress-view (from `../node_modules/@react-native-community/progress-view`)"
   - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -1019,10 +1013,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-performance"
   react-native-plaid-link-sdk:
     :path: "../node_modules/react-native-plaid-link-sdk"
-  react-native-progress-bar-android:
-    :path: "../node_modules/@react-native-community/progress-bar-android"
-  react-native-progress-view:
-    :path: "../node_modules/@react-native-community/progress-view"
   react-native-quick-sqlite:
     :path: "../node_modules/react-native-quick-sqlite"
   react-native-render-html:
@@ -1181,8 +1171,6 @@ SPEC CHECKSUMS:
   react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-performance: 224bd53e6a835fda4353302cf891d088a0af7406
   react-native-plaid-link-sdk: 9eb0f71dad94b3bdde649c7a384cba93024af46c
-  react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
-  react-native-progress-view: 4d3bbe6a099ba027b1fedb1548c2c87f74249b70
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a

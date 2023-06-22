@@ -60,8 +60,6 @@
     "@react-native-community/clipboard": "^1.5.1",
     "@react-native-community/datetimepicker": "^3.5.2",
     "@react-native-community/netinfo": "^9.3.10",
-    "@react-native-community/progress-bar-android": "^1.0.4",
-    "@react-native-community/progress-view": "^1.2.3",
     "@react-native-firebase/analytics": "^12.3.0",
     "@react-native-firebase/app": "^12.3.0",
     "@react-native-firebase/crashlytics": "^12.3.0",
