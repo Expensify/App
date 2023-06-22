@@ -1964,7 +1964,7 @@ function getChatByParticipants(newParticipantList) {
         if (!report || !report.participantAccountIDs || isThread(report)) {
             return false;
         }
-
+        
         // Only return the room if it has all the participants and is not a policy room
         return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
     });

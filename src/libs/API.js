@@ -38,8 +38,9 @@ Request.use(Middleware.SaveResponseInOnyx);
  */
 function write(command, apiCommandParameters = {}, onyxData = {}) {
     // Optimistically update Onyx
+    let updatePromise;
     if (onyxData.optimisticData) {
-        Onyx.update(onyxData.optimisticData);
+        updatePromise = Onyx.update(onyxData.optimisticData);
     }
 
     // Assemble the data we'll send to the API
@@ -68,6 +69,8 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
 
     // Write commands can be saved and retried, so push it to the SequentialQueue
     SequentialQueue.push(request);
+    
+    return updatePromise
 }
 
 /**
