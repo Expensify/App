@@ -3398,7 +3398,6 @@ const styles = {
         ...spacing.flexWrap,
         ...spacing.flex1,
         fontSize: variables.fontSizeXLarge,
-        lineHeight: variables.lineHeightXXLarge,
         maxWidth: '100%',
         wordBreak: 'break-word',
     },
@@ -3409,6 +3408,11 @@ const styles = {
         color: themeColors.textSupporting,
         lineHeight: variables.lineHeightNormal,
         ...spacing.mb1,
+    },
+
+    taskMenuItemCheckbox: {
+        height: 24,
+        ...spacing.mr3,
     },
 
     taskRightIconContainer: {
