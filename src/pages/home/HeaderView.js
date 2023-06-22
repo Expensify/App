@@ -169,8 +169,6 @@ function HeaderView(props) {
                                 <SubscriptAvatar
                                     mainAvatar={icons[0]}
                                     secondaryAvatar={icons[1]}
-                                    mainTooltip={props.report.ownerEmail}
-                                    secondaryTooltip={subtitle}
                                     size={defaultSubscriptSize}
                                 />
                             ) : (

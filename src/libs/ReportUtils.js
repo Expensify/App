@@ -782,6 +782,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             source: UserUtils.getAvatar(lodashGet(personalDetails, [parentReportAction.actorAccountID, 'avatar']), parentReportAction.actorAccountID),
             id: parentReportAction.actorAccountID ? parentReportAction.actorAccountID.toString() : '',
             type: CONST.ICON_TYPE_AVATAR,
+            name: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'firstName'], ''),
         };
 
         return [memberIcon, workspaceIcon];
@@ -794,6 +795,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             id: actorAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
             type: CONST.ICON_TYPE_AVATAR,
+            name: lodashGet(personalDetails, [actorAccountID, 'firstName'], ''),
         };
 
         if (isWorkspaceThread(report)) {
@@ -807,6 +809,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
+            name: lodashGet(personalDetails, [report.ownerAccountID, 'firstName'], ''),
         };
 
         return [ownerIcon];
@@ -830,8 +833,9 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         const workspaceIcon = getWorkspaceIcon(report);
         const memberIcon = {
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
-            name: report.ownerAccountID ? report.ownerAccountID.toString() : '',
+            id: report.ownerAccountID ? report.ownerAccountID.toString() : '',
             type: CONST.ICON_TYPE_AVATAR,
+            name: lodashGet(personalDetails, [report.ownerAccountID, 'firstName'], ''),
         };
         return isExpenseReport(report) ? [memberIcon, workspaceIcon] : [workspaceIcon, memberIcon];
     }
@@ -840,12 +844,14 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.managerID, 'avatar']), report.managerID),
             id: report.managerID ? report.managerID.toString() : '',
             type: CONST.ICON_TYPE_AVATAR,
+            name: lodashGet(personalDetails, [report.managerID, 'firstName'], ''),
         };
 
         const ownerIcon = {
             id: report.ownerAccountID ? report.ownerAccountID.toString() : '',
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
+            name: lodashGet(personalDetails, [report.ownerAccountID, 'firstName'], ''),
         };
 
         return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];

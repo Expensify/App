@@ -12,6 +12,8 @@ const propTypes = {
         displayName: PropTypes.string,
         /** Login */
         login: PropTypes.string,
+        /** Whether this is a Workspace Avatar or User Avatar */
+        type: PropTypes.string,
     }),
     /** Component that displays the tooltip */
     children: PropTypes.node.isRequired,
@@ -21,7 +23,7 @@ const propTypes = {
 
 const defaultProps = {
     accountID: '',
-    fallbackUserDetails: {displayName: '', login: '', avatar: ''},
+    fallbackUserDetails: {displayName: '', login: '', avatar: '', type: ''},
     personalDetailsList: {},
 };
 

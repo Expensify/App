@@ -2,13 +2,15 @@ import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
-import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
 import Avatar from './Avatar';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import avatarPropTypes from './avatarPropTypes';
+import UserDetailsTooltip from './UserDetailsTooltip';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Avatar URL or icon */
@@ -16,12 +18,6 @@ const propTypes = {
 
     /** Subscript avatar URL or icon */
     secondaryAvatar: avatarPropTypes,
-
-    /** Tooltip for the main avatar */
-    mainTooltip: PropTypes.string,
-
-    /** Tooltip for the subscript avatar */
-    secondaryTooltip: PropTypes.string,
 
     /** Set the size of avatars */
     size: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
@@ -34,8 +30,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    mainTooltip: '',
-    secondaryTooltip: '',
     size: CONST.AVATAR_SIZE.DEFAULT,
     backgroundColor: themeColors.componentBG,
     mainAvatar: {},
@@ -56,7 +50,15 @@ function SubscriptAvatar(props) {
     }
     return (
         <View style={[containerStyle, marginStyle]}>
-            <Tooltip text={props.mainTooltip}>
+            <UserDetailsTooltip
+                accountID={lodashGet(props.mainAvatar, 'id', '')}
+                fallbackUserDetails={{
+                    displayName: ReportUtils.getDisplayNameForParticipant(props.mainAvatar.name),
+                    login: lodashGet(props.mainAvatar, 'name', ''),
+                    avatar: lodashGet(props.mainAvatar, 'source', ''),
+                    type: lodashGet(props.mainAvatar, 'type', ''),
+                }}
+            >
                 <View>
                     <Avatar
                         source={props.mainAvatar.source}
@@ -65,8 +67,16 @@ function SubscriptAvatar(props) {
                         type={props.mainAvatar.type}
                     />
                 </View>
-            </Tooltip>
-            <Tooltip text={props.secondaryTooltip}>
+            </UserDetailsTooltip>
+            <UserDetailsTooltip
+                accountID={lodashGet(props.secondaryAvatar, 'id', '')}
+                fallbackUserDetails={{
+                    displayName: ReportUtils.getDisplayNameForParticipant(props.secondaryAvatar.name),
+                    login: lodashGet(props.secondaryAvatar, 'name', ''),
+                    avatar: lodashGet(props.secondaryAvatar, 'source', ''),
+                    type: lodashGet(props.secondaryAvatar, 'type', ''),
+                }}
+            >
                 <View style={props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}}>
                     <Avatar
                         imageStyles={null}
@@ -82,7 +92,7 @@ function SubscriptAvatar(props) {
                         type={props.secondaryAvatar.type}
                     />
                 </View>
-            </Tooltip>
+            </UserDetailsTooltip>
         </View>
     );
 }

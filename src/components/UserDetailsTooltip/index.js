@@ -20,6 +20,8 @@ function UserDetailsTooltip(props) {
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
                         source={UserUtils.getAvatar(userDetails.avatar, userDetails.accountID)}
+                        type={props.fallbackUserDetails.type}
+                        name={props.fallbackUserDetails.login}
                     />
                 </View>
 

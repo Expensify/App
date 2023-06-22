@@ -99,8 +99,6 @@ function ReportActionItemSingle(props) {
                         <SubscriptAvatar
                             mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
                             secondaryAvatar={ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
-                            mainTooltip={actorEmail}
-                            secondaryTooltip={ReportUtils.getPolicyName(props.report)}
                             noMargin
                         />
                     ) : (

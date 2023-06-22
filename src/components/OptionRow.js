@@ -194,8 +194,6 @@ class OptionRow extends Component {
                                             <SubscriptAvatar
                                                 mainAvatar={this.props.option.icons[0]}
                                                 secondaryAvatar={this.props.option.icons[1]}
-                                                mainTooltip={this.props.option.ownerEmail}
-                                                secondaryTooltip={this.props.option.subtitle}
                                                 backgroundColor={hovered && !this.props.optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                                 size={defaultSubscriptSize}
                                             />

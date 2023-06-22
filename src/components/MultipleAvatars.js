@@ -83,6 +83,7 @@ function MultipleAvatars(props) {
                     displayName: ReportUtils.getDisplayNameForParticipant(props.icons[0].name),
                     login: lodashGet(props.icons[0], 'name', tooltipTexts[0]),
                     avatar: lodashGet(props.icons[0], 'source', ''),
+                    type: lodashGet(props.icons[0], 'type', ''),
                 }}
             >
                 <View style={avatarContainerStyles}>
@@ -125,6 +126,12 @@ function MultipleAvatars(props) {
                         <UserDetailsTooltip
                             key={`stackedAvatars-${index}`}
                             accountID={icon.id}
+                            fallbackUserDetails={{
+                                displayName: ReportUtils.getDisplayNameForParticipant(props.icons[0].name),
+                                login: lodashGet(props.icons[0], 'name', tooltipTexts[0]),
+                                avatar: lodashGet(props.icons[0], 'source', ''),
+                                type: lodashGet(props.icons[0], 'type', ''),
+                            }}
                         >
                             <View
                                 style={[
@@ -183,7 +190,15 @@ function MultipleAvatars(props) {
                 </>
             ) : (
                 <View style={[singleAvatarStyle, props.icons[0].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[0].type) : {}]}>
-                    <UserDetailsTooltip accountID={props.icons[0].id}>
+                    <UserDetailsTooltip
+                        accountID={props.icons[0].id}
+                        fallbackUserDetails={{
+                            displayName: ReportUtils.getDisplayNameForParticipant(props.icons[0].name),
+                            login: lodashGet(props.icons[0], 'name', tooltipTexts[0]),
+                            avatar: lodashGet(props.icons[0], 'source', ''),
+                            type: lodashGet(props.icons[0], 'type', ''),
+                        }}
+                    >
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
@@ -198,7 +213,15 @@ function MultipleAvatars(props) {
                     </UserDetailsTooltip>
                     <View style={[...secondAvatarStyles, props.icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[1].type) : {}]}>
                         {props.icons.length === 2 ? (
-                            <UserDetailsTooltip accountID={props.icons[1].id}>
+                            <UserDetailsTooltip
+                                accountID={props.icons[1].id}
+                                fallbackUserDetails={{
+                                    displayName: ReportUtils.getDisplayNameForParticipant(props.icons[1].name),
+                                    login: lodashGet(props.icons[1], 'name', tooltipTexts[1]),
+                                    avatar: lodashGet(props.icons[1], 'source', ''),
+                                    type: lodashGet(props.icons[1], 'type', ''),
+                                }}
+                            >
                                 <View>
                                     <Avatar
                                         source={props.icons[1].source || props.fallbackIcon}
