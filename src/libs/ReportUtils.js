@@ -467,9 +467,10 @@ function isArchivedRoom(report) {
  * @param {String} report.policyID
  * @param {String} report.oldPolicyName
  * @param {String} report.policyName
+ * @param {Boolean} [returnEmptyIfNotFound]
  * @returns {String}
  */
-function getPolicyName(report) {
+function getPolicyName(report, returnEmptyIfNotFound = false) {
     if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
@@ -478,7 +479,7 @@ function getPolicyName(report) {
     //     // Public rooms send back the policy name with the reportSummary,
     //     // since they can also be accessed by people who aren't in the workspace
 
-    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || (returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable'));
 }
 
 /**
@@ -1065,13 +1066,13 @@ function getRootReportAndWorkspaceName(report) {
     if (isMoneyRequestReport(report)) {
         return {
             rootReportName: lodashGet(report, 'displayName', ''),
-            workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report),
+            workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
         };
     }
 
     return {
         rootReportName: getReportName(report),
-        workspaceName: getPolicyName(report),
+        workspaceName: getPolicyName(report, true),
     };
 }
 
@@ -1113,11 +1114,7 @@ function getParentNavigationSubtitle(report) {
             return '';
         }
 
-        let subtitleLink = `${Localize.translateLocal('common.from')} ${rootReportName}`;
-        if (workspaceName && workspaceName !== rootReportName && workspaceName !== Localize.translateLocal('workspace.common.unavailable')) {
-            subtitleLink += ` ${Localize.translateLocal('common.conjunctionIn')} ${workspaceName}`;
-        }
-        return subtitleLink;
+        return Localize.translateLocal('threads.parentNavigationSummary', {rootReportName, workspaceName});
     }
     return '';
 }

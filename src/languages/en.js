@@ -1415,6 +1415,7 @@ export default {
         lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
+        parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName} ${workspaceName ? `in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copyUrlToClipboard: 'Copy URL to clipboard',
