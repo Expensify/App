@@ -27,6 +27,7 @@ import Terms from '../Terms';
 import DotIndicatorMessage from '../../../components/DotIndicatorMessage';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../../hooks/usePrevious';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -213,7 +214,7 @@ function BaseValidateCodeForm(props) {
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
-    const resendButtonStyle = props.network.isOffline ? styles.buttonOpacityDisabled : {};
+
     return (
         <>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -249,7 +250,7 @@ function BaseValidateCodeForm(props) {
                     />
                     <View>
                         <PressableWithFeedback
-                            style={[styles.mt2, resendButtonStyle]}
+                            style={[styles.mt2]}
                             onPress={resendValidateCode}
                             underlayColor={themeColors.componentBG}
                             disabled={props.network.isOffline}
@@ -258,7 +259,7 @@ function BaseValidateCodeForm(props) {
                             accessibilityRole="button"
                             accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                         >
-                            <Text style={[styles.link]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                            <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                         </PressableWithFeedback>
                         {linkSent && !hasError && !_.isEmpty(props.account.message) && (
                             <DotIndicatorMessage
