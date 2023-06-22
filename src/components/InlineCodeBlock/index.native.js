@@ -3,7 +3,7 @@ import styles from '../../styles/styles';
 import WrappedText from './WrappedText';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
-const InlineCodeBlock = (props) => {
+function InlineCodeBlock(props) {
     const TDefaultRenderer = props.TDefaultRenderer;
     return (
         <TDefaultRenderer
@@ -18,7 +18,7 @@ const InlineCodeBlock = (props) => {
             </WrappedText>
         </TDefaultRenderer>
     );
-};
+}
 
 InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;
 InlineCodeBlock.displayName = 'InlineCodeBlock';

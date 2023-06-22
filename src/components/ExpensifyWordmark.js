@@ -33,7 +33,7 @@ const logoComponents = {
     [CONST.ENVIRONMENT.PRODUCTION]: ProductionLogo,
 };
 
-const ExpensifyWordmark = (props) => {
+function ExpensifyWordmark(props) {
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[props.environment] || AdHocLogo;
     return (
@@ -50,7 +50,7 @@ const ExpensifyWordmark = (props) => {
             </View>
         </>
     );
-};
+}
 
 ExpensifyWordmark.displayName = 'ExpensifyWordmark';
 ExpensifyWordmark.defaultProps = defaultProps;

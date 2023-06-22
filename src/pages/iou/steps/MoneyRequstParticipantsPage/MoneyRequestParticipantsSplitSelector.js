@@ -11,10 +11,8 @@ import * as ReportUtils from '../../../../libs/ReportUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import Text from '../../../../components/Text';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
-import avatarPropTypes from '../../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -29,14 +27,11 @@ const propTypes = {
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
-            login: PropTypes.string.isRequired,
-            alternateText: PropTypes.string,
-            hasDraftComment: PropTypes.bool,
-            icons: PropTypes.arrayOf(avatarPropTypes),
-            searchText: PropTypes.string,
-            text: PropTypes.string,
-            keyForList: PropTypes.string,
-            reportID: PropTypes.string,
+            accountID: PropTypes.number,
+            login: PropTypes.string,
+            isPolicyExpenseChat: PropTypes.bool,
+            isOwnPolicyExpenseChat: PropTypes.bool,
+            selected: PropTypes.bool,
         }),
     ),
 
@@ -104,7 +99,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
 
         sections.push({
             title: undefined,
-            data: this.props.participants,
+            data: OptionsListUtils.getParticipantsOptions(this.props.participants, this.props.personalDetails),
             shouldShow: true,
             indexOffset,
         });
@@ -171,14 +166,14 @@ class MoneyRequestParticipantsSplitSelector extends Component {
      * @param {Object} option
      */
     toggleOption(option) {
-        const isOptionInList = _.some(this.props.participants, (selectedOption) => selectedOption.login === option.login);
+        const isOptionInList = _.some(this.props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
 
         let newSelectedOptions;
 
         if (isOptionInList) {
-            newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.login === option.login);
+            newSelectedOptions = _.reject(this.props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
         } else {
-            newSelectedOptions = [...this.props.participants, option];
+            newSelectedOptions = [...this.props.participants, {accountID: option.accountID, login: option.login, selected: true}];
         }
 
         this.props.onAddParticipants(newSelectedOptions);
@@ -214,7 +209,6 @@ class MoneyRequestParticipantsSplitSelector extends Component {
 
         return (
             <View style={[styles.flex1, styles.w100, this.props.participants.length > 0 ? this.props.safeAreaPaddingBottomStyle : {}]}>
-                <Text style={[styles.textLabelSupporting, styles.pt3, styles.ph5]}>{this.props.translate('common.to')}</Text>
                 <OptionsSelector
                     canSelectMultipleOptions
                     sections={sections}
@@ -243,7 +237,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

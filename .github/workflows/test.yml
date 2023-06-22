@@ -35,6 +35,16 @@ jobs:
 
       - name: Jest tests
         run: npx jest --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
+  
+  storybookTests:
+    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    runs-on: ubuntu-latest
+    name: Storybook tests
+    steps:
+      - uses: actions/checkout@885641592076c27bfb56c028cd5612cdad63e16d
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Storybook run
+        run: npm run storybook -- --smoke-test --ci
 
   shellTests:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}

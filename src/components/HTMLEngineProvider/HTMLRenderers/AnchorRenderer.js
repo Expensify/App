@@ -16,7 +16,7 @@ import * as Url from '../../../libs/Url';
 import ROUTES from '../../../ROUTES';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 
-const AnchorRenderer = (props) => {
+function AnchorRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
 
     // An auth token is needed to download Expensify chat attachments
@@ -79,7 +79,6 @@ const AnchorRenderer = (props) => {
     if (isAttachment) {
         return (
             <AnchorForAttachmentsOnly
-                style={styles.alignItemsStart}
                 source={tryResolveUrlFromApiRoot(attrHref)}
                 displayName={displayName}
             />
@@ -96,7 +95,7 @@ const AnchorRenderer = (props) => {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={{...props.style, ...parentStyle}}
+            style={{...props.style, ...parentStyle, ...styles.textUnderlinePositionUnder, ...styles.textDecorationSkipInkNone}}
             key={props.key}
             displayName={displayName}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
@@ -105,7 +104,7 @@ const AnchorRenderer = (props) => {
             <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>
     );
-};
+}
 
 AnchorRenderer.propTypes = htmlRendererPropTypes;
 AnchorRenderer.displayName = 'AnchorRenderer';

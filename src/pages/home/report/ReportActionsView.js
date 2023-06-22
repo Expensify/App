@@ -8,16 +8,18 @@ import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Performance from '../../../libs/Performance';
 import {withNetwork} from '../../../components/OnyxProvider';
 import networkPropTypes from '../../../components/networkPropTypes';
 import ReportActionsList from './ReportActionsList';
 import CopySelectionHelper from '../../../components/CopySelectionHelper';
+import FloatingMessageCounter from './FloatingMessageCounter';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
-import * as ReactionList from './ReactionList/ReactionList';
+import withNavigationFocus from '../../../components/withNavigationFocus';
+import ReactionListRefContext from './ReactionList/ReactionListRefContext';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 
@@ -34,13 +36,22 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
-    ...withDrawerPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reportActions: [],
+    policy: null,
 };
 
 class ReportActionsView extends React.Component {
@@ -51,6 +62,13 @@ class ReportActionsView extends React.Component {
         this.didSubscribeToReportTypingEvents = false;
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
+        this.reactionListRef = React.createRef();
+        this.state = {
+            isFloatingMessageCounterVisible: false,
+            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
+        };
+
+        this.currentScrollOffset = 0;
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions);
 
         this.loadMoreChats = this.loadMoreChats.bind(this);
@@ -91,10 +109,6 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (this.props.isDrawerOpen !== nextProps.isDrawerOpen) {
-            return true;
-        }
-
         if (lodashGet(this.props.report, 'hasOutstandingIOU') !== lodashGet(nextProps.report, 'hasOutstandingIOU')) {
             return true;
         }
@@ -104,6 +118,14 @@ class ReportActionsView extends React.Component {
         }
 
         if (lodashGet(this.props.report, 'statusNum') !== lodashGet(nextProps.report, 'statusNum') || lodashGet(this.props.report, 'stateNum') !== lodashGet(nextProps.report, 'stateNum')) {
+            return true;
+        }
+
+        if (lodashGet(this.props, 'policy.avatar') !== lodashGet(nextProps, 'policy.avatar')) {
+            return true;
+        }
+
+        if (lodashGet(this.props, 'policy.name') !== lodashGet(nextProps, 'policy.name')) {
             return true;
         }
 
@@ -125,11 +147,10 @@ class ReportActionsView extends React.Component {
             }
         }
 
-        // If the report was previously hidden by the side bar, or the view is expanded from mobile to desktop layout
+        // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
-        const didSidebarClose = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
         const didScreenSizeIncrease = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
-        const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
+        const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             this.openReportIfNecessary();
         }
@@ -161,7 +182,7 @@ class ReportActionsView extends React.Component {
      * @returns {Boolean}
      */
     isReportFullyVisible() {
-        return getIsReportFullyVisible(this.props.isDrawerOpen, this.props.isSmallScreenWidth);
+        return getIsReportFullyVisible(this.props.isFocused);
     }
 
     // If the report is optimistic (AKA not yet created) we don't need to call openReport again
@@ -224,18 +245,24 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-                <ReportActionsList
-                    report={this.props.report}
-                    onScroll={this.trackScroll}
-                    onLayout={this.recordTimeToMeasureItemLayout}
-                    sortedReportActions={this.props.reportActions}
-                    mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
-                    isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
-                    loadMoreChats={this.loadMoreChats}
+                <FloatingMessageCounter
+                    isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
+                    onClick={this.scrollToBottomAndMarkReportAsRead}
                 />
+                <ReactionListRefContext.Provider value={this.reactionListRef}>
+                    <ReportActionsList
+                        report={this.props.report}
+                        onScroll={this.trackScroll}
+                        onLayout={this.recordTimeToMeasureItemLayout}
+                        sortedReportActions={this.props.reportActions}
+                        mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
+                        isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                        loadMoreChats={this.loadMoreChats}
+                    />
+                </ReactionListRefContext.Provider>
                 <PopoverReactionList
-                    ref={ReactionList.reactionListRef}
-                    reportID={this.props.report.reportID}
+                    ref={this.reactionListRef}
+                    report={this.props.report}
                 />
                 <CopySelectionHelper />
             </>
@@ -246,4 +273,4 @@ class ReportActionsView extends React.Component {
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
-export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withLocalize, withNetwork())(ReportActionsView);
+export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withNavigationFocus, withLocalize, withNetwork())(ReportActionsView);
