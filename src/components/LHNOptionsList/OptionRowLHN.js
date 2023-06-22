@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -66,16 +66,13 @@ const defaultProps = {
 function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
-    const [isMounted, setIsMounted] = useState(false);
-
     useEffect(() => {
-        if (isMounted || !optionItem) return;
-        setIsMounted(true);
-
+        if (!optionItem) return;
         if (!optionItem.hasDraftComment && props.comment && props.comment.length > 0 && !props.isFocused) {
             Report.setReportWithDraft(props.reportID, true);
         }
-    }, [optionItem, props.comment, props.isFocused, props.reportID, isMounted]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, []);
 
     if (!optionItem) {
         return null;
