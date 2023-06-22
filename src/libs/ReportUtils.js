@@ -1072,7 +1072,7 @@ function getChatRoomSubtitle(report) {
         }
 
         const workspaceName = getPolicyName(report);
-        return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+        return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(` ${Localize.translateLocal('threads.in')} `) : workspaceName}`;
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
