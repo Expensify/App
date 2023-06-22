@@ -166,10 +166,11 @@ function isTaskAssignee(report) {
 /**
  * Checks if a report is an IOU or expense report.
  *
- * @param {Object} report
+ * @param {Object|String} reportOrID
  * @returns {Boolean}
  */
-function isMoneyRequestReport(report) {
+function isMoneyRequestReport(reportOrID) {
+    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
     return isIOUReport(report) || isExpenseReport(report);
 }
 
@@ -1971,6 +1972,28 @@ function getChatByParticipants(newParticipantList) {
 }
 
 /**
+ * Attempts to find a report in onyx with the provided email list of participants. Does not include threads
+ * This is temporary function while migrating from PersonalDetails to PersonalDetailsList
+ *
+ * @deprecated - use getChatByParticipants()
+ *
+ * @param {Array} participantsLoginList
+ * @returns {Array|undefined}
+ */
+function getChatByParticipantsByLoginList(participantsLoginList) {
+    participantsLoginList.sort();
+    return _.find(allReports, (report) => {
+        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
+        if (!report || !report.participants || isThread(report)) {
+            return false;
+        }
+
+        // Only return the room if it has all the participants and is not a policy room
+        return !isUserCreatedPolicyRoom(report) && _.isEqual(participantsLoginList, _.sortBy(report.participants));
+    });
+}
+
+/**
  * Attempts to find a report in onyx with the provided list of participants in given policy
  * @param {Array} newParticipantList
  * @param {String} policyID
@@ -2295,6 +2318,7 @@ export {
     buildOptimisticTaskCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getChatByParticipantsByLoginList,
     getChatByParticipantsAndPolicy,
     getAllPolicyReports,
     getIOUReportActionMessage,

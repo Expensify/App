@@ -322,13 +322,6 @@ function updateSelectedTimezone(selectedTimezone) {
 }
 
 /**
- * Fetches the local currency based on location and sets currency code/symbol to Onyx
- */
-function openMoneyRequestModalPage() {
-    API.read('OpenIOUModalPage');
-}
-
-/**
  * Fetches additional personal data like legal name, date of birth, address
  */
 function openPersonalDetailsPage() {
@@ -490,7 +483,6 @@ export {
     getDisplayNameForTypingIndicator,
     updateAvatar,
     deleteAvatar,
-    openMoneyRequestModalPage,
     openPersonalDetailsPage,
     openPublicProfilePage,
     extractFirstAndLastNameFromAvailableDetails,

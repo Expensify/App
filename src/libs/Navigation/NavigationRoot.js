@@ -56,6 +56,9 @@ function NavigationRoot(props) {
     const onReadyCalled = useRef(false);
 
     const updateSavedNavigationStateAndLogRoute = (state) => {
+        if (!state) {
+            return;
+        }
         navigationStateRef.current = state;
         props.updateCurrentReportId(state);
         parseAndLogRoute(state);
