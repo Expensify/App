@@ -1882,6 +1882,7 @@ export default {
         replies: 'Respuestas',
         reply: 'Respuesta',
         from: 'De',
+        in: 'en',
     },
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',
