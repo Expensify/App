@@ -39,7 +39,7 @@ import TaskHeader from '../../components/TaskHeader';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
-import StylesContext from '../../styles/StylesContext';
+import StylesContext from '../../styles/ThemeStylesContext';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

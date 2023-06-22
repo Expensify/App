@@ -17,8 +17,8 @@ import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import {KeyboardStateProvider} from './components/withKeyboardState';
-import ThemeProvider from './styles/themes/ThemeProvider';
-import StylesProvider from './styles/StylesProvider';
+import ThemeProvider from './styles/themes/ThemeProvider_REA';
+import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIdContextProvider} from './components/withCurrentReportId';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
@@ -51,7 +51,7 @@ function App() {
                     CurrentReportIdContextProvider,
                     PickerStateProvider,
                     ThemeProvider,
-                    StylesProvider,
+                    ThemeStylesProvider,
                 ]}
             >
                 <CustomStatusBar />
