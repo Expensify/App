@@ -141,7 +141,7 @@ function MoneyRequestHeader(props) {
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
                         {!props.isSingleTransactionView && isSettled && (
-                            <View style={styles.moneyRequestHeaderCheckmark}>
+                            <View style={styles.defaultCheckmarkWrapper}>
                                 <Icon
                                     src={Expensicons.Checkmark}
                                     fill={themeColors.iconSuccessFill}
@@ -187,14 +187,23 @@ function MoneyRequestHeader(props) {
                         titleIcon={Expensicons.Checkmark}
                         description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
                         titleStyle={styles.newKansasLarge}
+                        disabled={isSettled}
+                        // Note: These options are temporarily disabled while we figure out the required API changes
+                        // shouldShowRightIcon={!isSettled}
+                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                     />
                     <MenuItemWithTopDescription
                         description={props.translate('common.description')}
                         title={transactionDescription}
+                        disabled={isSettled}
+                        // shouldShowRightIcon={!isSettled}
+                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                     />
                     <MenuItemWithTopDescription
                         description={props.translate('common.date')}
                         title={formattedTransactionDate}
+                        // shouldShowRightIcon={!isSettled}
+                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                     />
                 </>
             )}
