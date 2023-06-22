@@ -176,6 +176,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             });
         }
 
+        boolean hasExistingNotification = notificationCache.messages.size() >= 1;
         try {
             JsonMap reportMap = payload.get(ONYX_DATA_KEY).getList().get(1).getMap().get("value").getMap();
             String reportId = reportMap.keySet().iterator().next();
@@ -207,19 +208,22 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                 notificationCache.bitmapIcons.put(accountID, personIcon);
             }
 
-            // Store the latest report comment in the local conversation history
+            // Despite not using conversation style for the initial notification from each chat, we need to cache it to enable conversation style for future notifications
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
             notificationCache.messages.add(new NotificationCache.Message(person, message, createdTimeInMillis));
 
-            // Create the messaging style notification builder for this notification, associating the
-            // notification with the person who sent the report comment.
-            NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
-                    .setGroupConversation(true)
-                    .setConversationTitle(conversationName);
+            // The initial notification for each conversation should use default styling. Once multiple messages are being displayed we should switch to conversation styling.
+            if (hasExistingNotification) {
+                // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
+                NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
+                        .setGroupConversation(true)
+                        .setConversationTitle(conversationName);
 
-            // Add all conversation messages to the notification, including the last one we just received.
-            for (NotificationCache.Message cachedMessage : notificationCache.messages) {
-                messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
+                // Add all conversation messages to the notification, including the last one we just received.
+                for (NotificationCache.Message cachedMessage : notificationCache.messages) {
+                    messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
+                }
+                builder.setStyle(messagingStyle);
             }
 
             // Clear the previous notification associated to this conversation so it looks like we are
@@ -227,9 +231,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             if (notificationCache.prevNotificationID != -1) {
                 NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationID);
             }
-
-            // Apply the messaging style to the notification builder
-            builder.setStyle(messagingStyle);
 
             // Set notification icon
             builder.setLargeIcon(personIcon);
