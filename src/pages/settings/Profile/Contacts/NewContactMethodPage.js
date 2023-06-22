@@ -100,7 +100,11 @@ function NewContactMethodPage(props) {
 
             return errors;
         },
-        [props.betas, props.loginList],
+        // We don't need `props.loginList` because when submitting this form
+        // the props.loginList gets updated, causing this function to run again.
+        // https://github.com/Expensify/App/issues/20610
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
     );
 
     const addNewContactMethod = (values) => {
