@@ -77,6 +77,9 @@ const propTypes = {
     /** Should we calculate the caret position */
     shouldCalculateCaretPosition: PropTypes.bool,
 
+    /** Function to check whether composer is covered up or not */
+    checkComposerVisibility: PropTypes.func,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -104,6 +107,7 @@ const defaultProps = {
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
     shouldCalculateCaretPosition: false,
+    checkComposerVisibility: () => false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -133,6 +137,7 @@ class Composer extends React.Component {
                 end: initialValue.length,
             },
             valueBeforeCaret: '',
+            isFocused: false,
         };
 
         this.paste = this.paste.bind(this);
@@ -159,7 +164,7 @@ class Composer extends React.Component {
         // There is no onPaste or onDrag for TextInput in react-native so we will add event
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
-            this.textInput.addEventListener('paste', this.handlePaste);
+            document.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
         }
     }
@@ -262,6 +267,7 @@ class Composer extends React.Component {
      */
     paste(text) {
         try {
+            this.textInput.focus();
             document.execCommand('insertText', false, text);
             this.updateNumberOfLines();
 
@@ -289,6 +295,10 @@ class Composer extends React.Component {
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
+        if (!this.props.checkComposerVisibility() && !this.state.isFocused) {
+            return;
+        }
+
         event.preventDefault();
 
         const {files, types} = event.clipboardData;
@@ -461,6 +471,18 @@ class Composer extends React.Component {
                     numberOfLines={this.state.numberOfLines}
                     disabled={this.props.isDisabled}
                     onKeyPress={this.handleKeyPress}
+                    onFocus={() => {
+                        if (this.props.onFocus) {
+                            this.props.onFocus();
+                        }
+                        this.setState({isFocused: true});
+                    }}
+                    onBlur={() => {
+                        if (this.props.onBlur) {
+                            this.props.onBlur();
+                        }
+                        this.setState({isFocused: false});
+                    }}
                 />
                 {this.props.shouldCalculateCaretPosition && renderElementForCaretPosition}
             </>

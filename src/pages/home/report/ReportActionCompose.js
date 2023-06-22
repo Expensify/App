@@ -52,6 +52,10 @@ import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
+import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
+import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /** Beta features list */
@@ -168,7 +172,9 @@ class ReportActionCompose extends React.Component {
         this.setIsFocused = this.setIsFocused.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
-        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.replaceSelectionWithText = this.replaceSelectionWithText.bind(this);
+        this.focusComposerOnKeyPress = this.focusComposerOnKeyPress.bind(this);
+        this.checkComposerVisibility = this.checkComposerVisibility.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.isEmojiCode = this.isEmojiCode.bind(this);
         this.isMentionCode = this.isMentionCode.bind(this);
@@ -183,6 +189,8 @@ class ReportActionCompose extends React.Component {
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
         this.comment = props.comment;
+
+        this.attachmentModalRef = React.createRef();
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -236,6 +244,8 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
+        KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -270,6 +280,7 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+        KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress);
     }
 
     onSelectionChange(e) {
@@ -658,18 +669,53 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
-     * @param {String} emoji
+     * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
+     * @param {String} text
      */
-    addEmojiToTextBox(emoji) {
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
+    replaceSelectionWithText(text) {
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, text));
         this.setState((prevState) => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + text.length,
+                end: prevState.selection.start + text.length,
             },
         }));
+    }
+
+    /**
+     * Check if the composer is visible. Returns true if the composer is not covered up by emoji picker or menu. False otherwise.
+     * @returns {Boolean}
+     */
+    checkComposerVisibility() {
+        const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(Navigation.getActiveRoute());
+        const isMainReportScreen = Boolean(reportID) && !isSubReportPageRoute;
+        const isComposerCoveredUp = !isMainReportScreen || EmojiPickerActions.isEmojiPickerVisible() || this.state.isMenuVisible;
+        return !isComposerCoveredUp;
+    }
+
+    focusComposerOnKeyPress(e) {
+        const isComposerVisible = this.checkComposerVisibility();
+        if (!isComposerVisible) {
+            return;
+        }
+
+        // If the key pressed is non-character keys like Enter, Shift, ... do not focus
+        if (e.key.length > 1) {
+            return;
+        }
+
+        // If a key is pressed in combination with Meta, Control or Alt do not focus
+        if (e.metaKey || e.ctrlKey || e.altKey) {
+            return;
+        }
+
+        // if we're typing on another input/text area, do not focus
+        if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
+            return;
+        }
+
+        this.focus();
+        this.replaceSelectionWithText(e.key);
     }
 
     /**
@@ -1070,6 +1116,7 @@ class ReportActionCompose extends React.Component {
                                             disabled={this.props.disabled}
                                         >
                                             <Composer
+                                                checkComposerVisibility={() => this.checkComposerVisibility()}
                                                 autoFocus={this.shouldAutoFocus}
                                                 multiline
                                                 ref={this.setTextInputRef}
@@ -1122,7 +1169,7 @@ class ReportActionCompose extends React.Component {
                                 onModalHide={() => {
                                     this.focus(true);
                                 }}
-                                onEmojiSelected={this.addEmojiToTextBox}
+                                onEmojiSelected={this.replaceSelectionWithText}
                             />
                         )}
                         <View
