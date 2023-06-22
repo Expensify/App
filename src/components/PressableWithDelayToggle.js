@@ -95,7 +95,7 @@ function PressableWithDelayToggle(props) {
                 containerStyles={[styles.flexRow]}
                 text={props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText}
             >
-                <>
+                <span>
                     <Text
                         suppressHighlighting
                         style={props.textStyles}
@@ -123,7 +123,7 @@ function PressableWithDelayToggle(props) {
                             </>
                         )}
                     </Pressable>
-                </>
+                </span>
             </Tooltip>
         </PressableView>
     );
