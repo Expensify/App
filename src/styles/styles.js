@@ -1246,7 +1246,7 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: variables.leftPaneMaxWidth,
+        maxWidth: variables.sideBarWidth,
     },
 
     rightPanelContainer: {
@@ -2228,10 +2228,6 @@ const styles = {
         minWidth: 100,
     },
 
-    twoFactorAuthFooter: {
-        marginTop: 'auto',
-    },
-
     anonymousRoomFooter: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -2464,13 +2460,20 @@ const styles = {
         alignItems: 'center',
     },
 
+    checkboxPressable: {
+        borderRadius: 6,
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     checkboxContainer: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: 2,
+        borderRadius: 4,
         height: 20,
         width: 20,
-        borderColor: themeColors.icon,
-        borderWidth: 1,
+        borderColor: themeColors.borderLighter,
+        borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -2557,8 +2560,8 @@ const styles = {
         marginBottom: 0,
     },
 
-    iouPreviewBoxCheckmark: {
-        marginLeft: 4,
+    defaultCheckmarkWrapper: {
+        marginLeft: 8,
         alignSelf: 'center',
     },
 
@@ -2689,10 +2692,6 @@ const styles = {
     noSelect: {
         boxShadow: 'none',
         outline: 'none',
-    },
-
-    cursorPointer: {
-        cursor: 'pointer',
     },
 
     cardStyleNavigator: {
@@ -2907,6 +2906,14 @@ const styles = {
         paddingRight: 12,
         paddingLeft: 12,
         marginTop: 12,
+    },
+
+    shortTermsHeadline: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
     },
 
     longTermsRow: {
@@ -3338,11 +3345,6 @@ const styles = {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
         lineHeight: variables.lineHeightXXLarge,
-    },
-
-    moneyRequestHeaderCheckmark: {
-        marginLeft: 5,
-        alignSelf: 'center',
     },
 
     loginHeroBody: {

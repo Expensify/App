@@ -136,7 +136,7 @@ class OptionRow extends Component {
 
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-            (this.props.option.participantsList || this.props.option.login ? [this.props.option] : []).slice(0, 10),
+            (this.props.option.participantsList || (this.props.option.accountID ? [this.props.option] : [])).slice(0, 10),
             isMultipleParticipant,
         );
         let subscriptColor = themeColors.appBG;
@@ -186,7 +186,6 @@ class OptionRow extends Component {
                             accessibilityRole="button"
                             hoverDimmingValue={1}
                             hoverStyle={this.props.hoverStyle}
-                            focusStyle={this.props.hoverStyle}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
