@@ -224,6 +224,8 @@ class BaseTextInput extends Component {
             {},
         );
         const isMultiline = this.props.multiline || this.props.autoGrowHeight;
+        //if AutoGrowWeight is true, placeholder needs to be filled with any string.
+        const hiddenTextPlaceholder = this.props.placeholder ? this.props.placeholder : this.props.autoGrowHeight ? ' ' : '';
 
         return (
             <>
@@ -388,7 +390,7 @@ class BaseTextInput extends Component {
                         ]}
                         onLayout={(e) => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height})}
                     >
-                        {this.state.value || this.props.placeholder}
+                        {this.state.value || hiddenTextPlaceholder}
                     </Text>
                 )}
             </>
