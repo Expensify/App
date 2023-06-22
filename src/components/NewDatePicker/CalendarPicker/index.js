@@ -2,8 +2,7 @@ import {Portal} from '@gorhom/portal';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
-import Animated, {SlideInRight, SlideOutLeft} from 'react-native-reanimated';
+import {View} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../../CONST';
 import getButtonState from '../../../libs/getButtonState';
@@ -14,6 +13,7 @@ import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
 import Text from '../../Text';
 import withLocalize from '../../withLocalize';
 import ArrowIcon from './ArrowIcon';
+import ScreenSlideAnimation from './ScreenSlideAnimation';
 import YearPickerPage from './YearPickerPage';
 import {propTypes as calendarPickerPropType, defaultProps as defaultCalendarPickerPropType} from './calendarPickerPropTypes';
 import generateMonthMatrix from './generateMonthMatrix';
@@ -307,19 +307,6 @@ class CalendarPicker extends React.PureComponent {
             </View>
         );
     }
-}
-
-function ScreenSlideAnimation({children}) {
-    return (
-        <Animated.View
-            key="yearPicker"
-            entering={SlideInRight}
-            exiting={SlideOutLeft}
-            style={StyleSheet.absoluteFillObject}
-        >
-            {children}
-        </Animated.View>
-    );
 }
 
 CalendarPicker.propTypes = calendarPickerPropType;
