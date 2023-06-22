@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {Linking} from 'react-native';
+import clearCache from './clearCache';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -23,6 +24,7 @@ import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
 import * as Report from '../Report';
+import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
 let authTokenType = '';
 Onyx.connect({
@@ -72,7 +74,9 @@ function signOut() {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         shouldRetry: false,
     });
-
+    clearCache().then(() => {
+        Log.info('Cleared all chache data', true, {}, true);
+    });
     Timing.clearData();
 }
 
@@ -86,6 +90,7 @@ function isAnonymousUser() {
 }
 
 function signOutAndRedirectToSignIn() {
+    hideContextMenu(false);
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');

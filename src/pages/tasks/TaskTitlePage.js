@@ -41,25 +41,21 @@ function TaskTitlePage(props) {
      * @param {String} values.title
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
+    const validate = useCallback((values) => {
+        const errors = {};
 
-            if (_.isEmpty(values.title)) {
-                errors.title = props.translate('newTaskPage.pleaseEnterTaskName');
-            }
+        if (_.isEmpty(values.title)) {
+            errors.title = 'newTaskPage.pleaseEnterTaskName';
+        }
 
-            return errors;
-        },
-        [props],
-    );
+        return errors;
+    }, []);
 
     const submit = useCallback(
         (values) => {
             // Set the description of the report in the store and then call TaskUtils.editTaskReport
             // to update the description of the report on the server
-
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, {title: values.title});
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {title: values.title});
         },
         [props],
     );

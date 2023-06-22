@@ -22,7 +22,7 @@ import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
     /** Users accountID */
-    accountID: PropTypes.string.isRequired,
+    accountID: PropTypes.number.isRequired,
 
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,
