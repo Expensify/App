@@ -145,8 +145,6 @@ export default {
         km: 'kilómetro',
         copied: '¡Copiado!',
         someone: 'Alguien',
-        from: 'De',
-        conjunctionIn: 'en',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
