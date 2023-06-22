@@ -115,7 +115,12 @@ function MoneyRequestConfirmPage(props) {
             const splitReport = ReportUtils.getChatByParticipants(_.map(selectedParticipants, (participant) => Number(participant.accountID)));
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
-            if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current) && splitReport !== undefined && splitReport.reportID === reportID.current) {
+            if (
+                iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT &&
+                CONST.REGEX.NUMBER.test(reportID.current) &&
+                splitReport !== undefined &&
+                splitReport.reportID === reportID.current
+            ) {
                 IOU.splitBill(
                     selectedParticipants,
                     props.currentUserPersonalDetails.login,
